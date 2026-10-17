@@ -1,0 +1,57 @@
+{
+  "issue": 1834,
+  "branch": "paudley/1834-repair-shared-helper-ownership-and",
+  "base": "origin/paudley/1829-fixtures-goal-directed-aggregate",
+  "commits": [
+    {
+      "oid": "f033b9f3a84cabc6319ca05453afc216c5037cb5",
+      "subject": "docs(logic): clarify diagnostic contracts and native terminology",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "12380e2dfeb42eac126b3669d3ab64be43db4ed7",
+      "subject": "fix(logic): remove facet string errors and ground service refusals",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "c3123db1afb5d65e2a24216ab9618b27031b5ff3",
+      "subject": "docs(helpers): explain source and diagnostic regression contracts",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "425eb65de7c6b859d35b2e2031b41929d341f9af",
+      "subject": "fix(build): own shared diagnostic macro inputs",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "c74f5e8042e06fec0ac6ddf68ec810b859f0fb05",
+      "subject": "fix(helpers): share RDF emission and diagnostic registration",
+      "date": "2026-10-16"
+    }
+  ],
+  "files": [
+    "crates/affect-ingest/src/lib.rs",
+    "crates/build-inputs/src/modules.rs",
+    "crates/build-inputs/tests/inventory.rs",
+    "crates/errors/src/diag.rs",
+    "crates/errors/src/diag.tests.rs",
+    "crates/errors/src/error.tests.rs",
+    "crates/gmeow-cli/src/commands/reasoning_input.rs",
+    "crates/gmeow-cli/src/commands/reasoning_report.rs",
+    "crates/gmeow-cli/src/error.rs",
+    "crates/logic-compile/src/frontend.rs",
+    "crates/logic-compile/src/tptp/contracts.tests.rs",
+    "crates/logic/src/error.rs",
+    "crates/logic/src/reasoner_services.tests.rs",
+    "crates/math-lift/src/sink.rs",
+    "crates/math-lift/src/sink.tests.rs",
+    "crates/math/src/lib.rs",
+    "helpers-census-debt.json",
+    "slices/grounding/logic/i18n/fr.po",
+    "slices/grounding/logic/i18n/zh.po",
+    "slices/grounding/logic/module.ttl"
+  ],
+  "adrs_touched": [
+    "0042"
+  ]
+}

@@ -1,0 +1,43 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-build-inputs) & (test(diagnostic_macros_retain_nested_inputs) | test(local_macro_capabilities_follow) | test(standard_output_macros_retain) | test(negated_keyword_expressions))' --no-tests=fail
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/build-inputs)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/math-lift)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/slicetest)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/math)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/action-cache)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/affect-ingest)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/xtask)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 09s
+────────────
+ Nextest run ID 3e26ff8b-5145-4079-81e0-5fed1f4f1e22 with nextest profile: ci
+    Starting 4 tests across 4 binaries (38 tests and 221 binaries skipped)
+        PASS [   0.005s] (1/4) gmeow-build-inputs::inventory negated_keyword_expressions_are_not_macro_invocations
+        PASS [   0.005s] (2/4) gmeow-build-inputs::inventory local_macro_capabilities_follow_lexical_blocks_and_module_scopes
+        PASS [   0.005s] (3/4) gmeow-build-inputs::inventory diagnostic_macros_retain_nested_inputs_and_refuse_unowned_capabilities
+        PASS [   0.006s] (4/4) gmeow-build-inputs::inventory standard_output_macros_retain_nested_input_ownership
+────────────
+     Summary [   0.073s] 4 tests run: 4 passed, 38 skipped

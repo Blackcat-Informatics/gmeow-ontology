@@ -1,0 +1,36 @@
+{
+  "paths": [],
+  "identifiers": [
+    {
+      "name": "gmeow_affect_ingest::Sink::string",
+      "files": 0
+    },
+    {
+      "name": "gmeow_math_lift::sink::Sink::string",
+      "files": 0
+    },
+    {
+      "name": "WorldStore::default",
+      "files": 1
+    },
+    {
+      "name": "ReasoningInputFailure",
+      "files": 4
+    },
+    {
+      "name": "ProverFailed",
+      "files": 3
+    },
+    {
+      "name": "correspondence_lower::parse_turtle",
+      "files": 1
+    },
+    {
+      "name": "correspondence_soundness::parse_turtle",
+      "files": 1
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "issue": 1834,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and",
+  "branch": "paudley/1834-repair-shared-helper-ownership-and",
+  "slug": "repair-shared-helper-ownership-and",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/.stage/repair-shared-helper-ownership-and",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "b25d5c510a68d59a54a6eda69da7a6595f863b06",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and",
+    "branch:paudley/1834-repair-shared-helper-ownership-and",
+    "removed stale .git/info/exclude:/.stage/",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/.stage/repair-shared-helper-ownership-and",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/.stage/repair-shared-helper-ownership-and/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-16T14:44:49-0600"
+}

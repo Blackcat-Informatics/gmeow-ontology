@@ -1,0 +1,3 @@
+@coderabbitai review
+
+Please review current head bc70ca583: the required helper check runs in an independent first-wave job, stays mandatory in quality, and explicitly acquires locked dependencies before the unchanged offline census. The source-only lint boundary and both cold generations remain intact. All 20 gate contracts, source hygiene and normal commit hooks pass. Hosted helper job 117261693343 has now passed, including dependency acquisition and the full real target. Please also assess the corrected fixture/verifier contract assertions and single required-quality-job inventory. Full production and consumer acceptance remain pending.

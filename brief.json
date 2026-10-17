@@ -1,0 +1,118 @@
+{
+  "issue": 1834,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "build: repair shared-helper ownership and lower stale debt on main",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1757": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+    "1740": "perf(logic): integrate the authenticated native pipeline and calculus",
+    "1704": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+    "1748": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+    "317": "Music \u00b7 Timbre & the sensory bridge (MIR observations, embeddings by reference)",
+    "1760": "perf(logic): restore certified batch slice probes"
+  },
+  "link_relations": {
+    "1757": "mentions",
+    "1740": "2-hop",
+    "1704": "2-hop",
+    "1748": "2-hop",
+    "317": "2-hop",
+    "1760": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1792,
+      "title": "Case-split class analysis is quadratic in restriction descriptors during materialization",
+      "state": "OPEN"
+    },
+    {
+      "number": 1805,
+      "title": "logic: rule projection uses RDF 1.1 classic reification (rdf:Statement); move to RDF 1.2 triple terms",
+      "state": "OPEN"
+    },
+    {
+      "number": 1757,
+      "title": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+      "state": "OPEN"
+    },
+    {
+      "number": 1745,
+      "title": "perf: adopt typed correspondence execution throughout the production pipeline",
+      "state": "OPEN"
+    },
+    {
+      "number": 1762,
+      "title": "refactor: complete Diag migration for prover and physical execution errors",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1742,
+      "title": "logic: implement correspondence composition and standpoint-indexed merge",
+      "state": "OPEN"
+    },
+    {
+      "number": 1732,
+      "title": "perf: persist completed producer fixtures across CI runs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1698,
+      "title": "Fix post-relocation model-facing freeze comparands",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1699,
+      "title": "bug(ci): cold generation shuts down 16 GB hosted runners at the GTS sink",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1655,
+      "title": "repo hygiene: sweep stale process references and tighten the ref lint",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1143,
+      "title": "fanout: reconstruct generated/ from gmeow.gts as a post-pipeline projection; retire direct stage writes",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1377,
+      "title": "pipeline/rust: GMN-1 projection via the lang PROJECTIONS registry \u2014 graph-derived writer/parser, round-trip gate, token metrics, training-corpus emitter (part of #1371)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1482,
+      "title": "docs: replace deferred diagram-SVG placeholders with purrdf's SVG graph library",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 2,
+    "consumer-artifact-path-coupling": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1834-repair-shared-helper-ownership-and"
+  },
+  "coverage": [
+    "issue #1834 + 0 comment(s) via github",
+    "link crawl: 6 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['build:', 'repair', 'shared-helper']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 4 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1834 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1834: 0",
+    "requirement candidates: 1 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 0 path(s) (0 on disk), 7 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

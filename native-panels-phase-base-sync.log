@@ -1,0 +1,5 @@
+Merge made by the 'ort' strategy.
+ crates/pipeline/src/stages/carrier.rs              | 20 +++++----
+ .../src/stages/carrier.term_entailments_tests.rs   | 49 +++++++++++++++-------
+ crates/pipeline/src/stages/docs_render.rs          | 12 +++---
+ 3 files changed, 53 insertions(+), 28 deletions(-)

@@ -1,0 +1,28 @@
+Merge made by the 'ort' strategy.
+ Cargo.lock                                         |  20 +-
+ crates/docs-model/src/badge.rs                     |  26 +-
+ crates/docs-model/src/badge.tests.rs               |  42 +-
+ crates/docs-model/src/model.rs                     |  56 ++-
+ crates/docs-model/src/rdf.rs                       |  12 +-
+ crates/docs-model/src/rdf.tests.rs                 |  18 +
+ crates/docs-print/src/render.rs                    |  18 +-
+ crates/docs-print/tests/render.rs                  |  24 +-
+ crates/docs/src/render.rs                          |  31 +-
+ crates/docs/src/render.tests.rs                    |  20 +
+ crates/docs/tests/coverage_dimensions.rs           |  10 +-
+ crates/logic/src/correspondence_exec.tests.rs      |  58 +++
+ crates/logic/src/explain.rs                        |   3 +-
+ crates/pipeline/src/fixture.tests.rs               |  13 +
+ .../carrier.reasoning_edb_projection_tests.rs      |   1 +
+ crates/pipeline/src/stages/carrier.rs              | 373 +++++------------
+ .../src/stages/carrier.term_entailments_tests.rs   | 439 +++++++++------------
+ crates/pipeline/src/stages/carrier.ustar_tests.rs  |   7 +-
+ crates/pipeline/src/stages/carrier/test_support.rs |  11 +-
+ crates/pipeline/src/stages/docs_render.rs          |  90 ++---
+ .../src/stages/docs_render/reasoning_tests.rs      |  96 +++--
+ crates/pipeline/src/stages/goal_directed.rs        |  21 +-
+ crates/pipeline/src/stages/gts_sink.rs             |   2 +-
+ imports/supersession-correspondences.ttl           |  10 +
+ slices/core/documentation/module.ttl               |   2 +-
+ slices/core/pipeline/module.ttl                    |   2 +-
+ 26 files changed, 748 insertions(+), 657 deletions(-)

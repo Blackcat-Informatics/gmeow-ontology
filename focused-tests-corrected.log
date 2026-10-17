@@ -1,0 +1,47 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-errors) | package(gmeow-affect-ingest) | (package(gmeow-math-lift) & test(sink::tests::))' --no-tests=fail
+   Compiling ureq v3.3.0
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/math)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/transcode)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/music)
+   Compiling typst v0.13.1
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/cli-core)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/math-lift)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/query-wasm)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/bundle-import)
+error[E0255]: the name `format_decimal` is defined multiple times
+   --> crates/math/src/lib.rs:362:1
+    |
+ 45 | pub use gmeow_math_lift::sink::{Sink as RdfSink, format_decimal};
+    |                                                  -------------- previous import of the value `format_decimal` here
+...
+362 | fn format_decimal(value: Rational) -> Result<String> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `format_decimal` redefined here
+    |
+    = note: `format_decimal` must be defined only once in the value namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+ 45 | pub use gmeow_math_lift::sink::{Sink as RdfSink, format_decimal as other_format_decimal};
+    |                                                                 +++++++++++++++++++++++
+
+error: unused import: `format_decimal`
+  --> crates/math/src/lib.rs:45:50
+   |
+45 | pub use gmeow_math_lift::sink::{Sink as RdfSink, format_decimal};
+   |                                                  ^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+For more information about this error, try `rustc --explain E0255`.
+error: could not compile `gmeow-math` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-math` (lib test) due to 2 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:713: nextest-synthetic] Error 101

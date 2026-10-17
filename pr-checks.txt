@@ -1,0 +1,4 @@
+$ stagectl pr-checks 1835
+SUCCESS    CodeRabbit
+SUCCESS    license/cla
+state: pass

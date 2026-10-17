@@ -1,0 +1,227 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-dev-cli) & binary(make_gate_contract)' --no-tests=fail
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [optimized] target(s) in 1m 22s
+────────────
+ Nextest run ID 6f46cf1a-fdf6-4af9-ba23-3f97d937d1a5 with nextest profile: ci
+    Starting 19 tests across 1 binary (224 binaries skipped)
+        PASS [   0.011s] ( 1/19) gmeow-dev-cli::make_gate_contract validate_help_matches_the_phase_coverage_registry
+        PASS [   0.010s] ( 2/19) gmeow-dev-cli::make_gate_contract console_smoke_provisions_its_pinned_browser_before_make
+        PASS [   0.009s] ( 3/19) gmeow-dev-cli::make_gate_contract ci_parallelizes_cold_generation_without_weakening_the_authority_gate
+        PASS [   0.010s] ( 4/19) gmeow-dev-cli::make_gate_contract medium_sweep_has_only_the_authenticated_producer_entry_point
+        PASS [   0.009s] ( 5/19) gmeow-dev-cli::make_gate_contract term_release_authority_has_only_the_authenticated_producer_entry_point
+        PASS [   0.012s] ( 6/19) gmeow-dev-cli::make_gate_contract evidence_binaries_have_one_dependency_light_owner
+        FAIL [   0.011s] ( 7/19) gmeow-dev-cli::make_gate_contract aggregate_gate_has_one_owner_for_each_expensive_equivalence_class
+  stdout ───
+
+    running 1 test
+    test aggregate_gate_has_one_owner_for_each_expensive_equivalence_class ... FAILED
+
+    failures:
+
+    failures:
+        aggregate_gate_has_one_owner_for_each_expensive_equivalence_class
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'aggregate_gate_has_one_owner_for_each_expensive_equivalence_class' (126235) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:502:5:
+    assertion `left == right` failed: aggregate DAG inventory changed
+      left: ["sync", "check-lint", "crate-check", "helpers-hygiene", "i18n-lint", "rust-build", "test-fixtures", "clippy", "nextest", "doctests", "validate", "medium-gate", "constitution-check", "audit", "wikidata", "coverage", "reason-verify", "console-test", "console", "lint-alignment", "doc-lint", "slice-quality-gate", "compliance-report"]
+     right: ["sync", "check-lint", "crate-check", "i18n-lint", "rust-build", "test-fixtures", "clippy", "nextest", "doctests", "validate", "medium-gate", "constitution-check", "audit", "wikidata", "coverage", "reason-verify", "console-test", "console", "lint-alignment", "doc-lint", "slice-quality-gate", "compliance-report"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.011s] ( 8/19) gmeow-dev-cli::make_gate_contract standalone_targets_remain_complete_while_check_uses_scoped_composition
+  stdout ───
+
+    running 1 test
+    test standalone_targets_remain_complete_while_check_uses_scoped_composition ... FAILED
+
+    failures:
+
+    failures:
+        standalone_targets_remain_complete_while_check_uses_scoped_composition
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'standalone_targets_remain_complete_while_check_uses_scoped_composition' (126239) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:1516:5:
+    assertion `left == right` failed
+      left: "lint: check-sync-prerequisite-test ## Run fast source hygiene and inert docs prerequisite controls."
+     right: "lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, and source-policy seals)."
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.013s] ( 9/19) gmeow-dev-cli::make_gate_contract consumer_cli_build_is_source_first_without_repeating_an_existing_producer_run
+        FAIL [   0.013s] (10/19) gmeow-dev-cli::make_gate_contract browser_codebook_builds_require_exact_read_only_producer_selection
+  stdout ───
+
+    running 1 test
+    test browser_codebook_builds_require_exact_read_only_producer_selection ... FAILED
+
+    failures:
+
+    failures:
+        browser_codebook_builds_require_exact_read_only_producer_selection
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'browser_codebook_builds_require_exact_read_only_producer_selection' (126240) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:33:28:
+    missing workflow step Download the producer-selected browser codebook fixtures
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.013s] (11/19) gmeow-dev-cli::make_gate_contract the_heavy_lane_still_runs_on_every_pr
+        PASS [   0.016s] (12/19) gmeow-dev-cli::make_gate_contract ci_cold_producer_build_supplies_measurement_prerequisites
+        PASS [   0.015s] (13/19) gmeow-dev-cli::make_gate_contract the_rust_gate_is_split_into_independent_dag_nodes
+        PASS [   0.014s] (14/19) gmeow-dev-cli::make_gate_contract producer_receipt_tracks_the_exact_sync_manifest_schema_version
+        PASS [   0.014s] (15/19) gmeow-dev-cli::make_gate_contract sync_is_not_a_blanket_prerequisite_of_the_gate
+        FAIL [   0.018s] (16/19) gmeow-dev-cli::make_gate_contract ci_reuses_one_authenticated_nextest_archive_without_coverage_loss
+  stdout ───
+
+    running 1 test
+    test ci_reuses_one_authenticated_nextest_archive_without_coverage_loss ... FAILED
+
+    failures:
+
+    failures:
+        ci_reuses_one_authenticated_nextest_archive_without_coverage_loss
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'ci_reuses_one_authenticated_nextest_archive_without_coverage_loss' (126224) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:1209:5:
+    source-only lint must not own a Cargo cache, generated transfer, or workspace compile
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.016s] (17/19) gmeow-dev-cli::make_gate_contract fixture_production_and_test_consumption_are_structurally_separate
+  stdout ───
+
+    running 1 test
+    test fixture_production_and_test_consumption_are_structurally_separate ... FAILED
+
+    failures:
+
+    failures:
+        fixture_production_and_test_consumption_are_structurally_separate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'fixture_production_and_test_consumption_are_structurally_separate' (126245) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:640:5:
+    the default producer launcher must verify and execute the same staged binary used by fixture consumers
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.019s] (18/19) gmeow-dev-cli::make_gate_contract corpus_producer_purity_is_a_pre_test_and_pre_commit_gate
+        PASS [   0.020s] (19/19) gmeow-dev-cli::make_gate_contract every_check_dag_target_is_exercised_by_ci
+────────────
+     Summary [   0.033s] 19 tests run: 14 passed, 5 failed, 0 skipped
+        FAIL [   0.011s] ( 7/19) gmeow-dev-cli::make_gate_contract aggregate_gate_has_one_owner_for_each_expensive_equivalence_class
+  stdout ───
+
+    running 1 test
+    test aggregate_gate_has_one_owner_for_each_expensive_equivalence_class ... FAILED
+
+    failures:
+
+    failures:
+        aggregate_gate_has_one_owner_for_each_expensive_equivalence_class
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'aggregate_gate_has_one_owner_for_each_expensive_equivalence_class' (126235) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:502:5:
+    assertion `left == right` failed: aggregate DAG inventory changed
+      left: ["sync", "check-lint", "crate-check", "helpers-hygiene", "i18n-lint", "rust-build", "test-fixtures", "clippy", "nextest", "doctests", "validate", "medium-gate", "constitution-check", "audit", "wikidata", "coverage", "reason-verify", "console-test", "console", "lint-alignment", "doc-lint", "slice-quality-gate", "compliance-report"]
+     right: ["sync", "check-lint", "crate-check", "i18n-lint", "rust-build", "test-fixtures", "clippy", "nextest", "doctests", "validate", "medium-gate", "constitution-check", "audit", "wikidata", "coverage", "reason-verify", "console-test", "console", "lint-alignment", "doc-lint", "slice-quality-gate", "compliance-report"]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.011s] ( 8/19) gmeow-dev-cli::make_gate_contract standalone_targets_remain_complete_while_check_uses_scoped_composition
+  stdout ───
+
+    running 1 test
+    test standalone_targets_remain_complete_while_check_uses_scoped_composition ... FAILED
+
+    failures:
+
+    failures:
+        standalone_targets_remain_complete_while_check_uses_scoped_composition
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'standalone_targets_remain_complete_while_check_uses_scoped_composition' (126239) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:1516:5:
+    assertion `left == right` failed
+      left: "lint: check-sync-prerequisite-test ## Run fast source hygiene and inert docs prerequisite controls."
+     right: "lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, and source-policy seals)."
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.013s] (10/19) gmeow-dev-cli::make_gate_contract browser_codebook_builds_require_exact_read_only_producer_selection
+  stdout ───
+
+    running 1 test
+    test browser_codebook_builds_require_exact_read_only_producer_selection ... FAILED
+
+    failures:
+
+    failures:
+        browser_codebook_builds_require_exact_read_only_producer_selection
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'browser_codebook_builds_require_exact_read_only_producer_selection' (126240) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:33:28:
+    missing workflow step Download the producer-selected browser codebook fixtures
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.018s] (16/19) gmeow-dev-cli::make_gate_contract ci_reuses_one_authenticated_nextest_archive_without_coverage_loss
+  stdout ───
+
+    running 1 test
+    test ci_reuses_one_authenticated_nextest_archive_without_coverage_loss ... FAILED
+
+    failures:
+
+    failures:
+        ci_reuses_one_authenticated_nextest_archive_without_coverage_loss
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'ci_reuses_one_authenticated_nextest_archive_without_coverage_loss' (126224) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:1209:5:
+    source-only lint must not own a Cargo cache, generated transfer, or workspace compile
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.016s] (17/19) gmeow-dev-cli::make_gate_contract fixture_production_and_test_consumption_are_structurally_separate
+  stdout ───
+
+    running 1 test
+    test fixture_production_and_test_consumption_are_structurally_separate ... FAILED
+
+    failures:
+
+    failures:
+        fixture_production_and_test_consumption_are_structurally_separate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'fixture_production_and_test_consumption_are_structurally_separate' (126245) panicked at crates/gmeow-dev-cli/tests/make_gate_contract.rs:640:5:
+    the default producer launcher must verify and execute the same staged binary used by fixture consumers
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100

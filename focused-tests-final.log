@@ -1,0 +1,235 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-errors) | package(gmeow-affect-ingest) | (package(gmeow-math-lift) & test(sink::tests::))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/math-lift)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/lang-bridge)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/gmn-cost-matrix)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/math)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/logic)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/affect-ingest)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1834-repair-shared-helper-ownership-and/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 09s
+────────────
+ Nextest run ID dbc25e7e-998e-4a8b-933f-2c9723108379 with nextest profile: ci
+    Starting 156 tests across 3 binaries (297 tests and 222 binaries skipped)
+        PASS [   0.007s] (  1/156) gmeow-affect-ingest tests::f64_decimal_lexical_is_always_a_valid_xsd_decimal
+        PASS [   0.010s] (  2/156) gmeow-errors abox::tests::annotate_nquads_emits_four_triples_in_fixed_order
+        PASS [   0.009s] (  3/156) gmeow-affect-ingest tests::sample_fixture_deserializes_with_28_labels
+        PASS [   0.011s] (  4/156) gmeow-affect-ingest tests::missing_label_set_decision_hard_fails
+        PASS [   0.011s] (  5/156) gmeow-affect-ingest tests::hard_fail_activation_mismatch
+        PASS [   0.013s] (  6/156) gmeow-affect-ingest tests::hard_fail_score_out_of_range_and_nan
+        PASS [   0.014s] (  7/156) gmeow-affect-ingest tests::concluded_when_nothing_crosses_threshold
+        PASS [   0.015s] (  8/156) gmeow-affect-ingest tests::hard_fail_duplicate_label
+        PASS [   0.015s] (  9/156) gmeow-affect-ingest tests::run_scoped_mints_no_decision
+        PASS [   0.017s] ( 10/156) gmeow-affect-ingest tests::config_loads_labels_and_only_closematch_emotiontypes
+        PASS [   0.016s] ( 11/156) gmeow-affect-ingest tests::produce_is_idempotent
+        PASS [   0.017s] ( 12/156) gmeow-affect-ingest tests::sssom_correspondences_route_only_closematch_emotiontypes
+        PASS [   0.019s] ( 13/156) gmeow-affect-ingest tests::hard_fail_incomplete_when_return_all_scores
+        PASS [   0.008s] ( 14/156) gmeow-errors abox::tests::annotate_nquads_literals_carry_the_carrier_language_tag
+        PASS [   0.019s] ( 15/156) gmeow-affect-ingest tests::hard_fail_invalid_and_duplicate_target_iri
+        PASS [   0.006s] ( 16/156) gmeow-errors abox::tests::turtle_lines_honor_the_box_role_parameter
+        PASS [   0.020s] ( 17/156) gmeow-affect-ingest tests::ambiguous_argmax_on_exact_tie
+        PASS [   0.019s] ( 18/156) gmeow-affect-ingest tests::score_semantics_decision_rule_mismatch_hard_fails
+        PASS [   0.021s] ( 19/156) gmeow-affect-ingest tests::round_trip_recover_produce_is_identity
+        PASS [   0.012s] ( 20/156) gmeow-errors abox::tests::turtle_lines_escape_literal_content
+        PASS [   0.023s] ( 21/156) gmeow-affect-ingest tests::hard_fail_calibrated_without_calibration
+        PASS [   0.009s] ( 22/156) gmeow-errors code::tests::global_registry_interns_after_registration
+        PASS [   0.021s] ( 23/156) gmeow-affect-ingest tests::single_score_argmax_decision_has_no_margin
+        PASS [   0.014s] ( 24/156) gmeow-errors abox::tests::cross_substrate_parity_string_and_builder_emit_the_same_quad_set
+        PASS [   0.024s] ( 25/156) gmeow-affect-ingest tests::zeroshot_run_scoped_round_trips_and_routes_no_claim
+        PASS [   0.021s] ( 26/156) gmeow-affect-ingest tests::zeroshot_hard_fails_without_template_or_candidates
+        PASS [   0.026s] ( 27/156) gmeow-affect-ingest tests::hard_fail_missing_revision
+        PASS [   0.015s] ( 28/156) gmeow-errors abox::tests::turtle_lines_render_the_prefixed_four_clause_skeleton
+        PASS [   0.018s] ( 29/156) gmeow-errors abox::tests::annotate_nquads_is_deterministic
+        PASS [   0.012s] ( 30/156) gmeow-errors code::tests::open_space_admits_arbitrary_static_codes
+        PASS [   0.020s] ( 31/156) gmeow-errors abox::tests::annotate_nquads_isdefinedby_and_role_objects_are_correct
+        PASS [   0.005s] ( 32/156) gmeow-errors diag::tests::diag_is_one_word
+        PASS [   0.006s] ( 33/156) gmeow-errors diag::tests::define_diag_kind_binds_code_grade_message_and_registers
+        PASS [   0.031s] ( 34/156) gmeow-affect-ingest tests::argmax_decision_recorded_faithfully_below_threshold
+        PASS [   0.010s] ( 35/156) gmeow-errors dag::tests::unresolved_key_is_a_hard_fail
+        PASS [   0.012s] ( 36/156) gmeow-errors code::tests::seed_registers_a_batch
+        PASS [   0.031s] ( 37/156) gmeow-affect-ingest tests::exclusivity_violation_on_two_crossings
+        PASS [   0.014s] ( 38/156) gmeow-errors code::tests::unregistered_code_is_a_hard_fail
+        PASS [   0.013s] ( 39/156) gmeow-errors dag::tests::preorder_matches_dfs_current_then_children
+        PASS [   0.029s] ( 40/156) gmeow-affect-ingest tests::produce_emits_run_all_labels_and_a_mapped_claim
+        PASS [   0.013s] ( 41/156) gmeow-errors dag::tests::diamond_is_not_a_cycle_backtracking_frees_the_visited_key
+        PASS [   0.007s] ( 42/156) gmeow-errors diag::tests::diag_ref_index_roundtrips
+        PASS [   0.029s] ( 43/156) gmeow-errors abox::tests::annotate_nquads_escapes_literal_content
+        PASS [   0.012s] ( 44/156) gmeow-errors diag::tests::blanket_from_preserves_downcast
+        PASS [   0.032s] ( 45/156) gmeow-affect-ingest tests::hard_fail_unregistered_label
+        PASS [   0.016s] ( 46/156) gmeow-errors dag::tests::cycle_is_a_hard_fail
+        PASS [   0.035s] ( 47/156) gmeow-affect-ingest tests::argmax_round_trip_with_decision_is_identity
+        PASS [   0.009s] ( 48/156) gmeow-errors diag::tests::or_collect_pushes_and_continues
+        PASS [   0.014s] ( 49/156) gmeow-errors diag::tests::collect_all_gathers_ok_and_sinks_err
+        PASS [   0.015s] ( 50/156) gmeow-errors diag::tests::both_from_paths_compose_through_question_mark
+        PASS [   0.020s] ( 51/156) gmeow-errors code::tests::register_then_intern_round_trips
+        PASS [   0.020s] ( 52/156) gmeow-errors code::tests::register_is_idempotent
+        PASS [   0.022s] ( 53/156) gmeow-errors code::tests::option_code_is_one_word
+        PASS [   0.015s] ( 54/156) gmeow-errors diag::tests::declared_failure_class_survives_the_recorded_diagnostic_and_finding
+        PASS [   0.035s] ( 55/156) gmeow-affect-ingest tests::multilabel_two_crossings_no_guard_no_decision
+        PASS [   0.012s] ( 56/156) gmeow-errors diag::tests::existing_payload_registration_preserves_noncloneable_evidence
+        PASS [   0.009s] ( 57/156) gmeow-errors diag::tests::result_of_diag_is_pointer_sized
+        PASS [   0.016s] ( 58/156) gmeow-errors diag::tests::define_diag_kind_binds_the_optional_failure_class
+        PASS [   0.009s] ( 59/156) gmeow-errors diag::tests::result_ext_adds_context_and_display_walks_it
+        PASS [   0.038s] ( 60/156) gmeow-affect-ingest tests::recover_hard_fails_on_missing_required_triple
+        PASS [   0.039s] ( 61/156) gmeow-affect-ingest tests::non_normalized_softmax_over_exclusive_set_hard_fails
+        PASS [   0.011s] ( 62/156) gmeow-errors error::tests::every_errors_code_interns_with_no_collision
+        PASS [   0.014s] ( 63/156) gmeow-errors diag::tests::macros_build_and_bail
+        PASS [   0.015s] ( 64/156) gmeow-errors diag::tests::of_kind_preserves_code_grade_and_downcast
+        PASS [   0.011s] ( 65/156) gmeow-errors diag::tests::track_caller_captures_the_question_mark_site_not_crate_internals
+        PASS [   0.042s] ( 66/156) gmeow-affect-ingest tests::round_trip_multi_target
+        PASS [   0.012s] ( 67/156) gmeow-errors grade::tests::advisory_and_permitted_conflict_never_gate
+        PASS [   0.012s] ( 68/156) gmeow-errors grade::tests::transient_chatter_never_gates_and_takes_no_stance
+        PASS [   0.011s] ( 69/156) gmeow-errors ledger::tests::cross_stage_merge_keeps_emit_sorted_attach_order_independent
+        PASS [   0.016s] ( 70/156) gmeow-errors grade::tests::agreeing_witnesses_do_not_glut
+        PASS [   0.009s] ( 71/156) gmeow-errors ledger::tests::hash_cons_merge_of_grades_is_order_independent
+        PASS [   0.016s] ( 72/156) gmeow-errors grade::tests::knowledge_axis_belnap_obeys_the_laws
+        PASS [   0.017s] ( 73/156) gmeow-errors grade::tests::gate_is_monotone_over_the_truth_order
+        PASS [   0.017s] ( 74/156) gmeow-errors grade::tests::merge_is_order_independent
+        PASS [   0.011s] ( 75/156) gmeow-errors ledger::tests::fresh_and_replayed_ledger_are_byte_identical_and_carry_no_arena_ref
+        PASS [   0.018s] ( 76/156) gmeow-errors grade::tests::gate_fatal_exactly_on_the_principal_up_set
+        PASS [   0.008s] ( 77/156) gmeow-errors model::tests::location_without_wire_coords_serializes_compactly
+        PASS [   0.021s] ( 78/156) gmeow-errors grade::tests::contradictory_pair_merges_to_a_glut_not_to_either_side
+        PASS [   0.020s] ( 79/156) gmeow-errors ledger::tests::anchor_is_code_blind_and_trivial_when_locationless
+        PASS [   0.021s] ( 80/156) gmeow-errors grade::tests::unknown_severity_token_is_a_hard_fail
+        PASS [   0.017s] ( 81/156) gmeow-errors ledger::tests::distinct_observed_slots_are_not_silently_collapsed
+        PASS [   0.011s] ( 82/156) gmeow-errors model::tests::normalize_orders_and_dedups_guidance
+        PASS [   0.012s] ( 83/156) gmeow-errors model::tests::finding_category_wire_values_round_trip
+        PASS [   0.021s] ( 84/156) gmeow-errors ledger::tests::annotate_by_fingerprint_is_idempotent_and_preserves_identity
+        PASS [   0.013s] ( 85/156) gmeow-errors model::tests::legacy_report_preserves_error_warning_strings
+        PASS [   0.016s] ( 86/156) gmeow-errors model::tests::category_is_not_an_ordering_axis
+        PASS [   0.008s] ( 87/156) gmeow-errors project::tests::projected_finding_carries_the_grade_standpoint
+        PASS [   0.025s] ( 88/156) gmeow-errors grade::tests::truth_axis_lattices_obey_the_laws
+        PASS [   0.007s] ( 89/156) gmeow-errors render::finding_rdf::tests::finding_projection_preserves_the_first_sink_refusal_and_stops
+        PASS [   0.021s] ( 90/156) gmeow-errors ledger::tests::hash_cons_identity_dedups_and_message_is_not_in_the_fingerprint
+        PASS [   0.009s] ( 91/156) gmeow-errors rdf::tests::double_lowering_across_two_stages_is_idempotent
+        PASS [   0.022s] ( 92/156) gmeow-errors ledger::tests::self_referential_antecedent_is_a_hard_fail
+        PASS [   0.013s] ( 93/156) gmeow-errors project::tests::projected_finding_carries_labels_as_related_locations
+        PASS [   0.018s] ( 94/156) gmeow-errors model::tests::finding_without_category_serializes_compactly
+        PASS [   0.006s] ( 95/156) gmeow-errors render::tests::a_finding_without_a_failure_class_renders_no_class_anywhere
+        PASS [   0.014s] ( 96/156) gmeow-errors project::tests::projected_finding_carries_antecedents_as_related_locations
+        PASS [   0.020s] ( 97/156) gmeow-errors model::tests::empty_location_stays_empty_with_wire_fields
+        PASS [   0.024s] ( 98/156) gmeow-errors ledger::tests::recorded_rejection_preserves_causal_closure_and_live_source_at_the_boundary
+        PASS [   0.008s] ( 99/156) gmeow-errors render::tests::advisory_suggestions_are_properties_not_locations
+        PASS [   0.021s] (100/156) gmeow-errors model::tests::location_wire_coords_round_trip_and_display
+        PASS [   0.018s] (101/156) gmeow-errors project::tests::advice_standpoint_and_help_uri_survive_the_projection
+        PASS [   0.028s] (102/156) gmeow-errors ledger::tests::fingerprint_iri_is_stable_and_addressable
+        PASS [   0.021s] (103/156) gmeow-errors model::tests::report_normalization_is_deterministic
+        PASS [   0.027s] (104/156) gmeow-errors ledger::tests::node_contradicting_its_pinned_digest_is_a_hard_fail
+        PASS [   0.029s] (105/156) gmeow-errors ledger::tests::length_prefixed_fingerprint_resists_delimiter_injection
+        PASS [   0.020s] (106/156) gmeow-errors rdf::tests::losses_become_non_gating_projection_loss_children
+        PASS [   0.016s] (107/156) gmeow-errors render::tests::gmeow_rdf_emits_finding_standpoint_when_present
+        PASS [   0.016s] (108/156) gmeow-errors render::tests::gmeow_rdf_escapes_suggestion_specials
+        PASS [   0.018s] (109/156) gmeow-errors render::tests::gmeow_rdf_emits_grade_axes_but_never_the_derived_gate_verdict
+        PASS [   0.030s] (110/156) gmeow-errors model::tests::with_category_attaches_and_round_trips
+        PASS [   0.027s] (111/156) gmeow-errors project::tests::projected_subject_and_antecedent_object_iris_close
+        PASS [   0.015s] (112/156) gmeow-errors render::tests::gmeow_rdf_in_graph_projects_into_the_requested_graph
+        PASS [   0.015s] (113/156) gmeow-errors render::tests::html_emits_one_row_per_finding
+        PASS [   0.017s] (114/156) gmeow-errors render::tests::gmeow_rdf_escapes_literals
+        PASS [   0.019s] (115/156) gmeow-errors render::tests::gmeow_rdf_escapes_c0_control_characters
+        PASS [   0.021s] (116/156) gmeow-errors render::tests::category_projects_to_sarif_property_and_rdf_individual
+        PASS [   0.016s] (117/156) gmeow-errors render::tests::html_escapes_messages
+        PASS [   0.017s] (118/156) gmeow-errors render::tests::gmeow_rdf_projects_into_the_diagnostics_graph
+        PASS [   0.014s] (119/156) gmeow-errors render::tests::rdf_projects_finding_remediation
+        PASS [   0.030s] (120/156) gmeow-errors project::tests::remediation_projects_onto_the_finding
+        PASS [   0.023s] (121/156) gmeow-errors render::tests::absent_category_leaves_outputs_unchanged
+        PASS [   0.015s] (122/156) gmeow-errors render::tests::sarif_automation_details_omitted_without_category
+        PASS [   0.042s] (123/156) gmeow-errors ledger::tests::verdict_is_the_join_fold_of_gate_over_every_witness
+        PASS [   0.018s] (124/156) gmeow-errors render::tests::rdf_subject_and_antecedent_object_close
+        PASS [   0.010s] (125/156) gmeow-errors render::tests::sarif_fingerprint_is_role_sensitive
+        PASS [   0.020s] (126/156) gmeow-errors render::tests::json_carries_the_antecedent_derivation_iris
+        PASS [   0.022s] (127/156) gmeow-errors render::tests::sarif_emits_fixes_from_remediation_and_omits_them_otherwise
+        PASS [   0.011s] (128/156) gmeow-errors render::tests::sarif_prose_only_remediation_omits_artifact_changes
+        PASS [   0.013s] (129/156) gmeow-errors render::tests::text_renders_the_witness_dag_derivation_section
+        PASS [   0.021s] (130/156) gmeow-errors render::tests::sarif_fingerprint_is_deterministic_and_distinct
+        PASS [   0.024s] (131/156) gmeow-errors render::tests::sarif_emits_no_absolute_or_angle_bracket_uris
+        PASS [   0.013s] (132/156) gmeow-errors render::tests::the_typed_failure_class_reaches_every_rendered_surface
+        PASS [   0.013s] (133/156) gmeow-errors render::tests::text_renders_per_term_guidance_and_derivation_citations
+        PASS [   0.015s] (134/156) gmeow-errors render::tests::summarized_text_collapses_warnings_to_per_code_counts
+        PASS [   0.018s] (135/156) gmeow-errors render::tests::text_renders_reasoner_meta_findings
+        PASS [   0.017s] (136/156) gmeow-math-lift sink::tests::a_decimal_never_serializes_in_exponent_form
+        PASS [   0.021s] (137/156) gmeow-errors render::tests::text_joins_per_term_rule_guidance_once
+        PASS [   0.022s] (138/156) gmeow-errors render::tests::sarif_marks_synthetic_primary_location_for_logical_only_finding
+        PASS [   0.018s] (139/156) gmeow-math-lift sink::tests::duplicate_triples_collapse
+        PASS [   0.008s] (140/156) gmeow-math-lift sink::tests::emission_order_does_not_change_the_bytes
+        FAIL [   0.010s] (141/156) gmeow-math-lift sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail
+  stdout ───
+
+    running 1 test
+    test sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail ... FAILED
+
+    failures:
+
+    failures:
+        sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 300 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail' (1305032) panicked at crates/math-lift/src/sink.tests.rs:22:5:
+    assertion failed: invalid.string("not an IRI", "urn:label", "x").is_err()
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.023s] (142/156) gmeow-errors render::tests::to_text_advisories_renders_only_notes_and_infos
+        PASS [   0.053s] (143/156) gmeow-errors render::tests::advisory_gmeow_rdf_snapshot
+        PASS [   0.060s] (144/156) gmeow-errors render::tests::advisory_only_text_snapshot
+        PASS [   0.078s] (145/156) gmeow-errors ledger::tests::union_is_commutative_associative_and_idempotent
+        PASS [   0.085s] (146/156) gmeow-errors ledger::tests::verdict_is_a_semilattice_homomorphism_over_union
+        PASS [   0.069s] (147/156) gmeow-errors render::tests::advisory_sarif_snapshot
+        PASS [   0.065s] (148/156) gmeow-errors render::tests::gmeow_rdf_full_snapshot
+        PASS [   0.061s] (149/156) gmeow-errors render::tests::json_full_snapshot
+        PASS [   0.076s] (150/156) gmeow-errors render::tests::advisory_html_snapshot
+        PASS [   0.075s] (151/156) gmeow-errors render::tests::advisory_text_snapshot
+        PASS [   0.072s] (152/156) gmeow-errors render::tests::html_full_snapshot
+        PASS [   0.057s] (153/156) gmeow-errors render::tests::sarif_stale_cache_primary_promotion_snapshot
+        PASS [   0.061s] (154/156) gmeow-errors render::tests::text_full_snapshot
+        PASS [   0.064s] (155/156) gmeow-errors render::tests::sarif_full_snapshot
+        PASS [   0.070s] (156/156) gmeow-errors render::tests::sarif_multi_physical_location_emits_related_locations_snapshot
+────────────
+     Summary [   0.177s] 156 tests run: 155 passed, 1 failed, 297 skipped
+        FAIL [   0.010s] (141/156) gmeow-math-lift sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail
+  stdout ───
+
+    running 1 test
+    test sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail ... FAILED
+
+    failures:
+
+    failures:
+        sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 300 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'sink::tests::explicit_language_literals_keep_their_identity_and_invalid_iris_fail' (1305032) panicked at crates/math-lift/src/sink.tests.rs:22:5:
+    assertion failed: invalid.string("not an IRI", "urn:label", "x").is_err()
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100
