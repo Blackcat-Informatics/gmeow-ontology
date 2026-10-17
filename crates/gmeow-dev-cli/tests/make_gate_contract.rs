@@ -95,6 +95,19 @@ fn helper_ownership_gate_is_independent_and_required_by_quality() {
     assert!(helpers.contains("run: make helpers-hygiene"));
     assert!(!helpers.contains("generated-tree-") && !helpers.contains("make rust-"));
     assert_eq!(ci.matches("run: make helpers-hygiene").count(), 1);
+    assert!(
+        workflow_step(helpers, "Fetch locked workspace dependencies")
+            .contains("run: cargo fetch --locked")
+    );
+    assert!(
+        helpers
+            .find("name: Fetch locked workspace dependencies")
+            .unwrap()
+            < helpers
+                .find("name: Helper ownership and dependency hygiene")
+                .unwrap(),
+        "the offline workspace census requires its locked dependency sources first"
+    );
     let quality = ci.split_once("\n  quality:\n").unwrap().1;
     assert!(job_needs(quality).contains(&"helpers"));
     let verdict = workflow_step(quality, "Require all quality jobs to have succeeded");
