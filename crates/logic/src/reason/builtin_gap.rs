@@ -71,7 +71,8 @@ fn render_bindings(gap: &BuiltinGap) -> String {
 /// Mint the single ledgered [`Diag`] for one moded-builtin gap — the ONE shared
 /// helper every terminal routes a produced gap through.
 ///
-/// The witness carries:
+/// Native operational failures retain their typed cause through `NativeBuiltin`.
+/// The ordinary mode/math witness carries:
 ///
 /// * `code` = `reason.builtin-gap.{suffix}` (`unbound` for a mode gap, else the
 ///   [`BuiltinError`](crate::physical::BuiltinError) kind's kebab suffix), registered
@@ -84,12 +85,23 @@ fn render_bindings(gap: &BuiltinGap) -> String {
 ///   distinct `anchor_iri`.
 #[must_use]
 pub(crate) fn builtin_gap_diag(gap: &BuiltinGap) -> Diag {
+    if let BuiltinGapKind::NativeFailure(cause) = &gap.kind {
+        let source_code = cause.code().unwrap_or("native-operational");
+        return Diag::of_kind(crate::error::NativeBuiltin {
+            operation: gap.op.clone(),
+            cause: cause.clone(),
+        })
+        .with_focus([source_code, gap.op.as_str(), render_bindings(gap).as_str()].join(FOCUS_SEP));
+    }
     let suffix = gap.kind.code_suffix_or_unbound();
     let code = register_code(&format!("reason.builtin-gap.{suffix}"));
     let class = gap.kind.math_class().unwrap_or(MODE_GAP_CLASS);
     let operands = render_bindings(gap);
 
     let message = match &gap.kind {
+        BuiltinGapKind::NativeFailure(_) => {
+            unreachable!("native failures retain their typed cause above")
+        }
         BuiltinGapKind::Unbound => format!(
             "moded builtin `{}` declined: an operand is unbound in its required mode \
              (antecedents: {operands})",
@@ -123,26 +135,12 @@ pub(crate) fn builtin_gap_ledger(gaps: &[BuiltinGap]) -> DiagLedger {
     ledger
 }
 
-/// A one-line English refusal naming every distinct gap kind + operation — the
-/// message the production dispatch terminal returns when it refuses a program on a
-/// moded-builtin gap, so the refusal is never the anonymous "does not support
-/// Arithmetic".
+/// Retain every original diagnostic through the production chase refusal.
 #[must_use]
-pub(crate) fn builtin_gap_refusal_detail(gaps: &[BuiltinGap]) -> String {
-    let mut lines: Vec<String> = gaps
-        .iter()
-        .map(|gap| {
-            let class = gap.kind.math_class().unwrap_or(MODE_GAP_CLASS);
-            format!("{class} on `{}`", gap.op)
-        })
-        .collect();
-    lines.sort();
-    lines.dedup();
-    format!(
-        "native engine refused the selected operation on a moded-builtin gap: {}; \
-         operation refused rather than presenting an incomplete numeric answer",
-        lines.join("; ")
-    )
+pub(crate) fn builtin_gap_refusal(gaps: &[BuiltinGap]) -> Diag {
+    Diag::of_kind(crate::error::BuiltinRefusal {
+        failures: gaps.iter().map(builtin_gap_diag).collect(),
+    })
 }
 
 #[path = "builtin_gap.tests.rs"]

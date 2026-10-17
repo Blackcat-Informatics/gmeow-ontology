@@ -11,8 +11,8 @@
 //! carrier node, an ill-formed query program, an engine that refuses, or a
 //! derivation precondition that does not hold must surface as a typed diagnostic
 //! rather than a bare string. Each defect is a
-//! [`DiagKind`](gmeow_errors::DiagKind) minted by
-//! [`define_diag_kind!`](gmeow_errors::define_diag_kind) under the `logic.*` code
+//! [`DiagKind`](gmeow_errors::DiagKind) declared through the shared diagnostic
+//! macros under the `logic.*` code
 //! namespace, so the reasoning core reports on the shared substrate.
 //!
 //! Conditions preserve authored details; source-capability refusals additionally
@@ -20,6 +20,37 @@
 //! core's subsystem boundaries so a downstream reader can key on the defect.
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
+
+/// All evaluated builtin refusals retained at the production chase boundary.
+#[derive(Debug)]
+pub struct BuiltinRefusal {
+    /// Original diagnostics, including every downcastable native cause.
+    pub failures: Vec<gmeow_errors::Diag>,
+}
+
+impl std::fmt::Display for BuiltinRefusal {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "native engine refused the selected operation on a moded-builtin gap"
+        )?;
+        for failure in &self.failures {
+            write!(formatter, "; {failure}")?;
+        }
+        Ok(())
+    }
+}
+
+impl std::error::Error for BuiltinRefusal {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.failures
+            .first()?
+            .inner()
+            .source
+            .as_deref()
+            .map(|source| source as &(dyn std::error::Error + 'static))
+    }
+}
 
 /// The grade every reasoning-core diagnostic carries: a hard modeling-discipline
 /// violation at the binding standpoint. The core admits no degraded fallback, so
@@ -32,6 +63,12 @@ macro_rules! logic_grade {
             Standpoint::Binding,
         )
     };
+}
+
+gmeow_errors::impl_diag_kind! {
+    BuiltinRefusal;
+    code = "logic.builtin-refusal";
+    grade = logic_grade!();
 }
 
 define_diag_kind! {
@@ -84,6 +121,18 @@ define_diag_kind! {
     grade = logic_grade!();
     message = "purrdf entail service refused: {}", cause;
     failure_class = "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal";
+    source = failure => Some(failure.cause.as_ref());
+}
+
+define_diag_kind! {
+    /// A native integrity builtin refused; preserve its original typed cause.
+    pub struct NativeBuiltin {
+        operation: String,
+        cause: std::sync::Arc<purrdf::sparql::EvalError>
+    }
+    code = "logic.native-builtin";
+    grade = logic_grade!();
+    message = "native builtin {} refused: {}", operation, cause;
     source = failure => Some(failure.cause.as_ref());
 }
 

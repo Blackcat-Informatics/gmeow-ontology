@@ -426,7 +426,20 @@ pub(crate) fn lower_violation_rules(
             body,
             rule_iri,
             distinct_pairs: Vec::new(),
-            builtins: Vec::new(),
+            builtins: rc
+                .term_kinds
+                .iter()
+                .map(|test| QBuiltin::TermKind {
+                    term: test.term.clone(),
+                    predicate: test.predicate,
+                    expected: test.expected,
+                })
+                .chain(rc.term_equalities.iter().map(|test| QBuiltin::TermEqual {
+                    left: test.left.clone(),
+                    right: test.right.clone(),
+                    expected: test.expected,
+                }))
+                .collect(),
             reduction: None,
             constraint_tag: Some(rc.constraint_iri.clone()),
         });

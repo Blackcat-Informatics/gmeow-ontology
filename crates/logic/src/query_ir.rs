@@ -164,6 +164,25 @@ pub enum QBodyLit {
 /// and becomes a native filter failure if reached).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum QBuiltin {
+    /// A native SPARQL equality filter on a joined violation candidate.
+    TermEqual {
+        /// Original typed left operand.
+        left: gmeow_logic_compile::ir::AtomicTerm,
+        /// Original typed right operand.
+        right: gmeow_logic_compile::ir::AtomicTerm,
+        /// Equality truth required to retain this candidate.
+        expected: bool,
+    },
+    /// A lowering-only intrinsic integrity predicate on an original native RDF
+    /// binding or typed compiler constant. It is not a stored class assertion.
+    TermKind {
+        /// Typed source operand; variables retain the engine's question-mark sigil.
+        term: gmeow_logic_compile::ir::AtomicTerm,
+        /// Canonical intrinsic predicate.
+        predicate: gmeow_logic_compile::ir::TermKindPredicate,
+        /// The truth required by the consequent, before violation inversion.
+        expected: bool,
+    },
     /// `target is expr` — arithmetic evaluation, where `expr` is either one operand or
     /// `lhs op rhs` (`op` ∈ `+ - * //`). A single operand is canonically lowered to
     /// `operand + 0`, keeping one bounded arithmetic IR and evaluator path.

@@ -16,6 +16,33 @@ use purrdf::TermValue;
 const GUARD: &str = "https://ex/guard";
 const HEAD: &str = "https://ex/bad";
 
+#[test]
+fn native_builtin_refusal_keeps_the_original_typed_error_owner() {
+    let cause = std::sync::Arc::new(purrdf::sparql::EvalError::WorkspaceStopped);
+    let gap = BuiltinGap {
+        kind: BuiltinGapKind::NativeFailure(cause.clone()),
+        op: "termEqual(?left, ?right)".into(),
+        bindings: vec![],
+    };
+    let diagnostic = builtin_gap_refusal(&[gap]);
+    let refusal = diagnostic
+        .downcast_ref::<crate::error::BuiltinRefusal>()
+        .unwrap();
+    assert_eq!(refusal.failures.len(), 1);
+    let retained = refusal.failures[0]
+        .downcast_ref::<crate::error::NativeBuiltin>()
+        .unwrap();
+    assert!(std::sync::Arc::ptr_eq(&cause, &retained.cause));
+    assert_eq!(
+        diagnostic.inner().code,
+        register_code("logic.builtin-refusal")
+    );
+    assert_eq!(
+        refusal.failures[0].inner().code,
+        register_code("logic.native-builtin")
+    );
+}
+
 /// The engine `?`-prefixed variable surface a body atom / builtin operand carries.
 fn qvar(name: &str) -> QTerm {
     QTerm::Var(format!("?{name}"))

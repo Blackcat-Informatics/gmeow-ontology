@@ -37,6 +37,63 @@ fn evaluate(builtin: &QBuiltin, bindings: &[(&str, TermValue)]) -> BuiltinOutcom
 }
 
 #[test]
+fn integrity_kind_bindings_keep_native_identity_and_decline_surface_guesses() {
+    let values = [
+        (TermValue::iri("urn:value"), [true, false, true]),
+        (
+            TermValue::Blank {
+                label: "value".into(),
+                scope: purrdf::BlankScope(17),
+            },
+            [false, false, true],
+        ),
+        (
+            TermValue::simple_literal("<urn:value>"),
+            [false, true, false],
+        ),
+        (
+            TermValue::Triple {
+                s: purrdf::TermBox::new(TermValue::iri("urn:s")),
+                p: purrdf::TermBox::new(TermValue::iri("urn:p")),
+                o: purrdf::TermBox::new(TermValue::iri("urn:o")),
+            },
+            [false, false, false],
+        ),
+    ];
+    for (value, truths) in values {
+        for (predicate, truth) in [
+            TermKindPredicate::Iri,
+            TermKindPredicate::Literal,
+            TermKindPredicate::BlankOrIri,
+        ]
+        .into_iter()
+        .zip(truths)
+        {
+            for expected in [true, false] {
+                let builtin = QBuiltin::TermKind {
+                    term: AtomicTerm::Var("value".into()),
+                    predicate,
+                    expected,
+                };
+                assert_eq!(
+                    evaluate(&builtin, &[("value", value.clone())]),
+                    BuiltinOutcome::Filter(truth == expected)
+                );
+                assert_eq!(evaluate(&builtin, &[]), BuiltinOutcome::Unbound);
+                assert_eq!(
+                    eval(
+                        &builtin,
+                        &|_| Some(Cow::Borrowed("<urn:value>")),
+                        &NoCellResolver
+                    ),
+                    BuiltinOutcome::Unbound
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn native_generators_and_bound_targets_share_the_exact_value_algebra() {
     let half = Rational::new(1, 2).unwrap();
     let length = DimVector::unit(0).unwrap();

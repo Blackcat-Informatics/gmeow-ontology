@@ -1614,21 +1614,25 @@ fn apply_builtins(
             let outcome = eval_native(b, &|name| sol.get(name), resolver);
             match outcome {
                 BuiltinOutcome::Filter(holds) => {
-                    if holds == constraint_tagged {
-                        // Ordinary rule, filter false → prune; OR constraint-tagged
-                        // rule, the law's consequent HOLDS → the law is satisfied,
-                        // no violation → prune.
+                    let invert = constraint_tagged && !matches!(b, QBuiltin::TermEqual { .. });
+                    if holds == invert {
+                        // Consequent checks prune a satisfied law. Body equality
+                        // filters and ordinary filters prune a false condition.
                         return false;
                     }
-                    // Ordinary rule, filter true → keep (fall through); OR
-                    // constraint-tagged rule, the consequent does NOT hold → keep,
-                    // so the head materializes the violation marker.
+                    // The candidate satisfies its filters and violates any
+                    // consequent check, so it may produce the rule head.
                 }
                 BuiltinOutcome::Generate { var, value } => {
                     sol.bindings.push((var, emit_term(&value)));
                 }
-                BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
-                    if constraint_tagged {
+                BuiltinOutcome::Unbound
+                | BuiltinOutcome::Error(_)
+                | BuiltinOutcome::NativeFailure(_) => {
+                    if constraint_tagged
+                        && !matches!(b, QBuiltin::TermKind { .. } | QBuiltin::TermEqual { .. })
+                        && !matches!(outcome, BuiltinOutcome::NativeFailure(_))
+                    {
                         // Undefinedness is NOT a violation: skip ONLY this candidate
                         // solution, never poison the rest of the batch, and never
                         // record a ledgered gap (the missing/malformed dimension is
@@ -1990,8 +1994,8 @@ fn eval_world_stratified_with_trace(
                 completed += 1;
             }
             FixpointStatus::BuiltinGap => {
-                return Err(seminaive_err(
-                    crate::reason::builtin_gap::builtin_gap_refusal_detail(&builtin_gap),
+                return Err(crate::reason::builtin_gap::builtin_gap_refusal(
+                    &builtin_gap,
                 ));
             }
             FixpointStatus::Exhausted => {

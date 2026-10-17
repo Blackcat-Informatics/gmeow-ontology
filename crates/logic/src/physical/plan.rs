@@ -384,6 +384,26 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
 
 fn hash_builtin(hasher: &mut blake3::Hasher, builtin: &QBuiltin) {
     match builtin {
+        QBuiltin::TermEqual {
+            left,
+            right,
+            expected,
+        } => {
+            hasher.update(&[6]);
+            frame_str(hasher, &left.key());
+            frame_str(hasher, &right.key());
+            hasher.update(&[u8::from(*expected)]);
+        }
+        QBuiltin::TermKind {
+            term,
+            predicate,
+            expected,
+        } => {
+            hasher.update(&[5]);
+            frame_str(hasher, predicate.local_name());
+            frame_str(hasher, &term.key());
+            hasher.update(&[u8::from(*expected)]);
+        }
         QBuiltin::Is {
             target,
             lhs,

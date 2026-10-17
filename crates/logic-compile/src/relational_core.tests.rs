@@ -4,6 +4,200 @@
 use super::*;
 use crate::ir::{ContextualScope, LogicAxiom, LogicRule};
 
+fn intrinsic_atom(local: &str, variables: &[&str]) -> Formula {
+    Formula::atom(
+        Term::iri(format!("{}{}", crate::ir::LOGIC_NAMESPACE, local)).unwrap(),
+        variables
+            .iter()
+            .map(|name| Term::var(*name).unwrap())
+            .collect(),
+    )
+    .unwrap()
+}
+
+fn intrinsic_constraint(consequent: Formula) -> LogicProgram {
+    let guard = Formula::atom(
+        Term::iri("urn:scope").unwrap(),
+        vec![Term::var("this").unwrap(), Term::iri("urn:Record").unwrap()],
+    )
+    .unwrap();
+    let formula = Formula::Forall {
+        vars: vec!["this".into()],
+        body: Box::new(Formula::Implies(Box::new(guard), Box::new(consequent))),
+    };
+    let constraint = ConstraintIr::new(
+        "urn:KindLaw",
+        formula,
+        crate::ir::ShaclSeverity::Violation,
+        None,
+    )
+    .unwrap()
+    .with_failure_class("urn:BadKind")
+    .unwrap();
+    LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![constraint])
+}
+
+#[test]
+fn intrinsic_consequent_requires_a_positive_operand_binding() {
+    let program = intrinsic_constraint(intrinsic_atom("termIsIri", &["unbound"]));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsafeTermKindVariable);
+}
+
+#[test]
+fn shadowed_universal_is_refused_instead_of_capturing_the_focus() {
+    let program = intrinsic_constraint(Formula::Forall {
+        vars: vec!["this".into()],
+        body: Box::new(intrinsic_atom("termIsIri", &["this"])),
+    });
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsupportedConsequent);
+}
+
+#[test]
+fn unsupported_conjunct_never_leaves_a_partially_enforced_law() {
+    let valid = intrinsic_atom("termIsIri", &["this"]);
+    let program = intrinsic_constraint(Formula::And(vec![
+        valid.clone(),
+        Formula::Or(vec![valid.clone(), valid]),
+    ]));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsupportedConsequent);
+}
+
+#[test]
+fn negative_kind_consequent_keeps_its_truth_polarity() {
+    let program = intrinsic_constraint(Formula::Not(Box::new(intrinsic_atom(
+        "termIsLiteral",
+        &["this"],
+    ))));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(residue.is_empty());
+    assert_eq!(rules.len(), 1);
+    assert!(!rules[0].term_kinds[0].expected);
+    assert_eq!(rules[0].term_kinds[0].predicate, TermKindPredicate::Literal);
+}
+
+#[test]
+fn forbidden_equality_is_a_native_filter_not_a_stored_relation() {
+    let path = |value| {
+        Formula::atom(
+            Term::iri("urn:path").unwrap(),
+            vec![Term::var("this").unwrap(), Term::var(value).unwrap()],
+        )
+        .unwrap()
+    };
+    for (relation, expected) in [("termEqual", true), ("termDistinct", false)] {
+        let program = intrinsic_constraint(Formula::Not(Box::new(Formula::Exists {
+            vars: vec!["left".into(), "right".into()],
+            body: Box::new(Formula::And(vec![
+                path("left"),
+                path("right"),
+                intrinsic_atom(relation, &["left", "right"]),
+            ])),
+        })));
+        let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+        assert!(residue.is_empty());
+        assert_eq!(rules.len(), 1);
+        assert_eq!(rules[0].body.len(), 3);
+        assert_eq!(rules[0].term_equalities.len(), 1);
+        assert_eq!(rules[0].term_equalities[0].expected, expected);
+        assert!(
+            rules[0]
+                .body
+                .iter()
+                .all(|atom| !atom.predicate.ends_with(relation))
+        );
+    }
+}
+
+#[test]
+fn equality_cannot_generate_an_unbound_operand() {
+    let program = intrinsic_constraint(Formula::Not(Box::new(intrinsic_atom(
+        "termEqual",
+        &["this", "unbound"],
+    ))));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsafeEqualityVariable);
+}
+
+#[test]
+fn an_unguarded_universal_cannot_become_existential_negation() {
+    let program = intrinsic_constraint(Formula::Forall {
+        vars: vec!["value".into()],
+        body: Box::new(intrinsic_atom("ordinaryRelation", &["this", "value"])),
+    });
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsafeUniversalVariable);
+}
+
+#[test]
+fn an_existential_kind_binder_cannot_capture_the_outer_focus() {
+    let program = intrinsic_constraint(Formula::Not(Box::new(Formula::Exists {
+        vars: vec!["this".into()],
+        body: Box::new(intrinsic_atom("termIsIri", &["this"])),
+    })));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert!(!residue.is_empty());
+}
+
+#[test]
+fn an_existential_relation_cannot_capture_the_outer_focus() {
+    let program = intrinsic_constraint(Formula::Not(Box::new(Formula::Exists {
+        vars: vec!["this".into()],
+        body: Box::new(intrinsic_atom("ordinaryRelation", &["this", "value"])),
+    })));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsupportedConsequent);
+}
+
+#[test]
+fn sibling_free_variables_cannot_be_captured_by_an_existential() {
+    let atom = intrinsic_atom("ordinaryRelation", &["this", "value"]);
+    let program = intrinsic_constraint(Formula::Not(Box::new(Formula::And(vec![
+        Formula::Exists {
+            vars: vec!["value".into()],
+            body: Box::new(atom.clone()),
+        },
+        atom,
+    ]))));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsupportedConsequent);
+}
+
+#[test]
+fn existential_negation_cannot_become_a_positive_prohibition() {
+    let program = intrinsic_constraint(Formula::Exists {
+        vars: vec!["value".into()],
+        body: Box::new(Formula::Not(Box::new(intrinsic_atom(
+            "ordinaryRelation",
+            &["this", "value"],
+        )))),
+    });
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsupportedConsequent);
+}
+
+#[test]
+fn a_universal_prohibition_cannot_become_an_existential_join() {
+    let program = intrinsic_constraint(Formula::Not(Box::new(Formula::Forall {
+        vars: vec!["value".into()],
+        body: Box::new(intrinsic_atom("ordinaryRelation", &["this", "value"])),
+    })));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert!(!residue.is_empty());
+}
+
 #[test]
 fn formula_and_compact_lowering_share_complete_native_body_order() {
     let atom = |subject, predicate, object| {

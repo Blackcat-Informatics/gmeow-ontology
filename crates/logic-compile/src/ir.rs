@@ -26,6 +26,9 @@ use gmeow_errors::Diag;
 mod numeric_literal;
 pub use numeric_literal::{FiniteNumericLiteral, NumericLiteral, UnitInterval};
 
+mod term_kind;
+pub use term_kind::TermKindPredicate;
+
 mod axis_evidence;
 pub use axis_evidence::AxisEvidence;
 mod composition;

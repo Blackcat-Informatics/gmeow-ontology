@@ -6034,12 +6034,8 @@ fn compare_op_relation(op: &str) -> Option<&'static str> {
 /// Map an authored `logic:nodeKind` token to the unary `logic:` node-kind relation local name the
 /// projector recognizes (the REQUIRED kind; its failure is the violation).
 fn node_kind_relation(kind: &str) -> Option<&'static str> {
-    match kind.trim() {
-        "IRI" | "iri" => Some("termIsIri"),
-        "Literal" | "literal" => Some("termIsLiteral"),
-        "BlankNodeOrIRI" | "BlankNodeOrIri" | "blankNodeOrIri" => Some("termIsBlankOrIri"),
-        _ => None,
-    }
+    crate::ir::TermKindPredicate::from_authored_token(kind)
+        .map(crate::ir::TermKindPredicate::local_name)
 }
 
 /// The SHACL node-kind an authored `logic:nodeKind` token names — the DECLARATIVE peer of

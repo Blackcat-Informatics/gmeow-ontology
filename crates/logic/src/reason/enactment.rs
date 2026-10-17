@@ -500,6 +500,10 @@ pub(crate) fn enactment_gate_markers_with_laws(
 #[path = "enactment_routing_tests.rs"]
 mod routing_tests;
 
+#[cfg(test)]
+#[path = "enactment/term_kind.tests.rs"]
+mod term_kind_tests;
+
 #[path = "enactment.tests.rs"]
 #[cfg(test)]
 mod tests;

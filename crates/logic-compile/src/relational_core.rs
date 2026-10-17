@@ -54,7 +54,7 @@ use purrdf::RdfLiteral;
 use crate::graphutil::sha256_12;
 use crate::ir::{
     ConstraintIr, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRule, PreservationKind,
-    Term,
+    Term, TermKindPredicate,
 };
 
 pub mod formula_analysis;
@@ -705,12 +705,38 @@ pub struct RcViolationRule {
     /// The antecedent's positive [`RcAtom`]s PLUS the negation-flipped consequent
     /// literal(s), canonically sorted. Satisfying every literal is the violation.
     pub body: Vec<RcAtom>,
+    /// Intrinsic consequent predicates; these are not stored class memberships.
+    pub term_kinds: Vec<RcTermKindTest>,
+    /// Native equality filters on joined operands, never asserted relations.
+    pub term_equalities: Vec<RcTermEqualityTest>,
     /// The constraint's `∀` focus variable (`vars[0]`) as an [`RcTerm::Var`] — the
     /// violation marker's subject.
     pub subject: RcTerm,
     /// The constraint's `gmeow:enforcesFailureClass` IRI — the violation marker's
     /// `rdf:type` object.
     pub failure_class: String,
+}
+
+/// A required intrinsic predicate over a bound native value or typed constant.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcTermKindTest {
+    /// Original typed operand; a variable must be bound by a positive body atom.
+    pub term: RcTerm,
+    /// The canonical predicate to evaluate.
+    pub predicate: TermKindPredicate,
+    /// Whether the consequent requires the predicate to hold or not to hold.
+    pub expected: bool,
+}
+
+/// Equality truth required by a violation body's intrinsic filter.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcTermEqualityTest {
+    /// Original left operand.
+    pub left: RcTerm,
+    /// Original right operand.
+    pub right: RcTerm,
+    /// True for equality, false for distinctness after literal negation.
+    pub expected: bool,
 }
 
 /// Why this lowering declined a `logic:Constraint` — the closed disclosure set that keeps
@@ -744,6 +770,12 @@ pub enum RcViolationGap {
     /// The focus variable is not bound by any POSITIVE body literal, so the rule is
     /// unsafe: its head could not be grounded and a NAF literal cannot bind it.
     UnsafeFocusVariable,
+    /// A term-kind operand variable has no positive body binding.
+    UnsafeTermKindVariable,
+    /// An equality operand is not bound by a positive stored-relation atom.
+    UnsafeEqualityVariable,
+    /// A universal variable has no positive stored-relation binding.
+    UnsafeUniversalVariable,
 }
 
 impl RcViolationGap {
@@ -757,6 +789,9 @@ impl RcViolationGap {
             Self::UnsupportedAntecedent => "unsupported-antecedent",
             Self::UnsupportedConsequent => "unsupported-consequent",
             Self::UnsafeFocusVariable => "unsafe-focus-variable",
+            Self::UnsafeTermKindVariable => "unsafe-term-kind-variable",
+            Self::UnsafeEqualityVariable => "unsafe-equality-variable",
+            Self::UnsafeUniversalVariable => "unsafe-universal-variable",
         }
     }
 }
@@ -845,35 +880,99 @@ fn lower_one_violation_constraint(
     flatten_and(antecedent, &mut ante_conjuncts);
     let mut ante_atoms: Vec<RcAtom> = Vec::new();
     for conjunct in &ante_conjuncts {
-        let atoms = formula_atom_to_rc_atoms(strip_quantifier(conjunct), AtomPosition::Body)
+        let atoms = formula_atom_to_rc_atoms(conjunct, AtomPosition::Body)
             .map_err(|_| RcViolationGap::UnsupportedAntecedent)?;
         ante_atoms.extend(atoms);
     }
     let subject = RcTerm::Var(format!("?{focus}"));
     // Safety: only a POSITIVE literal can bind the head's subject. A NAF literal is a
     // membership test over already-bound terms, never a generator.
-    if !ante_atoms
-        .iter()
-        .any(|atom| !atom.negated && (atom.subject == subject || atom.object == subject))
-    {
+    if !positive_binding(&ante_atoms, &subject) {
         return Err(RcViolationGap::UnsafeFocusVariable);
     }
 
     // The consequent: one violation rule per conjunct, each carrying the antecedent plus
     // that conjunct's NEGATION.
-    let mut cons_conjuncts: Vec<&Formula> = Vec::new();
-    flatten_and(consequent, &mut cons_conjuncts);
+    let mut cons_conjuncts = Vec::new();
+    guarded_consequences(
+        consequent,
+        &mut Vec::new(),
+        &vars.iter().cloned().collect(),
+        &mut cons_conjuncts,
+    )?;
     let mut out = Vec::with_capacity(cons_conjuncts.len());
-    for (conjunct_index, conjunct) in cons_conjuncts.iter().enumerate() {
-        let flipped = negate_consequent_conjunct(conjunct)?;
+    for (conjunct_index, (guards, universals, conjunct)) in cons_conjuncts.into_iter().enumerate() {
         let mut body = ante_atoms.clone();
-        body.extend(flipped);
+        for guard in guards {
+            body.extend(
+                formula_atom_to_rc_atoms(guard, AtomPosition::Body)
+                    .map_err(|_| RcViolationGap::UnsupportedAntecedent)?,
+            );
+        }
+        if let Formula::Atom {
+            relation: Term::Iri(relation),
+            ..
+        } = strip_quantifier(conjunct)
+            && builtin_relations.contains(relation)
+        {
+            return Err(RcViolationGap::BuiltinBoundConsequent);
+        }
+        let term_kinds = if let Some(test) = term_kind_consequent(conjunct)? {
+            vec![test]
+        } else {
+            let mut occupied = universals.clone();
+            for atom in &body {
+                for term in [&atom.subject, &atom.object] {
+                    if let RcTerm::Var(name) = term {
+                        occupied.insert(name.trim_start_matches('?').to_owned());
+                    }
+                }
+            }
+            body.extend(negate_consequent_conjunct(conjunct, &mut occupied)?);
+            Vec::new()
+        };
+        let mut term_equalities = Vec::new();
+        body.retain(|atom| {
+            let equal = match atom.predicate.strip_prefix(LOGIC_NAMESPACE) {
+                Some("termEqual") => true,
+                Some("termDistinct") => false,
+                _ => return true,
+            };
+            term_equalities.push(RcTermEqualityTest {
+                left: atom.subject.clone(),
+                right: atom.object.clone(),
+                expected: equal != atom.negated,
+            });
+            false
+        });
+        if !positive_binding(&body, &subject) {
+            return Err(RcViolationGap::UnsafeFocusVariable);
+        }
+        for variable in universals {
+            if !positive_binding(&body, &RcTerm::Var(format!("?{variable}"))) {
+                return Err(RcViolationGap::UnsafeUniversalVariable);
+            }
+        }
+        for test in &term_kinds {
+            if matches!(test.term, RcTerm::Var(_)) && !positive_binding(&body, &test.term) {
+                return Err(RcViolationGap::UnsafeTermKindVariable);
+            }
+        }
+        for test in &term_equalities {
+            for operand in [&test.left, &test.right] {
+                if matches!(operand, RcTerm::Var(_)) && !positive_binding(&body, operand) {
+                    return Err(RcViolationGap::UnsafeEqualityVariable);
+                }
+            }
+        }
         body.sort_unstable();
         body.dedup();
         out.push(RcViolationRule {
             constraint_iri: constraint.iri.clone(),
             conjunct_index,
             body,
+            term_kinds,
+            term_equalities,
             subject: subject.clone(),
             failure_class: failure_class.clone(),
         });
@@ -881,12 +980,74 @@ fn lower_one_violation_constraint(
     Ok(out)
 }
 
-/// Peel a quantifier prefix off a formula, returning its innermost body.
-///
-/// The authored corpus writes an obligation both bare (`p(?this, ?y)`, the free variable
-/// carrying the existential force implicitly) and explicitly quantified
-/// (`∃y. p(?this, y)`). Both mean the same obligation, and both lower identically —
-/// under NAF an unbound object position is exactly the existential probe.
+/// Only a positive stored relation can generate an operand binding.
+fn positive_binding(body: &[RcAtom], term: &RcTerm) -> bool {
+    body.iter()
+        .any(|atom| !atom.negated && (&atom.subject == term || &atom.object == term))
+}
+
+/// Distribute guarded consequences while retaining each leaf's universal scope.
+/// Shadowed binders remain residue rather than capturing an outer variable.
+fn guarded_consequences<'a>(
+    formula: &'a Formula,
+    guards: &mut Vec<&'a Formula>,
+    bound: &BTreeSet<String>,
+    out: &mut Vec<(Vec<&'a Formula>, BTreeSet<String>, &'a Formula)>,
+) -> Result<(), RcViolationGap> {
+    match formula {
+        Formula::And(conjuncts) => {
+            for conjunct in conjuncts {
+                guarded_consequences(conjunct, guards, bound, out)?;
+            }
+        }
+        Formula::Forall { vars, body } => {
+            let mut nested = bound.clone();
+            for variable in vars {
+                if !nested.insert(variable.clone()) {
+                    return Err(RcViolationGap::UnsupportedConsequent);
+                }
+            }
+            guarded_consequences(body, guards, &nested, out)?;
+        }
+        Formula::Implies(antecedent, consequent) => {
+            let previous = guards.len();
+            flatten_and(antecedent, guards);
+            guarded_consequences(consequent, guards, bound, out)?;
+            guards.truncate(previous);
+        }
+        other => out.push((guards.clone(), bound.clone(), other)),
+    }
+    Ok(())
+}
+
+fn term_kind_consequent(formula: &Formula) -> Result<Option<RcTermKindTest>, RcViolationGap> {
+    let (atom, expected) = match formula {
+        Formula::Not(inner) => (inner.as_ref(), false),
+        other => (other, true),
+    };
+    let Formula::Atom {
+        relation: Term::Iri(relation),
+        args,
+    } = atom
+    else {
+        return Ok(None);
+    };
+    let Some(predicate) = TermKindPredicate::from_relation(relation) else {
+        return Ok(None);
+    };
+    let [argument] = args.as_slice() else {
+        return Err(RcViolationGap::UnsupportedConsequent);
+    };
+    Ok(Some(RcTermKindTest {
+        term: formula_term_to_rc(argument, true)
+            .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+        predicate,
+        expected,
+    }))
+}
+
+/// Inspect the underlying relation for an early builtin refusal only.
+/// Lowering must handle binders explicitly; removing them is not scope-preserving.
 fn strip_quantifier(f: &Formula) -> &Formula {
     match f {
         Formula::Exists { body, .. } | Formula::Forall { body, .. } => strip_quantifier(body),
@@ -894,39 +1055,105 @@ fn strip_quantifier(f: &Formula) -> &Formula {
     }
 }
 
-/// Negate one consequent conjunct into the body literal(s) whose satisfaction is the
-/// violation.
-///
-/// Four shapes are in the fragment:
-///
-/// * `p(s, o)` (an OBLIGATION) → the single NAF literal `¬p(s, o)`.
-/// * `¬p(s, o)` (a PROHIBITION) → the single POSITIVE literal `p(s, o)`.
-/// * `¬∃v. (p₁ ∧ … ∧ pₙ)` (a prohibited PATTERN) → the positive conjunction
-///   `p₁ ∧ … ∧ pₙ`; the De Morgan dual of a negated conjunction of positives is a
-///   conjunction, which stays inside the Horn body.
-/// * either of the first two under a quantifier prefix, stripped by
-///   [`strip_quantifier`].
-///
-/// An OBLIGATION whose atom is n-ary is refused: its reification is a CONJUNCTION of
-/// binary atoms, and `¬(a ∧ b)` is a disjunction of NAF literals, which the Horn body
-/// cannot carry. Refusing is the only honest option — a body carrying `¬a ∧ ¬b` would
-/// fire on strictly fewer records than the law forbids.
-fn negate_consequent_conjunct(conjunct: &Formula) -> Result<Vec<RcAtom>, RcViolationGap> {
-    match strip_quantifier(conjunct) {
-        // A PROHIBITION: the violation is the prohibited pattern holding, positively.
-        Formula::Not(inner) => {
-            let mut inner_conjuncts: Vec<&Formula> = Vec::new();
-            flatten_and(strip_quantifier(inner), &mut inner_conjuncts);
-            let mut atoms = Vec::with_capacity(inner_conjuncts.len());
-            for c in &inner_conjuncts {
-                atoms.extend(
-                    formula_atom_to_rc_atoms(strip_quantifier(c), AtomPosition::Body)
-                        .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
-                );
+/// Register fresh existential binders without capturing any outer or sibling scope.
+fn bind_violation_existentials(
+    variables: &[String],
+    occupied: &mut BTreeSet<String>,
+) -> Result<(), RcViolationGap> {
+    for variable in variables {
+        if !occupied.insert(variable.clone()) {
+            return Err(RcViolationGap::UnsupportedConsequent);
+        }
+    }
+    Ok(())
+}
+
+/// Reserve free variables before flattening a positive pattern, including names
+/// used outside a sibling existential's lexical scope.
+fn pattern_free_variables(
+    formula: &Formula,
+    bound: &BTreeSet<String>,
+    free: &mut BTreeSet<String>,
+) -> Result<(), RcViolationGap> {
+    match formula {
+        Formula::Atom { args, .. } => {
+            for term in args {
+                if let Term::Var(name) = term
+                    && !bound.contains(name)
+                {
+                    free.insert(name.clone());
+                }
             }
+        }
+        Formula::And(parts) => {
+            for part in parts {
+                pattern_free_variables(part, bound, free)?;
+            }
+        }
+        Formula::Exists { vars, body } => {
+            let mut nested = bound.clone();
+            nested.extend(vars.iter().cloned());
+            pattern_free_variables(body, &nested, free)?;
+        }
+        _ => return Err(RcViolationGap::UnsupportedConsequent),
+    }
+    Ok(())
+}
+
+/// A prohibited positive pattern admits atoms, conjunctions and fresh existentials.
+/// Universal quantifiers and scope collisions remain explicit residue.
+fn prohibited_pattern_atoms(
+    formula: &Formula,
+    occupied: &mut BTreeSet<String>,
+    atoms: &mut Vec<RcAtom>,
+) -> Result<(), RcViolationGap> {
+    match formula {
+        Formula::And(conjuncts) => {
+            for conjunct in conjuncts {
+                prohibited_pattern_atoms(conjunct, occupied, atoms)?;
+            }
+        }
+        Formula::Exists { vars, body } => {
+            bind_violation_existentials(vars, occupied)?;
+            prohibited_pattern_atoms(body, occupied, atoms)?;
+        }
+        atom @ Formula::Atom { .. } => atoms.extend(
+            formula_atom_to_rc_atoms(atom, AtomPosition::Body)
+                .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+        ),
+        _ => return Err(RcViolationGap::UnsupportedConsequent),
+    }
+    Ok(())
+}
+
+/// Negate an obligation atom (possibly existentially quantified) into one NAF
+/// probe, or a prohibited positive pattern into positive body atoms. Quantifier
+/// alternation and shadowing are refused rather than flattened into a different law.
+/// N-ary obligations are refused because negating their reified conjunction would
+/// require a disjunction, which this Horn body cannot represent.
+fn negate_consequent_conjunct(
+    conjunct: &Formula,
+    occupied: &mut BTreeSet<String>,
+) -> Result<Vec<RcAtom>, RcViolationGap> {
+    match conjunct {
+        Formula::Not(inner) => {
+            pattern_free_variables(inner, &BTreeSet::new(), occupied)?;
+            let mut atoms = Vec::new();
+            prohibited_pattern_atoms(inner, occupied, &mut atoms)?;
             Ok(atoms)
         }
-        // An OBLIGATION: the violation is its absence, decided by existential NAF.
+        Formula::Exists { .. } => {
+            pattern_free_variables(conjunct, &BTreeSet::new(), occupied)?;
+            let mut inner = conjunct;
+            while let Formula::Exists { vars, body } = inner {
+                bind_violation_existentials(vars, occupied)?;
+                inner = body;
+            }
+            if !matches!(inner, Formula::Atom { .. }) {
+                return Err(RcViolationGap::UnsupportedConsequent);
+            }
+            negate_consequent_conjunct(inner, occupied)
+        }
         atom @ Formula::Atom { .. } => {
             let mut atoms = formula_atom_to_rc_atoms(atom, AtomPosition::Body)
                 .map_err(|_| RcViolationGap::UnsupportedConsequent)?;
@@ -1093,6 +1320,23 @@ fn formula_atom_to_rc_atoms(
     };
     if NumericOperator::from_iri(rel).is_some() {
         return Err("interpreted numeric relation is legal only in a positive rule antecedent");
+    }
+    if TermKindPredicate::from_relation(rel).is_some() {
+        return Err("intrinsic term-kind relations require their native filter lowering");
+    }
+    if matches!(
+        rel.strip_prefix(LOGIC_NAMESPACE),
+        Some("termEqual" | "termDistinct")
+    ) {
+        let [left, right] = args.as_slice() else {
+            return Err("native equality requires exactly two operands");
+        };
+        return Ok(vec![RcAtom {
+            subject: formula_term_to_rc(left, true)?,
+            predicate: rel.clone(),
+            object: formula_term_to_rc(right, true)?,
+            negated: false,
+        }]);
     }
     match args.len() {
         2 => {

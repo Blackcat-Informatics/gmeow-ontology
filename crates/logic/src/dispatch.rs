@@ -489,10 +489,8 @@ fn refuse_native_gap(kind: &crate::physical::UnsupportedKind) -> gmeow_errors::D
             .into_iter()
             .filter_map(|f| f.finding_iri)
             .collect();
-        return gmeow_errors::Diag::of_kind(crate::error::Reason {
-            detail: crate::reason::builtin_gap::builtin_gap_refusal_detail(gaps),
-        })
-        .with_derived_from_quads(finding_iris);
+        return crate::reason::builtin_gap::builtin_gap_refusal(gaps)
+            .with_derived_from_quads(finding_iris);
     }
     // A structural refusal (an empty-gap `Arithmetic`, or any other declared kind) keeps
     // the plain typed-refusal message. `Arithmetic` renders WITHOUT its (empty) gap

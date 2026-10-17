@@ -10,7 +10,7 @@ set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
-scanner_jobs=$(nproc)
+# Independent inventory batches run directly; each result stream is sorted below.
 scanner_batch_size=32
 
 producer_calls='(^|[^[:alnum:]_])((run_full(_scoped)?|run_sweep|refresh_release_authority|run_import|run_targets|run_acceptance(_corpus)?|AcceptanceContext::load|prime_stage_fixtures?|produce_repository_verdict|repository::execute_worker|run_slice_spec_worker|validate_flagship_manifest|run_(competency|structural|conformance)_file|merged_store|rdfs_closed_store|native_closed_store|import_graph_preserving_cached|core_browser_bundle_nquads|compile_mappings|compile_statements|load_authored[A-Za-z0-9_]*|examples_graph|build_[A-Za-z0-9_]*corpus|build_substrate_(projection|sbom_projection)|project_bundle|project_decoded_bundle|check_superset|project_four_codecs|fold_release_bundle|build_coherence_evidence|render_result_shapes|DocsModel::discover|replay_runtime_store|emit_gts|emit_gmeow_gts(_with_medium)?|dataset_to_gmeow_gts|gts_write::to_gts|gmeow_music::piece_to_gts_bytes|gmeow_math::turtle_to_gts|GmeowGtsWriter::new|e8_weyl_order|additive_he_demo|proof_ingest|exact_pca_residual|probability_model_seam|pvalue_tri_slice|clifford_twelve_thirteen|r_lift|onnx_lift|proof_lift|identity_rewrite|flipped_payload_byte|unknown_dictionary_id|undeclared_dictionary|unregistered_rep|undecodable_payload|snapshot_dataset|serialize_carrier_snapshot(_with_receipt)?|render_(apache|bench_leaderboard|catalog|constraint_catalog|constraint_shapes|cost_ledger|docs_graph|evals|frame_shapes|matrix|profiles|pydantic_package|references|research_objects|result_shapes|schemas|skos_surface|soak|term_manifest)|load_or_build|load_or_build_with_identity|try_load_or_build|try_load_or_build_with_identity|model_identity_or_build|shape_union::(load_shapes|shape_files)|data_graph_shapes_from_gts|shapes_from_gts_excluding)[[:space:]]*\(|(measure_docs_designs|verify_docs_measurement_determinism|run_pipeline_products|lang_module_dataset|demonstrator_dataset|lang_slice_file|load_lang_module|carrier_dict_and_major|grounding_input|grounding_corpus|check_gmn1_roundtrip|check_gmn1_construct_coverage|observations::(dl_oracle|numeric_oracle|tptp|ontouml)|cached_observation|cached_inputs|consistency::read|heavy::produce|run::run_case|run_full(_scoped)?|run_sweep|run_import|run_targets|run_acceptance(_corpus)?|AcceptanceContext::load|prime_stage_fixtures?|produce_repository_verdict|repository::execute_worker|run_slice_spec_worker|validate_flagship_manifest|run_(competency|structural|conformance)_file|merged_store|rdfs_closed_store|native_closed_store|import_graph_preserving_cached|admit_graph_preserving_cached(_with_blobs)?|admit_authenticated_corpus_artifact|publish_authenticated_corpus_artifact|core_browser_bundle_nquads|compile_mappings(_with_sources)?|compile_statements|load_authored[A-Za-z0-9_]*|examples_graph|build_[A-Za-z0-9_]*corpus|build_substrate_(projection|sbom_projection)|project_bundle|project_decoded_bundle|check_superset|project_four_codecs|fold_release_bundle|build_coherence_evidence|render_result_shapes|DocsModel::discover|replay_runtime_store|emit_gts|emit_gmeow_gts|view_to_gmeow_gts|gts_write::to_gts|gmeow_music::piece_to_gts_bytes|gmeow_math::turtle_to_gts|GmeowGtsWriter::new|e8_weyl_order|additive_he_demo|proof_ingest|exact_pca_residual|probability_model_seam|pvalue_tri_slice|clifford_twelve_thirteen|r_lift|onnx_lift|proof_lift|identity_rewrite|flipped_payload_byte|unknown_dictionary_id|undeclared_dictionary|unregistered_rep|undecodable_payload|snapshot_dataset|serialize_carrier_snapshot|render_(apache|bench_leaderboard|catalog|constraint_catalog|constraint_shapes|cost_ledger|docs_graph|evals|frame_shapes|matrix|profiles|pydantic_package|references|research_objects|result_shapes|schemas|skos_surface|soak|term_manifest)|load_or_build|load_or_build_with_identity|try_load_or_build|try_load_or_build_with_identity|model_identity_or_build|shape_union::(load_shapes|shape_files)|data_graph_shapes_from_(gts|archive)|shape_corpus_variants_from_gts|shape_corpus_variants_from_(members|archive)|shapes_from_gts_excluding)[[:space:]]*\()'
@@ -119,7 +119,7 @@ inline_matches=$(matching_sources "${producer_calls}|${test_side_refresh}|${prod
 mapfile -t inline_test_files < <(printf '%s' "$inline_matches" | sort -u)
 if ((${#inline_test_files[@]})); then
     inline_findings=$(printf '%s\0' "${inline_test_files[@]}" | \
-        xargs -0 -r -n "$scanner_batch_size" -P "$scanner_jobs" \
+        xargs -0 -r -n "$scanner_batch_size" -P 0 \
         perl scripts/scan-cfg-test-producers.pl \
         "$producer_calls" "$repository_bound_calls" "$test_side_refresh" "$producer_cli" | \
         LC_ALL=C sort)
@@ -135,7 +135,7 @@ fi
 flow_inventory=$(rg --files --no-ignore --hidden -g '*.rs' crates)
 mapfile -t flow_files < <(printf '%s\n' "$flow_inventory" | sort)
 flow_findings=$(printf '%s\0' "${flow_files[@]}" | \
-    xargs -0 -r -n "$scanner_batch_size" -P "$scanner_jobs" \
+    xargs -0 -r -n "$scanner_batch_size" -P 0 \
     perl scripts/scan-authored-test-flows.pl | LC_ALL=C sort)
 while IFS= read -r hit; do
     [[ -z "$hit" ]] && continue
@@ -151,7 +151,7 @@ doctest_matches=$(matching_sources "${producer_calls}|${producer_cli}|${test_sid
 mapfile -t doctest_files < <(printf '%s' "$doctest_matches" | sort -u)
 if ((${#doctest_files[@]})); then
     doctest_findings=$(printf '%s\0' "${doctest_files[@]}" | \
-        xargs -0 -r -n "$scanner_batch_size" -P "$scanner_jobs" \
+        xargs -0 -r -n "$scanner_batch_size" -P 0 \
         perl scripts/scan-doctest-producers.pl \
         "$producer_calls" "$repository_bound_calls" "$test_side_refresh" "$producer_cli" | \
         LC_ALL=C sort)
