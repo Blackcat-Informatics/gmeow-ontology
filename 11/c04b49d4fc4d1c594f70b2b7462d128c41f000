@@ -1,0 +1,21 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 9a4d8af8ad9f6a433a31f23781614311a42d62e9
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1837
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1837
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 9cb2cb1fc97a55605d818f10c1e5912e25cc8a75
+GhpRsq-Head-Ref: paudley/1803-split-gmeow-purrdf-responsibilities
+GhpRsq-Head-OID: 9a4d8af8ad9f6a433a31f23781614311a42d62e9
+GhpRsq-Result-Tree: d692c1f65b00e32a5ff9ca6414d65c603974456c
+GhpRsq-Result-Commit: 11c04b49d4fc4d1c594f70b2b7462d128c41f000
+GhpRsq-Parent-Hashes: 9a4d8af8ad9f6a433a31f23781614311a42d62e9
+GhpRsq-Squash-Notes-SHA256: 01620b6aadff85ad638293819e33c42307dd43639f3e5c1d552b80402c86cf4c
+GhpRsq-Defect-Class: https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure
+GhpRsq-Stage-Tree: fc7cff8466bedbfdd1c3fec17667f9bd74fb7792
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1837/stage
+GhpRsq-Stage-Files: 167
