@@ -1202,7 +1202,7 @@ gmeow:constraintFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:constraintText
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TraversalConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "constraint text"@x-gmeow-english ;
@@ -1388,7 +1388,7 @@ gmeow:dofConstraintFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dofConstraintText
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DegreeOfFreedom ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "degree-of-freedom constraint text"@x-gmeow-english ;
@@ -4345,7 +4345,7 @@ gmeow:notationTablature
     gmeow:notationSystemKind gmeow:symbolicKindMusical .
 
 gmeow:ornamentDescription
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OrnamentProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "ornament description"@x-gmeow-english ;
@@ -5402,7 +5402,7 @@ gmeow:processParameter
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:processRuleText
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GenerativeProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "process rule text"@x-gmeow-english ;
@@ -7245,7 +7245,7 @@ gmeow:DegreeOfFreedom rdfs:subClassOf
 
 gmeow:TraversalConstraint rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:constraintAppliesTo ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:constraintText ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:constraintText ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdf:langString ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:constraintFunction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:PerformanceDecision rdfs:subClassOf
@@ -7255,7 +7255,7 @@ gmeow:PerformanceDecision rdfs:subClassOf
 
 gmeow:GenerativeProcess rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:processKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:processRuleText ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:processRuleText ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdf:langString ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:processFunction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:OrnamentProfile rdfs:subClassOf

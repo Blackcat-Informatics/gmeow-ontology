@@ -162,6 +162,23 @@ fn performance_functional_properties() {
     // module — so this asserts over the merged ontology, not `module()`.
     let s = GraphStore::ontology();
     for prop in [
+        "dofConstraintText",
+        "constraintText",
+        "ornamentDescription",
+        "processRuleText",
+    ] {
+        assert!(s.has(
+            Some(&g(prop)),
+            Some(RDF_TYPE),
+            Some("https://blackcatinformatics.ca/logic/DatatypeProperty"),
+        ));
+        assert!(!s.has(
+            Some(&g(prop)),
+            Some(RDF_TYPE),
+            Some("https://blackcatinformatics.ca/logic/AnnotationProperty"),
+        ));
+    }
+    for prop in [
         "dofWork",
         "dofExpression",
         "dofParameter",

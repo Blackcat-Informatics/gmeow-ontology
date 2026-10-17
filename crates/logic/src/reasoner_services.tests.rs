@@ -105,7 +105,7 @@ fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
     );
 }
 
-/// Recording owns the original hierarchy error after the input dataset is released.
+/// The hierarchy error survives input release and reaches the diagnostic ledger.
 #[test]
 fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped() {
     let dataset = purrdf::parse_dataset(
@@ -146,6 +146,52 @@ fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped
             .iter()
             .any(|frame| frame.message.contains("urn:short-chain"))
     );
+}
+
+/// Class-restriction refusals retain source spelling through the actual GMEOW ledger.
+#[test]
+fn a_class_role_refusal_keeps_its_source_in_recorded_and_unrecorded_services() {
+    for recording in [false, true] {
+        let dataset = purrdf::parse_dataset(
+            b"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+              @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+              <urn:refused-class-role> a owl:AnnotationProperty .
+              <urn:restricted-class> rdfs:subClassOf [
+                  a owl:Restriction ; owl:onProperty <urn:refused-class-role> ;
+                  owl:someValuesFrom <urn:filler-class>
+              ] .",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        let error = if recording {
+            DlReasoner::with_proofs(&dataset)
+        } else {
+            DlReasoner::new(&dataset)
+        }
+        .expect_err("an annotation property cannot be an object restriction role");
+        drop(dataset);
+        let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
+        assert_eq!(failure.kind, DlServiceFailureKind::Malformed);
+        let EntailError::RoleHierarchy(role) = failure.cause.as_ref() else {
+            panic!("the adapter must preserve the original native role refusal");
+        };
+        assert!(matches!(
+            role.classification(),
+            purrdf::entail::RoleHierarchyError::InvalidProperty { .. }
+        ));
+        assert!(role.presentation().is_some());
+        let recorded = gmeow_errors::DiagLedger::new()
+            .record(error, gmeow_errors::StageId::new("native-dl-consumer"));
+        assert_eq!(recorded.root.code, "logic.dl-service");
+        assert!(
+            recorded
+                .root
+                .frames
+                .iter()
+                .any(|frame| { frame.message.contains("urn:refused-class-role") })
+        );
+    }
 }
 
 #[test]
@@ -265,6 +311,65 @@ fn unrecorded_service_keeps_absence_distinct_from_an_empty_proof() {
         failure.cause.as_ref(),
         EntailError::ProofsNotRecorded
     ));
+}
+
+/// Canonical text restrictions retain their native proofs and counterproofs after projection.
+#[test]
+fn canonical_language_tagged_data_reaches_the_native_recorded_service() {
+    for (value, expected) in [
+        (r#""A selected constraint"@en"#, Verdict::True),
+        (r#""A selected constraint""#, Verdict::False),
+    ] {
+        let source = purrdf::parse_dataset(
+            format!(
+                r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+           @prefix ex: <urn:constraint-data:> .
+           @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+           ex:text a logic:DatatypeProperty .
+           ex:Case a logic:Class ; logic:subClassOf [
+               a logic:Restriction ; logic:onProperty ex:text ;
+               logic:allValuesFrom rdf:langString
+           ] .
+           ex:case a ex:Case ; ex:text {value} ."#
+            )
+            .as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        let projection =
+            gmeow_logic_compile::projections::reader_view::with_owl_rdfs_projection(&source)
+                .unwrap();
+        assert!(projection.quads().any(|quad| {
+            matches!(
+                projection.resolve(quad.s),
+                purrdf::TermRef::Iri("urn:constraint-data:text")
+            ) && matches!(
+                projection.resolve(quad.p),
+                purrdf::TermRef::Iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+            ) && matches!(
+                projection.resolve(quad.o),
+                purrdf::TermRef::Iri("http://www.w3.org/2002/07/owl#DatatypeProperty")
+            )
+        }));
+        let mut reasoner = DlReasoner::with_proofs(&projection)
+            .expect("the canonical data role must not become an invalid object role");
+        reasoner.prepare(&Question::Consistency).unwrap();
+        let result = reasoner.consistency();
+        assert_eq!(*result.answer(), expected);
+        assert!(result.certificate().completeness().is_decided());
+        let context = reasoner.proof_context().unwrap();
+        result
+            .proof()
+            .expect("selected proof recording")
+            .verify(
+                &projection,
+                &Question::Consistency,
+                Some(result.certificate()),
+                &context,
+            )
+            .unwrap();
+    }
 }
 
 /// A consumer prepares fresh question terms without executing another service decision.
