@@ -1,0 +1,82 @@
+crates/logic-compile/src/frontend.rs:16://! * **Raise** ([`LogicParseError`]) on unparsable input: an empty graph or a
+crates/logic-compile/src/frontend.rs:180:pub struct LogicParseError(pub String);
+crates/logic-compile/src/frontend.rs:182:impl fmt::Display for LogicParseError {
+crates/logic-compile/src/frontend.rs:188:impl std::error::Error for LogicParseError {}
+crates/logic-compile/src/frontend.rs:6436:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/frontend.rs:6442:        canonicalize_blank_nodes(dataset).map_err(|e| LogicParseError(e.message().to_owned()))?;
+crates/logic-compile/src/frontend.rs:6446:fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), LogicParseError> {
+crates/logic-compile/src/frontend.rs:6448:        return Err(LogicParseError(
+crates/logic-compile/src/frontend.rs:6461:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/frontend.rs:6471:) -> Result<(LogicProgram, Vec<Diagnostic>, EmissionTrace), LogicParseError> {
+crates/logic-compile/src/frontend.rs:6628:        .map_err(|e| LogicParseError(e.message().to_owned()))?
+crates/logic-compile/src/frontend.rs:6663:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/frontend.rs:6667:        .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
+crates/logic-compile/src/frontend.rs:6680:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/frontend.rs:6682:        return Err(LogicParseError(format!(
+crates/logic-compile/src/frontend.rs:6689:        .map_err(|e| LogicParseError(format!("Failed to read {}: {e}", path.display())))?;
+crates/logic-compile/src/xcl/reader.rs:17:use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
+crates/logic-compile/src/xcl/reader.rs:32:/// raises [`LogicParseError`] — a construct is never silently dropped.
+crates/logic-compile/src/xcl/reader.rs:36:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/xcl/reader.rs:38:        return Err(LogicParseError(
+crates/logic-compile/src/xcl/reader.rs:46:        .map_err(|e| LogicParseError(format!("XCL is not well-formed XML: {e}")))?;
+crates/logic-compile/src/xcl/reader.rs:50:        return Err(LogicParseError(format!(
+crates/logic-compile/src/xcl/reader.rs:80:                return Err(LogicParseError(format!(
+crates/logic-compile/src/xcl/reader.rs:104:            return Err(LogicParseError(format!(
+crates/logic-compile/src/xcl/reader.rs:118:        LogicParseError(format!("XCL meta carrier: N-Triples re-parse failed: {e}"))
+crates/logic-compile/src/tptp/tests.rs:10:    DocumentSelection, LogicParseError, PreparedLogicSource, SourceAdmission, SourceBase,
+crates/logic-compile/src/tptp/tests.rs:77:                        LogicParseError(format!(
+crates/gmeow-cli/src/commands/prove.rs:22:    LogicParseError, PreparedLogicSource, SourceAdmission, SourceBase, SourceBaseOrigin,
+crates/gmeow-cli/src/commands/prove.rs:998:                    LogicParseError(format!(
+crates/logic-compile/src/clif/reader.rs:19:use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
+crates/logic-compile/src/clif/reader.rs:35:/// (unbalanced parens / empty) raises [`LogicParseError`]. A construct is never silently
+crates/logic-compile/src/clif/reader.rs:40:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/clif/reader.rs:42:        return Err(LogicParseError(
+crates/logic-compile/src/clif/reader.rs:60:    let forms = parse_sexprs(&fol_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
+crates/logic-compile/src/clif/reader.rs:66:        return Err(LogicParseError(
+crates/logic-compile/src/clif/reader.rs:97:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/clif/reader.rs:106:    let forms = parse_sexprs(meta_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
+crates/logic-compile/src/clif/reader.rs:110:            return Err(LogicParseError(format!(
+crates/logic-compile/src/clif/reader.rs:115:            return Err(LogicParseError(format!(
+crates/logic-compile/src/clif/reader.rs:135:        .map_err(|e| LogicParseError(format!("CLIF meta block: N-Triples re-parse failed: {e}")))?;
+crates/logic-compile/src/clif/reader.rs:140:fn nt_term(expr: &SExpr) -> Result<String, LogicParseError> {
+crates/logic-compile/src/clif/reader.rs:151:                return Err(LogicParseError(
+crates/logic-compile/src/clif/reader.rs:167:        other => Err(LogicParseError(format!(
+crates/logic-compile/src/clif/reader.rs:192:fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
+crates/logic-compile/src/clif/reader.rs:195:        return Err(LogicParseError(format!(
+crates/logic-compile/src/clif/reader.rs:202:        return Err(LogicParseError(format!(
+crates/logic-compile/src/clif/reader.rs:210:            return Err(LogicParseError(format!(
+crates/logic-compile/src/clif/reader.rs:231:        other => Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:17:use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
+crates/logic-compile/src/cgif/reader.rs:29:/// (unbalanced brackets / empty) raises [`LogicParseError`]. A construct is never silently
+crates/logic-compile/src/cgif/reader.rs:34:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/cgif/reader.rs:36:        return Err(LogicParseError(
+crates/logic-compile/src/cgif/reader.rs:61:                return Err(LogicParseError(
+crates/logic-compile/src/cgif/reader.rs:84:                return Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:112:) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/cgif/reader.rs:121:    let forms = parse_forms(meta_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
+crates/logic-compile/src/cgif/reader.rs:125:            return Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:130:            return Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:150:        .map_err(|e| LogicParseError(format!("CGIF meta block: N-Triples re-parse failed: {e}")))?;
+crates/logic-compile/src/cgif/reader.rs:155:fn nt_term(expr: &CExpr) -> Result<String, LogicParseError> {
+crates/logic-compile/src/cgif/reader.rs:166:                return Err(LogicParseError(
+crates/logic-compile/src/cgif/reader.rs:182:        other => Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:207:fn parse_lit_form(items: &[CExpr]) -> Result<LitTerm, LogicParseError> {
+crates/logic-compile/src/cgif/reader.rs:210:        return Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:216:        return Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:224:            return Err(LogicParseError(format!(
+crates/logic-compile/src/cgif/reader.rs:245:        other => Err(LogicParseError(format!(
+crates/logic-compile/src/frontend/prepared.rs:10:use super::{Diagnostic, LogicParseError, LogicProgram};
+crates/logic-compile/src/frontend/prepared.rs:32:    pub fn new(dataset: &RdfDataset) -> Result<Self, LogicParseError> {
+crates/logic-compile/src/frontend/prepared.rs:35:            LogicParseError(format!("native blank-node canonicalization: {error}"))
+crates/logic-compile/src/frontend/prepared.rs:80:        mut selection_term: impl FnMut(TermId) -> Result<TermId, LogicParseError>,
+crates/logic-compile/src/frontend/prepared.rs:81:    ) -> Result<(), LogicParseError> {
+crates/logic-compile/src/frontend/prepared.rs:90:            return Err(LogicParseError(
+crates/logic-compile/src/frontend/prepared.rs:101:        let mut map_term = |term: TermId| -> Result<TermId, LogicParseError> {
+crates/logic-compile/src/frontend/prepared.rs:107:                LogicParseError(format!(
+crates/logic-compile/src/frontend/prepared.rs:207:                return Err(LogicParseError(format!(
+crates/logic-compile/src/frontend/prepared.rs:226:                return Err(LogicParseError(format!(
+crates/logic-compile/src/frontend/prepared.rs:268:    ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+crates/logic-compile/src/frontend/prepared.rs:282:    ) -> Result<super::SourceCompilation<'_>, LogicParseError> {
+crates/logic-compile/src/frontend/prepared.rs:302:    ) -> Result<super::CompiledTheory, LogicParseError> {
+crates/pipeline/src/stages/parse_sources.rs:11:    CompiledTheory, LogicParseError, PreparedLogicSource, SourceBase, SourceBaseOrigin,
+crates/pipeline/src/stages/parse_sources.rs:300:                selection_term(term).map_err(|error| LogicParseError(error.to_string()))

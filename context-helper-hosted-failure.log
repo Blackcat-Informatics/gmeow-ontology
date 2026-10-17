@@ -1,0 +1,691 @@
+﻿2026-10-17T00:34:06.6117997Z Current runner version: '2.337.0'
+2026-10-17T00:34:06.6134127Z ##[group]Runner Image Provisioner
+2026-10-17T00:34:06.6134651Z Hosted Compute Agent
+2026-10-17T00:34:06.6135094Z Version: 20261012.601
+2026-10-17T00:34:06.6135468Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-17T00:34:06.6135951Z Build Date: 2026-10-12T17:48:21Z
+2026-10-17T00:34:06.6136365Z Worker ID: {586b1c0a-fc18-41c2-b63d-233bab4b128b}
+2026-10-17T00:34:06.6136794Z Region: southcentralus
+2026-10-17T00:34:06.6137170Z Cloud: Azure
+2026-10-17T00:34:06.6137491Z ##[endgroup]
+2026-10-17T00:34:06.6138509Z ##[group]Operating System
+2026-10-17T00:34:06.6138946Z Ubuntu
+2026-10-17T00:34:06.6139257Z 24.04.5
+2026-10-17T00:34:06.6139600Z LTS
+2026-10-17T00:34:06.6140075Z ##[endgroup]
+2026-10-17T00:34:06.6140486Z ##[group]Runner Image
+2026-10-17T00:34:06.6140896Z Image: ubuntu-24.04
+2026-10-17T00:34:06.6141237Z Version: 20261012.334.1
+2026-10-17T00:34:06.6142021Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-17T00:34:06.6142895Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-17T00:34:06.6143483Z ##[endgroup]
+2026-10-17T00:34:06.6144132Z ##[group]GITHUB_TOKEN Permissions
+2026-10-17T00:34:06.6145347Z Contents: read
+2026-10-17T00:34:06.6145718Z Metadata: read
+2026-10-17T00:34:06.6146091Z ##[endgroup]
+2026-10-17T00:34:06.6147341Z Secret source: Actions
+2026-10-17T00:34:06.6147925Z Cache mode: write
+2026-10-17T00:34:06.6148404Z Prepare workflow directory
+2026-10-17T00:34:06.6378050Z Prepare all required actions
+2026-10-17T00:34:06.6408086Z Getting action download info
+2026-10-17T00:34:06.8696325Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-17T00:34:06.9541331Z Download action repository 'dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8' (SHA:29eef336d9b2848a0b548edc03f92a220660cdb8)
+2026-10-17T00:34:07.1391884Z Download action repository 'Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6' (SHA:6323deb102c322ba6fcbdcafc7e3dddab59af2b6)
+2026-10-17T00:34:07.7768272Z Complete job name: helpers
+2026-10-17T00:34:07.8196148Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-10-17T00:34:07.8196677Z with:
+2026-10-17T00:34:07.8196940Z   persist-credentials: false
+2026-10-17T00:34:07.8197276Z   repository: Blackcat-Informatics/gmeow-ontology
+2026-10-17T00:34:07.8199683Z   token: ***
+2026-10-17T00:34:07.8200049Z   ssh-strict: true
+2026-10-17T00:34:07.8200324Z   ssh-user: git
+2026-10-17T00:34:07.8200576Z   clean: true
+2026-10-17T00:34:07.8200836Z   sparse-checkout-cone-mode: true
+2026-10-17T00:34:07.8201140Z   fetch-depth: 1
+2026-10-17T00:34:07.8201390Z   fetch-tags: false
+2026-10-17T00:34:07.8201655Z   show-progress: true
+2026-10-17T00:34:07.8201915Z   lfs: false
+2026-10-17T00:34:07.8202168Z   submodules: false
+2026-10-17T00:34:07.8202440Z   set-safe-directory: true
+2026-10-17T00:34:07.8202753Z   allow-unsafe-pr-checkout: false
+2026-10-17T00:34:07.8203117Z env:
+2026-10-17T00:34:07.8203730Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:07.8204451Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:07.8204892Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:07.8205279Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:07.8205571Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:07.8205857Z ##[endgroup]
+2026-10-17T00:34:07.8818304Z Syncing repository: Blackcat-Informatics/gmeow-ontology
+2026-10-17T00:34:07.8819387Z ##[group]Getting Git version info
+2026-10-17T00:34:07.8820003Z Working directory is '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-17T00:34:07.8820696Z [command]/usr/bin/git version
+2026-10-17T00:34:07.8883820Z git version 2.55.0
+2026-10-17T00:34:07.8894769Z ##[endgroup]
+2026-10-17T00:34:07.8901029Z Temporarily overriding HOME='/home/runner/work/_temp/b38720a5-0243-4dec-8a06-19ecf0fe7e24' before making global git config changes
+2026-10-17T00:34:07.8902229Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-17T00:34:07.8904116Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-17T00:34:07.8938320Z Deleting the contents of '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-17T00:34:07.8940237Z ##[group]Determining repository object format
+2026-10-17T00:34:07.8941150Z ##[endgroup]
+2026-10-17T00:34:07.8941552Z ##[group]Initializing the repository
+2026-10-17T00:34:07.8943607Z [command]/usr/bin/git init /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-17T00:34:07.9045539Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-17T00:34:07.9046239Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-17T00:34:07.9046768Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-17T00:34:07.9047264Z hint: call:
+2026-10-17T00:34:07.9047495Z hint:
+2026-10-17T00:34:07.9047807Z hint: 	git config --global init.defaultBranch <name>
+2026-10-17T00:34:07.9048156Z hint:
+2026-10-17T00:34:07.9048483Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-17T00:34:07.9049198Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-17T00:34:07.9049989Z hint:
+2026-10-17T00:34:07.9050280Z hint: 	git branch -m <name>
+2026-10-17T00:34:07.9050546Z hint:
+2026-10-17T00:34:07.9051087Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-17T00:34:07.9051859Z Initialized empty Git repository in /home/runner/work/gmeow-ontology/gmeow-ontology/.git/
+2026-10-17T00:34:07.9055659Z [command]/usr/bin/git remote add origin https://github.com/Blackcat-Informatics/gmeow-ontology
+2026-10-17T00:34:07.9092592Z ##[endgroup]
+2026-10-17T00:34:07.9093036Z ##[group]Disabling automatic garbage collection
+2026-10-17T00:34:07.9094158Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-17T00:34:07.9115823Z ##[endgroup]
+2026-10-17T00:34:07.9116853Z ##[group]Setting up auth
+2026-10-17T00:34:07.9117178Z Removing SSH command configuration
+2026-10-17T00:34:07.9118864Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-17T00:34:07.9140500Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-17T00:34:07.9413520Z Removing HTTP extra header
+2026-10-17T00:34:07.9416356Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-17T00:34:07.9443271Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-17T00:34:07.9598989Z Removing includeIf entries pointing to credentials config files
+2026-10-17T00:34:07.9599565Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-17T00:34:07.9620428Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-17T00:34:07.9778973Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-17T00:34:07.9802967Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path /home/runner/work/_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:07.9824806Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:07.9850539Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:07.9873594Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:07.9894437Z ##[endgroup]
+2026-10-17T00:34:07.9894847Z ##[group]Fetching the repository
+2026-10-17T00:34:07.9898206Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1216692df6378133c26050e3bf6b202934c2b82a:refs/remotes/pull/1832/merge
+2026-10-17T00:34:11.3186932Z From https://github.com/Blackcat-Informatics/gmeow-ontology
+2026-10-17T00:34:11.3187580Z  * [new ref]         1216692df6378133c26050e3bf6b202934c2b82a -> pull/1832/merge
+2026-10-17T00:34:11.3190781Z ##[endgroup]
+2026-10-17T00:34:11.3191117Z ##[group]Determining the checkout info
+2026-10-17T00:34:11.3191456Z ##[endgroup]
+2026-10-17T00:34:11.3195423Z [command]/usr/bin/git sparse-checkout disable
+2026-10-17T00:34:11.3237891Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-17T00:34:11.3262034Z ##[group]Checking out the ref
+2026-10-17T00:34:11.3264520Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/1832/merge
+2026-10-17T00:34:12.0263749Z Note: switching to 'refs/remotes/pull/1832/merge'.
+2026-10-17T00:34:12.0264073Z 
+2026-10-17T00:34:12.0264194Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-17T00:34:12.0264503Z changes and commit them, and you can discard any commits you make in this
+2026-10-17T00:34:12.0264766Z state without impacting any branches by switching back to a branch.
+2026-10-17T00:34:12.0264934Z 
+2026-10-17T00:34:12.0265165Z If you want to create a new branch to retain commits you create, you may
+2026-10-17T00:34:12.0265423Z do so (now or later) by using -c with the switch command. Example:
+2026-10-17T00:34:12.0265633Z 
+2026-10-17T00:34:12.0265694Z   git switch -c <new-branch-name>
+2026-10-17T00:34:12.0265795Z 
+2026-10-17T00:34:12.0266202Z Or undo this operation with:
+2026-10-17T00:34:12.0266293Z 
+2026-10-17T00:34:12.0266346Z   git switch -
+2026-10-17T00:34:12.0266445Z 
+2026-10-17T00:34:12.0266562Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-17T00:34:12.0266723Z 
+2026-10-17T00:34:12.0266907Z HEAD is now at 1216692 Merge 6870f384d81f2ec75d727a0cc8a78bf4dfa31af0 into edef801c6d6838ef52bee6add1d492e3e0566469
+2026-10-17T00:34:12.0291050Z ##[endgroup]
+2026-10-17T00:34:12.0326559Z [command]/usr/bin/git log -1 --format=%H
+2026-10-17T00:34:12.0345857Z 1216692df6378133c26050e3bf6b202934c2b82a
+2026-10-17T00:34:12.0355164Z ##[group]Removing auth
+2026-10-17T00:34:12.0355411Z Removing SSH command configuration
+2026-10-17T00:34:12.0355752Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-17T00:34:12.0379358Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-17T00:34:12.0547535Z Removing HTTP extra header
+2026-10-17T00:34:12.0550280Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-17T00:34:12.0572359Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-17T00:34:12.0740284Z Removing includeIf entries pointing to credentials config files
+2026-10-17T00:34:12.0742140Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-17T00:34:12.0760638Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+2026-10-17T00:34:12.0761141Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+2026-10-17T00:34:12.0761673Z includeif.gitdir:/github/workspace/.git.path
+2026-10-17T00:34:12.0761862Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-17T00:34:12.0767952Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+2026-10-17T00:34:12.0783933Z /home/runner/work/_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:12.0792017Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-a5069fed\-4e0c\-44b3\-9d22\-5eb88c9a1901\.config
+2026-10-17T00:34:12.0820156Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+2026-10-17T00:34:12.0835740Z /home/runner/work/_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:12.0840770Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-a5069fed\-4e0c\-44b3\-9d22\-5eb88c9a1901\.config
+2026-10-17T00:34:12.0907494Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-17T00:34:12.0926048Z /github/runner_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:12.0931841Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-a5069fed\-4e0c\-44b3\-9d22\-5eb88c9a1901\.config
+2026-10-17T00:34:12.0954451Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-17T00:34:12.0970750Z /github/runner_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config
+2026-10-17T00:34:12.0978289Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-a5069fed\-4e0c\-44b3\-9d22\-5eb88c9a1901\.config
+2026-10-17T00:34:12.1002467Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-17T00:34:12.1163471Z Removing credentials config '/home/runner/work/_temp/git-credentials-a5069fed-4e0c-44b3-9d22-5eb88c9a1901.config'
+2026-10-17T00:34:12.1170817Z ##[endgroup]
+2026-10-17T00:34:12.1385346Z ##[group]Run dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+2026-10-17T00:34:12.1385568Z with:
+2026-10-17T00:34:12.1385689Z   toolchain: nightly-2026-09-05
+2026-10-17T00:34:12.1385822Z env:
+2026-10-17T00:34:12.1386121Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:12.1386487Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.1386698Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.1386887Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:12.1387028Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:12.1387160Z ##[endgroup]
+2026-10-17T00:34:12.1442395Z ##[start-action display=Run : parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+2026-10-17T00:34:12.1472784Z ##[group]Run : parse toolchain version
+2026-10-17T00:34:12.1473006Z [36;1m: parse toolchain version[0m
+2026-10-17T00:34:12.1473203Z [36;1mif [[ -z $toolchain ]]; then[0m
+2026-10-17T00:34:12.1473486Z [36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070[0m
+2026-10-17T00:34:12.1473778Z [36;1m  echo "'toolchain' is a required input" >&2[0m
+2026-10-17T00:34:12.1473935Z [36;1m  exit 1[0m
+2026-10-17T00:34:12.1474116Z [36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then[0m
+2026-10-17T00:34:12.1474337Z [36;1m  if [[ Linux == macOS ]]; then[0m
+2026-10-17T00:34:12.1474624Z [36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1475043Z [36;1m  else[0m
+2026-10-17T00:34:12.1475257Z [36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1475495Z [36;1m  fi[0m
+2026-10-17T00:34:12.1475662Z [36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then[0m
+2026-10-17T00:34:12.1475943Z [36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1476191Z [36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then[0m
+2026-10-17T00:34:12.1476467Z [36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1476727Z [36;1melse[0m
+2026-10-17T00:34:12.1476863Z [36;1m  echo "toolchain=$toolchain" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1477023Z [36;1mfi[0m
+2026-10-17T00:34:12.1689291Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:12.1689479Z env:
+2026-10-17T00:34:12.1689931Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:12.1690296Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.1690518Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.1690703Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:12.1690839Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:12.1690979Z   toolchain: nightly-2026-09-05
+2026-10-17T00:34:12.1691113Z ##[endgroup]
+2026-10-17T00:34:12.1791627Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=34]
+2026-10-17T00:34:12.1804736Z ##[start-action display=Run : construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+2026-10-17T00:34:12.1823386Z ##[group]Run : construct rustup command line
+2026-10-17T00:34:12.1823581Z [36;1m: construct rustup command line[0m
+2026-10-17T00:34:12.1823825Z [36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1824152Z [36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1824561Z [36;1mecho "downgrade=" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:12.1871953Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:12.1872131Z env:
+2026-10-17T00:34:12.1872430Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:12.1872790Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.1872999Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.1873176Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:12.1873311Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:12.1873444Z   targets: 
+2026-10-17T00:34:12.1873546Z   components: 
+2026-10-17T00:34:12.1873660Z ##[endgroup]
+2026-10-17T00:34:12.1944250Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=13]
+2026-10-17T00:34:12.1946313Z ##[start-action display=Run : set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+2026-10-17T00:34:12.1994291Z ##[group]Run : set $CARGO_HOME
+2026-10-17T00:34:12.1994455Z [36;1m: set $CARGO_HOME[0m
+2026-10-17T00:34:12.1994647Z [36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV[0m
+2026-10-17T00:34:12.2039975Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:12.2040162Z env:
+2026-10-17T00:34:12.2040458Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:12.2040821Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.2041029Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.2041316Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:12.2041452Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:12.2041585Z ##[endgroup]
+2026-10-17T00:34:12.2105516Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=15]
+2026-10-17T00:34:12.2106873Z ##[start-action display=Run : install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+2026-10-17T00:34:12.2127552Z ##[group]Run : install rustup if needed
+2026-10-17T00:34:12.2127737Z [36;1m: install rustup if needed[0m
+2026-10-17T00:34:12.2127904Z [36;1mif ! command -v rustup &>/dev/null; then[0m
+2026-10-17T00:34:12.2128305Z [36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y[0m
+2026-10-17T00:34:12.2128691Z [36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH[0m
+2026-10-17T00:34:12.2128848Z [36;1mfi[0m
+2026-10-17T00:34:12.2174300Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:12.2174481Z env:
+2026-10-17T00:34:12.2174784Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:12.2175152Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.2175375Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.2175559Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:12.2175700Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:12.2175843Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:12.2175977Z ##[endgroup]
+2026-10-17T00:34:12.2237585Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=13]
+2026-10-17T00:34:12.2240079Z ##[start-action display=Run : install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+2026-10-17T00:34:12.2243547Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-10-17T00:34:12.2245374Z ##[start-action display=rustup toolchain install nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_4]
+2026-10-17T00:34:12.2263032Z ##[group]Run rustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update
+2026-10-17T00:34:12.2263497Z [36;1mrustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update[0m
+2026-10-17T00:34:12.2308659Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:12.2325860Z env:
+2026-10-17T00:34:12.2326368Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:12.2326953Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.2327292Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:12.2327585Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:12.2327797Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:12.2328032Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:12.2328253Z   RUSTUP_PERMIT_COPY_RENAME: 1
+2026-10-17T00:34:12.2328462Z ##[endgroup]
+2026-10-17T00:34:12.2780006Z info: syncing channel updates for nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-17T00:34:12.9699490Z info: latest update on 2026-09-05 for version 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T00:34:12.9700054Z info: downloading 3 components
+2026-10-17T00:34:19.0205811Z 
+2026-10-17T00:34:19.0260866Z   nightly-2026-09-05-x86_64-unknown-linux-gnu installed - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T00:34:19.0261139Z 
+2026-10-17T00:34:19.0312551Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=6806]
+2026-10-17T00:34:19.0317156Z ##[start-action display=Run rustup default nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_5]
+2026-10-17T00:34:19.0332594Z ##[group]Run rustup default nightly-2026-09-05
+2026-10-17T00:34:19.0332925Z [36;1mrustup default nightly-2026-09-05[0m
+2026-10-17T00:34:19.0382339Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:19.0382519Z env:
+2026-10-17T00:34:19.0382823Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.0383200Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.0383415Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.0383596Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.0383731Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.0383869Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.0384003Z ##[endgroup]
+2026-10-17T00:34:19.0476574Z info: using existing install for nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-17T00:34:19.0482248Z info: default toolchain set to nightly-2026-09-05-x86_64-unknown-linux-gnu
+2026-10-17T00:34:19.0482503Z 
+2026-10-17T00:34:19.0530145Z   nightly-2026-09-05-x86_64-unknown-linux-gnu unchanged - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T00:34:19.0530409Z 
+2026-10-17T00:34:19.0530772Z info: note that the toolchain 'nightly-x86_64-unknown-linux-gnu' is currently in use (overridden by '/home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml')
+2026-10-17T00:34:19.0542797Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=22]
+2026-10-17T00:34:19.0545611Z ##[start-action display=Run : create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+2026-10-17T00:34:19.0559215Z ##[group]Run : create cachekey
+2026-10-17T00:34:19.0559386Z [36;1m: create cachekey[0m
+2026-10-17T00:34:19.0559681Z [36;1mDATE=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')[0m
+2026-10-17T00:34:19.0560280Z [36;1mHASH=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-hash: //p')[0m
+2026-10-17T00:34:19.0560566Z [36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT[0m
+2026-10-17T00:34:19.0605037Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:19.0605212Z env:
+2026-10-17T00:34:19.0605510Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.0606008Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.0606221Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.0606406Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.0606542Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.0606680Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.0606815Z ##[endgroup]
+2026-10-17T00:34:19.0846519Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=30]
+2026-10-17T00:34:19.0848296Z ##[start-action display=Run : disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+2026-10-17T00:34:19.0862601Z ##[group]Run : disable incremental compilation
+2026-10-17T00:34:19.0862797Z [36;1m: disable incremental compilation[0m
+2026-10-17T00:34:19.0862967Z [36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then[0m
+2026-10-17T00:34:19.0863146Z [36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV[0m
+2026-10-17T00:34:19.0863296Z [36;1mfi[0m
+2026-10-17T00:34:19.0908523Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:19.0908697Z env:
+2026-10-17T00:34:19.0908992Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.0909351Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.0909561Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.0909742Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.0910211Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.0910469Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.0910599Z ##[endgroup]
+2026-10-17T00:34:19.0972562Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=12]
+2026-10-17T00:34:19.0973897Z ##[start-action display=Run : enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+2026-10-17T00:34:19.0987010Z ##[group]Run : enable colors in Cargo output
+2026-10-17T00:34:19.0987199Z [36;1m: enable colors in Cargo output[0m
+2026-10-17T00:34:19.0987368Z [36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then[0m
+2026-10-17T00:34:19.0987548Z [36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV[0m
+2026-10-17T00:34:19.0987704Z [36;1mfi[0m
+2026-10-17T00:34:19.1031376Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:19.1031555Z env:
+2026-10-17T00:34:19.1031860Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.1032225Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1032445Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1032624Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.1032760Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.1032896Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.1033032Z   CARGO_INCREMENTAL: 0
+2026-10-17T00:34:19.1033152Z ##[endgroup]
+2026-10-17T00:34:19.1093649Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=11]
+2026-10-17T00:34:19.1096605Z ##[start-action display=Run : enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+2026-10-17T00:34:19.1110556Z ##[group]Run : enable Cargo sparse registry
+2026-10-17T00:34:19.1110741Z [36;1m: enable Cargo sparse registry[0m
+2026-10-17T00:34:19.1110935Z [36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70[0m
+2026-10-17T00:34:19.1111309Z [36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then[0m
+2026-10-17T00:34:19.1111721Z [36;1m  if rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[89]\.'; then[0m
+2026-10-17T00:34:19.1112045Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-10-17T00:34:19.1112453Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV[0m
+2026-10-17T00:34:19.1112740Z [36;1m  elif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[67]\.'; then[0m
+2026-10-17T00:34:19.1113054Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-10-17T00:34:19.1113329Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV[0m
+2026-10-17T00:34:19.1113515Z [36;1m  fi[0m
+2026-10-17T00:34:19.1113620Z [36;1mfi[0m
+2026-10-17T00:34:19.1156777Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:19.1156953Z env:
+2026-10-17T00:34:19.1157262Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.1157631Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1157848Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1158032Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.1158176Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.1158319Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.1158456Z   CARGO_INCREMENTAL: 0
+2026-10-17T00:34:19.1158580Z   CARGO_TERM_COLOR: always
+2026-10-17T00:34:19.1158704Z ##[endgroup]
+2026-10-17T00:34:19.1385591Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=28]
+2026-10-17T00:34:19.1388086Z ##[start-action display=Run : work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+2026-10-17T00:34:19.1402310Z ##[group]Run : work around spurious network errors in curl 8.0
+2026-10-17T00:34:19.1402669Z [36;1m: work around spurious network errors in curl 8.0[0m
+2026-10-17T00:34:19.1402977Z [36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation[0m
+2026-10-17T00:34:19.1403343Z [36;1mif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.7[01]\.'; then[0m
+2026-10-17T00:34:19.1403618Z [36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV[0m
+2026-10-17T00:34:19.1403790Z [36;1mfi[0m
+2026-10-17T00:34:19.1447680Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:19.1447862Z env:
+2026-10-17T00:34:19.1448175Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.1448551Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1448771Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1448961Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.1449101Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.1449245Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.1449385Z   CARGO_INCREMENTAL: 0
+2026-10-17T00:34:19.1449509Z   CARGO_TERM_COLOR: always
+2026-10-17T00:34:19.1449638Z ##[endgroup]
+2026-10-17T00:34:19.1590713Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=20]
+2026-10-17T00:34:19.1592931Z ##[start-action display=Run rustc +nightly-2026-09-05 --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+2026-10-17T00:34:19.1606341Z ##[group]Run rustc +nightly-2026-09-05 --version --verbose
+2026-10-17T00:34:19.1606565Z [36;1mrustc +nightly-2026-09-05 --version --verbose[0m
+2026-10-17T00:34:19.1648363Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-17T00:34:19.1648568Z env:
+2026-10-17T00:34:19.1648867Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.1649241Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1649455Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1649634Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.1649770Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.1650104Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.1650365Z   CARGO_INCREMENTAL: 0
+2026-10-17T00:34:19.1650493Z   CARGO_TERM_COLOR: always
+2026-10-17T00:34:19.1650615Z ##[endgroup]
+2026-10-17T00:34:19.1775088Z rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+2026-10-17T00:34:19.1775618Z binary: rustc
+2026-10-17T00:34:19.1775975Z commit-hash: 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+2026-10-17T00:34:19.1787680Z commit-date: 2026-09-04
+2026-10-17T00:34:19.1789545Z host: x86_64-unknown-linux-gnu
+2026-10-17T00:34:19.1789910Z release: 1.100.0-nightly
+2026-10-17T00:34:19.1790102Z LLVM version: 23.1.1
+2026-10-17T00:34:19.1794478Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=20]
+2026-10-17T00:34:19.1862568Z ##[group]Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+2026-10-17T00:34:19.1862772Z with:
+2026-10-17T00:34:19.1862888Z   key: source-helper-hygiene
+2026-10-17T00:34:19.1863017Z   prefix-key: v0-rust
+2026-10-17T00:34:19.1863133Z   add-job-id-key: true
+2026-10-17T00:34:19.1863264Z   add-rust-environment-hash-key: true
+2026-10-17T00:34:19.1863411Z   cache-targets: true
+2026-10-17T00:34:19.1863527Z   cache-all-crates: false
+2026-10-17T00:34:19.1863657Z   cache-workspace-crates: false
+2026-10-17T00:34:19.1863784Z   save-if: true
+2026-10-17T00:34:19.1863895Z   cache-provider: github
+2026-10-17T00:34:19.1864011Z   cache-bin: true
+2026-10-17T00:34:19.1864117Z   lookup-only: false
+2026-10-17T00:34:19.1864226Z   cmd-format: {0}
+2026-10-17T00:34:19.1864329Z env:
+2026-10-17T00:34:19.1864621Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:19.1865104Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1865340Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:19.1865515Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:19.1865648Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:19.1865783Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:19.1865913Z   CARGO_INCREMENTAL: 0
+2026-10-17T00:34:19.1866030Z   CARGO_TERM_COLOR: always
+2026-10-17T00:34:19.1866150Z ##[endgroup]
+2026-10-17T00:34:28.0338424Z ##[group]Cache Configuration
+2026-10-17T00:34:28.0339010Z Cache Provider:
+2026-10-17T00:34:28.0339328Z     github
+2026-10-17T00:34:28.0339620Z Workspaces:
+2026-10-17T00:34:28.0339978Z     /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-17T00:34:28.0340252Z Cache Paths:
+2026-10-17T00:34:28.0340439Z     /home/runner/.cargo/bin
+2026-10-17T00:34:28.0340636Z     /home/runner/.cargo/.crates.toml
+2026-10-17T00:34:28.0340928Z     /home/runner/.cargo/.crates2.json
+2026-10-17T00:34:28.0341212Z     /home/runner/.cargo/registry
+2026-10-17T00:34:28.0341566Z     /home/runner/.cargo/git
+2026-10-17T00:34:28.0341796Z     /home/runner/work/gmeow-ontology/gmeow-ontology/target
+2026-10-17T00:34:28.0342026Z Restore Key:
+2026-10-17T00:34:28.0342329Z     v0-rust-source-helper-hygiene-helpers-Linux-x64-8f2d7ed8
+2026-10-17T00:34:28.0342584Z Cache Key:
+2026-10-17T00:34:28.0342844Z     v0-rust-source-helper-hygiene-helpers-Linux-x64-8f2d7ed8-6a64dfdc
+2026-10-17T00:34:28.0343129Z .. Prefix:
+2026-10-17T00:34:28.0343345Z   - v0-rust-source-helper-hygiene-helpers-Linux-x64
+2026-10-17T00:34:28.0343799Z .. Environment considered:
+2026-10-17T00:34:28.0343996Z   - Rust Versions:
+2026-10-17T00:34:28.0344288Z     - 1.100.0-nightly x86_64-unknown-linux-gnu 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+2026-10-17T00:34:28.0344658Z     - 1.101.0-nightly x86_64-unknown-linux-gnu 4ebd258257737d5b7635c116fa7d281627a7e937
+2026-10-17T00:34:28.0344999Z     - 1.99.0 x86_64-unknown-linux-gnu b940084d7eb6a299eb4bfeb8e34901bc051e7ac4
+2026-10-17T00:34:28.0345351Z   - CARGO_ENV_CFLAGS_FORCE
+2026-10-17T00:34:28.0345546Z   - CARGO_ENV_CFLAGS_VALUE
+2026-10-17T00:34:28.0345731Z   - CARGO_ENV_CXXFLAGS_FORCE
+2026-10-17T00:34:28.0345999Z   - CARGO_ENV_CXXFLAGS_VALUE
+2026-10-17T00:34:28.0346192Z   - CARGO_HOME
+2026-10-17T00:34:28.0346429Z   - CARGO_INCREMENTAL
+2026-10-17T00:34:28.0346638Z   - CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS
+2026-10-17T00:34:28.0346853Z   - CARGO_TERM_COLOR
+2026-10-17T00:34:28.0347080Z .. Lockfiles considered:
+2026-10-17T00:34:28.0347324Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/.cargo/config.toml
+2026-10-17T00:34:28.0347670Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/Cargo.lock
+2026-10-17T00:34:28.0347995Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache/Cargo.toml
+2026-10-17T00:34:28.0348356Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect-ingest/Cargo.toml
+2026-10-17T00:34:28.0348732Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect/Cargo.toml
+2026-10-17T00:34:28.0349418Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bench-engines/Cargo.toml
+2026-10-17T00:34:28.0349994Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs/Cargo.toml
+2026-10-17T00:34:28.0350373Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import/Cargo.toml
+2026-10-17T00:34:28.0350720Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view/Cargo.toml
+2026-10-17T00:34:28.0351167Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cli-core/Cargo.toml
+2026-10-17T00:34:28.0351683Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/conformance/Cargo.toml
+2026-10-17T00:34:28.0352151Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cost-measure/Cargo.toml
+2026-10-17T00:34:28.0352644Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog/Cargo.toml
+2026-10-17T00:34:28.0353140Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model/Cargo.toml
+2026-10-17T00:34:28.0353849Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-print/Cargo.toml
+2026-10-17T00:34:28.0354314Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs/Cargo.toml
+2026-10-17T00:34:28.0354778Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors/Cargo.toml
+2026-10-17T00:34:28.0355302Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/foundation-corpus/Cargo.toml
+2026-10-17T00:34:28.0355835Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-cli/Cargo.toml
+2026-10-17T00:34:28.0356289Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli/Cargo.toml
+2026-10-17T00:34:28.0356669Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix/Cargo.toml
+2026-10-17T00:34:28.0357097Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-wasm/Cargo.toml
+2026-10-17T00:34:28.0357477Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile/Cargo.toml
+2026-10-17T00:34:28.0357831Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/helper-census/Cargo.toml
+2026-10-17T00:34:28.0358193Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge/Cargo.toml
+2026-10-17T00:34:28.0358593Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form/Cargo.toml
+2026-10-17T00:34:28.0358909Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/license/Cargo.toml
+2026-10-17T00:34:28.0359288Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile/Cargo.toml
+2026-10-17T00:34:28.0359620Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic/Cargo.toml
+2026-10-17T00:34:28.0360192Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lsp/Cargo.toml
+2026-10-17T00:34:28.0360523Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift/Cargo.toml
+2026-10-17T00:34:28.0360842Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math/Cargo.toml
+2026-10-17T00:34:28.0361224Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-core-wasm/Cargo.toml
+2026-10-17T00:34:28.0361562Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev/Cargo.toml
+2026-10-17T00:34:28.0361934Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-wasm/Cargo.toml
+2026-10-17T00:34:28.0362262Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp/Cargo.toml
+2026-10-17T00:34:28.0362575Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/music/Cargo.toml
+2026-10-17T00:34:28.0362916Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns/Cargo.toml
+2026-10-17T00:34:28.0363237Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/perf-evidence/Cargo.toml
+2026-10-17T00:34:28.0363644Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline/Cargo.toml
+2026-10-17T00:34:28.0363983Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/query-wasm/Cargo.toml
+2026-10-17T00:34:28.0364315Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/reason-wasm/Cargo.toml
+2026-10-17T00:34:28.0364799Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-brief/Cargo.toml
+2026-10-17T00:34:28.0365165Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality/Cargo.toml
+2026-10-17T00:34:28.0365512Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest/Cargo.toml
+2026-10-17T00:34:28.0365881Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena/Cargo.toml
+2026-10-17T00:34:28.0366273Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/test-batch-macros/Cargo.toml
+2026-10-17T00:34:28.0366741Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode/Cargo.toml
+2026-10-17T00:34:28.0367144Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate-wasm/Cargo.toml
+2026-10-17T00:34:28.0367466Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate/Cargo.toml
+2026-10-17T00:34:28.0367825Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/xtask/Cargo.toml
+2026-10-17T00:34:28.0368223Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml
+2026-10-17T00:34:28.0368727Z ##[endgroup]
+2026-10-17T00:34:28.0368818Z 
+2026-10-17T00:34:28.0368914Z ... Restoring cache ...
+2026-10-17T00:34:28.1846776Z No cache found.
+2026-10-17T00:34:28.1975770Z ##[group]Run make helpers-hygiene
+2026-10-17T00:34:28.1975953Z [36;1mmake helpers-hygiene[0m
+2026-10-17T00:34:28.2025702Z shell: /usr/bin/bash -e {0}
+2026-10-17T00:34:28.2025839Z env:
+2026-10-17T00:34:28.2026144Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+2026-10-17T00:34:28.2026512Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:28.2026721Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+2026-10-17T00:34:28.2026903Z   CARGO_ENV_CFLAGS_FORCE: true
+2026-10-17T00:34:28.2027044Z   CARGO_ENV_CXXFLAGS_FORCE: true
+2026-10-17T00:34:28.2027182Z   CARGO_HOME: /home/runner/.cargo
+2026-10-17T00:34:28.2027328Z   CARGO_INCREMENTAL: 0
+2026-10-17T00:34:28.2027446Z   CARGO_TERM_COLOR: always
+2026-10-17T00:34:28.2027570Z   CACHE_ON_FAILURE: false
+2026-10-17T00:34:28.2027692Z ##[endgroup]
+2026-10-17T00:34:28.2199477Z cargo run -q --locked -p helper-census -- --self-test
+2026-10-17T00:35:45.5508309Z PASS: the walk reads every fixture file
+2026-10-17T00:35:45.5508701Z PASS: a renamed, re-spelt copy of a body is one isomorphic group with its original
+2026-10-17T00:35:45.5508968Z PASS: a body of the same size with different control flow is not grouped
+2026-10-17T00:35:45.5509275Z PASS: test-only code is never walked, and a tests/ file is walked as a test crate of its own
+2026-10-17T00:35:45.5509636Z PASS: the home resolves to its package
+2026-10-17T00:35:45.5510038Z PASS: a decimal spelling of a forbidden hex constant is a copy outside the home
+2026-10-17T00:35:45.5510445Z PASS: a hex-digit table is a forbidden fingerprint and a near-miss table is not
+2026-10-17T00:35:45.5510794Z PASS: a forbidden constant in a tests/ file is a copy too
+2026-10-17T00:35:45.5511110Z PASS: --count counts all three copies
+2026-10-17T00:35:45.5511391Z PASS: --check reports the unsanctioned group and all three copies
+2026-10-17T00:35:45.5511724Z PASS: an isomorphic variant row sanctions its group
+2026-10-17T00:35:45.5512034Z PASS: a forbidden variant row removes its copy from the count
+2026-10-17T00:35:45.5512395Z PASS: a distinct row naming exactly its group's members sanctions it
+2026-10-17T00:35:45.5512755Z PASS: a distinct row of the other kind does not sanction the group, and is STALE
+2026-10-17T00:35:45.5513049Z PASS: a group that gains a member its distinct row does not name fails, and the row is STALE
+2026-10-17T00:35:45.5513332Z PASS: a distinct row whose members are no group is STALE, and the group still fails
+2026-10-17T00:35:45.5513577Z PASS: a distinct row naming a member that no longer exists is STALE
+2026-10-17T00:35:45.5513793Z PASS: a distinct row whose anchor carries no documentation fails
+2026-10-17T00:35:45.5514000Z PASS: a distinct row whose anchor does not resolve fails
+2026-10-17T00:35:45.5514172Z PASS: the near-miss fixture walks cleanly
+2026-10-17T00:35:45.5514471Z PASS: two breadth-first searches that differ only in `&next`/`parent[&cursor]` against `next.as_str()`/`parent[cursor]` are one group
+2026-10-17T00:35:45.5514793Z PASS: a helper copied between two tests/ files is one group
+2026-10-17T00:35:45.5514993Z PASS: a copy below the old thirty-token floor is one group
+2026-10-17T00:35:45.5515216Z PASS: a support module every test target declares is one source, not a group
+2026-10-17T00:35:45.5515469Z PASS: a small body of the same shape with a different constant is another table
+2026-10-17T00:35:45.5515718Z PASS: two accessors of the same shape over different fields are not grouped
+2026-10-17T00:35:45.5520735Z PASS: a const generic argument is kept: `::<true, _>` and `::<false, _>` are not grouped
+2026-10-17T00:35:45.5521087Z PASS: a function whose body declares a nested struct and impl is one group with its copy once the nested type is renamed
+2026-10-17T00:35:45.5521643Z PASS: --check fails on exactly the four seeded near-miss groups
+2026-10-17T00:35:45.5521837Z OK: helper-census self-test
+2026-10-17T00:35:45.5522177Z python3 scripts/check-shared-helpers.py --self-test
+2026-10-17T00:35:46.8467032Z PASS: a ledger that holds passes
+2026-10-17T00:35:46.8467335Z PASS: a home that does not resolve fails
+2026-10-17T00:35:46.8467594Z PASS: an undocumented anchor fails
+2026-10-17T00:35:46.8467847Z PASS: a variant defined outside its file fails
+2026-10-17T00:35:46.8468085Z PASS: a site measuring another crate fails
+2026-10-17T00:35:46.8468391Z PASS: a site measuring the home crate passes
+2026-10-17T00:35:46.8468645Z PASS: an unbanned replaces_external fails
+2026-10-17T00:35:46.8468889Z PASS: a missing vectors file fails
+2026-10-17T00:35:46.8469109Z PASS: an unknown bench id fails
+2026-10-17T00:35:46.8469361Z PASS: a forbidden variant that matches nothing is STALE
+2026-10-17T00:35:46.8469688Z PASS: a forbidden match outside the home of an enforced job fails
+2026-10-17T00:35:46.8470284Z PASS: the same match in an unenforced job is reported only by --census
+2026-10-17T00:35:46.8470621Z PASS: an unenforced job with no copies left is STALE
+2026-10-17T00:35:46.8470922Z PASS: a body fingerprint that matches nothing is STALE
+2026-10-17T00:35:46.8471230Z PASS: an isomorphic variant in a group passes
+2026-10-17T00:35:46.8471494Z PASS: an isomorphic variant in no group is STALE
+2026-10-17T00:35:46.8471810Z PASS: an IRI-gate variant the gate still matches passes
+2026-10-17T00:35:46.8472114Z PASS: an IRI-gate variant the gate no longer matches is STALE
+2026-10-17T00:35:46.8472294Z PASS: an unknown detector fails
+2026-10-17T00:35:46.8472459Z PASS: a #[path] include of another crate's file is a finding
+2026-10-17T00:35:46.8472695Z PASS: a #[path] include inside its own crate, in a comment or in a string passes
+2026-10-17T00:35:46.8472939Z PASS: a #[path] include that climbs above the repository is a finding
+2026-10-17T00:35:46.8473153Z PASS: a delegated rule's hit fails the enforced job naming it
+2026-10-17T00:35:46.8473342Z PASS: the same job with no delegated hit passes
+2026-10-17T00:35:46.8473542Z PASS: a delegated hit in an unenforced job is reported only by --census
+2026-10-17T00:35:46.8473751Z PASS: a declared shared-domain exception passes
+2026-10-17T00:35:46.8473916Z PASS: an undeclared shared domain fails the job
+2026-10-17T00:35:46.8474127Z PASS: a declared shared-domain exception the gate no longer matches is STALE
+2026-10-17T00:35:46.8474369Z PASS: a declared undomained digest the gate still matches passes
+2026-10-17T00:35:46.8474602Z PASS: a declared undomained digest that now opens under a Domain is STALE
+2026-10-17T00:35:46.8474847Z PASS: every rule check-hash-domains.py reports is a delegated rule id
+2026-10-17T00:35:46.8475084Z PASS: a declared exception whose anchor carries no documentation fails
+2026-10-17T00:35:46.8475316Z PASS: a [[distinct]] row naming exactly its group's members sanctions it
+2026-10-17T00:35:46.8475588Z PASS: a group that gains a member its [[distinct]] row does not name fails, and the row is STALE
+2026-10-17T00:35:46.8475882Z PASS: a [[distinct]] row that equals no current group is STALE, and the group still fails
+2026-10-17T00:35:46.8476140Z PASS: a [[distinct]] row naming a member that no longer exists is STALE
+2026-10-17T00:35:46.8476363Z PASS: a [[distinct]] row whose anchor carries no documentation fails
+2026-10-17T00:35:46.8476579Z PASS: every seeded std-default-hasher spelling is reported
+2026-10-17T00:35:46.8476823Z PASS: a named hasher, a hasher alias, an annotated let and a foreign map are not reported
+2026-10-17T00:35:46.8477052Z PASS: each hit is a copy of the enforced job
+2026-10-17T00:35:46.8477315Z PASS: every seeded vocabulary literal (a retyped term, a namespace, a format string, a raw string) is reported
+2026-10-17T00:35:46.8477672Z PASS: a bracketed term, a sibling namespace, an embedded document and test-only code are not vocabulary hits
+2026-10-17T00:35:46.8477974Z PASS: a token the home spells is reported outside it, and a longer word is not
+2026-10-17T00:35:46.8478452Z PASS: a vocabulary job whose modules declare no namespace constant is itself a copy
+2026-10-17T00:35:46.8478685Z PASS: each literal hit is a copy of its enforced job
+2026-10-17T00:35:46.8479109Z PASS: every seeded two-digit hex format inside a loop or closure is reported
+2026-10-17T00:35:46.8479408Z PASS: a pair formatted once, a pair in an assertion message, an escaped brace and a wider spec are not
+2026-10-17T00:35:46.8479686Z PASS: every seeded base16 copy (loop, pair parse, table) is reported
+2026-10-17T00:35:46.8480097Z PASS: a u32 code-point parse and a near-miss table are not reported
+2026-10-17T00:35:46.8480311Z PASS: the home's own digit table is the home's, not a copy
+2026-10-17T00:35:46.8480496Z PASS: each base16 hit is a copy of the enforced job
+2026-10-17T00:35:46.8480696Z PASS: every seeded grammar-ws spelling in shipping code is reported
+2026-10-17T00:35:46.8480961Z PASS: the grammar-ws neighbours (the shared spelling, test code, the home) are not reported
+2026-10-17T00:35:46.8481219Z PASS: each grammar-ws hit is a copy of the enforced job
+2026-10-17T00:35:46.8481430Z PASS: every seeded json-pointer spelling in shipping code is reported
+2026-10-17T00:35:46.8481706Z PASS: the json-pointer neighbours (the shared spelling, test code, the home) are not reported
+2026-10-17T00:35:46.8481960Z PASS: each json-pointer hit is a copy of the enforced job
+2026-10-17T00:35:46.8482173Z PASS: every seeded escape-decode spelling in shipping code is reported
+2026-10-17T00:35:46.8482446Z PASS: the escape-decode neighbours (the shared spelling, test code, the home) are not reported
+2026-10-17T00:35:46.8482728Z PASS: each escape-decode hit is a copy of the enforced job
+2026-10-17T00:35:46.8482937Z PASS: the pointer escape inside its home is the home's, not a copy
+2026-10-17T00:35:46.8483143Z PASS: every seeded reifier-rows spelling is reported
+2026-10-17T00:35:46.8483427Z PASS: the reifier-rows neighbours (the home's own walk or import, the shared entry point, other imports) are not reported
+2026-10-17T00:35:46.8483722Z PASS: each reifier-rows hit is a copy of the enforced job
+2026-10-17T00:35:46.8483930Z PASS: every seeded fixed-hasher-everywhere spelling is reported
+2026-10-17T00:35:46.8484261Z PASS: the fixed-hasher-everywhere neighbours (the home's own walk or import, the shared entry point, other imports) are not reported
+2026-10-17T00:35:46.8484596Z PASS: each fixed-hasher-everywhere hit is a copy of the enforced job
+2026-10-17T00:35:46.8484806Z PASS: every seeded rdf-collection spelling is reported
+2026-10-17T00:35:46.8485097Z PASS: the rdf-collection neighbours (the home's own walk or import, the shared entry point, other imports) are not reported
+2026-10-17T00:35:46.8485398Z PASS: each rdf-collection hit is a copy of the enforced job
+2026-10-17T00:35:46.8485595Z PASS: every seeded wasm-host-clock spelling is reported
+2026-10-17T00:35:46.8485884Z PASS: the wasm-host-clock neighbours (the home's own walk or import, the shared entry point, other imports) are not reported
+2026-10-17T00:35:46.8486189Z PASS: each wasm-host-clock hit is a copy of the enforced job
+2026-10-17T00:35:46.8486397Z PASS: every seeded wasm-host-reflect-get spelling is reported
+2026-10-17T00:35:46.8486715Z PASS: the wasm-host-reflect-get neighbours (the home's own walk or import, the shared entry point, other imports) are not reported
+2026-10-17T00:35:46.8487040Z PASS: each wasm-host-reflect-get hit is a copy of the enforced job
+2026-10-17T00:35:46.8487326Z PASS: every seeded framing, slice-indexed integer, alignment mask and hand ceiling division is reported
+2026-10-17T00:35:46.8487698Z PASS: a count before a loop, a varint, a hasher's integer, a first_chunk read, a flag mask, std div_ceil and test code are not
+2026-10-17T00:35:46.8487992Z PASS: the framing inside the home package is the home's
+2026-10-17T00:35:46.8488177Z PASS: a forbidden variant row sanctions its rule hit
+2026-10-17T00:35:46.8488411Z PASS: every seeded normalization copy and second Unicode-version authority is reported
+2026-10-17T00:35:46.8488934Z PASS: a longer name, a plural and a constant are not; a copy in a tests/ file is
+2026-10-17T00:35:46.8489179Z PASS: the pinned Unicode version is the sanctioned variant, not a copy
+2026-10-17T00:35:46.8489456Z PASS: the home's own entry points are the home's
+2026-10-17T00:35:46.8489625Z PASS: each copy counts against the enforced job
+2026-10-17T00:35:46.8490180Z PASS: every hand-written first-mismatch word loop, in place or through bound loads, is reported
+2026-10-17T00:35:46.8490486Z PASS: a word mix with no zero count, a one-load byte scan, a CRC step and test code are not
+2026-10-17T00:35:46.8490728Z PASS: the word loop inside the home package is the home's
+2026-10-17T00:35:46.8490921Z PASS: each hand-written loop is a copy of the enforced job
+2026-10-17T00:35:46.8491170Z PASS: every seeded term-conversion copy, in shipping code and in a tests/ file, is reported
+2026-10-17T00:35:46.8491481Z PASS: the term-conversion neighbours (shims, longer names, #[cfg(test)] items) are not reported
+2026-10-17T00:35:46.8491746Z PASS: each term-conversion hit is a copy of the enforced job
+2026-10-17T00:35:46.8491959Z PASS: the term-conversion names inside the home crate are the home's
+2026-10-17T00:35:46.8492231Z PASS: every seeded term-constructor copy, in shipping code and in a tests/ file, is reported
+2026-10-17T00:35:46.8492538Z PASS: the term-constructor neighbours (shims, longer names, #[cfg(test)] items) are not reported
+2026-10-17T00:35:46.8492802Z PASS: each term-constructor hit is a copy of the enforced job
+2026-10-17T00:35:46.8493019Z PASS: the term-constructor names inside the home crate are the home's
+2026-10-17T00:35:46.8493311Z PASS: the datalog pair, a test helper copied between tests/ files and a sub-30-token copy are each one group
+2026-10-17T00:35:46.8493573Z PASS: each seeded near-miss group fails the gate
+2026-10-17T00:35:46.8493820Z PASS: the same small shape over another constant, and accessors of different fields, are not grouped
+2026-10-17T00:35:46.8494066Z OK: check-shared-helpers self-test
+2026-10-17T00:35:46.8543593Z python3 scripts/check-shared-helpers.py
+2026-10-17T00:35:51.0787054Z FAIL: `cargo metadata --locked --offline --format-version 1 --manifest-path /home/runner/work/gmeow-ontology/gmeow-ontology/Cargo.toml` failed, so the ledger metrics cannot be computed: [1m[91merror[0m: failed to download `adler2 v2.0.1`
+2026-10-17T00:35:51.0787847Z 
+2026-10-17T00:35:51.0787922Z Caused by:
+2026-10-17T00:35:51.0788158Z   attempting to make an HTTP request, but --offline was specified
+2026-10-17T00:35:51.0859573Z make: *** [Makefile:647: helpers-hygiene] Error 1
+2026-10-17T00:35:51.0873379Z ##[error]Process completed with exit code 2.
+2026-10-17T00:35:51.0955775Z Post job cleanup.
+2026-10-17T00:35:51.1461032Z [command]/usr/bin/git version
+2026-10-17T00:35:51.1488233Z git version 2.55.0
+2026-10-17T00:35:51.1507408Z Temporarily overriding HOME='/home/runner/work/_temp/4c237c4e-dabc-44d3-9cde-a5296609aa24' before making global git config changes
+2026-10-17T00:35:51.1508138Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-17T00:35:51.1510676Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+2026-10-17T00:35:51.1534740Z Removing SSH command configuration
+2026-10-17T00:35:51.1538812Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-17T00:35:51.1564315Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-17T00:35:51.1741970Z Removing HTTP extra header
+2026-10-17T00:35:51.1744868Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-17T00:35:51.1768234Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-17T00:35:51.1936820Z Removing includeIf entries pointing to credentials config files
+2026-10-17T00:35:51.1940400Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-17T00:35:51.1962801Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-17T00:35:51.2244511Z Cleaning up orphan processes

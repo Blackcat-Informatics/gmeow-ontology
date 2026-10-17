@@ -1,0 +1,44 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(reason::refute::casesplit::execution::tests::)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-core-wasm)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 6m 59s
+────────────
+ Nextest run ID 2adad064-7195-45e3-bf06-a85fa422dc2e with nextest profile: ci
+    Starting 8 tests across 26 binaries (2314 tests and 199 binaries skipped)
+        PASS [   0.028s] (1/8) gmeow-logic reason::refute::casesplit::execution::tests::uninhabited_recursive_definition_remains_an_explicit_model_obstruction
+        PASS [   0.028s] (2/8) gmeow-logic reason::refute::casesplit::execution::tests::pure_other_family_and_unowned_list_fields_do_not_select_class_completion
+        PASS [   0.027s] (3/8) gmeow-logic reason::refute::casesplit::execution::tests::exhaustive_branches_cannot_lose_an_alternative_or_its_native_proof_reference
+        PASS [   0.028s] (4/8) gmeow-logic reason::refute::casesplit::execution::tests::all_connected_model_obstructions_survive_a_sibling_closing_proof
+        PASS [   0.028s] (5/8) gmeow-logic reason::refute::casesplit::execution::tests::schema_writers_must_finish_before_class_search_and_world_contracts_cannot_alias
+        PASS [   0.028s] (6/8) gmeow-logic reason::refute::casesplit::execution::tests::source_refusal_and_zero_budget_cannot_publish_unexamined_conflicts
+        PASS [   0.031s] (7/8) gmeow-logic reason::refute::casesplit::execution::tests::completed_class_conflict_retains_exact_native_support_and_reuses_the_current_result
+        PASS [   0.880s] (8/8) gmeow-logic reason::refute::casesplit::execution::tests::wide_labels_preserve_local_conflict_support_before_and_after_nominal_merges
+────────────
+     Summary [   0.924s] 8 tests run: 8 passed, 2314 skipped

@@ -1,0 +1,1 @@
+Fixed in 816a604cd. DlReasoner::prepare delegates to the pinned native Question preparation and preserves typed original refusals. The fresh-class control prepares an independent checker without another service decision, verifies the proof/certificate, and rejects a different question. All ten service checks, strict producer-independent Clippy and normal commit hooks passed.

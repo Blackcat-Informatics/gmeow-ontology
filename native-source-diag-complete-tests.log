@@ -1,0 +1,52 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic-compile) & (test(frontend::prepared::tests) | test(frontend::tests::parse_) | test(tptp::tests) | test(clif::tests) | test(cgif::tests) | test(xcl::tests) | test(cl_roundtrip::tests))) | (package(gmeow-conformance) & test(gating_tests))' --no-tests=fail
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/transcode)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-model)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/conformance)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slicetest)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/validate)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bench-engines)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-core-wasm)
+error[E0616]: field `0` of struct `Diag` is private
+   --> crates/pipeline/src/stages/compile_logic.rs:590:82
+    |
+590 |         .map_err(|e| stage_err(format!("parse {PATH_SHAPES_EXAMPLE_PATH}: {}", e.0)))?;
+    |                                                                                  ^ private field
+
+error[E0616]: field `0` of struct `Diag` is private
+   --> crates/pipeline/src/stages/compile_logic.rs:614:89
+    |
+614 |         .map_err(|e| stage_err(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}: {}", e.0)))?;
+    |                                                                                         ^ private field
+
+For more information about this error, try `rustc --explain E0616`.
+error: could not compile `gmeow-pipeline` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0616]: field `0` of struct `gmeow_errors::Diag` is private
+   --> crates/pipeline/src/stages/compile_logic.rs:590:82
+    |
+590 |         .map_err(|e| stage_err(format!("parse {PATH_SHAPES_EXAMPLE_PATH}: {}", e.0)))?;
+    |                                                                                  ^ private field
+
+error[E0616]: field `0` of struct `gmeow_errors::Diag` is private
+   --> crates/pipeline/src/stages/compile_logic.rs:614:89
+    |
+614 |         .map_err(|e| stage_err(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}: {}", e.0)))?;
+    |                                                                                         ^ private field
+
+error: could not compile `gmeow-pipeline` (lib test) due to 2 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:713: nextest-synthetic] Error 101

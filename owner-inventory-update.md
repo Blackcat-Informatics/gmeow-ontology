@@ -1,0 +1,7 @@
+# Complete owner accounting
+
+Non-rule owners excluded by document/root/graph selection now retain explicit OutsideSelection rows rather than disappearing from the source admission. Selected rejected owners report their extraction failure. Emitted owner IR carrying hard compiler errors also remains malformed instead of being described only as missing classical semantics. Required unsupported semantics still block; no contract catalogue, distinct-body or context execution was silently selected away.
+
+All 59 TPTP product tests passed in owner-inventory-corrected-tests.log. New controls exercise explicit root exclusion, source-document receipts, an actually rejected unknown preset and emitted IR with hard compiler diagnostics. The first run passed 57/58: the new rejected-owner fixture mistakenly used an unknown model value, which this reader emits rather than rejecting. Replaced it with the reader's explicit unknown-preset rejection and added the separate emitted-error control. That historical failed run remains in owner-inventory-tests.log.
+
+Strict producer-independent workspace/all-target Clippy passed with warnings denied in 1m12s (owner-inventory-clippy.log), using the target's existing four corpus-dependent consumer exclusions. All normal signed commit hooks passed for 1414e7498 (owner-inventory-commit.log). These checks do not establish complete-canon acceptance, a new historical blocker count, a prepared bundle, installed proof execution or a full gate.

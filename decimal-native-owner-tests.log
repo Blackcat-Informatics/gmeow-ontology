@@ -1,0 +1,62 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(reason::value::) | test(physical::seminaive::property::datatype::tests::) | test(reason::refute::datatype::tests::) | test(reason::program::datatype_tests::) | test(reason::program::datatype_constraints_tests::))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 05s
+────────────
+ Nextest run ID 79cd5f4f-29cd-4feb-a30f-776656ce47c0 with nextest profile: ci
+    Starting 27 tests across 26 binaries (2300 tests and 199 binaries skipped)
+        PASS [   0.015s] ( 1/27) gmeow-logic reason::value::tests::cardinality_accepts_the_complete_native_count_domain
+        PASS [   0.014s] ( 2/27) gmeow-logic reason::value::tests::native_exact_decimal_interpretation_keeps_arbitrary_scale_without_a_retry
+        PASS [   0.028s] ( 3/27) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_is_an_intrinsic_primitive_datatype
+        PASS [   0.024s] ( 4/27) gmeow-logic reason::value::tests::native_literal_interpretation_does_not_repair_a_malformed_decimal
+        PASS [   0.016s] ( 5/27) gmeow-logic reason::value::tests::native_literal_membership_and_equality_preserve_large_exact_values
+        PASS [   0.028s] ( 6/27) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_enumeration_compares_collapsed_values
+        PASS [   0.016s] ( 7/27) gmeow-logic reason::value::native_cache_tests::native_schema_values_reuse_interpretations_with_bounded_retention
+        PASS [   0.020s] ( 8/27) gmeow-logic physical::seminaive::property::datatype::tests::shared_datatype_subexpressions_do_not_expand_and_completed_plans_survive_rounds
+        PASS [   0.029s] ( 9/27) gmeow-logic physical::seminaive::property::datatype::tests::datatype_cache_capacity_and_payload_misses_preserve_execution
+        PASS [   0.025s] (10/27) gmeow-logic physical::seminaive::property::datatype::tests::malformed_decimal_does_not_satisfy_a_rational_enumeration
+        PASS [   0.020s] (11/27) gmeow-logic reason::refute::datatype::tests::large_source_counts_retain_their_full_value_in_clash_evidence
+        PASS [   0.022s] (12/27) gmeow-logic reason::refute::datatype::tests::an_independent_datatype_value_cannot_be_hidden_by_a_satisfied_existential
+        PASS [   0.024s] (13/27) gmeow-logic reason::refute::datatype::tests::world_local_definitions_and_actual_inherited_proof_paths_are_preserved
+        PASS [   0.030s] (14/27) gmeow-logic reason::refute::datatype::tests::unknown_enumerands_withhold_models_even_when_a_known_member_meets_the_minimum
+        PASS [   0.029s] (15/27) gmeow-logic reason::refute::datatype::tests::datatype_enumerations_retain_language_and_direction_and_exclude_plain_strings
+        PASS [   0.025s] (16/27) gmeow-logic reason::refute::datatype::tests::malformed_or_cyclic_definitions_do_not_become_empty_prefix_enumerations
+        PASS [   0.026s] (17/27) gmeow-logic reason::refute::datatype::tests::every_bound_is_conjunctive_and_exact_zero_conflicts_with_existence
+        PASS [   0.026s] (18/27) gmeow-logic reason::refute::datatype::tests::byte_capacity_and_explicit_qualified_bounds
+        PASS [   0.026s] (19/27) gmeow-logic reason::refute::datatype::tests::existential_fillers_do_not_constrain_unrelated_existing_values_or_each_other
+        PASS [   0.032s] (20/27) gmeow-logic reason::refute::datatype::tests::enumeration_capacity_uses_exact_rational_values
+        PASS [   0.032s] (21/27) gmeow-logic reason::refute::datatype::tests::length_facet_emptiness_and_pattern_withholding_remain_explicit
+        PASS [   0.025s] (22/27) gmeow-logic reason::refute::datatype::tests::whitespace_padded_numeric_facet_keeps_the_shared_native_interpretation
+        PASS [   0.029s] (23/27) gmeow-logic reason::refute::datatype::tests::positive_integer_complement_membership_and_double_complement_capacity
+        PASS [   0.029s] (24/27) gmeow-logic reason::refute::datatype::tests::float_discrete_range_is_empty_and_all_bounds_apply
+        PASS [   0.026s] (25/27) gmeow-logic reason::refute::datatype::tests::unreachable_datatype_definitions_still_require_complete_admission
+        PASS [   0.040s] (26/27) gmeow-logic physical::seminaive::property::datatype::tests::any_uri_length_facets_measure_collapsed_characters
+        PASS [   0.137s] (27/27) gmeow-logic reason::refute::datatype::tests::unmodeled_class_and_property_obligations_withhold_whole_case_consistency
+────────────
+     Summary [   0.180s] 27 tests run: 27 passed, 2300 skipped

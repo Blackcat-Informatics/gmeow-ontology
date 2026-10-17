@@ -1,0 +1,56 @@
+Auto-merging crates/logic/src/reasoner_services.tests.rs
+Auto-merging crates/pipeline/src/stages/carrier.rs
+Auto-merging crates/pipeline/src/stages/carrier.ustar_tests.rs
+Merge made by the 'ort' strategy.
+ .github/workflows/ci.yml                           | 132 +++----
+ .github/workflows/fuzz.yml                         |   2 +-
+ .github/workflows/pypi-publish-gmeow.yml           |   4 +-
+ .github/workflows/release.yml                      |   8 +-
+ .github/workflows/suite-quality.yml                |   8 +-
+ Cargo.lock                                         |  20 +-
+ crates/affect-ingest/src/lib.rs                    | 119 ++----
+ crates/build-inputs/src/modules.rs                 |   1 +
+ crates/build-inputs/tests/inventory.rs             |  23 ++
+ crates/docs-model/src/badge.rs                     |  26 +-
+ crates/docs-model/src/badge.tests.rs               |  42 +-
+ crates/docs-model/src/model.rs                     |  56 ++-
+ crates/docs-model/src/rdf.rs                       |  12 +-
+ crates/docs-model/src/rdf.tests.rs                 |  18 +
+ crates/docs-print/src/render.rs                    |  18 +-
+ crates/docs-print/tests/render.rs                  |  24 +-
+ crates/docs/src/render.rs                          |  31 +-
+ crates/docs/src/render.tests.rs                    |  20 +
+ crates/docs/tests/coverage_dimensions.rs           |  10 +-
+ crates/errors/src/diag.rs                          |  60 ++-
+ crates/errors/src/diag.tests.rs                    |  49 +++
+ crates/errors/src/error.tests.rs                   |   7 +-
+ crates/gmeow-cli/src/commands/reasoning_input.rs   |  84 +++-
+ crates/gmeow-cli/src/commands/reasoning_report.rs  |  48 ++-
+ crates/gmeow-cli/src/error.rs                      |  36 +-
+ crates/logic-compile/src/frontend.rs               |  34 +-
+ crates/logic-compile/src/tptp/contracts.tests.rs   |  14 +-
+ crates/logic/src/correspondence_exec.tests.rs      |  58 +++
+ crates/logic/src/error.rs                          |   1 +
+ crates/logic/src/explain.rs                        |   3 +-
+ crates/logic/src/reasoner_services.tests.rs        |  10 +
+ crates/math-lift/src/sink.rs                       |  24 +-
+ crates/math-lift/src/sink.tests.rs                 |  26 +-
+ crates/math/src/lib.rs                             |   3 +
+ crates/pipeline/src/fixture.tests.rs               |  13 +
+ .../carrier.reasoning_edb_projection_tests.rs      |   1 +
+ crates/pipeline/src/stages/carrier.rs              | 373 +++++------------
+ .../src/stages/carrier.term_entailments_tests.rs   | 439 +++++++++------------
+ crates/pipeline/src/stages/carrier.ustar_tests.rs  |   7 +-
+ crates/pipeline/src/stages/carrier/test_support.rs |  11 +-
+ crates/pipeline/src/stages/docs_render.rs          |  90 ++---
+ .../src/stages/docs_render/reasoning_tests.rs      |  96 +++--
+ crates/pipeline/src/stages/goal_directed.rs        |  21 +-
+ crates/pipeline/src/stages/gts_sink.rs             |   2 +-
+ helpers-census-debt.json                           |  50 ---
+ imports/supersession-correspondences.ttl           |  10 +
+ slices/core/documentation/module.ttl               |   2 +-
+ slices/core/pipeline/module.ttl                    |   2 +-
+ slices/grounding/logic/i18n/fr.po                  |  56 +++
+ slices/grounding/logic/i18n/zh.po                  |  56 +++
+ slices/grounding/logic/module.ttl                  |  26 ++
+ 51 files changed, 1304 insertions(+), 982 deletions(-)

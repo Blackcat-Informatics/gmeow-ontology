@@ -1,0 +1,29 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) & (test(frontend::prepared::tests) | test(frontend::tests::parse_) | test(tptp::tests) | test(clif::tests) | test(cgif::tests) | test(xcl::tests) | test(cl_roundtrip::tests))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/transcode)
+error[E0277]: `?` couldn't convert the error: `gmeow_errors::diag::Diag: std::error::Error` is not satisfied
+  --> crates/logic-compile/examples/cl_ingest_fixture.rs:15:81
+   |
+ 9 | fn main() -> Result<(), Box<dyn std::error::Error>> {
+   |              -------------------------------------- required `gmeow_errors::diag::Diag: std::error::Error` because of this
+...
+15 |         parse_logic_path(std::path::Path::new(source), Some(source_iri.clone()))?;
+   |         ------------------------------------------------------------------------^ the trait `std::error::Error` is not implemented for `gmeow_errors::diag::Diag`
+   |         |
+   |         this has type `Result<_, gmeow_errors::diag::Diag>`
+   |
+   = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+   = note: required for `Box<dyn std::error::Error>` to implement `From<gmeow_errors::diag::Diag>`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-logic-compile` (example "cl_ingest_fixture") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:713: nextest-synthetic] Error 101

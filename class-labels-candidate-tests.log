@@ -1,0 +1,142 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(reason::refute::casesplit::) | test(reason::refute::native::tests::))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 14m 59s
+────────────
+ Nextest run ID 537e3dec-5eec-4b63-92c0-148641fc0d3b with nextest profile: ci
+    Starting 68 tests across 26 binaries (2254 tests and 199 binaries skipped)
+        PASS [   0.038s] ( 1/68) gmeow-logic reason::refute::casesplit::scope_tests::selected_list_source_never_borrows_fields_from_other_worlds
+        PASS [   0.043s] ( 2/68) gmeow-logic reason::refute::casesplit::scope_tests::quoted_expression_operands_cannot_disappear_before_family_admission
+        PASS [   0.039s] ( 3/68) gmeow-logic reason::refute::casesplit::scope_tests::reconverging_selected_tails_are_ambiguous_without_a_cyclic_path
+        PASS [   0.044s] ( 4/68) gmeow-logic reason::refute::casesplit::scope_tests::malformed_and_unsupported_source_causes_keep_the_complete_typed_admission
+        PASS [   0.038s] ( 5/68) gmeow-logic reason::refute::casesplit::scope_tests::selected_list_failure_retains_owner_prefix_and_reached_fields_only
+        PASS [   0.037s] ( 6/68) gmeow-logic reason::refute::casesplit::scope_tests::selected_nil_retains_exact_literal_input_and_its_owner_as_a_source_boundary
+        PASS [   0.042s] ( 7/68) gmeow-logic reason::refute::casesplit::scope_tests::genuine_empty_nominal_has_real_owner_premises_and_no_rdf_nil_membership
+        PASS [   0.047s] ( 8/68) gmeow-logic reason::refute::casesplit::scope_tests::conflicting_list_fields_and_multiple_expression_definitions_have_distinct_boundaries
+        PASS [   0.043s] ( 9/68) gmeow-logic reason::refute::casesplit::scope_tests::literal_expression_operands_cannot_disappear_before_family_admission
+        PASS [   0.048s] (10/68) gmeow-logic reason::refute::casesplit::scope_tests::conflicting_tail_retains_each_reachable_source_failure
+        PASS [   0.043s] (11/68) gmeow-logic reason::refute::casesplit::scope_tests::disjoint_union_literal_members_cannot_be_dropped_to_fabricate_an_empty_union
+        PASS [   0.046s] (12/68) gmeow-logic reason::refute::casesplit::scope_tests::all_different_requires_its_actual_declaration_to_select_list_admission
+        PASS [   0.045s] (13/68) gmeow-logic reason::refute::casesplit::scope_tests::nominal_members_keep_exact_data_identity_even_when_their_iris_name_class_markers
+        PASS [   0.052s] (14/68) gmeow-logic reason::refute::casesplit::execution::tests::schema_writers_must_finish_before_class_search_and_world_contracts_cannot_alias
+        PASS [   0.059s] (15/68) gmeow-logic reason::refute::casesplit::execution::tests::pure_other_family_and_unowned_list_fields_do_not_select_class_completion
+        PASS [   0.058s] (16/68) gmeow-logic reason::refute::casesplit::execution::tests::all_connected_model_obstructions_survive_a_sibling_closing_proof
+        PASS [   0.059s] (17/68) gmeow-logic reason::refute::casesplit::execution::tests::uninhabited_recursive_definition_remains_an_explicit_model_obstruction
+        PASS [   0.062s] (18/68) gmeow-logic reason::refute::casesplit::execution::tests::exhaustive_branches_cannot_lose_an_alternative_or_its_native_proof_reference
+        PASS [   0.062s] (19/68) gmeow-logic reason::refute::casesplit::logic_lists_tests::a_truncated_compiled_list_is_still_refused
+        PASS [   0.064s] (20/68) gmeow-logic reason::refute::casesplit::execution::tests::source_refusal_and_zero_budget_cannot_publish_unexamined_conflicts
+        PASS [   0.065s] (21/68) gmeow-logic reason::refute::casesplit::logic_lists_tests::compiled_named_and_anonymous_lists_are_admitted_with_their_exact_members
+        PASS [   0.016s] (22/68) gmeow-logic reason::refute::casesplit::scope_tests::truncated_selected_list_is_not_an_empty_or_exhaustive_enumeration
+        PASS [   0.066s] (23/68) gmeow-logic reason::refute::casesplit::scope_tests::all_selected_definition_and_list_failures_are_retained_deterministically
+        PASS [   0.017s] (24/68) gmeow-logic reason::refute::casesplit::tests::determinism_byte_stable
+        PASS [   0.069s] (25/68) gmeow-logic reason::refute::casesplit::scope_tests::native_contextual_proof_and_source_boundary_survive_typed_transport
+        PASS [   0.072s] (26/68) gmeow-logic reason::refute::casesplit::execution::tests::completed_class_conflict_retains_exact_native_support_and_reuses_the_current_result
+        PASS [   0.069s] (27/68) gmeow-logic reason::refute::casesplit::scope_tests::equality_paths_are_source_premises_and_only_justify_their_own_resources
+        PASS [   0.021s] (28/68) gmeow-logic reason::refute::casesplit::tests::disjoint_union_with_complement_is_consistent
+        PASS [   0.073s] (29/68) gmeow-logic reason::refute::casesplit::scope_tests::disconnected_membership_never_becomes_a_local_clash_or_downstream_fact
+        PASS [   0.075s] (30/68) gmeow-logic reason::refute::casesplit::scope_tests::asserted_annotation_sources_contribute_without_asserting_their_quoted_triples
+        PASS [   0.022s] (31/68) gmeow-logic reason::refute::casesplit::scope_tests::source_order_and_duplicate_physical_rows_preserve_the_same_supported_proof
+        PASS [   0.022s] (32/68) gmeow-logic reason::refute::casesplit::tests::complement_membership_clash_is_inconsistent
+        PASS [   0.077s] (33/68) gmeow-logic reason::refute::casesplit::scope_tests::disconnected_list_fields_do_not_change_a_supported_world_conflict
+        PASS [   0.077s] (34/68) gmeow-logic reason::refute::casesplit::scope_tests::nominal_alternatives_do_not_publish_branch_local_equalities_as_global_memberships
+        PASS [   0.076s] (35/68) gmeow-logic reason::refute::casesplit::scope_tests::every_disjunction_branch_retains_its_own_assumption_and_closing_sources
+        PASS [   0.031s] (36/68) gmeow-logic reason::refute::casesplit::scope_tests::valid_conflict_and_unadmitted_other_world_are_both_retained_without_false_local_heads
+        FAIL [   0.084s] (37/68) gmeow-logic reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection
+  stdout ───
+
+    running 1 test
+    test reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection ... FAILED
+
+    failures:
+
+    failures:
+        reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2097 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection' (2123270) panicked at crates/logic/src/reason/refute/casesplit/logic_lists_tests.rs:237:6:
+    authenticated producer list observation: ActionCacheError("GMEOW_TEST_FIXTURE_MANIFEST is required")
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.029s] (38/68) gmeow-logic reason::refute::casesplit::tests::empty_edb_does_not_engage
+        PASS [   0.030s] (39/68) gmeow-logic reason::refute::casesplit::tests::literal_oneof_is_not_engaged_as_nominal
+        PASS [   0.026s] (40/68) gmeow-logic reason::refute::casesplit::tests::nominal_equality_differentfrom_clash_is_inconsistent
+        PASS [   0.021s] (41/68) gmeow-logic reason::refute::native::tests::a_datatype_conflict_does_not_erase_an_unrelated_invalid_definition
+        PASS [   0.034s] (42/68) gmeow-logic reason::refute::casesplit::scope_tests::shared_selected_list_tail_retains_order_and_independent_owners
+        PASS [   0.033s] (43/68) gmeow-logic reason::refute::casesplit::scope_tests::source_admission_rejects_default_named_world_aliases
+        PASS [   0.030s] (44/68) gmeow-logic reason::refute::casesplit::tests::selected_list_nil_first_is_a_source_boundary
+        PASS [   0.038s] (45/68) gmeow-logic reason::refute::casesplit::scope_tests::singleton_nominal_clash_retains_memberships_definitions_list_and_inequality
+        PASS [   0.026s] (46/68) gmeow-logic reason::refute::native::tests::cached_source_lookup_rejects_an_identity_mismatched_ledger_position
+        PASS [   0.032s] (47/68) gmeow-logic reason::refute::casesplit::tests::selected_list_nil_rest_is_a_source_boundary
+        PASS [   0.043s] (48/68) gmeow-logic reason::refute::casesplit::scope_tests::selected_source_boundary_keeps_default_and_blank_graph_premises
+        PASS [   0.041s] (49/68) gmeow-logic reason::refute::casesplit::scope_tests::unrelated_quoted_data_does_not_select_class_admission_and_empty_graphs_survive
+        PASS [   0.042s] (50/68) gmeow-logic reason::refute::casesplit::scope_tests::source_membership_does_not_cross_asserting_worlds_without_a_bridge
+        PASS [   0.041s] (51/68) gmeow-logic reason::refute::casesplit::scope_tests::unowned_list_fields_do_not_select_refutation_in_any_native_context
+        PASS [   0.041s] (52/68) gmeow-logic reason::refute::casesplit::tests::existential_present_blocks_consistent_withholds
+        PASS [   0.025s] (53/68) gmeow-logic reason::refute::native::tests::missing_or_relabelled_native_support_fails_closed
+        PASS [   0.029s] (54/68) gmeow-logic reason::refute::native::tests::canonical_roles_preserve_source_spellings_without_aliasing_ordinary_terms
+        PASS [   0.027s] (55/68) gmeow-logic reason::refute::native::tests::late_native_equality_waits_for_completion_and_preserves_committed_derivation_support
+        PASS [   0.024s] (56/68) gmeow-logic reason::refute::native::tests::source_lookup_preserves_exact_leaves_across_growth_and_ledger_replacement
+        PASS [   0.024s] (57/68) gmeow-logic reason::refute::native::tests::original_native_blank_occurrences_survive_execution_identity_lowering
+        PASS [   0.031s] (58/68) gmeow-logic reason::refute::native::tests::evidence_cannot_be_reused_in_another_native_world_or_contract
+        PASS [   0.028s] (59/68) gmeow-logic reason::refute::native::tests::malformed_distinctness_lists_are_not_semantic_contradictions
+        PASS [   0.040s] (60/68) gmeow-logic reason::refute::casesplit::tests::union_disjoint_sat_is_consistent
+        PASS [   0.033s] (61/68) gmeow-logic reason::refute::native::tests::cardinality_obligations_bind_only_individuals_of_a_clashing_class
+        PASS [   0.032s] (62/68) gmeow-logic reason::refute::native::tests::every_independent_property_and_source_bound_survives_positive_refutation
+        PASS [   0.040s] (63/68) gmeow-logic reason::refute::casesplit::tests::union_disjoint_unsat_is_inconsistent
+        PASS [   0.026s] (64/68) gmeow-logic reason::refute::native::tests::relational_native_blank_identity_cannot_be_relabelled_as_rdf_ingress
+        PASS [   0.020s] (65/68) gmeow-logic reason::refute::native::tests::zero_analysis_budget_never_publishes_an_unexamined_conflict
+        PASS [   0.100s] (66/68) gmeow-logic reason::refute::native::tests::intrinsic_domain_support_requires_the_actual_committed_scoped_receipt
+        PASS [   0.631s] (67/68) gmeow-logic reason::refute::casesplit::tests::cyclic_class_expression_withholds_without_memory_explosion
+        PASS [   1.001s] (68/68) gmeow-logic reason::refute::casesplit::execution::tests::wide_labels_preserve_local_conflict_support_before_and_after_nominal_merges
+────────────
+     Summary [   1.152s] 68 tests run: 67 passed, 1 failed, 2254 skipped
+        FAIL [   0.084s] (37/68) gmeow-logic reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection
+  stdout ───
+
+    running 1 test
+    test reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection ... FAILED
+
+    failures:
+
+    failures:
+        reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2097 filtered out; finished in 0.07s
+
+  stderr ───
+
+    thread 'reason::refute::casesplit::logic_lists_tests::corpus_every_slice_module_list_has_complete_canonical_projection' (2123270) panicked at crates/logic/src/reason/refute/casesplit/logic_lists_tests.rs:237:6:
+    authenticated producer list observation: ActionCacheError("GMEOW_TEST_FIXTURE_MANIFEST is required")
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100

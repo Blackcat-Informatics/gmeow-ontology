@@ -1,0 +1,91 @@
+crates/mcp/src/overlay_routing.rs:31:        .map(|(_, scope)| scope.0)
+crates/mcp/src/lib.rs:7251:                let better = (candidate.0, Reverse(candidate.1.clone()))
+crates/slice-quality/src/lib.rs:1255:                detail: format!("bundle gmn1 dictionary failed to load: {}", e.0),
+crates/slice-quality/src/counting.rs:247:        TermRef::Blank { label, scope } => format!("_:{label}#{}", scope.0),
+crates/slice-quality/src/axes.rs:1947:                        defects.push(format!("executable glyph registry is invalid: {}", error.0))
+crates/action-cache/src/lib.rs:909:            reference.0 += 1;
+crates/pipeline/src/stages/parse_sources/language.rs:31:            .map_err(|error| super::stage_error(error.0))?;
+crates/pipeline/src/stages/parse_sources/language.rs:33:            .map_err(|error| super::stage_error(error.0))?
+crates/pipeline/src/stages/parse_sources/language.rs:72:                (candidate.0, std::cmp::Reverse(&candidate.1))
+crates/pipeline/src/stages/lang_projection/gmn_pack/controls.rs:161:        Err(error) => error.0,
+crates/pipeline/src/stages/lang_projection.rs:455:                            error.0
+crates/pipeline/src/stages/gmn1_gate.rs:83:        .map_err(|e| stage_err(&format!("gmeow:gmnDictV3 failed to load: {}", e.0)))
+crates/pipeline/src/stages/gmn1_gate.rs:99:            e.0
+crates/docs-model/src/gmn1_primer.rs:328:            (candidate.0, Reverse(candidate.1)) > (best_en, Reverse(best_lexical))
+crates/docs-model/src/gmn1_primer.rs:429:            error.0
+crates/docs-model/src/surface_lattice.rs:402:            conclusion: CapMask(closure(premise).0 & !premise.0),
+crates/pipeline/src/stages/conformance/gmn_dictionary/costs.rs:63:                        super::super::record_failure(super::super::stage_err(&error.0))
+crates/docs-model/src/gmn1_primer.tests.rs:207:        error.0.contains("gmeow:gmnModelNotation"),
+crates/docs-model/src/gmn1_primer.tests.rs:224:        error.0.contains("codebook"),
+crates/pipeline/src/stages/conformance/corpus_tests/gmn_dictionary.rs:114:            .unwrap_or_else(|error| panic!("shipped glyph {iri} decodes: {}", error.0));
+crates/gmn-cost-matrix/src/lib.rs:351:        .map_err(|e| MatrixError::Corpus(format!("gmeow:gmnDictV3 failed to load: {}", e.0)))
+crates/pipeline/src/stages/compile_logic.rs:590:        .map_err(|e| stage_err(format!("parse {PATH_SHAPES_EXAMPLE_PATH}: {}", e.0)))?;
+crates/pipeline/src/stages/compile_logic.rs:614:        .map_err(|e| stage_err(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}: {}", e.0)))?;
+crates/lang-bridge/src/gmn1_codec/native.rs:417:        super::validate_glyph_surface(glyph).map_err(|error| fail(error.0))?;
+crates/lang-bridge/src/gmn1_codec/native.rs:450:        .map_err(|error| fail(error.0))
+crates/lang-bridge/src/gmn1_codec.tests.rs:227:    assert!(error.0.contains("collides in scope"));
+crates/lang-bridge/src/gmn1_codec.tests.rs:242:    assert!(error.0.contains("UTS #39-confusable"), "{}", error.0);
+crates/lang-bridge/src/gmn1_codec.tests.rs:453:        error.0.contains("bare GMN token would be ambiguous"),
+crates/lang-bridge/src/gmn1_codec.tests.rs:455:        error.0
+crates/lang-bridge/src/gmn1_codec.tests.rs:475:            error.0.contains(needle),
+crates/lang-bridge/src/gmn1_codec.tests.rs:477:            error.0
+crates/lang-bridge/src/gmn1_codec.tests.rs:483:    assert!(error.0.contains("does not match codec version"));
+crates/lang-bridge/src/gmn1_codec.tests.rs:507:        error.0.contains("unsupported GMN sigil \"@x\""),
+crates/lang-bridge/src/gmn1_codec.tests.rs:509:        error.0
+crates/lang-bridge/src/gmn1_codec.tests.rs:526:    assert!(error.0.contains("not typed lang:Denotation"), "{}", error.0);
+crates/lang-bridge/src/gmn1_codec.tests.rs:544:        error.0
+crates/lang-bridge/src/gmn1_codec.tests.rs:569:        error.0
+crates/lang-bridge/src/gmn1_codec.tests.rs:591:        error.0
+crates/lang-bridge/src/gmn_verbalize.tests.rs:96:    assert!(err.0.contains("injectivity"), "{err}");
+crates/lang-bridge/src/gmn_verbalize.tests.rs:137:    assert!(err.0.contains("injectivity"), "{err}");
+crates/lang-bridge/src/gmn_verbalize.tests.rs:138:    assert!(err.0.contains("GMN operator surface"), "{err}");
+crates/lang-bridge/src/gmn1_codec.rs:1539:    let codebook = resolve_current_codebook(ds).map_err(|error| DictionaryError(error.0))?;
+crates/lang-bridge/src/gmn1_codec.rs:1572:                    .map_err(|error| DictionaryError(error.0))?;
+crates/lang-bridge/src/gmn1_codec.rs:1589:                .map_err(|error| DictionaryError(error.0))?;
+crates/lang-bridge/src/gmn1_codec.rs:1626:            .map_err(|error| DictionaryError(error.0))?;
+crates/lang-bridge/src/gmn1_codec.rs:1646:            .map_err(|error| DictionaryError(error.0))?
+crates/errors/src/code.rs:51:    // Index `Code.0.get() - 1`. Owns the canonical `&'static` spelling.
+crates/errors/src/code.rs:109:        self.by_id[code.0.get() as usize - 1]
+crates/gmeow-cli/src/gmn.rs:782:                    format!("cannot load gmeow:gmnDictV3: {}", e.0),
+crates/gmeow-cli/src/commands/reasoning_report.rs:337:                "cause_diagnostic": Self::from_diag(&failure.cause.0),
+crates/gmeow-cli/src/commands/reasoning_input.rs:171:        assert_eq!(payload.cause.0.code(), cause_code);
+crates/docs/src/fixture.rs:282:    (outcome.value.0, outcome.built, outcome.value.1)
+crates/logic-compile/src/cl_roundtrip.rs:133:                e.0
+crates/logic-compile/src/cl_roundtrip.rs:179:            detail: format!("cl-roundtrip cross-dialect {da} != {db}: {}", e.0),
+crates/logic-compile/src/projections/tests.rs:47:    assert!(err.0.contains("Overclaim"));
+crates/logic-compile/src/projections/tests.rs:95:        err.0.contains("under-disclosure"),
+crates/logic-compile/src/projections/tests.rs:97:        err.0
+crates/logic-compile/src/projections/tests.rs:148:    assert_eq!(cause.0, err.message());
+crates/logic-compile/src/ir/presentation.rs:166:        self.field(&gmeow_term_arena::engine::native_term_key(&value.0));
+crates/logic-compile/src/frontend/tests.rs:3690:    assert_eq!(range.0, Some(0.0));
+crates/logic-compile/src/projections/sssom.rs:233:        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Sssom { detail: e.0 }))?;
+crates/logic-compile/src/projections/sssom.rs:319:            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Sssom { detail: e.0 }))?;
+crates/logic-compile/src/projections/edoal.rs:354:            .map_err(|e| Diag::of_kind(crate::error::Edoal { detail: e.0 }))?;
+crates/logic-compile/src/term_serde.rs:42:                scope: scope.0,
+crates/logic-compile/src/projections/correspondence_gates/tests.rs:323:    assert!(err.0.contains("Overclaim"), "{}", err.0);
+crates/logic-compile/src/projections/correspondence_gates/tests.rs:810:    assert!(err.0.contains("Preservation"), "{}", err.0);
+crates/logic-compile/src/projections/correspondence_gates.rs:304:        return GateVerdict::Red { reason: e.0 };
+crates/logic-compile/src/projections/correspondence_gate.tests.rs:69:    assert!(err.0.contains("bridge"), "{}", err.0);
+crates/logic-compile/src/projections/correspondence_gate.tests.rs:70:    assert!(err.0.contains("Principle 5"), "{}", err.0);
+crates/logic-compile/src/projections/correspondence_gate.tests.rs:84:    assert!(err.0.contains("Overlaps"), "{}", err.0);
+crates/logic-compile/src/projections/correspondence_gate.tests.rs:85:    assert!(err.0.contains("equivalence"), "{}", err.0);
+crates/logic-compile/src/projections/correspondence_gate.tests.rs:104:    assert!(err.0.contains("Overlaps"), "{}", err.0);
+crates/logic-compile/src/projections/correspondence_gate.tests.rs:105:    assert!(err.0.contains("equivalence"), "{}", err.0);
+crates/logic-compile/src/projections/presentation.rs:253:        match &value.0 {
+crates/logic-compile/src/projections/presentation.rs:259:                self.literal(reference, "sourceBlankScope", integer(scope.0 as usize))?;
+crates/logic/src/correspondence_exec/plan_projection.rs:786:                starts = sequence.0.clone();
+crates/logic/src/correspondence_exec/plan_projection.rs:789:                for to in &sequence.0 {
+crates/logic/src/correspondence_exec/presentation/source.rs:292:                names: symbol.names.iter().map(|name| name.0.clone()).collect(),
+crates/logic-compile/src/projections/correspondence/tests.rs:100:        err.0.contains("Overclaim"),
+crates/logic/src/modal/composite/monitor_cache.rs:65:            .filter(|((node, _), _)| stable[node.0])
+crates/logic/src/modal/composite.rs:768:        let evidence = match &program.instructions[node.0] {
+crates/logic/src/modal/composite.rs:814:                let every = matches!(self.program.instructions[node.0], Instruction::And(_));
+crates/logic/src/modal/composite.rs:965:            node.0,
+crates/logic/src/modal/composite.rs:975:                instruction: node.0,
+crates/logic/src/purremb_relation.rs:1474:        let mut out = format!("{:016x}:", element.score.0);
+crates/logic/src/physical/magic_generic.rs:1208:                    let factor = if control_relations.contains(&source.0) {
+crates/logic/src/reason/artifacts.rs:298:        if scope.0 < candidate {
+crates/logic/src/reason/artifacts.rs:301:        if scope.0 > candidate {
+crates/logic/src/physical/effects/value_flow.rs:405:        self.live.0.fill(0);
+crates/logic/src/physical/effects/value_flow.rs:467:            .zip(&self.live.0)
+crates/logic/src/physical/effects/value_flow.rs:476:                .zip(&live.0)

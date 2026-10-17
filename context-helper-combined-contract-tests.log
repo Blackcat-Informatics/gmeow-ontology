@@ -1,0 +1,33 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-dev-cli) & binary(make_gate_contract)' --no-tests=fail
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 13.09s
+────────────
+ Nextest run ID 6ec040a1-89ea-46ad-affd-30577e7e2571 with nextest profile: ci
+    Starting 20 tests across 1 binary (224 binaries skipped)
+        PASS [   0.007s] ( 1/20) gmeow-dev-cli::make_gate_contract ci_parallelizes_cold_generation_without_weakening_the_authority_gate
+        PASS [   0.008s] ( 2/20) gmeow-dev-cli::make_gate_contract consumer_cli_build_is_source_first_without_repeating_an_existing_producer_run
+        PASS [   0.008s] ( 3/20) gmeow-dev-cli::make_gate_contract aggregate_gate_has_one_owner_for_each_expensive_equivalence_class
+        PASS [   0.008s] ( 4/20) gmeow-dev-cli::make_gate_contract browser_codebook_builds_require_exact_read_only_producer_selection
+        PASS [   0.008s] ( 5/20) gmeow-dev-cli::make_gate_contract every_check_dag_target_is_exercised_by_ci
+        PASS [   0.008s] ( 6/20) gmeow-dev-cli::make_gate_contract ci_cold_producer_build_supplies_measurement_prerequisites
+        PASS [   0.008s] ( 7/20) gmeow-dev-cli::make_gate_contract the_rust_gate_is_split_into_independent_dag_nodes
+        PASS [   0.008s] ( 8/20) gmeow-dev-cli::make_gate_contract medium_sweep_has_only_the_authenticated_producer_entry_point
+        PASS [   0.008s] ( 9/20) gmeow-dev-cli::make_gate_contract term_release_authority_has_only_the_authenticated_producer_entry_point
+        PASS [   0.009s] (10/20) gmeow-dev-cli::make_gate_contract evidence_binaries_have_one_dependency_light_owner
+        PASS [   0.009s] (11/20) gmeow-dev-cli::make_gate_contract console_smoke_provisions_its_pinned_browser_before_make
+        PASS [   0.010s] (12/20) gmeow-dev-cli::make_gate_contract corpus_producer_purity_is_a_pre_test_and_pre_commit_gate
+        PASS [   0.009s] (13/20) gmeow-dev-cli::make_gate_contract standalone_targets_remain_complete_while_check_uses_scoped_composition
+        PASS [   0.009s] (14/20) gmeow-dev-cli::make_gate_contract validate_help_matches_the_phase_coverage_registry
+        PASS [   0.010s] (15/20) gmeow-dev-cli::make_gate_contract fixture_production_and_test_consumption_are_structurally_separate
+        PASS [   0.010s] (16/20) gmeow-dev-cli::make_gate_contract producer_receipt_tracks_the_exact_sync_manifest_schema_version
+        PASS [   0.011s] (17/20) gmeow-dev-cli::make_gate_contract sync_is_not_a_blanket_prerequisite_of_the_gate
+        PASS [   0.012s] (18/20) gmeow-dev-cli::make_gate_contract helper_ownership_gate_is_independent_and_required_by_quality
+        PASS [   0.014s] (19/20) gmeow-dev-cli::make_gate_contract ci_reuses_one_authenticated_nextest_archive_without_coverage_loss
+        PASS [   0.013s] (20/20) gmeow-dev-cli::make_gate_contract the_heavy_lane_still_runs_on_every_pr
+────────────
+     Summary [   0.015s] 20 tests run: 20 passed, 0 skipped

@@ -1,0 +1,46 @@
+{
+  "issue": 1770,
+  "branch": "paudley/1770-certify-and-precompile-the-complete",
+  "base": "origin/paudley/1834-repair-shared-helper-ownership-and",
+  "commits": [
+    {
+      "oid": "816a604cdc4715ef01ebd02b048a78c3aa9d86fb",
+      "subject": "fix(logic): prepare exact questions for native proof checking",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "10c6e175f2018870cd084cfae562bfd99da1a770",
+      "subject": "refactor(logic): retain native DL certificates and proofs",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "4b733c6362d38259f755723701f1a248f06f49e4",
+      "subject": "docs(logic): describe admission ownership and archive guarantees",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "41d20477371bfb48f542033fabcb967d272b21d3",
+      "subject": "feat(logic): publish complete-source admission evidence",
+      "date": "2026-10-16"
+    }
+  ],
+  "files": [
+    "crates/bundle-view/src/bundle_blobs.rs",
+    "crates/bundle-view/src/bundle_blobs/reasoned_gates.tests.rs",
+    "crates/gmeow-cli/src/commands.rs",
+    "crates/logic-compile/src/frontend/source_admission.rs",
+    "crates/logic-compile/src/frontend/source_admission/origins.rs",
+    "crates/logic-compile/src/frontend/source_admission/origins.tests.rs",
+    "crates/logic-compile/src/tptp/canon_admission.rs",
+    "crates/logic-compile/src/tptp/canon_admission.tests.rs",
+    "crates/logic-compile/src/tptp/mod.rs",
+    "crates/logic-compile/src/tptp/tests.rs",
+    "crates/logic/src/reasoner_services.rs",
+    "crates/logic/src/reasoner_services.tests.rs",
+    "crates/pipeline/src/stages/carrier.rs",
+    "crates/pipeline/src/stages/carrier.ustar_tests.rs",
+    "crates/pipeline/src/stages/compile_logic.rs",
+    "slices/grounding/logic/design/LOGIC-CONTRACT.md"
+  ],
+  "adrs_touched": []
+}

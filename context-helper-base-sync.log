@@ -1,0 +1,4 @@
+Merge made by the 'ort' strategy.
+ .github/workflows/ci.yml                         | 27 ++++++-
+ crates/gmeow-dev-cli/tests/make_gate_contract.rs | 99 ++++++++++++++++--------
+ 2 files changed, 92 insertions(+), 34 deletions(-)

@@ -1,0 +1,6 @@
+
+## Qualified object cardinality unit
+
+All 74 selected compiler/list/restriction/FOF tests passed (qualified-cardinality-corrected-tests.log). Strict producer-independent workspace/all-target Clippy passed with warnings denied (qualified-cardinality-clippy.log); four corpus-dependent consumers remain outside that diagnostic target. Normal signed commit hooks passed (qualified-cardinality-commit.log). Qualified bounds preserve selected qualifier dependencies, conjunctive independent counts, native XSD integer values and denotational pairwise inequality. Zero-minimum laws retain dependency validation without an unused ground binding. Malformed/unsupported datatype bounds and unrepresentable counts fail explicitly. Existing unsupported-fixture controls now use datatype restrictions, rather than supported object bounds; their refusal and document-selection assertions remain intact. No full local gate, full canon certification or installed prepared-base acceptance is claimed.
+
+The Boolean, enumeration, disjoint-union and self-restriction commits are already pushed. This cardinality commit advances the same complete-canon task; modal, datatype and prepared bundle/consumer composition requirements remain open.

@@ -1,0 +1,176 @@
+diff --git crates/logic/src/reason/refute/casesplit.rs crates/logic/src/reason/refute/casesplit.rs
+index e98a2debf..250ee4f33 100644
+--- crates/logic/src/reason/refute/casesplit.rs
++++ crates/logic/src/reason/refute/casesplit.rs
+@@ -1527,20 +1527,22 @@ impl State {
+         }
+     }
+ 
++    /// Read current labels without copying their unrelated concepts or evidence.
+     fn current_conflict(&mut self, individual: &str) -> Option<RefutationProof> {
+-        let labels = self.labels_of(individual);
+-        for (concept, support) in &labels {
+-            if let Concept::Pos(class) = concept
+-                && let Some(opposed) = labels.get(&Concept::Neg(class.clone()))
+-            {
+-                return Some(self.conflict(
+-                    individual,
+-                    RefutationClash::OpposedClass(class.clone()),
+-                    support.merge(opposed),
+-                ));
++        let root = self.find(individual);
++        let labels = self.labels.get(&root).expect("a canonical root has labels");
++        let conflict = labels.iter().find_map(|(concept, support)| {
++            if let Concept::Pos(class) = concept {
++                labels
++                    .get(&Concept::Neg(class.clone()))
++                    .map(|opposed| (class.clone(), support.merge(opposed)))
++            } else {
++                None
+             }
+-        }
+-        None
++        });
++        conflict.map(|(class, support)| {
++            self.conflict(individual, RefutationClash::OpposedClass(class), support)
++        })
+     }
+ 
+     fn add(
+@@ -1573,12 +1575,16 @@ impl State {
+                     _ => None,
+                 };
+                 if let Some((class, opposite)) = opposite
+-                    && let Some(prior) = self.labels_of(&root).get(&opposite)
++                    && let Some(prior) = self
++                        .labels
++                        .get(&root)
++                        .and_then(|labels| labels.get(&opposite))
+                 {
++                    let support = support.merge(prior);
+                     return Err(self.conflict(
+                         &root,
+                         RefutationClash::OpposedClass(class.clone()),
+-                        support.merge(prior),
++                        support,
+                     ));
+                 }
+                 let labels = self.labels.entry(root).or_default();
+@@ -1597,11 +1603,6 @@ impl State {
+             }
+         }
+     }
+-
+-    fn labels_of(&mut self, individual: &str) -> BTreeMap<Concept, Support> {
+-        let root = self.find(individual);
+-        self.labels.get(&root).cloned().unwrap_or_default()
+-    }
+ }
+ 
+ fn disjunct_satisfied(labels: &BTreeMap<Concept, Support>, disjunct: &Concept) -> bool {
+@@ -1674,7 +1675,12 @@ fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
+             }
+             let mut local_changed = false;
+             let mut merged = false;
+-            let current = state.labels_of(&root);
++            // Saturation mutates labels and merges roots; iterate a stable snapshot.
++            let current = state
++                .labels
++                .get(&root)
++                .expect("a canonical root has labels")
++                .clone();
+             for (concept, support) in &current {
+                 match concept {
+                     Concept::Pos(name) => {
+@@ -1719,14 +1725,17 @@ fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
+                         }
+                     }
+                     Concept::Or(disjuncts) => {
+-                        let labels = state.labels_of(&root);
++                        let labels = state
++                            .labels
++                            .get(&root)
++                            .expect("a canonical root has labels");
+                         if disjuncts
+                             .iter()
+-                            .any(|disjunct| disjunct_satisfied(&labels, disjunct))
++                            .any(|disjunct| disjunct_satisfied(labels, disjunct))
+                         {
+                             continue;
+                         }
+-                        let (live, proof) = live_disjuncts(&labels, disjuncts, support);
++                        let (live, proof) = live_disjuncts(labels, disjuncts, support);
+                         if live.is_empty() {
+                             return Saturation::Closed(state.conflict(
+                                 &root,
+@@ -1765,18 +1774,19 @@ fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
+     pick_branch(state, &roots).map_or(Saturation::Open, Saturation::Branch)
+ }
+ 
++/// Keep deterministic choice order, snapshotting only nominal entries before find mutates roots.
+ fn pick_branch(state: &mut State, roots: &[String]) -> Option<Choice> {
+     for root in roots {
+-        let labels = state.labels_of(root);
+-        for (concept, support) in &labels {
++        let labels = state.labels.get(root).expect("a canonical root has labels");
++        for (concept, support) in labels {
+             if let Concept::Or(disjuncts) = concept {
+                 if disjuncts
+                     .iter()
+-                    .any(|disjunct| disjunct_satisfied(&labels, disjunct))
++                    .any(|disjunct| disjunct_satisfied(labels, disjunct))
+                 {
+                     continue;
+                 }
+-                let (live, proof) = live_disjuncts(&labels, disjuncts, support);
++                let (live, proof) = live_disjuncts(labels, disjuncts, support);
+                 if live.len() >= 2 {
+                     return Some(Choice {
+                         support: proof.clone(),
+@@ -1790,24 +1800,29 @@ fn pick_branch(state: &mut State, roots: &[String]) -> Option<Choice> {
+         }
+     }
+     for root in roots {
+-        let labels = state.labels_of(root);
++        let nominals: Vec<_> = state
++            .labels
++            .get(root)
++            .expect("a canonical root has labels")
++            .iter()
++            .filter_map(|(concept, support)| match concept {
++                Concept::Nominals(members) => Some((members.clone(), support.clone())),
++                _ => None,
++            })
++            .collect();
+         let root_of = state.find(root);
+-        for (concept, support) in &labels {
+-            if let Concept::Nominals(members) = concept {
+-                if members.iter().any(|member| state.find(member) == root_of) {
+-                    continue;
+-                }
+-                if members.len() >= 2 {
+-                    return Some(Choice {
+-                        support: support.clone(),
+-                        alternatives: members
+-                            .iter()
+-                            .map(|member| {
+-                                Action::Merge(root.clone(), member.clone(), support.clone())
+-                            })
+-                            .collect(),
+-                    });
+-                }
++        for (members, support) in nominals {
++            if members.iter().any(|member| state.find(member) == root_of) {
++                continue;
++            }
++            if members.len() >= 2 {
++                return Some(Choice {
++                    support: support.clone(),
++                    alternatives: members
++                        .iter()
++                        .map(|member| Action::Merge(root.clone(), member.clone(), support.clone()))
++                        .collect(),
++                });
+             }
+         }
+     }

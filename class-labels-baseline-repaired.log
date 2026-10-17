@@ -1,0 +1,26 @@
+cargo bench -p gmeow-logic --bench reason -- 'class_memberships'
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+    Finished `bench` profile [optimized] target(s) in 9m 44s
+     Running benches/reason.rs (/opt/.cargo/26/4dfbb2e2ed2a0e/release/build/gmeow-logic/1297b5c3b7c1c83b/out/reason-1297b5c3b7c1c83b)
+Benchmarking class_memberships/labels_250
+Benchmarking class_memberships/labels_250: Warming up for 3.0000 s
+Benchmarking class_memberships/labels_250: Collecting 10 samples in estimated 6.1958 s (275 iterations)
+Benchmarking class_memberships/labels_250: Analyzing
+class_memberships/labels_250
+                        time:   [23.295 ms 25.003 ms 25.817 ms]
+Benchmarking class_memberships/labels_500
+Benchmarking class_memberships/labels_500: Warming up for 3.0000 s
+Benchmarking class_memberships/labels_500: Collecting 10 samples in estimated 6.9893 s (110 iterations)
+Benchmarking class_memberships/labels_500: Analyzing
+class_memberships/labels_500
+                        time:   [51.744 ms 53.790 ms 58.265 ms]
+Benchmarking class_memberships/labels_1000
+Benchmarking class_memberships/labels_1000: Warming up for 3.0000 s
+Benchmarking class_memberships/labels_1000: Collecting 10 samples in estimated 6.9068 s (30 iterations)
+Benchmarking class_memberships/labels_1000: Analyzing
+class_memberships/labels_1000
+                        time:   [232.74 ms 253.65 ms 276.06 ms]
+

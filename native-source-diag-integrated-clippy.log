@@ -1,0 +1,47 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/pipeline)
+error: useless conversion to the same type: `gmeow_errors::Diag`
+  --> crates/pipeline/src/stages/compile_logic/formula_fixtures.rs:45:56
+   |
+45 |                     parse_logic_dataset(&dataset, None).map_err(gmeow_errors::Diag::from)?;
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#useless_conversion
+   = note: `-D clippy::useless-conversion` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::useless_conversion)]`
+
+error: useless conversion to the same type: `gmeow_errors::Diag`
+  --> crates/pipeline/src/stages/compile_logic/projection_fixtures.rs:53:56
+   |
+53 |                     parse_logic_dataset(&dataset, None).map_err(gmeow_errors::Diag::from)?;
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#useless_conversion
+
+error: useless conversion to the same type: `gmeow_errors::Diag`
+  --> crates/pipeline/src/stages/conformance/cl_ingest.rs:91:61
+   |
+91 |         parse_clif_str(clif, Some(format!("{GENEALOGY}kb"))).map_err(gmeow_errors::Diag::from)?;
+   |                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#useless_conversion
+
+error: useless conversion to the same type: `gmeow_errors::Diag`
+  --> crates/pipeline/src/stages/compile_logic/roundtrip.tests.rs:53:39
+   |
+53 |           xcl::parse_xcl_str(text, None).map_err(gmeow_errors::Diag::from)
+   |  _______________________________________-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+54 | |     });
+   | |____- help: consider removing
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#useless_conversion
+
+error: could not compile `gmeow-pipeline` (lib test) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-pipeline` (lib) due to 3 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

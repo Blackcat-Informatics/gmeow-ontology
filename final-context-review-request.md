@@ -1,0 +1,3 @@
+@coderabbitai review
+
+Please review current head 2e6956703, especially the graph-local context-requirement index, atomic/owned-formula admission, source profile v3 and preserved explicit-context/modal translations. Two before-fix product controls demonstrated false Complete results; all 103 related checks and strict Clippy now pass. The actual helper base includes the required early CI job and explicit locked dependency preparation; its hosted helper job has passed. Full production/consumer acceptance remains pending. Earlier review markers name older source and do not cover this functional context delta.

@@ -1,0 +1,18 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & test(compile_logic::roundtrip::tests) & not test(corpus_logic_module_common_logic_roundtrips)' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 48s
+────────────
+ Nextest run ID 6a5f79a8-8e57-4d30-b52a-1560013cb7a7 with nextest profile: ci
+    Starting 3 tests across 25 binaries (1033 tests and 200 binaries skipped)
+        PASS [   0.197s] (1/3) gmeow-pipeline stages::compile_logic::roundtrip::tests::complete_ir_comparison_records_source_drift
+        PASS [   0.231s] (2/3) gmeow-pipeline stages::compile_logic::roundtrip::tests::malformed_projection_is_recorded_without_aborting_the_other_observations
+        PASS [   0.231s] (3/3) gmeow-pipeline stages::compile_logic::roundtrip::tests::native_reference_records_every_dialect
+────────────
+     Summary [   0.243s] 3 tests run: 3 passed, 1033 skipped

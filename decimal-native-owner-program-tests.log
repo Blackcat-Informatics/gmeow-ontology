@@ -1,0 +1,36 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & (test(datatype_tests::) | test(datatype_constraints_tests::))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [optimized] target(s) in 1.37s
+────────────
+ Nextest run ID 18e32bfd-082c-4ca8-91bb-a30d5c0f4699 with nextest profile: ci
+    Starting 19 tests across 26 binaries (2308 tests and 199 binaries skipped)
+        PASS [   0.207s] ( 1/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::datatype_capacity_feedback_through_a_definition_is_not_stratifiable
+        PASS [   0.260s] ( 2/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::missing_qualified_datatype_is_never_guessed_from_a_property_range
+        PASS [   0.272s] ( 3/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::existential_empty_space_reaches_authored_rules_with_all_facet_premises
+        PASS [   0.273s] ( 4/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::independent_existential_fillers_do_not_constrain_existing_values_or_each_other
+        PASS [   0.275s] ( 5/19) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definition_feedback_cycle_refuses_a_transient_clash
+        PASS [   0.286s] ( 6/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::native_datatype_capacity_and_proofs_stay_in_the_asserting_world
+        PASS [   0.285s] ( 7/19) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_facets_are_conjunctive_and_preserve_every_definition_premise
+        PASS [   0.286s] ( 8/19) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definitions_with_identical_names_remain_world_local
+        PASS [   0.304s] ( 9/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::datatype_constraint_definition_writers_complete_before_clash_evaluation
+        PASS [   0.306s] (10/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::undefined_membership_and_capacity_are_explicit_refusals_not_negative_decisions
+        PASS [   0.313s] (11/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::late_native_range_values_wake_authored_consumers_with_actual_source_spellings
+        PASS [   0.313s] (12/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::upstream_finite_datatype_capacity_reaches_the_authored_constraint_consumer
+        PASS [   0.329s] (13/19) gmeow-logic reason::program::clash_tests::datatype_tests::native_datatype_dag_composes_membership_and_preserves_lexical_proofs
+        PASS [   0.331s] (14/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::a_universal_empty_space_only_clashes_when_a_value_is_required
+        PASS [   0.330s] (15/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::datatype_property_literal_domain_and_local_universals_are_actual_clash_producers
+        PASS [   0.341s] (16/19) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_length_restriction_uses_shared_native_values_in_cardinality
+        PASS [   0.343s] (17/19) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definition_producers_complete_before_any_membership_witness
+        PASS [   0.441s] (18/19) gmeow-logic reason::program::clash_tests::datatype_tests::datatype_definition_admission_refuses_malformed_or_unsupported_sources
+        PASS [   0.597s] (19/19) gmeow-logic reason::program::clash_tests::datatype_constraints_tests::finite_datatype_lower_and_exact_counts_are_conjunctive_and_keep_large_source_values
+────────────
+     Summary [   0.625s] 19 tests run: 19 passed, 2308 skipped

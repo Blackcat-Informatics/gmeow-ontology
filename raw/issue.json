@@ -1,0 +1,36 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\nComposing the installed `gmeow prove` operation with the complete embedded canon currently makes every request stop before external prover execution. The exact current bundle produces 327 classical-FOF admission blockers:\n\n- 266 `UNSUPPORTED_CLASS_EXPRESSION` (213 uncertified class-expression lowerings; 53 restriction/enumeration reachability cases)\n- 51 `CONTEXT_ERASURE_FORBIDDEN` (standpoint/modal translation required)\n- 7 `UNSUPPORTED_SELECTED_OWNER` (Contract owners lack a classical execution contract)\n- 2 `RULE_TERM_DISTINCT_REQUIRES_BINDING_SEMANTICS`\n- 1 `COMPILER_ERROR_IN_SELECTED_THEORY` (the probabilistic profile carries a measure without a declared probability model)\n\nThis is the concrete unsupported-grounding set behind the full-canon acceptance criterion in #1768. Silently dropping these units would violate the source-admission contract and cannot be justified by bounded-corpus evidence.\n\n## Scope\n\n- give every selected canonical unit a typed, certified FOF disposition;\n- implement the missing class-expression, standpoint/modal, contract-owner, distinct-body, and probabilistic-profile semantics, or give an explicit typed proof-task selection that excludes a unit for a sound documented reason;\n- preserve standpoint, provenance, complements, loss evidence, and stage contracts;\n- produce the canon FOF base once in the O3/full-LTO producer and carry it in `gmeow.gts`, rather than recompiling the flattened canon on every consumer invocation;\n- compose caller premises/goals with that prepared native base in memory, with no serialization/reparse step;\n- make `gmeow prove` reach the selected native/external prover against the complete admitted canon from a blinded cwd;\n- report the exact bundle and prepared-canon identities.\n\n## Acceptance\n\n- complete-canon admission has zero blockers for the supported proof profile;\n- the #1755 navigation obligation works through the canonical carrier and its ordinary-domain-triple form fails with the intended grounding diagnostic;\n- focused product tests cover GMEOW proof behavior without duplicating PurRDF or external-prover conformance;\n- runtime evidence records elapsed time, peak memory, and intermediate bytes for prepared-canon load plus request composition.\n\nDepends on #1712, #1737, and #1738; blocks the full semantic completion of #1768. Principles 4, 7, 12, 17, 18, and 19 apply.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABceDZUg",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Current source audit for the historical probability-model blocker:\n\nThe authored logic module already declares `FullIndependence` as a\n`ProbabilityModel`. The compiler's structural admission recognizes a declared\nmodel under both RDF typing and native `logic:instanceOf`; it only consults the\nselected default graph. This does not select an independence model for an actual\nprobabilistic query, which still requires its explicit model declaration.\n\nThe combined candidate strengthens the existing compiler regression to cover both\ntyping surfaces, require the emitted contract, and retain its uncertainty facet.\nA new synthetic named-graph control requires the hard contract diagnostic when\nthe only model is outside the selected graph. Together with the existing absent-\nmodel and native structural-typing controls, the selection passed 4/4. Source lint\nand producer-independent strict Clippy also passed.\n\nThese test-only changes do not establish a new full-canon blocker count. The\nhistorical 327-unit inventory belongs to its original bundle/selection and must\nbe remeasured on the authenticated new product; it is not a reason to invent a\nmodel or erase graph context. The complete prepared-canon, request composition,\ngrounding-diagnostic, native/external proof and blinded consumer requirements\nremain open. Current production CLI routing still compiles caller files, so the\none-file distribution evidence alone cannot establish those requirements.\n\nThe existing optimized producer build continues for the authenticated bootstrap.\nNo new PR is being opened, and no full proof or issue completion is claimed.\n",
+      "createdAt": "2026-10-16T00:54:10Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1770#issuecomment-6205528402",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-09-18T01:15:17Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1770,
+  "state": "OPEN",
+  "title": "feat: certify and precompile the complete canon for consumer proof",
+  "updatedAt": "2026-10-16T00:54:10Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1770"
+}

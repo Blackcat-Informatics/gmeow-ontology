@@ -1,0 +1,142 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) & (test(frontend::prepared::tests) | test(frontend::tests::parse_) | test(tptp::tests) | test(clif::tests) | test(cgif::tests) | test(xcl::tests))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic-compile)
+error[E0277]: the size for values of type `dyn StdError + Send + Sync` cannot be known at compilation time
+   --> crates/logic-compile/src/error.rs:176:1
+    |
+176 | / define_diag_kind! {
+177 | |     /// A selected source codec refused its input; retain the original parser error.
+178 | |     pub struct SourceParse {
+179 | |         format: &'static str,
+...   |
+185 | |     source = failure => Some(failure.cause.as_ref());
+186 | | }
+    | |_^ doesn't have a size known at compile-time
+    |
+    = help: the trait `Sized` is not implemented for `dyn StdError + Send + Sync`
+    = note: required for `std::boxed::Box<dyn StdError + Send + Sync>` to implement `Clone`
+    = note: this error originates in the derive macro `::std::clone::Clone` which comes from the expansion of the macro `define_diag_kind` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `std::io::Error: Clone` is not satisfied
+   --> crates/logic-compile/src/error.rs:188:1
+    |
+188 | / define_diag_kind! {
+189 | |     /// A selected source path could not be read; retain its path and I/O error.
+190 | |     pub struct SourceRead {
+191 | |         path: std::path::PathBuf,
+...   |
+197 | |     source = failure => Some(&failure.cause);
+198 | | }
+    | |_^ the trait `Clone` is not implemented for `std::io::Error`
+    |
+    = note: this error originates in the derive macro `::std::clone::Clone` which comes from the expansion of the macro `define_diag_kind` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0616]: field `0` of struct `Diag` is private
+  --> crates/logic-compile/src/cl_roundtrip.rs:91:80
+   |
+91 |                 .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+   |                                                                                ^ private field
+
+error[E0616]: field `0` of struct `Diag` is private
+   --> crates/logic-compile/src/cl_roundtrip.rs:100:80
+    |
+100 |                 .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+    |                                                                                ^ private field
+
+error[E0616]: field `0` of struct `Diag` is private
+   --> crates/logic-compile/src/cl_roundtrip.rs:109:80
+    |
+109 |                 .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+    |                                                                                ^ private field
+
+Some errors have detailed explanations: E0277, E0616.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-logic-compile` (lib) due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0616]: field `0` of struct `gmeow_errors::Diag` is private
+  --> crates/logic-compile/src/cl_roundtrip.rs:91:80
+   |
+91 |                 .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+   |                                                                                ^ private field
+
+error[E0616]: field `0` of struct `gmeow_errors::Diag` is private
+   --> crates/logic-compile/src/cl_roundtrip.rs:100:80
+    |
+100 |                 .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+    |                                                                                ^ private field
+
+error[E0616]: field `0` of struct `gmeow_errors::Diag` is private
+   --> crates/logic-compile/src/cl_roundtrip.rs:109:80
+    |
+109 |                 .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+    |                                                                                ^ private field
+
+error[E0599]: `gmeow_errors::Code` doesn't implement `std::fmt::Display`
+   --> crates/logic-compile/src/frontend/tests.rs:192:27
+    |
+192 |     assert_eq!(err.code().to_string(), "logic-compile.frontend");
+    |                           ^^^^^^^^^ method cannot be called on `gmeow_errors::Code` due to unsatisfied trait bounds
+    |
+   ::: crates/errors/src/code.rs:27:1
+    |
+ 27 | pub struct Code(NonZeroU32);
+    | --------------- doesn't satisfy `gmeow_errors::Code: ToString` or `gmeow_errors::Code: std::fmt::Display`
+    |
+    = note: the following trait bounds were not satisfied:
+            `gmeow_errors::Code: std::fmt::Display`
+            which is required by `gmeow_errors::Code: ToString`
+
+error[E0599]: `gmeow_errors::Code` doesn't implement `std::fmt::Display`
+   --> crates/logic-compile/src/frontend/tests.rs:199:27
+    |
+199 |     assert_eq!(err.code().to_string(), "logic-compile.source-read");
+    |                           ^^^^^^^^^ method cannot be called on `gmeow_errors::Code` due to unsatisfied trait bounds
+    |
+   ::: crates/errors/src/code.rs:27:1
+    |
+ 27 | pub struct Code(NonZeroU32);
+    | --------------- doesn't satisfy `gmeow_errors::Code: ToString` or `gmeow_errors::Code: std::fmt::Display`
+    |
+    = note: the following trait bounds were not satisfied:
+            `gmeow_errors::Code: std::fmt::Display`
+            which is required by `gmeow_errors::Code: ToString`
+
+error[E0599]: `gmeow_errors::Code` doesn't implement `std::fmt::Display`
+   --> crates/logic-compile/src/frontend/tests.rs:209:27
+    |
+209 |     assert_eq!(err.code().to_string(), "logic-compile.source-parse");
+    |                           ^^^^^^^^^ method cannot be called on `gmeow_errors::Code` due to unsatisfied trait bounds
+    |
+   ::: crates/errors/src/code.rs:27:1
+    |
+ 27 | pub struct Code(NonZeroU32);
+    | --------------- doesn't satisfy `gmeow_errors::Code: ToString` or `gmeow_errors::Code: std::fmt::Display`
+    |
+    = note: the following trait bounds were not satisfied:
+            `gmeow_errors::Code: std::fmt::Display`
+            which is required by `gmeow_errors::Code: ToString`
+
+error[E0599]: `gmeow_errors::Code` doesn't implement `std::fmt::Display`
+   --> crates/logic-compile/src/xcl/tests.rs:645:27
+    |
+645 |     assert_eq!(err.code().to_string(), "logic-compile.source-parse");
+    |                           ^^^^^^^^^ method cannot be called on `gmeow_errors::Code` due to unsatisfied trait bounds
+    |
+   ::: crates/errors/src/code.rs:27:1
+    |
+ 27 | pub struct Code(NonZeroU32);
+    | --------------- doesn't satisfy `gmeow_errors::Code: ToString` or `gmeow_errors::Code: std::fmt::Display`
+    |
+    = note: the following trait bounds were not satisfied:
+            `gmeow_errors::Code: std::fmt::Display`
+            which is required by `gmeow_errors::Code: ToString`
+
+Some errors have detailed explanations: E0277, E0599, E0616.
+error: could not compile `gmeow-logic-compile` (lib test) due to 9 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:713: nextest-synthetic] Error 101

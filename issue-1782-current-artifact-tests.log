@@ -1,0 +1,48 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(reason::artifacts::tests::) & !test(corpus_)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/affect)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slicetest)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bench-engines)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-core-wasm)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 4m 48s
+────────────
+ Nextest run ID 9fba104d-dede-4973-a79c-4812d924b544 with nextest profile: ci
+    Starting 16 tests across 26 binaries (2305 tests and 199 binaries skipped)
+        PASS [   0.012s] ( 1/16) gmeow-logic reason::artifacts::tests::proof_and_counterproof_derivation_ids_are_sanitized_by_bare_iri
+        PASS [   0.012s] ( 2/16) gmeow-logic reason::artifacts::tests::native_closure_appends_without_aliasing_an_existing_carrier_blank
+        PASS [   0.013s] ( 3/16) gmeow-logic reason::artifacts::tests::closure_omits_the_alpha_section_entirely_when_no_expression_is_decided
+        PASS [   0.013s] ( 4/16) gmeow-logic reason::artifacts::tests::explanations_emit_derivation_with_premise
+        PASS [   0.013s] ( 5/16) gmeow-logic reason::artifacts::tests::closure_emits_one_joinable_class_for_alpha_equivalent_expressions
+        PASS [   0.014s] ( 6/16) gmeow-logic reason::artifacts::tests::modal_artifacts_retain_the_exact_rule_sources_and_derivation_identity
+        PASS [   0.014s] ( 7/16) gmeow-logic reason::artifacts::tests::premise_object_preserves_iris_and_literals
+        PASS [   0.014s] ( 8/16) gmeow-logic reason::artifacts::tests::native_closure_keeps_duplicate_proofs_separate_from_quoted_data_blanks
+        PASS [   0.014s] ( 9/16) gmeow-logic reason::artifacts::tests::closure_skips_edb_axioms
+        PASS [   0.015s] (10/16) gmeow-logic reason::artifacts::tests::closure_missing_rule_name_fails_loud
+        PASS [   0.015s] (11/16) gmeow-logic reason::artifacts::tests::ledger_header_entries_gaps_and_counts
+        PASS [   0.067s] (12/16) gmeow-logic reason::artifacts::tests::reasoning_result_ttl_inconsistent_is_both_with_witness
+        PASS [   0.069s] (13/16) gmeow-logic reason::artifacts::tests::closure_emits_triple_and_reifier_with_provenance
+        PASS [   0.074s] (14/16) gmeow-logic reason::artifacts::tests::reasoning_result_ttl_emits_status_fields_and_certificate
+        PASS [   0.074s] (15/16) gmeow-logic reason::artifacts::tests::native_artifact_fixture_rejects_missing_or_mismatched_execution_evidence
+        PASS [   0.245s] (16/16) gmeow-logic reason::artifacts::tests::native_derived_objects_and_premises_keep_rdf12_types_in_both_artifacts
+────────────
+     Summary [   0.278s] 16 tests run: 16 passed, 2305 skipped

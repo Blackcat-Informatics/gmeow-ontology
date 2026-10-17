@@ -1,0 +1,103 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) & test(tptp::tests::context_tests::)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 27.75s
+────────────
+ Nextest run ID c63afc4f-a8c3-45a9-b053-5b245e302ba3 with nextest profile: ci
+    Starting 4 tests across 2 binaries (990 tests and 223 binaries skipped)
+        FAIL [   0.004s] (1/4) gmeow-logic-compile tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure
+  stdout ───
+
+    running 1 test
+    test tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 989 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure' (4135422) panicked at crates/logic-compile/src/tptp/contexts.tests.rs:40:13:
+    assertion `left == right` failed: logic:standpoint ex:observer
+      left: Complete
+     right: Blocked
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.005s] (2/4) gmeow-logic-compile tptp::tests::context_tests::translated_in_context_formulas_remain_admitted
+        PASS [   0.005s] (3/4) gmeow-logic-compile tptp::tests::context_tests::unselected_formula_scope_does_not_block_an_independent_selection
+        FAIL [   0.005s] (4/4) gmeow-logic-compile tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor
+  stdout ───
+
+    running 1 test
+    test tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 989 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor' (4135420) panicked at crates/logic-compile/src/tptp/contexts.tests.rs:64:5:
+    assertion `left == right` failed
+      left: Complete
+     right: Blocked
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.013s] 4 tests run: 2 passed, 2 failed, 990 skipped
+        FAIL [   0.004s] (1/4) gmeow-logic-compile tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure
+  stdout ───
+
+    running 1 test
+    test tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 989 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::context_tests::selected_formula_scope_annotations_block_context_erasure' (4135422) panicked at crates/logic-compile/src/tptp/contexts.tests.rs:40:13:
+    assertion `left == right` failed: logic:standpoint ex:observer
+      left: Complete
+     right: Blocked
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.005s] (4/4) gmeow-logic-compile tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor
+  stdout ───
+
+    running 1 test
+    test tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 989 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::context_tests::nested_formula_scope_blocks_the_selected_ancestor' (4135420) panicked at crates/logic-compile/src/tptp/contexts.tests.rs:64:5:
+    assertion `left == right` failed
+      left: Complete
+     right: Blocked
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100

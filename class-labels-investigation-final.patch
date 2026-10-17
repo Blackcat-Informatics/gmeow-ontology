@@ -1,0 +1,377 @@
+diff --git crates/logic/benches/reason.rs crates/logic/benches/reason.rs
+index 1694e9399..39028a04a 100644
+--- crates/logic/benches/reason.rs
++++ crates/logic/benches/reason.rs
+@@ -5,8 +5,7 @@
+ //! "reasoning (materialize / native EL-DL)" workload that the existing benches
+ //! (foundation chase, SHACL validate, RDF layout) did not cover.
+ //!
+-//! Three groups, each over a small + a larger synthetic input so a regression in
+-//! either the constant factor or the scaling is visible:
++//! Synthetic workloads at several scales expose changes in constant cost and scaling:
+ //! - `reason_all` — the native EL/DL/RL reasoner (authority): one structured
+ //!   chase yielding the subsumption closure + the consistency verdict, over a
+ //!   `RdfDataset` class hierarchy (the same IR shape the PyO3 `reason_native`
+@@ -17,6 +16,10 @@
+ //! - `run_native_forward` — the native forward chase over a transitive
+ //!   `subClassOf` chain (O(n^2) derived facts), reusing the materialization test
+ //!   ruleset.
++//! - `class_restrictions` — native class evidence preparation over independent
++//!   restriction descriptors, retaining every original source proof.
++//! - `class_memberships` — complete native class execution with a wide membership
++//!   map on one individual, including its original proof retention.
+ 
+ use criterion::{Criterion, criterion_group, criterion_main};
+ use gmeow_logic::cost::run_native_forward;
+@@ -299,11 +302,88 @@ fn bench_class_evidence(c: &mut Criterion) {
+     group.finish();
+ }
+ 
++/// A wide label map on one individual exercises opposite-label lookup and
++/// saturation reads, independently of restriction descriptor preparation.
++fn bench_class_memberships(c: &mut Criterion) {
++    let mut group = c.benchmark_group("class_memberships");
++    group.sample_size(10);
++    for count in [250, 500, 1000] {
++        let mut builder = RdfDatasetBuilder::new();
++        builder
++            .push_owned_quad(
++                &RdfQuad::new(
++                    RdfTerm::iri("urn:labels:NotC"),
++                    "http://www.w3.org/2002/07/owl#complementOf",
++                    RdfTerm::iri("urn:labels:C"),
++                )
++                .in_graph(RdfTerm::iri(W)),
++            )
++            .unwrap();
++        for index in 0..count {
++            builder
++                .push_owned_quad(
++                    &RdfQuad::new(
++                        RdfTerm::iri("urn:labels:individual"),
++                        RDF_TYPE,
++                        RdfTerm::iri(format!("urn:labels:C{index}")),
++                    )
++                    .in_graph(RdfTerm::iri(W)),
++                )
++                .unwrap();
++        }
++        let store = builder.freeze().expect("synthetic memberships");
++        group.bench_function(format!("labels_{count}"), |b| {
++            b.iter(|| {
++                let input = prepare_reasoning_input(store.as_ref()).expect("label input");
++                let domains =
++                    SelectedDomains::new(input.source_contexts().iter().map(|(world, graph)| {
++                        SelectedLogicalWorld::new(
++                            LogicalGraph::from_graph(graph.clone()),
++                            DomainProfile::NonemptyObjectDomainV1,
++                            "gmeow.bench.class-memberships.v1".to_owned(),
++                            *blake3::hash(format!("{world}:labels:{count}").as_bytes()).as_bytes(),
++                        )
++                        .expect("label domain")
++                    }))
++                    .expect("label domains");
++                let ClassDiagnosticOutcome::Executed { execution } =
++                    class_diagnostic(input, &domains, None).expect("label diagnostic")
++                else {
++                    panic!("synthetic label source must be admitted")
++                };
++                let class = execution
++                    .classes
++                    .iter()
++                    .find(|class| class.world == W)
++                    .expect("class world");
++                assert_eq!(class.completion, NativeFamilyCompletion::Complete);
++                assert!(class.contextual_conflicts.is_empty());
++                assert!(class.obstructions.is_empty());
++                assert_eq!(
++                    execution
++                        .proofs
++                        .iter()
++                        .flat_map(|ledger| &ledger.proofs)
++                        .filter(|proof| proof.statement.subject.as_iri()
++                            == Some("urn:labels:individual")
++                            && proof.statement.predicate == RDF_TYPE
++                            && matches!(&proof.origin, NativeProofOrigin::Asserted { .. }))
++                        .count(),
++                    count
++                );
++                std::hint::black_box(execution)
++            });
++        });
++    }
++    group.finish();
++}
++
+ criterion_group!(
+     benches,
+     bench_reason_all,
+     bench_el_closure,
+     bench_native_forward,
+-    bench_class_evidence
++    bench_class_evidence,
++    bench_class_memberships
+ );
+ criterion_main!(benches);
+diff --git crates/logic/src/reason/refute/casesplit.rs crates/logic/src/reason/refute/casesplit.rs
+index e98a2debf..250ee4f33 100644
+--- crates/logic/src/reason/refute/casesplit.rs
++++ crates/logic/src/reason/refute/casesplit.rs
+@@ -1527,20 +1527,22 @@ impl State {
+         }
+     }
+ 
++    /// Read current labels without copying their unrelated concepts or evidence.
+     fn current_conflict(&mut self, individual: &str) -> Option<RefutationProof> {
+-        let labels = self.labels_of(individual);
+-        for (concept, support) in &labels {
+-            if let Concept::Pos(class) = concept
+-                && let Some(opposed) = labels.get(&Concept::Neg(class.clone()))
+-            {
+-                return Some(self.conflict(
+-                    individual,
+-                    RefutationClash::OpposedClass(class.clone()),
+-                    support.merge(opposed),
+-                ));
++        let root = self.find(individual);
++        let labels = self.labels.get(&root).expect("a canonical root has labels");
++        let conflict = labels.iter().find_map(|(concept, support)| {
++            if let Concept::Pos(class) = concept {
++                labels
++                    .get(&Concept::Neg(class.clone()))
++                    .map(|opposed| (class.clone(), support.merge(opposed)))
++            } else {
++                None
+             }
+-        }
+-        None
++        });
++        conflict.map(|(class, support)| {
++            self.conflict(individual, RefutationClash::OpposedClass(class), support)
++        })
+     }
+ 
+     fn add(
+@@ -1573,12 +1575,16 @@ impl State {
+                     _ => None,
+                 };
+                 if let Some((class, opposite)) = opposite
+-                    && let Some(prior) = self.labels_of(&root).get(&opposite)
++                    && let Some(prior) = self
++                        .labels
++                        .get(&root)
++                        .and_then(|labels| labels.get(&opposite))
+                 {
++                    let support = support.merge(prior);
+                     return Err(self.conflict(
+                         &root,
+                         RefutationClash::OpposedClass(class.clone()),
+-                        support.merge(prior),
++                        support,
+                     ));
+                 }
+                 let labels = self.labels.entry(root).or_default();
+@@ -1597,11 +1603,6 @@ impl State {
+             }
+         }
+     }
+-
+-    fn labels_of(&mut self, individual: &str) -> BTreeMap<Concept, Support> {
+-        let root = self.find(individual);
+-        self.labels.get(&root).cloned().unwrap_or_default()
+-    }
+ }
+ 
+ fn disjunct_satisfied(labels: &BTreeMap<Concept, Support>, disjunct: &Concept) -> bool {
+@@ -1674,7 +1675,12 @@ fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
+             }
+             let mut local_changed = false;
+             let mut merged = false;
+-            let current = state.labels_of(&root);
++            // Saturation mutates labels and merges roots; iterate a stable snapshot.
++            let current = state
++                .labels
++                .get(&root)
++                .expect("a canonical root has labels")
++                .clone();
+             for (concept, support) in &current {
+                 match concept {
+                     Concept::Pos(name) => {
+@@ -1719,14 +1725,17 @@ fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
+                         }
+                     }
+                     Concept::Or(disjuncts) => {
+-                        let labels = state.labels_of(&root);
++                        let labels = state
++                            .labels
++                            .get(&root)
++                            .expect("a canonical root has labels");
+                         if disjuncts
+                             .iter()
+-                            .any(|disjunct| disjunct_satisfied(&labels, disjunct))
++                            .any(|disjunct| disjunct_satisfied(labels, disjunct))
+                         {
+                             continue;
+                         }
+-                        let (live, proof) = live_disjuncts(&labels, disjuncts, support);
++                        let (live, proof) = live_disjuncts(labels, disjuncts, support);
+                         if live.is_empty() {
+                             return Saturation::Closed(state.conflict(
+                                 &root,
+@@ -1765,18 +1774,19 @@ fn saturate(state: &mut State, ctx: &Ctx, budget: &mut u64) -> Saturation {
+     pick_branch(state, &roots).map_or(Saturation::Open, Saturation::Branch)
+ }
+ 
++/// Keep deterministic choice order, snapshotting only nominal entries before find mutates roots.
+ fn pick_branch(state: &mut State, roots: &[String]) -> Option<Choice> {
+     for root in roots {
+-        let labels = state.labels_of(root);
+-        for (concept, support) in &labels {
++        let labels = state.labels.get(root).expect("a canonical root has labels");
++        for (concept, support) in labels {
+             if let Concept::Or(disjuncts) = concept {
+                 if disjuncts
+                     .iter()
+-                    .any(|disjunct| disjunct_satisfied(&labels, disjunct))
++                    .any(|disjunct| disjunct_satisfied(labels, disjunct))
+                 {
+                     continue;
+                 }
+-                let (live, proof) = live_disjuncts(&labels, disjuncts, support);
++                let (live, proof) = live_disjuncts(labels, disjuncts, support);
+                 if live.len() >= 2 {
+                     return Some(Choice {
+                         support: proof.clone(),
+@@ -1790,24 +1800,29 @@ fn pick_branch(state: &mut State, roots: &[String]) -> Option<Choice> {
+         }
+     }
+     for root in roots {
+-        let labels = state.labels_of(root);
++        let nominals: Vec<_> = state
++            .labels
++            .get(root)
++            .expect("a canonical root has labels")
++            .iter()
++            .filter_map(|(concept, support)| match concept {
++                Concept::Nominals(members) => Some((members.clone(), support.clone())),
++                _ => None,
++            })
++            .collect();
+         let root_of = state.find(root);
+-        for (concept, support) in &labels {
+-            if let Concept::Nominals(members) = concept {
+-                if members.iter().any(|member| state.find(member) == root_of) {
+-                    continue;
+-                }
+-                if members.len() >= 2 {
+-                    return Some(Choice {
+-                        support: support.clone(),
+-                        alternatives: members
+-                            .iter()
+-                            .map(|member| {
+-                                Action::Merge(root.clone(), member.clone(), support.clone())
+-                            })
+-                            .collect(),
+-                    });
+-                }
++        for (members, support) in nominals {
++            if members.iter().any(|member| state.find(member) == root_of) {
++                continue;
++            }
++            if members.len() >= 2 {
++                return Some(Choice {
++                    support: support.clone(),
++                    alternatives: members
++                        .iter()
++                        .map(|member| Action::Merge(root.clone(), member.clone(), support.clone()))
++                        .collect(),
++                });
+             }
+         }
+     }
+diff --git crates/logic/src/reason/refute/casesplit/execution/tests.rs crates/logic/src/reason/refute/casesplit/execution/tests.rs
+index 04062ad28..af8b41c96 100644
+--- crates/logic/src/reason/refute/casesplit/execution/tests.rs
++++ crates/logic/src/reason/refute/casesplit/execution/tests.rs
+@@ -113,6 +113,81 @@ fn complement() -> Vec<(&'static str, &'static str, &'static str)> {
+     ]
+ }
+ 
++#[test]
++/// Wide maps retain exact local support through direct opposition and nominal equality.
++fn wide_labels_preserve_local_conflict_support_before_and_after_nominal_merges() {
++    for nominal in [false, true] {
++        let mut rows: Vec<(String, String, String)> = (0..1000)
++            .map(|index| {
++                (
++                    "urn:x".to_owned(),
++                    TYPE.to_owned(),
++                    format!("urn:wide:C{index}"),
++                )
++            })
++            .collect();
++        let mut add =
++            |s: &str, p: &str, o: &str| rows.push((s.to_owned(), p.to_owned(), o.to_owned()));
++        add("urn:x", TYPE, "urn:C");
++        add("urn:zzNotC", COMPLEMENT, "urn:C");
++        add("urn:z", TYPE, "urn:unrelated");
++        if nominal {
++            add("urn:alias", TYPE, "urn:zzNotC");
++            add("urn:x", TYPE, "urn:onlyAlias");
++            add(
++                "urn:onlyAlias",
++                "http://www.w3.org/2002/07/owl#oneOf",
++                "urn:list",
++            );
++            add("urn:list", FIRST, "urn:alias");
++            add("urn:list", REST, NIL);
++        } else {
++            add("urn:x", TYPE, "urn:zzNotC");
++        }
++        let borrowed: Vec<_> = rows
++            .iter()
++            .map(|(s, p, o)| (s.as_str(), p.as_str(), o.as_str()))
++            .collect();
++        let frame = Frame::new(&borrowed);
++        let mut analysis = frame.analysis();
++        let mut ledger = frame.ledger(None);
++        let outcome = frame.observe(&mut analysis, &mut ledger, true);
++        outcome.validate(&ledger).unwrap();
++        ledger.validate().unwrap();
++        assert_eq!(outcome.contextual_conflicts.len(), 1);
++        let local = outcome.local_conclusions();
++        assert!(
++            local
++                .iter()
++                .any(|conclusion| conclusion.subject == TermValue::iri("urn:x"))
++        );
++        assert!(
++            !local
++                .iter()
++                .any(|conclusion| conclusion.subject == TermValue::iri("urn:z"))
++        );
++        assert_eq!(local.len(), if nominal { 2 } else { 1 });
++        let proof = &outcome.contextual_conflicts[0].proof;
++        let leaves = ledger.source_leaves(&proof.native_support()).unwrap();
++        assert!(!leaves.is_empty());
++        assert!(leaves.iter().all(|leaf| {
++            !leaf
++                .object
++                .as_iri()
++                .is_some_and(|iri| iri.starts_with("urn:wide:"))
++        }));
++        if nominal {
++            assert_eq!(outcome.completion, NativeFamilyCompletion::Obstructed);
++            assert!(
++                !outcome.obstructions.is_empty(),
++                "local contradiction must not erase incomplete nominal-model admission"
++            );
++        } else {
++            assert_eq!(outcome.completion, NativeFamilyCompletion::Complete);
++        }
++    }
++}
++
+ #[test]
+ fn completed_class_conflict_retains_exact_native_support_and_reuses_the_current_result() {
+     let frame = Frame::new(&complement());

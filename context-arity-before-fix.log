@@ -1,0 +1,57 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) & test(contextual_unary_application_is_distinct)' --no-tests=fail
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 46.77s
+────────────
+ Nextest run ID 2a5a8adc-b1b8-49fc-bc7f-6e973748f622 with nextest profile: ci
+    Starting 1 test across 2 binaries (997 tests and 223 binaries skipped)
+        FAIL [   0.006s] (1/1) gmeow-logic-compile tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application
+  stdout ───
+
+    running 1 test
+    test tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 993 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application' (1163856) panicked at crates/logic-compile/src/tptp/contexts.tests.rs:46:5:
+    assertion `left != right` failed: context selection must retain a distinct interpretation
+      left: "'A|2'('I|https://example.org/p','I|https://example.org/w','I|https://example.org/a')"
+     right: "'A|2'('I|https://example.org/p','I|https://example.org/w','I|https://example.org/a')"
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.019s] 1 test run: 0 passed, 1 failed, 997 skipped
+        FAIL [   0.006s] (1/1) gmeow-logic-compile tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application
+  stdout ───
+
+    running 1 test
+    test tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application ... FAILED
+
+    failures:
+
+    failures:
+        tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 993 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'tptp::tests::context_tests::contextual_unary_application_is_distinct_from_an_ordinary_binary_application' (1163856) panicked at crates/logic-compile/src/tptp/contexts.tests.rs:46:5:
+    assertion `left != right` failed: context selection must retain a distinct interpretation
+      left: "'A|2'('I|https://example.org/p','I|https://example.org/w','I|https://example.org/a')"
+     right: "'A|2'('I|https://example.org/p','I|https://example.org/w','I|https://example.org/a')"
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100

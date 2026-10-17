@@ -1,0 +1,9 @@
+# Formula context admission
+
+The existing FOF path silently accepts scope annotations on formula roots and owned formula children. The before-fix product run proves the defect: two tests failed because a context-bearing source produced Complete rather than Blocked; explicit inContext translation and independent document selection passed. Exact evidence: formula-context-before-fix-tests.log.
+
+The shared frontend already implements inContext and typed modal standard translation; reimplementing that machinery would create a second owner. Preserve those native formulas. Index other context requirements once over the existing graph-local source edges and propagate them to formula ancestors, including atom-routed roots and shared subtrees. A selected source whose context is not represented must refuse the whole FOF problem instead of silently becoming unconditional. Retain named-graph/document isolation and malformed source outcomes. Advance the shared source profile to v3 with an accurate context contract; retain no v2 execution fallback. This repair does not by itself implement every remaining contextual execution contract required by the full issue.
+
+Regressions cover the source scope coordinates and both atomic/compound routing, scope hidden below an exclusive owner, mixed explicit context and unsupported metadata, valid explicit contexts and all six typed modal accessibility families, an independent document selection, and named-graph isolation. Run the full TPTP admission/publication selection with source-graph/formula-reader controls and strict producer-independent Clippy, then normal hooks/push. No corpus construction, local optimized producer or host probing is authorized.
+
+Commit and publish this coherent repair in the existing proof branch/PR. Full canon semantics, prepared native canon, installed composition and hosted acceptance remain required by the standing plan. Principles 4, 6, 7, 17, 18 and 19 apply.

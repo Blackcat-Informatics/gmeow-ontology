@@ -1,0 +1,115 @@
+diff --git crates/logic/benches/reason.rs crates/logic/benches/reason.rs
+index 1694e9399..39028a04a 100644
+--- crates/logic/benches/reason.rs
++++ crates/logic/benches/reason.rs
+@@ -5,8 +5,7 @@
+ //! "reasoning (materialize / native EL-DL)" workload that the existing benches
+ //! (foundation chase, SHACL validate, RDF layout) did not cover.
+ //!
+-//! Three groups, each over a small + a larger synthetic input so a regression in
+-//! either the constant factor or the scaling is visible:
++//! Synthetic workloads at several scales expose changes in constant cost and scaling:
+ //! - `reason_all` — the native EL/DL/RL reasoner (authority): one structured
+ //!   chase yielding the subsumption closure + the consistency verdict, over a
+ //!   `RdfDataset` class hierarchy (the same IR shape the PyO3 `reason_native`
+@@ -17,6 +16,10 @@
+ //! - `run_native_forward` — the native forward chase over a transitive
+ //!   `subClassOf` chain (O(n^2) derived facts), reusing the materialization test
+ //!   ruleset.
++//! - `class_restrictions` — native class evidence preparation over independent
++//!   restriction descriptors, retaining every original source proof.
++//! - `class_memberships` — complete native class execution with a wide membership
++//!   map on one individual, including its original proof retention.
+ 
+ use criterion::{Criterion, criterion_group, criterion_main};
+ use gmeow_logic::cost::run_native_forward;
+@@ -299,11 +302,88 @@ fn bench_class_evidence(c: &mut Criterion) {
+     group.finish();
+ }
+ 
++/// A wide label map on one individual exercises opposite-label lookup and
++/// saturation reads, independently of restriction descriptor preparation.
++fn bench_class_memberships(c: &mut Criterion) {
++    let mut group = c.benchmark_group("class_memberships");
++    group.sample_size(10);
++    for count in [250, 500, 1000] {
++        let mut builder = RdfDatasetBuilder::new();
++        builder
++            .push_owned_quad(
++                &RdfQuad::new(
++                    RdfTerm::iri("urn:labels:NotC"),
++                    "http://www.w3.org/2002/07/owl#complementOf",
++                    RdfTerm::iri("urn:labels:C"),
++                )
++                .in_graph(RdfTerm::iri(W)),
++            )
++            .unwrap();
++        for index in 0..count {
++            builder
++                .push_owned_quad(
++                    &RdfQuad::new(
++                        RdfTerm::iri("urn:labels:individual"),
++                        RDF_TYPE,
++                        RdfTerm::iri(format!("urn:labels:C{index}")),
++                    )
++                    .in_graph(RdfTerm::iri(W)),
++                )
++                .unwrap();
++        }
++        let store = builder.freeze().expect("synthetic memberships");
++        group.bench_function(format!("labels_{count}"), |b| {
++            b.iter(|| {
++                let input = prepare_reasoning_input(store.as_ref()).expect("label input");
++                let domains =
++                    SelectedDomains::new(input.source_contexts().iter().map(|(world, graph)| {
++                        SelectedLogicalWorld::new(
++                            LogicalGraph::from_graph(graph.clone()),
++                            DomainProfile::NonemptyObjectDomainV1,
++                            "gmeow.bench.class-memberships.v1".to_owned(),
++                            *blake3::hash(format!("{world}:labels:{count}").as_bytes()).as_bytes(),
++                        )
++                        .expect("label domain")
++                    }))
++                    .expect("label domains");
++                let ClassDiagnosticOutcome::Executed { execution } =
++                    class_diagnostic(input, &domains, None).expect("label diagnostic")
++                else {
++                    panic!("synthetic label source must be admitted")
++                };
++                let class = execution
++                    .classes
++                    .iter()
++                    .find(|class| class.world == W)
++                    .expect("class world");
++                assert_eq!(class.completion, NativeFamilyCompletion::Complete);
++                assert!(class.contextual_conflicts.is_empty());
++                assert!(class.obstructions.is_empty());
++                assert_eq!(
++                    execution
++                        .proofs
++                        .iter()
++                        .flat_map(|ledger| &ledger.proofs)
++                        .filter(|proof| proof.statement.subject.as_iri()
++                            == Some("urn:labels:individual")
++                            && proof.statement.predicate == RDF_TYPE
++                            && matches!(&proof.origin, NativeProofOrigin::Asserted { .. }))
++                        .count(),
++                    count
++                );
++                std::hint::black_box(execution)
++            });
++        });
++    }
++    group.finish();
++}
++
+ criterion_group!(
+     benches,
+     bench_reason_all,
+     bench_el_closure,
+     bench_native_forward,
+-    bench_class_evidence
++    bench_class_evidence,
++    bench_class_memberships
+ );
+ criterion_main!(benches);

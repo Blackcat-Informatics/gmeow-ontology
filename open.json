@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "issue": 1770,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete",
+  "branch": "paudley/1770-certify-and-precompile-the-complete",
+  "slug": "certify-and-precompile-the-complete",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/.stage/certify-and-precompile-the-complete",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "07f4c6c59db06962c6a17d104f320d36359be826",
+  "reused": true,
+  "adr_repo": false,
+  "created": [
+    "removed stale .git/info/exclude:/.stage/",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/.stage/certify-and-precompile-the-complete",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1770-certify-and-precompile-the-complete/.stage/certify-and-precompile-the-complete/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-16T10:10:00-0600"
+}
