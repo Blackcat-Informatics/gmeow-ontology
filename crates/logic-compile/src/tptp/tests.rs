@@ -23,6 +23,9 @@ mod contract_tests;
 #[path = "canon_admission.tests.rs"]
 mod canon_admission_tests;
 
+#[path = "contexts.tests.rs"]
+mod context_tests;
+
 /// Compile only the supplied synthetic RDF source, with no corpus or repository inputs.
 fn compile(source: &str) -> crate::frontend::CompiledTheory {
     let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).expect("valid RDF 1.2");

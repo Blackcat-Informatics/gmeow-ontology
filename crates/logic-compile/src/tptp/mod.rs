@@ -39,6 +39,12 @@
 //! proof operation. Referenced closure entries and
 //! facet-type support must belong to the selected source; compiler errors and
 //! scoped declarations still refuse admission.
+//!
+//! The source profile retains explicit `inContext` and typed modal standard
+//! translations already carried by the formula IR. Other scope annotations on
+//! selected formulas or their owned descendants block the complete problem;
+//! atomic routing must not discard them. A graph-local source index propagates
+//! these requirements once rather than rescanning shared trees per formula.
 
 mod writer;
 

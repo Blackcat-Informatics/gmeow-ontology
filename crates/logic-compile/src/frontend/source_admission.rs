@@ -12,6 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 mod classes;
+mod contexts;
 mod contracts;
 mod origins;
 
@@ -35,7 +36,7 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
 /// Classical object-theory task with explicit metatheory catalogue accounting.
 pub const FOF_SOURCE_PROFILE: &str =
-    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v2";
+    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v3";
 
 /// The only graph placement admitted by the initial external classical profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -143,7 +144,7 @@ impl Default for FofSemanticProfile {
             equality: "denotational equality without a unique-name assumption".into(),
             blank_nodes: "source-scoped existential blanks skolemized for satisfiability".into(),
             free_variables: "top-level free variables universally closed".into(),
-            context: "unscoped sentences only; no standpoint, time, modality, confidence, provenance, or module erasure".into(),
+            context: "explicit inContext and typed modal standard translations retain their native formula arguments; other source scope on a formula or any descendant requires typed translation and cannot be erased".into(),
             contracts: "configuration declarations are metatheory catalogue evidence; this classical object-theory task does not execute them or assert their grammar as object axioms".into(),
         }
     }
@@ -370,6 +371,7 @@ struct AdmissionBuilder<'a> {
     declared_builtins: BTreeSet<String>,
     certified_classes: BTreeSet<SourceNode>,
     class_support: BTreeSet<SourceStatementBinding>,
+    untranslated_formula_contexts: BTreeSet<SourceNode>,
 }
 
 impl<'a> AdmissionBuilder<'a> {
@@ -389,6 +391,7 @@ impl<'a> AdmissionBuilder<'a> {
             declared_builtins: BTreeSet::new(),
             certified_classes: BTreeSet::new(),
             class_support: BTreeSet::new(),
+            untranslated_formula_contexts: contexts::untranslated_formulas(theory.source()),
         }
     }
 
@@ -783,6 +786,16 @@ impl<'a> AdmissionBuilder<'a> {
                 continue;
             }
             let disposition = match &lowering.disposition {
+                FormulaDisposition::Formula(_) | FormulaDisposition::Axiom(_)
+                    if self
+                        .untranslated_formula_contexts
+                        .contains(&lowering.source) =>
+                {
+                    blocked(
+                        "CONTEXT_ERASURE_FORBIDDEN",
+                        "formula source scope requires typed translation; only logic:inContext is already represented in the emitted formula",
+                    )
+                }
                 FormulaDisposition::Formula(index) => {
                     self.theory.program().formulas.get(*index).map_or_else(
                         || malformed("MISSING_FORMULA_IR", "formula trace index is out of range"),
