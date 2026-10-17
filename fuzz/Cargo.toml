@@ -23,7 +23,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 # The requirement matches the root; both committed locks select identical PurRDF packages.
-purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "128dda6bfa9926c3bab6ab9e19c148182ee9fec7" }
+purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "2845023147548b7bc6a6264149d4239e2caf99ed" }
 gmeow-logic = { path = "../crates/logic" }
 gmeow-logic-compile = { path = "../crates/logic-compile" }
 
