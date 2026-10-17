@@ -36,7 +36,7 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
 /// Classical object-theory task with explicit metatheory catalogue accounting.
 pub const FOF_SOURCE_PROFILE: &str =
-    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v3";
+    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v4";
 
 /// The only graph placement admitted by the initial external classical profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -144,7 +144,7 @@ impl Default for FofSemanticProfile {
             equality: "denotational equality without a unique-name assumption".into(),
             blank_nodes: "source-scoped existential blanks skolemized for satisfiability".into(),
             free_variables: "top-level free variables universally closed".into(),
-            context: "explicit inContext and typed modal standard translations retain their native formula arguments; other source scope on a formula or any descendant requires typed translation and cannot be erased".into(),
+            context: "explicit inContext and typed modal standard translations use contextualApplication with separate context, reified relation and original argument coordinates; ordinary relation arity is unchanged; other source scope on a formula or any descendant requires typed translation and cannot be erased".into(),
             contracts: "configuration declarations are metatheory catalogue evidence; this classical object-theory task does not execute them or assert their grammar as object axioms".into(),
         }
     }
@@ -1349,6 +1349,11 @@ fn assertion_from_quad(
             detail: "RDF predicate is not an IRI".into(),
         }));
     };
+    if predicate == crate::ir::CONTEXTUAL_APPLICATION_IRI {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
+            detail: "a contextual application requires a formula carrying context, relation and original arguments, not a binary RDF assertion".into(),
+        }));
+    }
     let object = atomic_term(dataset, quad.o, true)?;
     Ok(SourceAssertion {
         subject,

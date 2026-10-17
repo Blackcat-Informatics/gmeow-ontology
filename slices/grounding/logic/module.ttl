@@ -23038,6 +23038,18 @@ logic:queryContext
 logic:ContextualEvaluationRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:queryContext ; logic:allValuesFrom logic:AttributedContext ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContextualEvaluationRequest ; logic:closureKey "https://blackcatinformatics.ca/logic/queryContext" ; logic:closureValue logic:ClosedWorldClosure ] .
 
+logic:contextualApplication
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "contextual atomic application"@x-gmeow-english ;
+    skos:definition "The first-order atomic application family indexed by a context and a reified relation. For an original relation of arity n, where n is at least one, its n unchanged ordered arguments follow the context and relation coordinates. It does not evaluate formula or statement values, and does not identify a contextual application with an ordinary application of a different arity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain context when lowering an atomic formula or a modal or temporal body."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not prepend a world argument to the original relation, identify different contexts, or interpret arbitrary formula values as truth."@x-gmeow-english ;
+    gmeow:howToUse "Emit contextualApplication(context, relation, argument0, ...), retaining argument order and native term identities; use typed accessibility relations between worlds."@x-gmeow-english ;
+    skos:scopeNote "This is an atomic indexing family, not a truth evaluator or a merge of world, standpoint, module and provenance coordinates."@x-gmeow-english ;
+    skos:example "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:inContext
     a logic:ObjectProperty ;
     gmeow:graphBoxRole gmeow:boxCBox ;

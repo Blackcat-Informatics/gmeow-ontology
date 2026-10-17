@@ -15,7 +15,7 @@ mod tests;
 
 use std::collections::BTreeMap;
 
-use gmeow_logic_compile::ir::{ContentKey, Formula, Term};
+use gmeow_logic_compile::ir::{CONTEXTUAL_APPLICATION_IRI, ContentKey, Formula, Term};
 
 use super::{DEONTICALLY_IDEAL, TYPED_ACCESSIBILITY};
 use crate::physical::StepGovernor;
@@ -176,7 +176,10 @@ fn lower(
     // subexpressions at different modal depths share an instruction; their
     // evaluations remain indexed by the actual selected context.
     let explicit_context = match formula {
-        Formula::Atom { args, .. } if args.len() == 3 => args.first(),
+        Formula::Atom {
+            relation: Term::Iri(relation),
+            args,
+        } if relation == CONTEXTUAL_APPLICATION_IRI && args.len() == 4 => args.first(),
         Formula::Forall { body, .. } | Formula::Exists { body, .. } => modal_guard(formula, body)
             .ok()
             .and_then(|(_, guard, _)| match guard {
@@ -196,11 +199,18 @@ fn lower(
             Formula::Atom {
                 relation: Term::Iri(relation),
                 args,
-            } if args.len() == 3 && &args[0] == world => Instruction::Atom {
-                relation: relation.clone(),
-                subject: AtomTerm::lower(&args[1], world, false)?,
-                object: AtomTerm::lower(&args[2], world, true)?,
-            },
+            } if relation == CONTEXTUAL_APPLICATION_IRI && args.len() == 4 && &args[0] == world => {
+                let Term::Iri(predicate) = &args[1] else {
+                    return Err(AdmissionError::OutsideFragment(
+                        "finite modal atoms require a known reified predicate".into(),
+                    ));
+                };
+                Instruction::Atom {
+                    relation: predicate.clone(),
+                    subject: AtomTerm::lower(&args[2], world, false)?,
+                    object: AtomTerm::lower(&args[3], world, true)?,
+                }
+            }
             Formula::Atom { .. } => {
                 return Err(AdmissionError::OutsideFragment(
                     "finite modal atoms must be world-indexed binary predicates".into(),

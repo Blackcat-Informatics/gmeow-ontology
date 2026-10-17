@@ -258,6 +258,12 @@ impl AdmissionBuilder<'_> {
                 "procedural relations cannot define classical property restrictions",
             ));
         }
+        if property == crate::ir::CONTEXTUAL_APPLICATION_IRI {
+            return Err(ClassRefusal::Malformed {
+                code: "MALFORMED_CLASS_PROPERTY_ARITY",
+                reason: "a binary class restriction cannot use the context-application family, which requires context, relation and original arguments".into(),
+            });
+        }
         if StructuralSourceGraph::predicate_role(property).is_some() {
             return Err(unsupported_class(
                 "source grammar relations require a certified restriction interpretation",

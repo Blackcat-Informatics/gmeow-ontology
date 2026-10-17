@@ -3,6 +3,53 @@
 
 use super::*;
 
+/// Extract the one source-backed application from a tiny admitted source.
+fn source_application_sentence(source: &str) -> String {
+    let (_, projection) = project(source);
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{:?}",
+        projection.blockers
+    );
+    let bodies: Vec<_> = projection
+        .sentences
+        .into_iter()
+        .filter(|sentence| {
+            !sentence.source_units.is_empty() && sentence.body.contains("I|https://example.org/p")
+        })
+        .map(|sentence| sentence.body)
+        .collect();
+    assert_eq!(bodies.len(), 1);
+    bodies.into_iter().next().unwrap()
+}
+
+/// A world coordinate cannot become an ordinary positional relation argument.
+#[test]
+fn contextual_unary_application_is_distinct_from_an_ordinary_binary_application() {
+    let scoped = source_application_sentence(
+        r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <https://example.org/> .
+        ex:f a logic:Formula ; logic:inContext ex:w ; logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] .
+    "#,
+    );
+    let ordinary = source_application_sentence(
+        r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <https://example.org/> .
+        ex:f a logic:Formula ; logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:w ],
+                           [ logic:termIndex 1 ; logic:termIri ex:a ] .
+    "#,
+    );
+    assert_ne!(
+        scoped, ordinary,
+        "context selection must retain a distinct interpretation"
+    );
+}
+
 const FORMULAS: &str = r#"
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex: <https://example.org/> .
@@ -13,6 +60,83 @@ ex:right a logic:Formula ; logic:relation ex:q ;
     logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ],
                    [ logic:termIndex 1 ; logic:termIri ex:b ] .
 "#;
+
+/// The canonical family preserves the source arity and its explicit application spelling.
+#[test]
+fn contextual_application_keeps_original_arity_relation_and_world_coordinates() {
+    for arity in 1..=3 {
+        let args = (0..arity)
+            .map(|index| format!("[ logic:termIndex {index} ; logic:termIri ex:a{index} ]"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let indexed_args = (0..arity)
+            .map(|index| {
+                format!(
+                    "[ logic:termIndex {} ; logic:termIri ex:a{index} ]",
+                    index + 2
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        let prefix = "@prefix logic: <https://blackcatinformatics.ca/logic/> . @prefix ex: <https://example.org/> .";
+        let scoped = source_application_sentence(&format!(
+            "{prefix} ex:f a logic:Formula ; logic:inContext ex:w ; logic:relation ex:p ; logic:argument {args} ."
+        ));
+        let explicit = source_application_sentence(&format!(
+            "{prefix} ex:f a logic:Formula ; logic:relation logic:contextualApplication ; logic:argument [ logic:termIndex 0 ; logic:termIri ex:w ], [ logic:termIndex 1 ; logic:termIri ex:p ], {indexed_args} ."
+        ));
+        assert_eq!(scoped, explicit);
+        assert!(scoped.contains(&format!("'A|{}'", arity + 2)));
+        let other = source_application_sentence(&format!(
+            "{prefix} ex:f a logic:Formula ; logic:inContext ex:other ; logic:relation ex:p ; logic:argument {args} ."
+        ));
+        assert_ne!(scoped, other);
+    }
+}
+
+/// Native RDF and all faithful dialects preserve the indexed source and literal facets.
+#[test]
+fn contextual_application_roundtrips_through_native_rdf_and_common_logic() {
+    let theory = compile(
+        r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <https://example.org/> .
+        ex:f a logic:Formula ; logic:inContext ex:w ; logic:relation ex:p ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ],
+                           [ logic:termIndex 1 ; logic:termLiteral "مرحبا"@ar--rtl ] .
+    "#,
+    );
+    assert!(theory.program().axioms.is_empty());
+    assert_eq!(theory.program().formulas.len(), 1);
+    let native =
+        crate::projections::rdf::project_canonical_rdf12_dataset(theory.program()).unwrap();
+    let (restored, diagnostics) =
+        crate::frontend::parse_logic_dataset(&native.dataset, None).unwrap();
+    assert!(
+        !diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.severity == crate::frontend::Severity::Error)
+    );
+    crate::adapter::assert_ir_isomorphic(theory.program(), &restored).unwrap();
+    crate::cl_roundtrip::assert_all_dialects_isomorphic(theory.program()).unwrap();
+}
+
+/// Malformed explicit applications cannot become binary facts or authorize a problem.
+#[test]
+fn malformed_contextual_applications_and_binary_uses_fail_closed() {
+    for source in [
+        "ex:f a logic:Formula ; logic:relation logic:contextualApplication ; logic:argument [ logic:termIndex 0 ; logic:termIri ex:w ], [ logic:termIndex 1 ; logic:termIri ex:p ] .",
+        "ex:f a logic:Formula ; logic:relation logic:contextualApplication ; logic:argument [ logic:termIndex 0 ; logic:termLiteral \"world\" ], [ logic:termIndex 1 ; logic:termIri ex:p ], [ logic:termIndex 2 ; logic:termIri ex:a ] .",
+        "ex:w logic:contextualApplication ex:p .",
+        "ex:R a logic:Restriction ; logic:onProperty logic:contextualApplication ; logic:someValuesFrom ex:C .",
+    ] {
+        let (_, projection) = project(&format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> . @prefix ex: <https://example.org/> . {source}"
+        ));
+        assert_ne!(projection.status, FofProjectionStatus::Complete, "{source}");
+        assert!(projection.problem.is_none(), "{source}");
+    }
+}
 
 /// Neither atomic routing nor compound formula emission may discard source scope.
 #[test]

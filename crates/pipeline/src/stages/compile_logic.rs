@@ -480,7 +480,7 @@ impl Stage for CompileLogicStage {
     }
     /// Invalidate prior products that lack original complete-source admission evidence.
     fn impl_version(&self) -> &str {
-        "compile-logic.v42-canon-proof-admission"
+        "compile-logic.v43-contextual-application"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.

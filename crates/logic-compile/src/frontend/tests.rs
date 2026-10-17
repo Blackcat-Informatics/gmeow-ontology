@@ -4960,14 +4960,18 @@ fn nested_modal_threads_inner_world() {
     let Formula::Atom { relation, args } = &parts[1] else {
         panic!("inner head is an atom, got {:?}", parts[1]);
     };
-    assert_eq!(*relation, Term::Iri(format!("{ex}P")));
-    assert_eq!(args.len(), 2);
+    assert_eq!(
+        *relation,
+        Term::Iri(crate::ir::CONTEXTUAL_APPLICATION_IRI.into())
+    );
+    assert_eq!(args.len(), 3);
     assert_eq!(
         args[0],
         Term::Var("__w1".to_owned()),
         "the head is relativized to the innermost world __w1"
     );
-    assert_eq!(args[1], Term::Iri(format!("{ex}a")));
+    assert_eq!(args[1], Term::Iri(format!("{ex}P")));
+    assert_eq!(args[2], Term::Iri(format!("{ex}a")));
 }
 
 #[test]

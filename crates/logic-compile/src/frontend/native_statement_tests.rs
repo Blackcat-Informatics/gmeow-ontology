@@ -284,7 +284,11 @@ fn annotation_only_modal_formula_preserves_authored_variable_and_constraint_owne
         };
         assert_eq!(
             args,
-            vec![Term::Var(worlds[0].clone()), Term::Var("__w0".into())]
+            vec![
+                Term::Var(worlds[0].clone()),
+                Term::Iri(logic_iri("relationP")),
+                Term::Var("__w0".into())
+            ]
         );
     }
 }

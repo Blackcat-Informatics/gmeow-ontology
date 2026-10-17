@@ -3214,7 +3214,7 @@ impl Stage for SnapshotStage {
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        "snapshot.v37-canon-proof-admission"
+        "snapshot.v38-contextual-application"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

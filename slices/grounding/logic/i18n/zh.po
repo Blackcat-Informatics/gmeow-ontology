@@ -22916,3 +22916,31 @@ msgstr "该边界管理服务结果的发布，不对整个规范语料的一致
 msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceBoundary|http://www.w3.org/2004/02/skos/core#example"
 msgid "A malformed role chain retains the original native hierarchy error in the diagnostic."
 msgstr "格式错误的角色链在诊断中保留原始的原生层级错误。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contextual atomic application"
+msgstr "语境化原子应用"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The first-order atomic application family indexed by a context and a reified relation. For an original relation of arity n, where n is at least one, its n unchanged ordered arguments follow the context and relation coordinates. It does not evaluate formula or statement values, and does not identify a contextual application with an ordinary application of a different arity."
+msgstr "由语境和具体化关系索引的一阶原子应用族。对于原先元数为 n 且 n 至少为一的关系，其 n 个保持不变的有序实参位于语境坐标和关系坐标之后。该应用族不求值公式或陈述值，也不把语境化应用等同于不同元数的普通应用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain context when lowering an atomic formula or a modal or temporal body."
+msgstr "用于在把原子公式、模态主体或时态主体转换为较低层表示时保留语境。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not prepend a world argument to the original relation, identify different contexts, or interpret arbitrary formula values as truth."
+msgstr "不要在原关系的实参之前插入世界实参，不要等同不同语境，也不要把任意公式值解释为真值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit contextualApplication(context, relation, argument0, ...), retaining argument order and native term identities; use typed accessibility relations between worlds."
+msgstr "发出 contextualApplication(context, relation, argument0, ...)，保留实参顺序和原生项标识；在世界之间使用有类型的可达关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an atomic indexing family, not a truth evaluator or a merge of world, standpoint, module and provenance coordinates."
+msgstr "这是原子索引族，不是真值求值器，也不合并世界、立场、模块和出处坐标。"
+
+msgctxt "https://blackcatinformatics.ca/logic/contextualApplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "The application of ex:p to ex:a in ex:w is contextualApplication(ex:w, ex:p, ex:a), distinct from ex:p(ex:w, ex:a)."
+msgstr "ex:w 中 ex:p 对 ex:a 的应用为 contextualApplication(ex:w, ex:p, ex:a)，与 ex:p(ex:w, ex:a) 不同。"

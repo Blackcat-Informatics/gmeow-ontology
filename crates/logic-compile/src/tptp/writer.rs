@@ -438,14 +438,20 @@ fn class_definition_body(definition: &SourceClassDefinition) -> Result<String, (
 fn render_formula(formula: &Formula, env: &mut VariableEnv) -> Result<String, (String, String)> {
     match formula {
         Formula::Atom { relation, args } => {
-            let Term::Iri(relation) = relation else {
+            let Term::Iri(relation_iri) = relation else {
                 return Err((
                     "NON_IRI_FORMULA_RELATION".into(),
                     "a FOF relation must be an IRI".into(),
                 ));
             };
+            Formula::check_atom(relation, args).map_err(|error| {
+                (
+                    "MALFORMED_CONTEXTUAL_APPLICATION".into(),
+                    error.message().into(),
+                )
+            })?;
             let args: Result<Vec<_>, _> = args.iter().map(|term| formula_term(term, env)).collect();
-            Ok(relation_atom(relation, &args?))
+            Ok(relation_atom(relation_iri, &args?))
         }
         Formula::Not(inner) => Ok(format!("(~ {})", render_formula(inner, env)?)),
         Formula::And(parts) | Formula::Or(parts) => {

@@ -122,6 +122,7 @@ fn modal_world_and_depth_are_part_of_reuse_identity() {
             args,
             vec![
                 Term::Var(world.to_owned()),
+                Term::Iri("https://example.org/p".to_owned()),
                 Term::Iri("https://example.org/a".to_owned())
             ]
         );
@@ -165,7 +166,11 @@ fn modal_translation_cannot_capture_authored_variables() {
     };
     assert_eq!(
         args,
-        vec![Term::Var(worlds[0].clone()), Term::Var("__w0".to_owned())]
+        vec![
+            Term::Var(worlds[0].clone()),
+            Term::Iri("https://example.org/p".into()),
+            Term::Var("__w0".to_owned())
+        ]
     );
 }
 
@@ -300,8 +305,13 @@ fn equal_blank_labels_in_distinct_scopes_do_not_create_cycles_or_merge_owners() 
     assert_eq!(reader.observer.reconstructions, 3);
 }
 
-fn contextual_atom(relation: &str, world: Term, argument: Term) -> Formula {
+fn binary_atom(relation: &str, world: Term, argument: Term) -> Formula {
     Formula::atom(Term::Iri(relation.to_owned()), vec![world, argument]).unwrap()
+}
+
+/// A source atomic body indexed independently of ordinary relation arguments.
+fn indexed_atom(relation: &str, world: Term, argument: Term) -> Formula {
+    Formula::contextual_atom(world, Term::Iri(relation.to_owned()), vec![argument]).unwrap()
 }
 
 #[test]
@@ -327,12 +337,12 @@ fn selected_context_and_explicit_subtree_context_have_separate_memo_identity() {
             panic!("selected conjunction")
         };
         assert_eq!(parts.len(), 2);
-        assert!(parts.contains(&contextual_atom(
+        assert!(parts.contains(&indexed_atom(
             "https://example.org/p",
             Term::Iri(format!("https://example.org/{world}")),
             argument.clone()
         )));
-        assert!(parts.contains(&contextual_atom(
+        assert!(parts.contains(&indexed_atom(
             "https://example.org/q",
             Term::Iri("https://example.org/inner".into()),
             argument.clone()
@@ -402,7 +412,7 @@ fn finite_temporal_guards_and_until_interval_share_the_selected_context() {
             .read_in_context(&subject(operator), world.clone())
             .unwrap();
         let future = Term::Var("__tw0".into());
-        let guard = contextual_atom(
+        let guard = binary_atom(
             if operator == "next" {
                 FINITE_NEXT
             } else {
@@ -411,7 +421,7 @@ fn finite_temporal_guards_and_until_interval_share_the_selected_context() {
             world.clone(),
             future.clone(),
         );
-        let right = contextual_atom(
+        let right = indexed_atom(
             "https://example.org/arrived",
             future.clone(),
             argument.clone(),
@@ -430,18 +440,14 @@ fn finite_temporal_guards_and_until_interval_share_the_selected_context() {
                         vars: vec!["__ti0".into()],
                         body: Box::new(Formula::Implies(
                             Box::new(Formula::And(vec![
-                                contextual_atom(
+                                binary_atom(
                                     FINITE_AT_OR_AFTER,
                                     world.clone(),
                                     intermediate.clone(),
                                 ),
-                                contextual_atom(
-                                    FINITE_STRICTLY_BEFORE,
-                                    intermediate.clone(),
-                                    future,
-                                ),
+                                binary_atom(FINITE_STRICTLY_BEFORE, intermediate.clone(), future),
                             ])),
-                            Box::new(contextual_atom(
+                            Box::new(indexed_atom(
                                 "https://example.org/waiting",
                                 intermediate,
                                 argument.clone(),
@@ -515,7 +521,7 @@ fn temporal_future_and_interval_variables_cannot_capture_authored_names() {
     };
     assert_eq!(
         inner[0],
-        contextual_atom(
+        indexed_atom(
             "https://example.org/arrived",
             Term::Var(vars[0].clone()),
             Term::Var("__tw0".into())
@@ -535,7 +541,7 @@ fn temporal_future_and_interval_variables_cannot_capture_authored_names() {
     };
     assert_eq!(
         maintained.as_ref(),
-        &contextual_atom(
+        &indexed_atom(
             "https://example.org/waiting",
             Term::Var(interval[0].clone()),
             Term::Var("__ti0".into())
@@ -565,11 +571,11 @@ fn temporal_and_modal_nesting_never_resets_the_selected_context() {
     let expected = Formula::Exists {
         vars: vec!["__tw0".into()],
         body: Box::new(Formula::And(vec![
-            contextual_atom(FINITE_NEXT, context, first.clone()),
+            binary_atom(FINITE_NEXT, context, first.clone()),
             Formula::Forall {
                 vars: vec!["__w1".into()],
                 body: Box::new(Formula::Implies(
-                    Box::new(contextual_atom(
+                    Box::new(binary_atom(
                         &logic_iri("deonticallyIdeal"),
                         first,
                         ideal.clone(),
@@ -577,8 +583,8 @@ fn temporal_and_modal_nesting_never_resets_the_selected_context() {
                     Box::new(Formula::Exists {
                         vars: vec!["__tw2".into()],
                         body: Box::new(Formula::And(vec![
-                            contextual_atom(FINITE_AT_OR_AFTER, ideal, future.clone()),
-                            contextual_atom(
+                            binary_atom(FINITE_AT_OR_AFTER, ideal, future.clone()),
+                            indexed_atom(
                                 "https://example.org/p",
                                 future,
                                 Term::Iri("https://example.org/a".into()),
@@ -649,7 +655,7 @@ fn named_annotation_formula_fields_preserve_source_selection_and_literal_facets(
         .unwrap();
         assert_eq!(
             formula,
-            contextual_atom(
+            indexed_atom(
                 "https://example.org/p",
                 Term::Iri("https://example.org/selected".into()),
                 Term::rdf_literal(literal).unwrap()
