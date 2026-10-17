@@ -10979,10 +10979,34 @@ gmeow:GmnEnvelope rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:gmnDictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gmnDictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gmnGlyphTableVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:accordingTo ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:wasGeneratedBy ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gmnCodebookDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
+
+lang:GmnEnvelopeStandpointRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "GMN envelope standpoint requiredness constraint"@x-gmeow-english ;
+    skos:definition "A GMN envelope carries its asserting standpoint as required annotation metadata rather than an existential logical role."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField ;
+    logic:onClass gmeow:GmnEnvelope ;
+    logic:anyOf gmeow:accordingTo ;
+    logic:formalizes lang:GmnEnvelopeContractShape ;
+    logic:message "A GMN envelope must name its asserting standpoint." .
+
+lang:GmnEnvelopeStandpointResourceConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "GMN envelope standpoint resource constraint"@x-gmeow-english ;
+    skos:definition "Every asserting standpoint on a GMN envelope is a resource, preserving the resource-valued standpoint contract without restricting its annotation property as an OWL object role."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField ;
+    logic:onClass gmeow:GmnEnvelope ;
+    logic:valuePath gmeow:accordingTo ;
+    logic:nodeKind "BlankNodeOrIRI" ;
+    logic:formalizes lang:GmnEnvelopeContractShape ;
+    logic:message "A GMN envelope asserting standpoint must be a resource." .
 
 gmeow:gmnSecurityRingClosure
     a logic:ClosureEntry ;

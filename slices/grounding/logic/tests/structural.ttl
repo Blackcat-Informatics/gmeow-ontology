@@ -11,6 +11,22 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
 
+ex:saFlagshipFailureMetadataIntegrity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:fswFailureAtom logic:relation gmeow:enforcesFailureClass .
+    gmeow:FlagshipScenarioFailureSingleValueConstraint a logic:ComparisonConstraint ;
+        logic:onClass gmeow:FlagshipScenario ; logic:leftPath gmeow:enforcesFailureClass ;
+        logic:rightPath gmeow:enforcesFailureClass ; logic:compareOp "!=" .
+    gmeow:FlagshipScenarioFailureIriConstraint a logic:PathNodeKindConstraint ;
+        logic:onClass gmeow:FlagshipScenario ; logic:valuePath gmeow:enforcesFailureClass ; logic:nodeKind "IRI" .
+    FILTER NOT EXISTS { ?restriction logic:onProperty gmeow:enforcesFailureClass }
+}""" ;
+    gmeow:saRationale "Failure-class metadata MUST remain required-single-IRI integrity without turning the class annotation into a logical role." .
+
 # --- 1. The five typed accessibility relations are object properties (MUST) ---
 ex:saTypedAccessibilityRelationsExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

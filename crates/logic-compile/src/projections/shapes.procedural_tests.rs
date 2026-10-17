@@ -1368,6 +1368,100 @@ ex:scaleCmp a logic:ComparisonConstraint ;\n\
     );
 }
 
+/// Metadata cardinality counts bound resource terms without creating logical roles.
+#[test]
+fn annotation_integrity_matches_required_single_iri_validation() {
+    use std::collections::BTreeSet;
+    let source = format!(
+        r#"{SUGAR_PREFIXES}
+ex:Record a logic:Class .
+ex:metadata a logic:AnnotationProperty .
+ex:required a logic:DisjunctiveRequirednessConstraint ;
+    logic:onClass ex:Record ; logic:anyOf ex:metadata ; logic:formalizes ex:Record .
+ex:single a logic:ComparisonConstraint ;
+    logic:onClass ex:Record ; logic:leftPath ex:metadata ; logic:rightPath ex:metadata ;
+    logic:compareOp "!=" ; logic:formalizes ex:Record .
+ex:iri a logic:PathNodeKindConstraint ;
+    logic:onClass ex:Record ; logic:valuePath ex:metadata ; logic:nodeKind "IRI" ;
+    logic:formalizes ex:Record ."#
+    );
+    let (program, diagnostics) = crate::frontend::parse_logic_str(&source, None).unwrap();
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(program.constraints.len(), 3);
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let reader = super::super::reader_view::with_owl_rdfs_projection(&dataset).unwrap();
+    assert!(reader.owned_quads().any(|quad| {
+        quad.subject == purrdf::RdfTerm::iri("https://ex/metadata")
+            && quad.predicate == RDF_TYPE
+            && quad.object
+                == purrdf::RdfTerm::iri("http://www.w3.org/2002/07/owl#AnnotationProperty")
+    }));
+    assert!(!reader.owned_quads().any(|quad| {
+        quad.predicate == "http://www.w3.org/2002/07/owl#onProperty"
+            && quad.object == purrdf::RdfTerm::iri("https://ex/metadata")
+    }));
+    let mut native = purrdf::entail::Reasoner::with_proofs(&reader)
+        .expect("annotation integrity must not create invalid logical role restrictions");
+    native
+        .prepare(&purrdf::entail::Question::Consistency)
+        .unwrap();
+    let result = native.consistency();
+    assert_eq!(*result.answer(), purrdf::entail::Verdict::True);
+    assert!(result.certificate().completeness().is_decided());
+    let context = native.proof_context().unwrap();
+    result
+        .proof()
+        .unwrap()
+        .verify(
+            &reader,
+            &purrdf::entail::Question::Consistency,
+            Some(result.certificate()),
+            &context,
+        )
+        .unwrap();
+    let generated = project_procedural_constraints(&program);
+    // Independent finite oracle for the retired declarative metadata contract.
+    let declarative = r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
+        <https://ex/shape> a sh:NodeShape ; sh:targetClass <https://ex/Record> ;
+            sh:property [ sh:path <https://ex/metadata> ;
+                sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ."#;
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let same = "<http://www.w3.org/2002/07/owl#sameAs>";
+    let data = format!(
+        r#"<https://ex/good> {ty} <https://ex/Record> .
+<https://ex/good> <https://ex/metadata> <https://ex/owner> .
+<https://ex/missing> {ty} <https://ex/Record> .
+<https://ex/multiple> {ty} <https://ex/Record> .
+<https://ex/multiple> <https://ex/metadata> <https://ex/owner> .
+<https://ex/multiple> <https://ex/metadata> <https://ex/otherOwner> .
+<https://ex/equalDenotation> {ty} <https://ex/Record> .
+<https://ex/equalDenotation> <https://ex/metadata> <https://ex/aliasA> .
+<https://ex/equalDenotation> <https://ex/metadata> <https://ex/aliasB> .
+<https://ex/aliasA> {same} <https://ex/aliasB> .
+<https://ex/blank> {ty} <https://ex/Record> .
+<https://ex/blank> <https://ex/metadata> _:owner .
+<https://ex/literal> {ty} <https://ex/Record> .
+<https://ex/literal> <https://ex/metadata> "owner" .
+<https://ex/unrelated> {ty} <https://ex/OtherRecord> ."#
+    );
+    let normalized = |shapes: &str| -> BTreeSet<String> {
+        flagged_over(shapes, &data)
+            .into_iter()
+            .map(|term| {
+                term.trim_start_matches('<')
+                    .trim_end_matches('>')
+                    .to_owned()
+            })
+            .collect()
+    };
+    let expected: BTreeSet<_> = ["missing", "multiple", "equalDenotation", "blank", "literal"]
+        .map(|name| format!("https://ex/{name}"))
+        .into_iter()
+        .collect();
+    assert_eq!(normalized(declarative), expected);
+    assert_eq!(normalized(&generated), expected);
+}
+
 // ── procedural-constraint capabilities (arithmetic BIND, variable predicate,
 //    direct-instance target, filter disjunction) ─────────────────────────────────
 

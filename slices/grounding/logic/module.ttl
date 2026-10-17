@@ -19983,20 +19983,17 @@ gmeow:FlagshipScenario a logic:Kind , logic:Class ;
 # The five structural wiring obligations, declared as min-1/max-1 restrictions on the class so the
 # derived gmeow:FlagshipScenario validation-shape carries the exact cardinality gate. Existence is a
 # ClosedWorldClosure opt-in (sh:minCount 1 without minting a reasoner witness); at-most-one is a
-# functional property (the four scenario-only predicates) or a scoped max-qualified restriction
-# (the shared gmeow:enforcesFailureClass annotation, kept single-valued only on a flagship scenario).
+# functional property (the four scenario-only predicates). The shared
+# enforcesFailureClass annotation uses scoped integrity constraints below.
 gmeow:FlagshipScenario logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByExample ; logic:allValuesFrom xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByProducer ; logic:allValuesFrom xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:guardedByCounterExample ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByCompetency ; logic:allValuesFrom logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:enforcesFailureClass ; logic:allValuesFrom logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:enforcesFailureClass ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByCompetency ; logic:allValuesFrom logic:Thing ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByExample" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByProducer" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/guardedByCounterExample" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByCompetency" ; logic:closureValue logic:ClosedWorldClosure ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/enforcesFailureClass" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:UnwiredFlagshipScenario a logic:Category , logic:Class ;
     rdfs:label "unwired flagship scenario"@x-gmeow-english ;
@@ -20092,6 +20089,33 @@ logic:fswCounter a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 
 logic:fswCounterAtom a logic:Formula ; logic:relation gmeow:guardedByCounterExample ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ce" ] .
 logic:fswFailure a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "fc" ] ; logic:exists logic:fswFailureAtom .
 logic:fswFailureAtom a logic:Formula ; logic:relation gmeow:enforcesFailureClass ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "fc" ] .
+
+gmeow:FlagshipScenarioFailureSingleValueConstraint
+    a logic:ComparisonConstraint ;
+    rdfs:label "Flagship scenario single failure class constraint"@x-gmeow-english ;
+    skos:definition "A FlagshipScenario names at most one enforcing failure class in its annotation metadata; distinct class IRIs are distinct annotation values regardless of logical equality."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario ;
+    logic:onClass gmeow:FlagshipScenario ;
+    logic:leftPath gmeow:enforcesFailureClass ;
+    logic:rightPath gmeow:enforcesFailureClass ;
+    logic:compareOp "!=" ;
+    logic:formalizes gmeow:FlagshipScenarioShape ;
+    logic:message "A FlagshipScenario must name at most one enforcing failure class." .
+
+gmeow:FlagshipScenarioFailureIriConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "Flagship scenario failure class IRI constraint"@x-gmeow-english ;
+    skos:definition "Every enforcing failure-class annotation on a FlagshipScenario names a class by IRI without turning annotation metadata into a logical object role."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario ;
+    logic:onClass gmeow:FlagshipScenario ;
+    logic:valuePath gmeow:enforcesFailureClass ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:FlagshipScenarioShape ;
+    logic:message "A FlagshipScenario enforcing failure class must be an IRI." .
 
 # --- The five scenario acceptance-witness classes and their carriers -------- #
 

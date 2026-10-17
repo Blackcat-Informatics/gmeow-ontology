@@ -10,6 +10,23 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documentation/tests/> .
 
+ex:saOwnerMetadataIntegrity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:DocumentedTermOwnerRequiredConstraint a logic:DisjunctiveRequirednessConstraint ;
+        logic:onClass gmeow:DocumentedTerm ; logic:anyOf gmeow:docOwnerSlice .
+    gmeow:DocumentedTermOwnerSingleValueConstraint a logic:ComparisonConstraint ;
+        logic:onClass gmeow:DocumentedTerm ; logic:leftPath gmeow:docOwnerSlice ;
+        logic:rightPath gmeow:docOwnerSlice ; logic:compareOp "!=" .
+    gmeow:DocumentedTermOwnerIriConstraint a logic:PathNodeKindConstraint ;
+        logic:onClass gmeow:DocumentedTerm ; logic:valuePath gmeow:docOwnerSlice ; logic:nodeKind "IRI" .
+    FILTER NOT EXISTS { ?restriction logic:onProperty gmeow:docOwnerSlice }
+}""" ;
+    gmeow:saRationale "Owning-slice metadata MUST retain required-single-IRI integrity without an invalid logical restriction on its annotation property." .
+
 # --- 1. The documentation-entry record classes are owl:Class in the TBox (MUST) ---
 ex:saRecordClasses a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
