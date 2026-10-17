@@ -23,8 +23,7 @@ pub(crate) enum LiteralMeaning {
         direction: Option<RdfTextDirection>,
     },
     /// No general native value representation was admitted. Identical RDF terms
-    /// are known equal; admitted anyURI values also share XML whitespace collapse.
-    /// Other lexical differences are not evidence of unequal values.
+    /// are known equal. Other lexical differences are not evidence of unequal values.
     Opaque(Box<TermValue>),
 }
 
@@ -39,24 +38,6 @@ impl LiteralValue {
     /// residue stays in the shared GMEOW value algebra. Unknown is never false.
     pub(crate) fn named_datatype(&self, datatype: &str) -> Option<bool> {
         let meaning = &self.meaning;
-        if datatype == purrdf::xsd::datatype::XSD_ANY_URI {
-            // `xsd:anyURI` is an XSD 1.1 primitive: its value space is disjoint from
-            // every other primitive's, and every string of XML characters is one of
-            // its lexical forms. PurRDF interprets no anyURI value, so a literal
-            // typed anyURI arrives uninterpreted and every interpreted value lies
-            // outside it; an uninterpreted literal of any other datatype is unknown.
-            return match meaning {
-                LiteralMeaning::Opaque(term) => match term.as_ref() {
-                    TermValue::Literal { datatype, .. }
-                        if datatype == purrdf::xsd::datatype::XSD_ANY_URI =>
-                    {
-                        Some(true)
-                    }
-                    _ => None,
-                },
-                _ => Some(false),
-            };
-        }
         if matches!(meaning, LiteralMeaning::Opaque(_)) {
             return None;
         }
@@ -141,20 +122,7 @@ impl LiteralValue {
     /// values. Other value spaces do not silently acquire a length facet.
     pub(crate) fn facet_length(&self) -> Option<u128> {
         match &self.meaning {
-            LiteralMeaning::Native(XsdValue::String(value)) => Some(value.chars().count() as u128),
-            LiteralMeaning::Native(XsdValue::Binary { bytes, .. }) => Some(bytes.len() as u128),
-            LiteralMeaning::Opaque(term) => match term.as_ref() {
-                TermValue::Literal {
-                    lexical_form,
-                    datatype,
-                    ..
-                } if datatype == purrdf::xsd::datatype::XSD_ANY_URI => Some(
-                    purrdf::xsd::normalize_whitespace_collapse(lexical_form)
-                        .chars()
-                        .count() as u128,
-                ),
-                _ => None,
-            },
+            LiteralMeaning::Native(value) => value.facet_length().map(|length| length as u128),
             _ => None,
         }
     }
@@ -194,7 +162,10 @@ impl LiteralValue {
                 direction,
             }
         } else {
-            let lexical = if datatype == "http://www.w3.org/2001/XMLSchema#string" {
+            let lexical = if matches!(
+                datatype,
+                purrdf::xsd::datatype::XSD_STRING | purrdf::xsd::datatype::XSD_ANY_URI
+            ) {
                 lexical_form
             } else {
                 lexical_form.trim()
@@ -221,29 +192,6 @@ impl LiteralValue {
     pub(crate) fn same_value(&self, other: &Self) -> Option<bool> {
         match (&self.meaning, &other.meaning) {
             (LiteralMeaning::Opaque(a), LiteralMeaning::Opaque(b)) if a == b => Some(true),
-            (LiteralMeaning::Opaque(a), LiteralMeaning::Opaque(b)) => {
-                match (a.as_ref(), b.as_ref()) {
-                    (
-                        TermValue::Literal {
-                            lexical_form: a,
-                            datatype: ad,
-                            ..
-                        },
-                        TermValue::Literal {
-                            lexical_form: b,
-                            datatype: bd,
-                            ..
-                        },
-                    ) if ad == purrdf::xsd::datatype::XSD_ANY_URI
-                        && bd == purrdf::xsd::datatype::XSD_ANY_URI =>
-                    {
-                        (purrdf::xsd::normalize_whitespace_collapse(a)
-                            == purrdf::xsd::normalize_whitespace_collapse(b))
-                        .then_some(true)
-                    }
-                    _ => None,
-                }
-            }
             (LiteralMeaning::Opaque(_), _) | (_, LiteralMeaning::Opaque(_)) => None,
             (LiteralMeaning::Rational(a), LiteralMeaning::Rational(b)) => Some(a == b),
             (
@@ -293,7 +241,6 @@ impl NativeValues {
                 datatype,
                 OWL_REAL
                     | OWL_RATIONAL
-                    | purrdf::xsd::datatype::XSD_ANY_URI
                     | "http://www.w3.org/2000/01/rdf-schema#Literal"
                     | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
                     | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"

@@ -4,6 +4,37 @@
 use super::*;
 
 #[test]
+fn native_any_uri_values_preserve_xml_whitespace_and_reject_invalid_characters() {
+    use purrdf::xsd::datatype::{XSD_ANY_URI, XSD_STRING};
+    let mut values = NativeValues::default();
+    let alias = TermValue::typed_literal(" \té\r\n 文 ", XSD_ANY_URI);
+    let uri = TermValue::typed_literal("é 文", XSD_ANY_URI);
+    assert_eq!(values.same_value(&alias, &uri), Some(true));
+    let parsed = values.literal(&alias);
+    assert!(matches!(
+        parsed.meaning,
+        LiteralMeaning::Native(XsdValue::AnyUri(_))
+    ));
+    assert_eq!(parsed.named_datatype(XSD_ANY_URI), Some(true));
+    assert_eq!(parsed.named_datatype(XSD_STRING), Some(false));
+    assert_eq!(parsed.facet_length(), Some(3));
+    assert_eq!(
+        values.same_value(&uri, &TermValue::typed_literal("é%20文", XSD_ANY_URI)),
+        Some(false)
+    );
+    assert_eq!(
+        values.same_value(
+            &uri,
+            &TermValue::typed_literal("\u{a0}é 文\u{a0}", XSD_ANY_URI)
+        ),
+        Some(false)
+    );
+    let invalid = values.literal(&TermValue::typed_literal("invalid\0", XSD_ANY_URI));
+    assert_eq!(invalid.named_datatype(XSD_ANY_URI), None);
+    assert_eq!(invalid.facet_length(), None);
+}
+
+#[test]
 fn cardinality_accepts_the_complete_native_count_domain() {
     let term = TermValue::Literal {
         lexical_form: u128::MAX.to_string(),

@@ -58,6 +58,14 @@ fn embed_native_sources(workspace: &Path) {
     let mut generated = format!(
         "/// Portable identity of the complete canonical native kernel.\npub const NATIVE_SOURCE_CONTRACT: &str = {digest:?};\n"
     );
+    let substrate = gmeow_build_inputs::native_substrate_source(workspace)
+        .expect("immutable native substrate source");
+    println!(
+        "cargo:rerun-if-changed={}",
+        workspace.join("Cargo.toml").display()
+    );
+    writeln!(generated, "/// Immutable upstream implementation source.\npub const NATIVE_SUBSTRATE_SOURCE: &str = {substrate:?};")
+        .expect("write native substrate source");
     generated.push_str("/// Whole-file semantic source commitments.\npub const NATIVE_SOURCE_FILES: &[(&str, &str)] = &[\n");
     for (path, digest) in &sources.files {
         writeln!(generated, "({path:?}, {digest:?}),").expect("write source commitment");
