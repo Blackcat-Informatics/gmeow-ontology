@@ -1,0 +1,14 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(native_contract_hash_frames_every_load_bearing_engine_component)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [optimized] target(s) in 1.73s
+────────────
+ Nextest run ID 5180cb3e-bbb3-47db-ad8a-d4c3d84c13c2 with nextest profile: ci
+    Starting 1 test across 225 binaries (7494 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   4.010s] (1/1) gmeow-logic reason::tests::native_contract_hash_frames_every_load_bearing_engine_component
+────────────
+     Summary [   4.095s] 1 test run: 1 passed, 7494 skipped

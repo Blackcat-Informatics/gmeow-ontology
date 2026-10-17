@@ -1,0 +1,382 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "- **CLAUDE.md** currently says \"the native `logic:` reasoner is the single reasoning authority\". It should read: the authority on `logic:` **semantics**, executed on purrdf engines.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 21,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "1. **Proofs bound to source premises,** so gmeow ledgers can cite purrdf derivations. purrdf already has `DlProof`, `ChaseProof` and `ServiceProof`.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 22,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "2. **World-scoped input:** named graphs as worlds.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 23,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "3. **Budgets and stop signals** (`StopSignal` exists).",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 24,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "4. **Shared-store or delta seams,** so production does not copy a ~690k-fact store per call. These may need adding upstream.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 25,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "5. **purrdf release cadence** that keeps up with boundary moves (gmeow pins `purrdf = \"3\"`).",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C4.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "The official crates.io Git index was refreshed through the GitHub API and still lists 3.0.1 as the latest stable non-yanked `purrdf`. The previously captured ancestry places the three closed upstream boundary fixes after that release. A version bump to 3.0.1 alone therefore does not establish those capabilities or the required production-world decisions.",
+      "source": "comment 4",
+      "author": "paudley",
+      "date": "2026-10-16T02:00:42Z"
+    },
+    {
+      "id": "C6.1",
+      "line": 7,
+      "rules": [
+        "modal"
+      ],
+      "text": "Verification exercises the real NativeValues membership/equality path for malformed fractional/exponent/empty-magnitude decimal syntax, a valid scale-80 exact decimal, and the actual datatype-enumeration consumer: a malformed decimal cannot satisfy the rational half enumeration, while valid decimal half is included and quarter excluded. Run the surrounding synthetic native datatype/refutation/program controls and strict producer-independent Clippy, normal commit hooks, then publish the coherent fix in the existing proof branch and PR. Hosted corpus and full-canon qualification remain required; this does not close the whole engine-ownership issue.",
+      "source": "comment 6",
+      "author": "paudley",
+      "date": "2026-10-16T23:52:09Z"
+    },
+    {
+      "id": "C8.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "The complete contract is issue 1803 and its comments. Preserve all logic issue/PR scope. Principles 4, 7, 12, 17, 18 and 19, the repository goals/baseline, and docs/RUST-OPTIMIZATION.md govern this work. GMEOW owns language, worlds, grounding and source-bound evidence; PurRDF owns generic engines. Replaced copies must be deleted, without a fallback or weakened verdict. The separate stable proof PR 1836 is waiting on CI and review; this worktree keeps that qualification source unchanged.",
+      "source": "comment 8",
+      "author": "paudley",
+      "date": "2026-10-17T03:22:01Z"
+    },
+    {
+      "id": "C8.2",
+      "line": 15,
+      "rules": [
+        "modal"
+      ],
+      "text": "Use measured source/world evidence to choose the real owner path. Preserve every original selected premise and its GMEOW grounding/translation evidence, empty-domain selection, shared-world/store semantics, per-operation budgets and stop signals. Native Certified values remain intact. Add missing generic engine seams upstream rather than implement another generic decision procedure in GMEOW. The current pinned and current upstream public constructors still require RdfDataset; with_stop and with_proofs are separate. Verify the required combined/store seam before claiming readiness. Production unknown/unsupported cannot become a false conclusive answer. Complete class-world qualification and proof controls precede deletion of the inferior casesplit engine and its per-round re-evaluation path.",
+      "source": "comment 8",
+      "author": "paudley",
+      "date": "2026-10-17T03:22:01Z"
+    },
+    {
+      "id": "C8.3",
+      "line": 19,
+      "rules": [
+        "modal"
+      ],
+      "text": "Lift generic existential chase and the full termination ladder/Datalog-first scheduling into purrdf-datalog under the owning work. Consume it and remove the duplicate generic implementation while preserving native GMEOW world/contract/evidence policy. Complete native datatype membership in its PurRDF owner, then remove the GMEOW overlap; the already-landed decimal retry deletion is not the whole item. Maintain the live overlap inventory and clarify architecture documentation: GMEOW owns logic semantics executed on PurRDF engines. Dependency changes must use measured exact upstream identities and preserve gates. No new runtime dependency, shim or silent fallback.",
+      "source": "comment 8",
+      "author": "paudley",
+      "date": "2026-10-17T03:22:01Z"
+    },
+    {
+      "id": "C8.4",
+      "line": 23,
+      "rules": [
+        "modal"
+      ],
+      "text": "Use actual consumer operations and focused meaningful controls. Keep benchmark execution outside tests and source lint/corpus-purity seals intact. Run appropriate source/Clippy/helper gates and normal signed hooks, publish concrete evidence to the owning issue/PR and incorporate current-source reviews where possible. Full hosted production/consumer qualification remains required; no local optimized producer/fingerprint is authorized. Final merges use ghprsq with exact Stage evidence, preserving sibling work and the full remaining goal. Missing independent tooling must be reported, never represented as a passed audit.",
+      "source": "comment 8",
+      "author": "paudley",
+      "date": "2026-10-17T03:22:01Z"
+    },
+    {
+      "id": "C9.1",
+      "line": 56,
+      "rules": [
+        "modal"
+      ],
+      "text": "must be deleted, not retained as a fallback.",
+      "source": "comment 9",
+      "author": "paudley",
+      "date": "2026-10-17T03:53:29Z"
+    },
+    {
+      "id": "C10.1",
+      "line": 16,
+      "rules": [
+        "modal"
+      ],
+      "text": "that issue. The upstream PR must land before this dependent PR is merged.",
+      "source": "comment 10",
+      "author": "paudley",
+      "date": "2026-10-17T04:23:39Z"
+    },
+    {
+      "id": "C11.1",
+      "line": 13,
+      "rules": [
+        "modal"
+      ],
+      "text": "owner assessment must not be represented as independent judgment.",
+      "source": "comment 11",
+      "author": "paudley",
+      "date": "2026-10-17T05:13:34Z"
+    },
+    {
+      "id": "C12.1",
+      "line": 32,
+      "rules": [
+        "modal"
+      ],
+      "text": "or authenticates current complete sources. Native delegation must preserve GMEOW",
+      "source": "comment 12",
+      "author": "paudley",
+      "date": "2026-10-17T05:17:18Z"
+    },
+    {
+      "id": "C13.1",
+      "line": 7,
+      "rules": [
+        "modal"
+      ],
+      "text": "Source and recorded-consumer diagnostics retain ontology failure classes and original causes through report serialization. New terms carry their required annotations and paired translations. All six browser packages share the pinned build recipe. Browser observations use the required monotonic host clock; native observations retain the standard clock. Semantic identity uses canonical PurRDF rule hashes and calculus version, preserving distinct operation contracts and their actual limits. No execution limits, budgets or optimization contracts changed (Principles 4, 7 and 17).",
+      "source": "comment 13",
+      "author": "paudley",
+      "date": "2026-10-17T08:08:59Z"
+    },
+    {
+      "id": "C13.2",
+      "line": 13,
+      "rules": [
+        "modal"
+      ],
+      "text": "CodeRabbit reviewed 673132cd5 with low merge risk and 88.10 percent doc coverage. Its listing finding is resolved; the sole later minor translation finding is corrected in 9a4d8af8a. The helper census retains the same group and allowance under the replacement refresher name. No merge conflict required discarding either side. No unavailable independent completion audit is represented as passed.",
+      "source": "comment 13",
+      "author": "paudley",
+      "date": "2026-10-17T08:08:59Z"
+    },
+    {
+      "id": "C15.1",
+      "line": 13,
+      "rules": [
+        "modal"
+      ],
+      "text": "Acceptance runs through NativeValues and DatatypeCache production consumers using synthetic tests, including native literal validity, whitespace aliases, Unicode boundary whitespace, primitive disjointness, enumeration, length facets and capacity. Tests must consume no real corpus. Use make nextest-synthetic with an explicit filter and the normal workspace graph. The full corpus producer remains hosted only.",
+      "source": "comment 15",
+      "author": "paudley",
+      "date": "2026-10-17T08:41:28Z"
+    },
+    {
+      "id": "C16.1",
+      "line": 11,
+      "rules": [
+        "modal"
+      ],
+      "text": "Four actual optimized Node parity cases passed on implementation head 9d992189d before the final upstream pin update. All GMEOW Rust implementation is unchanged after that head. The final upstream correction separately passed its complete XSD suite, exact finite-exhaustion regression, all-target clippy, three actual WASM cases and 17 native datatype tests. The old Node execution is reused only for the unchanged binding/identity mechanism; a final-pin browser binary was not executed locally. Full final-pin browser and corpus CI remain pending. The user explicitly authorized merge with later CI findings tracked: \"Please ghprsq this branch now, we'll create issues for anything that comes up in CI, but we need to get this code pushed and merged.\" No code requirement was cut; pending hosted qualification is not counted as a pass. No local full corpus producer or machine/resource probes ran.",
+      "source": "comment 16",
+      "author": "paudley",
+      "date": "2026-10-17T11:08:09Z"
+    },
+    {
+      "id": "C17.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "Issue 1803 requires one owner for datatype mechanisms and deletion of the inferior copy (Principles 4, 7 and 17). The current consumer trims arbitrary Unicode whitespace before native XSD parsing except for String/AnyURI. This changes an invalid numeric, boolean or temporal source into a valid native input. PurRDF numeric lexical readers explicitly accept only their grammar and perform no trim. The consumer must pass original XSD lexicals to that authority.",
+      "source": "comment 17",
+      "author": "paudley",
+      "date": "2026-10-17T12:00:08Z"
+    },
+    {
+      "id": "C17.2",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "No independent dispatch capability is available; do not fabricate subagent verdicts. Attributable hosted review and implementer assessment must stay distinct. No comparative speedup is claimed; this removes a redundant scan and, more importantly, prevents input alteration.",
+      "source": "comment 17",
+      "author": "paudley",
+      "date": "2026-10-17T12:00:08Z"
+    },
+    {
+      "id": "C18.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "Issue 1803 requires one owner for datatype mechanisms and deletion of the inferior copy (Principles 4, 7 and 17). The current consumer trims arbitrary Unicode whitespace before native XSD parsing except for String/AnyURI. This changes an invalid numeric, boolean or temporal source into a valid native input. PurRDF numeric lexical readers explicitly accept only their grammar and perform no trim. The consumer must pass original XSD lexicals to that authority.",
+      "source": "comment 18",
+      "author": "paudley",
+      "date": "2026-10-17T12:24:19Z"
+    },
+    {
+      "id": "C18.2",
+      "line": 11,
+      "rules": [
+        "modal"
+      ],
+      "text": "The initial pin f1ad5dfb634fc20622daa082a6bc2238d9a92789 exposed a hosted SHACL singleLine conformance regression: XML 1.0-only String validation rejects form feed and vertical tab. Native issue 577 corrects the common domain to the XSD-permitted XML 1.1 selection, including finite-length arithmetic, and must pass the actual failing SHACL suite before integration. Update root/fuzz immutable pins and only corresponding lock entries to that qualified correction; the initial pin is not the final deliverable. String acceptance tests must preserve XML 1.1 controls while refusing NUL/U+FFFE/U+FFFF. Refresh both tiny native attestations through the existing explicit verified producer. No corpus production, hardware/environment discovery, profile weakening, semantic aliases or new dependencies are permitted.",
+      "source": "comment 18",
+      "author": "paudley",
+      "date": "2026-10-17T12:24:19Z"
+    },
+    {
+      "id": "C18.3",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "No independent dispatch capability is available; do not fabricate subagent verdicts. Attributable hosted review and implementer assessment must stay distinct. No comparative speedup is claimed; this removes a redundant scan and, more importantly, prevents input alteration.",
+      "source": "comment 18",
+      "author": "paudley",
+      "date": "2026-10-17T12:24:19Z"
+    },
+    {
+      "id": "C18.4",
+      "line": 21,
+      "rules": [
+        "modal"
+      ],
+      "text": "The standing all-logic-issues objective also includes 1764. Its implementation is already in this base, but its latest issue record still says uncommitted. Read the complete issue and current soleness/source-cache implementation, run the complete gmeow-slicetest synthetic selection with all four fixture/bundle selector variables unset, and retain the existing no-producer seal. The actual handler must retain unbound, pinned-multiple-law refusal, unpinned configuration refusal and pinned-sole positive controls. Its parser cache must retain unchanged Arc reuse, changed source, original immutability, malformed-source and missing-source refusal. Do not add another implementation or weaken missing-selector admission. Close the issue only when the landed code and fresh acceptance evidence are established; full corpus qualification remains separate.",
+      "source": "comment 18",
+      "author": "paudley",
+      "date": "2026-10-17T12:24:19Z"
+    },
+    {
+      "id": "C20.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "Primary scope is issue 1803. Principles 4, 6, 7, 17 and 18 apply. The generic native engine must replace the partial class engine, with original source proofs, complete world selection, stop/budget semantics and cheap store/delta boundaries. No corpus production or machine probes are authorized locally. A diagnostic improvement alone does not complete delegation.",
+      "source": "comment 20",
+      "author": "paudley",
+      "date": "2026-10-17T13:37:22Z"
+    },
+    {
+      "id": "C21.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "The read-only frozen complete default contains 179177 assertions. Its original-source refusal names dofConstraintText. A temporary inventory, now removed from source, found nine annotation properties used as direct restriction operands. Four are music data roles corrected by this PR. The remaining five are skos:definition and gmeow:enforcesFailureClass, docOwnerSlice, accordingTo and profileDescriptor. Their owning annotation semantics must be retained while invalid OWL role restrictions are replaced with canonical integrity constraints; converting every metadata property to an object property would be incorrect. This direct inventory is not exhaustive grammar admission.",
+      "source": "comment 21",
+      "author": "paudley",
+      "date": "2026-10-17T14:43:44Z"
+    },
+    {
+      "id": "C21.2",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "This does not complete or close #1803. Next source work is the metadata constraint repair, followed by fresh native class-world/proof qualification and the required proof+stop, identity and cheap shared-store/delta boundaries for real delegation and deletion of the inferior engine. Complete-canon prover and external-corpus competency requirements remain open in their existing issues. No frozen artifact was regenerated, and no local corpus producer was run.",
+      "source": "comment 21",
+      "author": "paudley",
+      "date": "2026-10-17T14:43:44Z"
+    },
+    {
+      "id": "C22.1",
+      "line": 9,
+      "rules": [
+        "modal"
+      ],
+      "text": "The complete frozen default identified annotation properties used in class restrictions. Correct four literal-valued music text properties to datatype roles and qualify two required-text counts with rdf:langString data ranges. Preserve language-tagged source values, existing range restrictions and UniqueLang constraints. Five metadata annotation operands still require semantically correct constraint repairs; no blanket property rewrite or premise filtering is used.",
+      "source": "comment 22",
+      "author": "paudley",
+      "date": "2026-10-17T14:47:39Z"
+    },
+    {
+      "id": "C22.2",
+      "line": 15,
+      "rules": [
+        "modal"
+      ],
+      "text": "Full hosted acceptance and fresh music corpus validation remain pending, under the explicit user instruction: \"Please ghprsq this branch now, we'll create issues for anything that comes up in CI, but we need to get this code pushed and merged.\" No local corpus producer was run. The existing authenticated frozen records are observations of old source, not proof of the changed corpus. No independent dispatch review is claimed; CodeRabbit status and review disposition are retained in the selected Stage evidence.",
+      "source": "comment 22",
+      "author": "paudley",
+      "date": "2026-10-17T14:47:39Z"
+    }
+  ],
+  "silent_comments": [
+    {
+      "comment": 1,
+      "author": "paudley",
+      "date": "2026-10-06T02:25:16Z"
+    },
+    {
+      "comment": 2,
+      "author": "paudley",
+      "date": "2026-10-06T03:31:22Z"
+    },
+    {
+      "comment": 3,
+      "author": "paudley",
+      "date": "2026-10-16T00:13:54Z"
+    },
+    {
+      "comment": 5,
+      "author": "paudley",
+      "date": "2026-10-16T22:50:27Z"
+    },
+    {
+      "comment": 7,
+      "author": "paudley",
+      "date": "2026-10-16T23:59:25Z"
+    },
+    {
+      "comment": 14,
+      "author": "paudley",
+      "date": "2026-10-17T08:17:35Z"
+    },
+    {
+      "comment": 19,
+      "author": "paudley",
+      "date": "2026-10-17T13:00:58Z"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(annotation_integrity_matches_required_single_iri_validation) | test(p3_disjunctive_requiredness) | test(comparison_and_node_kind_constraints_validate_against_a_graph) | test(path_node_kind_)' --no-tests=fail
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-form)
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/build-inputs)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/license)
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cost-measure)
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/test-batch-macros)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/foundation-corpus)
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/perf-evidence)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/query-wasm)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slicetest)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cli-core)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/helper-census)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/music)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/xtask)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect-ingest)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 32s
+────────────
+ Nextest run ID 6f513c5b-1278-4845-baef-6897cb27716b with nextest profile: ci
+    Starting 7 tests across 225 binaries (7488 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.035s] (1/7) gmeow-logic-compile projections::shapes::procedural_tests::p3_disjunctive_requiredness_lowers_to_not_exists_union
+        PASS [   0.063s] (2/7) gmeow-logic-compile projections::shapes::procedural_tests::p3_disjunctive_requiredness_sugar_expands_and_projects
+        PASS [   0.063s] (3/7) gmeow-logic-compile projections::shapes::procedural_tests::path_node_kind_blank_or_iri_on_a_class_target
+        PASS [   0.063s] (4/7) gmeow-logic-compile projections::shapes::procedural_tests::path_node_kind_iri_lowers_to_a_negated_isiri_filter
+        PASS [   0.067s] (5/7) gmeow-logic-compile ir::constraint::tests::p3_disjunctive_requiredness_round_trips
+        PASS [   0.085s] (6/7) gmeow-logic-compile projections::shapes::procedural_tests::comparison_and_node_kind_constraints_validate_against_a_graph
+        PASS [   0.086s] (7/7) gmeow-logic-compile projections::shapes::procedural_tests::annotation_integrity_matches_required_single_iri_validation
+────────────
+     Summary [   0.158s] 7 tests run: 7 passed, 7488 skipped

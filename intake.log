@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/.stage/split-gmeow-purrdf-responsibilities/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/.stage/split-gmeow-purrdf-responsibilities/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/.stage/split-gmeow-purrdf-responsibilities/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/.stage/split-gmeow-purrdf-responsibilities/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/.stage/split-gmeow-purrdf-responsibilities/brief.json  (+ requirements.json, references.json)
+
+  - issue #1803 + 22 comment(s) via github
+  - link crawl: 34 issue(s) within 2 hop(s) of `#N` references
+  - forge search on ['Split', 'gmeow/purrdf', 'responsibilities:']: 0 other item(s)
+  - GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits
+  - prior attempts: 4 commit(s) citing #1803 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1803: 5
+  - requirement candidates: 31 line(s); 7 comment(s) matched no rule
+  - referenced artifacts: 21 path(s) (12 on disk), 26 identifier(s), 2 workspace package(s), 3 URL(s)

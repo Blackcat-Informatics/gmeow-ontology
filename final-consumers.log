@@ -1,0 +1,16 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(annotation_integrity_matches_required_single_iri_validation) | test(native_contract_hash_frames_every_load_bearing_engine_component) | test(native_reason_closure_matches_the_witness_attestation) | test(native_conjecture_verdicts_match_the_witness_attestation)' --no-tests=fail
+    Finished `test` profile [optimized] target(s) in 0.52s
+────────────
+ Nextest run ID 9e17400d-81d5-4238-9ecf-7e77f5603559 with nextest profile: ci
+    Starting 4 tests across 225 binaries (7491 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.059s] (1/4) gmeow-logic-compile projections::shapes::procedural_tests::annotation_integrity_matches_required_single_iri_validation
+        PASS [   0.079s] (2/4) gmeow-reason-wasm::witness_reason native_reason_closure_matches_the_witness_attestation
+        PASS [   0.285s] (3/4) gmeow-reason-wasm::witness_conjecture native_conjecture_verdicts_match_the_witness_attestation
+        PASS [   1.790s] (4/4) gmeow-logic reason::tests::native_contract_hash_frames_every_load_bearing_engine_component
+────────────
+     Summary [   1.849s] 4 tests run: 4 passed, 7491 skipped
