@@ -314,6 +314,28 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+  # Authored-source ownership checks have no corpus or test-compilation dependency.
+  helpers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly-2026-09-05
+
+      - name: Cache the native helper checker
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: source-helper-hygiene
+
+      - name: Helper ownership and dependency hygiene
+        run: make helpers-hygiene
+
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -1698,6 +1720,7 @@ jobs:
     needs:
       - producer
       - lint
+      - helpers
       - rust-archive
       - rust
       - rust-static
@@ -1719,6 +1742,7 @@ jobs:
         env:
           PRODUCER: ${{ needs.producer.result }}
           LINT: ${{ needs.lint.result }}
+          HELPERS: ${{ needs.helpers.result }}
           RUST_ARCHIVE: ${{ needs.rust-archive.result }}
           RUST: ${{ needs.rust.result }}
           RUST_STATIC: ${{ needs.rust-static.result }}
@@ -1730,7 +1754,7 @@ jobs:
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
           printf '%s\n' \
-            "results: producer=$PRODUCER lint=$LINT" \
+            "results: producer=$PRODUCER lint=$LINT helpers=$HELPERS" \
             "rust-archive=$RUST_ARCHIVE rust=$RUST rust-static=$RUST_STATIC" \
             "heavy=$HEAVY medium-consumer-surface=$MEDIUM_CONSUMER_SURFACE" \
             "ontology-validate=$ONTOLOGY_VALIDATE" \
@@ -1739,6 +1763,7 @@ jobs:
           for r in \
             "$PRODUCER" \
             "$LINT" \
+            "$HELPERS" \
             "$RUST_ARCHIVE" \
             "$RUST" \
             "$RUST_STATIC" \
