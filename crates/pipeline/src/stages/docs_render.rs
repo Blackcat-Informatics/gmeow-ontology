@@ -138,8 +138,8 @@ pub(crate) fn reasoning_verdict_from_product(
     })
 }
 
-/// Keep both documentation consumers' native admission failures explicit.
-fn reasoning_verdict_error(message: String) -> gmeow_errors::Diag {
+/// Attribute documentation verdict and term-panel admission failures to their reader.
+pub(crate) fn reasoning_verdict_error(message: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-docs-render".to_owned(),
         message,
@@ -705,9 +705,9 @@ pub fn render_docs_graph(
     // it runs post-pipeline against the fanout-refreshed committed files.
     let schema_fragments = schema_fragments_from_upstream(upstream, &model.terms)?;
     model.attach_schema_fragments(schema_fragments);
-    // The per-term entailment DAG, parsed from `stage-reason`'s already-materialized
-    // `reasoning-explanations` proof skeletons (reason-once — this READS the same
-    // upstream product, never a second reasoning pass) and joined against every
+    // The per-term entailment DAG borrows `stage-reason`'s authenticated native
+    // result (reason-once, without reparsing its outward explanation artifact)
+    // and joins against every
     // documented term IRI, so the documentation graph carries each term's
     // derivations (rule → conclusion, all premises) as first-class queryable RDF.
     let entailments =
@@ -1019,7 +1019,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v12-native-reasoning-observations"
+        "docs_render.v13-native-term-panels"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /

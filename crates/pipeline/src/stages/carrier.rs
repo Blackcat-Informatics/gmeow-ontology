@@ -2827,20 +2827,24 @@ pub(crate) fn term_entailments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     term_iris: &std::collections::BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
-    // The snapshot retains the original native result after the reason carrier
-    // reaches its last reader. Do not retain that large producer just for panels.
-    let snapshot = upstream
-        .get("stage-snapshot")
-        .ok_or_else(|| stage_err("missing stage-snapshot product for term entailments"))?;
-    let result =
-        crate::stages::docs_render::reasoning_result_from_product(snapshot, "stage-snapshot")?;
+    // Documentation runs before snapshot assembly and already retains this native
+    // carrier for its verdict. No extra dependency or lifetime extension is needed.
+    use crate::stages::docs_render::reasoning_verdict_error;
+    let reason = upstream.get("stage-reason").ok_or_else(|| {
+        reasoning_verdict_error("missing stage-reason product for term entailments".into())
+    })?;
+    let result = crate::stages::docs_render::reasoning_result_from_product(reason, "stage-reason")?;
     let mut entailments: BTreeMap<String, Vec<gmeow_docs::Entailment>> = BTreeMap::new();
     for axiom in result.inferred().iter().filter(|axiom| !axiom.is_edb) {
         let raw_rule = axiom
             .rule_name
             .as_deref()
             .filter(|rule| !rule.is_empty())
-            .ok_or_else(|| stage_err("a native inferred term entailment has no firing rule"))?;
+            .ok_or_else(|| {
+                reasoning_verdict_error(
+                    "a native inferred term entailment has no firing rule".into(),
+                )
+            })?;
         let mut matched = std::collections::BTreeSet::new();
         for iri in [&axiom.subject, &axiom.predicate] {
             if term_iris.contains(iri) {
