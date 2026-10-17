@@ -647,6 +647,10 @@ fn malformed_xml_hard_fails() {
         "logic-compile.source-parse"
     );
     let failure = err.downcast_ref::<crate::error::SourceParse>().unwrap();
+    assert_eq!(
+        err.inner().failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/CompilerSourceRefusal")
+    );
     assert_eq!(failure.format, "XCL XML");
     assert!(!failure.cause.to_string().is_empty());
     // A wrong root element is also rejected.

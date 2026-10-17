@@ -72,3 +72,59 @@ msgstr "flux de données : parse-sources → validate"
 msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The validator consumes the exact native source catalog and its shared compiled theory. The receipt binds every root, module and import document, including its source role and base. Validation adds only the declared substrate role to its data selection; diagnostic folds reuse the source compilation without parsing a transport projection."
 msgstr "Le validateur consomme le catalogue natif exact des sources et sa théorie compilée partagée. Le reçu lie chaque document racine, module et importé, y compris son rôle de source et sa base. La validation ajoute uniquement le rôle de substrat déclaré à sa sélection de données ; les dérivations diagnostiques réutilisent la compilation des sources sans analyser une projection de transport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded consumer failure"
+msgstr "échec du consommateur de données enregistrées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational failure while reading, checking, evaluating or reporting explicitly selected recorded inputs, retaining the selected operation and original typed cause."
+msgstr "Un échec opérationnel pendant la lecture, la vérification, l’évaluation ou la restitution d’entrées enregistrées explicitement sélectionnées, conservant l’opération sélectionnée et la cause typée d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for failures of an explicit recorded-input consumer operation."
+msgstr "À utiliser pour les échecs d’une opération explicite de consommation d’entrées enregistrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret an operational failure as a semantic verdict."
+msgstr "Ne pas interpréter un échec opérationnel comme un verdict sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the operation, input focus and complete original cause chain."
+msgstr "Conserver l’opération, le point d’entrée concerné et toute la chaîne des causes d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class concerns availability of the requested consumer result."
+msgstr "Cette classe concerne la disponibilité du résultat demandé au consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2004/02/skos/core#example"
+msgid "A missing selected receipt retains its original file-access error."
+msgstr "Un reçu sélectionné absent conserve son erreur d’accès au fichier d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded consumer boundary"
+msgstr "frontière du consommateur de données enregistrées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary requiring an explicit recorded-input consumer to preserve every selected input, requested output and original failure cause."
+msgstr "La frontière opérationnelle imposant à un consommateur explicite d’entrées enregistrées de préserver chaque entrée sélectionnée, chaque sortie demandée et la cause d’origine de tout échec."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary enforced by recorded-consumer diagnostics."
+msgstr "À utiliser pour identifier la frontière contrôlée par les diagnostics du consommateur de données enregistrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not repair missing inputs by executing a corpus producer."
+msgstr "Ne pas réparer les entrées absentes en exécutant un producteur de corpus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Admit existing products read-only and fail if any selected operation fails."
+msgstr "Admettre les produits existants en lecture seule et signaler tout échec d’une opération sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The boundary does not certify current canonical source completeness."
+msgstr "Cette frontière ne certifie pas la complétude des sources canoniques actuelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report-writing failure prevents successful consumer completion."
+msgstr "Un échec d’écriture du rapport empêche de déclarer le consommateur terminé avec succès."

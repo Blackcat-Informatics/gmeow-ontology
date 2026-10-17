@@ -72,3 +72,59 @@ msgstr "数据流：parse-sources → validate"
 msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The validator consumes the exact native source catalog and its shared compiled theory. The receipt binds every root, module and import document, including its source role and base. Validation adds only the declared substrate role to its data selection; diagnostic folds reuse the source compilation without parsing a transport projection."
 msgstr "验证器使用精确的原生源目录及其共享编译理论。回执绑定每个根文档、模块文档和导入文档，包括其源角色与基准。验证仅将声明的基底角色加入数据选择；诊断推导复用源编译结果，无需解析传输投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded consumer failure"
+msgstr "记录数据使用方故障"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational failure while reading, checking, evaluating or reporting explicitly selected recorded inputs, retaining the selected operation and original typed cause."
+msgstr "读取、检查、求值或报告显式选定的记录输入时发生的操作故障，保留所选操作和原始类型化原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for failures of an explicit recorded-input consumer operation."
+msgstr "用于显式记录输入使用操作的故障。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret an operational failure as a semantic verdict."
+msgstr "不要将操作故障解释为语义判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the operation, input focus and complete original cause chain."
+msgstr "保留操作、输入焦点和完整的原始原因链。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class concerns availability of the requested consumer result."
+msgstr "本类描述所请求使用方结果的可用性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure|http://www.w3.org/2004/02/skos/core#example"
+msgid "A missing selected receipt retains its original file-access error."
+msgstr "缺失的所选回执保留其原始文件访问错误。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded consumer boundary"
+msgstr "记录数据使用方边界"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary requiring an explicit recorded-input consumer to preserve every selected input, requested output and original failure cause."
+msgstr "要求显式记录输入使用方保留每项所选输入、所请求输出和原始故障原因的操作边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary enforced by recorded-consumer diagnostics."
+msgstr "用于标识记录数据使用方诊断所执行的边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not repair missing inputs by executing a corpus producer."
+msgstr "不要通过执行语料生产程序来修复缺失输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Admit existing products read-only and fail if any selected operation fails."
+msgstr "以只读方式接纳现有产物，任何所选操作失败时均须报错。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The boundary does not certify current canonical source completeness."
+msgstr "此边界不证明当前规范源的完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report-writing failure prevents successful consumer completion."
+msgstr "报告写入失败时，使用方不得宣告成功完成。"

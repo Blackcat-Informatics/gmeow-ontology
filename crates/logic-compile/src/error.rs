@@ -182,6 +182,7 @@ define_diag_kind! {
     code = "logic-compile.source-parse";
     grade = compile_grade!();
     message = "Failed to parse {} source: {}", format, cause;
+    failure_class = "https://blackcatinformatics.ca/logic/CompilerSourceRefusal";
     source = failure => Some(failure.cause.as_ref());
 }
 
@@ -194,6 +195,7 @@ define_diag_kind! {
     code = "logic-compile.source-read";
     grade = compile_grade!();
     message = "Failed to read {:?}: {}", path, cause;
+    failure_class = "https://blackcatinformatics.ca/logic/CompilerSourceRefusal";
     source = failure => Some(failure.cause.as_ref());
 }
 

@@ -22,6 +22,7 @@ define_diag_kind! {
     code = "pipeline.recorded-input";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "Recorded input {} failed: {}", operation, cause;
+    failure_class = "https://blackcatinformatics.ca/gmeow/RecordedConsumerFailure";
     source = failure => Some(failure.cause.as_ref());
 }
 
