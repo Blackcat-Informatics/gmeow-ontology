@@ -1,4 +1,4 @@
-<https://blackcatinformatics.ca/gmeow/skolem/ab1cf84c6ac413cd2e1e1ccc512bd2d78c422ede> <https://blackcatinformatics.ca/logic/instanceOf> <https://blackcatinformatics.ca/logic/Thing> .
+<https://blackcatinformatics.ca/gmeow/skolem/3d7826eeac0463f1222a12bc14ddcfe48d68955f> <https://blackcatinformatics.ca/logic/instanceOf> <https://blackcatinformatics.ca/logic/Thing> .
 <https://example.org/Animal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Organism> .
 <https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Animal> .
 <https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Organism> .
