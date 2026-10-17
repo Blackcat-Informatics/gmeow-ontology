@@ -184,6 +184,117 @@ fn configuration_catalogue_alone_does_not_authorize_a_proof() {
     );
 }
 
+#[test]
+fn probabilistic_preset_is_retained_as_metatheory_without_a_selected_model() {
+    for typing in ["a", "logic:instanceOf"] {
+        let (admission, projection) = project(&format!(
+            "{PREFIXES}
+             logic:ProbabilisticProfile {typing} logic:ReasoningPreset ;
+                 logic:expandsToFacet logic:ProbabilisticMeasure .
+             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure .
+             ex:subject ex:property ex:object ."
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Complete,
+            "{typing}: {:?}",
+            projection.blockers
+        );
+        let declarations = declarations(&admission);
+        assert_eq!(declarations.len(), 1);
+        assert!(
+            declarations[0]
+                .configuration
+                .uncertainty_measures
+                .contains("ProbabilisticMeasure")
+        );
+        assert!(declarations[0].facts.iter().any(|fact| {
+            fact.predicate == "https://blackcatinformatics.ca/logic/expandsToFacet"
+                && matches!(&fact.object, crate::ir::AtomicTerm::Iri(iri)
+                    if iri == "https://blackcatinformatics.ca/logic/ProbabilisticMeasure")
+        }));
+        let problem = projection.problem.unwrap();
+        assert!(problem.contains("https://example.org/property"));
+        assert!(!problem.contains("ProbabilisticMeasure"));
+        assert!(!problem.contains("ProbabilisticProfile"));
+    }
+}
+
+#[test]
+fn redundant_contract_typing_keeps_the_same_probabilistic_catalogue() {
+    let (admission, projection) = project(&format!(
+        "{PREFIXES}
+         logic:ProbabilisticProfile a logic:ReasoningPreset, logic:ReasoningContract ;
+             logic:expandsToFacet logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .
+         ex:subject ex:property ex:object ."
+    ));
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{:?}",
+        projection.blockers
+    );
+    assert_eq!(declarations(&admission).len(), 1);
+    assert!(!projection.problem.unwrap().contains("ProbabilisticMeasure"));
+}
+
+#[test]
+fn direct_probabilistic_contract_is_a_declaration_without_executing_a_query() {
+    let (admission, projection) = project(&format!(
+        "{PREFIXES}
+         ex:contract a logic:ReasoningContract ; logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .
+         ex:subject ex:property ex:object ."
+    ));
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{:?}",
+        projection.blockers
+    );
+    assert_eq!(declarations(&admission).len(), 1);
+    assert!(!projection.problem.unwrap().contains("/uncertaintyMeasure"));
+}
+
+#[test]
+fn facet_support_does_not_consume_other_facts_about_the_same_resource() {
+    let (_, projection) = project(&format!(
+        "{PREFIXES}
+         logic:ProbabilisticProfile a logic:ReasoningPreset ; logic:expandsToFacet logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure, ex:DomainFacet ; ex:observed ex:value ."
+    ));
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{:?}",
+        projection.blockers
+    );
+    let problem = projection.problem.unwrap();
+    assert!(problem.contains("https://example.org/DomainFacet"));
+    assert!(problem.contains("https://example.org/observed"));
+    assert!(!problem.contains("/UncertaintyMeasure"));
+}
+
+#[test]
+fn probabilistic_preset_catalogue_alone_cannot_authorize_a_proof() {
+    let (admission, projection) = project(&format!(
+        "{PREFIXES}
+         logic:ProbabilisticProfile a logic:ReasoningPreset ; logic:expandsToFacet logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure ."
+    ));
+    assert_eq!(declarations(&admission).len(), 1);
+    assert_eq!(admission.admitted().count(), 0);
+    assert_eq!(projection.status, FofProjectionStatus::Blocked);
+    assert!(projection.problem.is_none());
+    assert!(
+        projection
+            .blockers
+            .iter()
+            .any(|blocker| blocker.code == "EMPTY_SELECTED_THEORY")
+    );
+}
+
 /// Every singleton facet rejects a source that would otherwise choose its last value.
 #[test]
 fn conflicting_singleton_contract_facets_fail_native_admission() {

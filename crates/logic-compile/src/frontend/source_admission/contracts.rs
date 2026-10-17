@@ -16,7 +16,7 @@ impl AdmissionBuilder<'_> {
     /// Retain the native declaration and every selected fact used to read it.
     /// The ordinary proof profile remains explicit and unchanged by these facts.
     pub(super) fn contract_declaration(
-        &self,
+        &mut self,
         root: SourceNode,
         index: usize,
     ) -> SemanticUnitDisposition {
@@ -30,6 +30,7 @@ impl AdmissionBuilder<'_> {
         let mut pending = BTreeSet::from([(root.term, Support::Configuration)]);
         let mut visited = BTreeSet::new();
         let mut facts = BTreeMap::new();
+        let mut facet_support = BTreeSet::new();
         while let Some((term, mode)) = pending.pop_first() {
             if !visited.insert((term, mode)) {
                 continue;
@@ -74,6 +75,16 @@ impl AdmissionBuilder<'_> {
                         "contract configuration depends on facts outside the selected documents",
                     );
                 }
+                if mode == Support::FacetType
+                    && type_fact
+                    && matches!(dataset.resolve(quad.o), TermRef::Iri(iri)
+                        if iri.strip_prefix(LOGIC).is_some_and(crate::frontend::is_facet_class))
+                {
+                    facet_support.insert(SourceStatementBinding {
+                        canonical: quad,
+                        carrier: SourceCarrier::Statement,
+                    });
+                }
                 let assertion = match assertion_from_quad(dataset, quad) {
                     Ok(assertion) => assertion,
                     Err(error) => {
@@ -108,6 +119,7 @@ impl AdmissionBuilder<'_> {
                 "a contract owner has no selected declaration facts",
             );
         }
+        self.definition_support.extend(facet_support);
         SemanticUnitDisposition::ConfigurationDeclaration {
             declaration: Box::new(SourceContractDeclaration {
                 configuration: configuration.clone(),

@@ -254,7 +254,7 @@ is the single source of truth, and the `logic:CompatibilityRule` individuals in 
 | `RuleNoProbabilisticStableModel` | `logic:ProbabilisticMeasure` + `logic:StableModelSemantics` | no calibrated probability mass over the multiple incomparable answer sets stable-model semantics admits |
 | `RuleNoParaconsistentCounterfactualRevision` | a gap/glut-admitting `logic:admissibleValuation` **or** the `logic:BelnapBilattice` truth algebra + `logic:EntrenchmentRevision` | closest-world selection that generates the counterfactual states is undefined over gappy/glutty valuations |
 | `RuleNoClosedWorldInCounterfactual` | `logic:ClosedWorldClosure` (default closure **or** any per-key closure entry) + `logic:EntrenchmentRevision` | the generated counterfactual states are open-ended, so reading absence as falsehood inside them is unsound |
-| `RuleProbabilisticRequiresModel` | `logic:ProbabilisticMeasure` without a declared `logic:ProbabilityModel` | graph-dependent; enforced in the front-end, where the source graph is available (no `RULES` table entry) |
+| `RuleProbabilisticRequiresModel` | evaluating probabilistic facts without an explicitly selected model | execution-dependent; enforced by the native probabilistic evaluator against the query model, not by declaration parsing or a graph-wide model-presence scan (no `RULES` table entry) |
 
 Because the feature model is *computed* rather than enumerated, its correctness is something to be
 **proved over the whole facet space, not spot-checked**. Three layers guard it:

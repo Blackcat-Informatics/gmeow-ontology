@@ -103,8 +103,13 @@ fn rejected_selected_owners_report_malformed_instead_of_missing_semantics() {
 /// Emitting partial IR cannot discard the owner's hard compiler diagnostics.
 fn emitted_owner_ir_does_not_hide_its_compiler_errors() {
     let theory = compile(&format!(
-        "{CONTRACT}\nex:contract logic:uncertaintyMeasure logic:ProbabilisticMeasure ."
+        "{CONTRACT}\nex:contract logic:admissibleValuation logic:AdmitAllFour ;
+            logic:revision logic:EntrenchmentRevision ."
     ));
+    assert!(theory.diagnostics().iter().any(|diagnostic| {
+        diagnostic.code == "UNSUPPORTED_CONTRACT"
+            && diagnostic.severity == crate::frontend::Severity::Error
+    }));
     assert_eq!(theory.program().contracts.len(), 1);
     let admission =
         SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));

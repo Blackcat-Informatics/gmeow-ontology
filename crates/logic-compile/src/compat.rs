@@ -345,8 +345,8 @@ impl CompatibilityRule {
 /// Each entry is one forbidden combination from the LOGIC-CONTRACT.md examples; a
 /// new forbidden combination is one new entry here (and one mirroring
 /// `logic:CompatibilityRule` individual in module.ttl, cross-checked by a test).
-/// The `RuleProbabilisticRequiresModel` rule is graph-dependent (it needs a
-/// declared `logic:ProbabilityModel`), so it lives in the front-end, not here; it
+/// The `RuleProbabilisticRequiresModel` rule depends on the model selected for
+/// an executing probabilistic query, so the native evaluator enforces it; it
 /// has a `logic:CompatibilityRule` individual but no [`CompatibilityRule`] table
 /// entry.
 const RULES: &[CompatibilityRule] = &[
@@ -412,10 +412,9 @@ pub const ALL_RULE_IDS: &[&str] = &[
 /// rule that fires (in table order).  The verdict is [`ContractVerdict::Supported`]
 /// iff none fire.
 ///
-/// This covers only the contract-internal feature model; the graph-dependent
-/// `RuleProbabilisticRequiresModel` (probabilistic measure requires a declared
-/// `logic:ProbabilityModel`) is enforced in the front-end where the source graph
-/// is available.
+/// This covers the contract-internal feature model. The execution-dependent
+/// `RuleProbabilisticRequiresModel` is enforced by the native probabilistic
+/// evaluator against the query-selected model, not by configuration parsing.
 pub fn check(contract: &ReasoningContract) -> ContractVerdict {
     let reasons: Vec<String> = RULES
         .iter()
