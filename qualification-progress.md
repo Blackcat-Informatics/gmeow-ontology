@@ -1,0 +1,7 @@
+The implementation now passes49 selected producer-independent Make tests and strict final affected all-target Clippy. The actual source-to-enactment cases include all node kinds and the formerly failing required-single metadata comparison, using native SPARQL equality rather than a stored relation or RDF-identity shortcut. Numeric-equivalent literal spellings, expression-error pruning, scopes and exact finding identity are covered.
+
+Compiler safety explicitly rejects an unguarded universal rather than lowering it as an existential NAF probe. Native operational causes survive the ordinary, joint, annotated and dispatch refusal boundaries as typed diagnostics; the obsolete text-only helper is removed. Canonical annotation-role restrictions and source laws remain unchanged.
+
+The required native equality prerequisite merged as PurRDF592. Its local native/query/WASM and allocation-refusal checks passed, with exact archived evidence. The root/fuzz native cohorts are synchronized to that merged commit. PurRDF588's real optimized package and Python jobs now pass and the issue is closed; the distinct imported-closure replay defect is owned by591.
+
+The explicit tiny reason/conjecture witness refresh is running. After its read-only consumers and normal hooks, publish this GMEOW PR and merge only via ghprsq under existing authority. Actual hosted generation/fixture-prefix acceptance remains separate and unqualified; keep1843 open until it passes. The full logic backlog remains active.

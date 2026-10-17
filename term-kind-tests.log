@@ -1,0 +1,197 @@
+    Blocking waiting for file lock on package cache
+   Compiling typenum v1.20.1
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling cpufeatures v0.3.0
+   Compiling regex-syntax v0.8.11
+   Compiling const-oid v0.10.2
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling either v1.17.0
+   Compiling getrandom v0.3.4
+   Compiling fastrand v2.5.0
+   Compiling libc v0.2.189
+   Compiling serde_core v1.0.229
+   Compiling crossbeam-utils v0.8.22
+   Compiling cmov v0.5.4
+   Compiling cpubits v0.1.1
+   Compiling twox-hash v2.1.3
+   Compiling visual-hashing v1.0.0
+   Compiling once_cell v1.21.4
+   Compiling rustix v1.1.4
+   Compiling getrandom v0.4.3
+   Compiling zerocopy v0.8.55
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.1
+   Compiling constant_time_eq v0.4.2
+   Compiling arrayref v0.3.9
+   Compiling arrayvec v0.7.8
+   Compiling allocator-api2 v0.2.21
+   Compiling foldhash v0.1.5
+   Compiling hybrid-array v0.4.15
+   Compiling crossbeam-epoch v0.9.20
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling ctutils v0.4.2
+   Compiling structured-zstd v0.0.49
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling generic-array v0.14.7
+   Compiling blake3 v1.8.5
+   Compiling quote v1.0.47
+   Compiling hashbrown v0.15.5
+   Compiling num-traits v0.2.19
+   Compiling rustversion v1.0.23
+   Compiling semver v1.0.28
+   Compiling rand_core v0.9.5
+   Compiling derive_more-impl v2.1.1
+   Compiling smallvec v1.15.2
+   Compiling crossbeam-deque v0.8.7
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling inout v0.2.2
+   Compiling crypto-common v0.1.7
+   Compiling rayon-core v1.13.0
+   Compiling block-buffer v0.10.4
+   Compiling proc-macro-error-attr3 v3.1.1
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling serde_spanned v1.1.1
+   Compiling rustc_version v0.4.1
+   Compiling anstyle v1.0.14
+   Compiling clap_lex v1.1.0
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling ciborium-io v0.2.2
+   Compiling digest v0.10.7
+   Compiling bincode-next v3.1.1
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/bundle-import)
+   Compiling wait-timeout v0.2.1
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling toml v1.1.3+spec-1.1.0
+   Compiling syn v2.0.119
+   Compiling clap_builder v4.6.2
+   Compiling rapidhash v4.5.1
+   Compiling itertools v0.10.5
+   Compiling gungraun-macros v0.9.1
+   Compiling fnv v1.0.7
+   Compiling digest v0.11.3
+   Compiling cipher v0.5.2
+   Compiling universal-hash v0.6.1
+   Compiling aead v0.6.1
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling sha2 v0.10.9
+   Compiling either-or-both v0.3.1
+   Compiling sha2 v0.11.0
+   Compiling polyval v0.7.3
+   Compiling pastey v0.2.3
+   Compiling quick-error v1.2.3
+   Compiling aes v0.9.3
+   Compiling ctr v0.10.1
+   Compiling unty-next v0.1.2
+   Compiling bit-vec v0.8.0
+   Compiling same-file v1.0.6
+   Compiling ghash v0.6.0
+   Compiling toml_edit v0.22.27
+   Compiling proc-macro-error3 v3.1.1
+   Compiling gungraun v0.19.4
+   Compiling cast v0.3.0
+   Compiling rayon v1.12.0
+   Compiling walkdir v2.5.0
+   Compiling gungraun-runner v0.19.4
+   Compiling rand_xorshift v0.4.0
+   Compiling rand v0.9.5
+   Compiling bit-set v0.8.0
+   Compiling console v0.16.4
+   Compiling is-terminal v0.4.17
+   Compiling tracing-core v0.1.36
+   Compiling similar v2.7.0
+   Compiling aes-gcm v0.11.1
+   Compiling pin-project-lite v0.2.17
+   Compiling fixedbitset v0.5.7
+   Compiling anes v0.1.6
+   Compiling oorandom v11.1.5
+   Compiling unarray v0.1.4
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic)
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling chrono v0.4.45
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/lang-form)
+   Compiling memmap2 v0.9.11
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/cost-measure)
+   Compiling petgraph v0.8.3
+   Compiling criterion-plot v0.5.0
+   Compiling tinytemplate v1.2.1
+   Compiling tracing v0.1.44
+   Compiling cargo-config2 v0.1.45
+   Compiling tempfile v3.27.0
+   Compiling regex-automata v0.4.16
+   Compiling half v2.7.1
+   Compiling ppv-lite86 v0.2.21
+   Compiling rusty-fork v0.3.1
+   Compiling insta v1.48.0
+   Compiling ciborium-ll v0.2.2
+   Compiling rand_chacha v0.9.0
+   Compiling ciborium v0.2.2
+   Compiling clap v4.6.4
+   Compiling proptest v1.11.0
+   Compiling derive_more v2.1.1
+   Compiling toml v0.8.23
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/build-inputs)
+   Compiling regex v1.13.1
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling criterion v0.5.1
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/errors)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/action-cache)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/math-lift)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic-compile)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/math)
+    Finished `test` profile [optimized] target(s) in 5m 47s
+     Running unittests src/lib.rs (/opt/.cargo/e2/9768b9c0e36260/debug/build/gmeow-logic/c41c39eeac25c937/out/gmeow_logic-c41c39eeac25c937)
+
+running 8 tests
+test reason::enactment::term_kind_tests::malformed_kind_is_a_diagnostic_not_a_silently_omitted_check ... ok
+
+thread 'reason::enactment::term_kind_tests::required_single_metadata_still_rejects_distinct_iri_values' (2296086) panicked at crates/logic/src/reason/enactment/term_kind.tests.rs:172:5:
+assertion `left == right` failed
+  left: []
+ right: [("https://example.org/bad", "https://example.org/KindLaw", "https://example.org/BadMetadata")]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test reason::enactment::term_kind_tests::iri_kind_rejects_blank_values_without_changing_the_focus_identity ... ok
+test reason::enactment::term_kind_tests::blank_or_iri_kind_accepts_blank_values_and_rejects_literals ... ok
+test reason::enactment::term_kind_tests::predicate_scoped_kind_checks_every_subject_with_the_selected_path ... ok
+test reason::enactment::term_kind_tests::literal_kind_accepts_datatype_language_and_direction_without_coercion ... ok
+test reason::enactment::term_kind_tests::iri_kind_enforces_native_values_and_exact_law_identity ... ok
+test reason::enactment::term_kind_tests::required_single_metadata_still_rejects_distinct_iri_values ... FAILED
+test reason::enactment::term_kind_tests::triple_values_do_not_masquerade_as_any_supported_node_kind ... ok
+
+failures:
+
+failures:
+    reason::enactment::term_kind_tests::required_single_metadata_still_rejects_distinct_iri_values
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 2115 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p gmeow-logic --lib`

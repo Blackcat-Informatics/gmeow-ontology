@@ -1,0 +1,35 @@
+cargo run -p gmeow-reason-wasm --example refresh-witness-reason
+   Compiling wasm-bindgen-shared v0.2.125
+   Compiling bumpalo v3.20.3
+   Compiling indexmap v2.14.0
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling wasm-bindgen v0.2.125
+   Compiling num-traits v0.2.19
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic)
+   Compiling chrono v0.4.45
+   Compiling petgraph v0.8.3
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/math-lift)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic-compile)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/math)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/reason-wasm)
+    Finished `dev` profile [optimized] target(s) in 7m 35s
+     Running `/opt/.cargo/target/1843-logic-lower-node-kind-integrity-into-969323f0/debug/examples/refresh-witness-reason`
+refreshed /home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/reason-wasm/tests/WITNESS.reason.nq (838 bytes)
+refreshed /home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/reason-wasm/tests/WITNESS.conjecture.nq from verified corroborated + refuted-in-standpoint verdicts (34609 bytes)

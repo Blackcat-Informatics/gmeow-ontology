@@ -1,0 +1,44 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --locked -p xtask -E 'binary(issue_refs_lint)' --no-tests=fail
+    Blocking waiting for file lock on build directory
+   Compiling proc-macro2 v1.0.107
+   Compiling libc v0.2.189
+   Compiling once_cell v1.21.4
+   Compiling getrandom v0.4.3
+   Compiling tempfile v3.27.0
+   Compiling quote v1.0.47
+   Compiling syn v3.0.3
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling cargo-config2 v0.1.45
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/errors)
+   Compiling toml_edit v0.22.27
+   Compiling toml v0.8.23
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/build-inputs)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/action-cache)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/xtask)
+    Finished `test` profile [optimized] target(s) in 11m 27s
+────────────
+ Nextest run ID 65f2c1fd-d15e-48b6-a2b1-1b98e016a85c with nextest profile: ci
+    Starting 13 tests across 1 binary (2 binaries skipped)
+        PASS [   0.241s] ( 1/13) xtask::issue_refs_lint cargo_lock_is_excluded_from_the_toml_scan
+        PASS [   0.243s] ( 2/13) xtask::issue_refs_lint foreign_trees_are_excluded_by_being_untracked_and_ignored_not_by_name
+        PASS [   0.244s] ( 3/13) xtask::issue_refs_lint nested_audit_lookalikes_remain_authored_content
+        PASS [   0.245s] ( 4/13) xtask::issue_refs_lint tracked_authored_files_are_scanned_even_when_an_ignore_rule_matches
+        PASS [   0.246s] ( 5/13) xtask::issue_refs_lint rejects_process_provenance_in_branch_added_unscanned_types
+        PASS [   0.249s] ( 6/13) xtask::issue_refs_lint rust_block_scan_stops_at_each_comment_boundary
+        PASS [   0.250s] ( 7/13) xtask::issue_refs_lint untracked_file_without_final_newline_preserves_the_next_file_identity
+        PASS [   0.266s] ( 8/13) xtask::issue_refs_lint accepts_narrow_technical_and_governance_controls
+        PASS [   0.441s] ( 9/13) xtask::issue_refs_lint excludes_only_reproducible_products_and_scratch_state
+        PASS [   0.806s] (10/13) xtask::issue_refs_lint local_audit_material_is_separate_but_tracked_audit_prose_is_checked
+        PASS [   2.375s] (11/13) xtask::issue_refs_lint contextual_controls_do_not_create_general_exemptions
+        PASS [   2.740s] (12/13) xtask::issue_refs_lint the_real_repository_is_clean
+        PASS [   3.676s] (13/13) xtask::issue_refs_lint rejects_process_provenance_on_every_authored_surface
+────────────
+     Summary [   3.709s] 13 tests run: 13 passed, 0 skipped

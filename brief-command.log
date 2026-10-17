@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/.stage/logic-lower-node-kind-integrity-into/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/.stage/logic-lower-node-kind-integrity-into/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/.stage/logic-lower-node-kind-integrity-into/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/.stage/logic-lower-node-kind-integrity-into/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/.stage/logic-lower-node-kind-integrity-into/brief.json  (+ requirements.json, references.json)
+
+  - issue #1843 + 0 comment(s) via github
+  - link crawl: no `#N` references in the issue or its comments
+  - forge search on ['logic:', 'lower', 'node-kind']: 14 other item(s)
+  - GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits
+  - prior attempts: 0 commit(s) citing #1843 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1843: 1
+  - requirement candidates: 3 line(s); 0 comment(s) matched no rule
+  - referenced artifacts: 4 path(s) (3 on disk), 1 identifier(s), 0 workspace package(s), 2 URL(s)

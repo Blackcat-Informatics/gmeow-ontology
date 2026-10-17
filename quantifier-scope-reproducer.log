@@ -1,0 +1,91 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --locked -p gmeow-logic -p gmeow-logic-compile -E 'package(gmeow-logic-compile) & (test(an_existential_kind_binder) | test(a_universal_prohibition))' --no-tests=fail
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 1m 03s
+────────────
+ Nextest run ID e94a9db0-648e-44a0-84e6-8097b43a7631 with nextest profile: ci
+    Starting 2 tests across 2 binaries (1018 tests and 26 binaries skipped)
+        FAIL [   0.006s] (1/2) gmeow-logic-compile relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus
+  stdout ───
+
+    running 1 test
+    test relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus ... FAILED
+
+    failures:
+
+    failures:
+        relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1015 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus' (4001451) panicked at crates/logic-compile/src/relational_core.tests.rs:146:5:
+    assertion failed: rules.is_empty()
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.008s] (2/2) gmeow-logic-compile relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join
+  stdout ───
+
+    running 1 test
+    test relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join ... FAILED
+
+    failures:
+
+    failures:
+        relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1015 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join' (4001453) panicked at crates/logic-compile/src/relational_core.tests.rs:157:5:
+    assertion failed: rules.is_empty()
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.038s] 2 tests run: 0 passed, 2 failed, 1018 skipped
+        FAIL [   0.006s] (1/2) gmeow-logic-compile relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus
+  stdout ───
+
+    running 1 test
+    test relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus ... FAILED
+
+    failures:
+
+    failures:
+        relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1015 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'relational_core::tests::an_existential_kind_binder_cannot_capture_the_outer_focus' (4001451) panicked at crates/logic-compile/src/relational_core.tests.rs:146:5:
+    assertion failed: rules.is_empty()
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.008s] (2/2) gmeow-logic-compile relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join
+  stdout ───
+
+    running 1 test
+    test relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join ... FAILED
+
+    failures:
+
+    failures:
+        relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1015 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'relational_core::tests::a_universal_prohibition_cannot_become_an_existential_join' (4001453) panicked at crates/logic-compile/src/relational_core.tests.rs:157:5:
+    assertion failed: rules.is_empty()
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100

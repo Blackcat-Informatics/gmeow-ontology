@@ -1,0 +1,26 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --locked -p xtask --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+    Checking serde_core v1.0.229
+    Checking libc v0.2.189
+    Checking once_cell v1.21.4
+    Checking getrandom v0.4.3
+    Checking tempfile v3.27.0
+    Checking serde v1.0.229
+    Checking toml_datetime v1.1.1+spec-1.1.0
+    Checking serde_spanned v1.1.1
+    Checking serde_json v1.0.151
+    Checking toml v1.1.3+spec-1.1.0
+    Checking serde_spanned v0.6.9
+    Checking toml_datetime v0.6.11
+    Checking toml_edit v0.22.27
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/errors)
+    Checking cargo-config2 v0.1.45
+    Checking toml v0.8.23
+    Checking gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/build-inputs)
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/action-cache)
+    Checking xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/xtask)
+    Finished `dev` profile [optimized] target(s) in 4m 50s

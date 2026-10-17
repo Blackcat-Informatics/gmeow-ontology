@@ -1,0 +1,32 @@
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 50.42s
+     Running unittests src/lib.rs (/opt/.cargo/e2/9768b9c0e36260/debug/build/gmeow-logic-compile/4dceb6a1dba98aa2/out/gmeow_logic_compile-4dceb6a1dba98aa2)
+
+running 24 tests
+test relational_core::tests::declared_literal_starting_with_question_mark_is_not_a_var ... ok
+test relational_core::tests::horn_floor_lowers_exactly ... ok
+test relational_core::tests::disjunctive_head_is_carried_and_named ... ok
+test relational_core::tests::existential_with_unbound_universal_is_carried_and_named ... ok
+test relational_core::tests::horn_expressible_formula_lowers_to_rcrule_exact ... ok
+test relational_core::tests::distinct_nary_body_atoms_do_not_collide ... ok
+test relational_core::tests::nary_body_atom_lowers_to_reified_rules ... ok
+test relational_core::tests::intrinsic_consequent_requires_a_positive_operand_binding ... ok
+test relational_core::tests::nary_head_atom_derives_a_reified_tuple ... ok
+test relational_core::tests::formula_and_compact_lowering_share_complete_native_body_order ... ok
+test relational_core::tests::nary_head_with_unbound_arg_is_residue ... ok
+test relational_core::tests::malformed_graph_hard_fails ... ok
+test relational_core::tests::negative_kind_consequent_keeps_its_truth_polarity ... ok
+test relational_core::tests::sequence_marker_atom_is_carried_and_named ... ok
+test relational_core::tests::shadowed_universal_is_refused_instead_of_capturing_the_focus ... ok
+test relational_core::tests::formula_derived_rules_round_trip_through_the_graph ... ok
+test relational_core::tests::unsupported_conjunct_never_leaves_a_partially_enforced_law ... ok
+test relational_core::tests::unsupported_construct_becomes_flagged_residue_and_sound_under ... ok
+test relational_core::tests::repeated_body_atom_round_trips_with_distinct_indices ... ok
+test relational_core::tests::residue_round_trips_through_the_graph ... ok
+test relational_core::tests::nary_head_rule_with_duplicate_rc_index_is_rejected ... ok
+test relational_core::tests::projection_is_byte_deterministic ... ok
+test relational_core::tests::projection_round_trips_through_the_graph ... ok
+test relational_core::tests::nary_head_rule_round_trips_through_the_graph ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 987 filtered out; finished in 0.00s
+

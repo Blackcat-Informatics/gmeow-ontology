@@ -1,0 +1,23 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.................................................................Passed
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2....................................(no files to check)Skipped
+shellcheck...............................................................Passed
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1843-logic-lower-node-kind-integrity-into a0b0deb02] Execute native node-kind integrity checks
+ 34 files changed, 1395 insertions(+), 285 deletions(-)
+ create mode 100644 crates/logic-compile/src/ir/term_kind.rs
+ create mode 100644 crates/logic/src/reason/enactment/term_kind.tests.rs

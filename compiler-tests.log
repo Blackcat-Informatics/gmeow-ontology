@@ -1,0 +1,59 @@
+   Compiling either v1.17.0
+   Compiling proc-macro2 v1.0.107
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling getrandom v0.3.4
+   Compiling rayon v1.12.0
+   Compiling serde_json v1.0.151
+   Compiling quote v1.0.47
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling syn v3.0.3
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling serde_derive v1.0.229
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=50172ad5534f409220f340ac0c6b3da581d577e0#50172ad5)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/ns)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/term-arena)
+   Compiling insta v1.48.0
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/errors)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic-compile)
+    Finished `test` profile [optimized] target(s) in 1m 12s
+     Running unittests src/lib.rs (/opt/.cargo/e2/9768b9c0e36260/debug/build/gmeow-logic-compile/4dceb6a1dba98aa2/out/gmeow_logic_compile-4dceb6a1dba98aa2)
+
+running 24 tests
+test relational_core::tests::declared_literal_starting_with_question_mark_is_not_a_var ... ok
+test relational_core::tests::horn_floor_lowers_exactly ... ok
+test relational_core::tests::existential_with_unbound_universal_is_carried_and_named ... ok
+test relational_core::tests::disjunctive_head_is_carried_and_named ... ok
+test relational_core::tests::horn_expressible_formula_lowers_to_rcrule_exact ... ok
+test relational_core::tests::distinct_nary_body_atoms_do_not_collide ... ok
+test relational_core::tests::nary_body_atom_lowers_to_reified_rules ... ok
+test relational_core::tests::intrinsic_consequent_requires_a_positive_operand_binding ... ok
+test relational_core::tests::nary_head_atom_derives_a_reified_tuple ... ok
+test relational_core::tests::negative_kind_consequent_keeps_its_truth_polarity ... ok
+test relational_core::tests::malformed_graph_hard_fails ... ok
+test relational_core::tests::formula_and_compact_lowering_share_complete_native_body_order ... ok
+test relational_core::tests::sequence_marker_atom_is_carried_and_named ... ok
+test relational_core::tests::nary_head_with_unbound_arg_is_residue ... ok
+test relational_core::tests::formula_derived_rules_round_trip_through_the_graph ... ok
+test relational_core::tests::shadowed_universal_is_refused_instead_of_capturing_the_focus ... ok
+test relational_core::tests::unsupported_construct_becomes_flagged_residue_and_sound_under ... ok
+test relational_core::tests::unsupported_conjunct_never_leaves_a_partially_enforced_law ... ok
+test relational_core::tests::projection_is_byte_deterministic ... ok
+test relational_core::tests::repeated_body_atom_round_trips_with_distinct_indices ... ok
+test relational_core::tests::residue_round_trips_through_the_graph ... ok
+test relational_core::tests::projection_round_trips_through_the_graph ... ok
+test relational_core::tests::nary_head_rule_round_trips_through_the_graph ... ok
+test relational_core::tests::nary_head_rule_with_duplicate_rc_index_is_rejected ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 987 filtered out; finished in 0.00s
+

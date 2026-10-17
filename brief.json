@@ -1,0 +1,113 @@
+{
+  "issue": 1843,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "logic: lower node-kind integrity into executable violation rules",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {},
+  "link_relations": {},
+  "related": [
+    {
+      "number": 1203,
+      "title": "META-EPIC \u2014 Every prior formalism is a projection of one logic: IR (the outward lattice)",
+      "state": "OPEN"
+    },
+    {
+      "number": 1657,
+      "title": "math: tighten the signed radial-field value constraints and register the flagship scenes",
+      "state": "OPEN"
+    },
+    {
+      "number": 1336,
+      "title": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+      "state": "OPEN"
+    },
+    {
+      "number": 1194,
+      "title": "V4 \u2014 Equivalence-before-deletion: retire hand-authored shapes.ttl + structural ShEx",
+      "state": "OPEN"
+    },
+    {
+      "number": 1704,
+      "title": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+      "state": "OPEN"
+    },
+    {
+      "number": 1757,
+      "title": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1770,
+      "title": "feat: certify and precompile the complete canon for consumer proof",
+      "state": "OPEN"
+    },
+    {
+      "number": 1638,
+      "title": "[term] Durable work orchestration, plan refinement, decision support, and external-effect saga vocabulary",
+      "state": "OPEN"
+    },
+    {
+      "number": 1741,
+      "title": "logic: complete typed correspondence execution and law-bearing source recovery",
+      "state": "OPEN"
+    },
+    {
+      "number": 1755,
+      "title": "[bug] Compact LogicAxiom lowering collapses distinct RDF literal identities",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1088,
+      "title": "F1 \u2014 Correspondence IR + relational-core dialect (the spine)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1427,
+      "title": "logic: shared content-addressed structured-term arena for logic:/lang:/math: (hash-consed term DAG, binder-aware)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1087,
+      "title": "META-EPIC: The Correspondence Calculus + native logic execution engine",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 10,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 2,
+    "consumer-artifact-path-coupling": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1466,
+        "title": "chore(deps): bump typer from 0.26.7 to 0.26.8",
+        "state": "CLOSED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1466",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1843-logic-lower-node-kind-integrity-into"
+  },
+  "coverage": [
+    "issue #1843 + 0 comment(s) via github",
+    "link crawl: no `#N` references in the issue or its comments",
+    "forge search on ['logic:', 'lower', 'node-kind']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1843 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1843: 1",
+    "requirement candidates: 3 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 4 path(s) (3 on disk), 1 identifier(s), 0 workspace package(s), 2 URL(s)"
+  ]
+}

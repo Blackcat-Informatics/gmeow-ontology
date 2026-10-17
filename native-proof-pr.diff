@@ -1,0 +1,307 @@
+diff --git a/Makefile b/Makefile
+index 2ba084eda..91b0a2ba9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -730,6 +730,7 @@ wasm-test: ## Execute WASM dispatch, SIMD kernels, shadow-stack, host-interface
+ 		&& CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=$(CURDIR)/scripts/wasm-test-runner.sh \
+ 			cargo test --locked --target wasm32-unknown-unknown -p purrdf-validate --test dl_proof_vectors -- --exact \
+ 				all_shared_dl_proof_vectors_match_the_current_native_boundary \
++				imported_closure_proofs_check_against_the_consumers_native_snapshot \
+ 		&& CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=$(CURDIR)/scripts/wasm-test-runner.sh \
+ 			cargo test --locked --target wasm32-unknown-unknown -p purrdf-entail --test current_clash_support -- --exact \
+ 				current_clash_preserves_named_and_scoped_blank_source_identity \
+diff --git a/crates/cli/src/consistency.rs b/crates/cli/src/consistency.rs
+index ebb0ad000..0852b7b88 100644
+--- a/crates/cli/src/consistency.rs
++++ b/crates/cli/src/consistency.rs
+@@ -60,7 +60,7 @@
+ use std::path::Path;
+ 
+ use purrdf_rdf::{JsonLdSerializeOptions, SourceFormat};
+-use purrdf_validate::regime::{ReasonerSession, ReasoningAnswer, check_dl_proof};
++use purrdf_validate::regime::{ReasonerSession, ReasoningAnswer};
+ 
+ use crate::argv_documents::{ImportRole, import_readers, parse_import_pairs, refuse_shared_stdin};
+ use crate::cli::{CliRdfFormat, LedgerTarget, refuse_document_flags};
+@@ -181,14 +181,7 @@ pub(crate) fn run(
+         rendered.push_str(answer.proof_document());
+     }
+     if let Some(path) = options.check_proof {
+-        // A proof binds the ontology it was produced over, and with an import table that is
+-        // the merge rather than the input as written.
+-        let reasoned = if table.is_empty() {
+-            document
+-        } else {
+-            session.premise_nquads().map_err(CliError::Runtime)?
+-        };
+-        rendered.push_str(&check_supplied_proof(path, &reasoned, &answer)?);
++        rendered.push_str(&check_supplied_proof(path, &session, &answer)?);
+     }
+     sink::write_out("-", rendered.as_bytes())?;
+ 
+@@ -220,20 +213,20 @@ pub(crate) fn run(
+ /// left the exit code at zero would be a check a script could not act on.
+ fn check_supplied_proof(
+     path: &Path,
+-    document: &str,
++    session: &ReasonerSession,
+     answer: &ReasoningAnswer,
+ ) -> Result<String, CliError> {
+     let proof = std::fs::read_to_string(path)
+         .map_err(|error| CliError::Runtime(format!("--check-proof {}: {error}", path.display())))?;
+-    check_dl_proof(
+-        document,
+-        "consistency",
+-        "",
+-        answer.answer(),
+-        answer.certificate(),
+-        &proof,
+-    )
+-    .map_err(|error| CliError::Runtime(format!("--check-proof {}: {error}", path.display())))
++    session
++        .check_proof(
++            "consistency",
++            "",
++            answer.answer(),
++            answer.certificate(),
++            &proof,
++        )
++        .map_err(|error| CliError::Runtime(format!("--check-proof {}: {error}", path.display())))
+ }
+ 
+ /// Read `options.input` through the CLI's own format resolution and re-serialize it as
+diff --git a/crates/validate/src/regime.rs b/crates/validate/src/regime.rs
+index fc7baccf9..04e221532 100644
+--- a/crates/validate/src/regime.rs
++++ b/crates/validate/src/regime.rs
+@@ -2318,9 +2318,9 @@ impl ReasonerSession {
+     /// The ontology this session reasons over — the premise merged with its imports closure
+     /// when [`Self::open_premise`] resolved one — as canonical (RDFC-1.0) N-Quads.
+     ///
+-    /// The document a consumer hands [`check_dl_proof`] to check a proof this session
+-    /// recorded: a proof binds the ontology it was produced over, and for an importing
+-    /// premise that is the merge rather than the text the caller wrote.
++    /// This is a data export, not a copy of the native checking context: canonical
++    /// ordering can change first-seen DL term identifiers. Check a proof against
++    /// this session's actual resolved source with [`Self::check_proof`].
+     ///
+     /// # Errors
+     ///
+@@ -2330,6 +2330,35 @@ impl ReasonerSession {
+         caller_flat_nquads(&self.dataset, "the reasoned premise")
+     }
+ 
++    /// Check a supplied proof against this consumer's actual parsed/imported source.
++    ///
++    /// Builds a fresh checking context from the frozen dataset, without a search
++    /// or a serialization/reparse that could change native term coordinates.
++    /// This session need not record proofs; neither its search state nor a
++    /// producer's context participates in checking. All proof, question, answer
++    /// and certificate checks are the same as [`check_dl_proof`].
++    ///
++    /// # Errors
++    /// The refusals of [`check_dl_proof`], over this session's source snapshot.
++    pub fn check_proof(
++        &self,
++        service: &str,
++        argument: &str,
++        answer: &str,
++        certificate: &str,
++        proof: &str,
++    ) -> Result<String, String> {
++        check_dl_proof_from_source(
++            || Ok(std::sync::Arc::clone(&self.dataset)),
++            self.resolved_imports,
++            service,
++            argument,
++            answer,
++            certificate,
++            proof,
++        )
++    }
++
+     /// Whether this session records proof terms.
+     #[must_use]
+     pub const fn records_proofs(&self) -> bool {
+@@ -4704,14 +4733,39 @@ pub fn check_dl_proof(
+     answer: &str,
+     certificate: &str,
+     proof: &str,
++) -> Result<String, String> {
++    check_dl_proof_from_source(
++        || {
++            purrdf_rdf::parse_dataset(document.as_bytes(), INPUT_MEDIA_TYPE, None)
++                .map_err(|diagnostic| diagnostic.to_string())
++        },
++        false,
++        service,
++        argument,
++        answer,
++        certificate,
++        proof,
++    )
++}
++
++fn check_dl_proof_from_source(
++    source: impl FnOnce() -> Result<std::sync::Arc<purrdf_rdf::RdfDataset>, String>,
++    resolved_imports: bool,
++    service: &str,
++    argument: &str,
++    answer: &str,
++    certificate: &str,
++    proof: &str,
+ ) -> Result<String, String> {
+     let asked = parse_proof_service(service)?;
+     let term = decode_dl_proof(proof)?;
+-    let dataset = purrdf_rdf::parse_dataset(document.as_bytes(), INPUT_MEDIA_TYPE, None)
+-        .map_err(|diagnostic| diagnostic.to_string())?;
++    let dataset = source()?;
+     // The consumer's own reverse mapping, never the producer's: this is the step that rests on
+     // the `refutation-encoding` and `reverse-mapping` entries the report names.
+     let mut reasoner = Reasoner::with_proofs(&dataset).map_err(|e| format!("reasoner: {e}"))?;
++    if resolved_imports {
++        reasoner = reasoner.with_resolved_imports();
++    }
+     let question = proof_question(&reasoner, asked, argument)?;
+     reasoner
+         .prepare(&question)
+diff --git a/crates/validate/tests/dl_proof_vectors.rs b/crates/validate/tests/dl_proof_vectors.rs
+index babb218e0..e78463eae 100644
+--- a/crates/validate/tests/dl_proof_vectors.rs
++++ b/crates/validate/tests/dl_proof_vectors.rs
+@@ -10,4 +10,111 @@ fn all_shared_dl_proof_vectors_match_the_current_native_boundary() {
+     purrdf_validate::regime::check_dl_proof_golden_vectors().unwrap();
+ }
+ 
+-purrdf_testkit::harness_main!(all_shared_dl_proof_vectors_match_the_current_native_boundary);
++fn imported_closure_proofs_check_against_the_consumers_native_snapshot() {
++    use purrdf_iri::vocab::{owl, rdf, rdfs};
++    use purrdf_validate::regime::ReasonerSession;
++
++    for (blank, derived) in [(false, false), (true, false), (false, true)] {
++        let subject = if blank {
++            "_:tom"
++        } else {
++            "<http://example.org/tom>"
++        };
++        let extra = if derived {
++            format!("{subject} <http://example.org/p> <http://example.org/jerry> .\n")
++        } else {
++            format!("{subject} <{}> <http://example.org/Dog> .\n", rdf::TYPE)
++        };
++        let premise = format!(
++            "<http://example.org/o> <{}> <{}> .\n<http://example.org/o> <{}> <http://example.org/schema> .\n{subject} <{}> <http://example.org/Cat> .\n{extra}",
++            rdf::TYPE,
++            owl::ONTOLOGY,
++            owl::IMPORTS,
++            rdf::TYPE,
++        );
++        let domain = if derived {
++            format!(
++                "<http://example.org/p> <{}> <http://example.org/Dog> .\n",
++                rdfs::DOMAIN
++            )
++        } else {
++            String::new()
++        };
++        // Equal blank labels in different source documents must not alias.
++        let unrelated = if blank {
++            format!("_:tom <{}> <http://example.org/Noise> .\n", rdf::TYPE)
++        } else {
++            String::new()
++        };
++        let schema = format!(
++            "<http://example.org/Cat> <{}> <http://example.org/Dog> .\n{domain}{unrelated}",
++            owl::DISJOINT_WITH,
++        );
++        let imports = [("http://example.org/schema", schema.as_str())];
++        let produced = {
++            let mut producer =
++                ReasonerSession::open_premise(&premise, &imports, &[], 0, 0, true).unwrap();
++            producer.prove("consistency", "").unwrap()
++        };
++        assert_eq!(produced.answer(), "consistency false\n");
++        // This is an independent consumer source load, with no recording or
++        // previous search. It shares neither a context nor a store with the producer.
++        let consumer = ReasonerSession::open_premise(&premise, &imports, &[], 0, 0, false).unwrap();
++        assert!(!consumer.records_proofs());
++        let checked = consumer
++            .check_proof(
++                "consistency",
++                "",
++                produced.answer(),
++                produced.certificate(),
++                produced.proof_document(),
++            )
++            .unwrap();
++        assert!(checked.contains("\nanswer checked 0\n"), "{checked}");
++        assert!(checked.contains("\nunattested 0\n"), "{checked}");
++        assert!(
++            consumer
++                .check_proof(
++                    "consistency",
++                    "",
++                    "consistency true\n",
++                    produced.certificate(),
++                    produced.proof_document(),
++                )
++                .is_err()
++        );
++        let forged = produced.proof_document().replacen("input ", "input 0", 1);
++        assert_ne!(forged, produced.proof_document());
++        assert!(
++            consumer
++                .check_proof(
++                    "consistency",
++                    "",
++                    produced.answer(),
++                    produced.certificate(),
++                    &forged,
++                )
++                .is_err()
++        );
++        let other_schema = schema.replace(owl::DISJOINT_WITH, rdfs::SUB_CLASS_OF);
++        let other_imports = [("http://example.org/schema", other_schema.as_str())];
++        let other =
++            ReasonerSession::open_premise(&premise, &other_imports, &[], 0, 0, false).unwrap();
++        assert!(
++            other
++                .check_proof(
++                    "consistency",
++                    "",
++                    produced.answer(),
++                    produced.certificate(),
++                    produced.proof_document(),
++                )
++                .is_err()
++        );
++    }
++}
++
++purrdf_testkit::harness_main!(
++    all_shared_dl_proof_vectors_match_the_current_native_boundary,
++    imported_closure_proofs_check_against_the_consumers_native_snapshot,
++);
+diff --git a/docs/WASM_TESTING.md b/docs/WASM_TESTING.md
+index 7cff3d97e..d56918783 100644
+--- a/docs/WASM_TESTING.md
++++ b/docs/WASM_TESTING.md
+@@ -9,8 +9,8 @@ conformance. `make check` executes their complete registered targets through
+ crates for `wasm32-unknown-unknown`. `make wasm-pkg-test` exercises the optimized
+ package, JavaScript bindings and identity ABI; CI also runs the Worker recipe.
+ 
+-`make wasm-test` selects 145 named cases in 25 integration targets,
+-with 150 executions across 29 scalar/SIMD target invocations. Every selection
++`make wasm-test` selects 146 named cases in 25 integration targets,
++with 151 executions across 29 scalar/SIMD target invocations. Every selection
+ exercises an actual WASM dispatch path, SIMD kernel, shadow-stack floor or host
+ interface, except the numeric, sentence and MIME byte-identity targets and the
+ Turtle-chain, regular-role, evidence, real-producer, physical-shape and graph-free
+@@ -87,6 +87,7 @@ admission refusal, and does not repeat semantic vectors or benchmark fixtures.
+ | `purrdf-entail` / `recorded_stop` | scalar | All seven exact cases registered in `make wasm-test` | Checks one caller signal through canonical identity, every observed ontology-preparation poll and decision search; preserves completed proof identity/replay and selected preparation ceilings, and reports cancellation without a semantic verdict. |
+ | `purrdf-entail` / `current_clash_support` | scalar | All five exact cases registered in `make wasm-test` | Checks source-bound ordinary clash replay, named/scoped-blank identities and disconnected controls, public service/certificate parity, generated existential nodes, nominal equality and fresh refutation assumptions through the shared support arena. |
+ | `purrdf-validate` / `dl_proof_vectors` | scalar | `all_shared_dl_proof_vectors_match_the_current_native_boundary` | Runs all sixteen shared service/schema proof vectors through the same producer/checker invoked by the packaged WASM golden entry, including exact canonical proof bytes and replay reports. |
++| `purrdf-validate` / `dl_proof_vectors` | scalar | `imported_closure_proofs_check_against_the_consumers_native_snapshot` | Checks independently loaded imported-source proofs against the consumer's original snapshot, including an IRI, document-scoped equal blank labels and role-derived membership; rejects changed source, wrong verdict and altered proof. |
+ | `purrdf-hnsw` / `wasm_reassociated` | scalar + SIMD | `an_image_recorded_on_another_wasm_path_is_refused_by_name` | Refuses an image naming a different WASM arithmetic path with its typed admission error. |
+ | `purrdf-hnsw` / `wasm_reassociated` | scalar + SIMD | `the_image_records_the_path_and_shape_this_build_was_made_for` | Records wasm32 and the actual SIMD feature bit and arithmetic path in the image. |
+ | `purrdf-hash-conformance` / `hex` | SIMD | `every_path_matches_portable` | Explicitly calls the wasm simd128 encoder over lengths, alignments and write boundaries and asserts its selection. |

@@ -1,0 +1,52 @@
+    Updating git repository `https://github.com/Blackcat-Informatics/purrdf`
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic)
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/lang-form)
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/errors)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e#0c8ceac5)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/term-arena)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/gts-profile)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/ns)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/bundle-import)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/math-lift)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/logic-compile)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1843-logic-lower-node-kind-integrity-into/crates/math)
+error[E0599]: no method named `as_str` found for struct `gmeow_errors::Code` in the current scope
+  --> crates/logic/src/reason/builtin_gap.tests.rs:32:40
+   |
+32 |     assert_eq!(diagnostic.inner().code.as_str(), "logic.native-builtin");
+   |                                        ^^^^^^ method not found in `gmeow_errors::Code`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `gmeow-logic` (lib test) due to 1 previous error

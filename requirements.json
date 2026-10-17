@@ -1,0 +1,38 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 15,
+      "rules": [
+        "modal"
+      ],
+      "text": "2. Preserve existing comparison/required-single failure metadata and the structural annotation-versus-logical-role invariant; do not weaken source policy or enactment completeness.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 16,
+      "rules": [
+        "modal"
+      ],
+      "text": "3. Run affected managed Make checks and ordinary hooks; no test may regenerate the corpus. Hosted producer/generation and fixture-prefix lanes must qualify the production authored constraint. Local optimized producer/full GMEOW gate remains outside current authority.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 19,
+      "rules": [
+        "modal"
+      ],
+      "text": "Principles4,7,17: one canonical logic source, executable enforcement, generated validation surfaces. This follow-up is required work; it does not close the larger logic or native-engine integration backlog.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    }
+  ],
+  "silent_comments": []
+}

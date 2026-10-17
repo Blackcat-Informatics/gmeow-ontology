@@ -1,0 +1,3 @@
+The implementation uses the existing native comparator directly, preserving expression errors, operational refusals, and the caller's workspace authority. Native and actual WASM comparison tests, allocation-refusal checks, strict Clippy, and normal hooks passed.
+
+The review was a self-review. CodeRabbit had not submitted a completed review at integration, so no independent approval is claimed. The downstream integrity implementation remains separate work.
