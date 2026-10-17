@@ -259,10 +259,11 @@ is exact by enumeration — `#P-hard` in general, which the contract's certified
 The further governing requirements (the named failure mode this prevents — treating un-modelled
 metadata as a probability model):
 
-> A declared `logic:probabilityModel` is **required**. A probabilistic query with probabilistic facts
-> but **no** declared model returns `information = not-evaluated` (no probabilistic semantics was
-> available — it is **not** the genuine `neither`) together with `evaluation = unsupported`, which
-> marks the gap — it never silently assumes independence. A `logic:confidence` (or `logic:weight`, or
+> The query must explicitly select its probability model; a `logic:ProbabilityModel` merely
+> present elsewhere in the graph cannot authorize it. Probabilistic facts with **no** query-selected
+> model return public status `unknown` with no marginals. The typed result records
+> `information = not-evaluated` (not the genuine `neither`) and `evaluation = unsupported`;
+> it never silently assumes independence. A `logic:confidence` (or `logic:weight`, or
 > `logic:evidenceStrength`) annotation is **never** read as a probability: a confidence-annotated fact
 > is an asserted (deterministic) fact whose annotation is metadata, so its marginal is `1.0`, not the
 > confidence value.
