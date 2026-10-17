@@ -8,8 +8,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
 use gmeow_logic_compile::frontend::{
-    CompiledTheory, LogicParseError, PreparedLogicSource, SourceBase, SourceBaseOrigin,
-    SourceDocument,
+    CompiledTheory, PreparedLogicSource, SourceBase, SourceBaseOrigin, SourceDocument,
 };
 use purrdf::{CompositeDatasetView, RdfDataset, TermId, ViewLimits};
 
@@ -220,10 +219,11 @@ impl SourceCatalog {
         if let Some(compiled) = cached.as_ref() {
             return Ok(compiled.clone());
         }
-        let compiled =
-            Arc::new(self.prepare_logic()?.into_compiled(None).map_err(|error| {
-                stage_error(format!("compile selected source catalog: {error}"))
-            })?);
+        let compiled = Arc::new(
+            self.prepare_logic()?
+                .into_compiled(None)
+                .map_err(|error| error.with_context("compile selected source catalog"))?,
+        );
         *cached = Some(compiled.clone());
         Ok(compiled)
     }
@@ -248,9 +248,7 @@ impl SourceCatalog {
         let compiled = Arc::new(
             self.prepare_document(path)?
                 .into_compiled(source_iri)
-                .map_err(|error| {
-                    stage_error(format!("compile selected document {path}: {error}"))
-                })?,
+                .map_err(|error| error.with_context(format!("compile selected document {path}")))?,
         );
         if cache.len() < MAX_DOCUMENT_COMPILATIONS {
             cache.insert(key, compiled.clone());
@@ -268,8 +266,7 @@ impl SourceCatalog {
             .position(|source| source.relative_path == path)
             .ok_or_else(|| stage_error(format!("unknown source document {path:?}")))?;
         let mut prepared =
-            PreparedLogicSource::new(&self.sources.sources()[index].ingested.dataset)
-                .map_err(|error| stage_error(error.0))?;
+            PreparedLogicSource::new(&self.sources.sources()[index].ingested.dataset)?;
         self.record_document(&mut prepared, index, Ok)?;
         Ok(prepared)
     }
@@ -278,8 +275,7 @@ impl SourceCatalog {
     /// Original document and graph occurrences survive union deduplication. Every
     /// mapping uses the actual composite and canonicalization maps, never labels.
     pub fn prepare_logic(&self) -> gmeow_errors::Result<PreparedLogicSource> {
-        let mut prepared =
-            PreparedLogicSource::new(&self.materialized).map_err(|error| stage_error(error.0))?;
+        let mut prepared = PreparedLogicSource::new(&self.materialized)?;
         for index in 0..self.receipts.len() {
             self.record_document(&mut prepared, index, |term| {
                 self.materialized_term_at(index, term)
@@ -292,14 +288,10 @@ impl SourceCatalog {
         &self,
         prepared: &mut PreparedLogicSource,
         index: usize,
-        mut selection_term: impl FnMut(TermId) -> gmeow_errors::Result<TermId>,
+        selection_term: impl FnMut(TermId) -> gmeow_errors::Result<TermId>,
     ) -> gmeow_errors::Result<()> {
         let original = &self.sources.sources()[index].ingested.dataset;
-        prepared
-            .record_document(self.receipts[index].clone(), original, |term| {
-                selection_term(term).map_err(|error| LogicParseError(error.to_string()))
-            })
-            .map_err(|error| stage_error(error.0))
+        prepared.record_document(self.receipts[index].clone(), original, selection_term)
     }
 
     /// Resolve a term from the exact original document into the aggregate selection.

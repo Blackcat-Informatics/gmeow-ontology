@@ -187,19 +187,38 @@ fn has_axiom(
 #[test]
 fn parse_empty_graph_raises() {
     let err = parse_logic_str(PREFIXES, None).unwrap_err();
-    assert!(err.0.contains("empty"), "got: {}", err.0);
+    assert!(err.message().contains("empty"), "got: {}", err.message());
+    assert!(err.is::<crate::error::Frontend>());
+    assert_eq!(
+        gmeow_errors::code::code_str(err.code()),
+        "logic-compile.frontend"
+    );
 }
 
 #[test]
 fn parse_nonexistent_file_raises() {
-    let err = parse_logic_path(Path::new("/no/such/file-xyz.ttl"), None).unwrap_err();
-    assert!(err.0.contains("does not exist"));
+    let path = Path::new("/no/such/file-xyz.ttl");
+    let err = parse_logic_path(path, None).unwrap_err();
+    assert_eq!(
+        gmeow_errors::code::code_str(err.code()),
+        "logic-compile.source-read"
+    );
+    let failure = err.downcast_ref::<crate::error::SourceRead>().unwrap();
+    assert_eq!(failure.path, path);
+    assert_eq!(failure.cause.kind(), std::io::ErrorKind::NotFound);
 }
 
 #[test]
 fn parse_invalid_turtle_raises() {
     let err = parse_logic_str("this is not turtle <<<", None).unwrap_err();
-    assert!(err.0.contains("Failed to parse"));
+    assert!(err.message().contains("Failed to parse"));
+    assert_eq!(
+        gmeow_errors::code::code_str(err.code()),
+        "logic-compile.source-parse"
+    );
+    let failure = err.downcast_ref::<crate::error::SourceParse>().unwrap();
+    assert_eq!(failure.format, "Turtle");
+    assert!(!failure.cause.to_string().is_empty());
 }
 
 // ── Trivially-Horn top-level formula routing (F2) ─────────────────────────────

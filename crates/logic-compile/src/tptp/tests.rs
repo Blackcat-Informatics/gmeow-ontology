@@ -3,12 +3,13 @@
 
 use std::collections::BTreeSet;
 
+use gmeow_errors::Diag;
 use purrdf::{CompositeDatasetView, ViewLimits, parse_dataset};
 
 use super::{FofProjectionStatus, project_tptp_fof};
 use crate::frontend::{
-    DocumentSelection, LogicParseError, PreparedLogicSource, SourceAdmission, SourceBase,
-    SourceBaseOrigin, SourceDocument, SourceSelection,
+    DocumentSelection, PreparedLogicSource, SourceAdmission, SourceBase, SourceBaseOrigin,
+    SourceDocument, SourceSelection,
 };
 
 #[path = "cardinality.tests.rs"]
@@ -74,10 +75,12 @@ fn compile_documents(
                     .as_ref()
                     .term_id_by_value(&value)
                     .ok_or_else(|| {
-                        LogicParseError(format!(
-                            "source term in {:?} has no materialized binding",
-                            receipt.path
-                        ))
+                        Diag::of_kind(crate::error::Frontend {
+                            detail: format!(
+                                "source term in {:?} has no materialized binding",
+                                receipt.path
+                            ),
+                        })
                     })
             })
             .expect("document receipt");

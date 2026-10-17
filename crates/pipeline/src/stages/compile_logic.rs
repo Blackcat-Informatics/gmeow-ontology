@@ -587,7 +587,7 @@ impl Stage for CompileLogicStage {
             &path_shapes_source,
             Some(PATH_SHAPES_EXAMPLE_PATH.to_string()),
         )
-        .map_err(|e| stage_err(format!("parse {PATH_SHAPES_EXAMPLE_PATH}: {}", e.0)))?;
+        .map_err(|error| error.with_context(format!("parse {PATH_SHAPES_EXAMPLE_PATH}")))?;
         diagnostics.extend(path_shapes_diagnostics);
         let mut path_shapes = program.path_shapes.clone();
         path_shapes.extend(path_shapes_program.path_shapes);
@@ -611,7 +611,7 @@ impl Stage for CompileLogicStage {
             &reasoning_programs_source,
             Some(REASONING_PROGRAMS_EXAMPLE_PATH.to_string()),
         )
-        .map_err(|e| stage_err(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}: {}", e.0)))?;
+        .map_err(|error| error.with_context(format!("parse {REASONING_PROGRAMS_EXAMPLE_PATH}")))?;
         diagnostics.extend(reasoning_programs_diagnostics);
         if reasoning_programs_program.reasoning_programs.is_empty() {
             return Err(stage_err(format!(

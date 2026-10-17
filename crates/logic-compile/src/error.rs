@@ -15,9 +15,9 @@
 //! `logic-compile.*` code namespace, so the compiler reports on the shared
 //! substrate.
 //!
-//! Every kind carries a single `detail` string that preserves the authored
-//! condition text verbatim; discrimination is by code + grade, and the message
-//! is the preserved detail. The area codes track the compiler's stage
+//! Kinds preserve the authored condition text; source codecs and file readers
+//! additionally retain their live original causes and selected format or path.
+//! Discrimination is by code + grade. The area codes track the compiler's stage
 //! boundaries so a downstream reader can key on where a defect arose.
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
@@ -171,6 +171,30 @@ define_diag_kind! {
     grade = Grade::new(Severity::Error, FindingCategory::IncompleteCheck, Standpoint::Binding);
     message = "{}", detail;
     failure_class = "https://blackcatinformatics.ca/logic/FormulaAdmissionExhaustion";
+}
+
+define_diag_kind! {
+    /// A selected source codec refused its input; retain the original parser error.
+    pub struct SourceParse {
+        format: &'static str,
+        cause: std::sync::Arc<dyn std::error::Error + Send + Sync>
+    }
+    code = "logic-compile.source-parse";
+    grade = compile_grade!();
+    message = "Failed to parse {} source: {}", format, cause;
+    source = failure => Some(failure.cause.as_ref());
+}
+
+define_diag_kind! {
+    /// A selected source path could not be read; retain its path and I/O error.
+    pub struct SourceRead {
+        path: std::path::PathBuf,
+        cause: std::sync::Arc<std::io::Error>
+    }
+    code = "logic-compile.source-read";
+    grade = compile_grade!();
+    message = "Failed to read {:?}: {}", path, cause;
+    source = failure => Some(failure.cause.as_ref());
 }
 
 define_diag_kind! {

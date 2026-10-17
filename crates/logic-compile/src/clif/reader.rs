@@ -16,7 +16,7 @@
 
 use gmeow_errors::Diag;
 
-use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
+use crate::frontend::{Diagnostic, Severity, parse_logic_dataset};
 use crate::ir::{ContextualScope, Formula, LogicAxiom, LogicProgram, Term};
 use crate::nt::{nt_escape_iri, nt_escape_literal};
 
@@ -32,16 +32,16 @@ use purrdf::parse_dataset;
 ///
 /// Fail-soft: a malformed FOL view sentence is recorded as a `CLIF_MALFORMED_SENTENCE`
 /// warning (and does not affect the reconstructed IR); a truly unparsable document
-/// (unbalanced parens / empty) raises [`LogicParseError`]. A construct is never silently
+/// (unbalanced parens / empty) raises [`Diag`]. A construct is never silently
 /// dropped.
 pub fn parse_clif_str(
     clif: &str,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     if clif.trim().is_empty() {
-        return Err(LogicParseError(
-            "CLIF source is empty — nothing to parse.".to_owned(),
-        ));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: "CLIF source is empty — nothing to parse.".to_owned(),
+        }));
     }
 
     let (fol_src, meta_src) = split_on_sentinel(clif);
@@ -57,17 +57,18 @@ pub fn parse_clif_str(
     // ── FOL channel (human-readable view) — VALIDATE ONLY ───────────────────────
     // The idiomatic sentences are cross-checked for well-formedness (so corruption surfaces
     // as a diagnostic), but the IR above is the authority — the FOL parse never feeds it.
-    let forms = parse_sexprs(&fol_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
+    let forms = parse_sexprs(&fol_src)?;
     // The RDF/predication channel is the reconstruction authority; the FOL channel is a
     // validated-only view. A document carrying FOL sentences but NO meta carrier block cannot
     // be reconstructed (idiomatic CL alone is lossy for the byte-exact IR), so fail CLOSED
     // rather than silently returning an empty program — a construct is never silently dropped.
     if meta_src.trim().is_empty() && !forms.is_empty() {
-        return Err(LogicParseError(
-            "CLIF has idiomatic FOL sentences but no `;; @@gmeow-rdf-meta@@` carrier block; \
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail:
+                "CLIF has idiomatic FOL sentences but no `;; @@gmeow-rdf-meta@@` carrier block; \
              reconstruction from the FOL view alone is lossy and unsupported."
-                .to_owned(),
-        ));
+                    .to_owned(),
+        }));
     }
     for form in &forms {
         if let Err(msg) = validate_fol_form(form) {
@@ -94,7 +95,7 @@ pub fn parse_clif_str(
 fn parse_meta_block(
     meta_src: &str,
     source_iri: Option<String>,
-) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
     if meta_src.trim().is_empty() {
         // No meta channel: an empty program (the FOL channel carries everything).
         return Ok((
@@ -103,19 +104,23 @@ fn parse_meta_block(
         ));
     }
 
-    let forms = parse_sexprs(meta_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
+    let forms = parse_sexprs(meta_src)?;
     let mut nt_lines: Vec<String> = Vec::new();
     for form in &forms {
         let SExpr::List(items) = form else {
-            return Err(LogicParseError(format!(
-                "CLIF meta block: expected a (P S O) predication, found a bare atom: {form:?}"
-            )));
+            return Err(Diag::of_kind(crate::error::Clif {
+                detail: format!(
+                    "CLIF meta block: expected a (P S O) predication, found a bare atom: {form:?}"
+                ),
+            }));
         };
         if items.len() != 3 {
-            return Err(LogicParseError(format!(
-                "CLIF meta block: predication must have exactly 3 terms (P S O), found {}",
-                items.len()
-            )));
+            return Err(Diag::of_kind(crate::error::Clif {
+                detail: format!(
+                    "CLIF meta block: predication must have exactly 3 terms (P S O), found {}",
+                    items.len()
+                ),
+            }));
         }
         let p = nt_term(&items[0])?;
         let s = nt_term(&items[1])?;
@@ -131,13 +136,17 @@ fn parse_meta_block(
     }
 
     let nt = nt_lines.join("\n");
-    let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| LogicParseError(format!("CLIF meta block: N-Triples re-parse failed: {e}")))?;
+    let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None).map_err(|e| {
+        Diag::of_kind(crate::error::SourceParse {
+            format: "CLIF RDF carrier",
+            cause: std::sync::Arc::new(e),
+        })
+    })?;
     parse_logic_dataset(ds.as_ref(), source_iri)
 }
 
 /// Encode one CL meta-predication term as an N-Triples term (`<iri>`, `_:b`, or a literal).
-fn nt_term(expr: &SExpr) -> Result<String, LogicParseError> {
+fn nt_term(expr: &SExpr) -> Result<String, Diag> {
     match expr {
         SExpr::Atom(Atom::Name(name)) => {
             if let Some(blank) = name.strip_prefix("_:") {
@@ -148,9 +157,9 @@ fn nt_term(expr: &SExpr) -> Result<String, LogicParseError> {
         }
         SExpr::List(items) if items.first().and_then(symbol_of) == Some("triple") => {
             let [_, subject, predicate, object] = items.as_slice() else {
-                return Err(LogicParseError(
-                    "CLIF triple term requires exactly three operands".into(),
-                ));
+                return Err(Diag::of_kind(crate::error::Clif {
+                    detail: "CLIF triple term requires exactly three operands".into(),
+                }));
             };
             Ok(format!(
                 "<<( {} {} {} )>>",
@@ -164,9 +173,11 @@ fn nt_term(expr: &SExpr) -> Result<String, LogicParseError> {
             let lit = parse_lit_form(items)?;
             Ok(lit.to_ntriples())
         }
-        other => Err(LogicParseError(format!(
-            "CLIF meta term must be a quoted name or a (lit …) form, found: {other:?}"
-        ))),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!(
+                "CLIF meta term must be a quoted name or a (lit …) form, found: {other:?}"
+            ),
+        })),
     }
 }
 
@@ -189,27 +200,29 @@ impl LitTerm {
 }
 
 /// Parse a `(lit "lex")` / `(lit "lex" 'dt')` / `(lit "lex" @lang)` form.
-fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
+fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, Diag> {
     let head = items.first().and_then(symbol_of);
     if head != Some("lit") {
-        return Err(LogicParseError(format!(
-            "expected a (lit …) form, found head {head:?}"
-        )));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("expected a (lit …) form, found head {head:?}"),
+        }));
     }
     // A `(lit …)` form is `(lit "x")` or `(lit "x" 'dt')` / `(lit "x" @lang)` — never more.
     // Reject trailing operands rather than silently discarding them.
     if items.len() > 3 {
-        return Err(LogicParseError(format!(
-            "(lit …) form has {} operands; expected 2 or 3 (lexical + optional datatype/lang)",
-            items.len()
-        )));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!(
+                "(lit …) form has {} operands; expected 2 or 3 (lexical + optional datatype/lang)",
+                items.len()
+            ),
+        }));
     }
     let lexical = match items.get(1) {
         Some(SExpr::Atom(Atom::Str(s))) => s.clone(),
         other => {
-            return Err(LogicParseError(format!(
-                "(lit …) first argument must be a \"string\", found {other:?}"
-            )));
+            return Err(Diag::of_kind(crate::error::Clif {
+                detail: format!("(lit …) first argument must be a \"string\", found {other:?}"),
+            }));
         }
     };
     match items.get(2) {
@@ -228,9 +241,11 @@ fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
             datatype: None,
             language: Some(lang.clone()),
         }),
-        other => Err(LogicParseError(format!(
-            "(lit …) third argument must be a 'datatype' or @lang, found {other:?}"
-        ))),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!(
+                "(lit …) third argument must be a 'datatype' or @lang, found {other:?}"
+            ),
+        })),
     }
 }
 
@@ -531,8 +546,7 @@ fn parse_formula_term(expr: &SExpr) -> gmeow_errors::Result<Term> {
 /// Parse a `(lit "x")` / `(lit "x" 'dt')` form into a [`Term::Literal`] (the formula channel
 /// carries the complete native literal, including `@lang` and `@lang--direction`).
 fn parse_lit_form_term(items: &[SExpr]) -> gmeow_errors::Result<Term> {
-    let lit =
-        parse_lit_form(items).map_err(|e| Diag::of_kind(crate::error::Clif { detail: e.0 }))?;
+    let lit = parse_lit_form(items)?;
     let (language, direction) = match lit.language {
         Some(language) => match language.rsplit_once("--") {
             Some((language, "ltr")) => (

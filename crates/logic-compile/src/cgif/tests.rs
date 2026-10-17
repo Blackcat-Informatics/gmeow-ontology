@@ -549,9 +549,10 @@ fn graph_only_cgif_without_meta_carrier_fails_closed() {
                 [Then: (\"https://blackcatinformatics.ca/logic/q\" ?x)]]\n";
     let err = parse_cgif_str(cgif, Some("urn:test:graphonly".to_owned())).unwrap_err();
     assert!(
-        err.0.contains("no `/* @@gmeow-rdf-meta@@ */` carrier"),
+        err.message()
+            .contains("no `/* @@gmeow-rdf-meta@@ */` carrier"),
         "expected a fail-closed error for graph-only input, got: {}",
-        err.0
+        err.message()
     );
 }
 

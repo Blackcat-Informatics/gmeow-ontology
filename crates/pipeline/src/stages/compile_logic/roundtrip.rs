@@ -54,19 +54,18 @@ fn observe(raw: &LogicProgram) -> gmeow_errors::Result<[DialectObservation; 3]> 
     // serialization-dependent axiom identities. Share that reference across the
     // codecs without rendering and reparsing Turtle to pass native RDF around.
     let canonical = rdf::project_canonical_rdf12_dataset(raw)?;
-    let (fixed, _) = parse_logic_dataset(&canonical.dataset, source.clone())
-        .map_err(gmeow_errors::Diag::from)?;
+    let (fixed, _) = parse_logic_dataset(&canonical.dataset, source.clone())?;
     Ok([
         dialect("clif", &fixed, clif::project_clif(&fixed), |text| {
-            clif::parse_clif_str(text, source.clone()).map_err(gmeow_errors::Diag::from)
+            clif::parse_clif_str(text, source.clone())
         }),
         dialect("cgif", &fixed, cgif::project_cgif(&fixed), |text| {
-            cgif::parse_cgif_str(text, source.clone()).map_err(gmeow_errors::Diag::from)
+            cgif::parse_cgif_str(text, source.clone())
         }),
         dialect("xcl", &fixed, xcl::project_xcl(&fixed), |text| {
             // The XCL reader requires a well-formed XML document before reading
             // its logical content, preserving the original XML validity check.
-            xcl::parse_xcl_str(text, source.clone()).map_err(gmeow_errors::Diag::from)
+            xcl::parse_xcl_str(text, source.clone())
         }),
     ])
 }
