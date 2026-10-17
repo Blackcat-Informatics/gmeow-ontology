@@ -14,7 +14,8 @@
 //! remains [`Verdict::Unknown`] with the original native certificate.
 //!
 //! Construction explicitly selects recording through [`DlReasoner::with_proofs`]
-//! or unrecorded services through [`DlReasoner::new`]. An absent proof is never
+//! or [`DlReasoner::with_proofs_and_stop`], or unrecorded services through
+//! [`DlReasoner::new`]. An absent proof is never
 //! fabricated as an empty trace. All upstream limits and observations remain on
 //! the native result; the step-cap constructor only narrows the native ceiling.
 
@@ -101,6 +102,22 @@ impl DlReasoner {
     /// Original source, execution or canonicalization refusals, as typed diagnostics.
     pub fn with_proofs(dataset: &RdfDataset) -> Result<Self> {
         Reasoner::with_proofs(dataset)
+            .map(|inner| Self { inner })
+            .map_err(map_entail_err)
+    }
+
+    /// Record proofs with one caller signal covering canonical input identity,
+    /// ontology preparation and decision search. The selected native preparation
+    /// budget and complete result certificates pass through unchanged.
+    ///
+    /// # Errors
+    /// Original typed native source, preparation or cancellation refusals.
+    pub fn with_proofs_and_stop(
+        dataset: &RdfDataset,
+        budget: purrdf::entail::reasoner::SchemaPreparationBudget,
+        stop: std::sync::Arc<dyn purrdf::StopSignal>,
+    ) -> Result<Self> {
+        Reasoner::with_proofs_and_stop(dataset, budget, stop)
             .map(|inner| Self { inner })
             .map_err(map_entail_err)
     }

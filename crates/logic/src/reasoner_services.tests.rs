@@ -5,6 +5,117 @@ use super::*;
 use purrdf::RdfDatasetBuilder;
 use purrdf::entail::{ClaimSubject, DlCompleteness, Question};
 
+#[derive(Debug, Default)]
+struct CallerStop(std::sync::atomic::AtomicBool);
+
+impl purrdf::StopSignal for CallerStop {
+    fn stopped(&self) -> bool {
+        self.0.load(std::sync::atomic::Ordering::Relaxed)
+    }
+}
+
+/// Recording retains the caller's signal and the complete native proof/certificate.
+#[test]
+fn recorded_cancellation_preserves_completed_proofs_and_later_stop_receipts() {
+    use purrdf::entail::reasoner::SchemaPreparationBudget;
+    use std::sync::Arc;
+
+    let dataset = consistent_dataset();
+    let stop = Arc::new(CallerStop::default());
+    let mut reasoner = DlReasoner::with_proofs_and_stop(
+        &dataset,
+        SchemaPreparationBudget::default(),
+        stop.clone(),
+    )
+    .unwrap();
+    reasoner.prepare(&Question::Consistency).unwrap();
+    let completed = reasoner.consistency();
+    assert_eq!(*completed.answer(), Verdict::True);
+    assert!(completed.certificate().completeness().is_decided());
+    stop.0.store(true, std::sync::atomic::Ordering::Relaxed);
+    let stopped = reasoner.consistency();
+    assert_eq!(*stopped.answer(), Verdict::Unknown);
+    assert!(!stopped.certificate().completeness().is_decided());
+    assert_eq!(
+        stopped.proof().unwrap().receipt().unwrap().cause(),
+        purrdf::entail::StopCause::CallerStop
+    );
+    let context = reasoner.proof_context().unwrap();
+    for result in [completed, stopped] {
+        result
+            .proof()
+            .unwrap()
+            .verify(
+                &dataset,
+                &Question::Consistency,
+                Some(result.certificate()),
+                &context,
+            )
+            .unwrap();
+    }
+}
+
+/// Construction cancellation keeps its native cause after releasing the source.
+#[test]
+fn recorded_preparation_cancellation_remains_a_typed_execution_diagnostic() {
+    use purrdf::entail::reasoner::SchemaPreparationBudget;
+    use std::sync::Arc;
+
+    let dataset = consistent_dataset();
+    let stop = CallerStop(std::sync::atomic::AtomicBool::new(true));
+    let error = DlReasoner::with_proofs_and_stop(
+        &dataset,
+        SchemaPreparationBudget::default(),
+        Arc::new(stop),
+    )
+    .unwrap_err();
+    drop(dataset);
+    let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
+    assert_eq!(failure.kind, DlServiceFailureKind::Execution);
+    assert!(matches!(failure.cause.as_ref(), EntailError::Stopped));
+    assert_eq!(
+        gmeow_errors::code::code_str(error.code()),
+        "logic.dl-service"
+    );
+}
+
+/// A selected native preparation ceiling survives the diagnostic facade unchanged.
+#[test]
+fn recorded_cancellation_retains_the_selected_preparation_budget() {
+    use purrdf::entail::reasoner::SchemaPreparationBudget;
+    use std::sync::Arc;
+
+    let dataset = purrdf::parse_dataset(
+        b"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+          @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+          <urn:Cat> rdfs:subClassOf [ owl:onProperty <urn:parent> ;
+              owl:onClass <urn:Animal> ; owl:minQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ] .
+          <urn:tom> a <urn:Cat> .",
+        "text/turtle",
+        None,
+    )
+    .unwrap();
+    let budget = SchemaPreparationBudget {
+        work: Some(0),
+        bytes: None,
+    };
+    let native = Reasoner::with_proofs_and_preparation_budget(&dataset, budget)
+        .unwrap()
+        .consistency();
+    let adapted =
+        DlReasoner::with_proofs_and_stop(&dataset, budget, Arc::new(CallerStop::default()))
+            .unwrap()
+            .consistency();
+    assert_eq!(*adapted.answer(), Verdict::Unknown);
+    assert_eq!(
+        adapted.certificate().completeness(),
+        DlCompleteness::BudgetExhausted
+    );
+    assert_eq!(adapted.certificate(), native.certificate());
+    assert_eq!(adapted.proof(), native.proof());
+}
+
 /// Reserved vocabulary the fixtures below assert over.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -151,7 +262,7 @@ fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped
 /// Class-restriction refusals retain source spelling through the actual GMEOW ledger.
 #[test]
 fn a_class_role_refusal_keeps_its_source_in_recorded_and_unrecorded_services() {
-    for recording in [false, true] {
+    for (recording, controlled) in [(false, false), (true, false), (true, true)] {
         let dataset = purrdf::parse_dataset(
             b"@prefix owl: <http://www.w3.org/2002/07/owl#> .
               @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -164,7 +275,13 @@ fn a_class_role_refusal_keeps_its_source_in_recorded_and_unrecorded_services() {
             None,
         )
         .unwrap();
-        let error = if recording {
+        let error = if controlled {
+            DlReasoner::with_proofs_and_stop(
+                &dataset,
+                purrdf::entail::reasoner::SchemaPreparationBudget::default(),
+                std::sync::Arc::new(CallerStop::default()),
+            )
+        } else if recording {
             DlReasoner::with_proofs(&dataset)
         } else {
             DlReasoner::new(&dataset)
