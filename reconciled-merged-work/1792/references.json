@@ -1,0 +1,69 @@
+{
+  "paths": [
+    {
+      "ref": "crates/logic/src/reason/refute/casesplit/execution.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/logic/src/reason/refute/casesplit/execution.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 528,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "a159730f8 perf(logic): integrate the certified native pipeline"
+      ]
+    },
+    {
+      "ref": "families.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/families.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "PreparedClassAnalysis::evaluate",
+      "files": 0
+    },
+    {
+      "name": "FamilyState::round",
+      "files": 0
+    },
+    {
+      "name": "onProperty",
+      "files": 622
+    },
+    {
+      "name": "onClass",
+      "files": 158
+    },
+    {
+      "name": "prepare",
+      "files": 290
+    },
+    {
+      "name": "evaluate",
+      "files": 441
+    },
+    {
+      "name": "native_support",
+      "files": 5
+    },
+    {
+      "name": "scan.ingest",
+      "files": 2
+    },
+    {
+      "name": "prepare_schema",
+      "files": 2
+    }
+  ],
+  "packages": [
+    "gmeow-logic"
+  ],
+  "urls": [],
+  "truncated": []
+}

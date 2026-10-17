@@ -1,0 +1,6 @@
+remote: 
+remote: GitHub found 10 vulnerabilities on Blackcat-Informatics/gmeow-ontology's default branch (1 critical, 6 high, 3 moderate). To find out more, visit:        
+remote:      https://github.com/Blackcat-Informatics/gmeow-ontology/security/dependabot        
+remote: 
+To ssh://ssh.github.com:443/Blackcat-Informatics/gmeow-ontology.git
+   a6c9c9986..bc230b3f6  paudley/1829-fixtures-goal-directed-aggregate -> paudley/1829-fixtures-goal-directed-aggregate

@@ -1,0 +1,140 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+    Checking rustls-webpki v0.103.15
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic-compile)
+    Checking rustls v0.23.46
+    Checking ureq v3.3.0
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/lang-bridge)
+    Checking gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/transcode)
+    Checking gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/gmn-cost-matrix)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/reason-wasm)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bench-engines)
+    Checking gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-model)
+    Checking gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slicetest)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bundle-view)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs)
+    Checking gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-catalog)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp)
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-brief)
+    Checking docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-print)
+    Checking gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-wasm)
+    Checking gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-core-wasm)
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/pipeline)
+error[E0433]: cannot find type `RdfTriple` in this scope
+  --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:94:24
+   |
+94 |     let r1_statement = RdfTriple::new(
+   |                        ^^^^^^^^^ use of undeclared type `RdfTriple`
+   |
+   = note: struct `crate::stages::source_load::tests::RdfTriple` exists but is inaccessible
+help: consider importing this struct
+   |
+ 4 + use purrdf::RdfTriple;
+   |
+
+error[E0433]: cannot find type `RdfTriple` in this scope
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:112:24
+    |
+112 |     let r3_statement = RdfTriple::new(
+    |                        ^^^^^^^^^ use of undeclared type `RdfTriple`
+    |
+    = note: struct `crate::stages::source_load::tests::RdfTriple` exists but is inaccessible
+help: consider importing this struct
+    |
+  4 + use purrdf::RdfTriple;
+    |
+
+error[E0433]: cannot find type `RdfTriple` in this scope
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:128:24
+    |
+128 |     let r2_statement = RdfTriple::new(
+    |                        ^^^^^^^^^ use of undeclared type `RdfTriple`
+    |
+    = note: struct `crate::stages::source_load::tests::RdfTriple` exists but is inaccessible
+help: consider importing this struct
+    |
+  4 + use purrdf::RdfTriple;
+    |
+
+error[E0603]: function `canonical_rule_iri` is private
+    --> crates/pipeline/src/stages/carrier.rs:2905:54
+     |
+2905 |             rule: compact_iri(&gmeow_logic::explain::canonical_rule_iri(raw_rule)),
+     |                                                      ^^^^^^^^^^^^^^^^^^ private function
+     |
+note: the function `canonical_rule_iri` is defined here
+    --> crates/logic/src/explain.rs:54:1
+     |
+  54 | pub(crate) fn canonical_rule_iri(rule: &str) -> String {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unused import: `LOGIC_NS`
+  --> crates/pipeline/src/stages/carrier.rs:45:26
+   |
+45 | use gmeow_ns::{GMEOW_NS, LOGIC_NS};
+   |                          ^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.term_entailments_tests.rs:149:12
+    |
+149 |         s: Box::new(TermValue::iri("urn:nested:subject")),
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Nested<TermValue>`, found `Box<TermValue>`
+    |
+    = note: expected struct `purrdf_lex::walk::Nested<purrdf::TermValue>`
+               found struct `std::boxed::Box<purrdf::TermValue>`
+help: call `Into::into` on this expression to convert `std::boxed::Box<purrdf::TermValue>` into `purrdf_lex::walk::Nested<purrdf::TermValue>`
+    |
+149 |         s: Box::new(TermValue::iri("urn:nested:subject")).into(),
+    |                                                          +++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.term_entailments_tests.rs:150:12
+    |
+150 |         p: Box::new(TermValue::iri("urn:nested:predicate")),
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Nested<TermValue>`, found `Box<TermValue>`
+    |
+    = note: expected struct `purrdf_lex::walk::Nested<purrdf::TermValue>`
+               found struct `std::boxed::Box<purrdf::TermValue>`
+help: call `Into::into` on this expression to convert `std::boxed::Box<purrdf::TermValue>` into `purrdf_lex::walk::Nested<purrdf::TermValue>`
+    |
+150 |         p: Box::new(TermValue::iri("urn:nested:predicate")).into(),
+    |                                                            +++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.term_entailments_tests.rs:151:12
+    |
+151 |           o: Box::new(TermValue::Literal {
+    |  ____________^
+152 | |             lexical_form: "مرحبا".to_owned(),
+153 | |             datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".to_owned(),
+154 | |             language: Some("ar".to_owned()),
+155 | |             direction: Some(purrdf::RdfTextDirection::Rtl),
+156 | |         }),
+    | |__________^ expected `Nested<TermValue>`, found `Box<TermValue>`
+    |
+    = note: expected struct `purrdf_lex::walk::Nested<purrdf::TermValue>`
+               found struct `std::boxed::Box<purrdf::TermValue>`
+help: call `Into::into` on this expression to convert `std::boxed::Box<purrdf::TermValue>` into `purrdf_lex::walk::Nested<purrdf::TermValue>`
+    |
+156 |         }).into(),
+    |           +++++++
+
+For more information about this error, try `rustc --explain E0603`.
+error: could not compile `gmeow-pipeline` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+Some errors have detailed explanations: E0308, E0433, E0603.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-pipeline` (lib test) due to 7 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

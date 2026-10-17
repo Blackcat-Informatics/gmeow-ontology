@@ -1,0 +1,16 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "Profile `prepare` and `evaluate` (premise rebinding through `native_support`, `scan.ingest` and `prepare_schema`, and the case-split model work) and remove the per-restriction rescans. Results must stay exact.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    }
+  ],
+  "silent_comments": []
+}

@@ -1,0 +1,15 @@
+crates/conformance/tests/diagnostics_meta_findings.rs
+crates/conformance/src/run.gating_tests.rs
+crates/gmeow-cli/tests/fixtures/logic-session/transitive-closure.logic.ttl
+crates/logic/tests/never_panic.rs
+crates/pipeline/src/bundle/diagnostics/tests.rs
+crates/logic-compile/src/projections/tests.rs
+crates/logic-compile/src/frontend/tests.rs
+crates/pipeline/src/stages/source_load/parsed.tests.rs
+crates/logic-compile/src/frontend.rs
+crates/logic-compile/src/frontend/native_literal_tests/acceptance.rs
+crates/logic-compile/src/frontend/emission/owner_tests.rs
+crates/logic-compile/src/frontend/compact_term_tests.rs
+crates/pipeline/src/stages/meta_findings.tests.rs
+crates/pipeline/src/stages/gate_verdict.tests.rs
+crates/logic/src/program_analysis.tests.rs

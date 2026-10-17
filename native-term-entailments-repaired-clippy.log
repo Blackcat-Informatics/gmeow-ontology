@@ -1,0 +1,36 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/reason-wasm)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bench-engines)
+    Checking gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-model)
+    Checking gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slicetest)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bundle-view)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs)
+    Checking gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-catalog)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp)
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-brief)
+    Checking docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-print)
+    Checking gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-wasm)
+    Checking gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-core-wasm)
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/pipeline)
+error[E0425]: cannot find function `triple_display` in this scope
+   --> crates/pipeline/src/stages/carrier/test_support.rs:359:5
+    |
+359 |     triple_display(&q.subject, &q.predicate, &q.object)
+    |     ^^^^^^^^^^^^^^ not found in this scope
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `gmeow-pipeline` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+    Checking gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-dev)
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/gmeow-dev-cli)
+make: *** [Makefile:289: clippy-prebuild] Error 101

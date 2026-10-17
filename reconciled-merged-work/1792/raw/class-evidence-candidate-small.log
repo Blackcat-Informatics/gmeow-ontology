@@ -1,0 +1,24 @@
+cargo bench -p gmeow-logic --bench reason -- 'class_restrictions/descriptors_(1250|2500)$'
+    Finished `bench` profile [optimized] target(s) in 1.30s
+     Running benches/reason.rs (/opt/.cargo/84/383e6a7250a02f/release/build/gmeow-logic/5219fa1456c24e96/out/reason-5219fa1456c24e96)
+Benchmarking class_restrictions/descriptors_1250
+Benchmarking class_restrictions/descriptors_1250: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 7.4s.
+Benchmarking class_restrictions/descriptors_1250: Collecting 10 samples in estimated 7.4065 s (10 iterations)
+Benchmarking class_restrictions/descriptors_1250: Analyzing
+class_restrictions/descriptors_1250
+                        time:   [485.89 ms 501.17 ms 515.28 ms]
+                        change: [-95.071% -94.210% -93.293%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Benchmarking class_restrictions/descriptors_2500
+Benchmarking class_restrictions/descriptors_2500: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 10.3s.
+Benchmarking class_restrictions/descriptors_2500: Collecting 10 samples in estimated 10.342 s (10 iterations)
+Benchmarking class_restrictions/descriptors_2500: Analyzing
+class_restrictions/descriptors_2500
+                        time:   [1.1920 s 1.3018 s 1.4129 s]
+                        change: [-97.507% -97.165% -96.734%] (p = 0.00 < 0.05)
+                        Performance has improved.
+

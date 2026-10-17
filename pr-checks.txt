@@ -1,0 +1,10 @@
+$ stagectl pr-checks 1830
+FAILURE    generation (a)
+IN_PROGRESS generation (b)
+FAILURE    fixture-prefix
+SUCCESS    producer-build
+SUCCESS    lint
+SUCCESS    rust-prebuild
+SUCCESS    CodeRabbit
+SUCCESS    license/cla
+state: fail

@@ -1,0 +1,586 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & test(fixture::tests::)' --no-tests=fail
+   Compiling unicode-ident v1.0.24
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling cfg-if v1.0.4
+   Compiling serde_core v1.0.229
+   Compiling memchr v2.8.3
+   Compiling libc v0.2.189
+   Compiling serde v1.0.229
+   Compiling hashbrown v0.17.1
+   Compiling typenum v1.20.1
+   Compiling regex-syntax v0.8.11
+   Compiling itoa v1.0.18
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.151
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling cpufeatures v0.3.0
+   Compiling fastrand v2.5.0
+   Compiling const-oid v0.10.2
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling version_check v0.9.5
+   Compiling equivalent v1.0.2
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling crossbeam-utils v0.8.22
+   Compiling either v1.17.0
+   Compiling crossbeam-epoch v0.9.20
+   Compiling crossbeam-deque v0.8.7
+   Compiling rayon-core v1.13.0
+   Compiling once_cell v1.21.4
+   Compiling getrandom v0.3.4
+   Compiling arrayvec v0.7.8
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.9
+   Compiling smallvec v1.15.2
+   Compiling arrayref v0.3.9
+   Compiling generic-array v0.14.7
+   Compiling cmov v0.5.4
+   Compiling cpubits v0.1.1
+   Compiling twox-hash v2.1.3
+   Compiling visual-hashing v1.0.0
+   Compiling cpufeatures v0.2.17
+   Compiling constant_time_eq v0.4.2
+   Compiling autocfg v1.5.1
+   Compiling cc v1.4.0
+   Compiling allocator-api2 v0.2.21
+   Compiling zerocopy v0.8.55
+   Compiling aho-corasick v1.1.4
+   Compiling rustix v1.1.4
+   Compiling structured-zstd v0.0.49
+   Compiling getrandom v0.4.3
+   Compiling ctutils v0.4.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling hybrid-array v0.4.15
+   Compiling num-traits v0.2.19
+   Compiling foldhash v0.1.5
+   Compiling winnow v0.7.15
+   Compiling toml_write v0.1.2
+   Compiling winnow v1.0.4
+   Compiling ciborium-io v0.2.2
+   Compiling glob v0.3.4
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling regex-automata v0.4.16
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling hashbrown v0.15.5
+   Compiling bit-vec v0.8.0
+   Compiling indexmap v2.14.0
+   Compiling tracing-core v0.1.36
+   Compiling pin-project-lite v0.2.17
+   Compiling blake3 v1.8.5
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling inout v0.2.2
+   Compiling bit-set v0.8.0
+   Compiling fixedbitset v0.5.7
+   Compiling log v0.4.33
+   Compiling lazy_static v1.5.0
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling stable_deref_trait v1.2.1
+   Compiling base64 v0.22.1
+   Compiling digest v0.11.3
+   Compiling cipher v0.5.2
+   Compiling universal-hash v0.6.1
+   Compiling aead v0.6.1
+   Compiling semver v1.0.28
+   Compiling simd-adler32 v0.3.10
+   Compiling crc32fast v1.5.0
+   Compiling adler2 v2.0.1
+   Compiling utf8_iter v1.0.4
+   Compiling litemap v0.8.2
+   Compiling writeable v0.6.3
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling digest v0.10.7
+   Compiling sha2 v0.11.0
+   Compiling chrono v0.4.45
+   Compiling syn v3.0.3
+   Compiling syn v2.0.119
+   Compiling bitflags v2.13.1
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling polyval v0.7.3
+   Compiling aes v0.9.3
+   Compiling ctr v0.10.1
+   Compiling regex v1.13.1
+   Compiling rayon v1.12.0
+   Compiling sha2 v0.10.9
+   Compiling toml v1.1.3+spec-1.1.0
+   Compiling miniz_oxide v0.8.9
+   Compiling icu_properties_data v2.2.0
+   Compiling ghash v0.6.0
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling parking_lot_core v0.9.12
+   Compiling petgraph v0.8.3
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/lang-form)
+   Compiling icu_normalizer_data v2.2.0
+   Compiling aes-gcm v0.11.1
+   Compiling num-integer v0.1.46
+   Compiling scopeguard v1.2.0
+   Compiling percent-encoding v2.3.2
+   Compiling tinyvec_macros v0.1.1
+   Compiling ahash v0.8.12
+   Compiling flate2 v1.1.9
+   Compiling ring v0.17.14
+   Compiling zeroize v1.9.0
+   Compiling lock_api v0.4.14
+   Compiling ref-cast v1.0.26
+   Compiling num-bigint v0.4.8
+   Compiling getrandom v0.2.17
+   Compiling untrusted v0.9.0
+   Compiling httparse v1.10.1
+   Compiling tinyvec v1.12.0
+   Compiling num-iter v0.1.46
+   Compiling num-complex v0.4.6
+   Compiling unicode-general-category v1.1.0
+   Compiling parking_lot v0.12.5
+   Compiling rustls-pki-types v1.15.1
+   Compiling borrow-or-share v0.2.4
+   Compiling rustls v0.23.42
+   Compiling similar v2.7.0
+   Compiling bytes v1.12.1
+   Compiling foldhash v0.2.0
+   Compiling subtle v2.6.1
+   Compiling unicode-normalization v0.1.25
+   Compiling vsimd v0.8.0
+   Compiling serde_derive v1.0.229
+   Compiling ref-cast-impl v1.0.26
+   Compiling micromap v0.3.0
+   Compiling unicode-script v0.5.8
+   Compiling outref v0.5.2
+   Compiling fancy-regex v0.18.0
+   Compiling jsonschema-regex v0.46.10
+   Compiling num-cmp v0.1.0
+   Compiling webpki-roots v1.0.9
+   Compiling hashbrown v0.16.1
+   Compiling data-encoding v2.11.0
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling utf8-zero v0.8.1
+   Compiling tempfile v3.27.0
+   Compiling num-rational v0.4.2
+   Compiling bytecount v0.6.9
+   Compiling rustc-hash v2.1.3
+   Compiling synstructure v0.13.2
+   Compiling zerocopy-derive v0.8.55
+   Compiling tracing-attributes v0.1.31
+   Compiling displaydoc v0.2.6
+   Compiling zerovec-derive v0.11.3
+   Compiling http v1.4.2
+   Compiling uuid-simd v0.8.0
+   Compiling anyhow v1.0.104
+   Compiling bstr v1.13.0
+   Compiling fancy-regex v0.17.0
+   Compiling unicode-security v0.1.2
+   Compiling console v0.16.4
+   Compiling rustversion v1.0.23
+   Compiling heck v0.5.0
+   Compiling strsim v0.11.1
+   Compiling num v0.4.3
+   Compiling utf8parse v0.2.2
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling anstyle v1.0.14
+   Compiling zerofrom-derive v0.1.7
+   Compiling yoke-derive v0.8.2
+   Compiling colorchoice v1.0.5
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling anstyle-query v1.1.5
+   Compiling fnv v1.0.7
+   Compiling same-file v1.0.6
+   Compiling tracing v0.1.44
+   Compiling clap_lex v1.1.0
+   Compiling fraction v0.15.4
+   Compiling ureq-proto v0.6.0
+   Compiling clap_derive v4.6.4
+   Compiling anstyle-parse v1.0.0
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/license)
+   Compiling pulldown-cmark v0.13.4
+   Compiling pulldown-cmark-escape v0.11.0
+   Compiling memo-map v0.3.3
+   Compiling zerofrom v0.1.8
+   Compiling unicase v2.9.0
+   Compiling memmap2 v0.9.11
+   Compiling walkdir v2.5.0
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/cost-measure)
+   Compiling thiserror v2.0.19
+   Compiling anstream v1.0.0
+   Compiling thiserror-impl v2.0.19
+   Compiling bytemuck_derive v1.11.0
+   Compiling tiktoken-rs v0.12.0
+   Compiling libm v0.2.16
+   Compiling yoke-derive v0.7.5
+   Compiling siphasher v1.0.3
+   Compiling zerovec-derive v0.10.3
+   Compiling yoke v0.8.3
+   Compiling ryu v1.0.23
+   Compiling paste v1.0.15
+   Compiling unicode-segmentation v1.13.3
+   Compiling anstyle-parse v0.2.7
+   Compiling writeable v0.5.5
+   Compiling clap_builder v4.6.2
+   Compiling icu_provider_macros v1.5.0
+   Compiling fdeflate v0.3.7
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling cargo-config2 v0.1.45
+   Compiling zerovec v0.11.6
+   Compiling zerotrie v0.2.4
+   Compiling fluent-uri v0.4.1
+   Compiling email_address v0.2.9
+   Compiling insta v1.48.0
+   Compiling minijinja v2.21.0
+   Compiling bytemuck v1.25.2
+   Compiling yoke v0.7.5
+   Compiling litemap v0.7.5
+   Compiling toml_edit v0.22.27
+   Compiling anstream v0.6.21
+   Compiling slotmap v1.1.1
+   Compiling float-cmp v0.9.0
+   Compiling icu_locid_transform_data v1.5.1
+   Compiling cobs v0.3.0
+   Compiling roxmltree v0.20.0
+   Compiling num-conv v0.2.2
+   Compiling zerovec v0.10.4
+   Compiling time-core v0.1.9
+   Compiling strict-num v0.1.1
+   Compiling clap v4.6.4
+   Compiling weezl v0.1.12
+   Compiling color_quant v1.1.0
+   Compiling matchers v0.2.0
+   Compiling tinystr v0.8.3
+   Compiling potential_utf v0.1.5
+   Compiling core_maths v0.1.1
+   Compiling tracing-log v0.2.0
+   Compiling postcard v1.1.3
+   Compiling sharded-slab v0.1.7
+   Compiling kurbo v0.11.3
+   Compiling fontconfig-parser v0.5.8
+   Compiling thread_local v1.1.10
+   Compiling tiny-skia-path v0.11.4
+   Compiling toml v0.8.23
+   Compiling unicode-ccc v0.3.0
+   Compiling powerfmt v0.2.0
+   Compiling bitflags v1.3.2
+   Compiling nu-ansi-term v0.50.3
+   Compiling ttf-parser v0.24.1
+   Compiling time-macros v0.2.32
+   Compiling icu_locale_core v2.2.0
+   Compiling icu_collections v2.2.0
+   Compiling unicode-properties v0.1.4
+   Compiling rand_core v0.6.4
+   Compiling byteorder-lite v0.1.0
+   Compiling deranged v0.5.8
+   Compiling unicode-bidi-mirroring v0.3.0
+   Compiling portable-atomic v1.14.0
+   Compiling png v0.17.16
+   Compiling phf_shared v0.11.3
+   Compiling strum_macros v0.26.4
+   Compiling tinystr v0.7.6
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/build-inputs)
+   Compiling tracing-subscriber v0.3.23
+   Compiling simplecss v0.2.2
+   Compiling quick-xml v0.41.0
+   Compiling pxfm v0.1.30
+   Compiling svgtypes v0.15.3
+   Compiling rand v0.8.7
+   Compiling data-url v0.3.2
+   Compiling unicode-vo v0.1.0
+   Compiling xmlwriter v0.1.0
+   Compiling linked-hash-map v0.5.6
+   Compiling wasmparser v0.221.3
+   Compiling half v2.7.1
+   Compiling ppv-lite86 v0.2.21
+   Compiling icu_provider v2.2.0
+   Compiling icu_locid v1.5.0
+   Compiling thiserror v1.0.69
+   Compiling zune-core v0.5.1
+   Compiling pico-args v0.5.0
+   Compiling unicode-bidi v0.3.18
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bundle-import)
+   Compiling imagesize v0.13.0
+   Compiling downcast-rs v1.2.1
+   Compiling icu_properties_data v1.5.1
+   Compiling rustybuzz v0.18.0
+   Compiling icu_normalizer v2.2.0
+   Compiling icu_properties v2.2.0
+   Compiling time v0.3.54
+   Compiling fontdb v0.21.0
+   Compiling ciborium-ll v0.2.2
+   Compiling referencing v0.46.10
+   Compiling unscanny v0.1.0
+   Compiling zune-jpeg v0.5.15
+   Compiling strum v0.26.3
+   Compiling icu_provider v1.5.0
+   Compiling wasmi_core v0.40.0
+   Compiling phf_generator v0.11.3
+   Compiling yaml-rust v0.4.5
+   Compiling icu_collections v1.5.0
+   Compiling unic-langid-impl v0.9.6
+   Compiling gif v0.14.2
+   Compiling png v0.18.1
+   Compiling ciborium v0.2.2
+   Compiling quick-xml v0.36.2
+   Compiling bincode v1.3.3
+   Compiling enum-ordinalize-derive v4.4.1
+   Compiling thiserror-impl v1.0.69
+   Compiling form_urlencoded v1.2.2
+   Compiling fancy-regex v0.16.2
+   Compiling wait-timeout v0.2.1
+   Compiling icu_locid_transform v1.5.0
+   Compiling numerals v0.1.4
+   Compiling unsafe-libyaml v0.2.11
+   Compiling by_address v1.2.1
+   Compiling thin-vec v0.2.18
+   Compiling rust_decimal v1.42.1
+   Compiling unicode-math-class v0.1.0
+   Compiling idna_adapter v1.2.2
+   Compiling codex v0.1.1
+   Compiling palette v0.7.6
+   Compiling enum-ordinalize v4.4.1
+   Compiling wasmi_ir v0.40.0
+   Compiling unic-langid v0.9.6
+   Compiling biblatex v0.10.0
+   Compiling phf_macros v0.11.3
+   Compiling palette_derive v0.7.6
+   Compiling usvg v0.43.0
+   Compiling typst-utils v0.13.1
+   Compiling idna v1.1.0
+   Compiling rand_chacha v0.3.1
+   Compiling zerotrie v0.1.3
+   Compiling ecow v0.2.6
+   Compiling typst-timing v0.13.1
+   Compiling comemo-macros v0.4.0
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling jsonschema v0.46.10
+   Compiling moxcms v0.8.1
+   Compiling plist v1.10.0
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling url v2.5.8
+   Compiling citationberg v0.5.0
+   Compiling approx v0.5.1
+   Compiling csv-core v0.1.13
+   Compiling chinese-variant v1.1.6
+   Compiling wasmi_collections v0.40.0
+   Compiling fast-srgb8 v1.0.0
+   Compiling object v0.37.3
+   Compiling mutate_once v0.1.2
+   Compiling spin v0.9.9
+   Compiling multi-stash v0.2.0
+   Compiling syntect v5.3.0
+   Compiling chinese-number v0.7.8
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/errors)
+   Compiling csv v1.4.0
+   Compiling comemo v0.4.0
+   Compiling icu_properties v1.5.1
+   Compiling kamadak-exif v0.6.1
+   Compiling lipsum v0.9.1
+   Compiling icu_provider_blob v1.5.0
+   Compiling phf v0.11.3
+   Compiling typst-syntax v0.13.1
+   Compiling typst-macros v0.13.1
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling az v1.3.0
+   Compiling typst-assets v0.13.1
+   Compiling bumpalo v3.20.3
+   Compiling qcms v0.3.0
+   Compiling typed-arena v2.0.2
+   Compiling font-types v0.11.3
+   Compiling polycool v0.4.0
+   Compiling icu_segmenter_data v1.5.1
+   Compiling diff v0.1.13
+   Compiling image v0.25.10
+   Compiling two-face v0.4.5
+   Compiling yansi v1.0.1
+   Compiling derive_more-impl v2.1.1
+   Compiling rustc_version v0.4.1
+   Compiling kurbo v0.13.1
+   Compiling stacker v0.1.24
+   Compiling zune-core v0.4.12
+   Compiling quick-error v2.0.1
+   Compiling read-fonts v0.39.2
+   Compiling tiny-skia v0.11.4
+   Compiling gif v0.13.3
+   Compiling rgb v0.8.53
+   Compiling hayagriva v0.8.1
+   Compiling gungraun-macros v0.9.1
+   Compiling proc-macro-error-attr3 v3.1.1
+   Compiling pretty_assertions v1.4.1
+   Compiling zune-jpeg v0.4.21
+   Compiling image-webp v0.1.3
+   Compiling xmlparser v0.13.6
+   Compiling bincode-next v3.1.1
+   Compiling derive_more v2.1.1
+   Compiling icu_provider_adapters v1.5.0
+   Compiling proc-macro-error3 v3.1.1
+   Compiling pdf-writer v0.12.1
+   Compiling either-or-both v0.3.1
+   Compiling rapidhash v4.5.1
+   Compiling itertools v0.10.5
+   Compiling icu_segmenter v1.5.0
+   Compiling pastey v0.2.3
+   Compiling gungraun v0.19.4
+   Compiling cast v0.3.0
+   Compiling hypher v0.1.7
+   Compiling if_chain v1.0.3
+   Compiling unty-next v0.1.2
+   Compiling resvg v0.43.0
+   Compiling tinytemplate v1.2.1
+   Compiling rand_core v0.9.5
+   Compiling is-terminal v0.4.17
+   Compiling gungraun-runner v0.19.4
+   Compiling anes v0.1.6
+   Compiling ar_archive_writer v0.5.2
+   Compiling xmp-writer v0.3.3
+   Compiling oorandom v11.1.5
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/pipeline)
+   Compiling criterion-plot v0.5.0
+   Compiling rand_chacha v0.9.0
+   Compiling quick-error v1.2.3
+   Compiling rand_xorshift v0.4.0
+   Compiling unarray v0.1.4
+   Compiling inventory v0.3.24
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/test-batch-macros)
+   Compiling wasm-bindgen-shared v0.2.125
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling psm v0.1.31
+   Compiling wasm-bindgen v0.2.125
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slicetest)
+   Compiling normalize-line-endings v0.3.0
+   Compiling predicates-core v1.0.10
+   Compiling rusty-fork v0.3.1
+   Compiling snapbox-macros v0.4.0
+   Compiling toml_datetime v0.7.5+spec-1.1.0
+   Compiling float-cmp v0.10.0
+   Compiling criterion v0.5.1
+   Compiling filetime v0.2.29
+   Compiling rand v0.9.5
+   Compiling os_pipe v1.2.3
+   Compiling content_inspector v0.2.4
+   Compiling dunce v1.0.5
+   Compiling difflib v0.4.0
+   Compiling termtree v0.5.1
+   Compiling humantime v2.4.0
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling assert_cmd v2.2.2
+   Compiling automod v1.0.17
+   Compiling shlex v1.3.0
+   Compiling ident_case v1.0.1
+   Compiling static_assertions v1.1.0
+   Compiling minimal-lexical v0.2.1
+   Compiling esaxx-rs v0.1.10
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling predicates v3.1.4
+   Compiling snapbox v0.6.24
+   Compiling castaway v0.2.4
+   Compiling predicates-tree v1.0.13
+   Compiling humantime-serde v1.1.1
+   Compiling toml_edit v0.23.10+spec-1.0.0
+   Compiling proptest v1.11.0
+   Compiling darling_core v0.20.11
+   Compiling monostate-impl v0.1.18
+   Compiling itertools v0.14.0
+   Compiling base64 v0.13.1
+   Compiling macro_rules_attribute-proc_macro v0.2.2
+   Compiling dary_heap v0.3.9
+   Compiling nom v7.1.3
+   Compiling fancy-regex v0.14.0
+   Compiling compact_str v0.9.1
+   Compiling unicode-normalization-alignments v0.1.12
+   Compiling unicode_categories v0.1.1
+   Compiling monostate v0.1.18
+   Compiling macro_rules_attribute v0.2.2
+   Compiling write-fonts v0.48.1
+   Compiling skrifa v0.42.1
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/perf-evidence)
+   Compiling trycmd v0.15.11
+   Compiling rayon-cond v0.4.0
+   Compiling darling_macro v0.20.11
+   Compiling wasmi v0.40.0
+   Compiling spm_precompiled v0.1.4
+   Compiling darling v0.20.11
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling derive_builder_core v0.20.2
+   Compiling subsetter v0.2.6
+   Compiling derive_builder_macro v0.20.2
+   Compiling derive_builder v0.20.2
+   Compiling svg2pdf v0.12.0
+   Compiling tokenizers v0.22.2
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling typst-library v0.13.1
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/cli-core)
+   Compiling typst-svg v0.13.1
+   Compiling typst-eval v0.13.1
+   Compiling typst-layout v0.13.1
+   Compiling typst-realize v0.13.1
+   Compiling typst-pdf v0.13.1
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/xtask)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/helper-census)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling typst-html v0.13.1
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=7734b013d19b68600ad24c4e8aa5a40955a8e89e#7734b013)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/gts-profile)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/math-lift)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/foundation-corpus)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/query-wasm)
+   Compiling rustls-webpki v0.103.13
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/music)
+   Compiling typst v0.13.1
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/affect-ingest)
+   Compiling ureq v3.3.0
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 49s
+────────────
+ Nextest run ID ed97b20a-58eb-4b14-a06f-25789a6f0be2 with nextest profile: ci
+    Starting 5 tests across 25 binaries (1030 tests and 200 binaries skipped)
+        PASS [   0.011s] (1/5) gmeow-pipeline fixture::tests::selected_fixture_stages_are_stable_persistent_contributions
+        PASS [   0.011s] (2/5) gmeow-pipeline fixture::tests::source_export_cannot_substitute_another_selected_parent_or_artifact
+        PASS [   0.013s] (3/5) gmeow-pipeline fixture::tests::full_sync_receipts_select_the_same_fixture_closure_as_the_prefix_producer
+        PASS [   0.014s] (4/5) gmeow-pipeline fixture::tests::fixture_selector_refuses_missing_ancestors_and_mismatched_receipt_identity
+        PASS [   0.020s] (5/5) gmeow-pipeline fixture::tests::candidate_replay_and_changes_never_replace_finalized_bindings
+────────────
+     Summary [   0.045s] 5 tests run: 5 passed, 1030 skipped

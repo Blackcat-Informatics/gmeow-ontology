@@ -1,0 +1,119 @@
+{
+  "issue": 1829,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "fixtures: goal-directed aggregate rejected by stable persistent admission",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1827": "fix(build): preserve producer identity and fail docs prerequisites closed",
+    "1825": "build: reconcile producer input selection with compiled docs-print sources",
+    "1826": "build: stop docs synchronization when a prerequisite fails"
+  },
+  "link_relations": {
+    "1827": "mentions",
+    "1825": "2-hop",
+    "1826": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1194,
+      "title": "V4 \u2014 Equivalence-before-deletion: retire hand-authored shapes.ttl + structural ShEx",
+      "state": "OPEN"
+    },
+    {
+      "number": 1757,
+      "title": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+      "state": "OPEN"
+    },
+    {
+      "number": 1295,
+      "title": "META-EPIC: subsume Scryer/Nemo into the native physical engine (oracle-gated, fragment-by-fragment)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1427,
+      "title": "logic: shared content-addressed structured-term arena for logic:/lang:/math: (hash-consed term DAG, binder-aware)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1307,
+      "title": "logic: structured-term unification with function symbols + proof objects (lang:/math: grounding demand)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1309,
+      "title": "pipeline: logic-layer seam cleanups (loss-ledger channel, duplicate dev compile path, compile-logic cache busting, correspondence-surface split)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1349,
+      "title": "META-EPIC #1336 Phase 4: producer sweep, loss unification + diagnostics-slice logic:/lang:/math: grounding",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1018,
+      "title": "EPIC: SOTA term-page docs \u2014 full source-richness lift, Rust subsumption, curated-content migration",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1700,
+      "title": "perf(test): 2x required-lane optimization with DAG caching",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1546,
+      "title": "feat(slice-quality): ratchet gate capping OWL/shape vocabulary growth (enforce logic:-grounding, Principle 17)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1420,
+      "title": "logic: engine-vs-engine external benchmark corpus + leaderboard lanes (ChaseBench, Nemo KR-2024 sets, Datalog program families)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 504,
+      "title": "Logic \u00b7 v4 backward goals \u2014 embedded Scryer over the materialized EDB; in_world/derived_by/contradiction_witness; cut only in ProceduralPrologProfile",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1419,
+      "title": "logic: sorted columnar batch relations \u2014 shared-arrangement storage with amortized merge + galloping cursors",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 2,
+    "consumer-artifact-path-coupling": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1466,
+        "title": "chore(deps): bump typer from 0.26.7 to 0.26.8",
+        "state": "CLOSED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1466",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1829-fixtures-goal-directed-aggregate"
+  },
+  "coverage": [
+    "issue #1829 + 0 comment(s) via github",
+    "link crawl: 3 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['fixtures:', 'goal-directed', 'aggregate']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 3 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1829 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1829: 1",
+    "requirement candidates: 0 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 0 path(s) (0 on disk), 0 identifier(s), 0 workspace package(s), 3 URL(s)"
+  ]
+}

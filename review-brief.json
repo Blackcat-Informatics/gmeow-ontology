@@ -1,0 +1,25 @@
+{
+  "issue": 1829,
+  "branch": "paudley/1829-fixtures-goal-directed-aggregate",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "ff3cfe1c680bb5b15c27c68acc5925028ec840ef",
+      "subject": "fix(logic): supply executable legs for the lossy recovery refutation",
+      "date": "2026-10-16"
+    },
+    {
+      "oid": "693caea5956165880084ae8a8b6c31e2051887c0",
+      "subject": "fix(pipeline): persist the goal-directed proof contribution",
+      "date": "2026-10-16"
+    }
+  ],
+  "files": [
+    "crates/logic/src/correspondence_exec.tests.rs",
+    "crates/pipeline/src/fixture.tests.rs",
+    "crates/pipeline/src/stages/goal_directed.rs",
+    "imports/supersession-correspondences.ttl",
+    "slices/core/pipeline/module.ttl"
+  ],
+  "adrs_touched": []
+}

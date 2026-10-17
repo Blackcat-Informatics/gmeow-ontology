@@ -1,0 +1,58 @@
+[
+  {
+    "path": "crates/conformance/tests/diagnostics_meta_findings.rs",
+    "atoms": 6
+  },
+  {
+    "path": "crates/conformance/src/run.gating_tests.rs",
+    "atoms": 2
+  },
+  {
+    "path": "crates/gmeow-cli/tests/fixtures/logic-session/transitive-closure.logic.ttl",
+    "atoms": 5
+  },
+  {
+    "path": "crates/pipeline/src/bundle/diagnostics/tests.rs",
+    "atoms": 1
+  },
+  {
+    "path": "crates/logic-compile/src/projections/tests.rs",
+    "atoms": 6
+  },
+  {
+    "path": "crates/logic-compile/src/frontend/tests.rs",
+    "atoms": 20
+  },
+  {
+    "path": "crates/pipeline/src/stages/source_load/parsed.tests.rs",
+    "atoms": 1
+  },
+  {
+    "path": "crates/logic-compile/src/frontend/native_literal_tests/acceptance.rs",
+    "atoms": 2
+  },
+  {
+    "path": "crates/logic-compile/src/frontend/emission/owner_tests.rs",
+    "atoms": 2
+  },
+  {
+    "path": "crates/logic-compile/src/frontend/compact_term_tests.rs",
+    "atoms": 3
+  },
+  {
+    "path": "crates/pipeline/src/stages/meta_findings.tests.rs",
+    "atoms": 4
+  },
+  {
+    "path": "crates/logic/src/program_analysis.tests.rs",
+    "atoms": 2
+  },
+  {
+    "path": "slices/grounding/logic/module.ttl",
+    "atoms": 223
+  },
+  {
+    "path": "slices/grounding/lang/module.ttl",
+    "atoms": 9
+  }
+]

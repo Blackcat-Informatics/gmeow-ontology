@@ -1,0 +1,49 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & (test(carrier::term_entailments_tests::) | test(docs_render::reasoning_tests::) | test(gts_sink::tests::sink_declares_only_the_lanes_it_reads_as_carrier_inputs))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-core-wasm)
+error: function `triple_display` is never used
+    --> crates/pipeline/src/stages/carrier.rs:2933:4
+     |
+2933 | fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
+     |    ^^^^^^^^^^^^^^
+     |
+     = note: `-D dead-code` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: function `term_display` is never used
+    --> crates/pipeline/src/stages/carrier.rs:2967:4
+     |
+2967 | fn term_display(term: &RdfTerm) -> String {
+     |    ^^^^^^^^^^^^
+
+error: function `format_literal` is never used
+    --> crates/pipeline/src/stages/carrier.rs:2982:4
+     |
+2982 | fn format_literal(lit: &RdfLiteral) -> String {
+     |    ^^^^^^^^^^^^^^
+
+error: could not compile `gmeow-pipeline` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:713: nextest-synthetic] Error 101

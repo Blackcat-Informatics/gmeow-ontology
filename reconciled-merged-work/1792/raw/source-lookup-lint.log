@@ -1,0 +1,637 @@
+pre-commit run --all-files --show-diff-on-failure
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Failed
+- hook id: end-of-file-fixer
+- exit code: 1
+- files were modified by this hook
+
+Fixing helpers-ledger.toml
+
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check json...............................................................Passed
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.................................................................Passed
+Lint GitHub Actions workflow files.......................................Passed
+markdownlint-cli2........................................................Passed
+shellcheck...............................................................Passed
+zizmor...................................................................Passed
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+pre-commit hook(s) made changes.
+If you are seeing this message in CI, reproduce locally with: `pre-commit run --all-files`.
+To run `pre-commit` as part of git workflow, use `pre-commit install`.
+All changes made by hooks:
+diff --git Makefile Makefile
+index efd81f859..ef6707c50 100644
+--- Makefile
++++ Makefile
+@@ -1204,6 +1204,10 @@ fuzz-smoke: fuzz-substrate-check ## Run bounded coverage-guided fuzz smoke tests
+ bench: ## Run criterion benchmarks with host-tuned codegen.
+ 	cargo bench -p gmeow-logic -p gmeow-validate
+ 
++.PHONY: bench-class-evidence
++bench-class-evidence: ## Measure native class evidence over synthetic qualified-restriction series.
++	cargo bench -p gmeow-logic --bench reason -- class_restrictions
++
+ bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
+ 	@cargo run -q -p gmeow-pipeline --bin bench-compare
+ 
+diff --git crates/logic/benches/reason.rs crates/logic/benches/reason.rs
+index 2da5af1c3..39f94c924 100644
+--- crates/logic/benches/reason.rs
++++ crates/logic/benches/reason.rs
+@@ -20,12 +20,15 @@
+ 
+ use criterion::{Criterion, criterion_group, criterion_main};
+ use gmeow_logic::cost::run_native_forward;
++use gmeow_logic::reason::refute::{
++    ClassDiagnosticOutcome, NativeFamilyCompletion, NativeProofOrigin, class_diagnostic,
++};
+ use gmeow_logic::reason::{
+     DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld, el_closure,
+     prepare_reasoning_input, reason_all,
+ };
+ use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
+-use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
++use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+ use std::sync::Arc;
+ 
+ const W: &str = "http://gmeow.example/w";
+@@ -168,10 +171,137 @@ fn bench_native_forward(c: &mut Criterion) {
+     group.finish();
+ }
+ 
++/// Every descriptor has an independent property; only one has an asserted instance.
++fn restriction_store(count: usize) -> Arc<RdfDataset> {
++    let mut builder = RdfDatasetBuilder::new();
++    let mut add = |subject: &str, predicate: &str, object: RdfTerm| {
++        builder.push_owned_quad(
++            &RdfQuad::new(RdfTerm::iri(subject), predicate, object).in_graph(RdfTerm::iri(W)),
++        );
++    };
++    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
++    add(
++        "urn:class-bench:Filler",
++        RDF_TYPE,
++        RdfTerm::iri(format!("{LOGIC}Class")),
++    );
++    // A fixed complement engages the class model independently of descriptor
++    // count; an unselected family would measure only its no-op return path.
++    add(
++        "urn:class-bench:NotFiller",
++        RDF_TYPE,
++        RdfTerm::iri(format!("{LOGIC}Class")),
++    );
++    add(
++        "urn:class-bench:NotFiller",
++        &format!("{LOGIC}complementOf"),
++        RdfTerm::iri("urn:class-bench:Filler"),
++    );
++    for index in 0..count {
++        let restriction = format!("urn:class-bench:R{index}");
++        let property = format!("urn:class-bench:p{index}");
++        add(
++            &restriction,
++            RDF_TYPE,
++            RdfTerm::iri(format!("{LOGIC}Restriction")),
++        );
++        add(
++            &property,
++            RDF_TYPE,
++            RdfTerm::iri(format!("{LOGIC}ObjectProperty")),
++        );
++        add(
++            &restriction,
++            &format!("{LOGIC}onProperty"),
++            RdfTerm::iri(property),
++        );
++        add(
++            &restriction,
++            &format!("{LOGIC}onClass"),
++            RdfTerm::iri("urn:class-bench:Filler"),
++        );
++        add(
++            &restriction,
++            &format!("{LOGIC}minQualifiedCardinality"),
++            RdfTerm::literal(RdfLiteral::typed(
++                "1",
++                "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
++            )),
++        );
++    }
++    add(
++        "urn:class-bench:instance",
++        RDF_TYPE,
++        RdfTerm::iri("urn:class-bench:R0"),
++    );
++    builder.freeze().expect("synthetic restriction dataset")
++}
++
++fn bench_class_evidence(c: &mut Criterion) {
++    let mut group = c.benchmark_group("class_restrictions");
++    group.sample_size(10);
++    for count in [1250, 2500, 5000] {
++        let store = restriction_store(count);
++        let prepared = prepare_reasoning_input(store.as_ref()).expect("class benchmark contexts");
++        let domains =
++            SelectedDomains::new(prepared.source_contexts().iter().map(|(world, graph)| {
++                let selection =
++                    blake3::hash(format!("{world}:qualified-restrictions:{count}").as_bytes());
++                SelectedLogicalWorld::new(
++                    LogicalGraph::from_graph(graph.clone()),
++                    DomainProfile::NonemptyObjectDomainV1,
++                    "gmeow.bench.class-restrictions.v1".to_owned(),
++                    *selection.as_bytes(),
++                )
++                .expect("class benchmark domain")
++            }))
++            .expect("all declared class benchmark contexts");
++        group.bench_function(format!("descriptors_{count}"), |b| {
++            b.iter(|| {
++                let input = prepare_reasoning_input(store.as_ref()).expect("class benchmark input");
++                let outcome = class_diagnostic(input, &domains, None).expect("class diagnostic");
++                let ClassDiagnosticOutcome::Executed { execution } = outcome else {
++                    panic!("the synthetic restrictions must execute, not refuse source admission");
++                };
++                assert!(!execution.classes.is_empty());
++                let class = execution
++                    .classes
++                    .iter()
++                    .find(|class| class.world == W)
++                    .expect("the descriptor world has a class outcome");
++                assert_ne!(class.completion, NativeFamilyCompletion::NotEngaged);
++                assert!(
++                    execution
++                        .proofs
++                        .iter()
++                        .any(|ledger| !ledger.proofs.is_empty())
++                );
++                assert_eq!(
++                    execution
++                        .proofs
++                        .iter()
++                        .flat_map(|ledger| &ledger.proofs)
++                        .filter(|proof| {
++                            proof.statement.predicate
++                                == "https://blackcatinformatics.ca/logic/onProperty"
++                                && matches!(&proof.origin, NativeProofOrigin::Asserted { .. })
++                        })
++                        .count(),
++                    count,
++                    "every synthetic descriptor must reach native source-support preparation"
++                );
++                std::hint::black_box(execution)
++            });
++        });
++    }
++    group.finish();
++}
++
+ criterion_group!(
+     benches,
+     bench_reason_all,
+     bench_el_closure,
+-    bench_native_forward
++    bench_native_forward,
++    bench_class_evidence
+ );
+ criterion_main!(benches);
+diff --git crates/logic/src/reason/refute/casesplit/execution.rs crates/logic/src/reason/refute/casesplit/execution.rs
+index 69a3af9dd..b6ba02fd5 100644
+--- crates/logic/src/reason/refute/casesplit/execution.rs
++++ crates/logic/src/reason/refute/casesplit/execution.rs
+@@ -64,11 +64,12 @@ impl ClassExecutionOutcome {
+         {
+             return Err(fail("an unselected class family cannot publish a conflict"));
+         }
++        let proofs = ledger.proof_lookup();
+         for conflict in &self.contextual_conflicts {
+-            conflict.validate(ledger)?;
++            conflict.validate_with(&proofs)?;
+         }
+         for obstruction in &self.obstructions {
+-            ledger.source_leaves(&obstruction.support)?;
++            proofs.source_leaves(&obstruction.support)?;
+         }
+         Ok(())
+     }
+@@ -166,8 +167,8 @@ fn native_support(
+     ledger: &mut NativeFamilyLedger,
+     facts: &[Fact],
+ ) -> gmeow_errors::Result<Support> {
+-    let ids = input.support(facts, ledger)?;
+-    Ok(Support::from_native(ledger.source_leaves(&ids)?, ids))
++    let (ids, sources) = input.support_with_sources(facts, ledger)?;
++    Ok(Support::from_native(sources, ids))
+ }
+ 
+ fn relevant(predicate: &str) -> bool {
+diff --git crates/logic/src/reason/refute/native.rs crates/logic/src/reason/refute/native.rs
+index 54964523b..1e3d63529 100644
+--- crates/logic/src/reason/refute/native.rs
++++ crates/logic/src/reason/refute/native.rs
+@@ -4,6 +4,9 @@
+ //! World-local family observations over the shared native fixed point. Positive
+ //! conflict support is independent of writer completion and whole-model admission.
+ 
++mod source_support;
++pub(crate) use source_support::NativeProofLookup;
++
+ use super::{BoundKind, RefutationPremise};
+ use crate::physical::{WitnessDerivation, WitnessStatement, metadata_identity};
+ use purrdf::TermValue;
+@@ -577,30 +580,11 @@ impl NativeFamilyLedger {
+     /// Resolve only original assertion leaves of already-accounted proof nodes.
+     /// Intrinsic law evidence has no RDF assertion leaf.
+     pub fn source_leaves(&self, roots: &[NativeProofId]) -> Result<Vec<RefutationPremise>> {
+-        let nodes: BTreeMap<_, _> = self.proofs.iter().map(|node| (node.id, node)).collect();
+-        let mut pending = roots.to_vec();
+-        let mut visited = BTreeSet::new();
+-        let mut sources = BTreeSet::new();
+-        while let Some(id) = pending.pop() {
+-            if !visited.insert(id) {
+-                continue;
+-            }
+-            let node = nodes
+-                .get(&id)
+-                .ok_or_else(|| invalid("source support references an absent native proof"))?;
+-            match &node.origin {
+-                NativeProofOrigin::Asserted {
+-                    sources: leaves, ..
+-                } => sources.extend(leaves.iter().cloned()),
+-                NativeProofOrigin::Derived { premises, .. } => pending.extend(premises),
+-                // Foreign modal leaves remain world-qualified native proof IDs.
+-                // The global evidence owner validates their closed source DAG.
+-                NativeProofOrigin::Modal { .. }
+-                | NativeProofOrigin::Contextual { .. }
+-                | NativeProofOrigin::Intrinsic { .. } => {}
+-            }
+-        }
+-        Ok(sources.into_iter().collect())
++        self.proof_lookup().source_leaves(roots)
++    }
++
++    pub(crate) fn proof_lookup(&self) -> NativeProofLookup<'_> {
++        NativeProofLookup::new(self)
+     }
+ 
+     pub(crate) fn charge(&mut self, amount: u64) -> bool {
+@@ -685,6 +669,13 @@ enum Origin {
+     Intrinsic(WitnessDerivation),
+ }
+ 
++/// Two checked views of proof positions owned by this one native input.
++#[derive(Default)]
++struct RecordedProofs {
++    rows: BTreeMap<usize, (NativeProofId, usize)>,
++    by_id: BTreeMap<NativeProofId, usize>,
++}
++
+ /// One run-local origin column alongside the native FactStore. Only original input
+ /// admission and committed native rows can populate it; there is no proof callback.
+ pub(crate) struct NativeEvidenceIndex {
+@@ -699,7 +690,7 @@ pub(crate) struct NativeEvidenceIndex {
+     terms: NativeSourceTerms,
+     contextual_receipts:
+         BTreeMap<[u8; 32], Arc<crate::contextual::native::NativeContextualReceipt>>,
+-    recorded: std::cell::RefCell<BTreeMap<usize, (NativeProofId, usize)>>,
++    recorded: std::cell::RefCell<RecordedProofs>,
+ }
+ 
+ impl NativeEvidenceIndex {
+@@ -967,10 +958,10 @@ impl NativeEvidenceIndex {
+         slot: usize,
+         input: &NativeFamilyInput<'_>,
+         ledger: &mut NativeFamilyLedger,
+-        recorded: &mut BTreeMap<usize, (NativeProofId, usize)>,
++        recorded: &mut RecordedProofs,
+         active: &mut BTreeSet<usize>,
+     ) -> Result<NativeProofId> {
+-        if let Some((id, index)) = recorded.get(&slot)
++        if let Some((id, index)) = recorded.rows.get(&slot)
+             && ledger
+                 .proofs
+                 .get(*index)
+@@ -1057,7 +1048,8 @@ impl NativeEvidenceIndex {
+             origin,
+         });
+         active.remove(&slot);
+-        recorded.insert(slot, (id, index));
++        recorded.rows.insert(slot, (id, index));
++        recorded.by_id.insert(id, index);
+         Ok(id)
+     }
+ }
+@@ -1265,6 +1257,25 @@ impl<'a> NativeFamilyInput<'a> {
+         Ok(ids)
+     }
+ 
++    /// Resolve original leaves through positions recorded by this same input,
++    /// checking every selected identity against the actual ledger entry.
++    pub(crate) fn support_with_sources(
++        &self,
++        facts: &[Fact],
++        ledger: &mut NativeFamilyLedger,
++    ) -> Result<(Vec<NativeProofId>, Vec<RefutationPremise>)> {
++        let ids = self.support(facts, ledger)?;
++        let recorded = self.evidence.recorded.borrow();
++        let sources = source_support::source_leaves(&ids, |id| {
++            recorded
++                .by_id
++                .get(id)
++                .and_then(|index| ledger.proofs.get(*index))
++                .filter(|node| node.id == *id)
++        })?;
++        Ok((ids, sources))
++    }
++
+     /// Authenticate the complete assessment publication against this committed
+     /// store, including heads already owned by original assertions.
+     pub(crate) fn retain_contextual(
+diff --git crates/logic/src/reason/refute/native/source_support.rs crates/logic/src/reason/refute/native/source_support.rs
+new file mode 100644
+index 000000000..2c4313ff3
+--- /dev/null
++++ crates/logic/src/reason/refute/native/source_support.rs
+@@ -0,0 +1,76 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Exact source leaves through one immutable batch lookup.
++
++use super::{
++    NativeFamilyLedger, NativeProofId, NativeProofNode, NativeProofOrigin, RefutationPremise,
++    Result, invalid,
++};
++use std::cell::OnceCell;
++use std::collections::{BTreeMap, BTreeSet};
++
++/// The ledger is immutably borrowed for the entire validation batch, so its
++/// proof positions and original source occurrences cannot change under a query.
++pub(crate) struct NativeProofLookup<'a> {
++    ledger: &'a NativeFamilyLedger,
++    nodes: OnceCell<BTreeMap<NativeProofId, &'a NativeProofNode>>,
++}
++
++impl<'a> NativeProofLookup<'a> {
++    pub(super) fn new(ledger: &'a NativeFamilyLedger) -> Self {
++        Self {
++            ledger,
++            nodes: OnceCell::new(),
++        }
++    }
++
++    pub(crate) fn ledger(&self) -> &NativeFamilyLedger {
++        self.ledger
++    }
++
++    pub(crate) fn source_leaves(&self, roots: &[NativeProofId]) -> Result<Vec<RefutationPremise>> {
++        if roots.is_empty() {
++            return Ok(Vec::new());
++        }
++        let nodes = self.nodes.get_or_init(|| {
++            self.ledger
++                .proofs
++                .iter()
++                .map(|node| (node.id, node))
++                .collect()
++        });
++        source_leaves(roots, |id| nodes.get(id).copied())
++    }
++}
++
++/// One traversal policy serves immutable validation and the native evidence
++/// owner's checked append-only proof positions. Only actual assertion leaves
++/// belong to this world; other evidence keeps its separate authority boundary.
++pub(super) fn source_leaves<'a>(
++    roots: &[NativeProofId],
++    lookup: impl Fn(&NativeProofId) -> Option<&'a NativeProofNode>,
++) -> Result<Vec<RefutationPremise>> {
++    let mut pending = roots.to_vec();
++    let mut visited = BTreeSet::new();
++    let mut sources = BTreeSet::new();
++    while let Some(id) = pending.pop() {
++        if !visited.insert(id) {
++            continue;
++        }
++        let node = lookup(&id)
++            .ok_or_else(|| invalid("source support references an absent native proof"))?;
++        match &node.origin {
++            NativeProofOrigin::Asserted {
++                sources: leaves, ..
++            } => {
++                sources.extend(leaves.iter().cloned());
++            }
++            NativeProofOrigin::Derived { premises, .. } => pending.extend(premises),
++            NativeProofOrigin::Modal { .. }
++            | NativeProofOrigin::Contextual { .. }
++            | NativeProofOrigin::Intrinsic { .. } => {}
++        }
++    }
++    Ok(sources.into_iter().collect())
++}
+diff --git crates/logic/src/reason/refute/native/tests.rs crates/logic/src/reason/refute/native/tests.rs
+index 40c10c19b..c9983cf3d 100644
+--- crates/logic/src/reason/refute/native/tests.rs
++++ crates/logic/src/reason/refute/native/tests.rs
+@@ -23,6 +23,31 @@ struct Frame {
+     evidence: NativeEvidenceIndex,
+ }
+ impl Frame {
++    fn source_ledger(&self) -> NativeFamilyLedger {
++        NativeFamilyLedger::new(
++            self.evidence.world.clone(),
++            self.evidence.graph.clone(),
++            self.evidence.input_contract,
++            None,
++        )
++    }
++
++    fn source_support(
++        &self,
++        facts: &[Fact],
++        ledger: &mut NativeFamilyLedger,
++    ) -> Result<(Vec<NativeProofId>, Vec<RefutationPremise>)> {
++        let completed = BTreeSet::new();
++        let input = NativeFamilyInput::new(
++            &self.store,
++            &self.rel,
++            &self.rows,
++            &self.evidence,
++            &completed,
++        )?;
++        input.support_with_sources(facts, ledger)
++    }
++
+     fn new(facts: &[Fact]) -> Self {
+         let mut store = FactStore::new();
+         let mut rel = RelationStore::with_semantics(
+@@ -175,6 +200,29 @@ fn late_native_equality_waits_for_completion_and_preserves_committed_derivation_
+     };
+     assert_eq!(rule, "urn:rule:late-equality");
+     assert_eq!(premises.len(), 1);
++    let mut source_ledger = frame.source_ledger();
++    let (roots, leaves) = frame
++        .source_support(
++            &[
++                fact("urn:a", SAME, "urn:b"),
++                fact("urn:a", "urn:late-equality", "urn:b"),
++            ],
++            &mut source_ledger,
++        )
++        .unwrap();
++    let expected: Vec<_> = frame
++        .evidence
++        .sources
++        .iter()
++        .filter(|source| source.predicate == "urn:late-equality")
++        .cloned()
++        .collect();
++    assert_eq!(
++        leaves, expected,
++        "the shared derived/source DAG keeps one original leaf"
++    );
++    assert_eq!(source_ledger.source_leaves(&roots).unwrap(), leaves);
++    source_ledger.validate().unwrap();
+     assert!(
+         after.proofs.iter().any(
+             |proof| proof.id == premises[0] && proof.statement.predicate == "urn:late-equality"
+@@ -228,9 +276,69 @@ fn evidence_cannot_be_reused_in_another_native_world_or_contract() {
+             None,
+         );
+         assert!(input.support(frame.store.facts(), &mut ledger).is_err());
++        assert!(
++            input
++                .support_with_sources(frame.store.facts(), &mut ledger)
++                .is_err()
++        );
+     }
+ }
+ 
++#[test]
++fn source_lookup_preserves_exact_leaves_across_growth_and_ledger_replacement() {
++    let facts = [
++        fact("urn:a", DIFFERENT, "urn:b"),
++        fact("urn:c", DIFFERENT, "urn:d"),
++    ];
++    let frame = Frame::new(&facts);
++    let mut ledger = frame.source_ledger();
++    let (first, leaves) = frame.source_support(&facts[..1], &mut ledger).unwrap();
++    assert_eq!(leaves, vec![frame.evidence.sources[0].clone()]);
++    let (all, leaves) = frame.source_support(&facts, &mut ledger).unwrap();
++    assert_eq!(leaves, frame.evidence.sources.to_vec());
++    assert!(all.contains(&first[0]));
++    ledger.validate().unwrap();
++    let wire = serde_json::to_vec(&ledger).unwrap();
++    {
++        let lookup = ledger.proof_lookup();
++        assert_eq!(lookup.source_leaves(&all).unwrap(), leaves);
++        assert_eq!(lookup.source_leaves(&[all[0], all[0]]).unwrap().len(), 1);
++        assert!(lookup.source_leaves(&[NativeProofId([255; 32])]).is_err());
++        assert!(lookup.source_leaves(&[]).unwrap().is_empty());
++    }
++    assert_eq!(serde_json::to_vec(&ledger).unwrap(), wire);
++    let mut replacement = frame.source_ledger();
++    let (rebound, rebound_leaves) = frame.source_support(&facts, &mut replacement).unwrap();
++    assert_eq!(rebound, all);
++    assert_eq!(rebound_leaves, leaves);
++    replacement.validate().unwrap();
++}
++
++#[test]
++fn cached_source_lookup_rejects_an_identity_mismatched_ledger_position() {
++    let facts = [
++        fact("urn:a", DIFFERENT, "urn:b"),
++        fact("urn:c", DIFFERENT, "urn:d"),
++    ];
++    let frame = Frame::new(&facts);
++    let mut ledger = frame.source_ledger();
++    frame.source_support(&facts, &mut ledger).unwrap();
++    let selected = ledger.proofs[0].id;
++    frame
++        .evidence
++        .recorded
++        .borrow_mut()
++        .by_id
++        .insert(selected, 1);
++    let error = frame.source_support(&facts[..1], &mut ledger).unwrap_err();
++    assert!(
++        error
++            .to_string()
++            .contains("source support references an absent native proof")
++    );
++    ledger.validate().unwrap();
++}
++
+ #[test]
+ fn zero_analysis_budget_never_publishes_an_unexamined_conflict() {
+     let frame = Frame::new(&[fact("urn:a", DIFFERENT, "urn:a")]);
+diff --git crates/logic/src/reason/refute/proof.rs crates/logic/src/reason/refute/proof.rs
+index 24b77362c..26eecbbb9 100644
+--- crates/logic/src/reason/refute/proof.rs
++++ crates/logic/src/reason/refute/proof.rs
+@@ -294,10 +294,17 @@ impl ContextualConflict {
+     /// Validate the exact scope and finite framing of an authenticated native proof.
+     /// This checks retained engine evidence, not arbitrary external theorem soundness.
+     pub fn validate(&self, ledger: &super::NativeFamilyLedger) -> gmeow_errors::Result<()> {
+-        if self.world != ledger.world {
++        self.validate_with(&ledger.proof_lookup())
++    }
++
++    pub(crate) fn validate_with(
++        &self,
++        proofs: &super::native::NativeProofLookup<'_>,
++    ) -> gmeow_errors::Result<()> {
++        if self.world != proofs.ledger().world {
+             return Err(proof_error("contextual conflict belongs to another world"));
+         }
+-        self.proof.validate(ledger)
++        self.proof.validate(proofs)
+     }
+ }
+ 
+@@ -309,7 +316,8 @@ fn proof_error(detail: &str) -> gmeow_errors::Diag {
+ 
+ impl RefutationProof {
+     /// Every frame names existing native support and retains its exact source leaves.
+-    fn validate(&self, ledger: &super::NativeFamilyLedger) -> gmeow_errors::Result<()> {
++    fn validate(&self, proofs: &super::native::NativeProofLookup<'_>) -> gmeow_errors::Result<()> {
++        let ledger = proofs.ledger();
+         let (support, source) = match self {
+             Self::Conflict {
+                 subjects,
+@@ -343,7 +351,7 @@ impl RefutationProof {
+                     ));
+                 }
+                 for branch in branches {
+-                    branch.proof.validate(ledger)?;
++                    branch.proof.validate(proofs)?;
+                 }
+                 (support, choice)
+             }
+@@ -351,7 +359,7 @@ impl RefutationProof {
+         if support.is_empty()
+             || support.windows(2).any(|pair| pair[0] >= pair[1])
+             || source.iter().any(|row| row.graph != ledger.graph)
+-            || ledger.source_leaves(support)? != *source
++            || proofs.source_leaves(support)? != *source
+         {
+             return Err(proof_error(
+                 "closing proof lost its exact native support or original source leaves",
+diff --git helpers-ledger.toml helpers-ledger.toml
+index 0ae980b18..b9842070f 100644
+--- helpers-ledger.toml
++++ helpers-ledger.toml
+@@ -1171,4 +1171,3 @@ enforced = true
+ constants = []
+ fingerprints = ["rule:wasm-import-reflect-get"]
+ names = []
+-
+make: *** [Makefile:260: lint] Error 1

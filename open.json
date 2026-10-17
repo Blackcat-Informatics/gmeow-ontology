@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "issue": 1829,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate",
+  "branch": "paudley/1829-fixtures-goal-directed-aggregate",
+  "slug": "fixtures-goal-directed-aggregate",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/.stage/fixtures-goal-directed-aggregate",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "0fd9462f007dffee32f8254d225e686ad1afdf38",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate",
+    "branch:paudley/1829-fixtures-goal-directed-aggregate",
+    "removed stale .git/info/exclude:/.stage/",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/.stage/fixtures-goal-directed-aggregate",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/.stage/fixtures-goal-directed-aggregate/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-16T12:00:13-0600"
+}

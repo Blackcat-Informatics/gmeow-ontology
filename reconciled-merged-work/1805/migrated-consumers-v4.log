@@ -1,0 +1,80 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) | (package(gmeow-pipeline) & ((test(native_rule_statement_layer) | test(gate_verdict::tests) | test(source_load::parsed)) & !test(corpus_tests))) | (package(gmeow-logic) & test(program_analysis))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/logic-compile)
+error[E0277]: the trait bound `graphutil::Subject: std::hash::Hash` is not satisfied
+    --> crates/logic-compile/src/frontend.rs:1222:32
+     |
+1222 |                     rule_atoms.insert(atom);
+     |                                ^^^^^^ ---- `graphutil::Subject` doesn't satisfy the trait bound
+     |                                |
+     |                                the trait `std::hash::Hash` is not implemented for `graphutil::Subject`
+     |
+note: required by a bound in `HashSet::<T, S, A>::insert`
+    --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/std/src/collections/hash/set.rs:564:13
+     |
+ 562 | impl<T, S, A> HashSet<T, S, A>
+ 563 | where
+ 564 |     T: Eq + Hash,
+     |             ^^^^ required by this bound in `HashSet::<T, S, A>::insert`
+...
+1034 |     pub fn insert(&mut self, value: T) -> bool {
+     |
+help: consider annotating `graphutil::Subject` with `#[derive(Hash)]`
+    -->  crates/logic-compile/src/graphutil.rs:63:1
+     |
+  63 + #[derive(Hash)]
+  64 | pub(crate) enum Subject {
+     |
+
+error[E0599]: the method `contains` exists for struct `HashSet<graphutil::Subject>`, but its trait bounds were not satisfied
+    --> crates/logic-compile/src/frontend.rs:1232:27
+     |
+1232 |             if rule_atoms.contains(&reifier) {
+     |                           ^^^^^^^^ method cannot be called on `HashSet<graphutil::Subject>` due to unsatisfied trait bounds
+     |
+    ::: crates/logic-compile/src/graphutil.rs:63:1
+     |
+  63 | pub(crate) enum Subject {
+     | ----------------------- doesn't satisfy `graphutil::Subject: std::hash::Hash`
+     |
+     = note: the following trait bounds were not satisfied:
+             `graphutil::Subject: std::hash::Hash`
+help: consider annotating `graphutil::Subject` with `#[derive(Hash)]`
+    -->  crates/logic-compile/src/graphutil.rs:63:1
+     |
+  63 + #[derive(Hash)]
+  64 | pub(crate) enum Subject {
+     |
+
+error[E0599]: the method `contains` exists for struct `HashSet<graphutil::Subject>`, but its trait bounds were not satisfied
+    --> crates/logic-compile/src/frontend.rs:1274:23
+     |
+1274 |         if rule_atoms.contains(&stmt) {
+     |                       ^^^^^^^^ method cannot be called on `HashSet<graphutil::Subject>` due to unsatisfied trait bounds
+     |
+    ::: crates/logic-compile/src/graphutil.rs:63:1
+     |
+  63 | pub(crate) enum Subject {
+     | ----------------------- doesn't satisfy `graphutil::Subject: std::hash::Hash`
+     |
+     = note: the following trait bounds were not satisfied:
+             `graphutil::Subject: std::hash::Hash`
+help: consider annotating `graphutil::Subject` with `#[derive(Hash)]`
+    -->  crates/logic-compile/src/graphutil.rs:63:1
+     |
+  63 + #[derive(Hash)]
+  64 | pub(crate) enum Subject {
+     |
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-logic-compile` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic-compile` (lib test) due to 3 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:705: nextest-synthetic] Error 101

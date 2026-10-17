@@ -1,0 +1,143 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & (test(carrier::term_entailments_tests::) | test(docs_render::reasoning_tests::))' --no-tests=fail
+ Downloading crates ...
+  Downloaded rustls v0.23.46
+   Compiling rustls v0.23.46
+   Compiling rustls-webpki v0.103.15
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic-compile)
+   Compiling ureq v3.3.0
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/pipeline)
+error[E0603]: function `canonical_rule_iri` is private
+    --> crates/pipeline/src/stages/carrier.rs:2902:54
+     |
+2902 |             rule: compact_iri(&gmeow_logic::explain::canonical_rule_iri(raw_rule)),
+     |                                                      ^^^^^^^^^^^^^^^^^^ private function
+     |
+note: the function `canonical_rule_iri` is defined here
+    --> crates/logic/src/explain.rs:54:1
+     |
+  54 | pub(crate) fn canonical_rule_iri(rule: &str) -> String {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unused import: `LOGIC_NS`
+  --> crates/pipeline/src/stages/carrier.rs:45:26
+   |
+45 | use gmeow_ns::{GMEOW_NS, LOGIC_NS};
+   |                          ^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error[E0433]: cannot find type `RdfTriple` in this scope
+  --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:94:24
+   |
+94 |     let r1_statement = RdfTriple::new(
+   |                        ^^^^^^^^^ use of undeclared type `RdfTriple`
+   |
+   = note: struct `crate::stages::source_load::tests::RdfTriple` exists but is inaccessible
+help: consider importing this struct
+   |
+ 4 + use purrdf::RdfTriple;
+   |
+
+error[E0433]: cannot find type `RdfTriple` in this scope
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:112:24
+    |
+112 |     let r3_statement = RdfTriple::new(
+    |                        ^^^^^^^^^ use of undeclared type `RdfTriple`
+    |
+    = note: struct `crate::stages::source_load::tests::RdfTriple` exists but is inaccessible
+help: consider importing this struct
+    |
+  4 + use purrdf::RdfTriple;
+    |
+
+error[E0433]: cannot find type `RdfTriple` in this scope
+   --> crates/pipeline/src/stages/carrier.reasoning_edb_projection_tests.rs:128:24
+    |
+128 |     let r2_statement = RdfTriple::new(
+    |                        ^^^^^^^^^ use of undeclared type `RdfTriple`
+    |
+    = note: struct `crate::stages::source_load::tests::RdfTriple` exists but is inaccessible
+help: consider importing this struct
+    |
+  4 + use purrdf::RdfTriple;
+    |
+
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-core-wasm)
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.term_entailments_tests.rs:143:12
+    |
+143 |         s: Box::new(TermValue::iri("urn:nested:subject")),
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Nested<TermValue>`, found `Box<TermValue>`
+    |
+    = note: expected struct `purrdf_lex::walk::Nested<purrdf::TermValue>`
+               found struct `std::boxed::Box<purrdf::TermValue>`
+help: call `Into::into` on this expression to convert `std::boxed::Box<purrdf::TermValue>` into `purrdf_lex::walk::Nested<purrdf::TermValue>`
+    |
+143 |         s: Box::new(TermValue::iri("urn:nested:subject")).into(),
+    |                                                          +++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.term_entailments_tests.rs:144:12
+    |
+144 |         p: Box::new(TermValue::iri("urn:nested:predicate")),
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Nested<TermValue>`, found `Box<TermValue>`
+    |
+    = note: expected struct `purrdf_lex::walk::Nested<purrdf::TermValue>`
+               found struct `std::boxed::Box<purrdf::TermValue>`
+help: call `Into::into` on this expression to convert `std::boxed::Box<purrdf::TermValue>` into `purrdf_lex::walk::Nested<purrdf::TermValue>`
+    |
+144 |         p: Box::new(TermValue::iri("urn:nested:predicate")).into(),
+    |                                                            +++++++
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/stages/carrier.term_entailments_tests.rs:145:12
+    |
+145 |           o: Box::new(TermValue::Literal {
+    |  ____________^
+146 | |             lexical_form: "مرحبا".to_owned(),
+147 | |             datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".to_owned(),
+148 | |             language: Some("ar".to_owned()),
+149 | |             direction: Some(purrdf::RdfTextDirection::Rtl),
+150 | |         }),
+    | |__________^ expected `Nested<TermValue>`, found `Box<TermValue>`
+    |
+    = note: expected struct `purrdf_lex::walk::Nested<purrdf::TermValue>`
+               found struct `std::boxed::Box<purrdf::TermValue>`
+help: call `Into::into` on this expression to convert `std::boxed::Box<purrdf::TermValue>` into `purrdf_lex::walk::Nested<purrdf::TermValue>`
+    |
+150 |         }).into(),
+    |           +++++++
+
+For more information about this error, try `rustc --explain E0603`.
+error: could not compile `gmeow-pipeline` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+Some errors have detailed explanations: E0308, E0433, E0603.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-pipeline` (lib test) due to 7 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:713: nextest-synthetic] Error 101

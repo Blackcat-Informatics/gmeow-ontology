@@ -1,0 +1,37 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & (test(carrier::term_entailments_tests::) | test(docs_render::reasoning_tests::) | test(gts_sink::tests::sink_declares_only_the_lanes_it_reads_as_carrier_inputs) | test(carrier::docs_try_it_golden::))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 31s
+────────────
+ Nextest run ID 50d4d01e-7b48-4509-93de-52f6fe18b603 with nextest profile: ci
+    Starting 19 tests across 25 binaries (1016 tests and 200 binaries skipped)
+        PASS [   0.009s] ( 1/19) gmeow-pipeline stages::docs_render::reasoning_tests::retained_snapshot_owns_the_post_dag_documentation_verdict
+        PASS [   0.010s] ( 2/19) gmeow-pipeline stages::carrier::term_entailments_tests::native_term_panels_from_retained_snapshot_preserve_multiple_heads_sources_and_worlds
+        PASS [   0.010s] ( 3/19) gmeow-pipeline stages::docs_render::reasoning_tests::absent_graph_released_carrier_and_wrong_producer_refuse
+        PASS [   0.010s] ( 4/19) gmeow-pipeline stages::docs_render::reasoning_tests::native_empty_classes_preserve_consistency_and_both_grounded_spellings
+        PASS [   0.010s] ( 5/19) gmeow-pipeline stages::docs_render::reasoning_tests::unsupported_native_observation_keeps_all_axes_and_gate_refusal
+        PASS [   0.010s] ( 6/19) gmeow-pipeline stages::docs_render::reasoning_tests::invalid_native_contradiction_without_evidence_refuses
+        PASS [   0.010s] ( 7/19) gmeow-pipeline stages::gts_sink::tests::sink_declares_only_the_lanes_it_reads_as_carrier_inputs
+        PASS [   0.010s] ( 8/19) gmeow-pipeline stages::carrier::term_entailments_tests::term_panels_refuse_missing_native_source_even_when_explanation_bytes_exist
+        PASS [   0.011s] ( 9/19) gmeow-pipeline stages::carrier::term_entailments_tests::modal_term_panels_use_native_evidence_without_a_derivation_namespace_assumption
+        PASS [   0.010s] (10/19) gmeow-pipeline stages::docs_render::reasoning_tests::missing_reason_product_handle_and_wrong_payloads_refuse
+        PASS [   0.011s] (11/19) gmeow-pipeline stages::docs_render::reasoning_tests::changed_native_payload_identity_refuses
+        PASS [   0.012s] (12/19) gmeow-pipeline stages::carrier::term_entailments_tests::native_term_panels_preserve_rdf12_quoted_and_directional_values
+        PASS [   0.011s] (13/19) gmeow-pipeline stages::docs_render::reasoning_tests::witnessed_native_inconsistency_remains_distinct_from_empty_classes
+        PASS [   0.012s] (14/19) gmeow-pipeline stages::carrier::term_entailments_tests::native_term_panels_refuse_an_inferred_row_without_its_rule
+        PASS [   0.011s] (15/19) gmeow-pipeline stages::docs_render::reasoning_tests::nonconclusive_or_undecided_native_results_never_render_consistent
+        PASS [   0.040s] (16/19) gmeow-pipeline stages::carrier::docs_try_it_golden::ontology_witness_cancels_across_skolem_iri_shift
+        PASS [   0.061s] (17/19) gmeow-pipeline stages::carrier::docs_try_it_golden::shared_subject_across_examples_routes_to_cross_example
+        PASS [   0.094s] (18/19) gmeow-pipeline stages::carrier::docs_try_it_golden::try_it_attribution_is_semantically_pinned
+        PASS [   0.127s] (19/19) gmeow-pipeline stages::carrier::docs_try_it_golden::reduced_seed_attribution_matches_full_edb_attribution
+────────────
+     Summary [   0.140s] 19 tests run: 19 passed, 1016 skipped

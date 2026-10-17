@@ -1,0 +1,53 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) & test(native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/gmeow-dev-cli)
+warning: unused dependency `csv`
+  --> crates/logic/Cargo.toml:81:1
+   |
+81 | csv = "1"
+   | ^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `csv`
+warning: unused dependency `flate2`
+  --> crates/logic/Cargo.toml:84:1
+   |
+84 | flate2 = "1"
+   | ^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `flate2`
+warning: `gmeow-logic` (manifest) generated 2 warnings
+    Finished `test` profile [optimized] target(s) in 5m 19s
+────────────
+ Nextest run ID 39718902-43d4-4a3d-bc65-2d6cb3c38bec with nextest profile: ci
+    Starting 1 test across 2 binaries (933 tests and 223 binaries skipped)
+        PASS [   0.019s] (1/1) gmeow-logic-compile projections::sssom::tests::native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries
+────────────
+     Summary [   0.062s] 1 test run: 1 passed, 933 skipped

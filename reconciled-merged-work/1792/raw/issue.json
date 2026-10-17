@@ -1,0 +1,27 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Observation\nDuring native materialization, the joint class producer's `PreparedClassAnalysis::evaluate` (`crates/logic/src/reason/refute/casesplit/execution.rs`, reached from `families.rs` `FamilyState::round`) dominates stratum time, and its cost grows roughly quadratically with the number of restriction descriptors in the input, even when none of the restrictions has an instance.\n\nMeasured in `gmeow-logic` with N qualified-minimum restrictions (each with its own `onProperty` and a shared `onClass`, `minQualifiedCardinality 1`) plus one instance-bearing restriction. These are dev-profile test timings of the class evaluate call in the first stratum-1 round:\n\n| restrictions | class evaluate |\n|---|---|\n| 1,250 | 0.8 s |\n| 2,500 | 5.1 s |\n| 5,000 | 17.3 s |\n\nFor the 5,000 case, materialize took about 32\u201367 s in total, while every other gather phase (sources, ordinary rules, properties, existentials, obligation families) took milliseconds per round. Later rounds re-evaluate in about 4.5 s each.\n\nThe production corpus carries about 6,540 `logic:onProperty` and 5,450 `logic:onClass` rows (#1789), so this is expected to cost tens of seconds per reasoning run once production reasoning is admitted.\n\n## Next\nProfile `prepare` and `evaluate` (premise rebinding through `native_support`, `scan.ingest` and `prepare_schema`, and the case-split model work) and remove the per-restriction rescans. Results must stay exact.",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-04T03:17:20Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    }
+  ],
+  "milestone": null,
+  "number": 1792,
+  "state": "OPEN",
+  "title": "Case-split class analysis is quadratic in restriction descriptors during materialization",
+  "updatedAt": "2026-10-04T03:17:20Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1792"
+}

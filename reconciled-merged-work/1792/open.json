@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "issue": 1792,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1792-case-split-class-analysis-is-quadratic",
+  "branch": "paudley/1792-case-split-class-analysis-is-quadratic",
+  "slug": "case-split-class-analysis-is-quadratic",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1792-case-split-class-analysis-is-quadratic/.stage/case-split-class-analysis-is-quadratic",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "a631f73e6e39b4493d295bcd83b4deec80637f54",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1792-case-split-class-analysis-is-quadratic",
+    "branch:paudley/1792-case-split-class-analysis-is-quadratic",
+    "removed stale .git/info/exclude:/.stage/",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1792-case-split-class-analysis-is-quadratic/.stage/case-split-class-analysis-is-quadratic",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1792-case-split-class-analysis-is-quadratic/.stage/case-split-class-analysis-is-quadratic/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-15T14:58:02-0600"
+}

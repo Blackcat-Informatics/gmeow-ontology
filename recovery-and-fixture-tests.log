@@ -1,0 +1,60 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-pipeline) & test(fixture::tests::)) | (package(gmeow-logic) & test(correspondence_exec::tests::))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1829-fixtures-goal-directed-aggregate/crates/logic)
+    Finished `test` profile [optimized] target(s) in 1m 53s
+────────────
+ Nextest run ID 02cf6df8-f522-4755-b55b-38066edfc46f with nextest profile: ci
+    Starting 47 tests across 51 binaries (3310 tests and 174 binaries skipped)
+        PASS [   0.009s] ( 1/47) gmeow-logic correspondence_exec::tests::branch_seed_derivation_covers_plain_and_union_queries
+        PASS [   0.009s] ( 2/47) gmeow-logic correspondence_exec::tests::empty_context_graph_incidence_participates_in_the_law_isomorphism
+        PASS [   0.009s] ( 3/47) gmeow-logic correspondence_exec::tests::correspondence_literal_keys_preserve_direction_and_lexical_boundaries
+        PASS [   0.009s] ( 4/47) gmeow-logic correspondence_exec::tests::prepared_law_execution_refuses_non_carrier_query_forms
+        PASS [   0.009s] ( 5/47) gmeow-logic correspondence_exec::tests::carrier_laws_compare_empty_blank_graphs_up_to_isomorphism
+        PASS [   0.009s] ( 6/47) gmeow-logic correspondence_exec::tests::a_comparison_refusal_is_an_operational_error
+        PASS [   0.009s] ( 7/47) gmeow-logic correspondence_exec::tests::full_dotted_iri_predicate_is_not_mis_split
+        PASS [   0.010s] ( 8/47) gmeow-logic correspondence_exec::tests::correspondence_graph_scope_is_executed_and_compared
+        PASS [   0.010s] ( 9/47) gmeow-logic correspondence_exec::tests::directional_literal_seed_round_trips_through_the_law_executor
+        PASS [   0.007s] (10/47) gmeow-logic correspondence_exec::tests::recovery_admission_bounds_nested_algebra_without_truncating_it
+        PASS [   0.010s] (11/47) gmeow-logic correspondence_exec::tests::program_requires_both_recovery_evidence_and_the_resolved_leg_bodies
+        PASS [   0.007s] (12/47) gmeow-logic correspondence_exec::tests::recovery_case_colliding_with_the_reserved_recovery_namespace_never_discharges
+        PASS [   0.010s] (13/47) gmeow-logic correspondence_exec::tests::composite_path_is_unknown_without_a_complete_recovery_case
+        PASS [   0.010s] (14/47) gmeow-logic correspondence_exec::tests::dotted_literal_object_is_not_mis_split
+        PASS [   0.010s] (15/47) gmeow-logic correspondence_exec::tests::every_unavailable_law_case_survives_the_diagnostic_boundary
+        PASS [   0.010s] (16/47) gmeow-logic correspondence_exec::tests::native_mapping_law_admission_keeps_independent_view_domains_and_bounded_evidence
+        PASS [   0.010s] (17/47) gmeow-logic correspondence_exec::tests::native_law_inputs_retain_empty_standpoint_graphs_through_execution
+        PASS [   0.010s] (18/47) gmeow-logic correspondence_exec::tests::malformed_recovery_formula_fails_closed_before_leg_execution
+        PASS [   0.010s] (19/47) gmeow-logic correspondence_exec::tests::inadmissible_recovery_queries_cannot_supply_an_empty_domain
+        PASS [   0.010s] (20/47) gmeow-logic correspondence_exec::tests::independently_edited_view_refutes_put_get_when_source_recovery_passes
+        PASS [   0.010s] (21/47) gmeow-logic correspondence_exec::tests::honest_lossy_recovery_requires_legs_and_keeps_its_refutation
+        PASS [   0.010s] (22/47) gmeow-logic correspondence_exec::tests::complete_composite_recovery_executes_the_resolved_path_bodies
+        PASS [   0.010s] (23/47) gmeow-logic correspondence_exec::tests::canonical_recovery_vocabulary_outside_the_execution_namespaces_remains_usable
+        PASS [   0.010s] (24/47) gmeow-logic correspondence_exec::tests::mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case
+        PASS [   0.010s] (25/47) gmeow-logic correspondence_exec::tests::failed_law_cases_cannot_be_disguised_by_a_successful_case
+        PASS [   0.011s] (26/47) gmeow-logic correspondence_exec::tests::failed_law_cases_cannot_hide_a_later_real_counterexample
+        PASS [   0.011s] (27/47) gmeow-logic correspondence_exec::tests::quoted_recovery_seed_is_not_discarded_or_coerced_to_an_iri
+        PASS [   0.009s] (28/47) gmeow-logic correspondence_exec::tests::recovery_cannot_discard_an_empty_context_graph
+        PASS [   0.011s] (29/47) gmeow-logic correspondence_exec::tests::atomic_inverse_recovers_the_real_source_predicate
+        PASS [   0.012s] (30/47) gmeow-logic correspondence_exec::tests::native_mapping_branch_domain_catches_fabricated_guard_with_deterministic_countermodel
+        PASS [   0.016s] (31/47) gmeow-logic correspondence_exec::tests::recovery_admission_bounds_repeated_patterns_before_distribution
+        PASS [   0.005s] (32/47) gmeow-logic correspondence_exec::tests::recovery_evidence_with_a_missing_resolved_leg_fails_closed
+        PASS [   0.006s] (33/47) gmeow-logic correspondence_exec::tests::recovery_seed_application_preserves_driver_aliases_in_quoted_terms_and_graphs
+        PASS [   0.006s] (34/47) gmeow-logic correspondence_exec::tests::recovery_seed_optional_application_requires_only_its_driver
+        PASS [   0.006s] (35/47) gmeow-logic correspondence_exec::tests::recovery_formula_literal_endpoints_fail_closed
+        PASS [   0.006s] (36/47) gmeow-logic correspondence_exec::tests::triple_pattern_shared_outside_union_appears_in_every_branch
+        PASS [   0.006s] (37/47) gmeow-logic correspondence_exec::tests::typed_recovery_admission_rejects_invalid_paths_before_native_execution
+        PASS [   0.008s] (38/47) gmeow-logic correspondence_exec::tests::recovery_formula_discharges_only_when_the_view_retains_every_source_variable
+        PASS [   0.005s] (39/47) gmeow-logic correspondence_exec::tests::wrong_atomic_put_yields_a_real_missing_and_spurious_difference
+        PASS [   0.006s] (40/47) gmeow-logic correspondence_exec::tests::view_domain_can_be_empty_without_fabricating_put_get_evidence
+        PASS [   0.009s] (41/47) gmeow-logic correspondence_exec::tests::shared_recovery_legs_do_not_reuse_another_cases_success_or_bindings
+        PASS [   0.020s] (42/47) gmeow-pipeline fixture::tests::source_export_cannot_substitute_another_selected_parent_or_artifact
+        PASS [   0.025s] (43/47) gmeow-pipeline fixture::tests::selected_fixture_stages_are_stable_persistent_contributions
+        PASS [   0.027s] (44/47) gmeow-pipeline fixture::tests::full_sync_receipts_select_the_same_fixture_closure_as_the_prefix_producer
+        PASS [   0.027s] (45/47) gmeow-pipeline fixture::tests::fixture_selector_refuses_missing_ancestors_and_mismatched_receipt_identity
+        PASS [   0.031s] (46/47) gmeow-pipeline fixture::tests::candidate_replay_and_changes_never_replace_finalized_bindings
+        PASS [   0.061s] (47/47) gmeow-logic correspondence_exec::tests::recovery_admission_bounds_cartesian_branch_expansion
+────────────
+     Summary [   0.087s] 47 tests run: 47 passed, 3310 skipped

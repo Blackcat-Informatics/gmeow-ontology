@@ -1,0 +1,22 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic-compile) & test(frontend::native_statement_tests::)) | (package(gmeow-pipeline) & (test(native_rule_statement_layer_survives_the_production_gts_profile) | test(authored_base_quote_outside_a_native_binding_still_fails_closed)))' --no-tests=fail
+    Finished `test` profile [optimized] target(s) in 1.29s
+────────────
+ Nextest run ID 9f9e23f7-869a-47ab-92cc-9d067f31aaff with nextest profile: ci
+    Starting 10 tests across 27 binaries (2011 tests and 198 binaries skipped)
+        PASS [   0.084s] ( 1/10) gmeow-logic-compile frontend::native_statement_tests::bare_reification_is_a_proposition_and_never_an_assertion
+        PASS [   0.085s] ( 2/10) gmeow-logic-compile frontend::native_statement_tests::named_graph_annotations_do_not_supply_default_graph_scope
+        PASS [   0.086s] ( 3/10) gmeow-logic-compile frontend::native_statement_tests::native_scoped_axiom_retains_every_scope_dimension_without_global_assertion
+        PASS [   0.083s] ( 4/10) gmeow-logic-compile frontend::native_statement_tests::separate_native_reifiers_preserve_coexisting_standpoints
+        PASS [   0.088s] ( 5/10) gmeow-logic-compile frontend::native_statement_tests::invalid_native_scope_never_emits_a_weaker_claim
+        PASS [   0.088s] ( 6/10) gmeow-logic-compile frontend::native_statement_tests::nested_scoped_proposition_has_an_explicit_lowering_error
+        PASS [   0.106s] ( 7/10) gmeow-logic-compile frontend::native_statement_tests::annotation_only_modal_formula_preserves_authored_variable_and_constraint_ownership
+        PASS [   0.122s] ( 8/10) gmeow-logic-compile frontend::native_statement_tests::native_rule_projection_round_trips_typed_atoms_and_guards
+        PASS [   0.150s] ( 9/10) gmeow-pipeline stages::carrier::logic_graph_golden_tests::authored_base_quote_outside_a_native_binding_still_fails_closed
+        PASS [   0.181s] (10/10) gmeow-pipeline stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+────────────
+     Summary [   0.259s] 10 tests run: 10 passed, 2011 skipped

@@ -1,0 +1,33 @@
+cargo bench -p gmeow-logic --bench reason -- class_restrictions
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1792-case-split-class-analysis-is-quadratic/crates/logic)
+    Finished `bench` profile [optimized] target(s) in 6.66s
+     Running benches/reason.rs (/opt/.cargo/84/383e6a7250a02f/release/build/gmeow-logic/5219fa1456c24e96/out/reason-5219fa1456c24e96)
+Benchmarking class_restrictions/descriptors_1250
+Benchmarking class_restrictions/descriptors_1250: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 76.7s.
+Benchmarking class_restrictions/descriptors_1250: Collecting 10 samples in estimated 76.736 s (10 iterations)
+Benchmarking class_restrictions/descriptors_1250: Analyzing
+class_restrictions/descriptors_1250
+                        time:   [7.5030 s 8.6553 s 10.149 s]
+Found 3 outliers among 10 measurements (30.00%)
+  1 (10.00%) low mild
+  1 (10.00%) high mild
+  1 (10.00%) high severe
+Benchmarking class_restrictions/descriptors_2500
+Benchmarking class_restrictions/descriptors_2500: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 350.2s.
+Benchmarking class_restrictions/descriptors_2500: Collecting 10 samples in estimated 350.18 s (10 iterations)
+Benchmarking class_restrictions/descriptors_2500: Analyzing
+class_restrictions/descriptors_2500
+                        time:   [40.800 s 45.919 s 50.819 s]
+Benchmarking class_restrictions/descriptors_5000
+Benchmarking class_restrictions/descriptors_5000: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 2437.9s.
+Benchmarking class_restrictions/descriptors_5000: Collecting 10 samples in estimated 2437.9 s (10 iterations)
+Benchmarking class_restrictions/descriptors_5000: Analyzing
+class_restrictions/descriptors_5000
+                        time:   [267.86 s 295.94 s 324.71 s]
+

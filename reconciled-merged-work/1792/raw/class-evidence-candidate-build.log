@@ -1,0 +1,4 @@
+cargo bench -p gmeow-logic --bench reason --no-run
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1792-case-split-class-analysis-is-quadratic/crates/logic)
+    Finished `bench` profile [optimized] target(s) in 11m 07s
+  Executable benches/reason.rs (/opt/.cargo/84/383e6a7250a02f/release/build/gmeow-logic/5219fa1456c24e96/out/reason-5219fa1456c24e96)

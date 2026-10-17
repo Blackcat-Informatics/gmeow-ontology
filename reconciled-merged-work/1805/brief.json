@@ -1,0 +1,110 @@
+{
+  "issue": 1805,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "logic: rule projection uses RDF 1.1 classic reification (rdf:Statement); move to RDF 1.2 triple terms",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {},
+  "link_relations": {},
+  "related": [
+    {
+      "number": 1803,
+      "title": "Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow",
+      "state": "OPEN"
+    },
+    {
+      "number": 1201,
+      "title": "Generalize the projection-purity gate to the whole semantic-vocabulary surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1704,
+      "title": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+      "state": "OPEN"
+    },
+    {
+      "number": 1194,
+      "title": "V4 \u2014 Equivalence-before-deletion: retire hand-authored shapes.ttl + structural ShEx",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 718,
+      "title": "epic: Common Logic (ISO/IEC 24707) \u2014 full-FOL IR + CLIF/CGIF/XCL interchange (export + ingest)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 630,
+      "title": "EPIC \u2014 gmeow:logic: RDF-1.2-first Rust reasoning authority + classic-cross-check consolidation",
+      "state": "CLOSED"
+    },
+    {
+      "number": 665,
+      "title": "feat(logic): native DL/EL reasoning authority + Rust cross-check divergence ledger (reason --mode native)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1192,
+      "title": "V2 \u2014 Project validation shapes to SHACL Core + ShEx (one lowering, per-target loss ledger)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 809,
+      "title": "diagnostics: fold the remaining GMEOW-owned make-check surfaces into the canonical report (compilers + external tools)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 672,
+      "title": "META-EPIC \u2014 The reference RDF-1.2 stack: fast, complete, coherent",
+      "state": "CLOSED"
+    },
+    {
+      "number": 933,
+      "title": "EPIC \u2014 Python is UI-only: cull orchestration/pipeline/eval/generation/reasoning to Rust",
+      "state": "CLOSED"
+    },
+    {
+      "number": 667,
+      "title": "feat(logic): first-class output \u2014 multi-format / multilingual / GTS / SARIF + integrated docs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1087,
+      "title": "META-EPIC: The Correspondence Calculus + native logic execution engine",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "consumer-artifact-path-coupling": 1,
+    "repeated-unshared-reasoning-analysis": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1802,
+        "title": "fix(1757): certify and run native reasoning on the production corpus",
+        "state": "OPEN",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1802",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1805-logic-rule-projection-uses-rdf-1-1"
+  },
+  "coverage": [
+    "issue #1805 + 0 comment(s) via github",
+    "link crawl: no `#N` references in the issue or its comments",
+    "forge search on ['logic:', 'projection', 'classic']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 2 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1805 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1805: 1",
+    "requirement candidates: 0 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 4 path(s) (1 on disk), 1 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

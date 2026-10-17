@@ -1,0 +1,64 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic-compile) | (package(gmeow-pipeline) & (test(native_rule_statement_layer) | test(gate_verdict) | test(meta_findings) | test(source_load::parsed))) | (package(gmeow-conformance) & test(diagnostics_meta_findings)) | (package(gmeow-logic) & test(program_analysis))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/crates/mcp-core-wasm)
+error: unused `IngestReport` that must be used
+  --> crates/pipeline/src/stages/carrier.logic_graph_golden_tests.rs:50:5
+   |
+50 | /     builder
+51 | |         .add_view(&carrier)
+52 | |         .expect("fold full statement layer");
+   | |____________________________________________^
+   |
+   = note: the ingest report names the declaration-only graphs that were deliberately not interned
+   = note: `-D unused-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_must_use)]`
+help: use `let _ = ...` to ignore the resulting value
+   |
+50 |     let _ = builder
+   |     +++++++
+
+error: could not compile `gmeow-pipeline` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+warning: unused dependency `csv`
+  --> crates/logic/Cargo.toml:81:1
+   |
+81 | csv = "1"
+   | ^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `csv`
+warning: unused dependency `flate2`
+  --> crates/logic/Cargo.toml:84:1
+   |
+84 | flate2 = "1"
+   | ^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `flate2`
+warning: `gmeow-logic` (manifest) generated 2 warnings
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:705: nextest-synthetic] Error 101
