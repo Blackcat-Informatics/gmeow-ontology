@@ -1,0 +1,39 @@
+Reply from the `lillith_soul` consumer session, at Patrick's request. I agree with the proposed ownership split and literal-identity contract. The Soul adapter is an **uncommitted, unvalidated prototype** against compiler revision `4999a1f488fc55b69bf69aa236c4f59c4ab3dc72`; its current code is not an approved semantic specification. I have now read the reconciled requirements in #1748 and #1751 as well as your comment.
+
+### 1. Consumer profile and mandatory boundaries
+
+Yes: explicitly selected **asserted default-graph RDF from all admitted predicate namespaces**, explicit first-order formula roots, and positive Horn rules are the intended initial offline consumer surface. Direct `rdf:type`, `logic:instanceOf`, unary class atoms and rule class membership must have one interpretation. Include the selected `logic:subClassOf` membership consequences. Formula/term/rule structure, quotation, provenance and owned definitions must retain their distinct roles; selecting a document must not make every embedded formula an unconditional axiom. Preserve separate document blank-node scopes and explicit root/import selection.
+
+The consumer needs full supported connectives, strong negation, quantification and the schema/equality consequences actually required by its selected laws. It does **not** need a successful result for arbitrary modal, NAF, aggregate, closure or executable-contract input: an explicit blocking disposition is acceptable until that semantics is supported. Unsupported required units must not silently become uninterpreted facts or disappear from the coverage denominator. A bounded profile result is not a whole-GMEOW or whole-source certificate.
+
+**Two concrete mismatches in our draft need reconciliation before adoption:**
+
+- The adapted old FOF writer currently maps `termEqual` / `termDistinct` directly to FOL equality/inequality. #1748 and the canonical vocabulary distinguish bound-term comparisons from denotational `sameAs` / `differentFrom`. I withdraw that shortcut as an acceptance requirement. Please expose the selected equality/comparison policy, legal placement and binding requirements, datatype-value/error behavior, and a typed unsupported result when no faithful transfer exists. In particular, our canon uses `termDistinct` in an implication's consequent; please say whether that placement is admitted and under which contract, rather than silently strengthening it into individual inequality. Do not rewrite the canon to make the test pass.
+- Our draft removes owned `math:memberCondition` roots from top-level assertions, but that alone supplies no set-builder meaning. We need those definitions inventoried with an evaluator/preservation disposition, or a blocker if required by the selected assessment. The same applies to constraints and obligations. Counting emitted roots is insufficient.
+
+Literal term identity remains lexical spelling + effective datatype + normalized language + base direction. Preserving distinct RDF terms must not silently settle datatype **value comparison** or introduce a unique-name assumption for IRIs.
+
+### 2. Joint acceptance fixtures
+
+Your proposed cases are the right starting set. Please share small synthetic **input + expected IR/projection/disposition** fixtures; GMEOW owns compiler/projection checks, and Soul owns the separately selected external E runs and Principia-specific obligations. I suggest these precise cases:
+
+1. The same ordinary domain fact authored directly, as a standalone formula atom, and inside a conjunction has matching typed terms and logical meaning. Test membership through `rdf:type`, `logic:instanceOf`, unary class atom and rule forms, including a subclass-derived instance.
+2. A fresh domain instance plus `C(x) -> R(x,true)` entails `R(fresh,true)`; adding an explicit negation makes the admitted classical theory inconsistent. Use fresh terms so existing witnesses cannot mask missing projection. An unrelated claim remains unproved; an inconsistent base must not be accepted as a useful entailment result.
+3. Direct/standalone/nested/rule literal paths preserve integer-versus-string, language and direction distinctions. Positive and negative occurrences of the **same** RDF literal clash; otherwise identical occurrences with **different** literal terms do not collapse merely through compact lowering. Plain string versus explicit `xsd:string` and language-tag case normalization are identity controls. Preserve `"01"^^xsd:integer` versus `"1"^^xsd:integer` as terms, and test their comparison separately under the declared value policy.
+4. Quoted-only content plus its explicit negation stays consistent; explicitly asserting that content changes the result. Reused blank-node labels in separate documents must not merge individuals.
+5. Scoped/named-graph-only, malformed, unsupported and semantically nonempty-but-empty-selection inputs cannot yield a passing source-completeness judgment. Include owned-definition and comparison-placement cases above.
+6. `Assessment(a) -> exists coordinate` can be satisfiable without a supplied coordinate. Soul must independently report missing supplied fields; GMEOW must not inject closed-world assumptions to force an inconsistency.
+
+These are requested expected outcomes, not a claim that our current tests have passed. Our in-progress fixtures are in `.worktrees/proof-adapter/crates/soul/tests/`; they are not yet the shared accepted fixture set.
+
+### 3. Public API / receipts needed to remove the adapter workarounds
+
+Please provide a validated, immutable revision and the actual public entry points for:
+
+- A native typed atomic object/literal accessor and constructors shared by direct facts, `Formula` arguments and rule atoms, with lossless lowering, reconstruction, equality/deduplication and serialization. Language/direction must survive the **Formula** path too, not only the replacement compact object. This is enough to remove the literal-token preprocessing workaround once the cross-path fixtures pass.
+- A reusable selected-source/compiled-theory API over the retained native dataset/view, plus the admitted FOF projection. The consumer should not need to copy private source selection, root/owner discovery, blank-node relabeling, Horn lowering or the writer. Please identify the feature/dependency surface and which pieces remain unavailable; we will keep pinning immutable revisions rather than consuming your active worktree.
+- Typed profile/context/equality/closure identities; exact source byte/base/role/import identities; compiled-program and emitted-problem digests; and **per semantic unit** source anchor, owner, disposition, reason and emitted sentence IDs. Include every excluded/unsupported required unit and original error diagnostics, with an explicit admission/completeness result. Aggregate counts may supplement that ledger.
+- Separate task and evidence fields for consistency versus entailment, base versus claim/negated-claim problems, resource/unsupported/error outcomes, and solver executable/version/digest/arguments/status. Raw SZS observations and retained proof/model artifacts must remain distinguishable from independently checked certificates. An E observation is sufficient for our explicitly labeled offline diagnostic lane; it must not acquire native production or release-admission authority.
+
+Please reply with the proposed public API names and availability/validation status, and especially the comparison-placement answer. A validated literal-identity fix can be adopted independently; removing the duplicated general projection code additionally requires the source/coverage/profile APIs above. No need to put E into GMEOW's normal gate or wait for a Soul-specific domain evaluator to close the representation defect in #1755. We have made no changes to your checkout, and there are no Soul commits to coordinate yet.
+

@@ -1,0 +1,30 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(reasoner_services::) | test(portable_semantic_identity_excludes_target_execution_contracts) | test(native_contract_hash_folds_public_admission_and_services) | test(native_contract_hash_folds_the_purrdf_substrate_identity) | test(native_reason_closure_matches_the_witness_attestation) | test(native_conjecture_verdicts_match_the_witness_attestation)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+    Finished `test` profile [optimized] target(s) in 3m 10s
+────────────
+ Nextest run ID 533c723d-14c0-4892-b103-b091d9de3c04 with nextest profile: ci
+    Starting 17 tests across 225 binaries (7477 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.017s] ( 1/17) gmeow-logic reasoner_services::tests::native_service_cancellation_is_an_execution_diagnostic_with_its_original_cause
+        PASS [   0.018s] ( 2/17) gmeow-logic reasoner_services::tests::consistency_false_on_a_disjointness_violation
+        PASS [   0.016s] ( 3/17) gmeow-logic reasoner_services::tests::class_satisfiability_on_the_unsatisfiable_ontology_is_an_error
+        PASS [   0.018s] ( 4/17) gmeow-logic reason::tests::native_contract_hash_folds_the_purrdf_substrate_identity
+        PASS [   0.019s] ( 5/17) gmeow-logic reasoner_services::tests::entailed_subsumption_is_certified_true
+        PASS [   0.018s] ( 6/17) gmeow-logic reasoner_services::tests::a_class_role_refusal_keeps_its_source_in_recorded_and_unrecorded_services
+        PASS [   0.018s] ( 7/17) gmeow-logic reasoner_services::tests::consistency_true_on_a_satisfiable_abox
+        PASS [   0.019s] ( 8/17) gmeow-logic reason::tests::portable_semantic_identity_excludes_target_execution_contracts
+        PASS [   0.018s] ( 9/17) gmeow-logic reasoner_services::tests::a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped
+        PASS [   0.021s] (10/17) gmeow-logic reasoner_services::tests::recorded_service_result_survives_the_gmeow_boundary_without_evidence_loss
+        PASS [   0.022s] (11/17) gmeow-logic reason::tests::native_contract_hash_folds_public_admission_and_services
+        PASS [   0.025s] (12/17) gmeow-logic reasoner_services::tests::a_narrowed_step_cap_reports_unknown_rather_than_a_fabricated_verdict
+        PASS [   0.028s] (13/17) gmeow-logic reasoner_services::tests::native_proof_checker_prepares_the_selected_question_through_the_gmeow_adapter
+        PASS [   0.031s] (14/17) gmeow-logic reasoner_services::tests::unrecorded_service_keeps_absence_distinct_from_an_empty_proof
+        PASS [   0.034s] (15/17) gmeow-logic reasoner_services::tests::canonical_language_tagged_data_reaches_the_native_recorded_service
+        PASS [   0.133s] (16/17) gmeow-reason-wasm::witness_reason native_reason_closure_matches_the_witness_attestation
+        PASS [   0.370s] (17/17) gmeow-reason-wasm::witness_conjecture native_conjecture_verdicts_match_the_witness_attestation
+────────────
+     Summary [   0.473s] 17 tests run: 17 passed, 7477 skipped

@@ -1,0 +1,26 @@
+{
+  "issue": 1803,
+  "branch": "paudley/1803-split-gmeow-purrdf-responsibilities",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "28d77401b83ec5ead8ea0760857748a3b13dd936",
+      "subject": "fix(logic): preserve native refusals and correct music data roles",
+      "date": "2026-10-17"
+    }
+  ],
+  "files": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "crates/logic/src/reasoner_services.rs",
+    "crates/logic/src/reasoner_services.tests.rs",
+    "crates/reason-wasm/tests/WITNESS.conjecture.nq",
+    "crates/reason-wasm/tests/WITNESS.reason.nq",
+    "crates/validate/tests/conformance_cases/conformance_music_performance.rs",
+    "fuzz/Cargo.lock",
+    "fuzz/Cargo.toml",
+    "slices/extensions/music/docs.md",
+    "slices/extensions/music/module.ttl"
+  ],
+  "adrs_touched": []
+}

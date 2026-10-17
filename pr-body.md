@@ -1,0 +1,5 @@
+The native class reader now identifies malformed restriction roles by their original RDF source. Select that merged PurRDF revision and retain its classification and witness through GMEOW diagnostics. Correct four music text properties to datatype roles and qualify their required-text cardinalities by rdf:langString instead of an object class. Preserve the existing language-tagged values and per-language uniqueness constraints.
+
+Validation: 17 selected synthetic service, proof-replay, identity and witness-consumer checks pass; the explicit tiny witness refresh passes. Strict producer-independent all-target Clippy passes with warnings denied. Fresh music corpus validation and full hosted acceptance are not yet proven.
+
+Principles 4, 7, 17 and 18. Advances #1803; does not close it. The recorded default also exposes five annotation metadata operands whose constraints require separate semantic repair. Native class delegation/deletion and proof/stop/delta integration remain open under that issue.

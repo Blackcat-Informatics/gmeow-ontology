@@ -1,0 +1,13 @@
+# Scope and remaining gaps
+
+This increment advances issue 1803; it does not complete or close that issue or the broader logic objective. Principles 4, 7, 17 and 18 govern the repair.
+
+Delivered source changes select the merged native diagnostic fix, use the native classification API instead of a duplicate wrapper walk, retain original refusal evidence through the GMEOW ledger, and correct four music text properties from annotation to datatype roles. The two existing required-text qualified cardinalities now use rdf:langString data ranges rather than object-class Thing. Original language-tagged values, class range restrictions and UniqueLang constraints remain. An authenticated corpus test checks all four role declarations; fresh corpus execution remains hosted-only and is not claimed passed.
+
+The first strengthened regression failed because it selected the compiler's intentionally lossy grounding projection. Production assemble_object_level_edb uses the shared authored-source with_owl_rdfs_projection. The corrected regression uses that exact boundary, requires the datatype declaration, checks both valid tagged text and invalid plain text, and replays decided native proofs. production-path-tests.log records all 17 selected checks passing.
+
+The temporary frozen-default operand inventory is terminal and removed from source. It found nine annotation-property restriction operands: skos:definition; gmeow:enforcesFailureClass, dofConstraintText, docOwnerSlice, processRuleText, accordingTo, profileDescriptor, ornamentDescription and constraintText. Four music properties are data roles; the other five must retain their owning annotation semantics while their validation obligations are migrated away from invalid DL annotation-role restrictions. The existing source docs explicitly require annotation semantics for enforcesFailureClass, docOwnerSlice and accordingTo. No broad property-kind rewrite, premise filter or native parser relaxation is acceptable. This inventory is not an exhaustive grammar-admission verdict.
+
+Still required under 1803: native class-world admission and proof benchmarks against fresh corrected production source, metadata constraint repairs, proof+stop identity support, cheap shared-world/delta boundaries, original rooted proof support under non-explosive contextual policy, actual native class execution delegation and deletion of the inferior class engine. Current source and existing scope controls are recorded in boundary-inspection.md. No global inconsistency-to-local-Nothing shortcut is implemented.
+
+Other open logic requirements remain in logic-queue-assessment.md, including external competency corpus production and prepared-canon prover composition. They are not discharged by this increment.

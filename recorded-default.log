@@ -1,0 +1,481 @@
+cargo run --profile bench -p gmeow-pipeline --example recorded-class-consistency -- "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292.json" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa.json" "/home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30.json" "default"
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling cfg-if v1.0.4
+   Compiling memchr v2.8.3
+   Compiling serde v1.0.229
+   Compiling typenum v1.20.1
+   Compiling libc v0.2.189
+   Compiling hashbrown v0.17.1
+   Compiling regex-syntax v0.8.11
+   Compiling version_check v0.9.5
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling cpufeatures v0.3.0
+   Compiling zmij v1.0.23
+   Compiling crossbeam-utils v0.8.22
+   Compiling smallvec v1.15.2
+   Compiling crossbeam-epoch v0.9.20
+   Compiling crossbeam-deque v0.8.7
+   Compiling serde_json v1.0.151
+   Compiling const-oid v0.10.2
+   Compiling rayon-core v1.13.0
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling itoa v1.0.18
+   Compiling stable_deref_trait v1.2.1
+   Compiling equivalent v1.0.2
+   Compiling either v1.17.0
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling arrayvec v0.7.8
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.9
+   Compiling once_cell v1.21.4
+   Compiling autocfg v1.5.1
+   Compiling getrandom v0.3.4
+   Compiling arrayref v0.3.9
+   Compiling generic-array v0.14.7
+   Compiling log v0.4.33
+   Compiling cmov v0.5.4
+   Compiling zerocopy v0.8.55
+   Compiling num-traits v0.2.19
+   Compiling cc v1.4.0
+   Compiling fastrand v2.5.0
+   Compiling cpubits v0.1.1
+   Compiling simd-adler32 v0.3.10
+   Compiling twox-hash v2.1.3
+   Compiling crc32fast v1.5.0
+   Compiling adler2 v2.0.1
+   Compiling syn v2.0.119
+   Compiling syn v3.0.3
+   Compiling structured-zstd v0.0.49
+   Compiling visual-hashing v1.0.0
+   Compiling base64 v0.22.1
+   Compiling aho-corasick v1.1.4
+   Compiling miniz_oxide v0.8.9
+   Compiling bit-vec v0.8.0
+   Compiling utf8_iter v1.0.4
+   Compiling writeable v0.6.3
+   Compiling ctutils v0.4.2
+   Compiling tinyvec_macros v0.1.1
+   Compiling litemap v0.8.2
+   Compiling hybrid-array v0.4.15
+   Compiling bit-set v0.8.0
+   Compiling icu_normalizer_data v2.2.0
+   Compiling icu_properties_data v2.2.0
+   Compiling parking_lot_core v0.9.12
+   Compiling libm v0.2.16
+   Compiling ciborium-io v0.2.2
+   Compiling tinyvec v1.12.0
+   Compiling num-integer v0.1.46
+   Compiling scopeguard v1.2.0
+   Compiling allocator-api2 v0.2.21
+   Compiling toml_write v0.1.2
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling blake3 v1.8.5
+   Compiling lock_api v0.4.14
+   Compiling unicode-script v0.5.8
+   Compiling winnow v1.0.4
+   Compiling constant_time_eq v0.4.2
+   Compiling percent-encoding v2.3.2
+   Compiling winnow v0.7.15
+   Compiling num-bigint v0.4.8
+   Compiling parking_lot v0.12.5
+   Compiling flate2 v1.1.9
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling thiserror v2.0.19
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling inout v0.2.2
+   Compiling crypto-common v0.1.7
+   Compiling indexmap v2.14.0
+   Compiling bitflags v2.13.1
+   Compiling block-buffer v0.10.4
+   Compiling cpufeatures v0.2.17
+   Compiling unicode-normalization v0.1.25
+   Compiling digest v0.10.7
+   Compiling foldhash v0.1.5
+   Compiling glob v0.3.4
+   Compiling heck v0.5.0
+   Compiling siphasher v1.0.3
+   Compiling digest v0.11.3
+   Compiling rayon v1.12.0
+   Compiling universal-hash v0.6.1
+   Compiling cipher v0.5.2
+   Compiling aead v0.6.1
+   Compiling hashbrown v0.15.5
+   Compiling sha2 v0.10.9
+   Compiling lazy_static v1.5.0
+   Compiling sha2 v0.11.0
+   Compiling polyval v0.7.3
+   Compiling writeable v0.5.5
+   Compiling fdeflate v0.3.7
+   Compiling tracing-core v0.1.36
+   Compiling slotmap v1.1.1
+   Compiling rustversion v1.0.23
+   Compiling aes v0.9.3
+   Compiling ctr v0.10.1
+   Compiling ghash v0.6.0
+   Compiling core_maths v0.1.1
+   Compiling float-cmp v0.9.0
+   Compiling ttf-parser v0.24.1
+   Compiling ring v0.17.14
+   Compiling strict-num v0.1.1
+   Compiling num-conv v0.2.2
+   Compiling getrandom v0.4.3
+   Compiling color_quant v1.1.0
+   Compiling ryu v1.0.23
+   Compiling roxmltree v0.20.0
+   Compiling rustix v1.1.4
+   Compiling weezl v0.1.12
+   Compiling aes-gcm v0.11.1
+   Compiling pin-project-lite v0.2.17
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling serde_spanned v1.1.1
+   Compiling time-core v0.1.9
+   Compiling icu_locid_transform_data v1.5.1
+   Compiling fontconfig-parser v0.5.8
+   Compiling toml v1.1.3+spec-1.1.0
+   Compiling time-macros v0.2.32
+   Compiling memmap2 v0.9.11
+   Compiling kurbo v0.11.3
+   Compiling bitflags v1.3.2
+   Compiling synstructure v0.13.2
+   Compiling powerfmt v0.2.0
+   Compiling displaydoc v0.2.6
+   Compiling zerovec-derive v0.11.3
+   Compiling zerocopy-derive v0.8.55
+   Compiling bytemuck_derive v1.11.0
+   Compiling zerovec-derive v0.10.3
+   Compiling icu_provider_macros v1.5.0
+   Compiling tracing-attributes v0.1.31
+   Compiling regex-automata v0.4.16
+   Compiling byteorder-lite v0.1.0
+   Compiling zeroize v1.9.0
+   Compiling tracing v0.1.44
+   Compiling rand_core v0.6.4
+   Compiling deranged v0.5.8
+   Compiling zerofrom-derive v0.1.7
+   Compiling yoke-derive v0.8.2
+   Compiling yoke-derive v0.7.5
+   Compiling paste v1.0.15
+   Compiling portable-atomic v1.14.0
+   Compiling unicode-properties v0.1.4
+   Compiling unicode-bidi-mirroring v0.3.0
+   Compiling unicode-ccc v0.3.0
+   Compiling ref-cast v1.0.26
+   Compiling linux-raw-sys v0.12.1
+   Compiling phf_shared v0.11.3
+   Compiling bytemuck v1.25.2
+   Compiling rand v0.8.7
+   Compiling rustls-pki-types v1.15.1
+   Compiling strum_macros v0.26.4
+   Compiling png v0.17.16
+   Compiling getrandom v0.2.17
+   Compiling quick-xml v0.41.0
+   Compiling simplecss v0.2.2
+   Compiling zerofrom v0.1.8
+   Compiling tiny-skia-path v0.11.4
+   Compiling ahash v0.8.12
+   Compiling same-file v1.0.6
+   Compiling yoke v0.8.3
+   Compiling untrusted v0.9.0
+   Compiling httparse v1.10.1
+   Compiling zune-core v0.5.1
+   Compiling unscanny v0.1.0
+   Compiling icu_properties_data v1.5.1
+   Compiling time v0.3.54
+   Compiling pico-args v0.5.0
+   Compiling zerovec v0.11.6
+   Compiling zerotrie v0.2.4
+   Compiling unicode-bidi v0.3.18
+   Compiling rustc-hash v2.1.3
+   Compiling wasmparser v0.221.3
+   Compiling imagesize v0.13.0
+   Compiling linked-hash-map v0.5.6
+   Compiling thiserror v1.0.69
+   Compiling downcast-rs v1.2.1
+   Compiling data-url v0.3.2
+   Compiling pxfm v0.1.30
+   Compiling unicode-vo v0.1.0
+   Compiling xmlwriter v0.1.0
+   Compiling fixedbitset v0.5.7
+   Compiling yaml-rust v0.4.5
+   Compiling wasmi_core v0.40.0
+   Compiling zune-jpeg v0.5.15
+   Compiling walkdir v2.5.0
+   Compiling svgtypes v0.15.3
+   Compiling phf_generator v0.11.3
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling serde_derive v1.0.229
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling thiserror-impl v2.0.19
+   Compiling tinystr v0.8.3
+   Compiling potential_utf v0.1.5
+   Compiling ref-cast-impl v1.0.26
+   Compiling fontdb v0.21.0
+   Compiling icu_locale_core v2.2.0
+   Compiling icu_collections v2.2.0
+   Compiling rustybuzz v0.18.0
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-form)
+   Compiling petgraph v0.8.3
+   Compiling num-rational v0.4.2
+   Compiling gif v0.14.2
+   Compiling enum-ordinalize-derive v4.4.1
+   Compiling thiserror-impl v1.0.69
+   Compiling tempfile v3.27.0
+   Compiling half v2.7.1
+   Compiling ppv-lite86 v0.2.21
+   Compiling png v0.18.1
+   Compiling icu_provider v2.2.0
+   Compiling form_urlencoded v1.2.2
+   Compiling num-iter v0.1.46
+   Compiling num-complex v0.4.6
+   Compiling chrono v0.4.45
+   Compiling codex v0.1.1
+   Compiling unicode-general-category v1.1.0
+   Compiling unsafe-libyaml v0.2.11
+   Compiling rustls v0.23.46
+   Compiling icu_properties v2.2.0
+   Compiling icu_normalizer v2.2.0
+   Compiling ciborium-ll v0.2.2
+   Compiling strum v0.26.3
+   Compiling fnv v1.0.7
+   Compiling unicode-segmentation v1.13.3
+   Compiling borrow-or-share v0.2.4
+   Compiling foldhash v0.2.0
+   Compiling palette v0.7.6
+   Compiling numerals v0.1.4
+   Compiling by_address v1.2.1
+   Compiling thin-vec v0.2.18
+   Compiling rust_decimal v1.42.1
+   Compiling bytes v1.12.1
+   Compiling unicode-math-class v0.1.0
+   Compiling cobs v0.3.0
+   Compiling anyhow v1.0.104
+   Compiling biblatex v0.10.0
+   Compiling palette_derive v0.7.6
+   Compiling http v1.4.2
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling cargo-config2 v0.1.45
+   Compiling typst-utils v0.13.1
+   Compiling hashbrown v0.16.1
+   Compiling num v0.4.3
+   Compiling toml_edit v0.22.27
+   Compiling enum-ordinalize v4.4.1
+   Compiling rand_chacha v0.3.1
+   Compiling wasmi_ir v0.40.0
+   Compiling phf_macros v0.11.3
+   Compiling ciborium v0.2.2
+   Compiling yoke v0.7.5
+   Compiling toml v0.8.23
+   Compiling litemap v0.7.5
+   Compiling postcard v1.1.3
+   Compiling bincode v1.3.3
+   Compiling zerovec v0.10.4
+   Compiling unic-langid-impl v0.9.6
+   Compiling quick-xml v0.36.2
+   Compiling plist v1.10.0
+   Compiling idna_adapter v1.2.2
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling fluent-uri v0.4.1
+   Compiling typst-timing v0.13.1
+   Compiling ecow v0.2.6
+   Compiling comemo-macros v0.4.0
+   Compiling idna v1.1.0
+   Compiling approx v0.5.1
+   Compiling csv-core v0.1.13
+   Compiling subtle v2.6.1
+   Compiling wasmi_collections v0.40.0
+   Compiling object v0.37.3
+   Compiling spin v0.9.9
+   Compiling micromap v0.3.0
+   Compiling multi-stash v0.2.0
+   Compiling vsimd v0.8.0
+   Compiling chinese-variant v1.1.6
+   Compiling fast-srgb8 v1.0.0
+   Compiling outref v0.5.2
+   Compiling mutate_once v0.1.2
+   Compiling chinese-number v0.7.8
+   Compiling unic-langid v0.9.6
+   Compiling referencing v0.46.10
+   Compiling kamadak-exif v0.6.1
+   Compiling csv v1.4.0
+   Compiling comemo v0.4.0
+   Compiling uuid-simd v0.8.0
+   Compiling phf v0.11.3
+   Compiling lipsum v0.9.1
+   Compiling ureq-proto v0.6.0
+   Compiling tinystr v0.7.6
+   Compiling icu_collections v1.5.0
+   Compiling zerotrie v0.1.3
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/build-inputs)
+   Compiling email_address v0.2.9
+   Compiling fraction v0.15.4
+   Compiling url v2.5.8
+   Compiling icu_locid v1.5.0
+   Compiling citationberg v0.5.0
+   Compiling icu_provider v1.5.0
+   Compiling webpki-roots v1.0.9
+   Compiling jsonschema-regex v0.46.10
+   Compiling typst-macros v0.13.1
+   Compiling bumpalo v3.20.3
+   Compiling data-encoding v2.11.0
+   Compiling typst-assets v0.13.1
+   Compiling wasmi v0.40.0
+   Compiling utf8-zero v0.8.1
+   Compiling typed-arena v2.0.2
+   Compiling num-cmp v0.1.0
+   Compiling bytecount v0.6.9
+   Compiling az v1.3.0
+   Compiling qcms v0.3.0
+   Compiling moxcms v0.8.1
+   Compiling regex v1.13.1
+   Compiling fancy-regex v0.16.2
+   Compiling fancy-regex v0.18.0
+   Compiling icu_locid_transform v1.5.0
+   Compiling bstr v1.13.0
+   Compiling fancy-regex v0.17.0
+   Compiling icu_provider_blob v1.5.0
+   Compiling unicode-security v0.1.2
+   Compiling hayagriva v0.8.1
+   Compiling utf8parse v0.2.2
+   Compiling semver v1.0.28
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic)
+   Compiling ar_archive_writer v0.5.2
+   Compiling rustls-webpki v0.103.15
+   Compiling font-types v0.11.3
+   Compiling polycool v0.4.0
+   Compiling icu_segmenter_data v1.5.1
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling read-fonts v0.39.2
+   Compiling anstyle v1.0.14
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling anstyle-parse v1.0.0
+   Compiling stacker v0.1.24
+   Compiling pulldown-cmark v0.13.4
+   Compiling zune-core v0.4.12
+   Compiling quick-error v2.0.1
+   Compiling anstream v1.0.0
+   Compiling tiny-skia v0.11.4
+   Compiling image-webp v0.1.3
+   Compiling psm v0.1.31
+   Compiling zune-jpeg v0.4.21
+   Compiling kurbo v0.13.1
+   Compiling usvg v0.43.0
+   Compiling rgb v0.8.53
+   Compiling icu_properties v1.5.1
+   Compiling gif v0.13.3
+   Compiling memo-map v0.3.3
+   Compiling pulldown-cmark-escape v0.11.0
+   Compiling unicase v2.9.0
+   Compiling jsonschema v0.46.10
+   Compiling clap_lex v1.1.0
+   Compiling syntect v5.3.0
+   Compiling xmlparser v0.13.6
+   Compiling strsim v0.11.1
+   Compiling minijinja v2.21.0
+   Compiling icu_segmenter v1.5.0
+   Compiling clap_builder v4.6.2
+   Compiling icu_provider_adapters v1.5.0
+   Compiling anstyle-parse v0.2.7
+   Compiling matchers v0.2.0
+   Compiling clap_derive v4.6.4
+   Compiling ureq v3.3.0
+   Compiling tracing-log v0.2.0
+   Compiling pdf-writer v0.12.1
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling sharded-slab v0.1.7
+   Compiling typst-syntax v0.13.1
+   Compiling tiktoken-rs v0.12.0
+   Compiling thread_local v1.1.10
+   Compiling nu-ansi-term v0.50.3
+   Compiling hypher v0.1.7
+   Compiling if_chain v1.0.3
+   Compiling anstream v0.6.21
+   Compiling xmp-writer v0.3.3
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/pipeline)
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/license)
+   Compiling console v0.16.4
+   Compiling tracing-subscriber v0.3.23
+   Compiling similar v2.7.0
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cost-measure)
+   Compiling two-face v0.4.5
+   Compiling insta v1.48.0
+   Compiling clap v4.6.4
+   Compiling resvg v0.43.0
+   Compiling image v0.25.10
+   Compiling skrifa v0.42.1
+   Compiling write-fonts v0.48.1
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/action-cache)
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling typst-library v0.13.1
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling subsetter v0.2.6
+   Compiling svg2pdf v0.12.0
+   Compiling typst-svg v0.13.1
+   Compiling typst-realize v0.13.1
+   Compiling typst-eval v0.13.1
+   Compiling typst-layout v0.13.1
+   Compiling typst-pdf v0.13.1
+   Compiling typst-html v0.13.1
+   Compiling typst v0.13.1
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/errors)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/cli-core)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=d839dd72aaa6c62af7e04ac57a824dac2f65f459#d839dd72)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/term-arena)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/gts-profile)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/ns)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math-lift)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/music)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/math)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/transcode)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/affect)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-model)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/bundle-view)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-quality)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1803-split-gmeow-purrdf-responsibilities/crates/docs-print)
+    Finished `bench` profile [optimized] target(s) in 37m 43s
+     Running `/opt/.cargo/target/1803-split-gmeow-purrdf-responsibilities-d06214f6/release/examples/recorded-class-consistency /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3 /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292.json /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa.json /home/paudley/Active/gmeow-ontology/.worktrees/purrdf-3/.cache/gmeow-sync/actions/v1/receipts/0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30.json default`
+{"action_key":"e0b73d05b8d79661f5529dc2d932794197a6ca656e394b67b602cacd7f59e292","elapsed_ms":2930,"phase":"hydrated","product_blob_digest":"39eaea0eaccf34b6b6d8b16f7ab7ec9d5a6e2cc23ad18a1e56ec924a874465de","product_bytes":72643599,"product_digest":"fba26ceb4d4cda07c5a8219846999ceab6f9ac11a953cb7c5b2e0cc1430d7c9d","receipt_digest":"a458932bf877df66d2406723a35c2c980c905ac74f9fa330a3ed2df33f2d9f12","stage":"stage-source-load"}
+{"action_key":"9802d5939192b3ee7d746a406d427e897be958d3ef5ae36e505aeec0446ec2fa","elapsed_ms":13,"phase":"hydrated","product_blob_digest":"51b59b999ad6147e58b04f9d19cefdec2f572850b41546c093a846145b1e715d","product_bytes":478476,"product_digest":"1674aaf8b92b9f229db8a9f6954a83867284a8da73ad3b0426115fd96a6cd231","receipt_digest":"e172fbdd0cbed692abcaa1f1f6a0823fedd024b1619b90016c1a0c9505d58414","stage":"stage-statements"}
+{"action_key":"0fe1e429baba81c83c345a1142d3b8109c5ef983ad9697a0b73596d01ad74a30","elapsed_ms":10974,"phase":"hydrated","product_blob_digest":"1234adc10311bb22475554d54855fc7e01f530bc4e48df35d4f55690b48ce0c0","product_bytes":369596630,"product_digest":"41a1df0d0f85da2e6f7469df031c09e0540550296b5858399cd524d3e34052f5","receipt_digest":"de82bb75f1aa3cc28a6f77914d2218eec3bb19d4025c42c8f6c69cc157cfeaad","stage":"stage-compile-logic"}
+{"elapsed_ms":4966,"phase":"assembled"}
+{"assertions":179177,"phase":"prepare","world":"default"}
+purrdf entail service refused: entailment role-hierarchy error: invalid object property at term 9336; original source Iri("https://blackcatinformatics.ca/gmeow/dofConstraintText")
+  caused by: purrdf entail service refused: entailment role-hierarchy error: invalid object property at term 9336; original source Iri("https://blackcatinformatics.ca/gmeow/dofConstraintText")
+  caused by: entailment role-hierarchy error: invalid object property at term 9336; original source Iri("https://blackcatinformatics.ca/gmeow/dofConstraintText")
+  caused by: invalid object property at term 9336; original source Iri("https://blackcatinformatics.ca/gmeow/dofConstraintText")
+  caused by: invalid object property at term 9336
+make: *** [Makefile:1208: bench-recorded-class-consistency] Error 1
