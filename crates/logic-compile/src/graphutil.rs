@@ -608,16 +608,6 @@ pub(crate) fn contains(ds: &RdfDataset, subject: &Subject, predicate: &Iri, obje
         .is_some()
 }
 
-/// Whether any triple in the default graph has predicate `predicate`.
-pub(crate) fn has_predicate(ds: &RdfDataset, predicate: &Iri) -> bool {
-    let Some(p_id) = predicate_id(ds, predicate) else {
-        return false;
-    };
-    default_graph_pattern(ds, None, Some(p_id), None)
-        .next()
-        .is_some()
-}
-
 /// Whether any triple in the default graph has predicate `predicate` and object `object`.
 pub(crate) fn has_predicate_object(ds: &RdfDataset, predicate: &Iri, object: &Node) -> bool {
     let (Some(p_id), Some(o_id)) = (predicate_id(ds, predicate), object_id(ds, object)) else {

@@ -120,7 +120,7 @@ impl AdmissionBuilder<'_> {
         }
         for (node, lowering) in lowerings {
             self.certified_classes.insert(node);
-            self.class_support
+            self.definition_support
                 .extend(
                     lowering
                         .support

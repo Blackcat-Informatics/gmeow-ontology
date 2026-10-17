@@ -370,7 +370,7 @@ struct AdmissionBuilder<'a> {
     declared_classes: BTreeSet<String>,
     declared_builtins: BTreeSet<String>,
     certified_classes: BTreeSet<SourceNode>,
-    class_support: BTreeSet<SourceStatementBinding>,
+    definition_support: BTreeSet<SourceStatementBinding>,
     untranslated_formula_contexts: BTreeSet<SourceNode>,
 }
 
@@ -390,7 +390,7 @@ impl<'a> AdmissionBuilder<'a> {
             declared_classes: BTreeSet::new(),
             declared_builtins: BTreeSet::new(),
             certified_classes: BTreeSet::new(),
-            class_support: BTreeSet::new(),
+            definition_support: BTreeSet::new(),
             untranslated_formula_contexts: contexts::untranslated_formulas(theory.source()),
         }
     }
@@ -399,11 +399,11 @@ impl<'a> AdmissionBuilder<'a> {
         self.validate_document_selection();
         self.scan_declarations();
         self.admit_classes();
+        self.admit_rules_and_owners();
         self.admit_source_statements();
         self.admit_imports();
         self.admit_property_characteristics();
         self.admit_formulas();
-        self.admit_rules_and_owners();
         self.admit_remaining_axioms();
         self.record_diagnostics();
         self.units.sort_by(|left, right| {
@@ -1107,7 +1107,7 @@ impl<'a> AdmissionBuilder<'a> {
     }
 
     fn is_structural_statement(&self, quad: QuadIds) -> bool {
-        if self.class_support.contains(&SourceStatementBinding {
+        if self.definition_support.contains(&SourceStatementBinding {
             canonical: quad,
             carrier: SourceCarrier::Statement,
         }) {

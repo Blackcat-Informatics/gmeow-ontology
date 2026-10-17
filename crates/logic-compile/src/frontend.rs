@@ -77,8 +77,8 @@ pub use source_admission::{
 use super::compat;
 use super::graphutil::{
     Iri, Node, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
-    Subject, canonicalize_blank_nodes, default_graph_quads, has_predicate, has_structural_class,
-    is_empty, nn, objects, structural_classes, subject_id, subject_is_blank, subject_str,
+    Subject, canonicalize_blank_nodes, default_graph_quads, has_structural_class, is_empty, nn,
+    objects, structural_classes, subject_id, subject_is_blank, subject_str,
     subjects_of_structural_class, subjects_with, term_as_subject, term_str, value,
 };
 use super::ir::{
@@ -1488,20 +1488,6 @@ fn route_facet_value(
     values.insert(value_local);
 }
 
-/// Whether the source graph declares a probability model: either a triple with
-/// predicate `logic:probabilityModel`, or any individual typed
-/// `logic:ProbabilityModel` (probabilistic inference must never
-/// silently assume independence over un-modelled confidence metadata).
-fn graph_declares_probability_model(store: &RdfDataset) -> bool {
-    // Any triple whose predicate is logic:probabilityModel.
-    if has_predicate(store, &nn(&logic_iri("probabilityModel"))) {
-        return true;
-    }
-    // Any individual typed logic:ProbabilityModel.
-    let prob_model_class = Node::iri(logic_iri("ProbabilityModel"));
-    !subjects_of_structural_class(store, &prob_model_class).is_empty()
-}
-
 /// A closure entry has one key and one value; never select an arbitrary field.
 fn closure_field(
     store: &RdfDataset,
@@ -1535,10 +1521,6 @@ fn extract_contracts(
 ) -> Vec<OwnerEmission<ReasoningContract>> {
     let mut contracts: Vec<OwnerEmission<ReasoningContract>> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
-
-    // Computed once: whether the graph declares any logic:ProbabilityModel; used
-    // by the graph-dependent RuleProbabilisticRequiresModel below.
-    let has_probability_model = graph_declares_probability_model(store);
 
     // Subjects typed logic:ReasoningContract OR logic:ReasoningPreset.
     let mut subjects: Vec<Subject> = Vec::new();
@@ -1726,25 +1708,10 @@ fn extract_contracts(
                     ));
                 }
 
-                // Graph-dependent RuleProbabilisticRequiresModel: a
-                // probabilistic measure demands a declared logic:ProbabilityModel; absent
-                // one, refuse rather than silently assume independence.
-                if contract
-                    .uncertainty_measures
-                    .contains("ProbabilisticMeasure")
-                    && !has_probability_model
-                {
-                    diagnostics.push(Diagnostic::error(
-                "UNSUPPORTED_CONTRACT",
-                format!(
-                    "reasoning contract {iri_str:?} carries logic:ProbabilisticMeasure but the \
-                     graph declares no logic:ProbabilityModel: a probabilistic measure requires a \
-                     declared logic:ProbabilityModel (it is never inferred from confidence \
-                     metadata)"
-                ),
-                Some(iri_str.clone()),
-            ));
-                }
+                // This reads a configuration declaration, not a query request.
+                // The probabilistic evaluator requires the selected query's
+                // model; an arbitrary model elsewhere in this graph cannot
+                // license execution, nor must a reusable declaration provide one.
 
                 Ok(contract)
             },

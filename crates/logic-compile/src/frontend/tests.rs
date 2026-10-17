@@ -443,20 +443,58 @@ fn supported_contract_compiles_clean() {
 }
 
 #[test]
-fn probabilistic_measure_without_model_is_unsupported() {
-    // A probabilistic measure with NO declared logic:ProbabilityModel
-    // is a hard error (never a silent independence assumption).
-    let (_, diags) = parse(
+fn probabilistic_measure_declaration_without_model_preserves_configuration() {
+    let (program, diagnostics) = parse(
         "ex:ProbContract a logic:ReasoningContract ;
             logic:uncertaintyMeasure logic:ProbabilisticMeasure .
          logic:ProbabilisticMeasure a logic:UncertaintyMeasure .",
     );
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(program.contracts.len(), 1);
     assert!(
-        diags
-            .iter()
-            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
-        "probabilistic measure without a model must be a hard error; got: {diags:?}"
+        program.contracts[0]
+            .uncertainty_measures
+            .contains("ProbabilisticMeasure")
     );
+}
+
+#[test]
+fn probabilistic_preset_declaration_does_not_request_inference() {
+    for typing in ["a", "logic:instanceOf"] {
+        let (program, diagnostics) = parse(&format!(
+            "logic:ProbabilisticProfile {typing} logic:ReasoningPreset ;
+                logic:expandsToFacet logic:ProbabilisticMeasure .
+             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure ."
+        ));
+        assert!(diagnostics.is_empty(), "{typing}: {diagnostics:?}");
+        assert_eq!(program.contracts.len(), 1);
+        assert_eq!(
+            program.contracts[0].preset,
+            Some(crate::ir::SemanticProfileId::Probabilistic)
+        );
+        assert!(
+            program.contracts[0]
+                .uncertainty_measures
+                .contains("ProbabilisticMeasure")
+        );
+    }
+}
+
+#[test]
+fn redundant_contract_typing_does_not_turn_a_preset_declaration_into_execution() {
+    for typing in ["a", "logic:instanceOf"] {
+        let (program, diagnostics) = parse(&format!(
+            "logic:ProbabilisticProfile {typing} logic:ReasoningPreset, logic:ReasoningContract ;
+                logic:expandsToFacet logic:ProbabilisticMeasure .
+             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure ."
+        ));
+        assert!(diagnostics.is_empty(), "{typing}: {diagnostics:?}");
+        assert_eq!(program.contracts.len(), 1);
+        assert_eq!(
+            program.contracts[0].preset,
+            Some(crate::ir::SemanticProfileId::Probabilistic)
+        );
+    }
 }
 
 #[test]
@@ -525,7 +563,7 @@ fn probabilistic_measure_with_declared_model_is_supported() {
 }
 
 #[test]
-fn probability_model_in_unselected_graph_does_not_admit_default_contract() {
+fn unselected_probability_model_does_not_change_a_contract_declaration() {
     for typing in ["a", "logic:instanceOf"] {
         let source = format!(
             "{PREFIXES}
@@ -536,17 +574,16 @@ fn probability_model_in_unselected_graph_does_not_admit_default_contract() {
         );
         let dataset = purrdf::parse_dataset(source.as_bytes(), "application/trig", None)
             .expect("synthetic scoped contract source");
-        let (_, diagnostics) =
+        let (program, diagnostics) =
             parse_logic_dataset(&dataset, None).expect("compile the synthetic source");
-        assert!(
-            diagnostics.iter().any(|diagnostic| {
-                diagnostic.code == "UNSUPPORTED_CONTRACT"
-                    && diagnostic.severity == Severity::Error
-                    && diagnostic.subject.as_deref()
-                        == Some("https://example.org/test/ProbContract")
-            }),
-            "{typing}: an unselected model cannot admit the contract: {diagnostics:?}"
-        );
+        assert!(diagnostics.is_empty(), "{typing}: {diagnostics:?}");
+        let (without_model, without_diagnostics) = parse(&format!(
+            "ex:ProbContract {typing} logic:ReasoningContract ;
+                logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+             logic:ProbabilisticMeasure {typing} logic:UncertaintyMeasure ."
+        ));
+        assert!(without_diagnostics.is_empty());
+        assert_eq!(program.contracts, without_model.contracts);
     }
 }
 
@@ -4763,7 +4800,7 @@ const DOXASTICALLY_ACCESSIBLE: &str = "https://blackcatinformatics.ca/logic/doxa
 #[test]
 fn box_atom_expands_via_standard_translation() {
     use crate::ir::{Formula, Term};
-    // □P(a) over logic:epistemicallyPossible ↦ ∀ __w0 . R(actualWorld, __w0) → P(__w0, a).
+    // □P(a) ↦ ∀ __w0 . R(actualWorld, __w0) → contextualApplication(__w0, P, a).
     // No new Formula IR variant — the modal node expands into Forall/Implies/Atom at parse time,
     // and the body atom must NOT ALSO surface as a top-level formula.
     let (prog, diags) = parse(
@@ -4814,28 +4851,32 @@ fn box_atom_expands_via_standard_translation() {
     let Formula::Atom { relation, args } = head.as_ref() else {
         panic!("head is the relativized atom, got {head:?}");
     };
-    assert_eq!(*relation, Term::Iri(format!("{ex}P")), "relation preserved");
+    assert_eq!(
+        *relation,
+        Term::Iri(crate::ir::CONTEXTUAL_APPLICATION_IRI.to_owned())
+    );
     assert_eq!(
         args.len(),
-        2,
-        "the world is prepended to the atom arguments"
+        3,
+        "context and relation precede the original atom arguments"
     );
     assert_eq!(
         args[0],
         Term::Var("__w0".to_owned()),
-        "the prepended world is the bound world var, not the actual world"
+        "the context coordinate is the bound world variable"
     );
     assert_eq!(
         args[1],
-        Term::Iri(format!("{ex}a")),
-        "the original argument follows the prepended world"
+        Term::Iri(format!("{ex}P")),
+        "the original relation has its own coordinate"
     );
+    assert_eq!(args[2], Term::Iri(format!("{ex}a")));
 }
 
 #[test]
 fn diamond_atom_expands_via_standard_translation() {
     use crate::ir::{Formula, Term};
-    // ◇P(a) over logic:epistemicallyPossible ↦ ∃ __w0 . R(actualWorld, __w0) ∧ P(__w0, a).
+    // ◇P(a) ↦ ∃ __w0 . R(actualWorld, __w0) ∧ contextualApplication(__w0, P, a).
     let (prog, diags) = parse(
         "ex:pos a logic:Formula ;
             logic:possibly [ a logic:Formula ; logic:relation ex:P ;
@@ -4886,10 +4927,14 @@ fn diamond_atom_expands_via_standard_translation() {
             parts[1]
         );
     };
-    assert_eq!(*relation, Term::Iri(format!("{ex}P")));
-    assert_eq!(args.len(), 2);
+    assert_eq!(
+        *relation,
+        Term::Iri(crate::ir::CONTEXTUAL_APPLICATION_IRI.to_owned())
+    );
+    assert_eq!(args.len(), 3);
     assert_eq!(args[0], Term::Var("__w0".to_owned()));
-    assert_eq!(args[1], Term::Iri(format!("{ex}a")));
+    assert_eq!(args[1], Term::Iri(format!("{ex}P")));
+    assert_eq!(args[2], Term::Iri(format!("{ex}a")));
 }
 
 #[test]

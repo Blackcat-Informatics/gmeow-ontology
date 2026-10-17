@@ -157,6 +157,13 @@ expands before anything else runs (see [LOGIC-CONTRACT.md § Presets](LOGIC-CONT
 historical `procedural` preset now selects least-model semantics with the closed set of checked
 builtins under a bounded `Resource`; it does not license cut or a second search engine.
 
+A contract or preset declaration records a reusable configuration; it does not request
+its execution. Declaring `logic:ProbabilisticProfile` or the probabilistic measure
+therefore does not require a model in the surrounding vocabulary catalogue. Executing
+a probabilistic query still requires its selected model. A model declared elsewhere
+in a source graph cannot license that query, and neither the configuration declaration
+nor confidence metadata supplies an independence assumption.
+
 The governing rule on combinations is the contract's, restated here for the semantics:
 
 > Not every point in the facet product has a defined semantics. **Unsupported combinations resolve to
