@@ -951,14 +951,12 @@ pub fn ratchet_surface_paths(slice_dir: &Path) -> Vec<PathBuf> {
 }
 
 /// The repo-level DSL mapping surface IRI a `dsl/mappings/` residue is attributed to
-/// — a non-slice authoring surface (the hand-authored FnO carve-out
-/// `dsl/mappings/transforms.fno.ttl` lives here) that the ratchet still guards.
+/// — a non-slice authoring surface that the ratchet guards alongside slice mappings.
 pub const DSL_MAPPING_SURFACE_IRI: &str = "https://blackcatinformatics.ca/gmeow/dsl/mappings";
 
 /// The repo-level `dsl/mappings/` authoring surface — every `.ttl` under it, sorted.
 /// Scanned once (attributed to [`DSL_MAPPING_SURFACE_IRI`]), because it is a real
-/// hand-authored projection surface (`transforms.fno.ttl`, the FnO carve-out) that
-/// is NOT under any slice's `mappings/` directory and would otherwise be missed.
+/// authoring surface outside any slice mapping directory that would otherwise be missed.
 #[must_use]
 pub fn ratchet_dsl_surface_paths(repo_root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
@@ -1035,7 +1033,7 @@ pub fn measure_repo_residue_constructs(
             out.insert((slice_iri.clone(), prefix), constructs);
         }
     }
-    // The repo-level dsl/mappings/ surface (the hand-authored FnO carve-out) is not
+    // The shared repo-level dsl/mappings/ source surface is not
     // under any slice — measure it once, attributed to the DSL surface IRI, so it is
     // guarded rather than silently missed.
     let dsl_paths = ratchet_dsl_surface_paths(repo_root);

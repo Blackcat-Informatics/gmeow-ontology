@@ -302,3 +302,237 @@ fn order_binds_rejects_cycle() {
         "{err}"
     );
 }
+
+const CALLABLE_FIXTURE: &str = r#"
+@prefix ex: <https://example.org/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+ex:call a logic:CallableSignature ;
+    logic:inputParameters ( ex:z ex:a ) ; logic:outputParameters ( ex:result ) ;
+    rdfs:label "call"@en, "appel"@fr, "اسم"@ar--rtl ;
+    skos:definition "interface"@en ; dcterms:description "distinct description"@en ;
+    rdfs:isDefinedBy ex:owner ; rdfs:seeAlso ex:law .
+ex:z a logic:CallParameter ; logic:parameterPredicate ex:source ;
+    logic:parameterValueType xsd:integer ; logic:parameterRequired true ;
+    rdfs:label "first input"@en ; skos:definition "integer slot"@en ; rdfs:isDefinedBy ex:owner .
+ex:a a logic:CallParameter ; logic:parameterPredicate ex:source ;
+    logic:parameterValueType xsd:string ; logic:parameterRequired false ;
+    rdfs:label "second input"@en ; skos:definition "string slot"@en ; rdfs:isDefinedBy ex:owner .
+ex:result a logic:CallResult ; logic:parameterPredicate ex:value ;
+    logic:parameterValueType xsd:decimal ; rdfs:label "result"@en ;
+    skos:definition "decimal result"@en ; rdfs:isDefinedBy ex:owner .
+"#;
+
+fn lower_callable_fixture(source: &str) -> gmeow_errors::Result<FnoLowering> {
+    let dsl =
+        purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).expect("synthetic source");
+    let onto = purrdf::parse_dataset(b"", "text/turtle", None).expect("empty ontology");
+    let view = DslView::new(&dsl);
+    let (_, analysis) =
+        super::super::correspondence_frontend::transpile_correspondences_indexed(&view)?;
+    lower_fno(&view, &DslView::new(&onto), &analysis)
+}
+
+#[test]
+fn canonical_callables_preserve_order_identity_types_and_rdf12_metadata() {
+    let lowering = lower_callable_fixture(CALLABLE_FIXTURE).expect("lower canonical interfaces");
+    let ds = purrdf::parse_dataset(lowering.catalog.as_bytes(), "text/turtle", None)
+        .expect("generated catalog");
+    let view = DslView::new(&ds);
+    let call = "https://example.org/call";
+    let fno = "https://w3id.org/function/ontology#";
+    let inputs = view.rdf_list(view.first_object(call, &format!("{fno}expects")).as_ref());
+    assert_eq!(
+        inputs,
+        vec![
+            purrdf::TermValue::Iri("https://example.org/z".into()),
+            purrdf::TermValue::Iri("https://example.org/a".into())
+        ]
+    );
+    let outputs = view.rdf_list(view.first_object(call, &format!("{fno}returns")).as_ref());
+    assert_eq!(
+        outputs,
+        vec![purrdf::TermValue::Iri("https://example.org/result".into())]
+    );
+    for (slot, datatype, required) in [
+        ("z", "integer", Some("true")),
+        ("a", "string", Some("false")),
+        ("result", "decimal", None),
+    ] {
+        let iri = format!("https://example.org/{slot}");
+        assert_eq!(
+            view.object_iri(&iri, &format!("{fno}type")),
+            Some(format!("http://www.w3.org/2001/XMLSchema#{datatype}"))
+        );
+        assert_eq!(
+            view.object_literal(&iri, &format!("{fno}required"))
+                .as_deref(),
+            required
+        );
+    }
+    // Both input slots deliberately use the same predicate with distinct identity and type.
+    assert_eq!(
+        view.object_iri("https://example.org/z", &format!("{fno}predicate")),
+        view.object_iri("https://example.org/a", &format!("{fno}predicate"))
+    );
+    let source = purrdf::parse_dataset(CALLABLE_FIXTURE.as_bytes(), "text/turtle", None).unwrap();
+    let source_view = DslView::new(&source);
+    for predicate in [
+        RDFS_LABEL,
+        SKOS_DEFINITION,
+        "http://purl.org/dc/terms/description",
+        "http://www.w3.org/2000/01/rdf-schema#seeAlso",
+    ] {
+        let actual = view.objects_of(call, predicate);
+        let expected = source_view.objects_of(call, predicate);
+        assert_eq!(
+            actual.len(),
+            expected.len(),
+            "metadata multiplicity for {predicate}"
+        );
+        for value in expected {
+            assert!(actual.contains(&value), "lost RDF value {value:?}");
+        }
+    }
+    assert_eq!(
+        lowering.ledger.len(),
+        1,
+        "canonical callables participate in the preservation ledger"
+    );
+    assert_eq!(
+        lowering.catalog,
+        lower_callable_fixture(CALLABLE_FIXTURE).unwrap().catalog
+    );
+}
+
+#[test]
+fn canonical_callables_fail_closed_on_invalid_or_unrepresentable_declarations() {
+    let cases = [
+        (
+            "missing requiredness",
+            CALLABLE_FIXTURE.replace("logic:parameterRequired true ;", ""),
+            "parameterRequired",
+        ),
+        (
+            "boolean kind",
+            CALLABLE_FIXTURE.replace(
+                "logic:parameterRequired true",
+                "logic:parameterRequired \"true\"",
+            ),
+            "xsd:boolean",
+        ),
+        (
+            "duplicate field",
+            CALLABLE_FIXTURE.replace(
+                "logic:parameterPredicate ex:source",
+                "logic:parameterPredicate ex:source, ex:other",
+            ),
+            "exactly one",
+        ),
+        (
+            "wrong type kind",
+            CALLABLE_FIXTURE.replace(
+                "logic:parameterValueType xsd:integer",
+                "logic:parameterValueType \"integer\"",
+            ),
+            "requires an IRI",
+        ),
+        (
+            "undeclared input",
+            CALLABLE_FIXTURE.replace("( ex:z ex:a )", "( ex:missing ex:a )"),
+            "not a declared CallParameter",
+        ),
+        (
+            "missing result",
+            CALLABLE_FIXTURE.replace("( ex:result )", "()"),
+            "exactly one output",
+        ),
+        (
+            "multiple results",
+            CALLABLE_FIXTURE.replace("( ex:result )", "( ex:result ex:result )"),
+            "multiple outputs are unsupported",
+        ),
+        (
+            "extra capability",
+            CALLABLE_FIXTURE.replace(
+                "ex:call a logic:CallableSignature ;",
+                "ex:call a logic:CallableSignature ; logic:unloweredFeature true ;",
+            ),
+            "no selected FnO lowering",
+        ),
+        (
+            "additional source type",
+            CALLABLE_FIXTURE.replace(
+                "ex:call a logic:CallableSignature ;",
+                "ex:call a logic:CallableSignature, ex:Other ;",
+            ),
+            "additional source type",
+        ),
+        (
+            "missing owner",
+            CALLABLE_FIXTURE.replace("rdfs:isDefinedBy ex:owner ;", ""),
+            "source owner",
+        ),
+        (
+            "orphan input",
+            CALLABLE_FIXTURE.replace("( ex:z ex:a )", "( ex:z )"),
+            "orphan",
+        ),
+    ];
+    for (name, source, expected) in cases {
+        let error = match lower_callable_fixture(&source) {
+            Ok(_) => panic!("{name} must be refused"),
+            Err(error) => error,
+        };
+        assert!(error.to_string().contains(expected), "{name}: {error}");
+    }
+    for (name, list, expected) in [
+        (
+            "cycle",
+            "ex:head <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ex:z ; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ex:head .",
+            "cyclic",
+        ),
+        (
+            "unterminated",
+            "ex:head <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ex:z .",
+            "not nil-terminated",
+        ),
+        (
+            "branch",
+            "ex:head <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ex:z, ex:a ; <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .",
+            "branches",
+        ),
+    ] {
+        let source = format!(
+            "{} {list}",
+            CALLABLE_FIXTURE.replace("( ex:z ex:a )", "ex:head")
+        );
+        let error = match lower_callable_fixture(&source) {
+            Ok(_) => panic!("{name} must be refused"),
+            Err(error) => error,
+        };
+        assert!(error.to_string().contains(expected), "{name}: {error}");
+    }
+}
+
+#[test]
+fn canonical_callable_identity_cannot_collide_with_a_derived_projection_node() {
+    let source = format!(
+        "{} gmeow:fnX a gmeow:ProjectionFunction ; gmeow:fnOutput ex:value ; gmeow:fnOutputType xsd:decimal .",
+        CALLABLE_FIXTURE.replace("ex:z", "gmeow:outX")
+    );
+    let error = match lower_callable_fixture(&source) {
+        Ok(_) => panic!("identity collision must be refused"),
+        Err(error) => error,
+    };
+    assert!(
+        error
+            .to_string()
+            .contains("collides with a derived projection identity"),
+        "{error}"
+    );
+}

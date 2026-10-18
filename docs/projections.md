@@ -16,12 +16,13 @@ generator renders all four (see [Single-source compilation](#single-source-compi
 |---|---|---|
 | SSSOM | 1:1 term equivalence | `generated/mappings/*.sssom.tsv` |
 | **EDOAL** | complex alignments (value→class, compositions, conditions) + `edoal:measure` | `generated/projections/*.edoal.ttl` |
-| **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `generated/projections/functions.fno.ttl`, `dsl/mappings/transforms.fno.ttl`† |
+| **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `generated/projections/functions.fno.ttl` |
 | **SPARQL CONSTRUCT** | the executor → a pure-profile graph | `generated/queries/*.rq` |
 
-†`dsl/mappings/transforms.fno.ttl` (the language-conversion catalog) is the one hand-authored
-FnO file — it is a different concern (script→script / language→language domain
-functions), not a GMEOW→external projection, so it stays outside the compiler.
+Domain function interfaces are authored as `logic:CallableSignature` records in their
+owning slices, with ordered input/output lists and named parameter identities. They
+share the generated FnO catalog with projection functions; there is no authored FnO
+catalog or source-file fallback.
 
 FnO + EDOAL are the declarative, standards-consumable **spec**; the CONSTRUCT is
 the native Rust-rendered executable view. **None of this is imported into the reasoned
@@ -72,7 +73,7 @@ target-by-target summary with spec links is in the
 | | `Membership` `Role` → `schema:jobTitle` / vCard `TITLE` | `fnMembershipToJobTitle` |
 | | `hasWebPage` → `schema:url` / `foaf:homepage` / `vcard:hasURL` | `fnWebPageToUrl` |
 | | `subOrganizationOf` → `schema:department` | `fnSubOrgToDepartment` |
-| **domain conversion** (catalog) | transliteration / transcription / translation as `fno:Function`s | `transforms.fno.ttl` |
+| **domain conversion** (catalog) | transliteration / transcription / translation as `fno:Function`s | `functions.fno.ttl` |
 | **lossy drop** | `StorageLocation`, fine place types, `authorityLink`, pronouns, `NameUsage`, version lineage, proficiency level | — |
 
 The **structured→flat field** transforms are the contact-card downcasts: GMEOW has
@@ -82,7 +83,7 @@ a `Membership` — so the flat schema.org / vCard / FOAF fields are *reconstruct
 projection*, never stored. `gmeow:description` (the one genuinely-unstructured note)
 and `gmeow:hasWebPage` are 1:1 / near-1:1 renames.
 
-The **language conversion catalog** (`projections/transforms.fno.ttl`) is a
+The **language conversion catalog** (`projections/functions.fno.ttl`) is a
 different use of FnO: it declares Hepburn / Pinyin / ISO 233 / IPA / translate as
 *domain* functions (script→script, language→language), each linked to its
 `gmeow:TransliterationScheme` value individual, so a `gmeow:romanization` records
@@ -127,7 +128,7 @@ reasoned over):
 - `slices/<group>/<name>/mappings/projections-<profile>.ttl` — slice-owned
   `gmeow:ProjectionMapping` cells.
 - `dsl/mappings/projections/*.ttl` — shared or cross-slice projection enrichment.
-- `dsl/mappings/transforms.fno.ttl` — shared FnO function declarations.
+- `slices/<group>/<name>/mappings/callable-signatures.ttl` — canonical `logic:CallableSignature` interfaces; FnO is generated.
 
 Each projection cell produces one CONSTRUCT branch and names an **anchor** (the
 node the output hangs on), a GMEOW-side graph pattern, and per-profile

@@ -174,7 +174,7 @@ feat: add Location reference-frame Profile and coarsenTo projection
 Principle 11 (frame-relativity) + Principle 4 (canonical source):
 - Canonical term authored in ontology/modules/location.ttl
 - Projection authored in mapping-dsl/projections/geosparql.ttl
-- Coarsening function added to projections/transforms.fno.ttl
+- Coarsening callable signature authored in the owning slice and projected to functions.fno.ttl
 ```
 
 ---

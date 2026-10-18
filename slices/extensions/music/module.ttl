@@ -9386,3 +9386,171 @@ gmeow:voiceTuningFrameFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:voiceTuningFrame and nothing else. It is not a definition of gmeow:voiceTuningFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:voiceTuningFrameFunctionality logic:characterizes gmeow:voiceTuningFrame ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:fnInputPitchValue        a logic:AnnotationProperty ;
+    rdfs:label "input pitch value"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch value input to a music solver function."@x-gmeow-english ;
+    logic:range gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputPitchAnchor       a logic:AnnotationProperty ;
+    rdfs:label "input pitch anchor"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch anchor input to a music solver function."@x-gmeow-english ;
+    logic:range gmeow:PitchAnchor ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputTuningSystem      a logic:AnnotationProperty ;
+    rdfs:label "input tuning system"@x-gmeow-english ;
+    skos:definition "FnO argument role: a tuning system input to a music solver function."@x-gmeow-english ;
+    logic:range gmeow:TuningSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputSpectrum          a logic:AnnotationProperty ;
+    rdfs:label "input spectrum"@x-gmeow-english ;
+    skos:definition "FnO argument role: a spectrum input to a music solver function."@x-gmeow-english ;
+    logic:range gmeow:Spectrum ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputCents            a logic:AnnotationProperty ;
+    rdfs:label "output cents"@x-gmeow-english ;
+    skos:definition "FnO argument role: a cents output of a music solver function."@x-gmeow-english ;
+    logic:range xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputFrequency        a logic:AnnotationProperty ;
+    rdfs:label "output frequency"@x-gmeow-english ;
+    skos:definition "FnO argument role: a frequency output of a music solver function."@x-gmeow-english ;
+    logic:range xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputPitchValue       a logic:AnnotationProperty ;
+    rdfs:label "output pitch value"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch value output of a music solver function."@x-gmeow-english ;
+    logic:range gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputPitchCollection  a logic:AnnotationProperty ;
+    rdfs:label "output pitch collection"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch collection output of a music solver function."@x-gmeow-english ;
+    logic:range gmeow:PitchCollection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputTimeMappingA      a logic:AnnotationProperty ;
+    rdfs:label "input time mapping A"@x-gmeow-english ;
+    skos:definition "FnO argument role: the first TimeMapping input to fnComposeTimeMappings."@x-gmeow-english ;
+    logic:range gmeow:TimeMapping ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputTimeMappingB      a logic:AnnotationProperty ;
+    rdfs:label "input time mapping B"@x-gmeow-english ;
+    skos:definition "FnO argument role: the second TimeMapping input to fnComposeTimeMappings."@x-gmeow-english ;
+    logic:range gmeow:TimeMapping ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputMusicalTimeSpan   a logic:AnnotationProperty ;
+    rdfs:label "input musical time span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan input to a music time solver function."@x-gmeow-english ;
+    logic:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputTempoMap          a logic:AnnotationProperty ;
+    rdfs:label "input tempo map"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TempoMap input to fnMusicalToClockTime."@x-gmeow-english ;
+    logic:range gmeow:TempoMap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputClockFrame        a logic:AnnotationProperty ;
+    rdfs:label "input clock frame"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TemporalFrame input to fnMusicalToClockTime."@x-gmeow-english ;
+    logic:range gmeow:TemporalFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputGrooveProfile     a logic:AnnotationProperty ;
+    rdfs:label "input groove profile"@x-gmeow-english ;
+    skos:definition "FnO argument role: a GrooveProfile input to fnApplyGroove."@x-gmeow-english ;
+    logic:range gmeow:GrooveProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputGrooveSpan        a logic:AnnotationProperty ;
+    rdfs:label "input groove span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan input to fnApplyGroove."@x-gmeow-english ;
+    logic:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputComposedTimeMapping a logic:AnnotationProperty ;
+    rdfs:label "output composed time mapping"@x-gmeow-english ;
+    skos:definition "FnO argument role: a composed TimeMapping output of fnComposeTimeMappings."@x-gmeow-english ;
+    logic:range gmeow:TimeMapping ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputClockTimeSpan    a logic:AnnotationProperty ;
+    rdfs:label "output clock time span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TimeInterval output of fnMusicalToClockTime."@x-gmeow-english ;
+    logic:range gmeow:TimeInterval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputGroovedSpan      a logic:AnnotationProperty ;
+    rdfs:label "output grooved span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan output of fnApplyGroove."@x-gmeow-english ;
+    logic:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputTraversalConstraint a logic:AnnotationProperty ;
+    rdfs:label "input traversal constraint"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TraversalConstraint input to fnTraverseMobileForm."@x-gmeow-english ;
+    logic:range gmeow:TraversalConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputStartingFragment a logic:AnnotationProperty ;
+    rdfs:label "input starting fragment"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalSegment input to fnTraverseMobileForm."@x-gmeow-english ;
+    logic:range gmeow:MusicalSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputGenerativeProcess a logic:AnnotationProperty ;
+    rdfs:label "input generative process"@x-gmeow-english ;
+    skos:definition "FnO argument role: a GenerativeProcess input to fnRealizePhasing or fnRealizeStochasticProcess."@x-gmeow-english ;
+    logic:range gmeow:GenerativeProcess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputRealizationSpan a logic:AnnotationProperty ;
+    rdfs:label "input realization span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan input to a generative-process realization function."@x-gmeow-english ;
+    logic:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputPitchTrajectory a logic:AnnotationProperty ;
+    rdfs:label "input pitch trajectory"@x-gmeow-english ;
+    skos:definition "FnO argument role: a PitchTrajectory input to fnEvaluateTrajectory."@x-gmeow-english ;
+    logic:range gmeow:PitchTrajectory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputEvaluationTimeNumerator a logic:AnnotationProperty ;
+    rdfs:label "input evaluation time numerator"@x-gmeow-english ;
+    skos:definition "FnO argument role: the numerator of a rational time-position input to fnEvaluateTrajectory."@x-gmeow-english ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnInputEvaluationTimeDenominator a logic:AnnotationProperty ;
+    rdfs:label "input evaluation time denominator"@x-gmeow-english ;
+    skos:definition "FnO argument role: the denominator of a rational time-position input to fnEvaluateTrajectory. Must be positive."@x-gmeow-english ;
+    logic:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputTraversalSequence a logic:AnnotationProperty ;
+    rdfs:label "output traversal sequence"@x-gmeow-english ;
+    skos:definition "FnO argument role: a traversal-sequence string output of fnTraverseMobileForm."@x-gmeow-english ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputRealizedExpression a logic:AnnotationProperty ;
+    rdfs:label "output realized expression"@x-gmeow-english ;
+    skos:definition "FnO argument role: an Expression output of a generative-process realization function."@x-gmeow-english ;
+    logic:range gmeow:Expression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnOutputEvaluatedPitchValue a logic:AnnotationProperty ;
+    rdfs:label "output evaluated pitch value"@x-gmeow-english ;
+    skos:definition "FnO argument role: a PitchValue output of fnEvaluateTrajectory."@x-gmeow-english ;
+    logic:range gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

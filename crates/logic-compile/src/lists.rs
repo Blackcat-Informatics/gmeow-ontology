@@ -4,8 +4,8 @@
 //! The single RDF-list lowering shared by every list-valued `logic:` constructor.
 //!
 //! `logic:oneOf`, `logic:unionOf`, `logic:intersectionOf`, `logic:disjointUnionOf`,
-//! `logic:members`, `logic:hasKey` and `logic:propertyChainAxiom` all take an RDF list
-//! object. The IR carries every such list in exactly one encoding, for named and
+//! `logic:members`, `logic:hasKey`, `logic:propertyChainAxiom`, `logic:inputParameters`
+//! and `logic:outputParameters` all take an RDF list object. The IR carries every such list in exactly one encoding, for named and
 //! anonymous owners alike:
 //!
 //! ```text
@@ -20,10 +20,10 @@
 //! kept verbatim (a pinned or content-addressed list must stay addressable), which is also
 //! what makes the canonical RDF 1.2 projection re-lift to the identical IR.
 //!
-//! Set-valued constructors (every one except `propertyChainAxiom`) are sorted and
-//! de-duplicated before minting, so authored order cannot change the cell identity and an
-//! `owl:`- and `logic:`-authored list collide. `propertyChainAxiom` composes left to right,
-//! so its authored order is the meaning and is preserved verbatim.
+//! Set-valued constructors are sorted and de-duplicated before minting, so authored
+//! order cannot change the cell identity and an
+//! `owl:`- and `logic:`-authored list collide. Property chains and callable input/output
+//! signatures carry positional meaning, so their authored order is preserved verbatim.
 //!
 //! A list that is not a finite, nil-terminated, non-branching chain of resource cells, or
 //! that carries a member its constructor cannot admit, is a [`ListDefect`]. Callers turn a
@@ -104,6 +104,16 @@ pub struct ListConstructor {
 
 /// Every registered list-valued `logic:` constructor. Their objects MUST be lists.
 pub const LIST_CONSTRUCTORS: &[ListConstructor] = &[
+    ListConstructor {
+        local: "inputParameters",
+        order: ListOrder::Sequence,
+        members: ListMembers::Resources,
+    },
+    ListConstructor {
+        local: "outputParameters",
+        order: ListOrder::Sequence,
+        members: ListMembers::Resources,
+    },
     ListConstructor {
         local: "oneOf",
         order: ListOrder::Set,

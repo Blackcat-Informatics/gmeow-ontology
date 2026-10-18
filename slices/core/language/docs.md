@@ -116,7 +116,7 @@ for the software slice's source trees.
 `gmeow:Appellation` beside its `gmeow:romanization`. This is the bridge into the names
 slice's doctrine that a romanization relates a name only to a transliteration of *itself*;
 recording the scheme makes the derivation reproducible. The major schemes are catalogued as
-FnO functions in the projection layer (`projections/transforms.fno.ttl`).
+FnO functions in the projection layer (`projections/functions.fno.ttl`).
 
 ### gmeow:writtenInLanguage
 

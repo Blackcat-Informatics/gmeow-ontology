@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The FnO correspondence lowering: `gmeow:ProjectionFunction` + the transform
-//! functions referenced by the get leg → the W3C Function Ontology catalog.
+//! The FnO correspondence lowering: projection functions and canonical
+//! `logic:CallableSignature` interfaces → the single generated Function Ontology catalog.
 //!
 //! FnO is the *transform-function* lowering of the correspondence calculus. The
 //! signatures (parameters typed from each input predicate's ontology `rdfs:range`,
@@ -13,6 +13,8 @@
 //! [`purrdf::fno`] serializer owns the triple shapes. Extraction runs over the
 //! [`DslView`] for function signatures and ontology ranges. Mapping patterns and
 //! transform bindings are borrowed from the single [`CorrespondenceAnalysis`].
+
+mod signatures;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -93,7 +95,7 @@ struct ProjectionCell {
 pub struct FnoLowering {
     /// The single FnO catalog N-Triples text.
     pub catalog: String,
-    /// One [`ProjectionResult`] per `gmeow:ProjectionFunction` correspondence — FnO is
+    /// One [`ProjectionResult`] per projection function or canonical callable signature — FnO is
     /// `ValidationOnly`: signatures are exact, but the relation, caveats, and standpoint
     /// scope are dropped, so every function contributes a preservation row.
     pub ledger: Vec<ProjectionResult>,
@@ -110,7 +112,30 @@ pub fn lower_fno(
 ) -> gmeow_errors::Result<FnoLowering> {
     let functions = extract_functions(dsl)?;
     let cells = extract_cells(analysis.projection_cells())?;
-    let catalog_model = build_catalog(&functions, &cells, onto)?;
+    let mut catalog_model = build_catalog(&functions, &cells, onto)?;
+    let mut signatures = signatures::Signatures::admit(dsl)?;
+    let signature_targets: Vec<_> = signatures.functions.iter().map(|f| f.iri.clone()).collect();
+    let existing: BTreeSet<&str> = catalog_model
+        .functions
+        .iter()
+        .flat_map(|f| [f.iri.as_str(), f.output.iri.as_str()])
+        .chain(catalog_model.params.iter().map(|p| p.iri.as_str()))
+        .chain(catalog_model.implementations.iter().map(|i| i.iri.as_str()))
+        .chain(std::iter::once(catalog_model.document_iri.as_str()))
+        .collect();
+    if let Some(collision) = signatures
+        .subjects
+        .iter()
+        .find(|s| existing.contains(s.as_str()))
+    {
+        return Err(Diag::of_kind(crate::error::Fno {
+            detail: format!(
+                "canonical callable identity {collision} collides with a derived projection identity"
+            ),
+        }));
+    }
+    catalog_model.functions.append(&mut signatures.functions);
+    catalog_model.params.append(&mut signatures.params);
     let tag_map = build_tag_map(onto);
     // `purrdf::fno::to_quads` never emits `rdfs:isDefinedBy`/`gmeow:graphBoxRole` for
     // any subject, and its external `FnImpl` model carries no label/description
@@ -118,8 +143,9 @@ pub fn lower_fno(
     // quads BEFORE the carrier-tag retag, so any label/definition this pass derives
     // rides the exact same `x-gmeow-english` → public-BCP-47 remap every other
     // catalog literal goes through.
-    let completed =
-        complete_fno_abox_annotations(fno::to_quads(&catalog_model), &catalog_model.document_iri);
+    let mut emitted = fno::to_quads(&catalog_model);
+    signatures.restore_annotations(&mut emitted);
+    let completed = complete_fno_abox_annotations(emitted, &catalog_model.document_iri);
     let quads: Vec<RdfQuad> = completed
         .into_iter()
         .map(|q| retag_quad(q, &tag_map))
@@ -131,11 +157,15 @@ pub fn lower_fno(
     // dropped (the dialect structural drops, attributed to the get leg).
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     let mut loss = LossLedger::new();
-    for func in &functions {
+    for target in functions
+        .iter()
+        .map(|func| &func.iri)
+        .chain(&signature_targets)
+    {
         ledger.push(correspondence_result(
             &mut loss,
             "fno",
-            &func.iri,
+            target,
             Vec::new(),
             None,
         ));
