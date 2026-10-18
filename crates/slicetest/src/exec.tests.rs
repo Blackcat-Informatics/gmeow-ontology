@@ -529,3 +529,66 @@ fn the_test_dsl_shapes_reject_an_unpinned_sole_finding_declaration() {
              {remaining:?}"
     );
 }
+
+const MUSIC_PROJECTION_FIXTURE: &str = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/music-projection/> .
+ex:pitch a gmeow:MusicalParameter .
+ex:duration a gmeow:MusicalParameter .
+ex:loss a gmeow:ProjectionLoss ; gmeow:accountsForParameter ex:duration .
+ex:system a gmeow:NotationSystem .
+ex:profile a gmeow:NotationProjectionProfile ;
+    gmeow:notationSystemOf ex:system ;
+    gmeow:representableParameter ex:pitch ;
+    gmeow:declaredLoss ex:loss .
+"#;
+
+#[test]
+fn music_projection_loss_guards_accept_complete_profiles_and_reject_each_witness() {
+    // gmeow-test-input: synthetic-only
+    // Read the authored query specification, never the repository music corpus.
+    let slice = paths::repo_root().join("slices/extensions/music");
+    let spec = dsl::load_spec(&slice.join("tests/structural.ttl")).unwrap();
+    let complete = store_from_turtle(MUSIC_PROJECTION_FIXTURE);
+    let inventory = spec
+        .structural
+        .iter()
+        .find(|cell| cell.iri.ends_with("saNotationProjectionInventoriesExist"))
+        .expect("music inventories are guarded against vacuous success");
+    let inventory_pattern = inventory.pattern.as_deref().unwrap();
+    assert!(run_ask(&complete, inventory_pattern).unwrap());
+    assert!(!run_ask(&store_from_turtle(""), inventory_pattern).unwrap());
+
+    for name in [
+        "saNotationProfilesAccountForEveryParameter",
+        "saProjectionLossesAccountForParameters",
+        "saNotationSystemsHaveProjectionProfiles",
+        "saNotationSystemsHaveOnlyOneProjectionProfile",
+    ] {
+        let cell = spec
+            .structural
+            .iter()
+            .find(|cell| cell.iri.ends_with(name))
+            .unwrap_or_else(|| panic!("the music specification must register {name}"));
+        assert_eq!(cell.polarity, Polarity::MustNot);
+        assert_eq!(cell.scope, Scope::Module);
+        let pattern = cell.pattern.as_deref().unwrap();
+        assert!(
+            !run_ask(&complete, pattern).unwrap(),
+            "{name} rejects complete accounting"
+        );
+        let witness = std::fs::read_to_string(
+            slice.join(
+                cell.fail_witness
+                    .as_ref()
+                    .expect("each omission ban needs a registered failing witness"),
+            ),
+        )
+        .unwrap();
+        let broken = store_from_turtle(&format!("{MUSIC_PROJECTION_FIXTURE}\n{witness}"));
+        assert!(
+            run_ask(&broken, pattern).unwrap(),
+            "{name} must detect its registered witness"
+        );
+    }
+}

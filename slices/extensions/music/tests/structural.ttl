@@ -147,3 +147,75 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "NO membership of gmeow:pitchCollectionYamanRaga may resolve (via gmeow:membershipPitch) to anything other than a gmeow:PitchValue whose gmeow:hasTuningFrame is gmeow:tuningSystemShruti22 — a dynamic universal (FILTER NOT EXISTS over the type+frame pattern, not a hand-listed pitch set), so a Yaman member added with a missing or wrong tuning frame trips it." .
+
+# Projection accounting ranges over the actual value inventories, so adding a
+# parameter or notation system cannot silently escape coverage.
+
+ex:saNotationProjectionInventoriesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?profile a gmeow:NotationProjectionProfile .
+    ?parameter a gmeow:MusicalParameter .
+    ?loss a gmeow:ProjectionLoss .
+    ?system a gmeow:NotationSystem .
+}""" ;
+    gmeow:saRationale "Music projection accounting requires nonempty profile, parameter, loss and notation-system inventories; universal checks must not pass on an absent inventory." .
+
+ex:saNotationProfilesAccountForEveryParameter a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?profile a gmeow:NotationProjectionProfile .
+    ?parameter a gmeow:MusicalParameter .
+    FILTER NOT EXISTS { ?profile gmeow:representableParameter ?parameter }
+    FILTER NOT EXISTS {
+        ?profile gmeow:declaredLoss ?loss .
+        ?loss gmeow:accountsForParameter ?parameter .
+    }
+}""" ;
+    gmeow:saFailWitness "tests/counter-examples/notation-profile-silent-omission.ttl" ;
+    gmeow:saRationale "Every music parameter must be representable or accounted for by a loss declared on that exact profile. A loss declared on another profile cannot excuse a silent omission." .
+
+ex:saProjectionLossesAccountForParameters a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?loss a gmeow:ProjectionLoss .
+    FILTER NOT EXISTS {
+        ?loss gmeow:accountsForParameter ?parameter .
+        ?parameter a gmeow:MusicalParameter .
+    }
+}""" ;
+    gmeow:saFailWitness "tests/counter-examples/projection-loss-without-parameter.ttl" ;
+    gmeow:saRationale "Every declared ProjectionLoss must account for at least one typed MusicalParameter; an orphan loss cannot stand in for an information-loss account." .
+
+ex:saNotationSystemsHaveProjectionProfiles a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?system a gmeow:NotationSystem .
+    FILTER NOT EXISTS {
+        ?profile a gmeow:NotationProjectionProfile ;
+            gmeow:notationSystemOf ?system .
+    }
+}""" ;
+    gmeow:saFailWitness "tests/counter-examples/notation-system-without-profile.ttl" ;
+    gmeow:saRationale "Every notation system must have a typed projection profile; a bare notationSystemOf edge from an unrelated subject is not a profile." .
+
+ex:saNotationSystemsHaveOnlyOneProjectionProfile a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?system a gmeow:NotationSystem .
+    ?first a gmeow:NotationProjectionProfile ; gmeow:notationSystemOf ?system .
+    ?second a gmeow:NotationProjectionProfile ; gmeow:notationSystemOf ?system .
+    FILTER (?first != ?second)
+}""" ;
+    gmeow:saFailWitness "tests/counter-examples/notation-system-with-duplicate-profiles.ttl" ;
+    gmeow:saRationale "A notation system has exactly one projection profile, so competing profile identities cannot silently supply different loss manifests for the same system." .

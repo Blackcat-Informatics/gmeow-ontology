@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/music-projection-witness/> .
+
+ex:ambiguousSystem a gmeow:NotationSystem .
+ex:firstProfile a gmeow:NotationProjectionProfile ; gmeow:notationSystemOf ex:ambiguousSystem .
+ex:secondProfile a gmeow:NotationProjectionProfile ; gmeow:notationSystemOf ex:ambiguousSystem .
