@@ -133,27 +133,24 @@ Document your findings in the issue or PR — even if the conclusion is "nothing
 
 ---
 
-## 6. Git Workflow & Rebase Hygiene
+## 6. Git Workflow
 
-### 6.1 Stay current with `main`
+### 6.1 Synchronize when integration requires it
 
-If `main` has moved ahead of your feature branch, **rebase carefully** before committing new work or before pushing:
-
-```bash
-git fetch origin
-git rebase origin/main
-```
-
-- Prefer `git rebase main` over merge commits. GMEOW values linear, reviewable history.
-- Resolve conflicts in the worktree, run the full gate (`make check`), and only then continue the rebase.
-
-### 6.2 Force-push only when safe
-
-After a rebase, force-push is acceptable **only on a personal feature branch** that no one else is working on:
+Fetch the actual base branch and resolve conflicts in the issue worktree with an ordinary merge:
 
 ```bash
-git push --force-with-lease origin "${issue_slug}"
+git fetch origin main
+git merge origin/main
 ```
+
+Assess both sides of every conflict, validate the affected behavior, and commit normally.
+A clean branch does not need synchronization solely because its base advanced.
+
+### 6.2 Push and integrate
+
+Push normally. Preserve signed history and all commit hooks; do not rewrite the branch.
+Final integration uses `/home/paudley/stage/root/bin/ghprsq` through the Stage workflow.
 
 ### 6.3 Conventional Commits
 

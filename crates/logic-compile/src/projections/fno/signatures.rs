@@ -11,6 +11,7 @@ use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::{TermRef, TermValue};
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const CALLABLE: &str = "https://blackcatinformatics.ca/logic/Callable";
 const SIGNATURE: &str = "https://blackcatinformatics.ca/logic/CallableSignature";
 const PARAMETER: &str = "https://blackcatinformatics.ca/logic/CallParameter";
 const RESULT: &str = "https://blackcatinformatics.ca/logic/CallResult";
@@ -20,6 +21,11 @@ const METADATA: &[&str] = &[
     "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
     "http://www.w3.org/2000/01/rdf-schema#seeAlso",
     "http://purl.org/dc/terms/description",
+    "http://www.w3.org/2004/02/skos/core#example",
+    "https://blackcatinformatics.ca/gmeow/avoidWhen",
+    "https://blackcatinformatics.ca/gmeow/howToUse",
+    "https://blackcatinformatics.ca/gmeow/useWhen",
+    "https://blackcatinformatics.ca/gmeow/graphBoxRole",
 ];
 
 pub(super) struct Signatures {
@@ -31,7 +37,7 @@ pub(super) struct Signatures {
 
 fn refusal(subject: &str, detail: impl std::fmt::Display) -> Diag {
     Diag::of_kind(crate::error::Fno {
-        detail: format!("canonical callable signature {subject}: {detail}"),
+        detail: format!("canonical callable {subject}: {detail}"),
     })
 }
 
@@ -50,7 +56,9 @@ fn check_fields(
             return Err(refusal(subject, "a field predicate is not an IRI"));
         };
         if predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" {
-            if ds.resolve(quad.o) != TermRef::Iri(kind) {
+            if ds.resolve(quad.o) != TermRef::Iri(kind)
+                && !(kind == SIGNATURE && ds.resolve(quad.o) == TermRef::Iri(CALLABLE))
+            {
                 return Err(refusal(
                     subject,
                     "an additional source type has no FnO lowering",
@@ -60,11 +68,13 @@ fn check_fields(
             let object = ds.resolve(quad.o);
             let valid = if matches!(
                 predicate,
-                RDFS_LABEL | SKOS_DEFINITION | "http://purl.org/dc/terms/description"
+                "http://www.w3.org/2000/01/rdf-schema#isDefinedBy"
+                    | "http://www.w3.org/2000/01/rdf-schema#seeAlso"
+                    | "https://blackcatinformatics.ca/gmeow/graphBoxRole"
             ) {
-                matches!(object, TermRef::Literal { lexical, .. } if !lexical.is_empty())
-            } else {
                 matches!(object, TermRef::Iri(_))
+            } else {
+                matches!(object, TermRef::Literal { lexical, .. } if !lexical.is_empty())
             };
             if !valid {
                 return Err(refusal(
@@ -251,7 +261,7 @@ impl Signatures {
                 iri: subject.clone(),
                 label: literal(view, &subject, RDFS_LABEL)?,
                 description: Some(literal(view, &subject, SKOS_DEFINITION)?),
-                kind_types: vec![SIGNATURE.to_owned()],
+                kind_types: vec![SIGNATURE.to_owned(), CALLABLE.to_owned()],
                 see_also: None,
                 expects,
                 output: output.clone(),
@@ -263,44 +273,7 @@ impl Signatures {
                 "orphan input/output declarations would be lost by the FnO projection",
             ));
         }
-        for subject in &out.subjects {
-            let owners = view.objects_of(subject, METADATA[2]);
-            if owners.is_empty() || owners.iter().any(|owner| owner.as_iri().is_none()) {
-                return Err(refusal(
-                    subject,
-                    "rdfs:isDefinedBy requires a source owner IRI",
-                ));
-            }
-            for predicate in METADATA {
-                for value in view.objects_of(subject, predicate) {
-                    let object = match value {
-                        TermValue::Iri(value) => RdfTerm::iri(value),
-                        TermValue::Literal {
-                            lexical_form,
-                            datatype,
-                            language,
-                            direction,
-                        } => RdfTerm::literal(RdfLiteral {
-                            lexical_form,
-                            datatype: Some(datatype),
-                            language,
-                            direction,
-                        }),
-                        _ => {
-                            return Err(refusal(
-                                subject,
-                                format!("unsupported metadata term for {predicate}"),
-                            ));
-                        }
-                    };
-                    out.annotations.push(RdfQuad::new(
-                        RdfTerm::iri(subject.clone()),
-                        *predicate,
-                        object,
-                    ));
-                }
-            }
-        }
+        out.annotations = annotations(view, &out.subjects)?;
         out.functions.sort_by(|a, b| a.iri.cmp(&b.iri));
         out.params.sort_by(|a, b| a.iri.cmp(&b.iri));
         Ok(out)
@@ -314,5 +287,83 @@ impl Signatures {
             if self.subjects.contains(iri) && METADATA.contains(&quad.predicate.as_str()))
         });
         quads.extend(self.annotations.iter().cloned());
+    }
+}
+
+fn annotations(
+    view: &DslView<'_>,
+    subjects: &BTreeSet<String>,
+) -> gmeow_errors::Result<Vec<RdfQuad>> {
+    let mut annotations = Vec::new();
+    for subject in subjects {
+        let owners = view.objects_of(subject, METADATA[2]);
+        if owners.is_empty() || owners.iter().any(|owner| owner.as_iri().is_none()) {
+            return Err(refusal(
+                subject,
+                "rdfs:isDefinedBy requires a source owner IRI",
+            ));
+        }
+        for predicate in METADATA {
+            for value in view.objects_of(subject, predicate) {
+                let object = match value {
+                    TermValue::Iri(value) => RdfTerm::iri(value),
+                    TermValue::Literal {
+                        lexical_form,
+                        datatype,
+                        language,
+                        direction,
+                    } => RdfTerm::literal(RdfLiteral {
+                        lexical_form,
+                        datatype: Some(datatype),
+                        language,
+                        direction,
+                    }),
+                    _ => {
+                        return Err(refusal(
+                            subject,
+                            format!("unsupported metadata term for {predicate}"),
+                        ));
+                    }
+                };
+                annotations.push(RdfQuad::new(
+                    RdfTerm::iri(subject.clone()),
+                    *predicate,
+                    object,
+                ));
+            }
+        }
+    }
+    Ok(annotations)
+}
+
+/// Operation declarations do not invent an ABI. The generated descriptor carries
+/// exactly the declared identity and annotations, with no fabricated expects/returns.
+pub(super) struct Declarations {
+    pub subjects: BTreeSet<String>,
+    pub quads: Vec<RdfQuad>,
+}
+
+impl Declarations {
+    pub fn admit(view: &DslView<'_>) -> gmeow_errors::Result<Self> {
+        let interfaces: BTreeSet<_> = view.subjects_of_type(SIGNATURE).into_iter().collect();
+        let mut subjects = BTreeSet::new();
+        for subject in view.subjects_of_type(CALLABLE) {
+            if interfaces.contains(&subject) {
+                continue;
+            }
+            check_fields(view, &subject, CALLABLE, &[])?;
+            literal(view, &subject, RDFS_LABEL)?;
+            literal(view, &subject, SKOS_DEFINITION)?;
+            subjects.insert(subject);
+        }
+        let mut quads = annotations(view, &subjects)?;
+        for subject in &subjects {
+            quads.push(RdfQuad::new(
+                RdfTerm::iri(subject.clone()),
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                RdfTerm::iri("https://w3id.org/function/ontology#Function"),
+            ));
+        }
+        Ok(Self { subjects, quads })
     }
 }

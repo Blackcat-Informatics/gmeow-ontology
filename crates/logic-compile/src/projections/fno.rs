@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The FnO correspondence lowering: projection functions and canonical
-//! `logic:CallableSignature` interfaces → the single generated Function Ontology catalog.
+//! `logic:CallableSignature` interfaces and `logic:Callable` operation identities → one
+//! generated Function Ontology catalog.
 //!
 //! FnO is the *transform-function* lowering of the correspondence calculus. The
 //! signatures (parameters typed from each input predicate's ontology `rdfs:range`,
@@ -95,7 +96,7 @@ struct ProjectionCell {
 pub struct FnoLowering {
     /// The single FnO catalog N-Triples text.
     pub catalog: String,
-    /// One [`ProjectionResult`] per projection function or canonical callable signature — FnO is
+    /// One [`ProjectionResult`] per projection function, interface or operation declaration — FnO is
     /// `ValidationOnly`: signatures are exact, but the relation, caveats, and standpoint
     /// scope are dropped, so every function contributes a preservation row.
     pub ledger: Vec<ProjectionResult>,
@@ -114,6 +115,24 @@ pub fn lower_fno(
     let cells = extract_cells(analysis.projection_cells())?;
     let mut catalog_model = build_catalog(&functions, &cells, onto)?;
     let mut signatures = signatures::Signatures::admit(dsl)?;
+    let mut onto_signatures = signatures::Signatures::admit(onto)?;
+    if let Some(collision) = onto_signatures
+        .subjects
+        .iter()
+        .find(|s| signatures.subjects.contains(*s))
+    {
+        return Err(Diag::of_kind(crate::error::Fno {
+            detail: format!("canonical interface {collision} has multiple source owners"),
+        }));
+    }
+    signatures.subjects.append(&mut onto_signatures.subjects);
+    signatures.functions.append(&mut onto_signatures.functions);
+    signatures.params.append(&mut onto_signatures.params);
+    signatures
+        .annotations
+        .append(&mut onto_signatures.annotations);
+    signatures.functions.sort_by(|a, b| a.iri.cmp(&b.iri));
+    signatures.params.sort_by(|a, b| a.iri.cmp(&b.iri));
     let signature_targets: Vec<_> = signatures.functions.iter().map(|f| f.iri.clone()).collect();
     let existing: BTreeSet<&str> = catalog_model
         .functions
@@ -134,6 +153,30 @@ pub fn lower_fno(
             ),
         }));
     }
+    let mut declarations = signatures::Declarations::admit(dsl)?;
+    let onto_declarations = signatures::Declarations::admit(onto)?;
+    if let Some(collision) = onto_declarations
+        .subjects
+        .iter()
+        .find(|s| declarations.subjects.contains(*s))
+    {
+        return Err(Diag::of_kind(crate::error::Fno {
+            detail: format!("callable declaration {collision} has multiple source owners"),
+        }));
+    }
+    declarations.subjects.extend(onto_declarations.subjects);
+    declarations.quads.extend(onto_declarations.quads);
+    if let Some(collision) = declarations
+        .subjects
+        .iter()
+        .find(|s| existing.contains(s.as_str()) || signatures.subjects.contains(*s))
+    {
+        return Err(Diag::of_kind(crate::error::Fno {
+            detail: format!(
+                "callable declaration {collision} collides with a complete interface or derived projection identity"
+            ),
+        }));
+    }
     catalog_model.functions.append(&mut signatures.functions);
     catalog_model.params.append(&mut signatures.params);
     let tag_map = build_tag_map(onto);
@@ -145,6 +188,7 @@ pub fn lower_fno(
     // catalog literal goes through.
     let mut emitted = fno::to_quads(&catalog_model);
     signatures.restore_annotations(&mut emitted);
+    emitted.extend(declarations.quads);
     let completed = complete_fno_abox_annotations(emitted, &catalog_model.document_iri);
     let quads: Vec<RdfQuad> = completed
         .into_iter()
@@ -161,6 +205,7 @@ pub fn lower_fno(
         .iter()
         .map(|func| &func.iri)
         .chain(&signature_targets)
+        .chain(&declarations.subjects)
     {
         ledger.push(correspondence_result(
             &mut loss,
@@ -720,16 +765,20 @@ fn complete_fno_abox_annotations(mut quads: Vec<RdfQuad>, catalog_graph_iri: &st
                 ));
             }
         }
-        extra.push(RdfQuad::new(
-            RdfTerm::iri(subject.clone()),
-            gmeow_errors::abox::RDFS_IS_DEFINED_BY,
-            RdfTerm::iri(catalog_graph_iri.to_owned()),
-        ));
-        extra.push(RdfQuad::new(
-            RdfTerm::iri(subject.clone()),
-            gmeow_errors::abox::GRAPH_BOX_ROLE,
-            RdfTerm::iri(gmeow_errors::abox::BOX_ABOX.to_owned()),
-        ));
+        if !has_is_defined_by.contains(subject) {
+            extra.push(RdfQuad::new(
+                RdfTerm::iri(subject.clone()),
+                gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+                RdfTerm::iri(catalog_graph_iri.to_owned()),
+            ));
+        }
+        if !has_graph_box_role.contains(subject) {
+            extra.push(RdfQuad::new(
+                RdfTerm::iri(subject.clone()),
+                gmeow_errors::abox::GRAPH_BOX_ROLE,
+                RdfTerm::iri(gmeow_errors::abox::BOX_ABOX.to_owned()),
+            ));
+        }
     }
     quads.extend(extra);
     quads

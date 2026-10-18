@@ -2,7 +2,6 @@
 @prefix lang:   <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix fno: <https://w3id.org/function/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -95,12 +94,12 @@ gmeow:ProjectionFunction
         logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Projection Function"@x-gmeow-english ;
-    rdfs:subClassOf fno:Function ;
-    skos:definition "An FnO function that renders canonical frame-relative content to a notation system (Principle 12)."@x-gmeow-english ;
+    logic:subClassOf logic:Callable ;
+    skos:definition "A callable operation that renders canonical frame-relative content to a notation system (Principle 12)."@x-gmeow-english ;
     skos:example "ex:renderStaff a gmeow:ProjectionFunction ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting the function's output as canonical data and avoid hand-encoding the render math in the ontology; the function is a solver-layer reference (P12), declared here, executed there."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the function as ProjectionFunction (an fno:Function), reference it from a profile via gmeow:projectionFunction, and declare its input through gmeow:projectableExpression; the solver supplies the implementation."@x-gmeow-english ;
+    gmeow:howToUse "Type the function as ProjectionFunction (a logic:Callable), reference it from a profile via gmeow:projectionFunction, and declare its input through gmeow:projectableExpression; the solver supplies the implementation."@x-gmeow-english ;
     gmeow:useWhen "Use to type the executable FnO function that performs a notation render — the solver-layer object a projection profile points at to actually turn canonical content into a surface form."@x-gmeow-english .
 
 gmeow:ProjectionLoss

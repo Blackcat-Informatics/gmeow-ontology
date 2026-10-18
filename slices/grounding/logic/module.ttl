@@ -23993,8 +23993,15 @@ logic:CompilerSourceBoundary
 
 # Callable interfaces retain parameter identity, position and declared value types.
 
+logic:Callable
+    a logic:Class ;
+    rdfs:label "callable operation"@x-gmeow-english ;
+    skos:definition "A named callable operation. Its identity alone asserts neither an executable implementation nor a complete argument signature. A logic:CallableSignature specializes it with explicit ordered input and output slots."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
 logic:CallableSignature
     a logic:Class ;
+    logic:subClassOf logic:Callable ;
     rdfs:label "callable signature"@x-gmeow-english ;
     skos:definition "A declarative callable interface whose ordered input and output slots have persistent identities. A signature asserts no executable implementation or entailment law."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .

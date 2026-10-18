@@ -453,7 +453,7 @@ fn purity_gate_catches_alternate_prefix_and_full_iri_bypass() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("altprefix/module.ttl")),
+            .any(|e| e.contains("altprefix/module.ttl") && e.contains("computational SHACL-AF")),
         "an alternate-prefix computational construct must be flagged; got {:?}",
         report.errors
     );
@@ -461,7 +461,7 @@ fn purity_gate_catches_alternate_prefix_and_full_iri_bypass() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("fulliri/module.ttl")),
+            .any(|e| e.contains("fulliri/module.ttl") && e.contains("computational SHACL-AF")),
         "a full-IRI computational construct must be flagged; got {:?}",
         report.errors
     );
@@ -614,7 +614,7 @@ fn purity_gate_rejects_backref_on_unrelated_node_or_in_a_comment() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("unrelated/module.ttl")),
+            .any(|e| e.contains("unrelated/module.ttl") && e.contains("computational SHACL-AF")),
         "a back-reference on an unrelated node must NOT legalize the construct; got {:?}",
         report.errors
     );
@@ -622,7 +622,7 @@ fn purity_gate_rejects_backref_on_unrelated_node_or_in_a_comment() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("comment/module.ttl")),
+            .any(|e| e.contains("comment/module.ttl") && e.contains("computational SHACL-AF")),
         "a back-reference present only in a comment must NOT legalize the construct; got {:?}",
         report.errors
     );
@@ -1012,7 +1012,7 @@ fn projection_purity_flags_migrated_axioms_and_unbacked_closed_world_shapes() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("bad-irreflexive.ttl")),
+            .any(|e| e.contains("bad-irreflexive.ttl") && e.contains("migrated FOL axiom")),
         "an unbacked irreflexivity self-reference axiom must be flagged; got {:?}",
         report.errors
     );
@@ -1020,12 +1020,15 @@ fn projection_purity_flags_migrated_axioms_and_unbacked_closed_world_shapes() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("bad-irreflexive-ws.ttl")),
+            .any(|e| e.contains("bad-irreflexive-ws.ttl") && e.contains("migrated FOL axiom")),
         "a whitespace-padded re-encoding of a migrated axiom must still be flagged; got {:?}",
         report.errors
     );
     assert!(
-        report.errors.iter().any(|e| e.contains("bad-distinct.ttl")),
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("bad-distinct.ttl") && e.contains("relatum-distinctness")),
         "an unbacked coincident-role distinctness axiom must be flagged; got {:?}",
         report.errors
     );
@@ -1035,7 +1038,10 @@ fn projection_purity_flags_migrated_axioms_and_unbacked_closed_world_shapes() {
         report.errors
     );
     assert!(
-        report.errors.iter().any(|e| e.contains("closed-world.ttl")),
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("closed-world.ttl") && e.contains("declarative validation shape")),
         "the unified gate must reject an unbacked closed-world node shape too; got {:?}",
         report.errors
     );
@@ -3245,4 +3251,132 @@ fn pin_gate_flags_a_purrdf_release_below_the_major_floor() {
     write(&root.join("fuzz/Cargo.lock"), &downgraded);
     let errs = pin_gate_errors(root);
     assert!(errs.iter().any(|e| e.contains("floor")), "{errs:?}");
+}
+
+#[test]
+fn alignment_purity_checks_types_and_predicates_in_every_generated_family() {
+    for (family, ns, kind, property) in [
+        (
+            "FnO",
+            "https://w3id.org/function/ontology#",
+            "Function",
+            "expects",
+        ),
+        (
+            "FnO",
+            "https://w3id.org/function/vocabulary/mapping#",
+            "Mapping",
+            "function",
+        ),
+        ("SSSOM", "https://w3id.org/sssom/", "Mapping", "subject_id"),
+        ("EDOAL", "http://ns.inria.org/edoal/1.0/#", "Class", "class"),
+        (
+            "EDOAL",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
+            "Cell",
+            "entity1",
+        ),
+    ] {
+        for statement in [
+            format!("ex:item a v:{kind} ."),
+            format!("ex:item v:{property} ex:value ."),
+        ] {
+            let temp = tempfile::tempdir().unwrap();
+            let path = temp.path().join("dsl/construct.ttl");
+            let prefixes = format!(
+                "@prefix ex: <https://example.org/> . @prefix v: <{ns}> . @prefix logic: <https://blackcatinformatics.ca/logic/> ."
+            );
+            write(
+                &path,
+                &format!("{prefixes} {statement} ex:unrelated logic:formalizes ex:law ."),
+            );
+            let mut unbacked = RepoStaticReport::default();
+            check_projection_purity(temp.path(), &mut unbacked);
+            assert!(
+                unbacked.errors.iter().any(|e| e.contains("construct.ttl")
+                    && e.contains(&format!("generated {family} construct"))),
+                "{statement}: {:?}",
+                unbacked.errors
+            );
+            write(
+                &path,
+                &format!("{prefixes} {statement} ex:item logic:formalizes ex:law ."),
+            );
+            let mut backed = RepoStaticReport::default();
+            check_projection_purity(temp.path(), &mut backed);
+            assert!(backed.ok(), "{statement}: {:?}", backed.errors);
+        }
+    }
+}
+
+#[test]
+fn alignment_purity_resolves_escaped_iris_without_flagging_references_or_literals() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        &temp.path().join("dsl/escaped.ttl"),
+        r#"
+        @prefix f: <https://w3id.org/funct\u0069on/ontology#> .
+        <https://example.org/call> a f:Function .
+    "#,
+    );
+    write(
+        &temp.path().join("dsl/references.ttl"),
+        r#"
+        @prefix f: <https://w3id.org/function/ontology#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <https://example.org/> .
+        ex:term rdfs:seeAlso f:Function ; rdfs:comment "ex:bad a f:Function" .
+        # ex:bad f:expects ex:input .
+    "#,
+    );
+    let mut report = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut report);
+    assert!(
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("escaped.ttl") && e.contains("generated FnO construct")),
+        "{:?}",
+        report.errors
+    );
+    assert!(
+        !report.errors.iter().any(|e| e.contains("references.ttl")),
+        "{:?}",
+        report.errors
+    );
+}
+
+#[test]
+fn alignment_purity_shares_only_structural_ownership_with_nested_constructs() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("dsl/nested.ttl");
+    let fixture = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix f: <https://w3id.org/function/ontology#> .
+        @prefix a: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+        @prefix e: <http://ns.inria.org/edoal/1.0/#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        ex:call a f:Function ; logic:formalizes ex:source ;
+            f:expects ( [ a f:Parameter ; f:predicate ex:input ] ) ;
+            f:returns ( [ a f:Output ; f:predicate ex:output ] ) ;
+            rdfs:seeAlso ex:detached .
+        ex:cell a a:Cell ; logic:formalizes ex:source ;
+            a:entity1 [ a e:Class ; e:and ( [ a e:Class ; e:class ex:Target ] ) ] .
+    "#;
+    write(&path, fixture);
+    let mut valid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut valid);
+    assert!(valid.ok(), "{:?}", valid.errors);
+    write(&path, &format!("{fixture} ex:detached a f:Function ."));
+    let mut invalid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut invalid);
+    assert!(
+        invalid
+            .errors
+            .iter()
+            .any(|e| e.contains("example.org/detached") && e.contains("generated FnO construct")),
+        "a reference is not ownership: {:?}",
+        invalid.errors
+    );
 }

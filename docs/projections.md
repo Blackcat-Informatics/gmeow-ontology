@@ -8,8 +8,8 @@ gives 1:1 term equivalence; projecting *down* to a target needs **structural
 transformations** SSSOM can't express. GMEOW's alignment stack has four standard
 artifacts — but they are **no longer hand-authored four ways**. A single
 GMEOW-grounded mapping frontend is the authoring source: slice-owned linkage and
-projection cells live beside the slice, while shared projection enrichment and
-transform declarations live under `dsl/mappings/`. The registered mappings
+projection cells and callable signatures live beside the owning slice, while
+shared projection enrichment lives under `dsl/mappings/`. The registered mappings
 generator renders all four (see [Single-source compilation](#single-source-compilation)):
 
 | Layer | Expresses | Generated artifact |
@@ -19,7 +19,8 @@ generator renders all four (see [Single-source compilation](#single-source-compi
 | **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `generated/projections/functions.fno.ttl` |
 | **SPARQL CONSTRUCT** | the executor → a pure-profile graph | `generated/queries/*.rq` |
 
-Domain function interfaces are authored as `logic:CallableSignature` records in their
+Operation identities are authored as `logic:Callable`; this alone declares no argument
+interface or executor. Complete interfaces are authored as `logic:CallableSignature` records in their
 owning slices, with ordered input/output lists and named parameter identities. They
 share the generated FnO catalog with projection functions; there is no authored FnO
 catalog or source-file fallback.

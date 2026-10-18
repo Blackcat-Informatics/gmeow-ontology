@@ -258,9 +258,10 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
     }
 }
 
-/// Check the authored SHACL and ShEx surfaces through one source inventory and one Turtle parse
+/// Check authored validation and alignment surfaces through one inventory and one Turtle parse
 /// per source file (negative-witness registrations are read separately). Generated output is
-/// deliberately outside the authored roots. Registered negative witnesses retain their existing declarative-shape role; registration never hides
+/// deliberately outside the authored roots. Registered negative witnesses retain their existing
+/// declarative-shape role; registration never hides
 /// computational or migrated-axiom constructs.
 fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut files = Vec::new();
@@ -301,6 +302,7 @@ fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
         let backing = ProjectionBacking::new(&ds);
         check_compute_constructs(&ds, &rel, &backing, report);
         check_migrated_constraint_constructs(&ds, &rel, &backing, report);
+        check_alignment_constructs(&ds, &rel, &backing, report);
         let is_witness = enclosing_slice_dir(&path).is_some_and(|slice_dir| {
             witness_cache
                 .entry(slice_dir.clone())
@@ -309,6 +311,50 @@ fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
         });
         if !is_witness {
             check_declarative_constructs(&ds, &rel, &backing, report);
+        }
+    }
+}
+
+/// Generated alignment vocabularies. References and quoted query text are not authored
+/// constructs; predicate assertions and type declarations are.
+fn alignment_family(iri: &str) -> Option<&'static str> {
+    if iri.starts_with("https://w3id.org/function/") {
+        Some("FnO")
+    } else if iri.starts_with("https://w3id.org/sssom/") {
+        Some("SSSOM")
+    } else if iri.starts_with("http://ns.inria.org/edoal/1.0/")
+        || iri.starts_with("http://knowledgeweb.semanticweb.org/heterogeneity/alignment#")
+    {
+        Some("EDOAL")
+    } else {
+        None
+    }
+}
+
+fn check_alignment_constructs(
+    ds: &RdfDataset,
+    rel: &str,
+    backing: &ProjectionBacking,
+    report: &mut RepoStaticReport,
+) {
+    let mut constructs: BTreeMap<TermId, BTreeSet<&str>> = BTreeMap::new();
+    for quad in ds.quads() {
+        let TermRef::Iri(predicate) = ds.resolve(quad.p) else {
+            continue;
+        };
+        if let Some(family) = alignment_family(predicate) {
+            constructs.entry(quad.s).or_default().insert(family);
+        }
+        if predicate == rdf::TYPE
+            && let TermRef::Iri(kind) = ds.resolve(quad.o)
+            && let Some(family) = alignment_family(kind)
+        {
+            constructs.entry(quad.s).or_default().insert(family);
+        }
+    }
+    for (subject, families) in constructs {
+        if !backing.contains(subject) {
+            report.error(format!("{rel}: {} hand-authors a generated {} construct without a logic:formalizes back-reference on it or its owning construct (Principle 17)", node_label(ds, subject), families.into_iter().collect::<Vec<_>>().join("/")));
         }
     }
 }
@@ -390,6 +436,44 @@ impl ProjectionBacking {
             for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
                 shape_members.insert(q.o);
                 parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        for predicate in [
+            "https://w3id.org/function/ontology#expects",
+            "https://w3id.org/function/ontology#returns",
+            "https://w3id.org/sssom/mappings",
+            "http://ns.inria.org/edoal/1.0/#and",
+            "http://ns.inria.org/edoal/1.0/#or",
+            "http://ns.inria.org/edoal/1.0/#compose",
+        ] {
+            if let Some(id) = iri_id_static(ds, predicate) {
+                for quad in ds.quads_for_pattern(None, Some(id), None, GraphMatch::Any) {
+                    for member in list_members(quad.o) {
+                        if !predicate.starts_with("http://ns.inria.org/")
+                            || matches!(ds.resolve(member), TermRef::Blank { .. })
+                        {
+                            parents.entry(member).or_default().insert(quad.s);
+                        }
+                    }
+                }
+            }
+        }
+        for predicate in [
+            "https://w3id.org/function/vocabulary/mapping#parameterMapping",
+            "https://w3id.org/function/vocabulary/mapping#returnMapping",
+            "https://w3id.org/sssom/mappings",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#map",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity1",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity2",
+            "http://ns.inria.org/edoal/1.0/#inverse",
+            "http://ns.inria.org/edoal/1.0/#not",
+        ] {
+            if let Some(id) = iri_id_static(ds, predicate) {
+                for quad in ds.quads_for_pattern(None, Some(id), None, GraphMatch::Any) {
+                    if matches!(ds.resolve(quad.o), TermRef::Blank { .. }) {
+                        parents.entry(quad.o).or_default().insert(quad.s);
+                    }
+                }
             }
         }
         Self {

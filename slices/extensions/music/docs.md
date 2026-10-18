@@ -209,9 +209,10 @@ advises ≤1 instrument per participation — mint one participation per instrum
 ### Credit derivation
 
 A `Contribution` on the resulting `Recording` is derived from the
-`PerformanceParticipation` cells by a documented FnO projection rule
-(`gmeow:fnParticipationToContribution`), never an OWL property chain (Principle
-12). Full cataloguing of the rule lands with the projection toolchain (projection toolchain).
+`PerformanceParticipation` cells through the callable operation `gmeow:fnParticipationToContribution`, whose
+identity is authored as `logic:Callable` and projected into the generated FnO
+catalog. The declaration does not provide an executor or a complete argument
+signature; it is never an OWL property chain (Principle 12).
 
 ### Session micro-fixture
 
