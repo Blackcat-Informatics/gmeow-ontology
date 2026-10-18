@@ -326,7 +326,7 @@ fn declared_imports_include_owned_structure_and_native_reifiers_without_assertin
         r#"{}
 ex:dep a logic:Ontology ; logic:imports ex:nested .
 ex:nested a logic:Module .
-ex:Nested a logic:Class ; rdfs:isDefinedBy ex:nested .
+ex:Nested a logic:Class ; logic:inModule ex:nested .
 ex:constraint a logic:Constraint ; rdfs:isDefinedBy ex:dep ; logic:integrity ex:formula .
 ex:formula a logic:Formula ; logic:not ex:child .
 ex:child a logic:Formula ; logic:relation ex:Unrelated ; logic:argument ex:variable, ex:otherVariable .

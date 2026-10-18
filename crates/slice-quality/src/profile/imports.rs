@@ -16,7 +16,10 @@ const IMPORTS: [&str; 3] = [
     "http://www.w3.org/2002/07/owl#imports",
     "https://blackcatinformatics.ca/gmeow/sliceDependsOn",
 ];
-const DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+const OWNER_PROPERTIES: [&str; 2] = [
+    "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
+    "https://blackcatinformatics.ca/logic/inModule",
+];
 
 fn declared_owner(ds: &RdfDataset, owner: &str) -> Option<TermId> {
     let subject = ds.term_id_by_iri(owner)?;
@@ -83,10 +86,13 @@ pub(super) fn assemble(
                 selected[index].insert(subject);
                 pending.extend(declarations(source, Some(subject))?);
                 found = true;
-                if let Some(defined_by) = source.term_id_by_iri(DEFINED_BY) {
+                for owned_by in OWNER_PROPERTIES
+                    .iter()
+                    .filter_map(|iri| source.term_id_by_iri(iri))
+                {
                     for quad in source.quads_for_pattern(
                         None,
-                        Some(defined_by),
+                        Some(owned_by),
                         Some(subject),
                         GraphMatch::Any,
                     ) {
