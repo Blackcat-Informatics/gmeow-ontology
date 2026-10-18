@@ -334,9 +334,12 @@ fn tool_call_provenance_native_store_preserves_payloads_and_cold_readback() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("synthetic-claims.gts");
     let store = fs_claim_store(&path).unwrap();
+    let claim_text = "the recorded claim stays intact";
+    let tool = "urn:gmeow:tool:store_claim";
+    let invocation = "urn:gmeow:invocation:synthetic";
     let claim = store
         .store_claim(
-            "the recorded claim stays intact",
+            claim_text,
             StoreOptions {
                 source: None,
                 confidence: None,
@@ -355,11 +358,11 @@ fn tool_call_provenance_native_store_preserves_payloads_and_cold_readback() {
         written.push(
             store
                 .record_tool_call(
-                    "urn:gmeow:tool:store_claim",
+                    tool,
                     ToolCallOptions {
                         arguments: Some(arguments),
                         result: Some(result),
-                        invocation: Some("urn:gmeow:invocation:synthetic"),
+                        invocation: Some(invocation),
                         generated: &[claim.id.as_str()],
                     },
                 )
@@ -377,15 +380,15 @@ fn tool_call_provenance_native_store_preserves_payloads_and_cold_readback() {
     assert_eq!(readback.len(), written.len());
     for (actual, expected) in readback.iter().zip(&written) {
         assert_eq!(actual.id, expected.id);
-        assert_eq!(actual.tool, expected.tool);
+        assert_eq!(actual.tool, tool);
         assert_eq!(actual.arguments, expected.arguments);
         assert_eq!(actual.result, expected.result);
-        assert_eq!(actual.invocation, expected.invocation);
+        assert_eq!(actual.invocation.as_deref(), Some(invocation));
         assert_eq!(actual.generated, vec![claim.id.clone()]);
         assert_eq!(actual.created, expected.created);
     }
     let claims = reopened.claims().unwrap();
     assert_eq!(claims.len(), 1);
     assert_eq!(claims[0].id, claim.id);
-    assert_eq!(claims[0].text, claim.text);
+    assert_eq!(claims[0].text, claim_text);
 }
