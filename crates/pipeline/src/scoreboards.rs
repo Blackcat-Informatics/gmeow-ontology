@@ -737,10 +737,11 @@ pub fn default_corpus(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
 /// deterministic measurement clears it without flakiness, yet it is ~4.5 points
 /// tighter than the stale, loose `60` it replaces.
 ///
-/// This constant is the SINGLE SOURCE OF TRUTH for the enforced floor: the Rust
-/// CLI defaults `--min-recall` to it and the Makefile no longer hardcodes a literal.
-/// It is NEVER loosened and NEVER fabricated — a corpus-aggregate recall below it is
-/// a real coverage regression to fix, not a number to accommodate.
+/// This constant defines the default enforced floor. The Rust CLI uses it when
+/// `--min-recall` is omitted; the Makefile forwards an explicit
+/// `ACCEPTANCE_MIN_RECALL` override when set. Lower overrides are for deliberate
+/// development measurements, not weaker qualification. The default is never
+/// loosened to accommodate a coverage regression.
 pub const ACCEPTANCE_MIN_RECALL_PCT: f64 = 64.5;
 
 /// The HARD corpus-aggregate recall verdict for a completed acceptance run.
@@ -748,16 +749,20 @@ pub const ACCEPTANCE_MIN_RECALL_PCT: f64 = 64.5;
 /// Unlike the per-file `round-trip-superset` gate (a deliberate honest scoreboard,
 /// red until 100 % per-file recall), this is the *pooled* floor: if the aggregate
 /// Σ recovered / Σ addressable recall across the whole corpus drops below
-/// [`ACCEPTANCE_MIN_RECALL_PCT`], the run FAILS. `make acceptance` (run by
-/// `make check` and CI) turns a failing verdict into a non-zero exit.
+/// the selected floor, the run FAILS. An unmeasured corpus also fails, even with a
+/// zero floor. `make acceptance` (the required CI acceptance matrix branch and a
+/// member of `make heavy`) turns a failing verdict into a non-zero exit.
 pub fn aggregate_recall_gate(results: &[FileAcceptance], floor: f64) -> GateResult {
-    let aggregate = corpus_recall_pct(results);
-    let passed = aggregate >= floor;
+    let (aggregate, addressable) = corpus_recall_measurement(results);
+    let passed = addressable > 0.0 && aggregate >= floor;
     let mut gate = GateResult::new(
         "aggregate-recall-floor",
         passed,
         true,
-        if passed {
+        if addressable == 0.0 {
+            "corpus-aggregate recall has no addressable source triples; no measurement was made"
+                .to_owned()
+        } else if passed {
             format!("corpus-aggregate round-trip recall {aggregate:.2}% ≥ floor {floor:.2}%")
         } else {
             format!(
@@ -786,6 +791,12 @@ pub fn corpus_passed(results: &[FileAcceptance], floor: f64) -> bool {
 }
 
 pub fn corpus_recall_pct(results: &[FileAcceptance]) -> f64 {
+    corpus_recall_measurement(results).0
+}
+
+/// Compute recall and its addressable denominator together so the hard gate can
+/// distinguish measured zero recall from an absent measurement.
+fn corpus_recall_measurement(results: &[FileAcceptance]) -> (f64, f64) {
     let mut total_recovered = 0.0;
     let mut total_addressable = 0.0;
     for file in results {
@@ -794,11 +805,12 @@ pub fn corpus_recall_pct(results: &[FileAcceptance]) -> f64 {
             total_addressable += gate.metrics.get("addressable").copied().unwrap_or(0.0);
         }
     }
-    if total_addressable == 0.0 {
-        100.0
+    let recall = if total_addressable == 0.0 {
+        0.0
     } else {
         100.0 * total_recovered / total_addressable
-    }
+    };
+    (recall, total_addressable)
 }
 
 pub fn render_acceptance_report(results: &[FileAcceptance]) -> String {

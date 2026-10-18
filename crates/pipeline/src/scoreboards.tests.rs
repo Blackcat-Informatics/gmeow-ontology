@@ -147,6 +147,34 @@ fn aggregate_recall_gate_is_hard_and_bites_below_the_floor() {
 }
 
 #[test]
+fn aggregate_recall_gate_rejects_unmeasured_corpora_even_with_a_zero_floor() {
+    // Exercise the real per-file round-trip gate: OWL linkage is deliberately
+    // excluded from addressable recall, even when the output preserves it.
+    let source = dataset_from_nt(
+        "<urn:recall:class> <http://www.w3.org/2002/07/owl#equivalentClass> <urn:recall:peer> .\n",
+    )
+    .unwrap();
+    let round_trip = gate_round_trip(&source, &source, &HashMap::new()).unwrap();
+    assert_eq!(round_trip.metrics["addressable"], 0.0);
+    let linkage_only = vec![FileAcceptance {
+        source: "linkage-only.ttl".to_owned(),
+        source_triples: 1,
+        output_triples: 1,
+        gates: vec![round_trip],
+    }];
+    for results in [Vec::new(), linkage_only] {
+        assert_eq!(corpus_recall_pct(&results), 0.0);
+        for floor in [0.0, ACCEPTANCE_MIN_RECALL_PCT] {
+            let gate = aggregate_recall_gate(&results, floor);
+            assert!(gate.hard);
+            assert!(!gate.passed);
+            assert!(gate.summary.contains("no addressable source triples"));
+            assert!(!corpus_passed(&results, floor));
+        }
+    }
+}
+
+#[test]
 fn honest_coverage_reports_total_gap_occurrences_not_distinct_terms() {
     // One uncovered term occurring 20 times, plus a second occurring once: the gate
     // must report the TRUE occurrence volume (21) as `gap_occurrences`, keep the

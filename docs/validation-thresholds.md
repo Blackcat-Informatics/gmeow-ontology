@@ -71,7 +71,7 @@ be treated as a regression of the contract, not routine maintenance.
 
 ### 4. Transpile / projection recall (hard aggregate floor)
 
-- **Floor:** `64.5%`, defined by
+- **Default floor:** `64.5%`, defined by
   `gmeow_pipeline::scoreboards::ACCEPTANCE_MIN_RECALL_PCT`.
 - **Recorded baseline:** corpus-aggregate round-trip recall `64.57%` after the
   put-leg cutover, pooled as Σ recovered / Σ addressable. This is the recorded
@@ -83,10 +83,14 @@ be treated as a regression of the contract, not routine maintenance.
 - **Command:** `make acceptance`. The Rust `gmeow-dev acceptance` command uses
   the constant when `--min-recall` is omitted; omission does **not** disable the
   gate. `ACCEPTANCE_MIN_RECALL` is an explicit Make override, unset by default.
+  A lower override is a deliberate development measurement, not qualification
+  against the default floor. A corpus with no addressable source triples fails
+  even when the selected floor is zero.
 - **Where the floor lives:** `crates/pipeline/src/scoreboards.rs`; enforcement is
   `aggregate_recall_gate`, called by `crates/gmeow-dev-cli/src/dev_gates.rs`.
-- **Lane:** the required CI breadth lane, `make heavy`, invokes `acceptance`.
-  The full external-corpus sweep is intentionally outside local `make check`.
+- **Lane:** the required CI `heavy` job runs `make acceptance` as its
+  `acceptance` matrix branch. The separate `make heavy` aggregate also includes
+  `acceptance`. The external-corpus sweep is outside local `make check`.
 - **Ratchet:** keep `64.5` until measured recall improves enough to raise it;
   a result below the floor is a coverage regression to fix.
 
@@ -97,7 +101,7 @@ be treated as a regression of the contract, not routine maintenance.
 | SHACL | `validate` | `ontology` → "Validate (syntax, lint, SHACL, DSL SHACL)" (also exercised by `python`, `python-heavy`) |
 | Vendored-entity coverage | `coverage` (`--min-class 0.92 --min-predicate 0.85`) | `ontology` → "Vendored-entity coverage — hard class/predicate floors" |
 | Slice-example | `validate` (`check_example_coverage`) | `ontology` → "Validate (…)" (same `validate` invocation) |
-| Transpile recall | `acceptance` (default `64.5%`, through `make heavy`) | Required CI breadth lane |
+| Transpile recall | `acceptance` (default `64.5%`; also in `make heavy`) | `heavy` job → `acceptance` matrix branch |
 
 The external-corpus acceptance sweep runs through the required CI breadth lane.
 Local `make check` owns the ordinary validation DAG; see
