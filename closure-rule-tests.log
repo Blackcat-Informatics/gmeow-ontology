@@ -1,0 +1,28 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic-compile) & (test(frontend::native_statement_tests::) | test(contradictory_rule_term_carriers_reject_the_whole_rule) | test(distinct_body_guard_requires_variables) | test(term_carrier_values_and_indices_are_total_and_unambiguous) | test(aggregation_rule_round_trips_through_canonical_rdf12) | test(rdf_projections_preserve_blank_subjects_as_blank_resources))) | (package(gmeow-pipeline) & (test(native_rule_statement_layer_survives_the_production_gts_profile) | test(authored_base_quote_outside_a_native_binding_still_fails_closed)))' --no-tests=fail
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [optimized] target(s) in 32m 33s
+────────────
+ Nextest run ID c58b4e5b-e88f-4803-8cda-311553e0bbd1 with nextest profile: ci
+    Starting 15 tests across 27 binaries (2049 tests and 199 binaries skipped)
+        PASS [   0.044s] ( 1/15) gmeow-logic-compile frontend::native_statement_tests::native_scoped_axiom_retains_every_scope_dimension_without_global_assertion
+        PASS [   0.046s] ( 2/15) gmeow-logic-compile frontend::native_statement_tests::bare_reification_is_a_proposition_and_never_an_assertion
+        PASS [   0.045s] ( 3/15) gmeow-logic-compile frontend::native_statement_tests::separate_native_reifiers_preserve_coexisting_standpoints
+        PASS [   0.048s] ( 4/15) gmeow-logic-compile frontend::native_statement_tests::nested_scoped_proposition_has_an_explicit_lowering_error
+        PASS [   0.046s] ( 5/15) gmeow-logic-compile frontend::native_statement_tests::invalid_native_scope_never_emits_a_weaker_claim
+        PASS [   0.047s] ( 6/15) gmeow-logic-compile frontend::native_statement_tests::named_graph_annotations_do_not_supply_default_graph_scope
+        PASS [   0.052s] ( 7/15) gmeow-logic-compile projections::tests::aggregation_rule_round_trips_through_canonical_rdf12
+        PASS [   0.052s] ( 8/15) gmeow-logic-compile frontend::tests::distinct_body_guard_requires_variables
+        PASS [   0.051s] ( 9/15) gmeow-logic-compile projections::tests::rdf_projections_preserve_blank_subjects_as_blank_resources
+        PASS [   0.055s] (10/15) gmeow-logic-compile frontend::tests::term_carrier_values_and_indices_are_total_and_unambiguous
+        PASS [   0.059s] (11/15) gmeow-logic-compile frontend::compact_term_tests::contradictory_rule_term_carriers_reject_the_whole_rule
+        PASS [   0.061s] (12/15) gmeow-logic-compile frontend::native_statement_tests::annotation_only_modal_formula_preserves_authored_variable_and_constraint_ownership
+        PASS [   0.065s] (13/15) gmeow-logic-compile frontend::native_statement_tests::native_rule_projection_round_trips_typed_atoms_and_guards
+        PASS [   0.075s] (14/15) gmeow-pipeline stages::carrier::logic_graph_golden_tests::authored_base_quote_outside_a_native_binding_still_fails_closed
+        PASS [   0.107s] (15/15) gmeow-pipeline stages::carrier::logic_graph_golden_tests::native_rule_statement_layer_survives_the_production_gts_profile
+────────────
+     Summary [   0.144s] 15 tests run: 15 passed, 2049 skipped

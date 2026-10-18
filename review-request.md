@@ -1,0 +1,3 @@
+@coderabbitai review
+
+Please assess this final documentation correction and the closure claim against the original requirements in issue 1805. The runtime migration and authored-default GTS boundary correction are already in main through PR 1802; no duplicate runtime implementation is proposed here. Relevant existing code is the native atom writer, typed rule reader, native statement round trips and production-profile tiny GTS write/import/readback control. Fresh focused verification is running and will be reported before merge. Identify any still-missing encoding requirement rather than treating complete-canon or unrelated class-engine work as an encoding prerequisite.

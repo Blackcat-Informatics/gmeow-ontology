@@ -1,0 +1,148 @@
+{
+  "issue": 1805,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "logic: rule projection uses RDF 1.1 classic reification (rdf:Statement); move to RDF 1.2 triple terms",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1802": "fix(logic): integrate PurRDF main and production reasoning repairs",
+    "1830": "fix(pipeline): preserve native proof products through the sink",
+    "1833": "pipeline: record undecided native reasoning in docs without weakening gate grading",
+    "1757": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+    "1793": "fix(1789): specialize termination analysis without combinatorial products",
+    "1794": "fix(1790): publish each world's own chase certificate and enforce the demonstrator classes",
+    "1798": "feat(1796): run the restricted chase Datalog-first",
+    "1799": "feat(1796): certify restricted joint acyclicity",
+    "1800": "fix(1795): sharpen termination-statement encoding and bind closed relations",
+    "1801": "perf(1757): compute joint acyclicity in linear Horn propagation",
+    "1804": "fix(slices): repair the corpus inconsistencies native reasoning exposed",
+    "1770": "feat: certify and precompile the complete canon for consumer proof",
+    "1768": "feat: add a first-class consumer prover entry point",
+    "1828": "pipeline: recovery evidence has no executable resolved leg pair in generation",
+    "1829": "fixtures: goal-directed aggregate rejected by stable persistent admission",
+    "1740": "perf(logic): integrate the authenticated native pipeline and calculus",
+    "1704": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+    "1748": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+    "317": "Music \u00b7 Timbre & the sensory bridge (MIR observations, embeddings by reference)",
+    "1760": "perf(logic): restore certified batch slice probes"
+  },
+  "link_relations": {
+    "1802": "mentions",
+    "1830": "mentions",
+    "1833": "mentions",
+    "1757": "mentions",
+    "1793": "2-hop",
+    "1794": "2-hop",
+    "1798": "2-hop",
+    "1799": "2-hop",
+    "1800": "2-hop",
+    "1801": "2-hop",
+    "1804": "2-hop",
+    "1770": "2-hop",
+    "1768": "2-hop",
+    "1828": "2-hop",
+    "1829": "2-hop",
+    "1740": "2-hop",
+    "1704": "2-hop",
+    "1748": "2-hop",
+    "317": "2-hop",
+    "1760": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1201,
+      "title": "Generalize the projection-purity gate to the whole semantic-vocabulary surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1704,
+      "title": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+      "state": "OPEN"
+    },
+    {
+      "number": 1194,
+      "title": "V4 \u2014 Equivalence-before-deletion: retire hand-authored shapes.ttl + structural ShEx",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1803,
+      "title": "Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow",
+      "state": "OPEN"
+    },
+    {
+      "number": 718,
+      "title": "epic: Common Logic (ISO/IEC 24707) \u2014 full-FOL IR + CLIF/CGIF/XCL interchange (export + ingest)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 630,
+      "title": "EPIC \u2014 gmeow:logic: RDF-1.2-first Rust reasoning authority + classic-cross-check consolidation",
+      "state": "CLOSED"
+    },
+    {
+      "number": 665,
+      "title": "feat(logic): native DL/EL reasoning authority + Rust cross-check divergence ledger (reason --mode native)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1192,
+      "title": "V2 \u2014 Project validation shapes to SHACL Core + ShEx (one lowering, per-target loss ledger)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 672,
+      "title": "META-EPIC \u2014 The reference RDF-1.2 stack: fast, complete, coherent",
+      "state": "CLOSED"
+    },
+    {
+      "number": 809,
+      "title": "diagnostics: fold the remaining GMEOW-owned make-check surfaces into the canonical report (compilers + external tools)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 933,
+      "title": "EPIC \u2014 Python is UI-only: cull orchestration/pipeline/eval/generation/reasoning to Rust",
+      "state": "CLOSED"
+    },
+    {
+      "number": 667,
+      "title": "feat(logic): first-class output \u2014 multi-format / multilingual / GTS / SARIF + integrated docs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1087,
+      "title": "META-EPIC: The Correspondence Calculus + native logic execution engine",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "missing-intrinsic-runtime": 2,
+    "none": 10,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 2,
+    "consumer-artifact-path-coupling": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1805-logic-rule-projection-uses-rdf-1-1"
+  },
+  "coverage": [
+    "issue #1805 + 6 comment(s) via github",
+    "link crawl: 20 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['logic:', 'projection', 'classic']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 6 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1805 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1805: 0",
+    "requirement candidates: 9 line(s); 1 comment(s) matched no rule",
+    "referenced artifacts: 4 path(s) (1 on disk), 1 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

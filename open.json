@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1805,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1",
+  "branch": "paudley/1805-logic-rule-projection-uses-rdf-1-1",
+  "slug": "logic-rule-projection-uses-rdf-1-1",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/.stage/logic-rule-projection-uses-rdf-1-1",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "3c0542ce8f436ff98298d551cddb7b5f1095abdf",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1",
+    "branch:paudley/1805-logic-rule-projection-uses-rdf-1-1",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/.stage/logic-rule-projection-uses-rdf-1-1",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1805-logic-rule-projection-uses-rdf-1-1/.stage/logic-rule-projection-uses-rdf-1-1/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-17T23:17:43-0600"
+}

@@ -1,0 +1,5 @@
+# Existing native rule implementation
+
+Main already contains the native migration and its follow-on authored-default GTS boundary repair. add_native_atom uses RdfDatasetBuilder to intern native triple terms and publish reifier bindings, with typed resource carriers for variables. The frontend requires a native reifies target and uses the shared typed carrier reader. Scope and aggregation remain in the existing IR; guards retain RDF term identity. The GTS test exercises the actual SnapshotBuilder, mandated profile writer, frame validator, native importer and exact typed-rule reader. No replacement writer, compatibility mode or second semantic implementation is needed.
+
+The existing PR 1802 is confirmed merged and has ghprsq audit refs. The current same-main verification is reused across the closure audit workspaces; the new diff changes only a comment. The issue's historical measurements and broader gate failures remain historical and do not become new passing results. No independent local dispatcher is available; any new bot review must be identified as that actual review rather than relabeled local approval.
