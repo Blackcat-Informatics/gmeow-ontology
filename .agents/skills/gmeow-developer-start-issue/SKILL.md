@@ -187,7 +187,7 @@ Before declaring an issue "ready to implement" or opening a pull request, verify
 - [ ] Logic checked: OWL 2 DL, gUFO grounding, labels + definitions present
 - [ ] Statement metadata planned in `statement-dsl/` if applicable (not hand-edited in `statements/`)
 - [ ] Generated artifacts re-materialized by `make check` (its single producer does this) if any canonical source was changed
-- [ ] Branch rebased onto latest `main` with no merge commits
+- [ ] Branch synchronized with `origin/main` by an ordinary merge when integration requires it, without rewriting history
 - [ ] `make check` passes (full gate: lint, validate, compile-check, reason, verify, tests)
 - [ ] Commit messages follow Conventional Commits and cite principles where relevant
 

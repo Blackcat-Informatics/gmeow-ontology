@@ -506,6 +506,7 @@ impl ProjectionBacking {
             "http://www.w3.org/2002/07/owl#withRestrictions",
             "http://www.w3.org/2002/07/owl#hasKey",
             "http://www.w3.org/2002/07/owl#propertyChainAxiom",
+            "http://www.w3.org/2002/07/owl#onProperties",
         ] {
             if let Some(id) = iri_id_static(ds, predicate) {
                 for quad in ds.quads_for_pattern(None, Some(id), None, GraphMatch::Any) {
@@ -529,9 +530,17 @@ impl ProjectionBacking {
             "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity2",
             "http://ns.inria.org/edoal/1.0/#inverse",
             "http://ns.inria.org/edoal/1.0/#not",
+            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+            "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
+            "http://www.w3.org/2000/01/rdf-schema#domain",
+            "http://www.w3.org/2000/01/rdf-schema#range",
             "http://www.w3.org/2002/07/owl#equivalentClass",
+            "http://www.w3.org/2002/07/owl#equivalentProperty",
             "http://www.w3.org/2002/07/owl#disjointWith",
             "http://www.w3.org/2002/07/owl#complementOf",
+            "http://www.w3.org/2002/07/owl#datatypeComplementOf",
+            "http://www.w3.org/2002/07/owl#onProperty",
+            "http://www.w3.org/2002/07/owl#inverseOf",
             "http://www.w3.org/2002/07/owl#someValuesFrom",
             "http://www.w3.org/2002/07/owl#allValuesFrom",
             "http://www.w3.org/2002/07/owl#onClass",

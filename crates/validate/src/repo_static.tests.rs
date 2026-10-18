@@ -3431,6 +3431,46 @@ fn owl_purity_propagates_ownership_to_blank_expressions_not_named_references() {
 }
 
 #[test]
+fn owl_purity_covers_rdfs_attachments_and_inverse_property_structure() {
+    for attachment in [
+        "rdfs:subClassOf [ a owl:Restriction ; owl:onProperty [ owl:inverseOf ex:Named ] ; owl:someValuesFrom ex:Named ]",
+        "rdfs:subPropertyOf [ owl:inverseOf ex:Named ]",
+        "rdfs:domain [ owl:unionOf ( ex:Named ) ]",
+        "rdfs:range [ owl:datatypeComplementOf ex:Named ]",
+        "owl:equivalentProperty [ owl:inverseOf ex:Named ]",
+        "owl:onProperties ( [ owl:inverseOf ex:Named ] ex:Named )",
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("dsl/attachments.ttl");
+        let source = format!(
+            r#"
+            @prefix ex: <https://example.org/> .
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+            ex:owner logic:formalizes ex:law ; {attachment} .
+        "#
+        );
+        write(&path, &source);
+        let mut valid = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut valid);
+        assert!(valid.ok(), "{attachment}: {:?}", valid.errors);
+        write(&path, &format!("{source} ex:Named a owl:Class ."));
+        let mut invalid = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut invalid);
+        assert!(
+            invalid
+                .errors
+                .iter()
+                .any(|error| error.contains("example.org/Named")
+                    && error.contains("generated OWL construct")),
+            "{attachment}: {:?}",
+            invalid.errors
+        );
+    }
+}
+
+#[test]
 fn alignment_purity_resolves_escaped_iris_without_flagging_references_or_literals() {
     let temp = tempfile::tempdir().unwrap();
     write(
