@@ -1,0 +1,115 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 21,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- No production-reachable `Result<_, String>` remains in the reported surfaces.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 22,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- Prover discovery/execution failures retain command, artifact, version, exit-status, stdout/stderr and path evidence where applicable.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 23,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- External model parsing and numeric preparation failures retain their typed operation/locus and original detail.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 24,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- Existing public CLI rendering and exit behavior remains deterministic.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 25,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- Focused failure-path tests assert stable diagnostic codes and evidence.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 26,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- `make crate-check` no longer reports the string-error rule.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 24,
+      "rules": [
+        "modal"
+      ],
+      "text": "5. Open a non-draft PR closing #1762 and publish the plan/evidence. Address every human and CodeRabbit thread under stage-2, repeating validation/commit/push/issue updates per logical remediation. Merge current origin/main into the branch, re-run required evidence, write squash notes, and merge only with `/home/paudley/stage/root/bin/ghprsq`. Verify PR merge, issue closure and main before removing only this worktree.",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-09-22T04:50:28Z"
+    },
+    {
+      "id": "C3.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "Next steps: settle those known source prerequisites, verify the affected CLI and diagnostic consumers, then perform the required qualification and review before ordinary commits and ghprsq integration. Principles 4, 7, 18.",
+      "source": "comment 3",
+      "author": "paudley",
+      "date": "2026-10-15T21:57:12Z"
+    },
+    {
+      "id": "C5.1",
+      "line": 58,
+      "rules": [
+        "modal"
+      ],
+      "text": "remain required. Neither 1762 nor 1770 is complete, and the full logic issue/PR",
+      "source": "comment 5",
+      "author": "paudley",
+      "date": "2026-10-17T01:32:01Z"
+    }
+  ],
+  "silent_comments": [
+    {
+      "comment": 2,
+      "author": "paudley",
+      "date": "2026-09-22T08:56:51Z"
+    },
+    {
+      "comment": 4,
+      "author": "paudley",
+      "date": "2026-10-16T22:14:30Z"
+    }
+  ]
+}

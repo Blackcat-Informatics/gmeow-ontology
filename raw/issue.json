@@ -1,0 +1,96 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\n`make check` currently fails `crate-check` on remaining first-party `Result<_, String>` error channels. The live repository-static gate requires `gmeow_errors::Diag` as the sole first-party error substrate, but production paths still expose string errors in the prover/external-evidence and physical numeric execution surfaces.\n\nRepresentative current findings include:\n\n- `crates/gmeow-cli/src/commands/prove.rs`\n- `crates/gmeow-cli/src/commands/reasoning_report.rs`\n- `crates/logic/src/external_evidence.rs`\n- `crates/logic/src/physical/numeric.rs`\n- `crates/logic/src/physical/plan.rs`\n\nThis is part of #1336's unified diagnostic substrate and currently blocks `make check` for unrelated work.\n\n## Required implementation\n\nReplace each first-party string error with a typed `gmeow_errors::Diag` carrying a stable code, grade, source context, and the evidence available at the failure site. Preserve external process stderr/stdout as diagnostic payload rather than using it as the error type. Do not suppress the repo-static rule or introduce a parallel local error enum that loses the shared diagnostic fields.\n\n## Acceptance criteria\n\n- No production-reachable `Result<_, String>` remains in the reported surfaces.\n- Prover discovery/execution failures retain command, artifact, version, exit-status, stdout/stderr and path evidence where applicable.\n- External model parsing and numeric preparation failures retain their typed operation/locus and original detail.\n- Existing public CLI rendering and exit behavior remains deterministic.\n- Focused failure-path tests assert stable diagnostic codes and evidence.\n- `make crate-check` no longer reports the string-error rule.\n\nPrinciples 4, 7, 18. Parent: #1336.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABWAAhvw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Complete diagnostic migration for prover and physical execution (#1762)\n\nSummary: replace first-party string error channels with the existing shared Diag substrate, preserving typed cause and evidence. Principles 4, 7, 18.\n\nBaseline: no deferrals or stubs; expensive Make gates run once after coherent edits; tests never produce the corpus. Standing goals: Rust-first, one canonical diagnostic substrate, maximum information retention, and no silent degradation.\n\nCompleteness contract:\n| Requirement | Task |\n| --- | --- |\n| Remove production string errors and error tuples from reported surfaces | 1\u20133 |\n| Preserve command, artifact, version, status, stdout/stderr, path | 2 |\n| Preserve numeric operation, source/rule locus, original detail | 1 |\n| Preserve external model parsing details and dispositions | 3 |\n| Preserve structured evidence in both live Diag and serialized reports | 1\u20133 |\n| Deterministic CLI rendering and exit behavior | 2, 4 |\n| Stable-code/evidence failure tests | 4 |\n| crate-check no longer reports string errors | 4 |\n\n0. Fetch main and create isolated .worktrees/issue-1762-diag branch/worktree; preserve unrelated work.\n1. Migrate every production numeric preparation and execution failure return to `gmeow_errors::Result` with typed Diag kinds. A cloneable typed preparation payload may support cached diagnostic reconstruction, but never becomes a parallel function error type: `Diag` owns propagation at every failure-returning boundary. Each cached retrieval mints a fresh Diag and attaches the requesting rule. Preserve operation, operands, datatype, rule locus and original scalar detail. Validate with malformed literal, missing binding, arithmetic failure and repeatable cached-error cases; then commit with hooks, push, and post the validation/hash to #1762.\n2. Define one evidence-preserving diagnostic-to-report conversion contract. Extend the serialized report diagnostic payload with grade, context and typed machine fields used by these surfaces; retain deterministic text and exit behavior. Migrate source discovery/read/parse, problem publication, digest, executable discovery/version and execution. Every process failure retains argv, executable/problem identity, available status/signal, timeout/truncation, and both streams' partial bytes/digests/counts. Bounded capture and child cleanup remain mandatory. Validate missing/unexecutable prover, failing/empty/truncated version, timeout/nonzero exit, partial stream failure and source failures; run shared-behavior integration review; commit with hooks, push, and post the validation/hash.\n3. Migrate external artifact/model failure propagation to `gmeow_errors::Result`. Convert `ArtifactProtocolError` and `EvalError` into typed diagnostic payloads or non-error outcome classifications, with Diag owning every failure-returning boundary. Invalid, unsupported, structural-only and resource-limited outcomes remain distinct typed decisions; no caller infers them from prose. Preserve parser/model locus and original detail. Validate malformed/unsupported models and evaluation-budget exhaustion; run integration review; commit with hooks, push, and post the validation/hash.\n4. Audit all named surfaces, dependent callers, local error enums and error tuples. Add report serialization/exit regressions and assert code, grade, typed evidence, retained causes and stable ordering. Run `make fmt`, `make lint`, `make nextest-synthetic NEXTEST_FILTER='package(gmeow-logic) | package(gmeow-cli)'`, then `make crate-check`; run one complete `make check` after all changes. Repair every in-scope failure. Run the deferral scan and verify the deficiency ledger before PR creation; commit any final test/audit unit with hooks, push, and post its evidence.\n5. Open a non-draft PR closing #1762 and publish the plan/evidence. Address every human and CodeRabbit thread under stage-2, repeating validation/commit/push/issue updates per logical remediation. Merge current origin/main into the branch, re-run required evidence, write squash notes, and merge only with `/home/paudley/stage/root/bin/ghprsq`. Verify PR merge, issue closure and main before removing only this worktree.\n\nEnhancement audit: adopted the medium/high-payoff transformation of one evidence-preserving Diag-to-report conversion contract across all named surfaces. Adopted reuse of DiagKind/source context/process receipts, machine-readable operation and artifact identities, and failure injection for partial capture/repeated cached failures. Declined a new diagnostic framework because the existing canonical substrate already supplies codes, grades, provenance and serialization targets; extending its projection is sufficient. Declined ontology changes because this issue migrates internal failure carriers and mints no semantic vocabulary. No requirement is deferred or stubbed.\n",
+      "createdAt": "2026-09-22T04:50:28Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1762#issuecomment-5771370943",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABWCTvyA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Implementation commit `ce1c916a7d7820dddc9c0f20648ea8cd9ac76c49` is pushed on `issue-1762-diag-migration`.\n\nImplemented:\n- migrated prover discovery, source admission, problem publication, version probing, subprocess execution, and process cleanup to typed `Diag` failures;\n- retained executable/problem identities, argv, deadline, status/signal, stdout/stderr bytes, digests, counts, truncation state, artifacts, and lower diagnostic causes;\n- migrated external evidence parsing/checking to typed invalid, unsupported, and resource classifications with operation, locus, source text, parser input, observed use, and limits;\n- migrated numeric preparation/execution to `Diag` with typed rule, operation, operands, datatype, and scalar detail, including fresh diagnostics from cached rejected plans;\n- preserved the existing non-failure report wire shape and `logic fragments` rendering code.\n\nValidation:\n- `make fmt`: passed.\n- `make lint`: passed.\n- focused `gmeow-cli` nextest selection: 12/12 passed.\n- focused `gmeow-logic` nextest selection: 15/15 passed.\n- current `gmeow-dev crate-check` differential: clean `main` reports 38 `Result<_, String>` findings; this branch reports zero and adds no new repo-static violation. The command still exits nonzero on unrelated baseline policy findings.\n- focused Clippy is blocked before the touched crates by six existing `gmeow-build-inputs` collapsible-if/match findings.\n- deficiency ledger: clean.\n- mechanical deferral scan: clean.\n\nFull `make check` is blocked by the snapshot path: after the producer completed and `stage-archive-blobs` published its authenticated receipt, `stage-snapshot` ran for more than three hours without publishing the next receipt and was terminated. That exceeds the operational ceiling and is being handled under #1757 before PR creation.\n\nPrinciples 4, 7, 18.\n",
+      "createdAt": "2026-09-22T08:56:51Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1762#issuecomment-5773782984",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcbwUvA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "The existing implementation commit `ce1c916a7` has been recovered and its exact patch applied cleanly to the current combined qualification candidate for PR #1802. The newer native RDF 1.2 and corpus-purity changes remain intact. No replacement implementation or gate suppression was introduced.\n\nThe full-gate retry exposed 54 string-error findings on current source, versus the 38 covered by the historical migration. Focused external-evidence and numeric checks are now running against the integrated source; the older branch passes are not current qualification. The newer helper-census channels, production test-module classification, native diagnostic failure-class bindings and browser substrate attestations remain concrete gate blockers. There has been no qualifying full-gate pass, new commit, issue closure or merge.\n\nNext steps: settle those known source prerequisites, verify the affected CLI and diagnostic consumers, then perform the required qualification and review before ordinary commits and ghprsq integration. Principles 4, 7, 18.\n",
+      "createdAt": "2026-10-15T21:57:12Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1762#issuecomment-6203118780",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABcxTxrw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Diagnostic source-seal repair\n\nThe current source-only repository guard found two defects while qualifying the\nalready-integrated diagnostic migration: route_facet_value returned Result<(),\nString>, and logic.dl-service had no canonical failure class. The original run\nexecuted 29 cases: 28 passed and live_repo_static_passes failed on those two\nfindings. See diag-current-qualification.log.\n\nContract facet routing now appends directly to the source compiler's existing\nDiagnostic observations. The obsolete string-return path and caller conversion\nare removed. Conflicting singleton values retain INVALID_CONTRACT_FACET, Error\nseverity, the exact contract owner and both conflicting values; source admission\ncontinues to reject them. Repeated values and set-valued facets retain their\nprevious semantics. This is the compiler observation channel, not a new runtime\nerror abstraction or a suppressed refusal.\n\nDlService now names DirectSemanticsServiceRefusal as its canonical failure class.\nIts existing code, grade, typed no-model/malformed/execution disposition and\noriginal upstream error remain intact. The owning logic slice declares that\noperational class and its enforcing boundary, with all seven English prose\nfields and paired French/Chinese translations. No authored shape or external\nsemantic authority was introduced. Principles 4, 6, 7, 17 and 18 apply.\n\nCommit 12380e2df is pushed in PR 1835 and the source tree is clean. All 45 focused\ncases passed in 17.824s after 7m34s compilation, including the live repository\nsource seal. Strict producer-independent workspace/all-target Clippy passed with\nwarnings denied in 4m11s. Every normal signed commit hook passed. Logs:\ndiag-repair-qualification.log, diag-repair-clippy.log, diag-repair-commit.log and\ndiag-repair-push.log. The new head has live producer/lint/Rust-prebuild CI.\n\nHosted ontology/translation and full consumer qualification remain pending.\nNo local producer, corpus production, full gate or machine probe ran.\nThe prior helper repair's hosted optimized producer, lint and Rust prebuild all\npassed on c3123db1a. Its downstream generation failed with the known recovery-leg\nerror; generation-current.log retains that evidence and PR 1830 owns the repair.\n\nNo full gate or translation/ontology corpus validation is inferred from the\nsource seal. This repairs two current diagnostic source-seal defects without\nclaiming full issue 1762 qualification or full native semantic completeness.\n",
+      "createdAt": "2026-10-16T22:14:30Z",
+      "includesCreatedEdit": true,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1762#issuecomment-6225719727",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABczeUCg",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Preserve native source diagnostics through proof preparation\n\nSourceCatalog converted a document-mapping Diag to LogicParseError(String), then\nto a generic stage failure. That discarded the original kind, grade, focus and\nevidence. Prepared source construction, frontend/dialect parsing, round-trip\ndrivers and the prover also depended on this string-only error API.\n\nThe wrapper is deleted throughout the Rust workspace, without an alias. The\ncompiler, prepared source, CLIF/CGIF/XCL readers and their real callers return\nthe shared Diag. Native failures propagate unchanged with operation/document\ncontext. The callback regression preserves its original FormulaAdmission kind,\ncode, grade, focus and tags, and verifies that failure publishes no receipt.\n\nRegistered source-parse and source-read kinds retain the original live foreign\nerror, selected format and exact path. Arc retains the original cause while\nsatisfying the existing diagnostic-kind cloning contract. Empty source remains\na typed frontend refusal. File reads use the actual I/O result rather than a\nseparate existence check. The actual consumer prover uses its existing preserved-\ndiagnostic adapter, retaining outer reason codes, source identities and native\ncause evidence. A consumer empty-selected-theory regression exercises this path.\n\nConformance, developer feedback/certification, transcode, slice reasoning,\npipeline examples, the round-trip drivers and the explicit fixture-producer\nexample move with this API. Obsolete identity/error adapters are deleted. The\nexplicit fixture producer was compiled, never invoked from a test. No runtime\ndependency, fallback, profile weakening or successful program-identity change.\n\nValidation: native-source-diag-synthetic-tests.log records 138/138 passing cases\nin 0.108s. These cover source admission/FOF, all three Common Logic dialects,\nconformance admission controls, source mapping and typed parser/I/O failures.\nAfter removing the last four obsolete identity adapters, all three affected\npipeline round-trip cases passed again in 0.243s:\nnative-source-diag-final-roundtrip-tests.log. Strict producer-independent\nworkspace/all-target Clippy passed with warnings denied in 2m12:\nnative-source-diag-final-clippy.log. Complete helper hygiene passed:\nnative-source-diag-final-helpers.log. No ledger ceiling or gate was weakened.\n\nThe first expanded selection accidentally included the corpus-dependent\ncorpus_logic_module_common_logic_roundtrips case. It correctly FAILED CLOSED\nwithout GMEOW_TEST_FIXTURE_MANIFEST; 138 other cases passed. Exact failure:\nnative-source-diag-integrated-tests.log. The corrected local diagnostic selection\nexcludes that authenticated consumer only; its test and CI requirement remain\nunchanged. The corpus observation and new embedded consumer CLI regression are\nnot locally qualified. No test built corpus and no local optimized producer,\nfingerprint or full gate ran.\n\nEarlier compile attempts exposed the diagnostic macro's field/Clone contract,\nold tuple-field consumers, the explicit fixture example and obsolete identity\nadapters. Their failed logs are retained. These were corrected in source without\nsuppression, hook bypass or a compatibility wrapper.\n\nPublished as 1c3bc726a. Normal signed hooks and push passed:\nnative-source-diag-commit.log and native-source-diag-push.log. Hosted acceptance\nis not implied by local checks.\n\nFull hosted production/consumer acceptance, current-head review, canon semantics,\nprepared native canon, blinded installed proof and production-world measurements\nremain required. Neither 1762 nor 1770 is complete, and the full logic issue/PR\ngoal and plan.md remain in force. No pipeline speedup or final merge is claimed.\nPrinciples 4, 7, 12 and 18.\n",
+      "createdAt": "2026-10-17T01:32:01Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1762#issuecomment-6227989514",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-09-17T15:56:28Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1762,
+  "state": "OPEN",
+  "title": "refactor: complete Diag migration for prover and physical execution errors",
+  "updatedAt": "2026-10-17T01:32:01Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1762"
+}

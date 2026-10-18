@@ -1,0 +1,185 @@
+{
+  "issue": 1762,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "refactor: complete Diag migration for prover and physical execution errors",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1336": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+    "1762": "refactor: complete Diag migration for prover and physical execution errors",
+    "1757": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+    "1802": "fix(logic): integrate PurRDF main and production reasoning repairs",
+    "1310": "diagnostics: finding-attached remediation (repair suggestions) + explanation-backed feedback for end users",
+    "1330": "Upgrade to purrdf 0.3.0 and migrate slice tests to the bnode-capable Rust harness",
+    "1314": "meta: remove remaining Python from primary use cases and migrate test suite to Rust",
+    "1740": "perf(logic): integrate the authenticated native pipeline and calculus",
+    "1704": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+    "1748": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+    "317": "Music \u00b7 Timbre & the sensory bridge (MIR observations, embeddings by reference)",
+    "1760": "perf(logic): restore certified batch slice probes",
+    "1793": "fix(1789): specialize termination analysis without combinatorial products",
+    "1794": "fix(1790): publish each world's own chase certificate and enforce the demonstrator classes",
+    "1798": "feat(1796): run the restricted chase Datalog-first",
+    "1799": "feat(1796): certify restricted joint acyclicity",
+    "1800": "fix(1795): sharpen termination-statement encoding and bind closed relations",
+    "1801": "perf(1757): compute joint acyclicity in linear Horn propagation",
+    "1804": "fix(slices): repair the corpus inconsistencies native reasoning exposed",
+    "1770": "feat: certify and precompile the complete canon for consumer proof",
+    "1768": "feat: add a first-class consumer prover entry point"
+  },
+  "link_relations": {
+    "1336": "part of",
+    "1762": "mentions",
+    "1757": "mentions",
+    "1802": "mentions",
+    "1310": "2-hop",
+    "1330": "2-hop",
+    "1314": "2-hop",
+    "1740": "2-hop",
+    "1704": "2-hop",
+    "1748": "2-hop",
+    "317": "2-hop",
+    "1760": "2-hop",
+    "1793": "2-hop",
+    "1794": "2-hop",
+    "1798": "2-hop",
+    "1799": "2-hop",
+    "1800": "2-hop",
+    "1801": "2-hop",
+    "1804": "2-hop",
+    "1770": "2-hop",
+    "1768": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1803,
+      "title": "Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow",
+      "state": "OPEN"
+    },
+    {
+      "number": 1194,
+      "title": "V4 \u2014 Equivalence-before-deletion: retire hand-authored shapes.ttl + structural ShEx",
+      "state": "OPEN"
+    },
+    {
+      "number": 1645,
+      "title": "deps/purrdf: retire the rev pin and the dead cutover scaffolding",
+      "state": "CLOSED"
+    },
+    {
+      "number": 743,
+      "title": "H9 \u2014 slice-quality: prose\u2194axiom harvest-coverage axis + coverage report (per-slice harvest sweep \u2192 background uplift lane)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 287,
+      "title": "refactor(repo): re-layout \u2014 make the canonical/generated/ephemeral boundary the filesystem boundary (single generated/ root, dsl/ grouping, .build/ staging, src/ subpackages)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 731,
+      "title": "P4 \u2014 Retire logic_adapter.py in lockstep with #694 (legacy owl/gUFO isomorphism oracle)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1551,
+      "title": "Migrate math slice (and repo) to logic:-only grounding; retire sh:/owl: authoring + scope slicetest shapes per-slice",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1579,
+      "title": "Projection fidelity: lower owl:FunctionalProperty \u2192 sh:maxCount 1 in derived SHACL/Python (+ oracle cardinality-loss guard)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1556,
+      "title": "grounding/logic: close correspondence authority and correct external bridge semantics",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1555,
+      "title": "grounding: complete shipped external grounding for logic:, math:, and lang:",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1365,
+      "title": "[feature] Migrate the graph-API traversal test cluster to native Rust conformance",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1366,
+      "title": "[feature] Migrate the mappings/SSSOM test cluster to native Rust; retire mappings.py",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1367,
+      "title": "[feature] Migrate the reasoning/OWL-RL test cluster to ontology_entailments.rs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1200,
+      "title": "Lift SKOS (annotations + skos:*Match) into logic: and project SKOS back (close the isSupersetOf gap)",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 11,
+    "missing-intrinsic-runtime": 2,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 2,
+    "consumer-artifact-path-coupling": 1
+  },
+  "prior_attempts": {
+    "commits": [
+      "f033b9f3a docs(logic): clarify diagnostic contracts and native terminology",
+      "12380e2df fix(logic): remove facet string errors and ground service refusals"
+    ],
+    "branches": [
+      "issue-1762-diag-migration",
+      "origin/issue-1762-diag-migration"
+    ],
+    "prs": [
+      {
+        "number": 1837,
+        "title": "fix(logic): preserve native evidence and portable reasoning identities",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1837",
+        "this_stage": false
+      },
+      {
+        "number": 1835,
+        "title": "fix(logic): unify helper ownership and typed diagnostic failures",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1835",
+        "this_stage": false
+      },
+      {
+        "number": 1763,
+        "title": "perf: reuse authenticated validation state",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1763",
+        "this_stage": false
+      },
+      {
+        "number": 1832,
+        "title": "feat(logic): preserve canon admission and native proof evidence",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1832",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1762-complete-diag-migration-for-prover-and"
+  },
+  "coverage": [
+    "issue #1762 + 5 comment(s) via github",
+    "link crawl: 21 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['refactor:', 'complete', 'migration']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 6 distinct class(es) in the last 200 commits",
+    "prior attempts: 2 commit(s) citing #1762 (second parents walked), 2 other branch(es) named for it",
+    "PRs citing #1762: 4",
+    "requirement candidates: 9 line(s); 2 comment(s) matched no rule",
+    "referenced artifacts: 6 path(s) (6 on disk), 8 identifier(s), 4 workspace package(s), 0 URL(s)"
+  ]
+}
