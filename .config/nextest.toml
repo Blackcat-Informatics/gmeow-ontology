@@ -13,7 +13,7 @@
 # sample was slow.
 #
 # Every clause is justified INDIVIDUALLY below, in the order it appears, because "the
-# exclusions are architectural" is a claim about fifteen different decisions and a reader
+# exclusions are architectural" is a claim about fourteen different decisions and a reader
 # checking any one of them cannot tell which. The justification lives here rather than
 # beside each clause because a nextest filterset is an EXPRESSION, not a config table: it
 # rejects `#` outright ("expected expression"), so there is no inline position to write in.
@@ -21,7 +21,7 @@
 # clause added without a reason — or a reason left behind by a deleted clause — reds.
 #
 # Unless a clause says otherwise, its off-gate home is `make maint-rust-heavy`: the
-# maintainer profile's own filter excludes only three named tests, so everything the
+# maintainer profile's own filter excludes only two named tests, so everything the
 # per-commit lane drops here is admitted there by construction.
 #
 #  1. `deep_surfaces_entailed_inconsistency…_heavy_offgate` — the Tier-2 deep-reasoner
@@ -34,41 +34,38 @@
 #     never_fabricates_subkind_or_sibling)` — SIOC up-projection over the real corpus.
 #  4. `full_divergence_gate` `_heavy_offgate` — the 122-case soundness-scaling proof.
 #     Runtime is set by corpus breadth, which is criterion 2 of P6.
-#  5. `cli_parity::project_view_over_the_snapshot` — drives `project --profile gmeow`
-#     across the committed snapshot and writes a Turtle artifact.
-#  6. The `gmeow-cli` `cli` describe/project/export group — nine whole-bundle consumer
+#  5. The `gmeow-cli` `cli` describe/project/export group — nine whole-bundle consumer
 #     verbs. Each folds the shipped bundle to answer one surface question.
-#  7. `bundle_smoke::describe_names_a_known_term` — a second whole-bundle fold for one
+#  6. `bundle_smoke::describe_names_a_known_term` — a second whole-bundle fold for one
 #     describe lookup.
-#  8. `extract_roundtrip::rendered_tree_is_disk_faithful` — writes the ENTIRE rendered
+#  7. `extract_roundtrip::rendered_tree_is_disk_faithful` — writes the ENTIRE rendered
 #     site to disk and reads every file back.
-#  9. `describe::tests::every_grounding_namespace_has_describable_terms_that_render` —
+#  8. `describe::tests::every_grounding_namespace_has_describable_terms_that_render` —
 #     the whole-repository grounding-namespace proof. This is the clause whose silent
 #     un-matching, when `describe` moved crates, put it back on-gate and timed out
 #     thirteen unrelated tests; see `nextest_override_contract.rs`.
-# 10. `describe_bundle_language::describe_resolves_carrier_tags_against_shipped_bundle` —
+#  9. `describe_bundle_language::describe_resolves_carrier_tags_against_shipped_bundle` —
 #     a whole-bundle fold per carrier tag. Its own comment records that one
 #     representative non-English carrier is what keeps it inside any time budget.
-# 11. `gmeow-mcp` `_heavy_offgate` — the breadth-priced whole-bundle overlay and
+# 10. `gmeow-mcp` `_heavy_offgate` — the breadth-priced whole-bundle overlay and
 #     explain-quad proofs. The focused verifier laws stay on-gate as
 #     `required_mcp_contracts_share_one_authenticated_view`.
-# 12. `self_sufficiency` `_heavy_offgate` — one exhaustive full-width transpile over the
+# 11. `self_sufficiency` `_heavy_offgate` — one exhaustive full-width transpile over the
 #     authenticated snapshot; the required lane keeps the blinded installed-binary read
 #     plus the fixture-scale fan-out/leak proof (see its own override below).
-# 13. `mcp-dev` `the_reason_tool_…_heavy_offgate` — runs the native reasoner over the
+# 12. `mcp-dev` `the_reason_tool_…_heavy_offgate` — runs the native reasoner over the
 #     bundle's carrier graph to report its four status axes.
-# 14. `gmeow-cli` `medium_cli` — one of the two medium consumers. NOT maint-rust-heavy:
+# 13. `gmeow-cli` `medium_cli` — one of the two medium consumers. NOT maint-rust-heavy:
 #     its home is the REQUIRED CI lane `make medium-consumer-surface`, so it gates every
 #     pull request. See the Makefile target for why it is a consumer-verb contract over
 #     shipped bytes rather than a producer.
-# 15. `gmeow-dev-cli` `medium_gate` — the other medium consumer; same required CI lane.
+# 14. `gmeow-dev-cli` `medium_gate` — the other medium consumer; same required CI lane.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-validate) & binary(conformance_suite) & test(maint_heavy_conformance_contracts_share_one_authenticated_corpus_heavy_offgate))
     | (package(gmeow-pipeline) & test(/projections::tests::up_project_(recovers_message_superclass_via_prp_dom|never_fabricates_subkind_or_sibling)/))
     | (package(gmeow-pipeline) & test(stages::conformance::corpus_tests::full_divergence_gate::) & test(/_heavy_offgate/))
-    | (package(gmeow-dev-cli) & binary(cli_parity) & test(project_view_over_the_snapshot))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown) | test(describe_resolves_grounding_curies) | test(describe_resolves_grounding_full_iris) | test(describe_unknown_language_fails_with_available_list) | test(describe_toon_format_emits_toon) | test(describe_json_format_is_valid_card_json)))
     | (package(gmeow-cli) & binary(bundle_smoke) & test(describe_names_a_known_term))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
@@ -111,8 +108,8 @@ fail-fast = false
 # recipe in the Makefile, and `the_breadth_lane_actually_runs_ignored_tests` pins it there
 # and forbids it here.
 #
-# Two families must still stay out. They are excluded BY NAME rather than by silence, so
-# the decision is visible to the next reader instead of being rediscovered:
+# The external-corpus family must still stay out. Both tests are excluded BY NAME
+# rather than by silence, so their owner is visible to the next reader:
 #
 #   * The two lang-bridge corpus sweeps hard-fail without external data that deliberately
 #     does not ship (a UD treebank would import CC BY-SA content; a bulk lexicon would
@@ -120,9 +117,6 @@ fail-fast = false
 #     honest off-gate failure, so scheduling them here would red the lane for every
 #     maintainer who has no local checkout. `make maint-lang-corpus-sweeps` runs them once
 #     the maintainer points them at one.
-#   * `measurement_is_deterministic_across_two_runs` calls `run_pipeline_products` — the
-#     production DAG — and does it twice. A test may never rebuild the corpus (P1), so no
-#     lane may schedule it; it stays a deliberate by-hand invocation.
 [profile.maint-heavy]
 inherits = "default"
 # Each exclusion names its test in full rather than by a shared pattern, so
@@ -132,7 +126,6 @@ default-filter = '''
   not (
     (package(gmeow-lang-bridge) & test(maint_conllu_treebank_sweep))
     | (package(gmeow-lang-bridge) & test(maint_lexicon_extract_sweep))
-    | (package(gmeow-pipeline) & test(measurement_is_deterministic_across_two_runs))
   )
 '''
 junit = { path = "junit.xml" }
@@ -190,7 +183,7 @@ filter = 'package(gmeow-cli) & binary(bundle_smoke) & test(/^(verify_allow_unsig
 threads-required = "num-cpus"
 
 [[profile.default.overrides]]
-filter = 'package(gmeow-cli) & binary(gmn_conformance) & test(/^gmn_verify_(fails_on_a_corrupted_vectors_dir|passes_over_the_committed_corpus|fails_on_a_tampered_pack_root)$/)'
+filter = 'package(gmeow-cli) & binary(gmn_conformance) & test(/^gmn_verify_(fails_on_a_corrupted_vectors_dir|accepts_an_independent_user_corpus|fails_on_a_tampered_pack_root)$/)'
 threads-required = "num-cpus"
 
 [[profile.default.overrides]]

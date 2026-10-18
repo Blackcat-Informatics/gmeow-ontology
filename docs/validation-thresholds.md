@@ -3,11 +3,9 @@
 
 # Validation thresholds — gate floors
 
-This is the single source of truth for the four blocking validation gates.
-Consult it **before changing any floor**. Each gate is wired into both
-`make check` (the local validation batch — these four floors run alongside the separate
-one-closure `reason-verify`) and CI such that a regression below its
-floor fails the build.
+This catalog describes the blocking validation floors and their implementation
+authorities. Consult it **before changing any floor**. Each gate belongs to a
+local validation or required CI lane; a regression below its floor fails that lane.
 
 ## The ratchet rule
 
@@ -73,35 +71,37 @@ be treated as a regression of the contract, not routine maintenance.
 
 ### 4. Transpile / projection recall (hard aggregate floor)
 
-- **Floor:** `--min-recall 60` (the Makefile `ACCEPTANCE_MIN_RECALL` variable).
-- **Measured from:** corpus-aggregate round-trip recall `64.28%` (pooled
-  Σ recovered / Σ addressable across the `external/` snapshots). Floor set to 60
-  with anti-flake margin. The **per-file** round-trip/coverage gates stay
-  scoreboard-soft (no ~100% demand); only this pooled aggregate is hard.
-- **Command:** `gmeow-dev acceptance --min-recall 60` (Makefile `acceptance`
-  target). Omitting `--min-recall` makes it report-only.
-- **Where the floor lives:**
-  - Makefile `ACCEPTANCE_MIN_RECALL ?= 60` (consumed by the `acceptance` target).
-  - `.github/workflows/ci.yml` — `ontology` job, "Transpile acceptance — hard
-    aggregate recall floor" step.
-  - Enforcement: the `gmeow-dev acceptance` command (`crates/gmeow-dev-cli`)
-    (`min_recall` aggregate comparison that exits 1).
-- **Ratchet:** as transpile fidelity improves, raise `60` toward the new measured
-  aggregate.
+- **Floor:** `64.5%`, defined by
+  `gmeow_pipeline::scoreboards::ACCEPTANCE_MIN_RECALL_PCT`.
+- **Recorded baseline:** corpus-aggregate round-trip recall `64.57%` after the
+  put-leg cutover, pooled as Σ recovered / Σ addressable. This is the recorded
+  baseline, not a fresh measurement of the current corpus. The `0.07` percentage
+  point margin is intentional: this deterministic regression floor must not be
+  loosened to accommodate a regression. Improve recall before raising the floor.
+  The **per-file** round-trip/coverage gates remain scoreboard-soft; only the
+  pooled aggregate is hard.
+- **Command:** `make acceptance`. The Rust `gmeow-dev acceptance` command uses
+  the constant when `--min-recall` is omitted; omission does **not** disable the
+  gate. `ACCEPTANCE_MIN_RECALL` is an explicit Make override, unset by default.
+- **Where the floor lives:** `crates/pipeline/src/scoreboards.rs`; enforcement is
+  `aggregate_recall_gate`, called by `crates/gmeow-dev-cli/src/dev_gates.rs`.
+- **Lane:** the required CI breadth lane, `make heavy`, invokes `acceptance`.
+  The full external-corpus sweep is intentionally outside local `make check`.
+- **Ratchet:** keep `64.5` until measured recall improves enough to raise it;
+  a result below the floor is a coverage regression to fix.
 
 ## Gate → make-target → CI-job map
 
-| Gate | Make target (in `make check`) | CI job + step |
+| Gate | Make target / lane | CI job + step |
 |---|---|---|
 | SHACL | `validate` | `ontology` → "Validate (syntax, lint, SHACL, DSL SHACL)" (also exercised by `python`, `python-heavy`) |
 | Vendored-entity coverage | `coverage` (`--min-class 0.92 --min-predicate 0.85`) | `ontology` → "Vendored-entity coverage — hard class/predicate floors" |
 | Slice-example | `validate` (`check_example_coverage`) | `ontology` → "Validate (…)" (same `validate` invocation) |
-| Transpile recall | `acceptance` (`--min-recall 60`) | `ontology` → "Transpile acceptance — hard aggregate recall floor" |
+| Transpile recall | `acceptance` (default `64.5%`, through `make heavy`) | Required CI breadth lane |
 
-All four also run in the parallel `make check` batch
-(`lint validate … coverage acceptance …`), so the local validation batch blocks on every
-floor too (the aggregate `reason-verify` runs beside it; focused reasoning targets remain
-available for diagnosis).
+The external-corpus acceptance sweep runs through the required CI breadth lane.
+Local `make check` owns the ordinary validation DAG; see
+[the gate and pipeline doctrine](GATE-AND-PIPELINE.md) for lane ownership.
 
 ## Validation cache decision
 

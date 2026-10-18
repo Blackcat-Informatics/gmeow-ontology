@@ -536,7 +536,7 @@ fn every_default_filter_clause_is_justified() {
     }
 
     assert!(
-        clauses.len() >= 15,
+        clauses.len() >= 14,
         "parsed {} exclusion clause(s) — the parse is broken and this gate would pass \
          vacuously",
         clauses.len()

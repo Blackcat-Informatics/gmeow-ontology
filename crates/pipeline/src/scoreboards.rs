@@ -737,7 +737,7 @@ pub fn default_corpus(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
 /// deterministic measurement clears it without flakiness, yet it is ~4.5 points
 /// tighter than the stale, loose `60` it replaces.
 ///
-/// This constant is the SINGLE SOURCE OF TRUTH for the enforced floor: the Python
+/// This constant is the SINGLE SOURCE OF TRUTH for the enforced floor: the Rust
 /// CLI defaults `--min-recall` to it and the Makefile no longer hardcodes a literal.
 /// It is NEVER loosened and NEVER fabricated — a corpus-aggregate recall below it is
 /// a real coverage regression to fix, not a number to accommodate.
