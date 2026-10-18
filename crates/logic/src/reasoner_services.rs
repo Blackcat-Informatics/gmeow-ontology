@@ -135,7 +135,7 @@ impl DlReasoner {
     ///
     /// # Errors
     /// A typed execution refusal if the session did not record proofs.
-    pub fn proof_context(self) -> Result<purrdf::entail::DlProofContext> {
+    pub fn proof_context(self) -> Result<purrdf::entail::DlProofContext<'static>> {
         self.inner.proof_context().map_err(map_entail_err)
     }
 
