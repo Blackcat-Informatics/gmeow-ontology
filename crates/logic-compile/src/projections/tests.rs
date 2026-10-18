@@ -411,8 +411,8 @@ fn aggregation_rule_round_trips_through_canonical_rdf12() {
     assert_eq!(reparsed.rules.len(), 1, "exactly one rule survives");
     let got = &reparsed.rules[0];
     // The aggregation spec must round-trip exactly through the Exact canonical RDF 1.2 target —
-    // this is the C5 invariant (the head/body atoms carry the standard variable-as-literal
-    // convention, orthogonal to aggregation).
+    // this is the C5 invariant. Head/body variables use resource carriers;
+    // the aggregation fields are independent of that atom encoding.
     assert_eq!(
         got.aggregation, rule.aggregation,
         "the aggregation spec must round-trip through canonical RDF 1.2"
