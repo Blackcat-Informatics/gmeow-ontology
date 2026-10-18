@@ -200,6 +200,8 @@ fn caused_failure(
     .with_context(context)
 }
 
+/// Retain a lower diagnostic's complete wire report and original live typed cause.
+/// The outer reason identifies the prover operation without replacing lower evidence.
 fn caused_diagnostic(
     reason: &'static str,
     diagnostic: Diag,

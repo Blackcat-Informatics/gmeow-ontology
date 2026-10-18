@@ -16,6 +16,7 @@ use purrdf::TermValue;
 const GUARD: &str = "https://ex/guard";
 const HEAD: &str = "https://ex/bad";
 
+/// Native evaluator refusals retain the original error owner and operational class.
 #[test]
 fn native_builtin_refusal_keeps_the_original_typed_error_owner() {
     let cause = std::sync::Arc::new(purrdf::sparql::EvalError::WorkspaceStopped);
