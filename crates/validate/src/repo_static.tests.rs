@@ -3310,6 +3310,127 @@ fn alignment_purity_checks_types_and_predicates_in_every_generated_family() {
 }
 
 #[test]
+fn owl_purity_checks_declarations_axioms_and_escaped_namespaces() {
+    for statement in [
+        "ex:item a owl:Class .",
+        "ex:item a owl:ObjectProperty .",
+        "ex:item a owl:DatatypeProperty .",
+        "ex:item a owl:AnnotationProperty .",
+        "ex:item a owl:Ontology .",
+        "ex:item a owl:FunctionalProperty .",
+        "ex:item a owl:Restriction ; owl:onProperty ex:p .",
+        "ex:item owl:equivalentClass ex:Other .",
+        "ex:item owl:sameAs ex:Other .",
+        "ex:item owl:unionOf ( ex:A ex:B ) .",
+        r"ex:item a <http://www.w3.org/2002/07/ow\u006c#Class> .",
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("dsl/construct.ttl");
+        let prefixes = "@prefix ex: <https://example.org/> . @prefix owl: <http://www.w3.org/2002/07/owl#> . @prefix logic: <https://blackcatinformatics.ca/logic/> .";
+        write(
+            &path,
+            &format!("{prefixes} {statement} ex:unrelated logic:formalizes ex:law ."),
+        );
+        let mut unbacked = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut unbacked);
+        assert!(
+            unbacked
+                .errors
+                .iter()
+                .any(|e| e.contains("generated OWL construct")),
+            "{statement}: {:?}",
+            unbacked.errors
+        );
+        write(
+            &path,
+            &format!("{prefixes} {statement} ex:item logic:formalizes ex:law ."),
+        );
+        let mut backed = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut backed);
+        assert!(backed.ok(), "{statement}: {:?}", backed.errors);
+    }
+}
+
+#[test]
+fn owl_purity_admits_only_the_exact_typed_native_correspondence() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("dsl/correspondence.ttl");
+    let source = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        ex:A owl:equivalentClass ex:B {| gmeow:sssomFile "native" |} .
+    "#;
+    write(&path, source);
+    let mut valid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut valid);
+    assert!(valid.ok(), "{:?}", valid.errors);
+    write(&path, &format!("{source} ex:A owl:equivalentClass ex:C ."));
+    let mut unbacked = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut unbacked);
+    assert_eq!(unbacked.errors.len(), 1, "{:?}", unbacked.errors);
+    assert!(unbacked.errors[0].contains("generated OWL construct"));
+    write(&path, &source.replace("ex:B", "\"not an IRI\""));
+    let mut malformed = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut malformed);
+    assert!(
+        malformed
+            .errors
+            .iter()
+            .any(|e| e.contains("cannot admit native correspondence")),
+        "{:?}",
+        malformed.errors
+    );
+}
+
+#[test]
+fn owl_purity_does_not_treat_references_or_query_literals_as_declarations() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        &temp.path().join("dsl/references.ttl"),
+        r#"
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        ex:reference ex:target owl:Class ; ex:query "ASK { ?s a owl:Class }" .
+    "#,
+    );
+    let mut report = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut report);
+    assert!(report.ok(), "{:?}", report.errors);
+}
+
+#[test]
+fn owl_purity_propagates_ownership_to_blank_expressions_not_named_references() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("dsl/expressions.ttl");
+    let source = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        ex:Class a owl:Class ; logic:formalizes ex:law ;
+            owl:equivalentClass [ owl:intersectionOf (
+                [ a owl:Restriction ; owl:onProperty ex:p ; owl:allValuesFrom
+                    [ owl:unionOf ( ex:Named [ owl:complementOf ex:Forbidden ] ) ] ]
+                ex:Named ) ] .
+    "#;
+    write(&path, source);
+    let mut valid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut valid);
+    assert!(valid.ok(), "{:?}", valid.errors);
+    write(&path, &format!("{source} ex:Named a owl:Class ."));
+    let mut invalid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut invalid);
+    assert!(
+        invalid
+            .errors
+            .iter()
+            .any(|e| e.contains("example.org/Named") && e.contains("generated OWL construct")),
+        "{:?}",
+        invalid.errors
+    );
+}
+
+#[test]
 fn alignment_purity_resolves_escaped_iris_without_flagging_references_or_literals() {
     let temp = tempfile::tempdir().unwrap();
     write(

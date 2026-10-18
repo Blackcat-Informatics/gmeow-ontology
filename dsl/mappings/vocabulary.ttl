@@ -1,7 +1,6 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang:    <https://blackcatinformatics.ca/lang/> .
 @prefix logic:   <https://blackcatinformatics.ca/logic/> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
@@ -27,7 +26,7 @@
 # =============================================================================
 
 <https://blackcatinformatics.ca/gmeow/mapping-dsl>
-    a owl:Ontology ;
+    a logic:Ontology ;
     rdfs:label "GMEOW mapping DSL vocabulary"@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Authoring vocabulary for cross-ontology alignments and lossy projections; compiled to SSSOM / EDOAL / FnO / SPARQL by the registered mappings generator."@x-gmeow-english .
@@ -42,19 +41,19 @@
 # `gmeow:sssomFile` discriminator marking the reifier as an alignment cell. It has
 # no reified class of its own; the annotation fields below are its surface.
 
-gmeow:ProjectionMapping a owl:Class ;
+gmeow:ProjectionMapping a logic:Class ;
     rdfs:label "projection mapping"@x-gmeow-english ;
     skos:definition "A directional, possibly lossy downcast from a GMEOW graph pattern to one or more target-vocabulary triples. Always compiles to a SPARQL CONSTRUCT branch; additionally to an EDOAL cell, an FnO function declaration (when it carries a transform), and an SSSOM row (when a profile binding is a one-to-one term linkage flagged emitSssom)."@x-gmeow-english .
 
-gmeow:MappingPattern a owl:Class ;
+gmeow:MappingPattern a logic:Class ;
     rdfs:label "mapping pattern"@x-gmeow-english ;
     skos:definition "The GMEOW-side graph pattern of a projection mapping: its anchor (the node the output hangs on), its projected value, the structural atoms, and any suppression filters, derived bindings or minted nodes."@x-gmeow-english .
 
-gmeow:PatternAtom a owl:Class ;
+gmeow:PatternAtom a logic:Class ;
     rdfs:label "pattern atom"@x-gmeow-english ;
     skos:definition "One triple/path constraint inside a mapping pattern — a subject variable, a predicate (or structured property path), and an object (variable, value individual, or literal), optionally wrapped OPTIONAL."@x-gmeow-english .
 
-gmeow:ProfileBinding a owl:Class ;
+gmeow:ProfileBinding a logic:Class ;
     rdfs:label "profile binding"@x-gmeow-english ;
     skos:definition "The per-target-profile face of a projection mapping: the target term it emits for one profile, the EDOAL relation, the transform, the confidence, the SSSOM predicate, and the profile-specific lossy drops. One mapping fans out to several bindings (one source -> different target terms across schema.org / vCard / FOAF)."@x-gmeow-english .
 
@@ -66,48 +65,41 @@ gmeow:ProfileBinding a owl:Class ;
 # itself (`S <match-predicate> O`), not authored properties. The fields below are the
 # `{| … |}` annotation coat carried on the reifier.
 
-gmeow:confidence a owl:DatatypeProperty ;
+gmeow:confidence a logic:DatatypeProperty ;
     rdfs:label "confidence"@x-gmeow-english ;
     skos:definition "Curator confidence in a correspondence [0.0, 1.0]; rendered as the SSSOM confidence column and the EDOAL edoal:measure."@x-gmeow-english .
-gmeow:justification a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:justification a logic:ObjectProperty  ;
     rdfs:label "mapping justification"@x-gmeow-english ;
     skos:definition "The SSSOM mapping_justification (defaults to semapv:ManualMappingCuration)."@x-gmeow-english .
-gmeow:comment a owl:DatatypeProperty ;
+gmeow:comment a logic:DatatypeProperty ;
     rdfs:label "mapping comment"@x-gmeow-english ;
     skos:definition "Free-text note carried into the SSSOM comment column."@x-gmeow-english .
-gmeow:subjectLabel a owl:DatatypeProperty ;
+gmeow:subjectLabel a logic:DatatypeProperty ;
     rdfs:label "subject label"@x-gmeow-english ;
     skos:definition "Human-readable label of the subject term, emitted as the SSSOM subject_label column (for review without dereferencing)."@x-gmeow-english .
-gmeow:objectLabel a owl:DatatypeProperty ;
+gmeow:objectLabel a logic:DatatypeProperty ;
     rdfs:label "object label"@x-gmeow-english ;
     skos:definition "Human-readable label of the (external) object term, emitted as the SSSOM object_label column (e.g. the Wikidata item's English label)."@x-gmeow-english .
-gmeow:sssomFile a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:sssomFile a logic:DatatypeProperty  ;
     rdfs:label "SSSOM file"@x-gmeow-english ;
     skos:definition "The basename of the mappings/*.sssom.tsv file this row is routed to (e.g. \"gmeow-properties.sssom.tsv\")."@x-gmeow-english .
 
-gmeow:MappingSet a owl:Class ;
+gmeow:MappingSet a logic:Class ;
     rdfs:label "SSSOM mapping set"@x-gmeow-english ;
     skos:definition "Per-file SSSOM header metadata (set id, license, comment, optional trailer) for one generated mappings/*.sssom.tsv file."@x-gmeow-english .
-gmeow:setId a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:setId a logic:DatatypeProperty  ;
     rdfs:label "mapping set id"@x-gmeow-english ;
     skos:definition "The SSSOM mapping_set_id header value."@x-gmeow-english .
-gmeow:license a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:license a logic:DatatypeProperty  ;
     rdfs:label "mapping set license"@x-gmeow-english ;
     skos:definition "The SSSOM license header value."@x-gmeow-english .
-gmeow:setComment a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:setComment a logic:DatatypeProperty  ;
     rdfs:label "mapping set comment"@x-gmeow-english ;
     skos:definition "The SSSOM comment header value."@x-gmeow-english .
-gmeow:setTrailer a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:setTrailer a logic:DatatypeProperty  ;
     rdfs:label "mapping set trailer"@x-gmeow-english ;
     skos:definition "Optional trailing comment lines appended after the data rows (e.g. forward-looking, commented-out mappings)."@x-gmeow-english .
-gmeow:sssomPredicate a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:sssomPredicate a logic:ObjectProperty  ;
     rdfs:label "SSSOM predicate"@x-gmeow-english ;
     skos:definition "For a projection binding flagged emitSssom, the SSSOM mapping predicate of its one-to-one term row (distinct from the EDOAL gmeow:relation axis)."@x-gmeow-english .
 
@@ -115,52 +107,47 @@ gmeow:sssomPredicate a owl:ObjectProperty ,
 # Declined correspondence — a machine-reviewable "won't-bridge" record
 # --------------------------------------------------------------------------- #
 
-gmeow:DeclinedCorrespondence a owl:Class ;
+gmeow:DeclinedCorrespondence a logic:Class ;
     rdfs:label "declined correspondence"@x-gmeow-english ;
     skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from a live native alignment cell (a resolvable link with a `gmeow:sssomFile`-annotated match triple): a decline has no resolvable alignment target at all, precisely because no resolvable object exists."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
     logic:subClassOf [
         a logic:Restriction ;
         logic:onProperty logic:preservationKind ;
-        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ;
     ] .
 
-gmeow:declinedTarget a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:declinedTarget a logic:DatatypeProperty  ;
     rdfs:label "declined target vocabulary"@x-gmeow-english ;
     skos:definition "The external vocabulary a correspondence was declined against, named by its spelled-out label or prefix as a string — NEVER a per-term IRI, because dereferencing one would fabricate the dead link the decline exists to avoid. A collision-prone bare acronym (e.g. the three letters that also name the Experimental Factor Ontology) is forbidden; use the full name."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:intendedRelation a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:intendedRelation a logic:ObjectProperty  ;
     rdfs:label "intended bridge relation"@x-gmeow-english ;
     skos:definition "The SKOS mapping relation (skos:closeMatch / skos:relatedMatch / skos:broadMatch) that a bridge to the declined target WOULD have used had a resolvable surface existed — recording the design intent so a future revisit can author the bridge directly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:declineRationale a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:declineRationale a logic:DatatypeProperty  ;
     rdfs:label "decline rationale"@x-gmeow-english ;
     skos:definition "Why the bridge was declined — the reviewable justification (e.g. the target's per-term RDF export is defunct, its term IRIs do not dereference, or it is a reference inventory with no namespace authority)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:revisitCondition a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:revisitCondition a logic:DatatypeProperty  ;
     rdfs:label "revisit condition"@x-gmeow-english ;
     skos:definition "The condition under which a decline is reopened and the bridge authored — typically that a verifiable, dereferenceable per-term namespace for the target appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:candidateNamespace a owl:DatatypeProperty ;
+gmeow:candidateNamespace a logic:DatatypeProperty ;
     rdfs:label "candidate namespace"@x-gmeow-english ;
     skos:definition "A probed candidate base for the declined target, carried as a string (never a dereferenced IRI) so a future re-probe has a concrete, reproducible target. Multi-valued: a single declined target may bundle several candidate surfaces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:probeVerdict a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:probeVerdict a logic:DatatypeProperty  ;
     rdfs:label "probe verdict"@x-gmeow-english ;
     skos:definition "The dated liveness finding from probing the candidate namespace(s) — the reproducible evidence backing the decline (e.g. an HTTP 404 or an absent per-term RDF surface)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:contentCarriedBy a owl:ObjectProperty ;
+gmeow:contentCarriedBy a logic:ObjectProperty ;
     rdfs:label "content carried by"@x-gmeow-english ;
     skos:definition "Links a declined correspondence to the in-slice GMEOW terms that already carry the external vocabulary's distinctions — the positive witness that the declined content is not lost but modelled up, in-slice, making the safety of the decline checkable rather than asserted."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -188,27 +175,27 @@ gmeow:contentCarriedBy a owl:ObjectProperty ;
 # matches a TARGET IRI, a guarded namespace matches an AUTHORED construct), so
 # neither is derivable from the other and neither restates it.
 
-gmeow:CatalogFamily a owl:Class ;
+gmeow:CatalogFamily a logic:Class ;
     rdfs:label "external catalog family"@x-gmeow-english ;
     skos:definition "One registered external target catalog a grounding correspondence may point at — a named external formalism (gUFO, BFO, Wikidata, QUDT, OntoLex, BPMN, …) identified by the IRI stem(s) its terms are minted under, together with the grounding slice(s) that author its bridge cells and the raise-only minimum number of correspondences the shipped catalog must carry. It is NOT a gmeow:MappingSet (that is the per-file SSSOM publication header, several of which may target one family, and one of which may span several) and NOT a gmeow:ProjectionVocabulary (that is the inward-looking guarded surface whose hand-authored constructs the residue counter caps): a catalog family classifies the OUTWARD alignment targets, and the registry of families is the closed set a target endpoint must fall in exactly once."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:catalogFamilyName a owl:DatatypeProperty ;
+gmeow:catalogFamilyName a logic:DatatypeProperty ;
     rdfs:label "catalog family name"@x-gmeow-english ;
     skos:definition "The stable, human-readable identity of a catalog family (\"gUFO\", \"RDF Data Cube\", \"openEHR Task Planning\"), used as the family's key in the gate's ratchet report. Exactly one per family and unique across the registry: two families sharing a name would collapse in the name-keyed count map and hide one catalog's shrinkage behind the other's growth."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:catalogNamespace a owl:DatatypeProperty ;
+gmeow:catalogNamespace a logic:DatatypeProperty ;
     rdfs:label "catalog namespace stem"@x-gmeow-english ;
     skos:definition "One IRI stem a member term of this catalog family is minted under; a target endpoint belongs to the family when it starts with any asserted stem. Multi-valued, because a catalog may publish under several bases (OpenMath serves both its http: and https: content-dictionary roots) and because an OBO family is identified by its per-prefix stem (obo/BFO_, obo/STATO_) rather than by the shared obo/ root. At least one is mandatory: a family with no stem could never recognize a target and would be a dead registry row."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:catalogOwner a owl:ObjectProperty ;
+gmeow:catalogOwner a logic:ObjectProperty ;
     rdfs:label "catalog authoring owner"@x-gmeow-english ;
     skos:definition "A grounding slice (logic:, math:, or lang:) at whose mappings/ boundary this family's bridge cells are authored — the home a domain slice must reference rather than re-align. Multi-valued, and honestly so: a cross-cutting authority such as Wikidata is authored at all three grounding boundaries, and RDFS and OBI at two, so declaring a single owner would be a fiction. At least one is mandatory; an unowned family names no authoring home at all."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:catalogTargetMinimum a owl:DatatypeProperty ;
+gmeow:catalogTargetMinimum a logic:DatatypeProperty ;
     rdfs:label "catalog target-count minimum"@x-gmeow-english ;
     skos:definition "The RAISE-ONLY floor on how many shipped grounding correspondences must target this family — the ratchet that turns a silently deleted bridge cell into a red gate. The value may rise as the catalog grows and may never fall while the family is registered; retiring a catalog means removing its family row (and, with it, every correspondence onto it), never lowering the floor to fit a loss. It is NOT a measured count (the gate computes that live from the shipped bundle) and NOT a ceiling (gmeow:ceilingCount is the opposite, lower-only polarity on a residue)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -233,22 +220,22 @@ gmeow:catalogTargetMinimum a owl:DatatypeProperty ;
 # Growing the carve-out is then an ontology edit that shows up in review, and a row
 # added without one reds the mappings stage.
 
-gmeow:ResidueRatchetExemption a owl:Class ;
+gmeow:ResidueRatchetExemption a logic:Class ;
     rdfs:label "residue-ratchet exemption"@x-gmeow-english ;
     skos:definition "One registered exemption of an external catalog family from the projection-vocabulary residue ratchet — a family whose terms domain slices may align to without an owner boundary, because the family is a general publication vocabulary with no single grounding-slice authoring home. It pairs the exempted gmeow:CatalogFamily with the reason it has no owner and the lower-only ceiling on how many shipped grounding correspondences may ride the exemption. It is NOT a gmeow:ProjectionVocabulary (that is the guarded case, this is the recorded absence of guarding) and NOT a gmeow:ProjectionCeilingCommitment (that caps a measured per-slice residue; this caps the size of the carve-out itself). An exempted family that later gains a single owner must be GUARDED and its exemption removed, never both."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:exemptCatalogFamily a owl:ObjectProperty ;
+gmeow:exemptCatalogFamily a logic:ObjectProperty ;
     rdfs:label "exempted catalog family"@x-gmeow-english ;
     skos:definition "The gmeow:CatalogFamily this exemption covers. Exactly one per exemption, and unique across the registry: two exemptions for one family would each carry half the carve-out's size and hide growth between them. The family must be REGISTERED — an exemption naming no registered family exempts nothing and is a dead row."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:exemptRationale a owl:DatatypeProperty ;
+gmeow:exemptRationale a logic:DatatypeProperty ;
     rdfs:label "exemption rationale"@x-gmeow-english ;
     skos:definition "Why this family has no single grounding-slice owner and therefore cannot be guarded — the substantive argument, not a restatement of the fact. Mandatory: an exemption whose reason is not written down cannot be re-examined by a later reader, which is exactly how an undocumented carve-out becomes permanent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:exemptRowCeiling a owl:DatatypeProperty ;
+gmeow:exemptRowCeiling a logic:DatatypeProperty ;
     rdfs:label "exemption row ceiling"@x-gmeow-english ;
     skos:definition "The LOWER-ONLY ceiling on how many shipped grounding correspondences may target the exempted family — the ratchet that stops the carve-out growing silently. The value may fall as rows are grounded through a guarded owner and may never rise without a deliberate, reviewed ontology edit stating why the carve-out must widen. It has the OPPOSITE polarity to the same family's gmeow:catalogTargetMinimum (which may only rise): together they pin the exempt row count from both sides, so neither a silent addition nor a silent deletion passes."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -268,17 +255,17 @@ gmeow:exemptRowCeiling a owl:DatatypeProperty ;
 # `gmeow:expectsGeneratedOutput` inventory is a second source from the carrier's
 # emitted set.
 
-gmeow:ProjectionProfile a owl:Class ;
+gmeow:ProjectionProfile a logic:Class ;
     rdfs:label "projection profile source"@x-gmeow-english ;
     skos:definition "One declared consumer down-projection source file — an authored `dsl/mappings/projections/*.ttl` document of `gmeow:ProjectionMapping` cells, registered with the raise-only floor on how many cells it must declare. It is NOT a gmeow:ProjectionMapping (that is a single cell, many to a profile) and NOT the `gmeow:profile` binding NAME (several profile files may bind the same name and share its generated query): it is the authored FILE, so that removing the file, or hollowing it out, is a countable loss rather than an invisible one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:profileSource a owl:DatatypeProperty ;
+gmeow:profileSource a logic:DatatypeProperty ;
     rdfs:label "projection profile source path"@x-gmeow-english ;
     skos:definition "The repo-relative path of the authored profile document (\"dsl/mappings/projections/schema-org.ttl\"). Exactly one per profile and unique across the inventory; the gate requires the declared path set to EQUAL the on-disk `dsl/mappings/projections/**/*.ttl` set in both directions, so a deleted profile and an unregistered new one are equally hard failures."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
-gmeow:profileCellMinimum a owl:DatatypeProperty ;
+gmeow:profileCellMinimum a logic:DatatypeProperty ;
     rdfs:label "projection profile cell minimum"@x-gmeow-english ;
     skos:definition "The RAISE-ONLY floor on how many `gmeow:ProjectionMapping` cells the profile document must declare — the ratchet that catches a profile which still parses but has stopped projecting. It may rise as cells are added and may never fall while the profile is registered; retiring a projection surface removes its whole row, never trims the floor to fit a deletion. It is NOT a measured count (the gate counts the authored cells live)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -287,82 +274,70 @@ gmeow:profileCellMinimum a owl:DatatypeProperty ;
 # Pattern fields
 # --------------------------------------------------------------------------- #
 
-gmeow:hasMappingPattern a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:hasMappingPattern a logic:ObjectProperty  ;
     rdfs:label "has mapping pattern"@x-gmeow-english ;
     skos:definition "Links a projection mapping to its GMEOW-side pattern."@x-gmeow-english .
-gmeow:anchor a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:anchor a logic:DatatypeProperty  ;
     rdfs:label "anchor variable"@x-gmeow-english ;
     skos:definition "The name (string) of the variable that the output triple's SUBJECT binds to — the node the projected fact is predicated of (jobTitle on the person, not the Membership)."@x-gmeow-english .
-gmeow:value a owl:DatatypeProperty ;
+gmeow:value a logic:DatatypeProperty ;
     rdfs:label "value variable"@x-gmeow-english ;
     skos:definition "The name (string) of the variable that the output triple's OBJECT binds to — the projected value."@x-gmeow-english .
-gmeow:atom a owl:ObjectProperty ;
+gmeow:atom a logic:ObjectProperty ;
     rdfs:label "pattern atom"@x-gmeow-english ;
     skos:definition "An ordered rdf:List of the pattern's atoms (triple/path constraints)."@x-gmeow-english .
-gmeow:subjectVar a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:subjectVar a logic:DatatypeProperty  ;
     rdfs:label "subject variable"@x-gmeow-english ;
     skos:definition "The subject variable name of a pattern/template atom."@x-gmeow-english .
-gmeow:predicate a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:predicate a logic:ObjectProperty  ;
     rdfs:label "atom predicate"@x-gmeow-english ;
     skos:definition "The predicate IRI of a pattern atom (mutually exclusive with gmeow:path)."@x-gmeow-english .
-gmeow:predicateVar a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:predicateVar a logic:DatatypeProperty  ;
     rdfs:label "atom predicate variable"@x-gmeow-english ;
     skos:definition "The predicate variable name of a pattern atom, used when the predicate itself must be constrained by another atom."@x-gmeow-english .
-gmeow:path a owl:ObjectProperty ;
+gmeow:path a logic:ObjectProperty ;
     rdfs:label "atom property path"@x-gmeow-english ;
     skos:definition "A structured SPARQL property path (AltPath / SeqPath / ZeroOrMorePath) for a pattern atom whose predicate is not a single IRI."@x-gmeow-english .
-gmeow:objectVar a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:objectVar a logic:DatatypeProperty  ;
     rdfs:label "object variable"@x-gmeow-english ;
     skos:definition "The object variable name of a pattern atom."@x-gmeow-english .
-gmeow:objectValue a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:objectValue a logic:ObjectProperty  ;
     rdfs:label "object value"@x-gmeow-english ;
     skos:definition "A fixed IRI/value-individual on the object side of a pattern atom (e.g. gmeow:eventTypeBirth, gmeow:namePartGiven)."@x-gmeow-english .
-gmeow:objectLiteral a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:objectLiteral a logic:DatatypeProperty  ;
     rdfs:label "object literal"@x-gmeow-english ;
     skos:definition "A fixed literal on the object side of a pattern atom (e.g. the boolean false in a displayable check)."@x-gmeow-english .
-gmeow:optional a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:optional a logic:DatatypeProperty  ;
     rdfs:label "optional atom"@x-gmeow-english ;
     skos:definition "When true, the atom is wrapped in OPTIONAL { } in the generated SPARQL."@x-gmeow-english .
-gmeow:OptionalGroup a owl:Class ;
+gmeow:OptionalGroup a logic:Class ;
     rdfs:label "optional group"@x-gmeow-english ;
     skos:definition "A nested OPTIONAL { … } group of pattern items (atoms or further groups) — needed where a block of constraints is jointly optional (e.g. coordinates with their lat/long sub-optionals)."@x-gmeow-english .
-gmeow:optionalGroup a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:optionalGroup a logic:ObjectProperty  ;
     rdfs:label "optional group items"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of pattern items inside an OPTIONAL group."@x-gmeow-english .
-gmeow:suppressWhen a owl:ObjectProperty ;
+gmeow:suppressWhen a logic:ObjectProperty ;
     rdfs:label "suppress when"@x-gmeow-english ;
     skos:definition "A negative guard atom: the projection is suppressed when this pattern matches, rendered FILTER NOT EXISTS { }. Honours the GMEOW displayable-suppression contract (deadnames / superseded labels are never emitted)."@x-gmeow-english .
-gmeow:projectWhen a owl:ObjectProperty ;
+gmeow:projectWhen a logic:ObjectProperty ;
     rdfs:label "project when"@x-gmeow-english ;
     skos:definition "A positive guard atom: the projection is emitted ONLY when this pattern matches, rendered FILTER EXISTS { }. The complement of suppressWhen — used for per-consumer gating so that a fact eligible for one consumer is withheld from others, keeping output total and preventing silent disclosure (Principle 10)."@x-gmeow-english .
-gmeow:excludeWhen a owl:ObjectProperty ;
+gmeow:excludeWhen a logic:ObjectProperty ;
     rdfs:label "exclude when"@x-gmeow-english ;
     skos:definition "A negative guard atom on the anchor itself (e.g. exclude FormalLanguage), rendered FILTER NOT EXISTS { }."@x-gmeow-english .
-gmeow:filter a owl:ObjectProperty ;
+gmeow:filter a logic:ObjectProperty ;
     rdfs:label "boolean filter"@x-gmeow-english ;
     skos:definition "A boolean expression evaluated as a SPARQL FILTER( )."@x-gmeow-english .
-gmeow:bind a owl:ObjectProperty ;
+gmeow:bind a logic:ObjectProperty ;
     rdfs:label "derived binding"@x-gmeow-english ;
     skos:definition "Binds a variable to a computed expression, rendered BIND( expr AS ?var ) — for composed values (BCP-47, address label)."@x-gmeow-english .
-gmeow:mint a owl:ObjectProperty ;
+gmeow:mint a logic:ObjectProperty ;
     rdfs:label "minted node"@x-gmeow-english ;
     skos:definition "Binds a variable to a freshly-minted IRI (e.g. a synthetic vcard:Name node), rendered BIND( IRI(...) AS ?var )."@x-gmeow-english .
-gmeow:bindVar a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:bindVar a logic:DatatypeProperty  ;
     rdfs:label "bound variable"@x-gmeow-english ;
     skos:definition "The name of the variable a bind/mint produces."@x-gmeow-english .
-gmeow:bindExpr a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:bindExpr a logic:ObjectProperty  ;
     rdfs:label "bind expression"@x-gmeow-english ;
     skos:definition "The expression a bind/mint evaluates."@x-gmeow-english .
 
@@ -370,81 +345,64 @@ gmeow:bindExpr a owl:ObjectProperty ,
 # Profile-binding fields (per-profile fan-out)
 # --------------------------------------------------------------------------- #
 
-gmeow:hasBinding a owl:ObjectProperty ;
+gmeow:hasBinding a logic:ObjectProperty ;
     rdfs:label "has profile binding"@x-gmeow-english ;
     skos:definition "Links a projection mapping to one of its per-profile bindings."@x-gmeow-english .
-gmeow:profile a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:profile a logic:DatatypeProperty  ;
     rdfs:label "target profile"@x-gmeow-english ;
     skos:definition "The projection profile key: \"schema-org\", \"vcard\", \"foaf\" or \"geosparql\"."@x-gmeow-english .
-gmeow:toPredicate a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:toPredicate a logic:ObjectProperty  ;
     rdfs:label "target predicate"@x-gmeow-english ;
     skos:definition "The target-vocabulary property the value is emitted under (the simple, single-triple output)."@x-gmeow-english .
-gmeow:toClass a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:toClass a logic:ObjectProperty  ;
     rdfs:label "target class"@x-gmeow-english ;
     skos:definition "The target-vocabulary class the anchor is retyped to (rdf:type output), unconditionally or per a value->class map."@x-gmeow-english .
-gmeow:templateAtoms a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:templateAtoms a logic:ObjectProperty  ;
     rdfs:label "template atoms"@x-gmeow-english ;
     skos:definition "An ordered rdf:List of output (template) atoms for a multi-triple projection — e.g. minting and typing a vcard:Name node. Used in place of toPredicate/toClass for structural outputs."@x-gmeow-english .
-gmeow:tSubj a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:tSubj a logic:DatatypeProperty  ;
     rdfs:label "template subject"@x-gmeow-english ;
     skos:definition "The subject variable of a template atom."@x-gmeow-english .
-gmeow:tPred a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:tPred a logic:ObjectProperty  ;
     rdfs:label "template predicate"@x-gmeow-english ;
     skos:definition "The target predicate of a template atom."@x-gmeow-english .
-gmeow:tObj a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:tObj a logic:DatatypeProperty  ;
     rdfs:label "template object variable"@x-gmeow-english ;
     skos:definition "The object variable of a template atom."@x-gmeow-english .
-gmeow:tObjValue a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:tObjValue a logic:ObjectProperty  ;
     rdfs:label "template object value"@x-gmeow-english ;
     skos:definition "A fixed IRI on the object side of a template atom (e.g. a target class for an rdf:type triple)."@x-gmeow-english .
-gmeow:valueClassMap a owl:ObjectProperty ;
+gmeow:valueClassMap a logic:ObjectProperty ;
     rdfs:label "value-to-class map"@x-gmeow-english ;
     skos:definition "An ordered rdf:List of (whenValue -> toClass) entries: a source value individual mapped to the target class to assert (rendered a SPARQL VALUES table + N EDOAL AttributeValueRestriction cells)."@x-gmeow-english .
-gmeow:whenValue a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:whenValue a logic:ObjectProperty  ;
     rdfs:label "when value"@x-gmeow-english ;
     skos:definition "The source value individual matched by a value-to-class entry (e.g. gmeow:placeTypeCountry)."@x-gmeow-english .
-gmeow:relation a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:relation a logic:DatatypeProperty  ;
     rdfs:label "EDOAL relation"@x-gmeow-english ;
     skos:definition "The EDOAL align:relation string: \"=\" (equivalence), \"<=\" (lossy/subsumed), or \">=\" (subsumes)."@x-gmeow-english .
-gmeow:transform a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:transform a logic:ObjectProperty  ;
     rdfs:label "transform function"@x-gmeow-english ;
     skos:definition "The FnO projection function this binding invokes (a gmeow:ProjectionFunction)."@x-gmeow-english .
-gmeow:edoalSource a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:edoalSource a logic:ObjectProperty  ;
     rdfs:label "EDOAL entity1 term"@x-gmeow-english ;
     skos:definition "The salient GMEOW term to use as the EDOAL align:entity1 (e.g. gmeow:fullName for a displayable-name rename). An authored override; when omitted and gmeow:edoalPath is not set, and there is no value->class map, the binding emits no EDOAL cell (a pure structural / SSSOM-backed projection)."@x-gmeow-english .
-gmeow:edoalPath a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:edoalPath a logic:DatatypeProperty  ;
     rdfs:label "derive EDOAL relation path"@x-gmeow-english ;
     skos:definition "When true, the EDOAL align:entity1 is DERIVED as the relation path from the pattern's anchor to its value, expressed with edoal:compose + edoal:inverse (e.g. a birth-event traversal becomes a compose over the principal Participation: inverse(participationParticipant), participationEvent, eventTime). For multi-hop relator/event traversals — makes the EDOAL genuinely declarative rather than a bare class + opaque transform."@x-gmeow-english .
-gmeow:edoalSourceKind a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:edoalSourceKind a logic:DatatypeProperty  ;
     rdfs:label "EDOAL entity1 kind"@x-gmeow-english ;
     skos:definition "Whether the EDOAL entity1 is a \"class\" or a \"relation\" (default \"relation\")."@x-gmeow-english .
-gmeow:edoalTarget a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:edoalTarget a logic:ObjectProperty  ;
     rdfs:label "EDOAL entity2 term"@x-gmeow-english ;
     skos:definition "The target term that is the EDOAL align:entity2, when the output is structural (templateAtoms) rather than a single toPredicate/toClass."@x-gmeow-english .
-gmeow:edoalTargetKind a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:edoalTargetKind a logic:DatatypeProperty  ;
     rdfs:label "EDOAL entity2 kind"@x-gmeow-english ;
     skos:definition "Whether the EDOAL entity2 is a \"class\", \"property\" or \"relation\" (default derived: class for toClass/edoalTarget-class, property for toPredicate)."@x-gmeow-english .
-gmeow:lossyDrop a owl:DatatypeProperty ;
+gmeow:lossyDrop a logic:DatatypeProperty ;
     rdfs:label "lossy drop"@x-gmeow-english ;
     skos:definition "A note describing what GMEOW structure this profile drops; aggregated into the generated EDOAL/SPARQL header comments."@x-gmeow-english .
-gmeow:emitSssom a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:emitSssom a logic:DatatypeProperty  ;
     rdfs:label "emit SSSOM row"@x-gmeow-english ;
     skos:definition "When true, this one-to-one term binding also emits an SSSOM row from the binding's source term to its target term (typically gmeow:toPredicate or gmeow:toClass), using gmeow:sssomPredicate for the mapping strength."@x-gmeow-english .
 
@@ -452,41 +410,37 @@ gmeow:emitSssom a owl:DatatypeProperty ,
 # Property-path algebra (no raw SPARQL)
 # --------------------------------------------------------------------------- #
 
-gmeow:AltPath a owl:Class ;
+gmeow:AltPath a logic:Class ;
     rdfs:label "alternative path"@x-gmeow-english ;
     skos:definition "A SPARQL alternative property path p1|p2|… (gmeow:pathAlts)."@x-gmeow-english .
-gmeow:SeqPath a owl:Class ;
+gmeow:SeqPath a logic:Class ;
     rdfs:label "sequence path"@x-gmeow-english ;
     skos:definition "A SPARQL sequence property path p1/p2/… (gmeow:pathSteps)."@x-gmeow-english .
-gmeow:ZeroOrMorePath a owl:Class ;
+gmeow:ZeroOrMorePath a logic:Class ;
     rdfs:label "zero-or-more path"@x-gmeow-english ;
     skos:definition "A SPARQL zero-or-more property path p* (gmeow:pathStep)."@x-gmeow-english .
-gmeow:pathAlts a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:pathAlts a logic:ObjectProperty  ;
     rdfs:label "path alternatives"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of alternatives of an AltPath."@x-gmeow-english .
-gmeow:pathSteps a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:pathSteps a logic:ObjectProperty  ;
     rdfs:label "path steps"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of steps of a SeqPath (each a predicate IRI or a nested path)."@x-gmeow-english .
-gmeow:pathStep a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:pathStep a logic:ObjectProperty  ;
     rdfs:label "path step"@x-gmeow-english ;
     skos:definition "The single inner predicate/path of a ZeroOrMorePath / OneOrMorePath / ZeroOrOnePath / InversePath."@x-gmeow-english .
-gmeow:InversePath a owl:Class ;
+gmeow:InversePath a logic:Class ;
     rdfs:label "inverse path"@x-gmeow-english ;
     skos:definition "A SPARQL inverse property path ^p (gmeow:pathStep) — traverse the relation backwards."@x-gmeow-english .
-gmeow:OneOrMorePath a owl:Class ;
+gmeow:OneOrMorePath a logic:Class ;
     rdfs:label "one-or-more path"@x-gmeow-english ;
     skos:definition "A SPARQL one-or-more property path p+ (gmeow:pathStep)."@x-gmeow-english .
-gmeow:ZeroOrOnePath a owl:Class ;
+gmeow:ZeroOrOnePath a logic:Class ;
     rdfs:label "zero-or-one path"@x-gmeow-english ;
     skos:definition "A SPARQL zero-or-one (optional) property path p? (gmeow:pathStep)."@x-gmeow-english .
-gmeow:NegatedPropertySet a owl:Class ;
+gmeow:NegatedPropertySet a logic:Class ;
     rdfs:label "negated property set"@x-gmeow-english ;
     skos:definition "A SPARQL negated property set !(p1|p2|…) (gmeow:pathSet) — any predicate except the listed ones."@x-gmeow-english .
-gmeow:pathSet a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:pathSet a logic:ObjectProperty  ;
     rdfs:label "negated path set"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of predicates excluded by a NegatedPropertySet."@x-gmeow-english .
 
@@ -494,19 +448,16 @@ gmeow:pathSet a owl:ObjectProperty ,
 # Expression algebra (closed operator set — no raw SPARQL)
 # --------------------------------------------------------------------------- #
 
-gmeow:ExpressionOperator a owl:Class ;
+gmeow:ExpressionOperator a logic:Class ;
     rdfs:label "expression operator"@x-gmeow-english ;
     skos:definition "An operator in the closed SPARQL-expression algebra the compiler renders for composed/derived values."@x-gmeow-english .
-gmeow:exprOp a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:exprOp a logic:ObjectProperty  ;
     rdfs:label "expression operator"@x-gmeow-english ;
     skos:definition "The operator applied by an expression node."@x-gmeow-english .
-gmeow:exprArgs a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:exprArgs a logic:ObjectProperty  ;
     rdfs:label "expression arguments"@x-gmeow-english ;
     skos:definition "The ordered rdf:List of an expression node's arguments (each a nested expression, a gmeow:exprVar node, or a literal/IRI constant)."@x-gmeow-english .
-gmeow:exprVar a owl:DatatypeProperty ,
-        owl:FunctionalProperty ;
+gmeow:exprVar a logic:DatatypeProperty  ;
     rdfs:label "expression variable"@x-gmeow-english ;
     skos:definition "A variable reference inside an expression (the variable name as a string)."@x-gmeow-english .
 
@@ -587,24 +538,22 @@ gmeow:opIn a gmeow:ExpressionOperator ; rdfs:label "IN"@x-gmeow-english ;
 # type is authored here (projected* predicates have no ontology range).
 # --------------------------------------------------------------------------- #
 
-gmeow:ProjectionFunction a owl:Class ;
+gmeow:ProjectionFunction a logic:Class ;
     rdfs:label "projection function"@x-gmeow-english ;
     skos:definition "Source declaration of an FnO projection transform: its human description and its input predicate(s) + output predicate/type, from which the compiler renders the FnO fno:Function."@x-gmeow-english .
-gmeow:fnInput a owl:ObjectProperty ;
+gmeow:fnInput a logic:ObjectProperty ;
     rdfs:label "function input predicate"@x-gmeow-english ;
     skos:definition "A required GMEOW source predicate feeding a projection function; its FnO fno:type is derived from the predicate's rdfs:range."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-gmeow:fnInputOptional a owl:ObjectProperty ;
+gmeow:fnInputOptional a logic:ObjectProperty ;
     rdfs:label "optional function input predicate"@x-gmeow-english ;
     skos:definition "An optional GMEOW source predicate feeding a projection function."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-gmeow:fnOutput a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:fnOutput a logic:ObjectProperty  ;
     rdfs:label "function output predicate"@x-gmeow-english ;
     skos:definition "The FnO output predicate a projection function returns under."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
-gmeow:fnOutputType a owl:ObjectProperty ,
-        owl:FunctionalProperty ;
+gmeow:fnOutputType a logic:ObjectProperty  ;
     rdfs:label "function output type"@x-gmeow-english ;
     skos:definition "The authored fno:type of a projection function's output (projected* predicates have no ontology range to derive from)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -1290,7 +1239,7 @@ logic:dcpHasValue a logic:Formula ; logic:relation logic:preservationKind ;
 gmeow:ProjectionMapping logic:subClassOf [
     a logic:Restriction ;
     logic:onProperty rdfs:label ;
-    logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+    logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ;
 ] .
 
 gmeow:ProjectionMappingPatternRequiredConstraint
@@ -1742,11 +1691,11 @@ logic:mdvTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
     ?this a ?t .
     FILTER(?t IN (
-        <http://www.w3.org/2002/07/owl#Class>,
-        <http://www.w3.org/2002/07/owl#ObjectProperty>,
-        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
-        <http://www.w3.org/2002/07/owl#AnnotationProperty>,
-        <http://www.w3.org/2002/07/owl#Ontology>,
+        <https://blackcatinformatics.ca/logic/Class>,
+        <https://blackcatinformatics.ca/logic/ObjectProperty>,
+        <https://blackcatinformatics.ca/logic/DatatypeProperty>,
+        <https://blackcatinformatics.ca/logic/AnnotationProperty>,
+        <https://blackcatinformatics.ca/logic/Ontology>,
         <http://www.w3.org/2000/01/rdf-schema#Datatype>
     ))
     FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
@@ -1938,3 +1887,505 @@ gmeow:transform gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:value gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:valueClassMap gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:whenValue gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+
+# Canonical property characteristics (Principle 17).
+
+gmeow:mappingDslJustificationFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "justification is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:justification: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:justification ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:justification ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslSssomFileFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "sssomFile is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:sssomFile: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:sssomFile ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sssomFile ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslSetIdFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "setId is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:setId: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:setId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:setId ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslLicenseFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "license is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:license: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:license ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:license ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslSetCommentFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "setComment is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:setComment: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:setComment ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:setComment ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslSetTrailerFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "setTrailer is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:setTrailer: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:setTrailer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:setTrailer ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslSssomPredicateFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "sssomPredicate is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:sssomPredicate: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:sssomPredicate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sssomPredicate ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslDeclinedTargetFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "declinedTarget is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:declinedTarget: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:declinedTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:declinedTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslIntendedRelationFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "intendedRelation is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:intendedRelation: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:intendedRelation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:intendedRelation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslDeclineRationaleFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "declineRationale is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:declineRationale: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:declineRationale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:declineRationale ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslRevisitConditionFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "revisitCondition is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:revisitCondition: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:revisitCondition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:revisitCondition ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslProbeVerdictFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "probeVerdict is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:probeVerdict: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:probeVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:probeVerdict ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslHasMappingPatternFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "hasMappingPattern is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:hasMappingPattern: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:hasMappingPattern ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasMappingPattern ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslAnchorFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "anchor is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:anchor: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:anchor ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:anchor ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslSubjectVarFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "subjectVar is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:subjectVar: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:subjectVar ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:subjectVar ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslPredicateFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "predicate is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:predicate: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:predicate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:predicate ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslPredicateVarFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "predicateVar is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:predicateVar: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:predicateVar ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:predicateVar ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslObjectVarFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "objectVar is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:objectVar: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:objectVar ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:objectVar ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslObjectValueFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "objectValue is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:objectValue: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:objectValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:objectValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslObjectLiteralFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "objectLiteral is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:objectLiteral: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:objectLiteral ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:objectLiteral ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslOptionalFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "optional is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:optional: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:optional ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:optional ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslOptionalGroupFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "optionalGroup is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:optionalGroup: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:optionalGroup ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:optionalGroup ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslBindVarFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "bindVar is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:bindVar: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:bindVar ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:bindVar ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslBindExprFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "bindExpr is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:bindExpr: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:bindExpr ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:bindExpr ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslProfileFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "profile is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:profile: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:profile ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:profile ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslToPredicateFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "toPredicate is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:toPredicate: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:toPredicate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toPredicate ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslToClassFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "toClass is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:toClass: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:toClass ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toClass ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslTemplateAtomsFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "templateAtoms is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:templateAtoms: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:templateAtoms ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:templateAtoms ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslTSubjFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "tSubj is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:tSubj: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:tSubj ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tSubj ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslTPredFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "tPred is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:tPred: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:tPred ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tPred ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslTObjFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "tObj is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:tObj: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:tObj ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tObj ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslTObjValueFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "tObjValue is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:tObjValue: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:tObjValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tObjValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslWhenValueFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "whenValue is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:whenValue: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:whenValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:whenValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslRelationFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "relation is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:relation: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:relation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslTransformFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "transform is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:transform: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:transform ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transform ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslEdoalSourceFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "edoalSource is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:edoalSource: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:edoalSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:edoalSource ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslEdoalPathFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "edoalPath is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:edoalPath: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:edoalPath ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:edoalPath ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslEdoalSourceKindFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "edoalSourceKind is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:edoalSourceKind: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:edoalSourceKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:edoalSourceKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslEdoalTargetFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "edoalTarget is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:edoalTarget: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:edoalTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:edoalTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslEdoalTargetKindFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "edoalTargetKind is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:edoalTargetKind: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:edoalTargetKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:edoalTargetKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslEmitSssomFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "emitSssom is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:emitSssom: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:emitSssom ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:emitSssom ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslPathAltsFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "pathAlts is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:pathAlts: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:pathAlts ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pathAlts ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslPathStepsFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "pathSteps is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:pathSteps: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:pathSteps ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pathSteps ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslPathStepFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "pathStep is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:pathStep: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:pathStep ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pathStep ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslPathSetFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "pathSet is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:pathSet: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:pathSet ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pathSet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslExprOpFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "exprOp is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:exprOp: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:exprOp ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exprOp ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslExprArgsFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "exprArgs is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:exprArgs: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:exprArgs ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exprArgs ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslExprVarFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "exprVar is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:exprVar: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:exprVar ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exprVar ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslFnOutputFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "fnOutput is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:fnOutput: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:fnOutput ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:fnOutput ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mappingDslFnOutputTypeFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "fnOutputType is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:fnOutputType: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:fnOutputType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:fnOutputType ;
+    gmeow:graphBoxRole gmeow:boxABox .

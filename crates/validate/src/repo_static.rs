@@ -261,7 +261,7 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
 /// Check authored validation and alignment surfaces through one inventory and one Turtle parse
 /// per source file (negative-witness registrations are read separately). Generated output is
 /// deliberately outside the authored roots. Registered negative witnesses retain their existing
-/// declarative-shape role; registration never hides
+/// declarative test-input role; registration never hides
 /// computational or migrated-axiom constructs.
 fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut files = Vec::new();
@@ -311,7 +311,60 @@ fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
         });
         if !is_witness {
             check_declarative_constructs(&ds, &rel, &backing, report);
+            check_owl_constructs(&ds, &rel, &backing, report);
         }
+    }
+}
+
+/// OWL declarations and axioms are generated views. Native annotated correspondence
+/// assertions are admitted through the same typed frontend the projection stage uses;
+/// only the exact admitted triple is covered, never every axiom on its subject.
+fn check_owl_constructs(
+    ds: &RdfDataset,
+    rel: &str,
+    backing: &ProjectionBacking,
+    report: &mut RepoStaticReport,
+) {
+    const OWL: &str = "http://www.w3.org/2002/07/owl#";
+    let constructs: Vec<_> = ds
+        .quads()
+        .filter(|quad| {
+            matches!(ds.resolve(quad.p), TermRef::Iri(p) if p.starts_with(OWL))
+                || (matches!(ds.resolve(quad.p), TermRef::Iri(p) if p == rdf::TYPE)
+                    && matches!(ds.resolve(quad.o), TermRef::Iri(o) if o.starts_with(OWL)))
+        })
+        .collect();
+    if constructs.is_empty() {
+        return;
+    }
+    let mut lifted = BTreeSet::new();
+    if constructs
+        .iter()
+        .any(|quad| matches!(ds.resolve(quad.p), TermRef::Iri(p) if p.starts_with(OWL)))
+    {
+        let view = gmeow_logic_compile::ingest::DslView::new(ds);
+        match gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(&view) {
+            Ok((_, analysis)) => {
+                for cell in analysis.alignment_cells() {
+                    if let (Some(s), Some(p), Some(o)) = (
+                        ds.term_id_by_iri(&cell.subject),
+                        ds.term_id_by_iri(&cell.predicate),
+                        ds.term_id_by_iri(&cell.obj),
+                    ) {
+                        lifted.insert((s, p, o));
+                    }
+                }
+            }
+            Err(error) => report.error(format!("{rel}: cannot admit native correspondence: {error}")),
+        }
+    }
+    let unbacked: BTreeSet<_> = constructs
+        .into_iter()
+        .filter(|quad| !backing.contains(quad.s) && !lifted.contains(&(quad.s, quad.p, quad.o)))
+        .map(|quad| quad.s)
+        .collect();
+    for subject in unbacked {
+        report.error(format!("{rel}: {} hand-authors a generated OWL construct without a logic:formalizes back-reference or exact native correspondence admission (Principle 17)", node_label(ds, subject)));
     }
 }
 
@@ -445,11 +498,20 @@ impl ProjectionBacking {
             "http://ns.inria.org/edoal/1.0/#and",
             "http://ns.inria.org/edoal/1.0/#or",
             "http://ns.inria.org/edoal/1.0/#compose",
+            "http://www.w3.org/2002/07/owl#intersectionOf",
+            "http://www.w3.org/2002/07/owl#unionOf",
+            "http://www.w3.org/2002/07/owl#disjointUnionOf",
+            "http://www.w3.org/2002/07/owl#members",
+            "http://www.w3.org/2002/07/owl#distinctMembers",
+            "http://www.w3.org/2002/07/owl#withRestrictions",
+            "http://www.w3.org/2002/07/owl#hasKey",
+            "http://www.w3.org/2002/07/owl#propertyChainAxiom",
         ] {
             if let Some(id) = iri_id_static(ds, predicate) {
                 for quad in ds.quads_for_pattern(None, Some(id), None, GraphMatch::Any) {
                     for member in list_members(quad.o) {
-                        if !predicate.starts_with("http://ns.inria.org/")
+                        if (!predicate.starts_with("http://ns.inria.org/")
+                            && !predicate.starts_with("http://www.w3.org/2002/07/owl#"))
                             || matches!(ds.resolve(member), TermRef::Blank { .. })
                         {
                             parents.entry(member).or_default().insert(quad.s);
@@ -467,6 +529,13 @@ impl ProjectionBacking {
             "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity2",
             "http://ns.inria.org/edoal/1.0/#inverse",
             "http://ns.inria.org/edoal/1.0/#not",
+            "http://www.w3.org/2002/07/owl#equivalentClass",
+            "http://www.w3.org/2002/07/owl#disjointWith",
+            "http://www.w3.org/2002/07/owl#complementOf",
+            "http://www.w3.org/2002/07/owl#someValuesFrom",
+            "http://www.w3.org/2002/07/owl#allValuesFrom",
+            "http://www.w3.org/2002/07/owl#onClass",
+            "http://www.w3.org/2002/07/owl#onDataRange",
         ] {
             if let Some(id) = iri_id_static(ds, predicate) {
                 for quad in ds.quads_for_pattern(None, Some(id), None, GraphMatch::Any) {

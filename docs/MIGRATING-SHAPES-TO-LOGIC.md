@@ -9,6 +9,22 @@ ephemeral pipeline derivations of authored `logic:` nodes — a hand-authored
 unreasoned, ungoverned by the loss ledger, and free to drift. Every such shape must
 become a projection of an authored `logic:` node.
 
+The repository-static purity check scans authored Turtle in `slices/`, `shapes/`,
+`dsl/` and `governance/` once per file. It checks SHACL computation and validation,
+ShEx, FnO, SSSOM, EDOAL and OWL constructs through the same inventory and
+construct-ownership index. Namespace aliases and escaped IRIs do not bypass it.
+A `logic:formalizes` on an unrelated node never backs another construct; ownership
+propagates only through structural children. Native annotated correspondence
+assertions are admitted through the typed correspondence frontend, covering only
+the exact accepted triple. Registered negative structural witnesses retain their
+test-input role, without exempting other files in their directory.
+
+Metadata vocabularies also author `logic:Class`, `logic:ObjectProperty`,
+`logic:DatatypeProperty` and `logic:Ontology`. Property characteristics use
+`logic:PropertyCharacteristicAssertion` records; OWL type markers are generated
+views. Statement examples use native `rdf:reifies` proposition terms rather than
+hand-authored OWL axiom downcasts. Reifying a proposition does not assert it.
+
 The **Shape Migration** slice-quality axis (`gmeow:axisShapeMigration`, producer
 `shape_migration_axis`) measures the fraction of a slice's authored `sh:NodeShape` /
 `sh:PropertyShape` blocks that carry a `logic:formalizes` back-reference, and flags each
@@ -36,7 +52,7 @@ A hand-authored shape is one of two fragments:
 
 | Fragment | Hand-authored form | Migrate to | Projects into |
 |---|---|---|---|
-| **Declarative** | `sh:property` with `sh:minCount`/`sh:maxCount`/`sh:class`/`sh:datatype`/`sh:nodeKind`/`sh:in` | an OWL/RDFS axiom in `module.ttl` + a closure opt-in | `generated/shapes/validation-shapes.ttl` |
+| **Declarative** | `sh:property` with `sh:minCount`/`sh:maxCount`/`sh:class`/`sh:datatype`/`sh:nodeKind`/`sh:in` | a canonical `logic:` axiom in `module.ttl` + a closure opt-in | `generated/shapes/validation-shapes.ttl` |
 | **Procedural** | `sh:sparql [ a sh:SPARQLConstraint ; sh:select … ]` | a `logic:Constraint` in `module.ttl` | `generated/shapes/procedural-constraints.ttl` |
 
 ## Declarative migration

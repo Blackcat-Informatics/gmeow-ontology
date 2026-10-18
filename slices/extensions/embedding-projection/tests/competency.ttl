@@ -256,7 +256,7 @@ ep:epCqTargetSetOrderedClean a gmeow:CompetencyQuestion ;
 
 # =========================================================================== #
 # CT5 — similarity is not equivalence. Non-empty over the overclaim             #
-# counter-example (owl:sameAs / owl:equivalentClass); empty over the scene.     #
+# counter-example (logic:sameAs / logic:equivalentClass); empty over the scene.     #
 # =========================================================================== #
 ep:epCqSimilarityNotEquivalence a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/extensions/embedding-projection/queries/competency/similarity-not-equivalence.rq" ;
@@ -264,7 +264,7 @@ ep:epCqSimilarityNotEquivalence a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ep:shapeObsExact ;
-    gmeow:cqRationale "Similarity observations promoted to owl:sameAs and owl:equivalentClass are both caught: ce:obsOverSame and ce:obsOverEquiv." ;
+    gmeow:cqRationale "Similarity observations promoted to logic:sameAs and logic:equivalentClass are both caught: ce:obsOverSame and ce:obsOverEquiv." ;
     gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:obsOverSame ] ] ,
                       [ gmeow:rowCell [ gmeow:cellVar "obs" ; gmeow:cellValueIri ce:obsOverEquiv ] ] .
 

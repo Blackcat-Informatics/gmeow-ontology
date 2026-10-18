@@ -2,11 +2,11 @@
 # Worked examples: contested dialect/language classification (Scots), localized
 # variant (Mexican Spanish), generational slang, English historical states
 # (Old/Middle/Modern), version-vs-state distinction (Ithkuil), and a change event
-# (Great Vowel Shift). Uses owl:Axiom reifiers for standpoint-indexed claims.
+# (Great Vowel Shift). Uses native RDF 1.2 reifiers for standpoint-indexed claims.
 
 @prefix ex:     <https://example.org/lang/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
-@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix time:   <http://www.w3.org/2006/time#> .
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
@@ -32,28 +32,19 @@ ex:scots a gmeow:LanguageVariety ;
 
 # Standpoint reifiers for the two varietyKind assertions.
 
-ex:ax-scots-language a owl:Axiom ;
-    owl:annotatedSource   ex:scots ;
-    owl:annotatedProperty gmeow:varietyKind ;
-    owl:annotatedTarget   gmeow:kindLanguage ;
+ex:ax-scots-language rdf:reifies <<( ex:scots gmeow:varietyKind gmeow:kindLanguage )>> ;
     gmeow:accordingTo ex:standpoint-snl ;
     gmeow:confidence 0.85 ;
     gmeow:validFrom "1700-01-01T00:00:00Z"^^xsd:dateTime .
 
-ex:ax-scots-dialect a owl:Axiom ;
-    owl:annotatedSource   ex:scots ;
-    owl:annotatedProperty gmeow:varietyKind ;
-    owl:annotatedTarget   gmeow:kindDialect ;
+ex:ax-scots-dialect rdf:reifies <<( ex:scots gmeow:varietyKind gmeow:kindDialect )>> ;
     gmeow:accordingTo ex:standpoint-academic ;
     gmeow:confidence 0.90 ;
     gmeow:validFrom "1900-01-01T00:00:00Z"^^xsd:dateTime .
 
 # Standpoint reifier for the optional varietyOf assertion.
 
-ex:ax-scots-of-english a owl:Axiom ;
-    owl:annotatedSource   ex:scots ;
-    owl:annotatedProperty gmeow:varietyOf ;
-    owl:annotatedTarget   ex:english ;
+ex:ax-scots-of-english rdf:reifies <<( ex:scots gmeow:varietyOf ex:english )>> ;
     gmeow:accordingTo ex:standpoint-academic ;
     gmeow:confidence 0.75 .
 
@@ -106,26 +97,17 @@ ex:modernEnglishState a gmeow:LanguageState ;
 
 # Reified axioms for the stateStatusValue assertions — enables bitemporal query.
 
-ex:ax-oe-status a owl:Axiom ;
-    owl:annotatedSource   ex:oldEnglishState ;
-    owl:annotatedProperty gmeow:stateStatusValue ;
-    owl:annotatedTarget   gmeow:statusHistorical ;
+ex:ax-oe-status rdf:reifies <<( ex:oldEnglishState gmeow:stateStatusValue gmeow:statusHistorical )>> ;
     gmeow:accordingTo ex:standpoint-academic ;
     gmeow:validFrom "0450-01-01T00:00:00Z"^^xsd:dateTime ;
     gmeow:validUntil "1150-01-01T00:00:00Z"^^xsd:dateTime .
 
-ex:ax-me-status a owl:Axiom ;
-    owl:annotatedSource   ex:middleEnglishState ;
-    owl:annotatedProperty gmeow:stateStatusValue ;
-    owl:annotatedTarget   gmeow:statusHistorical ;
+ex:ax-me-status rdf:reifies <<( ex:middleEnglishState gmeow:stateStatusValue gmeow:statusHistorical )>> ;
     gmeow:accordingTo ex:standpoint-academic ;
     gmeow:validFrom "1150-01-01T00:00:00Z"^^xsd:dateTime ;
     gmeow:validUntil "1500-01-01T00:00:00Z"^^xsd:dateTime .
 
-ex:ax-mod-status a owl:Axiom ;
-    owl:annotatedSource   ex:modernEnglishState ;
-    owl:annotatedProperty gmeow:stateStatusValue ;
-    owl:annotatedTarget   gmeow:statusLiving ;
+ex:ax-mod-status rdf:reifies <<( ex:modernEnglishState gmeow:stateStatusValue gmeow:statusLiving )>> ;
     gmeow:accordingTo ex:standpoint-ethnologue ;
     gmeow:validFrom "1500-01-01T00:00:00Z"^^xsd:dateTime .
 

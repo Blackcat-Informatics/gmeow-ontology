@@ -3,7 +3,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
@@ -101,7 +100,7 @@ gmeow:StatementAnnotationShape
     ] .
 
 # --------------------------------------------------------------------------- #
-# Vocabulary annotation completeness (issue #221).
+# Vocabulary annotation completeness.
 # Every term declared in dsl/statements/vocabulary.ttl must carry label,
 # definition, and rdfs:isDefinedBy pointing at the statement DSL vocabulary.
 # --------------------------------------------------------------------------- #
@@ -116,11 +115,11 @@ gmeow:StatementDslVocabularyTermShape
             SELECT ?this WHERE {
                 ?this a ?t .
                 FILTER(?t IN (
-                    <http://www.w3.org/2002/07/owl#Class>,
-                    <http://www.w3.org/2002/07/owl#ObjectProperty>,
-                    <http://www.w3.org/2002/07/owl#DatatypeProperty>,
-                    <http://www.w3.org/2002/07/owl#AnnotationProperty>,
-                    <http://www.w3.org/2002/07/owl#Ontology>,
+                    <https://blackcatinformatics.ca/logic/Class>,
+                    <https://blackcatinformatics.ca/logic/ObjectProperty>,
+                    <https://blackcatinformatics.ca/logic/DatatypeProperty>,
+                    <https://blackcatinformatics.ca/logic/AnnotationProperty>,
+                    <https://blackcatinformatics.ca/logic/Ontology>,
                     <http://www.w3.org/2000/01/rdf-schema#Datatype>
                 ))
                 FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
@@ -131,18 +130,18 @@ gmeow:StatementDslVocabularyTermShape
         sh:path rdfs:label ;
         sh:minCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "Every statement DSL vocabulary term must carry at least one rdfs:label (issue #221)." ;
+        sh:message "Every statement DSL vocabulary term must carry at least one rdfs:label." ;
     ] ;
     sh:property [
         sh:path skos:definition ;
         sh:minCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "Every statement DSL vocabulary term must carry a skos:definition (issue #221)." ;
+        sh:message "Every statement DSL vocabulary term must carry a skos:definition." ;
     ] ;
     sh:property [
         sh:path rdfs:isDefinedBy ;
         sh:minCount 1 ;
         sh:hasValue <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
         sh:severity sh:Violation ;
-        sh:message "Every statement DSL vocabulary term must declare rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> (issue #221)." ;
+        sh:message "Every statement DSL vocabulary term must declare rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl>." ;
     ] .
