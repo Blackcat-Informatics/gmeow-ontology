@@ -324,3 +324,68 @@ fn a_record_the_transport_cannot_carry_fails_naming_the_field() {
         "the refusal must name the field: {message}"
     );
 }
+
+/// The native MCP claim store preserves small payloads and the exact digest of
+/// oversized tool arguments/results, including across a cold package reopen.
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn tool_call_provenance_native_store_preserves_payloads_and_cold_readback() {
+    // gmeow-test-input: synthetic-only
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("synthetic-claims.gts");
+    let store = fs_claim_store(&path).unwrap();
+    let claim = store
+        .store_claim(
+            "the recorded claim stays intact",
+            StoreOptions {
+                source: None,
+                confidence: None,
+                according_to: None,
+            },
+        )
+        .unwrap();
+    let small = r#"{"text":"résumé ☃"}"#;
+    let large = "x".repeat(5000);
+    let digest = format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(large.as_bytes()).as_bytes())
+    );
+    let mut written = Vec::new();
+    for (arguments, result) in [(small, large.as_str()), (large.as_str(), small)] {
+        written.push(
+            store
+                .record_tool_call(
+                    "urn:gmeow:tool:store_claim",
+                    ToolCallOptions {
+                        arguments: Some(arguments),
+                        result: Some(result),
+                        invocation: Some("urn:gmeow:invocation:synthetic"),
+                        generated: &[claim.id.as_str()],
+                    },
+                )
+                .unwrap(),
+        );
+    }
+    assert_eq!(written[0].arguments.as_deref(), Some(small));
+    assert_eq!(written[0].result.as_deref(), Some(digest.as_str()));
+    assert_eq!(written[1].arguments.as_deref(), Some(digest.as_str()));
+    assert_eq!(written[1].result.as_deref(), Some(small));
+    drop(store);
+
+    let reopened = fs_claim_store(&path).unwrap();
+    let readback = reopened.tool_calls().unwrap();
+    assert_eq!(readback.len(), written.len());
+    for (actual, expected) in readback.iter().zip(&written) {
+        assert_eq!(actual.id, expected.id);
+        assert_eq!(actual.tool, expected.tool);
+        assert_eq!(actual.arguments, expected.arguments);
+        assert_eq!(actual.result, expected.result);
+        assert_eq!(actual.invocation, expected.invocation);
+        assert_eq!(actual.generated, vec![claim.id.clone()]);
+        assert_eq!(actual.created, expected.created);
+    }
+    let claims = reopened.claims().unwrap();
+    assert_eq!(claims.len(), 1);
+    assert_eq!(claims[0].id, claim.id);
+    assert_eq!(claims[0].text, claim.text);
+}
