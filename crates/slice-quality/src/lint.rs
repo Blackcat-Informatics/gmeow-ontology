@@ -133,12 +133,12 @@ pub struct LintOutcome {
     /// finding. Does NOT carry the Info per-axis grade/roll-up notes —
     /// that is [`SliceReport::to_report`]'s view, not lint's.
     pub findings: Report,
-    /// Whether the measured roll-up dominates the effective bar (or no bar
-    /// applies at all).
+    /// Whether the operation is complete and its measured roll-up dominates the
+    /// effective bar (or no bar applies).
     pub passed: bool,
     /// The stricter (higher-rank) of the slice's declared claim and any
-    /// explicit `--min-tier`; `None` when neither is present (a pure advisory
-    /// view — always passes).
+    /// explicit `--min-tier`; `None` when neither is present. An incomplete
+    /// profile still fails when no tier bar was requested.
     pub effective_bar: Option<Tier>,
     /// The number of advisories the underlying [`SliceReport`] surfaced
     /// (`report.advisories.len()`), independent of how lint re-stamped them.
@@ -151,9 +151,8 @@ pub struct LintOutcome {
 /// `effective_bar` is the higher-rank of `declared` (the slice's own
 /// `gmeow:sliceQualityTier` claim, via [`declared_quality_tier`]) and
 /// `required` (an explicit `--min-tier`, via [`resolve_min_tier`]); `None`
-/// when both are absent (a pure advisory view — always passes). `passed`
-/// holds iff `effective_bar` is `None` or the measured roll-up's rank is at
-/// least the bar's rank.
+/// when both are absent. `passed` requires a complete operation and either an
+/// absent bar or a measured roll-up at least as high as the bar.
 ///
 /// Every advisory in `report.advisories` is re-stamped by severity: `Error`
 /// when its stored producing axis ([`SliceReport::advisory_axis`]) is graded
@@ -170,16 +169,31 @@ pub fn lint_report(
     required: Option<&Tier>,
 ) -> LintOutcome {
     let effective_bar = higher_rank(declared, required);
-    let passed = match &effective_bar {
-        None => true,
-        Some(bar) => report.assessment.rollup.rank >= bar.rank,
-    };
+    let complete = report
+        .profile
+        .as_ref()
+        .is_none_or(|profile| profile.complete);
+    let passed = complete
+        && match &effective_bar {
+            None => true,
+            Some(bar) => report.assessment.rollup.rank >= bar.rank,
+        };
 
     // Register every slice-quality code before any finding is built, so the
     // emitted report carries registered (never bare) diagnostic codes — the
     // same discipline `SliceReport::to_report` follows.
     report::seed_finding_codes();
     let mut findings = Report::new("slice-quality");
+    if !complete {
+        let selected = report.to_report();
+        findings.metadata = selected.metadata;
+        findings.findings.extend(
+            selected
+                .findings
+                .into_iter()
+                .filter(|finding| finding.code == "slice-quality.profile-axis"),
+        );
+    }
     for (idx, advisory) in report.advisories.iter().enumerate() {
         let mut finding = advisory.clone();
         finding.severity = if finding.code == "slice-quality.axis-advice.missing-template" {

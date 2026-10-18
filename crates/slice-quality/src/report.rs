@@ -37,6 +37,7 @@ const ADVICE_KIND_INSTANCE: u8 = 1;
 pub const FINDING_CODES: &[&str] = &[
     // Structural report codes (report.rs).
     "slice-quality.grade",
+    "slice-quality.profile-axis",
     "slice-quality.rollup",
     // Reasoner-derived axis codes (reasoner.rs).
     "slice-quality.reasoner.no-closure",
@@ -136,6 +137,8 @@ pub struct SliceReport {
     /// directory (or slice-relative for an in-memory file map).
     source_files: SliceSourceFiles,
     reasoner_probes: ReasonerProbeCounts,
+    /// Selected consumer profile and complete axis outcomes; absent for repository sweeps.
+    pub profile: Option<crate::profile::ProfileAssessment>,
 }
 
 #[derive(Debug, Clone)]
@@ -398,13 +401,33 @@ pub fn score_slice_files_with_standard(
     standard: &MeasurementStandard,
     env: ScoringEnv,
 ) -> gmeow_errors::Result<SliceReport> {
+    let ds = crate::dataset_from_documents(&slice_ttl_documents(files))?;
+    score_slice_files_with_dataset(files, standard, env, &ds)
+}
+
+/// Score already admitted native inputs without reparsing them or rebuilding a corpus.
+pub(crate) fn score_slice_files_with_dataset(
+    files: &BTreeMap<String, Vec<u8>>,
+    standard: &MeasurementStandard,
+    env: ScoringEnv,
+    ds: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<SliceReport> {
+    if matches!(&env, ScoringEnv::External)
+        && standard
+            .axes
+            .iter()
+            .any(|axis| axis.producer == "gmn1_coverage_axis")
+    {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Report {
+            detail: "selected GMN-1 coverage requires an admitted dictionary".to_owned(),
+        }));
+    }
     let slice_iri = slice_iri_of_files(files)?;
     let source_files = SliceSourceFiles::from_files(files);
-    let ds = crate::dataset_from_documents(&slice_ttl_documents(files))?;
     // The scoring environment decides where the two repo-anchored axes source their
     // wide-scope inputs; every in-repo caller passes `ScoringEnv::Repo` (byte-identical
     // to the pre-seam behaviour), the consumer wheel passes `ScoringEnv::Bundle`.
-    let ctx = ScoreContext::new(slice_iri.clone(), files, &ds, env);
+    let ctx = ScoreContext::new(slice_iri.clone(), files, ds, env);
     score_with_context(&ctx, &slice_iri, standard, source_files)
 }
 
@@ -439,6 +462,31 @@ fn score_with_context(
     standard: &MeasurementStandard,
     source_files: SliceSourceFiles,
 ) -> gmeow_errors::Result<SliceReport> {
+    // Admit the selected foreign documentation catalog before evaluating other
+    // axes. Reuse this measurement: admission must not build the catalog twice.
+    let documentation = if !matches!(&ctx.env, ScoringEnv::Repo { .. })
+        && standard
+            .axes
+            .iter()
+            .any(|axis| axis.producer == "DocMaturity")
+    {
+        let result = crate::doc_maturity::DocMaturity::axis(ctx);
+        if let Some(finding) = result
+            .findings
+            .iter()
+            .find(|finding| finding.code == "slice-quality.doc-maturity.model-unavailable")
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Report {
+                detail: format!(
+                    "selected documentation measurement lacks its required catalog: {}",
+                    finding.message
+                ),
+            }));
+        }
+        Some(result)
+    } else {
+        None
+    };
     let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(standard.axes.len());
     // Each entry is (axis_iri, axis_weight, advice_kind, finding). `advice_kind`
     // ranks an axis-level template item ahead of that axis's per-term findings.
@@ -454,7 +502,16 @@ fn score_with_context(
                 ),
             })
         })?;
-        let result = primitive(ctx);
+        let result = if axis.producer == "DocMaturity"
+            && let Some(result) = &documentation
+        {
+            crate::score::AxisScore {
+                score: result.score,
+                findings: result.findings.clone(),
+            }
+        } else {
+            primitive(ctx)
+        };
         for f in result.findings {
             advisories.push((axis.iri.clone(), axis.weight, ADVICE_KIND_INSTANCE, f));
         }
@@ -530,10 +587,15 @@ fn score_with_context(
         axis_weight,
         source_files,
         reasoner_probes: ctx.reasoner_probe_counts(),
+        profile: None,
     })
 }
 
 impl SliceReport {
+    /// Bind a directory's real paths after scoring its exact in-memory file map.
+    pub(crate) fn prefix_source_paths(&mut self, dir: &Path) {
+        self.source_files.prefix_with_slice_dir(dir);
+    }
     /// Observed certified/native leave-one-out work for this score.
     #[must_use]
     pub fn reasoner_probe_counts(&self) -> ReasonerProbeCounts {
@@ -622,6 +684,27 @@ impl SliceReport {
         // emitted report carries registered (never bare) diagnostic codes.
         seed_finding_codes();
         let mut report = Report::new("slice-quality");
+        if let Some(profile) = &self.profile {
+            report
+                .metadata
+                .insert("quality_profile".to_owned(), serde_json::json!(profile));
+            for (axis, outcome) in &profile.outcomes {
+                let severity = if matches!(outcome, crate::profile::AxisOutcome::Unsupported { .. })
+                {
+                    Severity::Error
+                } else {
+                    Severity::Info
+                };
+                report.add_finding(
+                    Finding::new(
+                        severity,
+                        "slice-quality.profile-axis",
+                        format!("{axis}: {}", outcome.description()),
+                    )
+                    .with_tool("slice-quality"),
+                );
+            }
+        }
         // Per-axis grade notes (never gating).
         for grade in self.grades_weakest_first() {
             let local = grade
@@ -645,8 +728,18 @@ impl SliceReport {
                 Severity::Info,
                 "slice-quality.rollup",
                 format!(
-                    "roll-up tier: {} ({})",
-                    self.assessment.rollup.label, self.assessment.slice
+                    "{}roll-up tier: {} ({})",
+                    if self
+                        .profile
+                        .as_ref()
+                        .is_some_and(|profile| !profile.complete)
+                    {
+                        "partial "
+                    } else {
+                        ""
+                    },
+                    self.assessment.rollup.label,
+                    self.assessment.slice
                 ),
             )
             .with_tool("slice-quality")
@@ -682,9 +775,28 @@ impl SliceReport {
     #[must_use]
     pub fn render_text(&self) -> String {
         let mut out = String::new();
+        if let Some(profile) = &self.profile {
+            out.push_str(&format!("quality profile: {} ({})\n  corpus: {}\n  rubric: {}\n  profile identity: {}\n  measured axes: {}/{}; not applicable: {}; unsupported: {}; complete: {}\n",
+                profile.profile.key, profile.profile.iri, profile.corpus_identity,
+                profile.rubric_identity, profile.profile_identity, profile.measured_axes,
+                profile.total_axes, profile.not_applicable_axes, profile.unsupported_axes, profile.complete));
+            for (axis, outcome) in &profile.outcomes {
+                out.push_str(&format!("  {axis}: {}\n", outcome.description()));
+            }
+        }
         out.push_str(&format!(
-            "slice-quality: {}\n  roll-up tier: {}\n",
-            self.assessment.slice, self.assessment.rollup.label
+            "slice-quality: {}\n  {}roll-up tier: {}\n",
+            self.assessment.slice,
+            if self
+                .profile
+                .as_ref()
+                .is_some_and(|profile| !profile.complete)
+            {
+                "partial "
+            } else {
+                ""
+            },
+            self.assessment.rollup.label
         ));
         out.push_str("  per-axis grades (weakest first):\n");
         for grade in self.grades_weakest_first() {

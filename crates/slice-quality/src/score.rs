@@ -62,6 +62,9 @@ pub enum ScoringEnv {
     /// no tolerant advisory. `DocMaturity` ignores the payload and builds a fresh
     /// single-slice model from the slice's own carried files.
     Bundle(Arc<GmnDictionary>),
+    /// Foreign corpus whose selected profile requires no GMN dictionary.
+    /// Selecting a dictionary-dependent measurement in this environment is invalid.
+    External,
 }
 
 /// The result of asking [`ScoreContext::text`] for one slice-relative path as text.

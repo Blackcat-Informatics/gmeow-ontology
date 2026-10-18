@@ -69,7 +69,7 @@ impl DocMaturity {
     pub fn axis(ctx: &ScoreContext) -> AxisScore {
         match &ctx.env {
             ScoringEnv::Repo { slice_dir } => Self::axis_repo(ctx, slice_dir),
-            ScoringEnv::Bundle(_) => Self::axis_external(ctx),
+            ScoringEnv::Bundle(_) | ScoringEnv::External => Self::axis_external(ctx),
         }
     }
 
