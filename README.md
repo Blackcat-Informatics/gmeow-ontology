@@ -367,7 +367,7 @@ slices/<group>/<name>/    A slice: manifest.ttl (IRI + tier + deps + consumer),
 slices/vocabulary.ttl     The slice-manifest authoring vocabulary (spec layer)
 ontology/gmeow.ttl        Root ontology: metadata + owl:imports for slices
 dsl/mappings/             Shared mapping vocabulary, cross-cutting sets,
-                          shared equivalences, transforms.fno.ttl
+                          shared equivalences (callable signatures are slice-owned)
 dsl/statements/           The canonical RDF 1.2 / RDF* statement-metadata source
 shapes/                   Authored SHACL (incl. the slice-manifest shapes)
 queries/                  Authored SPARQL: competency/, verify/, qc/, codecs/
