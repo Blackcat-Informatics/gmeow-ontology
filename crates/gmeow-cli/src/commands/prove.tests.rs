@@ -223,7 +223,47 @@ fn empty_selected_source_preserves_the_frontend_refusal_and_input_identity() {
         evidence.fields["evidence"]["cause_diagnostic"]["code"],
         "logic-compile.frontend"
     );
+    assert_eq!(
+        evidence.fields["evidence"]["cause_diagnostic"]["diagnostic"]["code"],
+        "logic-compile.frontend"
+    );
     assert!(evidence.causes.iter().any(|cause| cause.contains("empty")));
+}
+
+/// A lower parser refusal retains the same complete wire evidence in a prover report.
+#[test]
+fn prover_source_refusal_retains_the_shared_diagnostic_projection() {
+    let cause = gmeow_logic_compile::frontend::parse_logic_str("this is not turtle <<<", None)
+        .expect_err("malformed selected source")
+        .with_context("parse selected proof source");
+    let expected = serde_json::to_value(super::ReportDiagnostic::from_diag(&cause))
+        .expect("native diagnostic report");
+    let failure = super::caused_diagnostic(
+        "SOURCE_PREPARATION_FAILED",
+        cause,
+        "prepare selected proof source",
+        serde_json::json!({"path": "selected.ttl"}),
+    );
+    let report = super::ProveReport::blank(super::DecisionClass::Malformed, failure);
+    let diagnostic = &report.common.diagnostics[0];
+    assert_eq!(diagnostic.code, "SOURCE_PREPARATION_FAILED");
+    let evidence = diagnostic.diagnostic.as_ref().expect("prover diagnostic");
+    assert_eq!(evidence.fields["evidence"]["path"], "selected.ttl");
+    let retained = &evidence.fields["evidence"]["cause_diagnostic"];
+    assert_eq!(retained, &expected);
+    assert_eq!(
+        retained["diagnostic"]["failure_class"],
+        "https://blackcatinformatics.ca/logic/CompilerSourceRefusal"
+    );
+    assert!(
+        retained["diagnostic"]["causes"]
+            .as_array()
+            .is_some_and(|causes| !causes.is_empty())
+    );
+    assert_eq!(
+        serde_json::to_value(&report).expect("first report projection"),
+        serde_json::to_value(&report).expect("repeated report projection")
+    );
 }
 
 #[test]

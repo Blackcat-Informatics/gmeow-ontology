@@ -200,23 +200,6 @@ fn caused_failure(
     .with_context(context)
 }
 
-fn diagnostic_snapshot(diagnostic: &Diag) -> serde_json::Value {
-    serde_json::json!({
-        "code": gmeow_errors::code::code_str(diagnostic.code()),
-        "grade": diagnostic.grade(),
-        "message": diagnostic.message(),
-        "source_context": diagnostic.inner().source_ctx,
-        "context": diagnostic.inner().context.iter().map(|frame| frame.label.as_str()).collect::<Vec<_>>(),
-        "emitted_at": {
-            "file": diagnostic.emitted_at().file(),
-            "line": diagnostic.emitted_at().line(),
-            "column": diagnostic.emitted_at().column(),
-        },
-        "observed": diagnostic.inner().observed,
-        "expected": diagnostic.inner().expected,
-    })
-}
-
 fn caused_diagnostic(
     reason: &'static str,
     diagnostic: Diag,
@@ -224,7 +207,8 @@ fn caused_diagnostic(
     mut evidence: serde_json::Value,
 ) -> Diag {
     let context = context.into();
-    let source = diagnostic_snapshot(&diagnostic);
+    let source = serde_json::to_value(ReportDiagnostic::from_diag(&diagnostic))
+        .expect("native diagnostic report serializes");
     if let Some(object) = evidence.as_object_mut() {
         object.insert("cause_diagnostic".to_owned(), source);
     } else {
