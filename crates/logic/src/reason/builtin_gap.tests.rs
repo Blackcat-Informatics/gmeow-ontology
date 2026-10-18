@@ -34,6 +34,10 @@ fn native_builtin_refusal_keeps_the_original_typed_error_owner() {
         .unwrap();
     assert!(std::sync::Arc::ptr_eq(&cause, &retained.cause));
     assert_eq!(
+        refusal.failures[0].inner().failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal")
+    );
+    assert_eq!(
         diagnostic.inner().code,
         register_code("logic.builtin-refusal")
     );
