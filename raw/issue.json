@@ -1,0 +1,116 @@
+{
+  "assignees": [
+    {
+      "id": "MDQ6VXNlcjUyNzU1NQ==",
+      "login": "paudley",
+      "name": "Patrick Audley",
+      "databaseId": 527555
+    }
+  ],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem statement\n\nThe repo-wide removal of the Python surface deletes `test_agentic.py` and\n`slices/extensions/music/tests/test_music_notation_projection.py`, which pinned the\n**agentic-memory provenance** and **music notation-projection loss-accounting** invariants.\nThese have **no native Rust twin yet**. This issue tracks recreating that coverage natively.\n\n## Coverage to recreate in Rust (native conformance)\n\n- **Music projection loss-accounting completeness:** for every `NotationProjectionProfile`, the\n  union of its representable set and its declared-loss set covers every `MusicalParameter`; there\n  is no orphan `ProjectionLoss`; and there is exactly one profile per `NotationSystem`.\n- **Agentic-memory provenance:** the tool-call / claim memory layer's provenance store keeps\n  verbatim content below a size threshold (~5000 chars) and switches to a `blake3:` digest above it,\n  with faithful readback. **Precondition:** this applies only once the memory layer is reimplemented\n  natively; if that layer is not reimplemented, this coverage retires with the Python demo it was\n  written against and should be explicitly dropped rather than ported.\n\n## Consumer\n\nThe `make check` music + agentic gates \u2014 native Rust, no Python.\n\n## Target location\n\n`crates/validate/tests/` (music loss-accounting conformance over the music slice) and the native\nmemory layer's crate tests (agentic), if/when that layer exists in Rust.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABJNJpXQ",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "<!-- This is an auto-generated issue plan by CodeRabbit -->\n<details>\n<summary>\ud83d\udd17 Related PRs</summary>\n\nBlackcat-Informatics/gmeow-ontology#622 - feat(validate): mandatory SHACL+coverage gates; Rust-native validation path (`#579`) [closed]\nBlackcat-Informatics/gmeow-ontology#971 - test(867): migrate the run_shacl conformance tail \u2014 suite now 158 native tests [merged]\nBlackcat-Informatics/gmeow-ontology#1131 - feat: move repo static guards to Rust gates [merged]\nBlackcat-Informatics/gmeow-ontology#1185 - perf: optimize Rust gate hot paths [merged]\nBlackcat-Informatics/gmeow-ontology#1388 - test(validate): migrate the SHACL/TBox black-box test cluster to native Rust conformance [merged]\n</details>\n\n---\n<details>\n<summary>\ud83d\udcdd Issue Planner</summary>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</details>\n\n\n---\n<details>\n<summary> \ud83e\uddea Issue enrichment is currently in open beta.</summary>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</details>\n\n\ud83d\udcac Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-07-08T08:12:48Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1462#issuecomment-4912736605",
+      "viewerDidAuthor": false
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABSr4MIw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## The music half looks recreated; the agentic half may be retirable\n\nChecked against `main` @ c2b03aba6.\n\n**The Python originals are gone**, as this issue anticipated \u2014 neither `test_agentic.py` nor `test_music_notation_projection.py` is tracked.\n\n**Music projection loss-accounting appears to have a native twin.** `crates/gmeow-dev-cli/tests/loss_bearing_domain.rs` carries 8 references to `NotationProjectionProfile` / `ProjectionLoss` / representable-set terms, and `slices/extensions/music/tests/structural.ttl` exists. Someone who knows the original invariant should confirm the native version actually covers all three clauses \u2014 representable \u222a declared-loss covers every `MusicalParameter`, no orphan `ProjectionLoss`, exactly one profile per `NotationSystem` \u2014 rather than a subset.\n\n**The agentic-memory half turns on the precondition this issue already stated:**\n\n> **Precondition:** this applies only once the memory layer is reimplemented natively; if that layer is not reimplemented, this coverage retires with the Python demo it was written against and should be explicitly dropped rather than ported.\n\nThat precondition is now decidable. If the tool-call/claim memory layer has not been reimplemented natively, the right action is to **explicitly drop** this half \u2014 as the issue itself directs \u2014 rather than leave it open indefinitely.\n\nSuggested outcome: verify the music clauses, drop or keep the agentic half per the precondition, then close. This looks closeable without new implementation work.\n\n*Method: file-existence and symbol-reference checks, not a review of what the native test asserts.*",
+      "createdAt": "2026-09-05T03:06:27Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1462#issuecomment-5548936227",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABSr-ruQ",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Correction to my previous comment \u2014 the music half is NOT recreated\n\nI said \"Music projection loss-accounting appears to have a native twin\" on the strength of symbol references in `crates/gmeow-dev-cli/tests/loss_bearing_domain.rs`. I then read what those tests actually assert, and they do not cover this issue's invariant. Correcting that rather than leaving it to mislead whoever picks this up.\n\n**What the existing native tests actually check:**\n\n- `crates/gmeow-dev-cli/tests/loss_bearing_domain.rs` \u2014 that declared loss appears *only* on loss-bearing subjects (`the_music_manifest_declares_loss_only_on_a_loss_bearing_subject`), and that `gmeow:NotationProjectionProfile` stays a `gmeow:Profile` / is declared `logic:subClassOf` its category. That is a **domain** check on where loss may be declared, not a completeness check.\n- `crates/validate/tests/conformance_cases/conformance_music_performance.rs` \u2014 that the `MusicalParameter` class and the ten `musicalParameter*` value-vocabulary individuals **exist**. Existence, not coverage.\n- `slices/extensions/music/tests/structural.ttl` \u2014 no `MusicalParameter`, `ProjectionLoss` or `NotationSystem` assertions at all.\n\n**All three clauses of this issue remain unimplemented:**\n\n1. for every `NotationProjectionProfile`, representable \u222a declared-loss covers every `MusicalParameter` \u2014 **no assertion anywhere**\n2. no orphan `ProjectionLoss` \u2014 **no assertion anywhere**\n3. exactly one profile per `NotationSystem` \u2014 **no assertion anywhere**\n\nSo the music half is real, open work: three structural assertions over the music module, most naturally as SPARQL in `slices/extensions/music/tests/structural.ttl` alongside the slice's existing structural checks.\n\nMy earlier point about the **agentic-memory half** stands unchanged and is unaffected: its precondition is now decidable, and if the memory layer was not reimplemented natively, this issue's own text directs dropping that half explicitly rather than porting it.\n\nNet: this is **not** closeable without implementation \u2014 one bounded task (three assertions) plus one decision.\n\n*Method: read the bodies of the two candidate native tests and the slice's structural.ttl, rather than counting symbol references as I did the first time.*",
+      "createdAt": "2026-09-05T03:27:48Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1462#issuecomment-5549042617",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-07-08T08:12:28Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACm3yjWw",
+      "name": "music",
+      "description": "Music extension (slice domain label)",
+      "color": "B60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACpPNwzg",
+      "name": "rustify",
+      "description": "",
+      "color": "0ba42a"
+    }
+  ],
+  "milestone": null,
+  "number": 1462,
+  "state": "OPEN",
+  "title": "Native agentic-memory & music-projection loss-accounting conformance",
+  "updatedAt": "2026-09-05T03:27:48Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1462"
+}
