@@ -22861,6 +22861,62 @@ msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w
 msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
 msgstr "Une tâche du registre nommant une implémentation source absente est refusée avant que son nombre de copies puisse être rapporté."
 
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native builtin evaluation refusal"
+msgstr "refus de l’évaluation d’une primitive native"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational failure of a selected native builtin evaluation, retaining its operation and original evaluator error."
+msgstr "Un échec opérationnel de l’évaluation d’une primitive native sélectionnée, conservant son opération et l’erreur d’origine de l’évaluateur."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when native evaluation refuses a selected builtin operation."
+msgstr "À utiliser lorsque l’évaluation native refuse une opération de primitive sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret an execution refusal as a false predicate or a logical contradiction."
+msgstr "Ne pas interpréter un refus d’exécution comme un prédicat faux ou une contradiction logique."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the operation, antecedent bindings and original typed evaluator cause in the shared diagnostic."
+msgstr "Conserver l’opération, les liaisons antécédentes et la cause typée d’origine de l’évaluateur dans le diagnostic partagé."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This operational class makes no semantic verdict about the selected rule or world."
+msgstr "Cette classe opérationnelle ne porte aucun verdict sémantique sur la règle ou le monde sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A stopped native term comparison retains the original workspace-stopped evaluator error."
+msgstr "Une comparaison native de termes arrêtée conserve l’erreur d’origine de l’évaluateur signalant l’arrêt de l’espace de travail."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native builtin evaluation boundary"
+msgstr "frontière de l’évaluation des primitives natives"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary that preserves a native builtin evaluator refusal through the reasoning diagnostic substrate."
+msgstr "La frontière opérationnelle qui conserve un refus de l’évaluateur de primitives natives dans le substrat de diagnostic du raisonnement."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary enforced by native builtin evaluation diagnostics."
+msgstr "À utiliser pour identifier la frontière appliquée par les diagnostics d’évaluation des primitives natives."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a native evaluator failure with an empty solution batch."
+msgstr "Ne pas remplacer un échec de l’évaluateur natif par un lot de solutions vide."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Propagate the original evaluator error with the selected operation and its captured bindings."
+msgstr "Propager l’erreur d’origine de l’évaluateur avec l’opération sélectionnée et ses liaisons capturées."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The boundary retains execution evidence without weakening the selected operation."
+msgstr "La frontière conserve les preuves d’exécution sans affaiblir l’opération sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A native comparison cancellation remains inspectable inside the enclosing builtin refusal."
+msgstr "L’annulation d’une comparaison native reste consultable dans le refus englobant de la primitive."
+
 msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "direct semantics service refusal"
 msgstr "refus du service de sémantique directe"

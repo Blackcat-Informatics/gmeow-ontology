@@ -23846,6 +23846,32 @@ logic:finite-journal-infinite-trace
     skos:scopeNote "FirstOrder names the expressibility class of the relational standard translation. It does not certify finite observations as evidence for an infinite temporal domain."@x-gmeow-english ;
     skos:example "ex:observation logic:journalBoundary logic:OpenJournalBoundary ."@x-gmeow-english .
 
+logic:NativeBuiltinEvaluationRefusal
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:label "native builtin evaluation refusal"@x-gmeow-english ;
+    skos:definition "An operational failure of a selected native builtin evaluation, retaining its operation and original evaluator error."@x-gmeow-english ;
+    gmeow:useWhen "Use when native evaluation refuses a selected builtin operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not interpret an execution refusal as a false predicate or a logical contradiction."@x-gmeow-english ;
+    gmeow:howToUse "Retain the operation, antecedent bindings and original typed evaluator cause in the shared diagnostic."@x-gmeow-english ;
+    skos:scopeNote "This operational class makes no semantic verdict about the selected rule or world."@x-gmeow-english ;
+    skos:example "A stopped native term comparison retains the original workspace-stopped evaluator error."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:NativeBuiltinEvaluationBoundary
+    a logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:NativeBuiltinEvaluationRefusal ;
+    rdfs:label "native builtin evaluation boundary"@x-gmeow-english ;
+    skos:definition "The operational boundary that preserves a native builtin evaluator refusal through the reasoning diagnostic substrate."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the boundary enforced by native builtin evaluation diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace a native evaluator failure with an empty solution batch."@x-gmeow-english ;
+    gmeow:howToUse "Propagate the original evaluator error with the selected operation and its captured bindings."@x-gmeow-english ;
+    skos:scopeNote "The boundary retains execution evidence without weakening the selected operation."@x-gmeow-english ;
+    skos:example "A native comparison cancellation remains inspectable inside the enclosing builtin refusal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 logic:DirectSemanticsServiceRefusal
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

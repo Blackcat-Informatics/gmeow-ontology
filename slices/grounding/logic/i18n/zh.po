@@ -22861,6 +22861,62 @@ msgctxt "https://blackcatinformatics.ca/logic/HelperSourceAdmission|http://www.w
 msgid "A ledger job naming a missing source implementation is refused before its copy count can be reported."
 msgstr "台账任务若指定缺失的源实现，则在报告其副本数前被拒绝。"
 
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native builtin evaluation refusal"
+msgstr "原生内置求值拒绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operational failure of a selected native builtin evaluation, retaining its operation and original evaluator error."
+msgstr "所选原生内置求值的操作性失败，保留其操作及求值器的原始错误。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when native evaluation refuses a selected builtin operation."
+msgstr "在原生求值拒绝所选内置操作时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret an execution refusal as a false predicate or a logical contradiction."
+msgstr "不要将执行拒绝解释为假谓词或逻辑矛盾。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the operation, antecedent bindings and original typed evaluator cause in the shared diagnostic."
+msgstr "在共享诊断中保留操作、前提绑定及求值器的原始类型化原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This operational class makes no semantic verdict about the selected rule or world."
+msgstr "此操作性类不对所选规则或世界作出语义判定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A stopped native term comparison retains the original workspace-stopped evaluator error."
+msgstr "停止的原生项比较保留求值器原始的工作区已停止错误。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native builtin evaluation boundary"
+msgstr "原生内置求值边界"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operational boundary that preserves a native builtin evaluator refusal through the reasoning diagnostic substrate."
+msgstr "通过推理诊断基础结构保留原生内置求值器拒绝的操作性边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the boundary enforced by native builtin evaluation diagnostics."
+msgstr "用于标识原生内置求值诊断所执行的边界。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a native evaluator failure with an empty solution batch."
+msgstr "不要用空解批次替换原生求值器失败。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Propagate the original evaluator error with the selected operation and its captured bindings."
+msgstr "传播求值器的原始错误以及所选操作和捕获的绑定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The boundary retains execution evidence without weakening the selected operation."
+msgstr "此边界在不削弱所选操作的情况下保留执行证据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A native comparison cancellation remains inspectable inside the enclosing builtin refusal."
+msgstr "原生比较取消仍可在外层内置拒绝中被检查。"
+
 msgctxt "https://blackcatinformatics.ca/logic/DirectSemanticsServiceRefusal|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "direct semantics service refusal"
 msgstr "直接语义服务拒绝"

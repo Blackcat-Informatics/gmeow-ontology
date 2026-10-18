@@ -16,6 +16,7 @@ use purrdf::TermValue;
 const GUARD: &str = "https://ex/guard";
 const HEAD: &str = "https://ex/bad";
 
+/// Native evaluator refusals retain the original error owner and operational class.
 #[test]
 fn native_builtin_refusal_keeps_the_original_typed_error_owner() {
     let cause = std::sync::Arc::new(purrdf::sparql::EvalError::WorkspaceStopped);
@@ -33,6 +34,10 @@ fn native_builtin_refusal_keeps_the_original_typed_error_owner() {
         .downcast_ref::<crate::error::NativeBuiltin>()
         .unwrap();
     assert!(std::sync::Arc::ptr_eq(&cause, &retained.cause));
+    assert_eq!(
+        refusal.failures[0].inner().failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal")
+    );
     assert_eq!(
         diagnostic.inner().code,
         register_code("logic.builtin-refusal")

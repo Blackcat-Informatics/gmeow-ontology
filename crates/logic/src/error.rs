@@ -133,6 +133,7 @@ define_diag_kind! {
     code = "logic.native-builtin";
     grade = logic_grade!();
     message = "native builtin {} refused: {}", operation, cause;
+    failure_class = "https://blackcatinformatics.ca/logic/NativeBuiltinEvaluationRefusal";
     source = failure => Some(failure.cause.as_ref());
 }
 
