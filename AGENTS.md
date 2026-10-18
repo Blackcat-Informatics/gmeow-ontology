@@ -249,11 +249,14 @@ make verify          # Native reasoned-graph negative tests
 make reason-verify   # Native reasoning + reasoned-graph verify, one closure (Docker-free)
 ```
 
-The native `logic:` engine is the single reasoning authority — Docker-free,
-in-process, and the sole production forward authority. `make reason-verify`
-shares one complete native result between reasoning and reasoned-graph
-verification; there is no Java/Docker lane to run separately, and no live
-second reasoner on-gate.
+GMEOW is the single authority on `logic:` semantics, including compilation,
+world scope, grounding and proof-ledger policy. PurRDF owns generic execution
+mechanisms: RDF, datatype semantics, Datalog/chase and OWL-Direct DL decision
+procedures. Keep each mechanism with that owner; do not add a parallel GMEOW
+implementation or retain an inferior fallback after its replacement qualifies.
+The production path is native, Docker-free and in-process. `make reason-verify`
+shares one complete result between reasoning and reasoned-graph verification;
+there is no Java/Docker lane to run separately, and no live second reasoner on-gate.
 
 ### Testing & Verification
 
