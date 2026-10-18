@@ -1,0 +1,140 @@
+{
+  "assignees": [
+    {
+      "id": "MDQ6VXNlcjUyNzU1NQ==",
+      "login": "paudley",
+      "name": "Patrick Audley",
+      "databaseId": 527555
+    }
+  ],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Drained from the local `.deficiencies` ledger (recorded across #930, #1546, #1570, #1580). Nothing reads that file, so these forward paths were never tracked. Re-verified against current `main` before filing.\n\n## Problem\n\nA large set of the repo's most load-bearing proofs do not run on the per-commit gate. `.config/nextest.toml:13-52` excludes **37 selectors** from `default-filter`, including:\n\n| Excluded | What it proves |\n|---|---|\n| `gmeow-pipeline & binary(fold_parity)` | the sink fold matches the committed per-named-graph bundle (`sink_fold_matches_committed_per_named_graph`) |\n| `gmeow-validate & binary(conformance_math_producers)` | the math producers' SHACL conformance (15/15) |\n| `gmeow-conformance & binary(full_divergence_gate) & /_heavy_offgate/` | the 154-case soundness scaling proof (`never_a_wrong_decided_verdict_heavy_offgate`, `native_reproduces_the_frozen_gap_heavy_offgate`) |\n| `gmeow-conformance & binary(full_decided_gate) & /_heavy_offgate/` | the decided-verdict corpus |\n| `gmeow-slicetest & run_structural_file::core/slice-quality-rubric/tests/structural.ttl` | every ratchet-cell well-formedness invariant, incl. the `saProjectionCeilingNotDoubleSliced` MUST-NOT counter-example |\n| `gmeow-docs & binary(mdbook_render)` (5 tests) | the emitted mdbook source tree |\n\n**Sharper finding \u2014 one audit runs in no lane at all.** `every_real_slice_batch_matches_parallel_scratch` (the exhaustive all-slice batch-vs-scratch reasoner parity audit) is excluded by a Rust attribute, not the filter: `crates/slice-quality/src/reasoner.rs:741` carries `#[ignore = \"exhaustive repo audit; ...\"]`. `[profile.maint-heavy]` sets `default-filter = 'all()'` (`.config/nextest.toml:59`), but `all()` does **not** un-`#[ignore]` a test. So the exhaustive audit executes in neither `make check` nor `make maint-rust-heavy`. Its only stand-in is the curated 4-slice `curated_real_slices_batch_matches_scratch` (`reasoner.rs:723`).\n\n**Related fragility.** `ACCEPTANCE_MIN_RECALL_PCT = 64.5` (`crates/pipeline/src/scoreboards.rs:766`) sits against a measured corpus-aggregate round-trip recall of 64.57 % \u2014 0.07 pp of headroom, so ordinary corpus drift reds the gate.\n\n## Work\n\nThis is a repo-wide gate-placement decision, not a per-PR one. For each excluded lane, choose exactly one and record the choice where the exclusion lives:\n\n- [ ] **Promote on-gate** \u2014 if it can be made to fit the budget.\n- [ ] **Move to `maint-heavy`** \u2014 and for `#[ignore]`d tests, actually make `maint-heavy` run them (an `#[ignore]` is invisible to `default-filter = 'all()'`; it needs `run-ignored = \"all\"` or the attribute removed under that profile).\n- [ ] **Ratify the on-gate proxy in writing** \u2014 name the proxy and what it does not cover, next to the exclusion.\n\n- [ ] Decide whether `every_real_slice_batch_matches_parallel_scratch` should run anywhere; today it does not.\n- [ ] Re-baseline or widen the headroom on `ACCEPTANCE_MIN_RECALL_PCT`, or document the 0.07 pp margin as intended.\n\n## Acceptance\n\n- Every entry in the `default-filter` exclusion list carries an inline justification naming its on-gate proxy or its off-gate home.\n- No test is excluded from every lane.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABLyfDKg",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "<!-- This is an auto-generated issue plan by CodeRabbit -->\n<details>\n<summary>\ud83d\udd17 Related PRs</summary>\n\nBlackcat-Informatics/gmeow-ontology#1052 - feat(1045): fast, budget-enforced Rust test suite \u2014 shard corpus_parity, 25s gate, off-gate heavy tests [merged]\nBlackcat-Informatics/gmeow-ontology#1519 - perf: optimize native reasoning and gate composition [merged]\nBlackcat-Informatics/gmeow-ontology#1547 - perf: cut bundle startup and repo-scale gate costs [merged]\nBlackcat-Informatics/gmeow-ontology#1583 - ci(logic): remove the downstream PurRDF entailment cross-check [merged]\nBlackcat-Informatics/gmeow-ontology#1586 - feat(1459): native ontology-surface authoring gates [merged]\n</details>\n\n---\n<details>\n<summary>\ud83d\udcdd Issue Planner</summary>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</details>\n\n\n---\n<details>\n<summary> \ud83e\uddea Issue enrichment is currently in open beta.</summary>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</details>\n\n\ud83d\udcac Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-07-27T00:17:38Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1644#issuecomment-5086102314",
+      "viewerDidAuthor": false
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABSr30Rw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Re-verified against `main` @ c2b03aba6 \u2014 the \"sharper finding\" is now stale\n\nChecked while inventorying open issues. Most of this issue verifies exactly; one part does not.\n\n**Still accurate:**\n\n- `.config/nextest.toml` excludes **37** selectors from `default-filter`.\n- `ACCEPTANCE_MIN_RECALL_PCT = 64.5` (`crates/pipeline/src/scoreboards.rs`) \u2014 unchanged, still 0.07 pp from the measured aggregate.\n- `run-ignored` is **not** set anywhere in `.config/nextest.toml`, so `[profile.maint-heavy]`'s `default-filter = 'all()'` still does not un-`#[ignore]` anything. The mechanism this issue identified is intact.\n\n**No longer accurate \u2014 the named example is gone:**\n\n> `every_real_slice_batch_matches_parallel_scratch` ... is excluded by a Rust attribute ... `crates/slice-quality/src/reasoner.rs:741`\n\nNeither `every_real_slice_batch_matches_parallel_scratch` nor its curated stand-in `curated_real_slices_batch_matches_scratch` exists anywhere in the tree:\n\n```\n$ git grep -l 'batch_matches_parallel_scratch\\|batch_matches_scratch' origin/main -- 'crates/**/*.rs'\n(no matches)\n$ git show origin/main:crates/slice-quality/src/reasoner.rs | grep -c '#\\[ignore'\n0\n```\n\nSo the exhaustive all-slice reasoner-parity audit is not \"running in no lane\" \u2014 it is not in the tree at all. Whether it was deliberately retired or lost is worth establishing before this issue is worked, because \"restore the audit\" and \"put the existing audit in a lane\" are different tasks.\n\n**The general point survives with different examples.** Five files still carry `#[ignore]`d tests that no profile runs:\n\n```\ncrates/gmeow-dev-cli/tests/cli_parity.rs\ncrates/gmn-cost-matrix/src/lib.rs\ncrates/lang-bridge/tests/conllu.rs\ncrates/lang-bridge/tests/ontolex.rs\ncrates/mcp/src/lib.rs\n```\n\nSuggest re-anchoring the \"sharper finding\" section on those, and adding \"confirm whether the batch-vs-scratch audit should be restored\" as its own line item.\n\n*Method: existence and configuration checks against `origin/main`, not a run of this issue's acceptance criteria.*",
+      "createdAt": "2026-09-05T03:05:14Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1644#issuecomment-5548930119",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABSx503g",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Re-verified against `main` @ `65a23b99c` \u2014 most of this issue is already done\n\nI checked every claim in the body before acting. The bulk of the exclusion table has been promoted on-gate since filing; what survives is one structural defect, which PR #1721 fixes.\n\n### The exclusion table is stale \u2014 5 of 6 rows no longer exist\n\n`.config/nextest.toml` now carries **16** exclusion clauses, not 37. Grepping the live config:\n\n| Claimed exclusion | On `main` today |\n| --- | --- |\n| `gmeow-pipeline & binary(fold_parity)` | **absent** \u2014 0 hits |\n| `gmeow-validate & binary(conformance_math_producers)` | **absent** \u2014 0 hits |\n| `gmeow-conformance & binary(full_decided_gate) & /_heavy_offgate/` | **absent** \u2014 0 hits |\n| `gmeow-slicetest & \u2026/slice-quality-rubric/tests/structural.ttl` | **absent** \u2014 0 hits |\n| `gmeow-docs & binary(mdbook_render)` (5 tests) | **not excluded** \u2014 it appears only as a `slow-timeout` override for one test |\n| `gmeow-conformance & binary(full_divergence_gate) & /_heavy_offgate/` | still excluded (line 19) |\n\nSo the fold parity, math-producer conformance, decided-verdict corpus, and ratchet-cell structural invariants all run on the per-commit gate now.\n\n### The \"sharper finding\" is also stale \u2014 but its *mechanism* was real and still live\n\n`every_real_slice_batch_matches_parallel_scratch` **no longer exists anywhere in the workspace** (0 hits), nor does `curated_real_slices_batch_matches_scratch`. That specific audit cannot be laneless because it is gone.\n\nBut the underlying mechanism the issue identified was correct and still applied to **every other** `#[ignore]`d test: `default-filter = 'all()'` does not un-`#[ignore]` anything, and **`run-ignored` appeared nowhere in the repository**. Five `#[ignore]`d tests therefore ran in no lane at all, and one of them carried the attribute text `\"heavy lane only\"` plus a doc comment saying *\"run in the heavy lane\"* \u2014 a false claim about what the build enforces (P11).\n\n### `ACCEPTANCE_MIN_RECALL_PCT` \u2014 still 64.5, at `scoreboards.rs:770` (not 766)\n\nLeft alone deliberately. Re-baselining a floor is a ratchet move and P10 says ratchets move down only; widening headroom without a measured cause would be exactly the \"re-threshold until it stops reporting\" that P7 forbids. If the 0.07 pp margin actually reds a build, that red is the evidence needed to act, and it belongs in its own issue with the measurement attached. I have no such measurement.\n\n### What PR #1721 does\n\n- `run-ignored = \"all\"` on `[profile.maint-heavy]`, plus the 900 s budget the MCP deep test's own comment says it needs \u2014 without which enabling it would just red by timeout (P7).\n- Two families stay out of the breadth lane, excluded **by name** so the decision is visible: the two lang-bridge corpus sweeps (hard-fail without CC BY-SA / third-party data that deliberately does not ship) and `measurement_is_deterministic_across_two_runs` (calls `run_pipeline_products` twice \u2014 a test may never rebuild the corpus, P1). Each gets its own `make` target, so neither is laneless.\n- Deleted `wikidata_existence_live_lookup`: `#[ignore]`d **and** opening with `if env::var(\"GMEOW_RUN_NETWORK\") != Ok(\"1\") { return; }`, so it could not fail on either path (P8), and its body duplicated `make maint-wikidata-live`.\n- `every_ignored_test_is_reachable_from_some_lane` makes the acceptance criterion *\"No test is excluded from every lane\"* mechanical rather than aspirational.\n\n### Remaining scope\n\nThe first checkbox \u2014 *\"every entry in the exclusion list carries an inline justification naming its on-gate proxy or its off-gate home\"* \u2014 is **not** done for the 16 surviving per-commit clauses. They are covered by one block comment at the head of `default-filter` rather than per clause. That is the honest remainder of this issue and I have left it open.",
+      "createdAt": "2026-09-05T22:36:36Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1644#issuecomment-5555254494",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABSyqU3A",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "PR #1721 landed (`d53f4e5c7`). The structural defect is fixed: `make maint-rust-heavy` now passes `--run-ignored all`, every `#[ignore]`d test is reachable from a named lane, and `every_ignored_test_is_reachable_from_some_lane` + `the_breadth_lane_actually_runs_ignored_tests` keep it that way.\n\nWorth recording, because it is the same class of bug this issue is about: I first wrote `run-ignored = \"all\"` into `[profile.maint-heavy]`. It is **not a profile key** \u2014 nextest emits `warning: ignoring unknown configuration key` and proceeds \u2014 so a full `make check` passed green over a config that changed nothing at all. A warning is not a gate. The contract test now forbids the key in the config and requires the flag on the recipe.\n\n**Still open, deliberately:**\n\n- [ ] Per-clause justification for the 16 surviving `default-filter` exclusions. They share one block comment at the head of the filter; the acceptance criterion asks for an inline justification naming each one's on-gate proxy or off-gate home.\n- [ ] `ACCEPTANCE_MIN_RECALL_PCT` headroom (`scoreboards.rs:770`, not 766). Untouched on purpose: re-baselining a floor without a measured cause is the re-thresholding P7 forbids, and P10 says ratchets move down only. If the 0.07 pp margin actually reds a build, that red is the evidence \u2014 and it deserves its own issue with the measurement attached.\n\nThe exclusion-table rows and the `every_real_slice_batch_matches_parallel_scratch` finding are stale and need no action; details in the comment above.",
+      "createdAt": "2026-09-06T01:23:08Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1644#issuecomment-5556049116",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABS1grmA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "PR #1726 landed. The first acceptance criterion is now met: every one of the fifteen per-commit exclusions carries its own numbered justification, and `every_default_filter_clause_is_justified` pins each reason to its clause positionally so they cannot drift apart.\n\nOne correction to the criterion itself, worth recording: it asks for an **inline** justification, and that is not implementable. A nextest filterset is an expression, not a config table, and rejects `#`:\n\n```\nerror: for config file .config/nextest.toml, failed to parse profile.default.default-filter\n  error: expected expression\n```\n\nThe numbered list immediately above the filter, plus a test enforcing the pairing, is the closest honest equivalent.\n\nWhere a required sibling genuinely exists it is named; where I could not verify one, the entry names the off-gate home instead of inventing a proxy \u2014 the criterion allows either, and a fabricated proxy would be exactly the defect this issue exists to remove.\n\n**Remaining on this issue:** only the `ACCEPTANCE_MIN_RECALL_PCT` headroom, which I have deliberately left alone. Re-baselining a floor without a measured cause is the re-thresholding P7 forbids, and P10 says ratchets move down only. If that 0.07 pp margin ever actually reds a build, that red is the evidence, and it deserves its own issue with the measurement attached.",
+      "createdAt": "2026-09-06T11:54:21Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1644#issuecomment-5559036824",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-07-27T00:14:49Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO7qg",
+      "name": "complexity-medium",
+      "description": "A real feature/refactor; moderate scope, one slice/crate",
+      "color": "fbca04"
+    }
+  ],
+  "milestone": null,
+  "number": 1644,
+  "state": "OPEN",
+  "title": "gate-profile: promote or ratify the off-gate proof lanes",
+  "updatedAt": "2026-09-06T11:54:21Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1644"
+}
