@@ -154,7 +154,10 @@ fn aggregate_recall_gate_rejects_unmeasured_corpora_even_with_a_zero_floor() {
         "<urn:recall:class> <http://www.w3.org/2002/07/owl#equivalentClass> <urn:recall:peer> .\n",
     )
     .unwrap();
-    let round_trip = gate_round_trip(&source, &source, &HashMap::new()).unwrap();
+    // Use the same language-map loader as the real acceptance context rather
+    // than introducing a second table constructor for this regression.
+    let tag_map = gmeow_validate::language_tags::load_tag_map(b"", "nt").unwrap();
+    let round_trip = gate_round_trip(&source, &source, &tag_map).unwrap();
     assert_eq!(round_trip.metrics["addressable"], 0.0);
     let linkage_only = vec![FileAcceptance {
         source: "linkage-only.ttl".to_owned(),
