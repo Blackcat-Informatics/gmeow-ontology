@@ -55,7 +55,7 @@ serde_json.workspace = true
 # The blob store's content addressing: `integrity_report` recomputes each blob's
 # `blake3:<hex>` digest and compares it against the stored key, so a silently
 # corrupted blob is caught on read.
-blake3.workspace = true
+purrdf-hash.workspace = true
 # The snapshot's per-blob `pub` metadata maps are the substrate's CBOR `Value`s;
 # recovering a blob's declared rep + media type reads them as the gts composer wrote them.
 purrdf-lex.workspace = true

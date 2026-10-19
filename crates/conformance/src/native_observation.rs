@@ -75,7 +75,11 @@ pub fn read(
         std::fs::read(path).map_err(|error| fail(format!("read {}: {error}", path.display())))?;
     let dataset = dataset_from_bytes(&bytes, NativeRdfFormat::NQuads)
         .map_err(|error| fail(format!("parse {}: {error}", path.display())))?;
-    observe(&dataset, *blake3::hash(&bytes).as_bytes(), operation)
+    observe(
+        &dataset,
+        *purrdf_hash::blake3::hash(&bytes).as_bytes(),
+        operation,
+    )
 }
 
 fn fail(detail: String) -> gmeow_errors::Diag {

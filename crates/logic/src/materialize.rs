@@ -250,7 +250,7 @@ pub(crate) fn selected_materialization_contract_hash(
     limits: MaterializationLimits,
     declared_profile: Option<gmeow_logic_compile::ir::SemanticProfileId>,
 ) -> String {
-    fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
+    fn frame(hasher: &mut purrdf_hash::blake3::Hasher, value: &[u8]) {
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
     }
@@ -258,7 +258,7 @@ pub(crate) fn selected_materialization_contract_hash(
     let mut worlds = worlds.to_vec();
     worlds.sort();
     worlds.dedup();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(
         &mut hasher,
         b"gmeow-selected-view-materialization-contract-v1",
@@ -285,7 +285,7 @@ pub(crate) fn selected_materialization_contract_hash(
     for world in worlds {
         frame(&mut hasher, world.as_bytes());
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 fn selected_materialization_patterns(

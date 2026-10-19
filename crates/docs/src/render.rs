@@ -23,6 +23,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
+use gmeow_docs_model::slug::short_iri_digest;
 use minijinja::{Environment, context};
 use pulldown_cmark::{Options, Parser, html as cmark_html};
 
@@ -726,7 +727,7 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
     let entry = |path: &str, bytes: &[u8]| {
         format!(
             "  \"{path}\": {{ \"blake3\": \"blake3:{d}\", \"bytes\": {n} }}",
-            d = blake3::hash(bytes).to_hex(),
+            d = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bytes).as_bytes()),
             n = bytes.len(),
         )
     };
@@ -6882,13 +6883,6 @@ fn category_slug(category: DocTermCategory) -> &'static str {
         DocTermCategory::Datatype => "datatype",
         DocTermCategory::Other => "other",
     }
-}
-
-/// A short, stable IRI discriminator: the first 12 hex chars of the full IRI's
-/// BLAKE3 digest — a deterministic, order-independent tiebreak for the rare case
-/// where two distinct terms share BOTH a base slug and a category.
-fn short_iri_digest(iri: &str) -> String {
-    blake3::hash(iri.as_bytes()).to_hex()[..12].to_owned()
 }
 
 /// Resolve the disambiguated `documentation/term/{slug}` slug for every term whose

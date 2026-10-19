@@ -65,7 +65,7 @@ serde.workspace = true
 # comparison + agreement-tally individuals (the SAME hash the diagnostics finding
 # IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals
 # are deterministic and blank-node-free.
-blake3.workspace = true
+purrdf-hash.workspace = true
 [dev-dependencies]
 gmeow-bundle-import = { path = "../bundle-import" }
 # RAII temp directories/files for tests. Every scratch path a test creates is

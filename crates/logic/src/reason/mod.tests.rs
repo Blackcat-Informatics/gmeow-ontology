@@ -750,10 +750,10 @@ fn native_contract_hash_folds_the_purrdf_substrate_identity() {
         id.contains(purrdf::datalog::cache::CALCULUS_VERSION),
         "the datalog calculus version must reach the folded identity: {id}"
     );
-    let owl_rl = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+    let owl_rl = purrdf_hash::hex::Digest32::new(purrdf::datalog::cache::canonical_rule_hash(
         &purrdf::entail::calculus_program(purrdf::entail::Regime::OwlRl),
     ));
-    let datatype = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+    let datatype = purrdf_hash::hex::Digest32::new(purrdf::datalog::cache::canonical_rule_hash(
         &purrdf::entail::calculus_program(purrdf::entail::Regime::D),
     ));
     assert!(
@@ -2540,7 +2540,8 @@ fn portable_semantic_identity_excludes_target_execution_contracts() {
         );
         assert!(!semantic.contains(&native.to_hex()));
         assert!(!semantic.contains(&browser.to_hex()));
-        let rules_hash = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(&rules));
+        let rules_hash =
+            purrdf_hash::hex::Digest32::new(purrdf::datalog::cache::canonical_rule_hash(&rules));
         assert!(
             semantic.contains(rules_hash.to_hex().as_str()),
             "the full ordered rule program still owns the semantic seal"

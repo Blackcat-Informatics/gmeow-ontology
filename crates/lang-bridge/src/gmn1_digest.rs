@@ -88,7 +88,7 @@ pub fn codebook_digest(codebook: &CurrentCodebook, dict: &GmnDictionary) -> Stri
     }
     format!(
         "{ALGO_PREFIX}{}",
-        blake3::hash(preimage.as_bytes()).to_hex()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(preimage.as_bytes()).as_bytes())
     )
 }
 
@@ -175,7 +175,7 @@ pub fn pack_root(
 /// the bundle pins, never needing the raw artifact from a source checkout.
 #[must_use]
 pub fn view_leaf(view_bytes: &[u8]) -> String {
-    blake3::hash(view_bytes).to_hex().to_string()
+    purrdf_hash::hex::encode(purrdf_hash::blake3::hash(view_bytes).as_bytes())
 }
 
 /// The `gmn-grammar` Merkle leaf (pack-root part 2): [`view_leaf`] over the authored `gmn.ebnf`
@@ -219,7 +219,7 @@ pub fn pack_root_from_grammar_leaf(
     }
     format!(
         "{ALGO_PREFIX}{}",
-        blake3::hash(preimage.as_bytes()).to_hex()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(preimage.as_bytes()).as_bytes())
     )
 }
 
@@ -234,14 +234,15 @@ pub fn pack_root_from_grammar_leaf(
 /// # Errors
 /// Returns the original native model-construction failure.
 pub fn content_digest(model: &Gmn0Model) -> gmeow_errors::Result<String> {
-    Ok(canonical_content_digest(&model.canonical_nquads()?))
+    Ok(tagged_text_digest(&model.canonical_nquads()?))
 }
 
-/// Hash an already canonicalized model without rebuilding its native dataset.
-pub(crate) fn canonical_content_digest(canonical: &str) -> String {
+/// Address exact UTF-8 text as `blake3:<64 lowercase hex digits>`.
+/// Semantic callers supply canonical text; this function preserves the input bytes.
+pub fn tagged_text_digest(text: &str) -> String {
     format!(
         "{ALGO_PREFIX}{}",
-        blake3::hash(canonical.as_bytes()).to_hex()
+        purrdf_hash::hex::Lower(purrdf_hash::blake3::hash(text.as_bytes()).as_bytes())
     )
 }
 
@@ -300,9 +301,7 @@ pub(crate) fn codebook_digest_leaves(
 fn leaf_hex(lines: Vec<String>) -> String {
     let mut lines: Vec<String> = lines.into_iter().map(|l| l.nfc().collect()).collect();
     lines.sort();
-    blake3::hash(lines.join("\n").as_bytes())
-        .to_hex()
-        .to_string()
+    purrdf_hash::hex::encode(purrdf_hash::blake3::hash(lines.join("\n").as_bytes()).as_bytes())
 }
 
 #[path = "gmn1_digest.tests.rs"]

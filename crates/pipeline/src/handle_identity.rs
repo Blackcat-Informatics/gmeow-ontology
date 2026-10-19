@@ -34,7 +34,7 @@ pub(crate) fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
 
 /// Hash typed framing without allocating or retaining a serialized program.
 #[derive(Default)]
-struct TypedDigest(blake3::Hasher);
+struct TypedDigest(purrdf_hash::blake3::Hasher);
 
 impl std::io::Write for TypedDigest {
     fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
@@ -52,7 +52,7 @@ pub(crate) fn typed_digest(value: &impl serde::Serialize) -> String {
     let mut sink = TypedDigest::default();
     ciborium::ser::into_writer(value, &mut sink)
         .expect("derived typed serialization into an infallible hash sink");
-    sink.0.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
 /// The complete payload identity is independent of its governed RDF projection.
@@ -143,4 +143,32 @@ pub(crate) fn contains_graph(bundle: &PipelineBundle<PipelineHandle>, graph: &st
         .dataset()
         .owned_named_graphs()
         .any(|term| matches!(term, RdfTerm::Iri(iri) if iri == graph))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::typed_digest;
+
+    #[test]
+    fn persisted_payload_identity_vectors() {
+        let small = serde_json::json!({
+            "kind": "typed-product",
+            "value": u64::MAX,
+            "label": "RDF λ",
+            "selected": true,
+            "absent": null,
+        });
+        let large = serde_json::json!({
+            "rows": [small.clone()],
+            "text": "RDF λ\0𝄞".repeat(4097),
+        });
+        let actual = [typed_digest(&small), typed_digest(&large)];
+        assert_eq!(
+            actual,
+            [
+                "5b6ec069af9fc0e442f343053b73d9261904371272ff2c34bb246585d78ab625",
+                "b66ca0e37f9260dd069b14af34f2c6fef204940c940c0d70c5e4b3cbd8fdcb23",
+            ]
+        );
+    }
 }

@@ -75,7 +75,8 @@ impl Observations {
             let reparse = emission.grammar_reparse.as_ref().ok_or_else(|| {
                 super::stage_err("selected grammar emission has no native reparse")
             })?;
-            let digest = blake3::hash(&artifact.bytes).to_hex().to_string();
+            let digest =
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&artifact.bytes).as_bytes());
             if reparse.emitted_digest != digest {
                 return Err(super::stage_err(format!(
                     "native grammar reparse does not match artifact {}",

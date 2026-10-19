@@ -5,7 +5,7 @@ use super::*;
 use crate::runtime::OutcomeTag;
 
 fn digest(label: &str) -> String {
-    blake3::hash(label.as_bytes()).to_hex().to_string()
+    purrdf_hash::hex::encode(purrdf_hash::blake3::hash(label.as_bytes()).as_bytes())
 }
 
 fn observation(count: usize) -> JournalObservation {

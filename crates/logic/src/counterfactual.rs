@@ -679,7 +679,7 @@ fn incremental_base_key(
     program: &QProgram,
     profile: &str,
 ) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-counterfactual-incremental-base-v1\n");
     hasher.update(&hash_facts(base_facts));
     hasher.update(&hash_rules(program));
@@ -687,19 +687,19 @@ fn incremental_base_key(
     hasher.update(crate::profile_gate::canonical_profile_identity(profile).as_bytes());
     hasher.update(b"\n");
     hasher.update(SOLVER_VERSION.as_bytes());
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// BLAKE3 of the typed goal structure. Every field is length-framed and every term
 /// variant is domain-tagged, so cache identity is independent of `Debug` rendering
 /// and cannot confuse a variable, constant, or number with the same surface text.
 fn hash_goal(goal: &crate::query_ir::QGoal) -> [u8; 32] {
-    fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
+    fn frame(hasher: &mut purrdf_hash::blake3::Hasher, value: &[u8]) {
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
     }
 
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, b"gmeow-counterfactual-goal-v1");
     hasher.update(&(goal.atoms.len() as u64).to_le_bytes());
     for atom in &goal.atoms {
@@ -823,7 +823,7 @@ fn hash_facts(facts: &[(String, String, String)]) -> [u8; 32] {
         buf.push_str(o);
         buf.push_str(">\n");
     }
-    *blake3::hash(buf.as_bytes()).as_bytes()
+    *purrdf_hash::blake3::hash(buf.as_bytes()).as_bytes()
 }
 
 /// BLAKE3 of the per-slot antecedent choices (subject, predicate, sorted values).
@@ -846,7 +846,7 @@ fn hash_choices(choices: &[SlotChoice]) -> [u8; 32] {
         }
         buf.push('\n');
     }
-    *blake3::hash(buf.as_bytes()).as_bytes()
+    *purrdf_hash::blake3::hash(buf.as_bytes()).as_bytes()
 }
 
 /// BLAKE3 of a canonical serialization of the program's Horn rules (the goal and
@@ -871,7 +871,7 @@ fn hash_rules(program: &QProgram) -> [u8; 32] {
         })
         .collect();
     lines.sort();
-    *blake3::hash(lines.join("\n").as_bytes()).as_bytes()
+    *purrdf_hash::blake3::hash(lines.join("\n").as_bytes()).as_bytes()
 }
 
 /// Canonical text for one `QTerm` in the rule-hash serialization. A quoted-triple term

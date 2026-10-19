@@ -82,7 +82,7 @@ impl ChaseCertificate {
         finding.message = format!("world <{}>: {}", self.world, finding.message);
         finding.message = format!(
             "input contract {}: {}",
-            blake3::Hash::from(self.input_contract).to_hex(),
+            purrdf_hash::hex::Digest32::new(self.input_contract).to_hex(),
             finding.message,
         );
         finding
@@ -171,10 +171,10 @@ fn framed_native_component_source() -> String {
 /// mint different domain witnesses and verdict identities on different targets.
 /// No execution limit is selected, changed or discarded by this semantic identity.
 fn purrdf_substrate_identity() -> String {
-    let owl_rl = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+    let owl_rl = purrdf_hash::hex::Digest32::new(purrdf::datalog::cache::canonical_rule_hash(
         &purrdf::entail::calculus_program(purrdf::entail::Regime::OwlRl),
     ));
-    let datatype = blake3::Hash::from(purrdf::datalog::cache::canonical_rule_hash(
+    let datatype = purrdf_hash::hex::Digest32::new(purrdf::datalog::cache::canonical_rule_hash(
         &purrdf::entail::calculus_program(purrdf::entail::Regime::D),
     ));
     format!(

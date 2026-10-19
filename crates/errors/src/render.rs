@@ -158,7 +158,7 @@ fn sarif_artifacts(report: &Report) -> Vec<Value> {
 /// `"ab|c"` distinct from `"a|bc"`.
 fn stable_fingerprint(finding: &Finding) -> String {
     let (severity, code, location, message) = finding.sort_key();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
 
     // The primary finding fields, each followed by a field separator.
     for part in [severity.as_str(), code, location.as_str(), message] {

@@ -122,7 +122,7 @@ impl<'a> PreparedPath<'a> {
             request: query.request.into(),
             formula_identity: query.formula_identity.into(),
             anchor: query.anchor.into(),
-            identity: blake3::hash(&basis).to_hex().to_string(),
+            identity: purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&basis).as_bytes()),
             program,
         })
     }
@@ -168,8 +168,10 @@ impl PreparedPathQuery<'_, '_> {
             max_steps,
         ))
         .expect("admitted path query serializes");
-        let mut provenance =
-            ResultProvenance::native(blake3::hash(&basis).to_hex().to_string(), &selection.world);
+        let mut provenance = ResultProvenance::native(
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&basis).as_bytes()),
+            &selection.world,
+        );
         provenance.query = self.formula_identity.clone();
         provenance.conclusion = self.formula_identity.clone();
         provenance.context.standpoint = Some(selection.standpoint.clone());
@@ -298,7 +300,7 @@ impl<'a> PathFrame<'a> {
         rdf.index_claims(&[])?;
         let basis = serde_json::to_vec(&(selection, rdf.basis_digest(), &order_witnesses))
             .expect("admitted path basis serializes");
-        let source_digest = blake3::hash(&basis).to_hex().to_string();
+        let source_digest = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&basis).as_bytes());
         let observation = PathObservation {
             identity: format!("urn:gmeow:path-observation:{source_digest}"),
             path: selection.path.clone(),

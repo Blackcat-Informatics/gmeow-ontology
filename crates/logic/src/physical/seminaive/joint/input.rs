@@ -31,7 +31,7 @@ mod reachability;
 
 /// A digest-only formatter for immutable native rule metadata. No serialized RDF
 /// or temporary text buffer is produced; the executable source remains native IR.
-struct MetadataDigest(blake3::Hasher, usize);
+struct MetadataDigest(purrdf_hash::blake3::Hasher, usize);
 
 fn flow_cardinality_guards(rule: &PreparedPropertyRule) -> Vec<FlowCardinalityGuard> {
     let count = |term: &EvalTerm| match term {
@@ -206,7 +206,7 @@ impl std::fmt::Write for MetadataDigest {
 /// Selection identity inside one immutable PreparedProgram. All property law
 /// fields, including list operators and source names, participate in this key.
 pub(crate) fn schema_identity(properties: &[PreparedPropertyRule]) -> [u8; 32] {
-    let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
+    let mut digest = MetadataDigest(purrdf_hash::blake3::Hasher::new(), 0);
     digest.0.update(b"gmeow-native-schema-template-v1\0");
     digest.0.update(&(properties.len() as u64).to_le_bytes());
     for property in properties {
@@ -512,7 +512,7 @@ impl JointTemplate {
         } else {
             admission::Template::new(rules, producers, properties, &families)
         };
-        let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
+        let mut digest = MetadataDigest(purrdf_hash::blake3::Hasher::new(), 0);
         digest.0.update(b"gmeow-native-joint-value-flow-v5\0");
         write!(digest, "{rules:?}").expect("digest-only formatter");
         for property in properties {
@@ -858,7 +858,7 @@ impl JointTemplate {
             &(shape, world_shapes, contextual_effects, &constructor_lists),
         );
         if let Some(Ok(evidence)) = &evidence {
-            let mut digest = blake3::Hasher::new();
+            let mut digest = purrdf_hash::blake3::Hasher::new();
             digest.update(b"gmeow-native-source-admission-v1\0");
             digest.update(&identity);
             digest.update(&evidence.identity);
@@ -901,7 +901,7 @@ impl JointTemplate {
             return Ok(Arc::clone(&entry.effects));
         }
         let effects = Arc::new(flow.refine(&self.effects, summary));
-        let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
+        let mut digest = MetadataDigest(purrdf_hash::blake3::Hasher::new(), 0);
         write!(digest, "{effects:?}").expect("digest-only formatter");
         if self.cacheable() && digest.1 <= 1024 * 1024 {
             let mut cache = self.analyses.lock().map_err(lock_error)?;

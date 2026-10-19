@@ -298,7 +298,7 @@ pub(super) fn record(
             });
             let admission = selected.class_admission.then(|| {
                 input.observe(store, "class-source-admission-v1", |dataset| {
-                    let observed = gmeow_conformance::native_observation::observe(dataset, *blake3::hash(&input.bytes).as_bytes(),
+                    let observed = gmeow_conformance::native_observation::observe(dataset, *purrdf_hash::blake3::hash(&input.bytes).as_bytes(),
                         gmeow_conformance::native_observation::NativeCaseOperation::ClassSourceAdmission)?;
                     let gmeow_conformance::native_observation::NativeCaseObservation::ClassSourceAdmission(observed) = observed else {
                         return Err(super::stage_err("source admission returned another native operation"));

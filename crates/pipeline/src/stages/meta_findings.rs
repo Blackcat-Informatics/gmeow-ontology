@@ -524,7 +524,7 @@ impl MetaProgram {
 /// directions of the symmetric conflict mint ONE witness (the sort is internal).
 fn glut_witness_iri(a: &str, b: &str) -> String {
     let (lo, hi) = if a <= b { (a, b) } else { (b, a) };
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     feed(&mut hasher, b"predicate", CROSS_NODE_GLUT_WITH.as_bytes());
     feed(&mut hasher, b"finding", lo.as_bytes());
     feed(&mut hasher, b"finding", hi.as_bytes());
@@ -534,7 +534,7 @@ fn glut_witness_iri(a: &str, b: &str) -> String {
 
 /// Length-prefixed, domain-separated field feed — a length prefix before every
 /// field makes cross-field delimiter-injection collisions impossible.
-fn feed(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
+fn feed(hasher: &mut purrdf_hash::blake3::Hasher, tag: &[u8], bytes: &[u8]) {
     hasher.update(&(tag.len() as u64).to_le_bytes());
     hasher.update(tag);
     hasher.update(&(bytes.len() as u64).to_le_bytes());

@@ -362,12 +362,12 @@ impl<OperationalError: std::fmt::Display, BackendEvidence> std::fmt::Display
 /// records "answer minted under contract Y" reproduces the same Y, and there is never a
 /// second copy of this hash to drift.
 pub(crate) fn query_contract_hash(profile: &str, budget: &Budget) -> String {
-    fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
+    fn frame(hasher: &mut purrdf_hash::blake3::Hasher, value: &[u8]) {
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
     }
 
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, b"gmeow-backward-query-contract-v1");
     let canonical_profile = profile_gate::canonical_profile_identity(profile);
     frame(&mut hasher, canonical_profile.as_bytes());
@@ -389,7 +389,7 @@ pub(crate) fn query_contract_hash(profile: &str, budget: &Budget) -> String {
             hasher.update(&[0]);
         }
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 pub(crate) fn annotated_query_contract_hash(
@@ -400,7 +400,7 @@ pub(crate) fn annotated_query_contract_hash(
 ) -> String {
     let base_contract = query_contract_hash(profile, budget);
     let annotation_frame = annotation.canonical_key();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for value in [
         "gmeow-annotated-query-contract-v2",
         base_contract.as_str(),
@@ -410,7 +410,7 @@ pub(crate) fn annotated_query_contract_hash(
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value.as_bytes());
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 pub(crate) fn external_relation_query_contract_hash(
@@ -421,7 +421,7 @@ pub(crate) fn external_relation_query_contract_hash(
     provider_manifest_hash: &str,
 ) -> String {
     let annotated = annotated_query_contract_hash(profile, budget, annotation, algebra_identity);
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for value in [
         "gmeow-external-relation-query-contract-v1",
         annotated.as_str(),
@@ -430,7 +430,7 @@ pub(crate) fn external_relation_query_contract_hash(
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value.as_bytes());
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// Resolve `program` against `world` with the native physical core.

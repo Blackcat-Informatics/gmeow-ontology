@@ -21,7 +21,6 @@ purrdf-hash.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 purrdf-core.workspace = true
-blake3.workspace = true
 
 [dev-dependencies]
 # insta: whole-output snapshot goldens for the five renderers. The

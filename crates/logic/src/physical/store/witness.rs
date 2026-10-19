@@ -18,14 +18,14 @@ use super::RelationStore;
 /// A streamed, typed debug commitment to immutable native execution metadata.
 /// Source terms retain their full values; no RDF serialization or term IDs enter it.
 pub(crate) fn metadata_identity(domain: &str, value: &impl std::fmt::Debug) -> [u8; 32] {
-    struct Digest(blake3::Hasher);
+    struct Digest(purrdf_hash::blake3::Hasher);
     impl std::fmt::Write for Digest {
         fn write_str(&mut self, value: &str) -> std::fmt::Result {
             self.0.update(value.as_bytes());
             Ok(())
         }
     }
-    let mut digest = Digest(blake3::Hasher::new());
+    let mut digest = Digest(purrdf_hash::blake3::Hasher::new());
     digest.0.update(domain.as_bytes());
     digest.0.update(&[0]);
     write!(digest, "{value:?}").expect("digest-only formatter");
@@ -96,15 +96,19 @@ impl SkolemTerm {
         frame(&mut key, &self.scope.world);
         frame(
             &mut key,
-            blake3::Hash::from(self.scope.contract).to_hex().as_str(),
+            purrdf_hash::hex::Digest32::new(self.scope.contract)
+                .to_hex()
+                .as_str(),
         );
         frame(
             &mut key,
-            blake3::Hash::from(self.scope.source_rule).to_hex().as_str(),
+            purrdf_hash::hex::Digest32::new(self.scope.source_rule)
+                .to_hex()
+                .as_str(),
         );
         frame(
             &mut key,
-            blake3::Hash::from(metadata_identity(
+            purrdf_hash::hex::Digest32::new(metadata_identity(
                 "gmeow-witness-origin-v1",
                 &self.scope.origin,
             ))

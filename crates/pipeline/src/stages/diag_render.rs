@@ -148,12 +148,15 @@ pub fn record_digest(report: &Report, key: &str) -> Result<String, gmeow_errors:
             message: format!("digesting the recorded {} verdict: {e}", canonical.tool),
         })
     })?;
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-diagnostics-record-v1\x1e");
     hasher.update(key.as_bytes());
     hasher.update(b"\x1e");
     hasher.update(&bytes);
-    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+    Ok(format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+    ))
 }
 
 /// Admit `recorded` only if it carries a `key` metadata entry AND its content folds to

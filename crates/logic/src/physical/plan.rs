@@ -214,7 +214,7 @@ pub(super) fn compile_certified_stratum(
     if indices.is_empty() {
         return None;
     }
-    let mut digest = blake3::Hasher::new();
+    let mut digest = purrdf_hash::blake3::Hasher::new();
     digest.update(b"gmeow-joint-selected-rule-keys-v1\0");
     digest.update(&(indices.len() as u64).to_le_bytes());
     for &index in &indices {
@@ -303,16 +303,16 @@ fn static_planning_units(rules: &[EvalRule]) -> u64 {
     })
 }
 
-fn frame(hasher: &mut blake3::Hasher, bytes: &[u8]) {
+fn frame(hasher: &mut purrdf_hash::blake3::Hasher, bytes: &[u8]) {
     hasher.update(&(bytes.len() as u64).to_le_bytes());
     hasher.update(bytes);
 }
 
-fn frame_str(hasher: &mut blake3::Hasher, value: &str) {
+fn frame_str(hasher: &mut purrdf_hash::blake3::Hasher, value: &str) {
     frame(hasher, value.as_bytes());
 }
 
-fn hash_eval_term(hasher: &mut blake3::Hasher, term: &EvalTerm) {
+fn hash_eval_term(hasher: &mut purrdf_hash::blake3::Hasher, term: &EvalTerm) {
     match term {
         EvalTerm::Var(name) => {
             hasher.update(&[0]);
@@ -329,14 +329,14 @@ fn hash_eval_term(hasher: &mut blake3::Hasher, term: &EvalTerm) {
     }
 }
 
-fn hash_eval_atom(hasher: &mut blake3::Hasher, atom: &EvalAtom) {
+fn hash_eval_atom(hasher: &mut purrdf_hash::blake3::Hasher, atom: &EvalAtom) {
     hash_eval_term(hasher, &atom.subject);
     frame_str(hasher, &atom.predicate);
     hash_eval_term(hasher, &atom.object);
     hasher.update(&[u8::from(atom.negated)]);
 }
 
-fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
+fn hash_qterm(hasher: &mut purrdf_hash::blake3::Hasher, term: &QTerm) {
     match term {
         QTerm::Const(value) => {
             hasher.update(&[0]);
@@ -382,7 +382,7 @@ fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
     }
 }
 
-fn hash_builtin(hasher: &mut blake3::Hasher, builtin: &QBuiltin) {
+fn hash_builtin(hasher: &mut purrdf_hash::blake3::Hasher, builtin: &QBuiltin) {
     match builtin {
         QBuiltin::TermEqual {
             left,
@@ -450,7 +450,7 @@ fn hash_builtin(hasher: &mut blake3::Hasher, builtin: &QBuiltin) {
 /// this is not a display/debug hash. Rule, body, distinct-guard, and builtin order are
 /// retained because all four are observable by deterministic execution/provenance.
 pub(crate) fn canonical_rule_hash(rules: &[EvalRule]) -> [u8; 32] {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame_str(&mut hasher, "gmeow-eval-rule-ir-v3");
     hasher.update(&(rules.len() as u64).to_le_bytes());
     for rule in rules {

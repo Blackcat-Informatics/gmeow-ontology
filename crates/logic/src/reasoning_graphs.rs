@@ -81,7 +81,7 @@ pub fn object_level_domains() -> gmeow_errors::Result<crate::physical::SelectedD
                 detail: format!("object-level domain selection identity: {error}"),
             })
         })?;
-    let selection = *blake3::hash(&bytes).as_bytes();
+    let selection = *purrdf_hash::blake3::hash(&bytes).as_bytes();
     SelectedDomains::new(
         roles
             .into_iter()

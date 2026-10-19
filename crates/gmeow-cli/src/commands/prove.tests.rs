@@ -118,7 +118,7 @@ fn stream_read_failure_retains_partial_bytes_and_digest() {
     assert!(bytes.truncated);
     assert_eq!(
         bytes.digest,
-        blake3::hash(&[0xff, 1, 2, 3]).to_hex().to_string()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&[0xff, 1, 2, 3]).as_bytes())
     );
     let projected = bytes.into_report();
     assert_eq!(projected.retained, [0xff, 1]);
@@ -146,11 +146,11 @@ fn failed_version_keeps_both_streams_and_process_identity() {
     assert_eq!(receipt["stderr"]["total_bytes"], 13);
     assert_eq!(
         receipt["stdout"]["digest"],
-        blake3::hash(b"partial identity").to_hex().to_string()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(b"partial identity").as_bytes())
     );
     assert_eq!(
         receipt["stderr"]["digest"],
-        blake3::hash(b"version error").to_hex().to_string()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(b"version error").as_bytes())
     );
 }
 
@@ -175,7 +175,7 @@ fn spawn_failure_preserves_problem_and_original_io_cause() {
     );
     assert_eq!(
         receipt["selection"]["problem_digest"],
-        blake3::hash(b"fof(a,axiom,p).\n").to_hex().to_string()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(b"fof(a,axiom,p).\n").as_bytes())
     );
     assert_eq!(receipt["stdout"]["total_bytes"], 0);
     assert_eq!(receipt["stderr"]["total_bytes"], 0);

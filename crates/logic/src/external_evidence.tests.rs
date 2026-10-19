@@ -19,7 +19,7 @@ fn artifact(kind: &str, text: &str) -> SzsArtifact {
         channel: ArtifactChannel::Stdout,
         start_line: 2,
         end_line: 4,
-        digest: blake3::hash(text.as_bytes()).to_hex().to_string(),
+        digest: purrdf_hash::hex::encode(purrdf_hash::blake3::hash(text.as_bytes()).as_bytes()),
         bytes: text.len(),
         text: text.to_owned(),
     }

@@ -22,7 +22,7 @@ regex.workspace = true
 # quality-assessment corpus carries so a consumer can prove the record still
 # describes the working tree instead of re-scoring to find out. Pure-Rust, so it
 # stays on the wasm-clean side of the crate with the rest of [dependencies].
-blake3.workspace = true
+purrdf-hash.workspace = true
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 gmeow-errors = { path = "../errors" }

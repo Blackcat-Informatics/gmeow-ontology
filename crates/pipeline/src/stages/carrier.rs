@@ -1761,7 +1761,7 @@ fn pass_one_receipt_input_digest(
         ));
     }
 
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hash_receipt_field(&mut hasher, PASS_ONE_RECEIPT_ALGORITHM.as_bytes());
     hash_receipt_field(&mut hasher, crate::cache::BUILD_FINGERPRINT.as_bytes());
     hash_receipt_field(&mut hasher, snapshot.digest.as_bytes());
@@ -1774,10 +1774,13 @@ fn pass_one_receipt_input_digest(
         })?;
         hash_receipt_field(&mut hasher, canonical.as_bytes());
     }
-    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+    Ok(format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+    ))
 }
 
-fn hash_receipt_field(hasher: &mut blake3::Hasher, bytes: &[u8]) {
+fn hash_receipt_field(hasher: &mut purrdf_hash::blake3::Hasher, bytes: &[u8]) {
     hasher.update(&(bytes.len() as u64).to_le_bytes());
     hasher.update(bytes);
 }

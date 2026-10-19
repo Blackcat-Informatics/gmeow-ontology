@@ -237,12 +237,15 @@ impl RdfFrame<'_> {
         records
             .into_iter()
             .map(|(context, rows)| {
-                let mut hash = blake3::Hasher::new();
+                let mut hash = purrdf_hash::blake3::Hasher::new();
                 hash.update(b"gmeow-monitor-context-basis-v1\0");
                 for row in rows {
                     crate::runtime::frame(&mut hash, b"record", &row);
                 }
-                (context, hash.finalize().to_hex().to_string())
+                (
+                    context,
+                    purrdf_hash::hex::encode(hash.finalize().as_bytes()),
+                )
             })
             .collect()
     }

@@ -6,11 +6,11 @@
 /// A versioned digest writer whose fields are self-delimiting. Certificate
 /// identity must never depend on Rust `Debug`, map iteration, or a serializer's
 /// incidental representation.
-pub(super) struct StableDigest(blake3::Hasher);
+pub(super) struct StableDigest(purrdf_hash::blake3::Hasher);
 
 impl StableDigest {
     pub(super) fn new(domain: &str) -> Self {
-        let mut value = Self(blake3::Hasher::new());
+        let mut value = Self(purrdf_hash::blake3::Hasher::new());
         value.bytes("domain", domain.as_bytes());
         value
     }
@@ -35,6 +35,6 @@ impl StableDigest {
     }
 
     pub(super) fn finish(self) -> String {
-        self.0.finalize().to_hex().to_string()
+        purrdf_hash::hex::encode(self.0.finalize().as_bytes())
     }
 }

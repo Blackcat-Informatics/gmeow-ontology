@@ -116,7 +116,7 @@ impl SessionDelta {
             )?);
         }
 
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         frame(&mut hasher, b"domain", b"gmeow-logic-session-delta-v1");
         frame(
             &mut hasher,
@@ -138,7 +138,7 @@ impl SessionDelta {
             b"max-steps",
             &max_steps.map_or_else(|| b"none".to_vec(), |steps| steps.to_le_bytes().to_vec()),
         );
-        let delta_identity = hasher.finalize().to_hex().to_string();
+        let delta_identity = purrdf_hash::hex::encode(hasher.finalize().as_bytes());
 
         Ok(Self {
             base_commit,

@@ -253,7 +253,10 @@ fn leading_subject(line: &str) -> Option<String> {
 #[must_use]
 fn claim_digest(lines: &[String]) -> String {
     let joined = lines.join("\n");
-    format!("{ALGO_PREFIX}{}", blake3::hash(joined.as_bytes()).to_hex())
+    format!(
+        "{ALGO_PREFIX}{}",
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(joined.as_bytes()).as_bytes())
+    )
 }
 
 // ── The MSG-standalone leg (the ONE legitimate isolated round-trip) ────────────────────

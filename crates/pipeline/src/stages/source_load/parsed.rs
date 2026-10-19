@@ -48,7 +48,9 @@ impl ParsedAuthoredSources {
             let ingested = PurrdfAdapter.ingest(&relative_path, "text/turtle", &bytes)?;
             sources.push(ParsedAuthoredSource {
                 content_digest: purrdf::ContentDigest::of(&bytes).to_hex(),
-                blake3_digest: blake3::hash(&bytes).to_hex().to_string(),
+                blake3_digest: purrdf_hash::hex::encode(
+                    purrdf_hash::blake3::hash(&bytes).as_bytes(),
+                ),
                 kind: super::authored_origin_kind(root, &path),
                 path,
                 relative_path,

@@ -657,14 +657,14 @@ fn sw_relative(key: &str) -> String {
 /// The encoding is length-prefixed per entry, so no pair of distinct trees can hash to the
 /// same digest by moving bytes across a key boundary.
 fn build_digest(files: &BTreeMap<String, Vec<u8>>) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for (key, bytes) in files {
         hasher.update(&(key.len() as u64).to_le_bytes());
         hasher.update(key.as_bytes());
         hasher.update(&(bytes.len() as u64).to_le_bytes());
         hasher.update(bytes);
     }
-    hasher.finalize().to_hex()[..16].to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())[..16].to_string()
 }
 
 /// The service-worker source with its `SHELL` array and cache name substituted.

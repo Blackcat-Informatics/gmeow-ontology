@@ -123,13 +123,13 @@ impl ProgramReachability {
         Ok(format!(
             "analysis={}; program={}; input={}; engine={}@{}; world={world}; \
              foundation={}; theory={}; unbounded={}; requires_source_admission={}; examined producers: {}",
-            blake3::Hash::from(self.identity).to_hex(),
-            blake3::Hash::from(self.program).to_hex(),
-            blake3::Hash::from(self.input_contract).to_hex(),
+            purrdf_hash::hex::Digest32::new(self.identity).to_hex(),
+            purrdf_hash::hex::Digest32::new(self.program).to_hex(),
+            purrdf_hash::hex::Digest32::new(self.input_contract).to_hex(),
             self.engine.name,
             self.engine.version,
-            blake3::Hash::from(self.foundation.theory).to_hex(),
-            blake3::Hash::from(writers.theory).to_hex(),
+            purrdf_hash::hex::Digest32::new(self.foundation.theory).to_hex(),
+            purrdf_hash::hex::Digest32::new(writers.theory).to_hex(),
             writers.unbounded,
             writers.requires_source_admission,
             self.foundation

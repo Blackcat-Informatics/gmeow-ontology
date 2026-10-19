@@ -303,20 +303,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "blake3"
-version = "1.8.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0aa83c34e62843d924f905e0f5c866eb1dd6545fc4d719e803d9ba6030371fce"
-dependencies = [
- "arrayref",
- "arrayvec",
- "cc",
- "cfg-if",
- "constant_time_eq",
- "cpufeatures 0.3.0",
-]
-
-[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -645,12 +631,6 @@ name = "const-oid"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
-
-[[package]]
-name = "constant_time_eq"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
 
 [[package]]
 name = "content_inspector"
@@ -997,10 +977,10 @@ dependencies = [
 name = "docs-print"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-docs",
  "gmeow-errors",
  "insta",
+ "purrdf-hash",
  "typst",
  "typst-assets",
  "typst-pdf",
@@ -1440,12 +1420,12 @@ dependencies = [
 name = "gmeow-bench-engines"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-conformance",
  "gmeow-cost-measure",
  "gmeow-errors",
  "gmeow-logic",
  "purrdf",
+ "purrdf-hash",
  "rayon",
  "serde_json",
  "tempfile",
@@ -1486,7 +1466,6 @@ dependencies = [
 name = "gmeow-bundle-view"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-bundle-import",
  "gmeow-docs-model",
  "gmeow-errors",
@@ -1495,6 +1474,7 @@ dependencies = [
  "gmeow-ns",
  "gmeow-validate",
  "purrdf",
+ "purrdf-hash",
  "purrdf-lex",
  "serde_json",
  "tracing",
@@ -1505,7 +1485,6 @@ name = "gmeow-cli"
 version = "0.3.0"
 dependencies = [
  "assert_cmd",
- "blake3",
  "clap",
  "gmeow-action-cache",
  "gmeow-affect",
@@ -1556,7 +1535,6 @@ dependencies = [
 name = "gmeow-conformance"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-bundle-import",
  "gmeow-cli-core",
  "gmeow-errors",
@@ -1565,6 +1543,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-ns",
  "purrdf",
+ "purrdf-hash",
  "serde",
  "serde_json",
  "tempfile",
@@ -1618,7 +1597,6 @@ dependencies = [
 name = "gmeow-docs"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-action-cache",
  "gmeow-bundle-import",
  "gmeow-docs-model",
@@ -1654,7 +1632,6 @@ dependencies = [
 name = "gmeow-docs-model"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-action-cache",
  "gmeow-build-inputs",
  "gmeow-bundle-import",
@@ -1676,7 +1653,6 @@ dependencies = [
 name = "gmeow-errors"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "insta",
  "purrdf-core",
  "purrdf-hash",
@@ -1701,10 +1677,10 @@ dependencies = [
 name = "gmeow-gmn-cost-matrix"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "purrdf",
+ "purrdf-hash",
  "tiktoken-rs",
  "tokenizers",
 ]
@@ -1734,7 +1710,6 @@ dependencies = [
 name = "gmeow-lang-bridge"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "ciborium",
  "gmeow-errors",
  "gmeow-lang-form",
@@ -1771,7 +1746,6 @@ version = "0.3.0"
 name = "gmeow-logic"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "chrono",
  "ciborium",
  "criterion",
@@ -1811,7 +1785,6 @@ dependencies = [
 name = "gmeow-logic-compile"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-errors",
  "gmeow-ns",
  "gmeow-term-arena",
@@ -1961,7 +1934,6 @@ version = "0.3.0"
 dependencies = [
  "ahash",
  "bincode",
- "blake3",
  "ciborium",
  "docs-print",
  "gmeow-action-cache",
@@ -2009,9 +1981,9 @@ dependencies = [
 name = "gmeow-query-wasm"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-gts-profile",
  "purrdf",
+ "purrdf-hash",
  "serde_json",
  "wasm-bindgen",
 ]
@@ -2047,7 +2019,6 @@ dependencies = [
 name = "gmeow-slice-quality"
 version = "0.3.0"
 dependencies = [
- "blake3",
  "gmeow-action-cache",
  "gmeow-build-inputs",
  "gmeow-docs-model",
@@ -2060,6 +2031,7 @@ dependencies = [
  "insta",
  "pretty_assertions",
  "purrdf",
+ "purrdf-hash",
  "rayon",
  "regex",
  "serde",
