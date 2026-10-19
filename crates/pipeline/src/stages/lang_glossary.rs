@@ -51,8 +51,8 @@ use std::path::{Path, PathBuf};
 use sha2::{Digest, Sha256};
 
 use gmeow_docs::i18n_compile::{
-    authored_turtle_files, declared_homograph_sources, is_candidate_translation, language_from_po,
-    parse_po,
+    authored_turtle_files, collect_po_paths, declared_homograph_sources, is_candidate_translation,
+    language_from_po, parse_po,
 };
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
@@ -155,7 +155,7 @@ fn build_entries(root: &Path) -> Result<Vec<Entry>, gmeow_errors::Diag> {
         })?;
     // The ontology-resident homograph escape — the SAME loader the make i18n-lint gate
     // consults (One Canonical Source), read from authored TTL only.
-    let homographs = declared_homograph_sources(root);
+    let homographs = declared_homograph_sources(root)?;
 
     let mut entries: Vec<Entry> = Vec::new();
     for record in catalog.records() {
@@ -876,24 +876,8 @@ impl Stage for GlossaryTableStage {
         // read surfaces so any edit — a new/changed translation, a flipped homograph
         // declaration — busts the cache. This is the SAME input set `build_entries`
         // reads (the `.po` via the slice catalog, the homographs via `authored_turtle_files`).
-        let mut files: Vec<PathBuf> = Vec::new();
-        if let Ok(groups) = std::fs::read_dir(root.join("slices")) {
-            for group in groups.flatten() {
-                if let Ok(names) = std::fs::read_dir(group.path()) {
-                    for name in names.flatten() {
-                        if let Ok(pos) = std::fs::read_dir(name.path().join("i18n")) {
-                            for po in pos.flatten() {
-                                let p = po.path();
-                                if p.extension().is_some_and(|x| x == "po") {
-                                    files.push(p);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        files.extend(authored_turtle_files(root));
+        let mut files = collect_po_paths(root)?;
+        files.extend(authored_turtle_files(root)?);
         files.sort();
         files.dedup();
         Ok(files)

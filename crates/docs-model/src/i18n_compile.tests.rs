@@ -293,8 +293,10 @@ fn lint_valid_catalog_reports_no_errors() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
-    assert!(report.errors.is_empty(), "{:?}", report.errors);
-    assert!(report.warnings.is_empty(), "{:?}", report.warnings);
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
+    let warnings: Vec<_> = report.ledger().messages(Severity::Warning).collect();
+    assert!(errors.is_empty(), "{:?}", errors);
+    assert!(warnings.is_empty(), "{:?}", warnings);
     assert_eq!(report.total_counts.get("x-gmeow-french"), Some(&2));
     assert_eq!(report.fuzzy_counts.get("x-gmeow-french"), Some(&0));
 }
@@ -324,16 +326,17 @@ fn lint_flags_collapsed_translation_distinction() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
-    let collisions: Vec<&String> = report
-        .errors
-        .iter()
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
+    let collisions: Vec<&str> = report
+        .ledger()
+        .messages(Severity::Error)
         .filter(|e| e.contains("collides across"))
         .collect();
     assert_eq!(
         collisions.len(),
         1,
         "one distinctiveness error: {:?}",
-        report.errors
+        errors
     );
     assert!(
         collisions[0].contains("pareil") && collisions[0].contains("distinct sources"),
@@ -366,10 +369,11 @@ fn lint_passes_twin_source_shared_translation() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
     assert!(
-        !report.errors.iter().any(|e| e.contains("collides across")),
+        !errors.iter().any(|e| e.contains("collides across")),
         "twin sources sharing one translation must not red: {:?}",
-        report.errors
+        errors
     );
 }
 
@@ -433,16 +437,17 @@ fn lint_flags_glossary_inconsistency() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
-    let hits: Vec<&String> = report
-        .errors
-        .iter()
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
+    let hits: Vec<&str> = report
+        .ledger()
+        .messages(Severity::Error)
         .filter(|e| e.contains("different ways across batches"))
         .collect();
     assert_eq!(
         hits.len(),
         1,
         "one glossary-consistency error: {:?}",
-        report.errors
+        errors
     );
     assert!(
         hits[0].contains("\"read\"") && hits[0].contains("lang:GlossaryTermInconsistency"),
@@ -474,13 +479,13 @@ fn lint_passes_consistent_glossary() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
     assert!(
-        !report
-            .errors
+        !errors
             .iter()
             .any(|e| e.contains("different ways across batches")),
         "a consistent glossary must not red: {:?}",
-        report.errors
+        errors
     );
 }
 
@@ -512,13 +517,13 @@ fn lint_passes_declared_homograph() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
     assert!(
-        !report
-            .errors
+        !errors
             .iter()
             .any(|e| e.contains("different ways across batches")),
         "a declared homograph must be exempt: {:?}",
-        report.errors
+        errors
     );
 }
 
@@ -549,13 +554,13 @@ fn lint_flags_inconsistency_despite_unrelated_homograph() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
     assert!(
-        report
-            .errors
+        errors
             .iter()
             .any(|e| e.contains("different ways across batches") && e.contains("\"read\"")),
         "an unrelated homograph must not mask the read inconsistency: {:?}",
-        report.errors
+        errors
     );
 }
 
@@ -584,10 +589,11 @@ fn lint_excludes_fuzzy_from_distinctiveness() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
     assert!(
-        !report.errors.iter().any(|e| e.contains("collides across")),
+        !errors.iter().any(|e| e.contains("collides across")),
         "fuzzy entries are excluded from the distinctiveness check: {:?}",
-        report.errors
+        errors
     );
 }
 
@@ -614,20 +620,12 @@ fn lint_reports_orphaned_and_stale_entries_as_warnings() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
-    assert!(report.errors.is_empty(), "{:?}", report.errors);
-    assert_eq!(report.warnings.len(), 2);
-    assert!(
-        report
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("orphaned"))
-    );
-    assert!(
-        report
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("stale"))
-    );
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
+    let warnings: Vec<_> = report.ledger().messages(Severity::Warning).collect();
+    assert!(errors.is_empty(), "{:?}", errors);
+    assert_eq!(warnings.len(), 2);
+    assert!(warnings.iter().any(|warning| warning.contains("orphaned")));
+    assert!(warnings.iter().any(|warning| warning.contains("stale")));
 }
 
 #[test]
@@ -645,8 +643,9 @@ fn lint_rejects_copied_or_hybrid_english_as_translation() {
         )]),
     );
     let report = lint_po_files(&root, 100.0);
-    assert_eq!(report.errors.len(), 1, "{:?}", report.errors);
-    assert!(report.errors[0].contains("copied into msgstr"));
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
+    assert_eq!(errors.len(), 1, "{:?}", errors);
+    assert!(errors[0].contains("copied into msgstr"));
 }
 
 #[test]
@@ -671,8 +670,9 @@ fn lint_all_fuzzy_catalog_is_error() {
         ]),
     );
     let report = lint_po_files(&root, 100.0);
-    assert_eq!(report.errors.len(), 1);
-    assert!(report.errors[0].contains("x-gmeow-french has only fuzzy entries"));
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
+    assert_eq!(errors.len(), 1);
+    assert!(errors[0].contains("x-gmeow-french has only fuzzy entries"));
 }
 
 #[test]
@@ -684,6 +684,108 @@ fn lint_missing_language_header_is_error() {
         "msgid \"\"\nmsgstr \"\"\n\nmsgctxt \"x|rdfs:label\"\nmsgid \"x\"\nmsgstr \"y\"\n",
     );
     let report = lint_po_files(&root, 100.0);
-    assert_eq!(report.errors.len(), 1);
-    assert!(report.errors[0].contains("missing Language header"));
+    let errors: Vec<_> = report.ledger().messages(Severity::Error).collect();
+    assert_eq!(errors.len(), 1);
+    assert!(errors[0].contains("missing Language header"));
+}
+
+#[test]
+fn lint_keeps_distinct_catalog_sources_and_projects_the_native_verdict() {
+    let (_temp, root) = test_root("distinct-catalogs");
+    for name in ["first.po", "second.po"] {
+        write_test_po(&root, name, "msgid \"\"\nmsgstr \"\"\n");
+    }
+    let report = lint_po_files(&root, 100.0);
+    assert!(!report.ok());
+    assert_eq!(report.ledger().len(), 2);
+    let findings = report.ledger().findings("i18n-lint");
+    let paths: BTreeSet<_> = findings
+        .iter()
+        .map(|finding| finding.primary_location().unwrap().path.as_deref().unwrap())
+        .collect();
+    assert_eq!(paths.len(), 2);
+    assert!(findings.iter().all(|finding| finding.finding_iri.is_some()));
+    let mut projection = report.ledger().project_report("i18n-lint");
+    projection.findings.clear();
+    assert!(
+        !report.ok(),
+        "mutating an exit projection cannot erase a fatal witness"
+    );
+}
+
+#[test]
+fn lint_identity_excludes_wording_but_keeps_context_and_warning_grade() {
+    let path = Path::new("slices/core/example/i18n/fr.po");
+    let mut report = I18nLintReport::default();
+    for message in ["old wording", "new wording"] {
+        report.observe(
+            path,
+            "stale-entry",
+            &["urn:first|rdfs:label", "source label"],
+            Severity::Warning,
+            message.to_owned(),
+        );
+    }
+    report.observe(
+        path,
+        "stale-entry",
+        &["urn:second|rdfs:label", "source label"],
+        Severity::Warning,
+        "another stale entry".to_owned(),
+    );
+    assert!(report.ok(), "collected warnings must not become fatal");
+    assert_eq!(report.ledger().len(), 2);
+    assert_eq!(report.ledger().messages(Severity::Warning).count(), 3);
+}
+
+#[test]
+fn malformed_authored_source_is_a_native_failure_and_a_lint_refusal() {
+    let (_temp, root) = test_root("malformed-authored");
+    let source = root.join("slices/core/example/module.ttl");
+    fs::create_dir_all(source.parent().unwrap()).unwrap();
+    fs::write(&source, "@prefix broken <\n").unwrap();
+    let failure = authored_literal_rows(&root).unwrap_err();
+    assert!(failure.downcast_ref::<purrdf::RdfDiagnostic>().is_some());
+    assert_eq!(
+        failure.inner().source_ctx.location.path.as_deref(),
+        source.to_str()
+    );
+    let report = lint_po_files(&root, 100.0);
+    assert!(!report.ok());
+    let findings = report.ledger().findings("i18n-lint");
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].code, "docs.i18n.rdf-parse");
+    assert_eq!(
+        findings[0].primary_location().unwrap().path.as_deref(),
+        source.to_str()
+    );
+    assert!(
+        report.ledger().emit_sorted()[0]
+            .frames
+            .iter()
+            .any(|frame| !frame.message.is_empty())
+    );
+    assert!(declared_homograph_sources(&root).is_err());
+    assert!(merge_terms(&root, None, None).is_err());
+}
+
+#[test]
+fn catalog_discovery_retains_io_causes_and_rejects_wrong_directory_types() {
+    let (_temp, root) = test_root("catalog-io");
+    let failure = collect_po_paths(&root).unwrap_err();
+    assert_eq!(
+        failure.downcast_ref::<std::io::Error>().unwrap().kind(),
+        std::io::ErrorKind::NotFound
+    );
+    assert!(!lint_po_files(&root, 100.0).ok());
+    let i18n = root.join("slices/core/example/i18n");
+    fs::create_dir_all(i18n.parent().unwrap()).unwrap();
+    fs::write(&i18n, "not a directory").unwrap();
+    let failure = collect_po_paths(&root).unwrap_err();
+    assert!(failure.downcast_ref::<std::io::Error>().is_some());
+    assert_eq!(
+        failure.inner().source_ctx.location.path.as_deref(),
+        i18n.to_str()
+    );
+    assert!(!lint_po_files(&root, 100.0).ok());
 }

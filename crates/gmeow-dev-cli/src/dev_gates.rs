@@ -148,15 +148,8 @@ pub fn crate_check() -> i32 {
     // pipeline crate because it reads gmeow_docs (a validate→docs edge would cycle the
     // crate DAG); wired here onto the crate-check gate surface.
     let lattice = gmeow_pipeline::docs_loss_lattice::check_docs_loss_lattice();
-    for message in &lattice.errors {
-        report.add_finding(
-            Finding::new(
-                Severity::Error,
-                "docs-loss-lattice-violation",
-                message.clone(),
-            )
-            .with_tool("docs-loss-lattice"),
-        );
+    for finding in lattice.ledger().iter_findings("docs-loss-lattice") {
+        report.add_finding(finding);
     }
     // F4/F5 attestation gate: no documentation format may REPRESENT an interactive
     // capability (LiveSparql / Interactivity / LiveReasoning) unless every shipped engine

@@ -11,7 +11,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use gmeow_errors::{Diag, Result};
+use gmeow_errors::{
+    Diag, DiagLedger, FindingCategory, GateVerdict, Grade, Location, Result, Severity, StageId,
+    Standpoint,
+};
 use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use purrdf_hash::sha1::Sha1;
@@ -57,12 +60,78 @@ pub struct SyncReport {
     pub unchanged: Vec<String>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone)]
 pub struct I18nLintReport {
-    pub errors: Vec<String>,
-    pub warnings: Vec<String>,
+    ledger: DiagLedger,
     pub fuzzy_counts: BTreeMap<String, usize>,
     pub total_counts: BTreeMap<String, usize>,
+}
+
+impl I18nLintReport {
+    pub fn ledger(&self) -> &DiagLedger {
+        &self.ledger
+    }
+
+    pub fn ok(&self) -> bool {
+        self.ledger.verdict() == GateVerdict::Collected
+    }
+
+    fn record(&mut self, diag: Diag) {
+        self.ledger.attach(diag, StageId::new("docs.i18n-lint"));
+    }
+
+    #[track_caller]
+    fn observe(
+        &mut self,
+        path: &Path,
+        rule: &str,
+        subjects: &[&str],
+        severity: Severity,
+        message: String,
+    ) {
+        let (category, standpoint) = if severity == Severity::Warning {
+            (FindingCategory::PolicyWarning, Standpoint::Perspectival)
+        } else {
+            (
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            )
+        };
+        self.record(at_source(
+            Diag::new(
+                CatalogInconsistent::register(),
+                Grade::new(severity, category, standpoint),
+                message,
+            )
+            .with_focus(
+                serde_json::to_string(&(rule, subjects)).expect("catalog identities serialize"),
+            ),
+            path,
+        ));
+    }
+}
+
+fn at_source(diag: Diag, path: &Path) -> Diag {
+    let mut location = diag.inner().source_ctx.location.clone();
+    location.path = Some(path.to_string_lossy().into_owned());
+    diag.with_location(location)
+}
+
+#[track_caller]
+fn source_io_error(path: &Path, operation: &str, error: std::io::Error) -> Diag {
+    at_source(
+        Diag::new(
+            FileIo::register(),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            format!("{operation} {}: {error}", path.display()),
+        )
+        .with_source(error),
+        path,
+    )
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
@@ -110,9 +179,22 @@ fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>> 
 
     let media_type = media_type_for_format(format)?;
     let dataset = purrdf::parse_dataset(bytes, media_type, None).map_err(|e| {
-        Diag::of_kind(RdfParse {
-            detail: format!("RDF parse error: {e}"),
-        })
+        let location = e
+            .location
+            .as_deref()
+            .map(Location::from_rdf)
+            .unwrap_or_default();
+        Diag::new(
+            RdfParse::register(),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            format!("RDF parse error: {e}"),
+        )
+        .with_location(location)
+        .with_source(e)
     })?;
     let mut rows = Vec::new();
     for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
@@ -579,18 +661,15 @@ pub fn merge_markdown_text(source: &str, po_text: &str) -> Result<String> {
 /// identical bytes. Parsing once and projecting three ways is the same answer for a third
 /// of the work — and, more importantly, makes it impossible for the three views to be
 /// taken of different reads.
-fn authored_literal_rows(root: &Path) -> Vec<RdfLiteralRow> {
+fn authored_literal_rows(root: &Path) -> Result<Vec<RdfLiteralRow>> {
     let mut rows = Vec::new();
-    for source in authored_turtle_files(root) {
-        let Ok(bytes) = fs::read(&source) else {
-            continue;
-        };
-        let Ok(parsed) = parse_rdf_literals(&bytes, "turtle") else {
-            continue;
-        };
+    for source in authored_turtle_files(root)? {
+        let bytes = fs::read(&source).map_err(|error| source_io_error(&source, "read", error))?;
+        let parsed =
+            parse_rdf_literals(&bytes, "turtle").map_err(|error| at_source(error, &source))?;
         rows.extend(parsed);
     }
-    rows
+    Ok(rows)
 }
 
 fn bcp47_to_internal_map_from_rows(rows: &[RdfLiteralRow]) -> BTreeMap<String, String> {
@@ -637,8 +716,10 @@ fn bcp47_to_internal_map_from_rows(rows: &[RdfLiteralRow]) -> BTreeMap<String, S
 /// declarations (never on the derived glossary entries, which carry `gmeow:glossarySource`),
 /// so this predicate-scoped read can never pick up a derived entry literal and silently
 /// widen the exempt set.
-pub fn declared_homograph_sources(root: &Path) -> BTreeSet<String> {
-    declared_homograph_sources_from_rows(&authored_literal_rows(root))
+pub fn declared_homograph_sources(root: &Path) -> Result<BTreeSet<String>> {
+    Ok(declared_homograph_sources_from_rows(
+        &authored_literal_rows(root)?,
+    ))
 }
 
 fn declared_homograph_sources_from_rows(rows: &[RdfLiteralRow]) -> BTreeSet<String> {
@@ -653,61 +734,81 @@ fn declared_homograph_sources_from_rows(rows: &[RdfLiteralRow]) -> BTreeSet<Stri
 /// slice `module.ttl`/`manifest.ttl`), sorted. Exposed so a stage that derives from
 /// [`declared_homograph_sources`] can fold these exact bytes into its cache key — the
 /// SAME read surface, never a re-authored guess.
-pub fn authored_turtle_files(root: &Path) -> Vec<PathBuf> {
+pub fn authored_turtle_files(root: &Path) -> Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     let ontology = root.join("ontology/gmeow.ttl");
-    if ontology.is_file() {
+    if optional_metadata(&ontology)?.is_some() {
         paths.push(ontology);
     }
-    if let Ok(groups) = fs::read_dir(root.join("slices")) {
-        for group in groups.flatten() {
-            if let Ok(slices) = fs::read_dir(group.path()) {
-                for slice in slices.flatten() {
-                    for name in ["module.ttl", "manifest.ttl"] {
-                        let path = slice.path().join(name);
-                        if path.is_file() {
-                            paths.push(path);
-                        }
-                    }
-                }
+    for slice in slice_directories(root)? {
+        for name in ["module.ttl", "manifest.ttl"] {
+            let path = slice.join(name);
+            if optional_metadata(&path)?.is_some() {
+                paths.push(path);
             }
         }
     }
     paths.sort();
-    paths
+    Ok(paths)
 }
 
-fn collect_po_paths(root: &Path) -> Vec<PathBuf> {
-    let mut paths = Vec::new();
-    let slices = root.join("slices");
-    if let Ok(groups) = fs::read_dir(&slices) {
-        for group in groups.flatten() {
-            if let Ok(names) = fs::read_dir(group.path()) {
-                for name in names.flatten() {
-                    let i18n = name.path().join("i18n");
-                    if let Ok(files) = fs::read_dir(i18n) {
-                        for file in files.flatten() {
-                            let path = file.path();
-                            if path.extension().and_then(|s| s.to_str()) == Some("po") {
-                                paths.push(path);
-                            }
-                        }
-                    }
-                }
+fn optional_metadata(path: &Path) -> Result<Option<fs::Metadata>> {
+    match fs::metadata(path) {
+        Ok(metadata) => Ok(Some(metadata)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(source_io_error(path, "read metadata", error)),
+    }
+}
+
+fn directory_entries(path: &Path) -> Result<Vec<PathBuf>> {
+    fs::read_dir(path)
+        .map_err(|error| source_io_error(path, "read directory", error))?
+        .map(|entry| {
+            entry
+                .map(|entry| entry.path())
+                .map_err(|error| source_io_error(path, "read directory entry", error))
+        })
+        .collect()
+}
+
+fn slice_directories(root: &Path) -> Result<Vec<PathBuf>> {
+    let mut slices = Vec::new();
+    for group in directory_entries(&root.join("slices"))? {
+        if !fs::metadata(&group)
+            .map_err(|error| source_io_error(&group, "read metadata", error))?
+            .is_dir()
+        {
+            continue;
+        }
+        for slice in directory_entries(&group)? {
+            if fs::metadata(&slice)
+                .map_err(|error| source_io_error(&slice, "read metadata", error))?
+                .is_dir()
+            {
+                slices.push(slice);
             }
         }
     }
-    let fixtures = root.join("tests/fixtures/i18n");
-    if let Ok(files) = fs::read_dir(fixtures) {
-        for file in files.flatten() {
-            let path = file.path();
+    slices.sort();
+    Ok(slices)
+}
+
+/// Selected slice catalogs, sorted; absent i18n directories declare no catalogs.
+pub fn collect_po_paths(root: &Path) -> Result<Vec<PathBuf>> {
+    let mut paths = Vec::new();
+    for slice in slice_directories(root)? {
+        let i18n = slice.join("i18n");
+        if optional_metadata(&i18n)?.is_none() {
+            continue;
+        }
+        for path in directory_entries(&i18n)? {
             if path.extension().and_then(|s| s.to_str()) == Some("po") {
                 paths.push(path);
             }
         }
     }
     paths.sort();
-    paths
+    Ok(paths)
 }
 
 fn current_english_values_from_rows(
@@ -729,7 +830,13 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
     let mut report = I18nLintReport::default();
     // ONE parse of the authored Turtle corpus, three projections of it. The three used to
     // walk and re-parse every authored source independently.
-    let authored = authored_literal_rows(root);
+    let authored = match authored_literal_rows(root) {
+        Ok(rows) => rows,
+        Err(error) => {
+            report.record(error);
+            return report;
+        }
+    };
     let tag_map = bcp47_to_internal_map_from_rows(&authored);
     let current = current_english_values_from_rows(&authored);
     // Ontology-resident escape for the glossary-consistency check: English sources
@@ -737,10 +844,14 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
     // differently). Read from authored TTL only.
     let homographs = declared_homograph_sources_from_rows(&authored);
 
-    for path in collect_po_paths(root)
-        .into_iter()
-        .filter(|path| path.starts_with(root.join("slices")))
-    {
+    let paths = match collect_po_paths(root) {
+        Ok(paths) => paths,
+        Err(error) => {
+            report.record(error);
+            return report;
+        }
+    };
+    for path in paths {
         let rel = path
             .strip_prefix(root)
             .unwrap_or(&path)
@@ -749,35 +860,47 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
         let text = match fs::read_to_string(&path) {
             Ok(text) => text,
             Err(err) => {
-                report
-                    .errors
-                    .push(format!("{rel}: cannot read PO file: {err}"));
+                report.record(source_io_error(&path, "read PO file", err));
                 continue;
             }
         };
         let language = match language_from_po(&text) {
             Ok(Some(lang)) => lang.to_ascii_lowercase(),
             Ok(None) => {
-                report
-                    .errors
-                    .push(format!("{rel}: missing Language header"));
+                report.observe(
+                    &path,
+                    "missing-language",
+                    &[],
+                    Severity::Error,
+                    format!("{rel}: missing Language header"),
+                );
                 continue;
             }
             Err(err) => {
-                report.errors.push(format!("{rel}: PO parse error: {err}"));
+                report.record(at_source(
+                    err.with_context(format!("{rel}: PO parse error")),
+                    &path,
+                ));
                 continue;
             }
         };
         let Some(internal) = tag_map.get(&language).cloned() else {
-            report.errors.push(format!(
-                "{rel}: no GMEOW internal tag mapping for Language: {language}"
-            ));
+            report.observe(
+                &path,
+                "unmapped-language",
+                &[&language],
+                Severity::Error,
+                format!("{rel}: no GMEOW internal tag mapping for Language: {language}"),
+            );
             continue;
         };
         let entries = match parse_po(&text, true) {
             Ok(entries) => entries,
             Err(err) => {
-                report.errors.push(format!("{rel}: PO parse error: {err}"));
+                report.record(at_source(
+                    err.with_context(format!("{rel}: PO parse error")),
+                    &path,
+                ));
                 continue;
             }
         };
@@ -798,10 +921,13 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
                 if let Some(reason) =
                     translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
                 {
-                    report.errors.push(format!(
-                        "{rel}: invalid translation {:?}: {reason}",
-                        entry.msgctxt
-                    ));
+                    report.observe(
+                        &path,
+                        "translation-integrity",
+                        &[&entry.msgctxt, &entry.msgid],
+                        Severity::Error,
+                        format!("{rel}: invalid translation {:?}: {reason}", entry.msgctxt),
+                    );
                 }
                 xlat_triples.push((
                     skeleton(&entry.msgid),
@@ -810,20 +936,24 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
                 ));
             }
             if !entry.msgctxt.contains('|') {
-                report
-                    .errors
-                    .push(format!("{rel}: invalid msgctxt {:?}", entry.msgctxt));
+                report.observe(
+                    &path,
+                    "invalid-context",
+                    &[&entry.msgctxt],
+                    Severity::Error,
+                    format!("{rel}: invalid msgctxt {:?}", entry.msgctxt),
+                );
                 continue;
             }
             let (term, predicate) = entry.msgctxt.split_once('|').unwrap();
             let predicate = expand_predicate(predicate);
             let key = (term.to_owned(), predicate.clone());
             match current.get(&key) {
-                None => report.warnings.push(format!(
+                None => report.observe(&path, "orphaned-entry", &[&entry.msgctxt, &entry.msgid], Severity::Warning, format!(
                     "{rel}: orphaned entry {:?}: no current @x-gmeow-english literal for {} {}",
                     entry.msgctxt, term, predicate
                 )),
-                Some(values) if !values.contains(&entry.msgid) => report.warnings.push(format!(
+                Some(values) if !values.contains(&entry.msgid) => report.observe(&path, "stale-entry", &[&entry.msgctxt, &entry.msgid], Severity::Warning, format!(
                     "{rel}: stale entry {:?}: msgid does not match current @x-gmeow-english literal",
                     entry.msgctxt
                 )),
@@ -845,7 +975,8 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
                 (msgstr_skel.clone(), msgid_skel.clone(), ctx.clone())
             });
         for c in distinctiveness_violations(glossary_triples) {
-            report.errors.push(format!(
+            let members: Vec<_> = c.members.iter().map(String::as_str).collect();
+            report.observe(&path, "glossary-consistency", &members, Severity::Error, format!(
                 "{rel}: English source {:?} is translated {} different ways across batches — a per-slice glossary must translate one term consistently (lang:GlossaryTermInconsistency): {}",
                 c.skeleton,
                 c.members.len(),
@@ -857,7 +988,8 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
         // reject. Twin sources (same English label on a class and its property twin)
         // sharing one translation legitimately do NOT collide (identical msgid skeleton).
         for c in distinctiveness_violations(xlat_triples) {
-            report.errors.push(format!(
+            let members: Vec<_> = c.members.iter().map(String::as_str).collect();
+            report.observe(&path, "translation-distinctiveness", &members, Severity::Error, format!(
                 "{rel}: msgstr {:?} collides across {} distinct sources — a translation must preserve every distinction its source makes: {}",
                 c.skeleton,
                 c.members.len(),
@@ -868,13 +1000,17 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
             *report.total_counts.entry(internal.clone()).or_insert(0) += total;
             *report.fuzzy_counts.entry(internal.clone()).or_insert(0) += fuzzy;
             if fuzzy == total {
-                report.errors.push(format!(
-                    "{internal} has only fuzzy entries ({fuzzy}/{total})"
-                ));
+                report.observe(
+                    &path,
+                    "all-fuzzy",
+                    &[&internal],
+                    Severity::Error,
+                    format!("{internal} has only fuzzy entries ({fuzzy}/{total})"),
+                );
             } else {
                 let ratio = (fuzzy as f64 / total as f64) * 100.0;
                 if ratio > max_fuzzy_ratio {
-                    report.errors.push(format!(
+                    report.observe(&path, "fuzzy-ratio", &[&internal], Severity::Error, format!(
                         "{internal} is {ratio:.1}% fuzzy ({fuzzy}/{total}), over {max_fuzzy_ratio:.1}% limit"
                     ));
                 }
@@ -1125,10 +1261,7 @@ pub struct CatalogExportEntry {
 
 pub fn iter_po_catalogs(root: &Path) -> Result<Vec<CatalogExportEntry>> {
     let mut out = Vec::new();
-    for path in collect_po_paths(root)
-        .into_iter()
-        .filter(|p| p.starts_with(root.join("slices")))
-    {
+    for path in collect_po_paths(root)? {
         let text = fs::read_to_string(&path)?;
         let language = language_from_po(&text)?.unwrap_or_default();
         let slice_dir = path.parent().and_then(Path::parent);
@@ -1255,16 +1388,13 @@ fn nt_literal(value: &str, lang: &str) -> String {
 pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Result<MergeReport> {
     // One parse of the authored Turtle corpus, two projections of it (see
     // [`authored_literal_rows`]).
-    let authored = authored_literal_rows(root);
+    let authored = authored_literal_rows(root)?;
     let tag_map = bcp47_to_internal_map_from_rows(&authored);
     let base_values = current_english_values_from_rows(&authored);
     let mut added = 0usize;
     let mut text = String::new();
     let mut po_count = 0usize;
-    for path in collect_po_paths(root)
-        .into_iter()
-        .filter(|p| p.starts_with(root.join("slices")))
-    {
+    for path in collect_po_paths(root)? {
         let po_text = fs::read_to_string(&path)?;
         let language = language_from_po(&po_text)?
             .unwrap_or_default()
