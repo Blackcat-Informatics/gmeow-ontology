@@ -11,6 +11,10 @@ use serde::Serialize;
 
 use crate::graph::{g, instances_of};
 use crate::model::MeasurementStandard;
+use crate::rubric::rubric_err as invalid;
+
+const EXTERNAL_INPUT_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-quality-external-input-v1");
 
 mod imports;
 
@@ -155,12 +159,13 @@ impl ProfileAssessment {
             outcomes.insert(axis.clone(), outcome);
         }
         let mut input = blake3::Hasher::new();
-        input.update(b"gmeow-quality-external-input-v1");
+        input.update(EXTERNAL_INPUT_DOMAIN.as_bytes());
         for (path, bytes) in files {
-            input.update(&(path.len() as u64).to_le_bytes());
-            input.update(path.as_bytes());
-            input.update(&(bytes.len() as u64).to_le_bytes());
-            input.update(bytes);
+            for field in [path.as_bytes(), bytes.as_slice()] {
+                purrdf_hash::frame::frame_le_with(field, &mut |part| {
+                    input.update(part);
+                });
+            }
         }
         let profile_bytes = serde_json::to_vec(profile)
             .map_err(|error| invalid(format!("encode selected profile identity: {error}")))?;
@@ -197,12 +202,6 @@ pub(crate) fn prepare_inputs(
         .collect();
     let supplied_imports = crate::dataset_from_documents(&import_documents)?;
     imports::assemble(&data, &manifest, &[bundle, &supplied_imports])
-}
-
-fn invalid(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Rubric {
-        detail: detail.into(),
-    })
 }
 
 fn values(ds: &RdfDataset, subject: TermId, property: &str) -> Vec<TermId> {

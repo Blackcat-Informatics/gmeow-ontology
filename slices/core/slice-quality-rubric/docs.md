@@ -94,7 +94,9 @@ are visibly excluded from the measured denominator. Unsupported axes remain
 visible and make the operation incomplete; they cannot become a complete passing
 roll-up. The numeric roll-up remains the existing unweighted meet of measured
 axis grades. A profile selecting no measurements fails rather than earning a
-vacuous top tier.
+vacuous top tier. The quality command exits `0` for a complete assessment and
+`3` for an incomplete assessment with unsupported measurements. A complete
+assessment may contain failed grades; tier enforcement belongs to slice lint.
 
 The consumer resolves declared `logic:imports`, `owl:imports` and
 `gmeow:sliceDependsOn` owners from the embedded bundle or supplied `imports/*.ttl`

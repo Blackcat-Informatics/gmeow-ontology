@@ -119,9 +119,37 @@ fn excluded_and_unsupported_axes_have_distinct_honest_denominators() {
     let report = score_external_slice_from_files(&standard, &files()).unwrap();
     let profile = report.profile.as_ref().unwrap();
     assert!(!profile.complete);
+    let lint = crate::lint::lint_report(&report, None, None);
     assert!(
-        !crate::lint::lint_report(&report, None, None).passed,
+        !lint.passed,
         "an incomplete operation must not pass an absent tier bar"
+    );
+    for (index, advisory) in report.advisories.iter().enumerate() {
+        assert_eq!(lint.findings.findings[index].code, advisory.code);
+        assert_eq!(lint.findings.findings[index].message, advisory.message);
+    }
+    let text = lint.render_text(&report);
+    assert!(text.contains("lint FAILED: incomplete profile"));
+    assert!(!text.contains("below required <none>"));
+    assert!(
+        !text.contains("slice-quality.profile-axis"),
+        "profile outcomes are not axis advisories"
+    );
+    let registered = report
+        .standard
+        .tiers
+        .iter()
+        .find(|tier| tier.rank == 0)
+        .unwrap();
+    let lint = crate::lint::lint_report(&report, None, Some(registered));
+    assert!(!lint.passed);
+    assert!(
+        !lint
+            .findings
+            .findings
+            .iter()
+            .any(|finding| finding.code == "slice-quality.lint.below-min-tier"),
+        "unsupported measurements must not invent a failed tier comparison"
     );
     assert!(report.render_text().contains("partial roll-up"));
     assert_eq!(
@@ -461,6 +489,49 @@ fn a_declared_import_must_exist_as_a_real_supplied_owner() {
     assert_eq!(
         report.profile.unwrap().declared_imports,
         vec!["https://consumer.example/missing"]
+    );
+}
+
+#[test]
+fn malformed_selected_import_lists_fail_instead_of_retaining_partial_context() {
+    for list in [
+        "ex:head rdf:first ex:item ; rdf:rest ex:head .",
+        "ex:head rdf:first ex:item, ex:other ; rdf:rest rdf:nil .",
+        "ex:head rdf:first ex:item .",
+        "",
+    ] {
+        let source = format!(
+            "{} ex:dep a logic:Ontology . ex:Owned a logic:Class ; rdfs:isDefinedBy ex:dep ; logic:oneOf ex:head . {list}",
+            model()
+        );
+        let standard = standards(&source, "external-sacred").unwrap();
+        let mut input = files();
+        input
+            .get_mut("module.ttl")
+            .unwrap()
+            .extend_from_slice(b"\nex:corpus logic:imports ex:dep .\n");
+        let error = score_external_slice_from_files(&standard, &input)
+            .err()
+            .expect("the selected import's complete list is mandatory");
+        assert!(
+            error.to_string().contains("malformed rdf:List"),
+            "{list}: {error}"
+        );
+    }
+}
+
+#[test]
+fn corpus_identity_distinguishes_equal_concatenations_with_different_field_boundaries() {
+    let standard = standards(&model(), "external-sacred").unwrap();
+    let mut first = files();
+    let mut second = first.clone();
+    first.insert("notes/ab".into(), b"c".to_vec());
+    second.insert("notes/a".into(), b"bc".to_vec());
+    let first = score_external_slice_from_files(&standard, &first).unwrap();
+    let second = score_external_slice_from_files(&standard, &second).unwrap();
+    assert_ne!(
+        first.profile.unwrap().corpus_identity,
+        second.profile.unwrap().corpus_identity
     );
 }
 

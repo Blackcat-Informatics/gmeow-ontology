@@ -2016,7 +2016,7 @@ msgstr "applicabilité d’un axe de qualité"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|skos:definition"
 msgid "One explicit exception to a quality measurement profile’s measured-by-default roster, binding one known axis to a deliberate not-applicable or unsupported disposition and a non-empty reason. It is not an axis grade."
-msgstr "Décision explicite qui associe un axe connu à une exclusion délibérée ou à une mesure non prise en charge, avec justification obligatoire. Ce n’est pas le grade d’un axe."
+msgstr "Exception explicite au choix de mesure par défaut du profil, qui associe un axe connu à une exclusion délibérée ou à une mesure non prise en charge, avec justification obligatoire et non vide. Ce n’est pas le grade d’un axe."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|rdfs:label"
 msgid "quality applicability"
@@ -2024,7 +2024,7 @@ msgstr "applicabilité de qualité"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|skos:definition"
 msgid "The closed status vocabulary used to select measurements: required measurement, deliberate not-applicability, or an explicitly unsupported operation. Missing inputs never select a status. It is not the passed/failed outcome vocabulary."
-msgstr "Vocabulaire fermé des dispositions de sélection : mesure obligatoire, non-applicabilité délibérée ou opération explicitement non prise en charge. Ce n’est pas le vocabulaire des résultats de réussite ou d’échec."
+msgstr "Vocabulaire fermé des dispositions de sélection : mesure obligatoire, non-applicabilité délibérée ou opération explicitement non prise en charge. Une entrée manquante ne sélectionne jamais un statut. Ce n’est pas le vocabulaire des résultats de réussite ou d’échec."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|rdfs:label"
 msgid "required measurement"
@@ -2040,7 +2040,7 @@ msgstr "délibérément non applicable"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|skos:definition"
 msgid "The axis is outside the explicitly selected corpus profile. Its reason remains visible and it is excluded from the measured denominator; absence of a capability can never imply this disposition. It is not a missing-input recovery policy."
-msgstr "L’axe est hors du contrat explicitement choisi ; sa justification reste visible et il est exclu du dénominateur mesuré. Ce n’est pas une politique de récupération d’entrée manquante."
+msgstr "L’axe est hors du contrat explicitement choisi ; sa justification reste visible et il est exclu du dénominateur mesuré ; l’absence d’une capacité ne peut jamais impliquer cette disposition. Ce n’est pas une politique de récupération d’entrée manquante."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|rdfs:label"
 msgid "unsupported measurement"
@@ -2112,7 +2112,7 @@ msgstr "profil de qualité complet"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|skos:definition"
 msgid "Every canonical rubric axis is selected and its inputs are mandatory; a missing dictionary or catalog is an operational failure, never a better grade. It is not a capability-dependent fallback."
-msgstr "Tous les axes canoniques sont sélectionnés et leurs entrées sont obligatoires ; un dictionnaire ou catalogue absent provoque un échec opérationnel. Ce n’est pas un repli dépendant des capacités disponibles."
+msgstr "Tous les axes canoniques sont sélectionnés et leurs entrées sont obligatoires ; un dictionnaire ou catalogue absent provoque un échec opérationnel, jamais un meilleur grade. Ce n’est pas un repli dépendant des capacités disponibles."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|rdfs:label"
 msgid "external sacred corpus quality profile"
@@ -2120,7 +2120,7 @@ msgstr "profil de qualité de corpus sacré externe"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|skos:definition"
 msgid "A selected operation for external logical corpora whose own documentation, module, manifest, competency and box-role criteria remain measurable. GMEOW-specific GMN dictionary coverage and glyph optimization are outside this corpus contract; foreign documentation is measured from its own files. It is not an exemption from general slice-quality measurements."
-msgstr "Profil de corpus logique externe qui conserve les mesures de documentation, module, manifeste, compétence et rôles de boîtes, tout en excluant la couverture du dictionnaire GMN et l’optimisation des glyphes propres à GMEOW. Ce n’est pas une exemption des mesures générales de qualité des slices."
+msgstr "Profil de corpus logique externe qui conserve les mesures de documentation, module, manifeste, compétence et rôles de boîtes, tout en excluant la couverture du dictionnaire GMN et l’optimisation des glyphes propres à GMEOW ; la documentation externe est mesurée à partir de ses propres fichiers. Ce n’est pas une exemption des mesures générales de qualité des slices."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind a unique key, target tier and measured default, then declare justified axis exceptions."

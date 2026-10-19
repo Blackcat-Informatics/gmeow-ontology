@@ -14,7 +14,8 @@
 //! already-native backend (`gmeow_docs`, `gmeow_validate`, `gmeow_pipeline`,
 //! `gmeow_music`, `purrdf`). The console convention is the shared one from
 //! [`gmeow_cli_core`]: product results → stdout, errors/diagnostics → stderr,
-//! exit `0` on success, `1` on a handled failure, `2` for clap usage errors, and
+//! exit `0` on success, `1` on a handled failure, `2` for clap usage errors,
+//! `3` for an undecided or unsupported operation, and
 //! a passthrough child's own exit code for `gts` / `music`.
 
 mod commands;

@@ -7,8 +7,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
+use gmeow_errors::ResultExt;
 use gmeow_logic_compile::frontend::{SourceEdgeRole, StructuralSourceGraph};
-use gmeow_logic_compile::lists::{RDF_FIRST, RDF_REST, constructor};
+use gmeow_logic_compile::lists::{RDF_FIRST, RDF_NIL, RDF_REST, constructor};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermId, TermRef};
 
 const IMPORTS: [&str; 3] = [
@@ -137,8 +138,61 @@ fn subset(
         }
     }
     let mut pending: Vec<_> = subjects.iter().copied().collect();
-    let mut owned_lists = BTreeSet::new();
+    let mut syntax_nodes = BTreeSet::new();
+    let mut required_lists = BTreeSet::new();
+    let mut expanded_lists = BTreeSet::new();
+    let mut expanded_syntax_lists = BTreeSet::new();
     while let Some(subject) = pending.pop() {
+        let owns_members = syntax_nodes.contains(&subject);
+        if (!expanded_lists.contains(&subject)
+            || (owns_members && !expanded_syntax_lists.contains(&subject)))
+            && (required_lists.contains(&subject)
+                || [RDF_FIRST, RDF_REST].iter().any(|iri| {
+                    ds.term_id_by_iri(iri).is_some_and(|predicate| {
+                        ds.quads_for_pattern(Some(subject), Some(predicate), None, GraphMatch::Any)
+                            .next()
+                            .is_some()
+                    })
+                }))
+        {
+            let first = ds.term_id_by_iri(RDF_FIRST);
+            let rest = ds.term_id_by_iri(RDF_REST);
+            let mut cells = Vec::new();
+            // The native walker owns list validity and cycle handling. Retain
+            // its visited cells as well as members, without another list walk.
+            purrdf_core::walk_rdf_list(
+                subject,
+                ds.term_id_by_iri(RDF_NIL),
+                |cell| {
+                    let value = DatasetView::sole_object(ds, cell, first, GraphMatch::Any);
+                    if let purrdf_core::SoleObject::One(member) = value {
+                        cells.push((cell, member));
+                    }
+                    value
+                },
+                |cell| DatasetView::sole_object(ds, cell, rest, GraphMatch::Any),
+            )
+            .ctx("declared quality import RDF list")?;
+            for (cell, member) in cells {
+                expanded_lists.insert(cell);
+                if subjects.insert(cell) {
+                    pending.push(cell);
+                }
+                if owns_members {
+                    expanded_syntax_lists.insert(cell);
+                    if matches!(ds.resolve(member), TermRef::Iri(_) | TermRef::Blank { .. }) {
+                        let newly_owned = syntax_nodes.insert(member);
+                        if subjects.insert(member) || newly_owned {
+                            pending.push(member);
+                        }
+                    }
+                }
+            }
+            expanded_lists.insert(subject);
+            if owns_members {
+                expanded_syntax_lists.insert(subject);
+            }
+        }
         if let Some(reifiers) = by_statement_subject.get(&subject) {
             for &reifier in reifiers {
                 if subjects.insert(reifier) {
@@ -170,19 +224,21 @@ fn subset(
                         | SourceEdgeRole::RuleComponent
                         | SourceEdgeRole::ExplicitFormulaSelection
                 )
-            ) || (owned_lists.contains(&subject) && predicate == RDF_FIRST);
-            let continues_owned_list = owned_lists.contains(&subject) && predicate == RDF_REST;
-            if (owns_structure || continues_owned_list)
-                && owned_lists.insert(object)
-                && subjects.contains(&object)
-            {
+            );
+            if owns_structure && syntax_nodes.insert(object) && subjects.contains(&object) {
                 // A shared list may have been visited first through a reference.
                 // Revisit it when a real ownership edge reaches it.
                 pending.push(object);
             }
-            let list_cell = predicate == RDF_REST || constructor(predicate).is_some();
-            if (owns_structure || continues_owned_list || list_cell)
-                && matches!(ds.resolve(object), TermRef::Iri(_))
+            let list_head = constructor(predicate).is_some();
+            if list_head
+                && required_lists.insert(object)
+                && subjects.contains(&object)
+                && !expanded_lists.contains(&object)
+            {
+                pending.push(object);
+            }
+            if (list_head || (owns_structure && matches!(ds.resolve(object), TermRef::Iri(_))))
                 && subjects.insert(object)
             {
                 pending.push(object);

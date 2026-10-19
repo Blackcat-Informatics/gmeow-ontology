@@ -184,16 +184,6 @@ pub fn lint_report(
     // same discipline `SliceReport::to_report` follows.
     report::seed_finding_codes();
     let mut findings = Report::new("slice-quality");
-    if !complete {
-        let selected = report.to_report();
-        findings.metadata = selected.metadata;
-        findings.findings.extend(
-            selected
-                .findings
-                .into_iter()
-                .filter(|finding| finding.code == "slice-quality.profile-axis"),
-        );
-    }
     for (idx, advisory) in report.advisories.iter().enumerate() {
         let mut finding = advisory.clone();
         finding.severity = if finding.code == "slice-quality.axis-advice.missing-template" {
@@ -216,7 +206,19 @@ pub fn lint_report(
         attach_file_level_source(report, &mut finding);
         findings.add_finding(finding);
     }
-    if !passed && let Some(bar) = &effective_bar {
+    if !complete {
+        let selected = report.to_report();
+        findings.metadata = selected.metadata;
+        findings.findings.extend(
+            selected
+                .findings
+                .into_iter()
+                .filter(|finding| finding.code == "slice-quality.profile-axis"),
+        );
+    }
+    if let Some(bar) = &effective_bar
+        && report.assessment.rollup.rank < bar.rank
+    {
         let mut finding = Finding::new(
             Severity::Error,
             "slice-quality.lint.below-min-tier",
@@ -296,18 +298,18 @@ impl LintOutcome {
             ));
         }
 
-        // Advisories, grouped under their attributed axis — excludes the synthetic
-        // below-bar finding (it names no single axis). `self.findings.findings` is
-        // built by `lint_report` in the same order as `report.advisories`/
-        // `report.advisory_axis`, with the synthetic finding (when present) always
-        // appended last, so the pre-filter index still identifies the producing
-        // advisory exactly.
+        // Advisories come first in their original axis order. Profile outcomes
+        // and the below-bar finding are appended afterward and excluded here,
+        // so the pre-filter index still identifies the producing advisory.
         let grouped: Vec<Grouped<'_>> = self
             .findings
             .findings
             .iter()
             .enumerate()
-            .filter(|(_, f)| f.code != "slice-quality.lint.below-min-tier")
+            .filter(|(_, f)| {
+                f.code != "slice-quality.lint.below-min-tier"
+                    && f.code != "slice-quality.profile-axis"
+            })
             .map(|(idx, f)| Grouped {
                 axis: report.advisory_axis(idx),
                 severity: f.severity,
@@ -366,6 +368,12 @@ impl LintOutcome {
                 "lint OK — {} advisory warning(s)\n",
                 self.issue_count
             ));
+        } else if report
+            .profile
+            .as_ref()
+            .is_some_and(|profile| !profile.complete)
+        {
+            out.push_str("lint FAILED: incomplete profile\n");
         } else {
             let bar_label = self
                 .effective_bar

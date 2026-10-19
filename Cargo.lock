@@ -2060,6 +2060,8 @@ dependencies = [
  "insta",
  "pretty_assertions",
  "purrdf",
+ "purrdf-core",
+ "purrdf-hash",
  "rayon",
  "regex",
  "serde",

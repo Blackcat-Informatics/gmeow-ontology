@@ -6184,7 +6184,7 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str, profile:
     match rendered {
         Ok(text) => {
             print!("{text}");
-            if incomplete { 2 } else { 0 }
+            if incomplete { 3 } else { 0 }
         }
         Err(e) => fail(
             reporter,
