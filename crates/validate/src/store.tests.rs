@@ -155,10 +155,50 @@ fn dataset_from_paths_propagates_parse_error() {
     let result = dataset_from_paths(&[good.clone(), bad.clone()]);
     assert!(result.is_err(), "a malformed file must propagate");
     let err = result.err().unwrap();
+    assert!(err.downcast_ref::<purrdf::RdfDiagnostic>().is_some());
+    assert_eq!(
+        err.inner().source_ctx.location.path.as_deref(),
+        bad.to_str()
+    );
     let msg = err.message();
     assert!(
         msg.contains("syntax error in") && msg.contains("gmeow_validate_parsed_err_bad.ttl"),
         "error must use 'syntax error in' format naming the bad file; got: {msg}"
+    );
+}
+
+#[test]
+fn source_read_failure_keeps_its_typed_cause_and_location() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("missing.ttl");
+    let failure = parse_file_dataset(&path).unwrap_err();
+    assert_eq!(
+        failure.downcast_ref::<std::io::Error>().unwrap().kind(),
+        std::io::ErrorKind::NotFound
+    );
+    assert_eq!(
+        failure.inner().source_ctx.location.path.as_deref(),
+        path.to_str()
+    );
+}
+
+#[test]
+fn diagnostic_term_display_retains_distinct_native_triple_terms() {
+    let dataset = purrdf::parse_dataset(
+        b"<urn:record> <urn:mentions> <<( <urn:first> <urn:predicate> <urn:value> )>>, <<( <urn:second> <urn:predicate> <urn:value> )>> .",
+        "text/turtle", None,
+    ).unwrap();
+    let terms: std::collections::BTreeSet<_> = dataset
+        .quads_for_pattern(None, None, None, GraphMatch::Any)
+        .map(|quad| subject_display(&dataset, quad.o))
+        .collect();
+    assert_eq!(terms.len(), 2);
+    assert!(terms.iter().any(|term| term.contains("urn:first")));
+    assert!(terms.iter().any(|term| term.contains("urn:second")));
+    assert!(
+        terms
+            .iter()
+            .all(|term| term.contains("urn:predicate") && term.contains("urn:value"))
     );
 }
 

@@ -1,35 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Wasm-clean Report assembly helpers shared by the repo-free Tier-1 consumer path
+//! Wasm-clean SHACL finding projection shared by the repo-free Tier-1 consumer path
 //! ([`crate::data_validate`]) and the native slice-authoring dev gate
 //! ([`crate::validate_all`]).
 //!
-//! These two functions carry no reasoner, filesystem, threading, or PyO3 coupling —
+//! This projection carries no reasoner, filesystem, threading, or PyO3 coupling —
 //! only the canonical `gmeow_errors` Finding/Report model and the SHACL → Finding
 //! bridge — so they compile for `wasm32-unknown-unknown`. They live here, apart from
 //! the native-only orchestration in `validate_all`, so the Tier-1 core can reuse them
 //! without dragging rayon / the native reasoner into the wasm build.
 
-use gmeow_errors::{Finding, FindingCategory, Location, Report, Severity};
+use gmeow_errors::{Finding, FindingCategory, Location, Severity};
 
 use crate::findings::{FailureClassIndex, finding_from_shacl};
-
-/// Fold the cheap-lint string scratch plus the structured SHACL findings into
-/// ONE canonical [`Report`]. `from_legacy` turns each error/warning string into a
-/// finding, so `report.legacy_errors()/legacy_warnings()` reproduce the original
-/// strings exactly; the SHACL findings add focus-node locations on top.
-pub(crate) fn build_report(
-    errors: Vec<String>,
-    warnings: Vec<String>,
-    shacl_findings: Vec<Finding>,
-) -> Report {
-    let mut report = Report::from_legacy("validate", errors, warnings);
-    for finding in shacl_findings {
-        report.add_finding(finding);
-    }
-    report
-}
 
 /// Convert a SHACL [`ValidationReport`](purrdf::shapes::report::ValidationReport) into
 /// structured findings via the [`finding_from_shacl`] bridge, optionally tagging each

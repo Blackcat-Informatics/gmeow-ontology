@@ -236,6 +236,13 @@ pub fn finding_from_shacl(result: &ValidationResult, classes: &FailureClassIndex
         "source shape: {}",
         strip_angle(&result.source_shape.to_string())
     ));
+    finding.related_locations.push(Location {
+        logical: Some(format!(
+            "shape {}",
+            strip_angle(&result.source_shape.to_string())
+        )),
+        ..Location::default()
+    });
     // Attribute the finding to the DOCUMENTED constrained property (the `sh:path`) it
     // concerns — the documented term whose "Diagnostics you might hit" page this
     // violation belongs on — distinct from the ABox focus node in its primary
@@ -305,9 +312,29 @@ pub fn diag_from_shacl(result: &ValidationResult, classes: &FailureClassIndex) -
         FindingCategory::DataShapeViolation,
         standpoint_from_shacl(severity),
     );
-    let mut diag = Diag::new(register_code(&code), grade, message).with_location(Location {
-        logical: Some(strip_angle(&result.focus_node.to_string()).to_owned()),
-        ..Location::default()
+    // Native term rendering is a canonical, scope-qualified RDF identity. Frame
+    // these structural fields without admitting message or context prose.
+    let identity = serde_json::to_string(&(
+        result.source_shape.to_string(),
+        result.result_path.as_ref().map(ToString::to_string),
+        result.value.as_ref().map(ToString::to_string),
+    ))
+    .expect("SHACL structural term strings serialize");
+    let mut diag = Diag::new(register_code(&code), grade, message)
+        .with_focus(identity)
+        .with_location(Location {
+            logical: Some(strip_angle(&result.focus_node.to_string()).to_owned()),
+            ..Location::default()
+        });
+    diag = diag.with_label(Label {
+        location: Location {
+            logical: Some(format!(
+                "shape {}",
+                strip_angle(&result.source_shape.to_string())
+            )),
+            ..Location::default()
+        },
+        text: "source shape".to_owned(),
     });
     if let Some(path) = &result.result_path {
         diag = diag.with_label(Label {

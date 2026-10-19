@@ -55,7 +55,7 @@ fn mini_shapes_ttl() -> String {
 fn store_is_reused_across_phases() {
     // One source file with two terms: a well-formed class and one missing
     // skos:definition. The same store is used by structural_lint,
-    // term_naming_lint, declared_terms, and reasoning_invariants.
+    // term_naming_lint, declared_terms, and typed reasoning findings.
     let ttl = format!(
         "@prefix gmeow: <{NS}> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\

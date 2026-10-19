@@ -198,7 +198,7 @@ fn clean_graph_has_no_problems() {
     let store = store_from(&format!(
         "{PREFIXES}gmeow:Animal a owl:Class , gufo:Kind .\n"
     ));
-    assert!(reasoning_invariants(&store, &cfg()).is_empty());
+    assert!(reasoning_findings(&store, &cfg()).is_empty());
 }
 
 // ── logic: stereotype acceptance (owl/gUFO → logic: migration) ────────

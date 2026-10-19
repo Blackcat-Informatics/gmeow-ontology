@@ -15,15 +15,14 @@
 //!    `generated/shapes/*.ttl` plus every per-slice `shapes.ttl`, minus the four
 //!    DSL/manifest lint shapes that only target authoring sources, not the data
 //!    graph); and
-//! 2. the six **gUFO/OntoUML disciplines** ([`crate::gufo::reasoning_invariants`]).
+//! 2. the **gUFO/OntoUML disciplines** ([`crate::gufo::reasoning_findings`]).
 //!
 //! Tier-1 runs no reasoner. The opt-in **Tier-2 `--deep`** pass additionally runs
 //! the native DL reasoner over the user's data graph MERGED with the bundle's
 //! axioms, surfacing entailed contradictions the structural checks cannot see; it
-//! degrades gracefully (an advisory note, never a hard failure) if the semantic
-//! pass cannot run. The bundle is the only input besides the data file, so the path
-//! is repo-free and Docker-free: an installed wheel carrying the folded `gmeow.gts`
-//! is sufficient.
+//! fails closed if its required native laws or contract are absent, preserving
+//! the original diagnostic. The consumer path is repo-free and Docker-free;
+//! the ontology comes from the supplied `gmeow.gts` bundle.
 //!
 //! The data-graph shape *selection* is authoritative here in Rust (the bundle
 //! reader untars `shapes-archive` and applies the exclusion set) rather than in
@@ -38,7 +37,7 @@ use purrdf::shapes::shape_union::EXCLUDED;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
 use crate::gufo::{self, GufoConfig};
-use crate::report_bridge::{build_report, shacl_findings_from_report};
+use crate::report_bridge::shacl_findings_from_report;
 use crate::store;
 
 /// Producer-prepared native laws used by a selected deep validation pass.
@@ -271,7 +270,10 @@ impl Tier1Shapes {
         };
         let discipline_findings = gufo::reasoning_findings(&dataset, &cfg);
 
-        let mut report = build_report(Vec::new(), Vec::new(), shacl_findings);
+        let mut report = Report::new("validate");
+        for finding in shacl_findings {
+            report.add_finding(finding);
+        }
         for mut f in discipline_findings {
             if let Some(loc) = f.locations.first_mut() {
                 loc.path = Some(origin.to_owned());

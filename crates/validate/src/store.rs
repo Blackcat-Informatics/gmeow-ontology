@@ -155,16 +155,47 @@ pub fn duplicate_validation_results(
 ///
 /// Returns `Err` if the file cannot be read or the Turtle fails to parse.
 pub fn parse_file_dataset(path: &Path) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    let bytes = std::fs::read(path).map_err(|e| {
-        Diag::of_kind(crate::error::Io {
-            detail: e.to_string(),
-        })
-    })?;
-    parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-        Diag::of_kind(crate::error::Parse {
-            detail: e.to_string(),
-        })
+    let bytes = std::fs::read(path).map_err(|error| source_io_error(path, "read", error))?;
+    parse_dataset(&bytes, "text/turtle", None).map_err(|error| {
+        let mut location = error
+            .location
+            .as_deref()
+            .map(gmeow_errors::Location::from_rdf)
+            .unwrap_or_default();
+        location.path = Some(path.to_string_lossy().into_owned());
+        Diag::new(
+            crate::error::Parse::register(),
+            gmeow_errors::Grade::new(
+                gmeow_errors::Severity::Error,
+                gmeow_errors::FindingCategory::ModelingDisciplineViolation,
+                gmeow_errors::Standpoint::Binding,
+            ),
+            format!("syntax error in {}: {error}", path.display()),
+        )
+        .with_location(location)
+        .with_source(error)
     })
+}
+
+/// Preserve a selected source's original IO cause and physical location.
+#[track_caller]
+pub(crate) fn source_io_error(path: &Path, operation: &str, error: std::io::Error) -> Diag {
+    Diag::new(
+        crate::error::Io::register(),
+        gmeow_errors::Grade::new(
+            gmeow_errors::Severity::Error,
+            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
+            gmeow_errors::Standpoint::Binding,
+        ),
+        format!("{operation} {}: {error}", path.display()),
+    )
+    .with_location(gmeow_errors::Location::new(
+        Some(path.to_string_lossy().into_owned()),
+        None,
+        None,
+        None,
+    ))
+    .with_source(error)
 }
 
 /// Build one merged frozen [`RdfDataset`] from every Turtle source in `paths`.
@@ -181,17 +212,7 @@ pub fn parse_file_dataset(path: &Path) -> gmeow_errors::Result<Arc<RdfDataset>> 
 pub fn dataset_from_paths(paths: &[PathBuf]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     for path in paths {
-        let path_str = path.display().to_string();
-        let bytes = std::fs::read(path).map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("failed to read {path_str}: {e}"),
-            })
-        })?;
-        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-            Diag::of_kind(crate::error::Parse {
-                detail: format!("syntax error in {path_str}: {e}"),
-            })
-        })?;
+        let dataset = parse_file_dataset(path)?;
         builder.push_dataset(&dataset)?;
     }
     builder.freeze().map_err(gmeow_errors::Diag::from)
@@ -355,19 +376,14 @@ pub fn dataset_nquads_from_gts(bytes: &[u8]) -> gmeow_errors::Result<String> {
     })
 }
 
-/// Render a resolved subject term the way the legacy `_ox_term_display` did:
-/// IRI → its value; blank → `_:b`.
-///
-/// A triple subject is exactly an IRI or a blank node in well-formed RDF; a
-/// literal/triple subject stringifies defensively (never reached on the validation
-/// path).
-pub fn subject_display(subject: purrdf::TermRef<'_>) -> String {
+/// Render an IRI or blank-node anchor in the validation display form.
+/// Other terms retain their complete native RDF representation.
+pub fn subject_display(dataset: &RdfDataset, subject: purrdf::TermId) -> String {
     use purrdf::TermRef;
-    match subject {
+    match dataset.resolve(subject) {
         TermRef::Iri(iri) => iri.to_owned(),
         TermRef::Blank { label, .. } => format!("_:{label}"),
-        TermRef::Literal { lexical, .. } => lexical.to_owned(),
-        TermRef::Triple { .. } => "<<triple>>".to_owned(),
+        _ => dataset.to_owned_term(subject).to_string(),
     }
 }
 
@@ -405,7 +421,7 @@ pub fn sameas_violations(
             if obj.starts_with(namespace) {
                 continue;
             }
-            let subject_text = subject_display(dataset.resolve(quad.s));
+            let subject_text = subject_display(dataset, quad.s);
             if allowlist
                 .iter()
                 .any(|(s, o)| s == &subject_text && o == obj)

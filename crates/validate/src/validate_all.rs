@@ -18,8 +18,8 @@ use std::time::Instant;
 use std::sync::Arc;
 
 use gmeow_errors::{
-    Advice, Diag, DiagLedger, Finding, FindingCategory, Grade, Report, Severity, StageId,
-    Standpoint, register_code,
+    Advice, Diag, DiagLedger, Finding, FindingCategory, GateVerdict, Grade, Location, Report,
+    Severity, StageId, Standpoint, register_code,
 };
 use gmeow_logic::certificate::ContradictionPolicy;
 use purrdf::ir::{CompositeDatasetView, ViewLimits};
@@ -165,72 +165,18 @@ pub struct ValidateOptions {
     pub deep: bool,
 }
 
-/// The result of one validation phase.
-#[derive(Debug, Default)]
-struct PhaseResult {
-    errors: Vec<String>,
-    warnings: Vec<String>,
-}
-
-/// The stage the plain-string phases (syntax, `owl:sameAs` ban, reasoning
-/// invariants, example coverage) and the structured findings (SHACL, signature,
-/// slice ownership) intern under on the single run ledger. The lint sub-ledgers
+/// The stage the source-anchored validation phases and structured findings
+/// (signature and slice ownership) intern under on the single run ledger. Lint sub-ledgers
 /// keep their own `validate.lint` stage and fold in via [`DiagLedger::union`].
 fn run_stage() -> StageId {
     StageId::new("validate.run")
 }
 
-/// Intern one [`PhaseResult`]'s error/warning strings onto the run ledger and
-/// report whether it contributed any gate-fatal error.
-///
-/// These cheap phases carry no richer focus node than the message itself, so the
-/// message doubles as the hash-cons focus: two distinct messages get distinct
-/// fingerprints and never merge-drop, while an identical message emitted twice
-/// correctly dedups.
-///
-/// This is the DELIBERATE, NARROW exception to the "never key the fingerprint on
-/// the message" rule (Hard Invariant 6): these are anchor-less GLOBAL diagnostics
-/// (syntax error, banned `owl:sameAs`, reasoning-invariant, coverage) whose
-/// identity genuinely IS their message — they have no structural anchor to key on,
-/// so keeping distinct messages as distinct findings requires the message to be the
-/// focus. It is NOT the general rule: anchored findings ([`intern_finding`]) key on
-/// message-INDEPENDENT structural identity and must never fold the message into the
-/// fingerprint.
-///
-/// Errors gate (Error / ModelingDisciplineViolation / Binding —
-/// a Blocking category under a Binding standpoint); warnings are perspectival
-/// policy notes (Warning / PolicyWarning / Perspectival). The `validate.error` /
-/// `validate.warning` codes are the same generic codes the legacy string surface
-/// carried, so the projected report is code-identical for these phases.
-fn intern_phase(ledger: &mut DiagLedger, phase: PhaseResult) -> bool {
-    let had_errors = !phase.errors.is_empty();
-    for message in phase.errors {
-        let diag = Diag::new(
-            register_code("validate.error"),
-            Grade::new(
-                Severity::Error,
-                FindingCategory::ModelingDisciplineViolation,
-                Standpoint::Binding,
-            ),
-            message.clone(),
-        )
-        .with_focus(message);
-        ledger.attach(diag, run_stage());
-    }
-    for message in phase.warnings {
-        let diag = Diag::new(
-            register_code("validate.warning"),
-            Grade::new(
-                Severity::Warning,
-                FindingCategory::PolicyWarning,
-                Standpoint::Perspectival,
-            ),
-            message.clone(),
-        )
-        .with_focus(message);
-        ledger.attach(diag, run_stage());
-    }
-    had_errors
+/// Fold a phase's original witnesses without reconstructing them from strings.
+fn intern_phase(ledger: &mut DiagLedger, phase: DiagLedger) -> bool {
+    let fatal = phase.verdict() == GateVerdict::Fatal;
+    ledger.union(&phase);
+    fatal
 }
 
 /// Intern one already-structured [`Finding`] (a SHACL result, a slice-ownership
@@ -252,7 +198,7 @@ fn intern_phase(ledger: &mut DiagLedger, phase: PhaseResult) -> bool {
 ///     respects Hard Invariant 6.
 ///
 /// The hash-cons focus is the finding's message-INDEPENDENT structural identity
-/// (see [`finding_identity_key`]) — every location logical/path plus the detail —
+/// (see [`finding_identity_key`]) — the typed primary and related source coordinates —
 /// so two genuinely distinct findings (the same constraint component on different
 /// focus nodes, or two signer diagnostics sharing a code) get distinct fingerprints
 /// and never merge-drop, while two findings identical in structure but differing
@@ -270,8 +216,10 @@ fn intern_finding(
         register_code(&finding.code),
         Grade::new(finding.severity, category, standpoint),
         finding.message.clone(),
-    )
-    .with_focus(finding_identity_key(finding));
+    );
+    if let Some(identity) = finding_identity_key(finding) {
+        diag = diag.with_focus(identity);
+    }
     if let Some(location) = finding.locations.first() {
         diag = diag.with_location(location.clone());
     }
@@ -328,49 +276,19 @@ fn intern_shacl_findings(ledger: &mut DiagLedger, findings: Vec<Finding>) {
     }
 }
 
-/// The message-independent structural identity of a [`Finding`] used as its
-/// hash-cons focus — the unit separator joins every primary and related location's
-/// structural coordinates (logical, path, and line/column when present) plus the
-/// detail. The ONLY thing deliberately excluded is `finding.message`: the
-/// content-address fingerprint (which folds the focus) must NEVER depend on the
-/// message (substrate Hard Invariant 6, see the module docs in
-/// `gmeow_errors::ledger`). Line/column ARE part of the identity: two structurally
-/// distinct violations of the same constraint at different lines of one file (same
-/// `path`, no `logical`) are genuinely different witnesses and must get distinct
-/// fingerprints — otherwise one line/message would be silently hash-cons-dropped.
-/// Locations without line/column contribute nothing new, so their keys stay
-/// byte-stable. Two findings identical in all structural identity (including
-/// line/column) but differing only in message ARE the same witness by the
-/// substrate's design and SHOULD hash-cons-merge; no message is lost, because
-/// `LintReport::messages()` / `errors()` / `warnings()` emit per-observation and
-/// the report projection folds every extra observation into the finding's detail.
-fn finding_identity_key(finding: &Finding) -> String {
-    let mut parts: Vec<String> = Vec::new();
-    for location in finding
+/// A framed identity of typed source coordinates, including GTS wire coordinates.
+/// Neither observation wording nor context/detail prose participates. Shape, path
+/// and value references arrive as structured related locations from their owner.
+fn finding_identity_key(finding: &Finding) -> Option<String> {
+    finding
         .locations
         .iter()
-        .chain(finding.related_locations.iter())
-    {
-        if let Some(logical) = &location.logical {
-            parts.push(logical.clone());
-        }
-        if let Some(path) = &location.path {
-            parts.push(path.clone());
-        }
-        // Structural line/column distinguish two distinct violations at different
-        // positions of the same file/constraint. Only appended when present, so
-        // locations without them keep their prior byte-stable key.
-        if let Some(line) = location.line {
-            parts.push(line.to_string());
-        }
-        if let Some(column) = location.column {
-            parts.push(column.to_string());
-        }
-    }
-    if let Some(detail) = &finding.detail {
-        parts.push(detail.clone());
-    }
-    parts.join("\u{1f}")
+        .chain(&finding.related_locations)
+        .any(|location| !location.is_empty())
+        .then(|| {
+            serde_json::to_string(&(&finding.locations, &finding.related_locations))
+                .expect("typed diagnostic source coordinates serialize")
+        })
 }
 
 /// The content key of the repository shape union at `root`: each member's
@@ -503,26 +421,22 @@ impl ValidationRun {
                 .transpose()
         })?;
 
-        // Parse every source Turtle file exactly once before the timed store-build
-        // phase. The per-file frozen datasets are reused by:
-        //   • the `build-store` timed phase (merge into the shared dataset),
-        //   • Phase 1: syntax check (report Err entries),
-        //   • Phase 2: sameAs ban (scan Ok entries).
-        // This eliminates the ~3× redundant parse that existed when each phase parsed
-        // the file independently.
-        let parsed_sources: Vec<(PathBuf, gmeow_errors::Result<Arc<RdfDataset>>)> =
-            if options.gts_bytes.is_none() {
+        // Parse each selected source once, within its actual timed phase. A failure
+        // keeps its original live cause and never becomes a string-only result.
+        let parsed_sources: Vec<ParsedSource> = if options.gts_bytes.is_none() {
+            timed(&mut timings, "syntax", options, None, || {
                 source_paths
                     .iter()
-                    .map(|p| {
-                        let path = PathBuf::from(p);
-                        let res = store::parse_file_dataset(&path);
-                        (path, res)
+                    .map(|source| {
+                        let path = PathBuf::from(source);
+                        let dataset = store::parse_file_dataset(&path)?;
+                        Ok((path, dataset))
                     })
-                    .collect()
-            } else {
-                Vec::new()
-            };
+                    .collect::<gmeow_errors::Result<Vec<_>>>()
+            })?
+        } else {
+            Vec::new()
+        };
 
         // Build the shared dataset once: from the GTS bundle (flattened) or by merging
         // the per-file parsed datasets under fresh blank scopes.
@@ -597,17 +511,10 @@ impl ValidationRun {
             });
         }
 
-        // Phase 1: Turtle syntax check (only meaningful for per-file sources).
-        // `short_circuit` tracks the syntax / sameAs errors specifically: the run
-        // short-circuits iff syntax or sameAs failed (signature errors above
-        // never drive it).
+        // Parsed sources are already syntax-valid. Only a sameAs refusal drives
+        // this report-bearing short circuit; parse failures propagate above.
         let mut short_circuit = false;
         if options.gts_bytes.is_none() {
-            let result = timed(&mut timings, "syntax", options, None, || {
-                check_syntax_from_parsed(&parsed_sources)
-            })?;
-            short_circuit |= intern_phase(&mut run_ledger, result);
-
             // Phase 2: owl:sameAs external-entity ban.
             let result = timed(&mut timings, "sameas-ban", options, None, || {
                 check_sameas_ban_from_parsed(
@@ -618,8 +525,11 @@ impl ValidationRun {
             })?;
             short_circuit |= intern_phase(&mut run_ledger, result);
         }
+        // The merged dataset owns the retained graph. No later phase reads the
+        // per-document datasets after the identity ban has inspected them.
+        drop(parsed_sources);
 
-        // Short-circuit iff syntax or sameAs failed — no merged graph work.
+        // Short-circuit on a banned source identity before further validation.
         if short_circuit {
             let mut report = run_ledger.project_report("validate");
             crate::rule_catalog::populate_rules(&mut report);
@@ -657,12 +567,16 @@ impl ValidationRun {
             let cfg = GufoConfig {
                 namespace: lint_config.namespace.clone(),
             };
-            PhaseResult {
-                errors: gufo::reasoning_invariants(&dataset, &cfg),
-                warnings: Vec::new(),
-            }
+            gufo::reasoning_findings(&dataset, &cfg)
         });
-        intern_phase(&mut run_ledger, result);
+        for finding in result {
+            intern_finding(
+                &mut run_ledger,
+                StageId::new("validate.gufo"),
+                Standpoint::Binding,
+                &finding,
+            );
+        }
 
         // Phase 5: slice ownership defects. The full slice-ownership feedback
         // surface still reports dependency observations as warnings; the validate
@@ -1845,86 +1759,51 @@ fn merged_shacl_merkle_root_from_parts(
     Ok(key.root)
 }
 
-/// The per-file parse result: each source file parsed once into a frozen native
-/// dataset (or its parse error), in `source_paths` order.
-type ParsedSource = (PathBuf, gmeow_errors::Result<Arc<RdfDataset>>);
+/// Each source parsed once into a frozen dataset, in selected source order.
+type ParsedSource = (PathBuf, Arc<RdfDataset>);
 
 /// Merge every successfully-parsed per-file dataset into ONE frozen shared dataset,
-/// each under a fresh blank scope (C0.2), matching [`store::dataset_from_paths`]. A
-/// parse failure propagates with the same `"syntax error in {path}: {msg}"` format the
-/// per-file parse produced, preserving the `build-store` error contract.
+/// each under a fresh blank scope (C0.2), matching [`store::dataset_from_paths`].
+/// Parse failures have already propagated with their original causes.
 fn merge_parsed_sources(parsed: &[ParsedSource]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
-    for (path, result) in parsed {
-        let ds = result.as_ref().map_err(|e| {
-            Diag::of_kind(crate::error::Parse {
-                detail: format!("syntax error in {}: {}", path.display(), e.message()),
-            })
-        })?;
+    for (_, ds) in parsed {
         builder.push_dataset(ds)?;
     }
     builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
-/// Phase 1: report syntax errors from the already-parsed per-file results.
-///
-/// The datasets were produced before the `build-store` phase. Any `Err` entry is a
-/// file that failed to parse; `build-store` (`merge_parsed_sources`) will have already
-/// returned `Err` for that case (propagated via `?`), so in practice this function
-/// only runs when all files parsed successfully and always returns an empty error
-/// list. It is kept as a separate timed phase so the phase label and timing structure
-/// remain identical to the original.
-fn check_syntax_from_parsed(parsed: &[ParsedSource]) -> gmeow_errors::Result<PhaseResult> {
-    let mut result = PhaseResult::default();
-    for (path, parse_result) in parsed {
-        if let Err(exc) = parse_result {
-            result.errors.push(format!(
-                "syntax error in {}: {}",
-                path.display(),
-                exc.message()
-            ));
-        }
-    }
-    Ok(result)
-}
-
 /// Phase 2: scan each already-parsed dataset for banned `owl:sameAs` links.
-///
-/// Files that failed to parse are skipped — they already produced an error in Phase 1
-/// (and caused `build-store` to fail before reaching this phase in practice).
 fn check_sameas_ban_from_parsed(
     parsed: &[ParsedSource],
     namespace: &str,
     allowlist: &[(String, String)],
-) -> gmeow_errors::Result<PhaseResult> {
-    let mut result = PhaseResult::default();
-    for (path, parse_result) in parsed {
-        let ds = match parse_result {
-            Ok(ds) => ds,
-            Err(exc) => {
-                result.errors.push(format!(
-                    "failed to parse {}: {}",
-                    path.display(),
-                    exc.message()
-                ));
-                continue;
-            }
-        };
+) -> gmeow_errors::Result<DiagLedger> {
+    let mut result = DiagLedger::new();
+    for (path, ds) in parsed {
         for (subject_text, obj) in store::sameas_violations(ds, namespace, allowlist) {
-            result.errors.push(format!(
-                "{}: banned owl:sameAs to external entity \
+            result.attach(
+                source_phase_violation(
+                    path,
+                    Some(&subject_text),
+                    &obj,
+                    format!(
+                        "{}: banned owl:sameAs to external entity \
                  {subject_text} owl:sameAs {obj} (Principle 5); \
                  use skos:exactMatch or gmeow:authorityLink",
-                path.display()
-            ));
+                        path.display()
+                    ),
+                ),
+                run_stage(),
+            );
         }
     }
     Ok(result)
 }
 
 /// Phase 9: every slice must ship at least one `examples/*.ttl` file.
-fn check_example_coverage(slices_dir: &str) -> gmeow_errors::Result<PhaseResult> {
-    let mut result = PhaseResult::default();
+fn check_example_coverage(slices_dir: &str) -> gmeow_errors::Result<DiagLedger> {
+    let mut result = DiagLedger::new();
     for manifest in find_slice_manifests(slices_dir)? {
         let slice_dir = manifest.parent().ok_or_else(|| {
             Diag::of_kind(crate::error::Io {
@@ -1940,26 +1819,72 @@ fn check_example_coverage(slices_dir: &str) -> gmeow_errors::Result<PhaseResult>
             })?
             .to_string_lossy();
         let examples_dir = slice_dir.join("examples");
-        let has_example = examples_dir.is_dir()
-            && std::fs::read_dir(&examples_dir)
-                .map_err(|e| {
-                    Diag::of_kind(crate::error::Io {
-                        detail: format!("read_dir {}: {e}", examples_dir.display()),
-                    })
-                })?
-                .filter_map(|e| e.ok())
-                .any(|e| {
-                    let p = e.path();
-                    p.is_file() && p.extension().and_then(|s| s.to_str()) == Some("ttl")
-                });
+        let mut has_example = false;
+        match std::fs::read_dir(&examples_dir) {
+            Ok(entries) => {
+                for entry in entries {
+                    let entry = entry.map_err(|error| {
+                        store::source_io_error(&examples_dir, "read directory entry", error)
+                    })?;
+                    let path = entry.path();
+                    if path.extension().and_then(|extension| extension.to_str()) == Some("ttl") {
+                        let metadata = path.metadata().map_err(|error| {
+                            store::source_io_error(&path, "read metadata", error)
+                        })?;
+                        has_example |= metadata.is_file();
+                    }
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(store::source_io_error(
+                    &examples_dir,
+                    "read directory",
+                    error,
+                ));
+            }
+        }
         if !has_example {
-            result.errors.push(format!(
-                "slice {slice_name}: no examples/*.ttl — every slice must \
+            result.attach(
+                source_phase_violation(
+                    &manifest,
+                    None,
+                    "examples",
+                    format!(
+                        "slice {slice_name}: no examples/*.ttl — every slice must \
                  ship at least one validating example"
-            ));
+                    ),
+                ),
+                run_stage(),
+            );
         }
     }
     Ok(result)
+}
+
+#[track_caller]
+fn source_phase_violation(
+    path: &Path,
+    subject: Option<&str>,
+    focus: &str,
+    message: String,
+) -> Diag {
+    Diag::new(
+        register_code("validate.error"),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    )
+    .with_location(Location::new(
+        Some(path.to_string_lossy().into_owned()),
+        None,
+        None,
+        subject.map(str::to_owned),
+    ))
+    .with_focus(focus)
 }
 
 /// One example's findings, cache status and current execution observations.
@@ -2310,32 +2235,20 @@ fn collect_slice_test_files(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBu
 fn find_slice_manifests(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let root = PathBuf::from(slices_dir);
     let mut manifests: Vec<PathBuf> = Vec::new();
-    for group in std::fs::read_dir(&root).map_err(|e| {
-        Diag::of_kind(crate::error::Io {
-            detail: format!("read_dir {}: {e}", root.display()),
-        })
-    })? {
+    for group in std::fs::read_dir(&root)
+        .map_err(|error| store::source_io_error(&root, "read directory", error))?
+    {
         let group = group
-            .map_err(|e| {
-                Diag::of_kind(crate::error::Io {
-                    detail: format!("dir entry in {}: {e}", root.display()),
-                })
-            })?
+            .map_err(|error| store::source_io_error(&root, "read directory entry", error))?
             .path();
         if !group.is_dir() {
             continue;
         }
-        for slice in std::fs::read_dir(&group).map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("read_dir {}: {e}", group.display()),
-            })
-        })? {
+        for slice in std::fs::read_dir(&group)
+            .map_err(|error| store::source_io_error(&group, "read directory", error))?
+        {
             let slice = slice
-                .map_err(|e| {
-                    Diag::of_kind(crate::error::Io {
-                        detail: format!("dir entry in {}: {e}", group.display()),
-                    })
-                })?
+                .map_err(|error| store::source_io_error(&group, "read directory entry", error))?
                 .path();
             if !slice.is_dir() {
                 continue;

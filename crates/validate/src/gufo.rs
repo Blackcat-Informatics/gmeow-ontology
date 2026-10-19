@@ -8,7 +8,7 @@
 //! `frame_declaration_completeness`) run over a native [`purrdf::RdfDataset`]
 //! built from the merged ontology sources, querying through the indexed
 //! [`purrdf::DatasetView::quads_for_pattern`]. The aggregator
-//! [`reasoning_invariants`] runs the five PRODUCTION checks and flattens their errors.
+//! [`reasoning_findings`] runs the five production checks and retains their typed findings.
 //! `relator_mediation` (RelComp) is now enforced natively over the whole ontology by the
 //! foundation lowering and is retained here only as the regression oracle that native
 //! enforcement is validated against — it is not in the production aggregate.
@@ -1040,19 +1040,6 @@ pub fn reasoning_findings(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     out.extend(coequal_facet_orthogonality(ds, cfg));
     out.extend(frame_declaration_completeness(ds, cfg));
     out
-}
-
-/// Run every UFO anti-pattern check; an empty list means the graph is clean
-/// (mirrors `reasoning_invariants`). The six checks run in the same order, their
-/// errors flattened.
-///
-/// This is a pure projection of [`reasoning_findings`] to preserve the string
-/// interface for all existing callers (Python bindings, reasoning-parity tests).
-pub fn reasoning_invariants(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
-    reasoning_findings(ds, cfg)
-        .into_iter()
-        .map(|f| f.message)
-        .collect()
 }
 
 #[path = "gufo.tests.rs"]
