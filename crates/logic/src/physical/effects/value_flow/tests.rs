@@ -142,13 +142,13 @@ fn seeded_refinement_reuses_unseeded_fixed_point_without_changing_result() {
     let state = analysis.summarize(facts.iter());
     let lowered = &analysis.rules[0];
     let upper = analysis.bindings(lowered, &state).unwrap();
-    let subject = *lowered.names.get("?s").unwrap();
-
-    for value in 0..analysis.universe.size() {
-        let from_universe = analysis.bindings_seeded(lowered, &state, &[(subject, value)]);
-        let from_upper =
-            analysis.bindings_seeded_from(lowered, &state, &upper, &[(subject, value)]);
-        assert_eq!(from_upper, from_universe, "seed cell {value}");
+    for (name, &variable) in &lowered.names {
+        for value in 0..analysis.universe.size() {
+            let from_universe = analysis.bindings_seeded(lowered, &state, &[(variable, value)]);
+            let from_upper =
+                analysis.bindings_seeded_from(lowered, &state, &upper, &[(variable, value)]);
+            assert_eq!(from_upper, from_universe, "seed {name} cell {value}");
+        }
     }
 }
 

@@ -2132,7 +2132,7 @@ impl ValueFlow {
         if bindings.iter().any(Domain::is_empty) {
             return None;
         }
-        self.stabilize_bindings(rule, state, bindings)
+        self.stabilize_bindings(rule, state, bindings, 0)
     }
 
     /// Refine a seeded join from the rule's already-stable unseeded upper bound.
@@ -2157,7 +2157,19 @@ impl ValueFlow {
         if bindings.iter().any(Domain::is_empty) {
             return None;
         }
-        self.stabilize_bindings(rule, state, bindings)
+        // The upper bound is already stable. Start where the singleton changed
+        // an input, so dependent atoms see its narrowing before another broad
+        // scan. Every atom still runs on every pass until the same fixed point.
+        let first_atom = rule
+            .body
+            .iter()
+            .position(|atom| {
+                atom.iter().any(|slot| {
+                    matches!(slot, Slot::Variable(variable) if seeds.iter().any(|&(seeded, _)| seeded == *variable))
+                })
+            })
+            .unwrap_or(0);
+        self.stabilize_bindings(rule, state, bindings, first_atom)
     }
 
     fn stabilize_bindings(
@@ -2165,11 +2177,15 @@ impl ValueFlow {
         rule: &Rule,
         state: &FlowSummary,
         mut bindings: Vec<Domain>,
+        first_atom: usize,
     ) -> Option<Vec<Domain>> {
         let size = self.universe.size();
         loop {
             let mut changed = false;
-            for atom in &rule.body {
+            for atom in rule.body[first_atom..]
+                .iter()
+                .chain(&rule.body[..first_atom])
+            {
                 let required = self.universe.domains(atom, &bindings, true);
                 let mut possible: [Domain; 3] = std::array::from_fn(|_| Domain::empty(size));
                 // Fixed predicates already select their relation and semantic alias.
