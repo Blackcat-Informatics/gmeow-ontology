@@ -1104,6 +1104,18 @@ fn annotation_fragment_validates_against_json_schema() {
         crate::stages::json_schema::JSON_SCHEMA_PATH,
     )
     .expect("load the producer-selected JSON Schema read-only");
+    // Exercise the exact complete producer artifact before changing its root to
+    // Annotation. Parser depth and schema admission must accept these bytes.
+    let root_errors = gmeow_validate::instance::validate_instance(
+        b"null",
+        gmeow_validate::instance::InstanceFormat::Json,
+        &schema_bytes,
+    )
+    .expect("the complete producer-selected schema parses and compiles");
+    assert!(
+        !root_errors.is_empty(),
+        "the complete GMEOW document schema must reject a null document"
+    );
     let mut schema: Value = serde_json::from_slice(&schema_bytes).expect("schema is valid JSON");
 
     // Validate a sample annotation object (the value inside `@annotation`) by

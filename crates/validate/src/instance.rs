@@ -9,7 +9,7 @@
 //! filesystem resolver participates in validation.
 
 use std::error::Error;
-use std::sync::Mutex;
+use std::sync::OnceLock;
 
 use gmeow_errors::{Diag, DiagKind};
 use purrdf_jsonschema::{Metaschemas, OutputFormat, Registry};
@@ -134,32 +134,51 @@ pub fn validate_instance(
     Ok(messages)
 }
 
-/// Compile the embedded set once; each registry shares its immutable documents
-/// and validators. Release the initialization lock before compiling user input.
-fn schema_registry() -> gmeow_errors::Result<Registry> {
-    static METASCHEMAS: Mutex<Option<Metaschemas>> = Mutex::new(None);
-    let mut shared = METASCHEMAS.lock().map_err(|_| {
-        Diag::of_kind(crate::error::Engine {
-            detail: "JSON Schema meta-schema initialization lock is poisoned".into(),
-        })
-    })?;
-    if shared.is_none() {
-        let documents = META_DOCUMENTS
-            .iter()
-            .map(|(uri, bytes)| {
-                json::read_slice(bytes, Limits::DEFAULT)
-                    .map(|value| (*uri, value))
-                    .map_err(|e| parse_error(&format!("invalid embedded meta-schema {uri}"), e))
-            })
-            .collect::<gmeow_errors::Result<Vec<_>>>()?;
-        *shared = Some(
-            Metaschemas::new(documents)
-                .map_err(|e| engine_error("could not compile embedded meta-schemas", e))?,
-        );
+/// Keep the original typed initialization failure, including its document URI.
+#[derive(Debug)]
+enum MetaSchemaFailure {
+    Parse {
+        uri: &'static str,
+        source: json::Error,
+    },
+    Compile(purrdf_jsonschema::SchemaError),
+}
+
+impl MetaSchemaFailure {
+    #[track_caller]
+    fn diagnostic(&self) -> Diag {
+        match self {
+            Self::Parse { uri, source } => {
+                parse_error(&format!("invalid embedded meta-schema {uri}"), *source)
+            }
+            Self::Compile(source) => {
+                engine_error("could not compile embedded meta-schemas", source.clone())
+            }
+        }
     }
-    Ok(Registry::with_metaschemas(
-        shared.as_ref().expect("initialized above"),
-    ))
+}
+
+fn load_metaschemas(documents: &[(&'static str, &[u8])]) -> Result<Metaschemas, MetaSchemaFailure> {
+    let documents = documents
+        .iter()
+        .map(|(uri, bytes)| {
+            json::read_slice(bytes, Limits::DEFAULT)
+                .map(|value| (*uri, value))
+                .map_err(|source| MetaSchemaFailure::Parse { uri, source })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    Metaschemas::new(documents).map_err(MetaSchemaFailure::Compile)
+}
+
+/// Initialize the embedded set once, retaining deterministic failures as well as
+/// success. Each registry shares its immutable documents and validators.
+fn schema_registry() -> gmeow_errors::Result<Registry> {
+    static METASCHEMAS: OnceLock<Result<Metaschemas, MetaSchemaFailure>> = OnceLock::new();
+    METASCHEMAS
+        .get_or_init(|| load_metaschemas(&META_DOCUMENTS))
+        .as_ref()
+        .map(Registry::with_metaschemas)
+        .map_err(|failure| failure.diagnostic())
 }
 
 /// Preserve the operation's stable classification and the original codec cause.

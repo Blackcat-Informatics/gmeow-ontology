@@ -189,3 +189,37 @@ fn local_reference_and_exact_numeric_values_validate_in_both_formats() {
     .unwrap();
     assert!(!errors.is_empty());
 }
+
+#[test]
+fn embedded_schema_parse_failure_retains_document_and_native_cause() {
+    let failure = load_metaschemas(&[("https://example.org/meta", b"not JSON")]).unwrap_err();
+    let diagnostic = failure.diagnostic();
+    assert_eq!(diagnostic.code(), crate::error::Parse::register());
+    assert!(diagnostic.message().contains("https://example.org/meta"));
+    let source = diagnostic
+        .downcast_ref::<json::Error>()
+        .expect("native codec cause");
+    assert_eq!(
+        *source,
+        json::read_slice(b"not JSON", Limits::DEFAULT).unwrap_err()
+    );
+}
+
+#[test]
+fn embedded_schema_compile_failure_retains_native_reference_fields() {
+    let failure = load_metaschemas(&[(
+        "https://example.org/meta",
+        br#"{"$schema":"https://example.org/unavailable"}"#,
+    )])
+    .unwrap_err();
+    let diagnostic = failure.diagnostic();
+    assert_eq!(diagnostic.code(), crate::error::Engine::register());
+    assert!(
+        matches!(
+            diagnostic.downcast_ref::<purrdf_jsonschema::SchemaError>(),
+            Some(purrdf_jsonschema::SchemaError::MissingMetaschema { metaschema, .. })
+                if metaschema == "https://example.org/unavailable"
+        ),
+        "{diagnostic:?}"
+    );
+}
