@@ -13,10 +13,18 @@ use syn::{
 };
 
 /// Dependency-owned macros whose namespace is part of the input capability.
-fn qualified_macro(owner: &str, name: &str) -> Option<&'static str> {
-    match (owner, name) {
+fn qualified_macro(path: &syn::Path) -> Option<&'static str> {
+    if path.segments.len() != 2 {
+        return None;
+    }
+    match (
+        path.segments[0].ident.to_string().as_str(),
+        path.segments[1].ident.to_string().as_str(),
+    ) {
         ("inventory", "collect") => Some("inventory::collect"),
-        ("tracing", "info_span") => Some("tracing::info_span"),
+        // A relative name can resolve to a local module re-exporting an
+        // input-bearing macro. Only the external-prelude path owns this grant.
+        ("tracing", "info_span") if path.leading_colon.is_some() => Some("tracing::info_span"),
         _ => None,
     }
 }
@@ -477,21 +485,27 @@ impl Scanner<'_> {
                     && syn::parse2::<syn::Ident>(TokenStream::from(TokenTree::Ident(name.clone())))
                         .is_ok()
                 {
-                    let qualified = index >= 3
-                        && matches!(&tokens[index - 2], TokenTree::Punct(colon) if colon.as_char() == ':')
-                        && matches!(&tokens[index - 1], TokenTree::Punct(colon) if colon.as_char() == ':')
-                        && (index == 3
-                            || !matches!(&tokens[index - 4], TokenTree::Punct(colon) if colon.as_char() == ':'));
-                    let owner = if qualified {
-                        match &tokens[index - 3] {
-                            TokenTree::Ident(owner) => {
-                                qualified_macro(&owner.to_string(), &name.to_string())
-                            }
-                            _ => None,
+                    let mut start = index;
+                    while start >= 2
+                        && matches!(&tokens[start - 2], TokenTree::Punct(colon) if colon.as_char() == ':')
+                        && matches!(&tokens[start - 1], TokenTree::Punct(colon) if colon.as_char() == ':')
+                    {
+                        start -= 2;
+                        if start > 0
+                            && matches!(&tokens[start - 1], TokenTree::Ident(ident)
+                                if syn::parse2::<syn::Ident>(TokenStream::from(
+                                    TokenTree::Ident(ident.clone())
+                                )).is_ok())
+                        {
+                            start -= 1;
+                        } else {
+                            break;
                         }
-                    } else {
-                        None
-                    };
+                    }
+                    let path = tokens[start..=index].iter().cloned().collect();
+                    let owner = syn::parse2::<syn::Path>(path)
+                        .ok()
+                        .and_then(|path| qualified_macro(&path));
                     let name = owner.map(str::to_owned).unwrap_or_else(|| name.to_string());
                     self.macro_input(&name, group.stream())?;
                     index += 3;
@@ -772,9 +786,7 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
             .last()
             .map(|part| part.ident.to_string())
             .unwrap_or_default();
-        if mac.path.segments.len() == 2
-            && let Some(qualified) = qualified_macro(&mac.path.segments[0].ident.to_string(), &name)
-        {
+        if let Some(qualified) = qualified_macro(&mac.path) {
             name = qualified.into();
         }
         if let Err(e) = self.macro_input(&name, mac.tokens.clone()) {

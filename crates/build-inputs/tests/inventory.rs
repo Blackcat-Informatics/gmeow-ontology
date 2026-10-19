@@ -979,12 +979,17 @@ fn standard_output_macros_retain_nested_input_ownership() {
 /// Diagnostic syntax retains nested file bytes while unknown capabilities fail closed.
 #[test]
 fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
-    for nested in [false, true] {
-        let span = "tracing::info_span!(\"phase\", label = include_str!(\"label.txt\"))";
+    for (nested, statement) in [
+        (false, "let _ ="),
+        (true, "let _ ="),
+        (false, "return"),
+        (true, "return"),
+    ] {
+        let span = "::tracing::info_span!(\"phase\", label = include_str!(\"label.txt\"))";
         let source = if nested {
-            format!("fn phase() {{ let _ = quote! {{ {span} }}; }}")
+            format!("fn phase() {{ quote! {{ {statement} {span}; }}; }}")
         } else {
-            format!("fn phase() {{ let _ = {span}; }}")
+            format!("fn phase() {{ {statement} {span}; }}")
         };
         let root = fixture(&source);
         write(root.path(), "crate/src/label.txt", "first");
@@ -1005,15 +1010,21 @@ fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
             InputInventory::collect(root.path(), &selected).unwrap()
         );
         for unowned in [
+            "fn phase() { tracing::info_span!(\"phase\"); }",
+            "fn phase() { quote! { tracing::info_span!(\"phase\") }; }",
+            "mod tracing { pub(crate) use std::include_str as info_span; } fn phase() { tracing::info_span!(\"hidden.txt\"); }",
+            "fn phase() { quote! { mod tracing { pub(crate) use std::include_str as info_span; } tracing::info_span!(\"hidden.txt\"); } }",
+            "fn phase() { ::wrong::tracing::info_span!(\"phase\"); }",
+            "fn phase() { quote! { ::wrong::tracing::info_span!(\"phase\") }; }",
             "fn phase() { other::info_span!(\"phase\"); }",
             "fn phase() { info_span!(\"phase\"); }",
             "fn phase() { quote! { other::info_span!(\"phase\") }; }",
             "fn phase() { wrong::tracing::info_span!(\"phase\"); }",
             "fn phase() { quote! { wrong::tracing::info_span!(\"phase\") }; }",
-            "fn phase() { tracing::info_span!(\"phase\", value = unknown_input!()); }",
-            "fn phase() { quote! { tracing::info_span!(\"phase\", value = unknown_input!()) }; }",
-            "fn phase() { tracing::info_span!(\"phase\", value = { mod hidden; 1 }); }",
-            "fn phase() { quote! { tracing::info_span!(\"phase\", value = { mod hidden; 1 }) }; }",
+            "fn phase() { ::tracing::info_span!(\"phase\", value = unknown_input!()); }",
+            "fn phase() { quote! { ::tracing::info_span!(\"phase\", value = unknown_input!()) }; }",
+            "fn phase() { ::tracing::info_span!(\"phase\", value = { mod hidden; 1 }); }",
+            "fn phase() { quote! { ::tracing::info_span!(\"phase\", value = { mod hidden; 1 }) }; }",
         ] {
             write(root.path(), "crate/src/lib.rs", unowned);
             assert!(

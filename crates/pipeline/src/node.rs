@@ -31,7 +31,7 @@ pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 /// Observe a producer phase without putting clock values in its product or key.
 /// The work's return value, including an original typed refusal, is unchanged.
 pub(crate) fn measure_stage_phase<T>(stage: &str, phase: &str, work: impl FnOnce() -> T) -> T {
-    let span = tracing::info_span!(target: "pipeline_phase", "producer_phase", stage, phase);
+    let span = ::tracing::info_span!(target: "pipeline_phase", "producer_phase", stage, phase);
     let _entered = span.enter();
     let started = std::time::Instant::now();
     tracing::info!(target: "pipeline_phase", stage, phase, event = "start", "producer phase boundary");
