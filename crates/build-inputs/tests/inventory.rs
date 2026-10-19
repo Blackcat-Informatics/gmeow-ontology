@@ -1119,6 +1119,14 @@ fn tracing_extern_crate_aliases_cannot_hide_embedded_inputs() {
             ("tracing", "self", false, "reused", false),
             ("tracing", "self", false, "macro", false),
             ("tracing", "self", false, "forwarded", false),
+            ("tracing", "self", false, "split-head", false),
+            ("telemetry", "self", false, "split-tail", false),
+            ("tracing", "self", false, "split-both", false),
+            ("tracing", "self", false, "abi-argument", false),
+            ("tracing", "self", false, "synthesis", false),
+            ("tracing", "self", false, "builtin-shadow", false),
+            ("tracing", "self", false, "exported-shadow", false),
+            ("tracing", "self", false, "nested-abi-argument", false),
         ] {
             let binding = if raw {
                 format!("r#{alias}")
@@ -1151,12 +1159,41 @@ fn tracing_extern_crate_aliases_cannot_hide_embedded_inputs() {
                 "forwarded" => format!(
                     "macro_rules! bind {{ ($item:item) => {{ $item }}; }} bind! {{ {declaration} }}\n{phase}"
                 ),
+                "split-head" => format!(
+                    "macro_rules! bind {{ ($k:tt) => {{ $k crate {owner} as {binding}; }}; }} bind!(extern);\n{phase}"
+                ),
+                "split-tail" => format!(
+                    "macro_rules! bind {{ ($k:tt) => {{ extern $k {owner} as {binding}; }}; }} bind!(crate);\n{phase}"
+                ),
+                "split-both" => format!(
+                    "macro_rules! bind {{ ($a:tt, $b:tt) => {{ $a $b {owner} as {binding}; }}; }} bind!(extern, crate);\n{phase}"
+                ),
+                "abi-argument" => format!(
+                    "macro_rules! bind {{ ($k:tt $abi:literal) => {{ $k crate {owner} as {binding}; }}; }} bind!(extern \"C\");\n{phase}"
+                ),
+                "synthesis" => format!(
+                    "macro_rules! bind {{ () => {{ ${{concat(ex, tern)}} ${{concat(cra, te)}} {owner} as {binding}; }}; }} bind!();\n{phase}"
+                ),
+                "builtin-shadow" => format!(
+                    "macro_rules! format {{ ($k:tt) => {{ $k crate {owner} as {binding}; }}; }} format!(extern);\n{phase}"
+                ),
+                "exported-shadow" => format!(
+                    "mod macros {{ #[macro_export] macro_rules! format {{ ($k:tt) => {{ $k crate {owner} as {binding}; }}; }} }} crate::format!(extern);\n{phase}"
+                ),
+                "nested-abi-argument" => format!(
+                    "macro_rules! bind {{ ($k:tt $abi:literal) => {{ $k crate {owner} as {binding}; }}; }} macro_rules! wrapper {{ () => {{ bind!(extern \"C\"); }}; }} wrapper!();\n{phase}"
+                ),
                 _ => unreachable!(),
+            };
+            let feature = if placement == "synthesis" {
+                "#![feature(macro_metavar_expr_concat)]\n"
+            } else {
+                ""
             };
             write(
                 root.path(),
                 "crate/src/lib.rs",
-                &format!("pub use core::include_str as info_span;\n{source}"),
+                &format!("{feature}pub use core::include_str as info_span;\n{source}"),
             );
             write(
                 root.path(),
@@ -1191,10 +1228,22 @@ fn tracing_extern_crate_aliases_cannot_hide_embedded_inputs() {
             });
             selected.units[0].dependencies.push(2);
             selected.units[0].dependency_names.push("other".into());
-            let error = InputInventory::collect(root.path(), &selected)
-                .expect_err("a root extern crate alias must not grant tracing ownership");
-            let message = if placement == "macro" {
+            let Err(error) = InputInventory::collect(root.path(), &selected) else {
+                panic!("root alias accepted: {edition} {placement}");
+            };
+            let message = if matches!(placement, "macro" | "split-tail" | "synthesis") {
                 "source-producing declarative macro"
+            } else if matches!(
+                placement,
+                "forwarded"
+                    | "split-head"
+                    | "split-both"
+                    | "abi-argument"
+                    | "builtin-shadow"
+                    | "exported-shadow"
+                    | "nested-abi-argument"
+            ) {
+                "explicit source owner"
             } else {
                 "extern crate"
             };
@@ -1223,6 +1272,9 @@ fn tracing_extern_crate_scope_keeps_genuine_and_inactive_owners() {
             "external",
             "block",
             "forwarded",
+            "abi-type",
+            "bare-abi-type",
+            "abi-block",
         ] {
             let call =
                 format!("::{alias}::info_span!(\"phase\", label = include_str!(\"label.txt\"))");
@@ -1245,6 +1297,15 @@ fn tracing_extern_crate_scope_keeps_genuine_and_inactive_owners() {
                 }
                 "forwarded" => format!(
                     "macro_rules! forward {{ ($value:expr) => {{ $value }}; }}\nfn phase() {{ let _ = ::{alias}::info_span!(\"phase\", label=forward!(include_str!(\"label.txt\"))); }}"
+                ),
+                "abi-type" => format!(
+                    "macro_rules! callback {{ ($name:ident) => {{ type $name = unsafe extern \"C\" fn(); }}; }} callback!(Callback);\n{phase}"
+                ),
+                "bare-abi-type" => format!(
+                    "macro_rules! callback {{ ($name:ident) => {{ type $name = extern fn(); }}; }} callback!(Callback);\n{phase}"
+                ),
+                "abi-block" => format!(
+                    "macro_rules! foreign {{ ($name:ident) => {{ unsafe extern \"C\" {{ fn $name(); }} }}; }} foreign!(foreign_fn);\n{phase}"
                 ),
                 _ => unreachable!(),
             };

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::{InputInventory, InputRole, Result, UnitSelection, checked_path, fail, relative};
-use proc_macro2::{TokenStream, TokenTree};
+use proc_macro2::{Delimiter, TokenStream, TokenTree};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use syn::{
@@ -562,6 +562,12 @@ impl Scanner<'_> {
         Ok(())
     }
     fn macro_input(&mut self, name: &str, tokens: TokenStream) -> Result<()> {
+        if contains_opaque_source_syntax(tokens.clone(), MacroSyntaxContext::Argument) {
+            return Err(fail(format!(
+                "opaque macro input for {name}! needs an explicit source owner in {}",
+                self.file.display()
+            )));
+        }
         // Embedded data and compile-time scalar values do not add Rust modules.
         // The authenticated producer traversal still records every such input.
         if self.ownership_only
@@ -621,16 +627,6 @@ impl Scanner<'_> {
                 }
                 self.tokens(tokens)
             }
-            "macro_rules" => {
-                if contains_source_declaration(tokens.clone()) {
-                    Err(fail(format!(
-                        "source-producing declarative macro needs an explicit owner in {}",
-                        self.file.display()
-                    )))
-                } else {
-                    self.tokens(tokens)
-                }
-            }
             // These syntax-only macros are bound to the selected std/registry/local
             // package implementation. Their nested include expressions still count.
             "assert"
@@ -674,20 +670,21 @@ impl Scanner<'_> {
             | "quote"
             | "parse_macro_input"
             | "submit" => self.tokens(tokens),
-            local if self.macros.contains(local) => {
-                if contains_extern_crate_declaration(tokens.clone()) {
-                    return Err(fail(format!(
-                        "extern crate declaration passed to {local}! needs an explicit source owner in {}",
-                        self.file.display()
-                    )));
-                }
-                self.tokens(tokens)
-            }
+            local if self.macros.contains(local) => self.tokens(tokens),
             _ => Err(fail(format!(
                 "macro {name}! has no selected source-input capability owner in {}",
                 self.file.display()
             ))),
         }
+    }
+    fn macro_definition(&mut self, tokens: TokenStream) -> Result<()> {
+        if contains_source_declaration(tokens.clone()) {
+            return Err(fail(format!(
+                "source-producing declarative macro needs an explicit owner in {}",
+                self.file.display()
+            )));
+        }
+        self.tokens(tokens)
     }
     fn inactive(&mut self, item: &Item, attrs: &[Attribute]) -> Result<()> {
         let mentions_test = attrs.iter().any(|attr| meta_mentions_test(&attr.meta));
@@ -841,6 +838,15 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
             && let Some(name) = &item.ident
         {
             self.macros.insert(name.to_string());
+            for attr in &item.attrs {
+                self.visit_attribute(attr);
+            }
+            if self.error.is_none()
+                && let Err(error) = self.macro_definition(item.mac.tokens.clone())
+            {
+                self.error = Some(error);
+            }
+            return;
         }
         visit::visit_item_macro(self, item);
     }
@@ -1015,18 +1021,49 @@ fn tokens_mention_test(tokens: TokenStream) -> bool {
         _ => false,
     })
 }
-fn contains_extern_crate_declaration(tokens: TokenStream) -> bool {
+#[derive(Clone, Copy)]
+enum MacroSyntaxContext {
+    Argument,
+    Definition,
+}
+
+/// Arguments may be rearranged by an opaque macro. Fixed ABI syntax is safe
+/// only in a definition; synthesized tokens require an explicit source owner.
+fn contains_opaque_source_syntax(tokens: TokenStream, context: MacroSyntaxContext) -> bool {
     let tokens: Vec<_> = tokens.into_iter().collect();
-    tokens.windows(2).any(|pair| {
-        matches!(pair, [TokenTree::Ident(first), TokenTree::Ident(second)] if first == "extern" && second == "crate")
-    }) || tokens.into_iter().any(|token| match token {
-        TokenTree::Group(group) => contains_extern_crate_declaration(group.stream()),
-        _ => false,
-    })
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            TokenTree::Ident(name) if name == "extern" => {
+                let fixed_abi = match tokens.get(index + 1) {
+                    Some(TokenTree::Ident(name)) => name == "fn",
+                    Some(TokenTree::Group(group)) => group.delimiter() == Delimiter::Brace,
+                    Some(TokenTree::Literal(abi)) => syn::parse2::<syn::LitStr>(TokenStream::from(
+                        TokenTree::Literal(abi.clone()),
+                    ))
+                    .is_ok(),
+                    _ => false,
+                };
+                if matches!(context, MacroSyntaxContext::Argument) || !fixed_abi {
+                    return true;
+                }
+            }
+            TokenTree::Punct(dollar)
+                if dollar.as_char() == '$'
+                    && matches!(tokens.get(index + 1), Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Brace) =>
+            {
+                return true;
+            }
+            TokenTree::Group(group) if contains_opaque_source_syntax(group.stream(), context) => {
+                return true;
+            }
+            _ => {}
+        }
+    }
+    false
 }
 
 fn contains_source_declaration(tokens: TokenStream) -> bool {
-    if contains_extern_crate_declaration(tokens.clone()) {
+    if contains_opaque_source_syntax(tokens.clone(), MacroSyntaxContext::Definition) {
         return true;
     }
     let tokens: Vec<_> = tokens.into_iter().collect();
