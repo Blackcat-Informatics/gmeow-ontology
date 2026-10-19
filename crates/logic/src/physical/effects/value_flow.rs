@@ -2169,8 +2169,13 @@ impl ValueFlow {
             for atom in &rule.body {
                 let required = self.universe.domains(atom, &bindings, true);
                 let mut possible: [Domain; 3] = std::array::from_fn(|_| Domain::empty(size));
-                let indexed_predicates =
-                    state.predicates_for_singleton(&required, &self.conditioned, size);
+                // Fixed predicates already select their relation and semantic alias.
+                // Only a dynamic predicate benefits from the reverse value index.
+                let indexed_predicates = if matches!(atom[1], Slot::Constant(_)) {
+                    None
+                } else {
+                    state.predicates_for_singleton(&required, &self.conditioned, size)
+                };
                 let predicates = indexed_predicates.as_ref().unwrap_or(&required[1]);
                 for predicate in predicates.indices() {
                     let Some(relation) = state.relations.get(&predicate) else {

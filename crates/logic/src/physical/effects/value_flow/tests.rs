@@ -153,6 +153,73 @@ fn seeded_refinement_reuses_unseeded_fixed_point_without_changing_result() {
 }
 
 #[test]
+fn domain_subject_seeds_keep_exact_class_support_across_wide_metadata() {
+    let (rules, effects) = schema_flow();
+    let index = effects
+        .iter()
+        .position(|effect| effect.name == "dl:domain")
+        .unwrap();
+    let mut facts = Vec::new();
+    for index in 0..1024 {
+        let property = format!("urn:domain-property:{index}");
+        facts.push(Fact {
+            subject: TermValue::iri(&property),
+            predicate: "http://www.w3.org/2000/01/rdf-schema#domain".to_owned(),
+            object: TermValue::iri(format!("urn:domain-class:{index}")),
+        });
+        facts.push(Fact {
+            subject: TermValue::iri(format!("urn:domain-subject:{index}")),
+            predicate: property,
+            object: TermValue::iri("urn:object"),
+        });
+    }
+    let observed: Vec<_> = facts
+        .iter()
+        .map(|fact| {
+            StatementPattern::statement(&[
+                EvalTerm::ConstLit(fact.subject.clone()),
+                EvalTerm::named(&fact.predicate),
+                EvalTerm::ConstLit(fact.object.clone()),
+            ])
+        })
+        .collect();
+    let analysis = ValueFlow::with_observations(
+        &rules[index..=index],
+        &effects[index..=index],
+        SemanticVocabulary::GroundedLogicV1,
+        &observed,
+    );
+    let state = analysis.summarize(facts.iter());
+    let rule = &analysis.rules[0];
+    let head = &rule.heads[0];
+    let Slot::Variable(subject) = head[0] else {
+        panic!("domain head subject")
+    };
+    let upper = analysis.bindings(rule, &state).unwrap();
+    for index in 0..1024 {
+        let subject_value = analysis
+            .universe
+            .value(&TermValue::iri(format!("urn:domain-subject:{index}")));
+        let class_value = analysis
+            .universe
+            .value(&TermValue::iri(format!("urn:domain-class:{index}")));
+        let seeded = analysis
+            .bindings_seeded_from(rule, &state, &upper, &[(subject, subject_value)])
+            .unwrap();
+        assert_eq!(
+            analysis.universe.domains(head, &seeded, false)[2],
+            Domain::one(analysis.universe.size(), class_value),
+            "domain subject {index} must keep its own class support"
+        );
+        assert_eq!(
+            Some(seeded),
+            analysis.bindings_seeded(rule, &state, &[(subject, subject_value)]),
+            "seeded reuse must agree with fresh constraint propagation"
+        );
+    }
+}
+
+#[test]
 fn complete_input_summary_is_order_independent_and_keeps_native_constant_facets() {
     let blank = |scope| TermValue::Blank {
         label: "x".to_owned(),
