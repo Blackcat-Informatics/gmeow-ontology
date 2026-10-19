@@ -283,6 +283,42 @@ fn symlinked_blob_hard_fails_even_when_target_bytes_match() {
 }
 
 #[test]
+fn store_inventory_waits_for_atomic_publication_before_scanning_temporary_paths() {
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    let temp = tempfile::tempdir().unwrap();
+    let cache = store(temp.path()); // gmeow-test-input: synthetic-only
+    let publisher = cache.lock_store(false).unwrap();
+    let temporary = cache.root().join("blobs/.action-blob-publishing.tmp");
+    fs::write(&temporary, b"not yet published").unwrap();
+    std::thread::scope(|scope| {
+        let (started_tx, started_rx) = mpsc::channel();
+        let (result_tx, result_rx) = mpsc::channel();
+        let cache = &cache;
+        let inspector = scope.spawn(move || {
+            started_tx.send(()).unwrap();
+            result_tx.send(cache.quota_exceeded()).unwrap();
+        });
+        started_rx.recv().unwrap();
+        let before_publication = result_rx.recv_timeout(Duration::from_millis(100));
+        fs::remove_file(&temporary).unwrap();
+        drop(publisher);
+        let after_publication = if before_publication.is_err() {
+            Some(result_rx.recv_timeout(Duration::from_secs(10)).unwrap())
+        } else {
+            None
+        };
+        inspector.join().unwrap();
+        assert!(
+            matches!(before_publication, Err(mpsc::RecvTimeoutError::Timeout)),
+            "the inventory inspected a publisher's transient paths instead of waiting for a stable store"
+        );
+        assert!(!after_publication.unwrap().unwrap());
+    });
+}
+
+#[test]
 fn quota_gc_waits_for_live_reader_and_collects_only_unreachable_blobs() {
     use std::sync::mpsc;
     use std::time::Duration;

@@ -841,7 +841,10 @@ impl ActionStore {
     }
 
     fn quota_exceeded(&self) -> Result<bool, ActionCacheError> {
-        let _store = self.lock_store(false)?;
+        // Publishers rename and remove temporary paths under a shared lock.
+        // Enumeration and metadata reads require one stable inventory, so a
+        // publisher cannot remove an entry between those two operations.
+        let _store = self.lock_store(true)?;
         let mut entries = 0_usize;
         let mut bytes = 0_u64;
         for (lane, count_receipts) in [("receipts", true), ("blobs", false)] {
