@@ -121,6 +121,48 @@ fn distinct_observed_slots_are_not_silently_collapsed() {
 }
 
 #[test]
+fn typed_citations_survive_join_projection_and_replay() {
+    let mut ledger = DiagLedger::new();
+    for citations in [
+        ["urn:citation:b", "urn:citation:a"],
+        ["urn:citation:c", "urn:citation:a"],
+    ] {
+        ledger.attach(
+            diag_at(
+                "test.ledger.citations",
+                FindingCategory::DataShapeViolation,
+                "source.ttl",
+                "one native witness",
+            )
+            .with_cited_iris(citations),
+            StageId::new("test"),
+        );
+    }
+    assert_eq!(ledger.len(), 1);
+    let report = ledger.project_report("test");
+    assert_eq!(
+        report.findings[0].cited_iris,
+        ["urn:citation:a", "urn:citation:b", "urn:citation:c"]
+    );
+    let wire = serde_json::to_vec(&report).unwrap();
+    let restored: crate::Report = serde_json::from_slice(&wire).unwrap();
+    assert_eq!(
+        restored.findings[0].cited_iris,
+        report.findings[0].cited_iris
+    );
+    let nodes: Vec<_> = ledger.emit_sorted().into_iter().cloned().collect();
+    let wire = serde_json::to_vec(&nodes).unwrap();
+    let restored: Vec<DiagNode> = serde_json::from_slice(&wire).unwrap();
+    let mut replay = DiagLedger::new();
+    replay.replay(restored);
+    assert_eq!(
+        serde_json::to_vec(&replay.project_report("test")).unwrap(),
+        serde_json::to_vec(&report).unwrap()
+    );
+    assert_eq!(replay.verdict(), ledger.verdict());
+}
+
+#[test]
 fn length_prefixed_fingerprint_resists_delimiter_injection() {
     // R2: ("ab","c") and ("a","bc") must not collide across field boundaries.
     let ctx = SourceContext::default();
@@ -216,6 +258,7 @@ fn node_contradicting_its_pinned_digest_is_a_hard_fail() {
         remediation: Vec::new(),
         guidance: Vec::new(),
         derived_from_quads: Vec::new(),
+        cited_iris: Vec::new(),
         labels: Vec::new(),
         tags: Vec::new(),
         documented_terms: Vec::new(),
@@ -260,6 +303,7 @@ fn self_referential_antecedent_is_a_hard_fail() {
         remediation: Vec::new(),
         guidance: Vec::new(),
         derived_from_quads: Vec::new(),
+        cited_iris: Vec::new(),
         labels: Vec::new(),
         tags: Vec::new(),
         documented_terms: Vec::new(),

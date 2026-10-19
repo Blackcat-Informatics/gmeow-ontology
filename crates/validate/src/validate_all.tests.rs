@@ -1391,6 +1391,7 @@ fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
         ..Location::default()
     });
     finding.detail = Some("source shape: https://ex/shape".to_owned());
+    finding.cited_iris = vec!["https://ex/evidence".to_owned()];
 
     let mut ledger = DiagLedger::new();
     intern_finding(
@@ -1407,6 +1408,7 @@ fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
         .expect("interned SHACL finding must project back into the report");
 
     // The focus-node primary location survives.
+    assert_eq!(projected.cited_iris, finding.cited_iris);
     assert_eq!(
         projected
             .primary_location()

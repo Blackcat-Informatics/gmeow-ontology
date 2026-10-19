@@ -8,7 +8,7 @@ fn obligation(iri: &str, pred: &str, conds: &[&str]) -> Obligation {
     Obligation {
         iri: iri.to_owned(),
         forbidden_predicate: pred.to_owned(),
-        discharge_conditions: conds.iter().map(|s| (*s).to_owned()).collect(),
+        discharge_conditions: conds.iter().map(|s| format!("{LOGIC_NS}{s}")).collect(),
     }
 }
 
@@ -70,7 +70,36 @@ fn check_store(
     store: &Arc<RdfDataset>,
     derived: &BTreeSet<String>,
 ) -> gmeow_errors::Result<Vec<Finding>> {
-    check_non_entailment_obligations(&reason_governance_store(store, derived))
+    Ok(
+        assess_non_entailment_obligations(&reason_governance_store(store, derived))?
+            .findings()
+            .collect(),
+    )
+}
+
+#[test]
+fn malformed_governance_query_retains_the_original_native_cause() {
+    let store = governance_store("");
+    let error = select(&store, "SELECT ?broken WHERE {").unwrap_err();
+    assert!(error.is::<purrdf::RdfDiagnostic>(), "{error:?}");
+    let native_message = error
+        .downcast_ref::<purrdf::RdfDiagnostic>()
+        .unwrap()
+        .to_string();
+    let mut ledger = gmeow_errors::DiagLedger::new();
+    ledger.attach(error, gmeow_errors::StageId::new("verify.obligations"));
+    assert_eq!(ledger.verdict(), gmeow_errors::GateVerdict::Fatal);
+    let report = ledger.project_report("verify");
+    assert_eq!(
+        report.findings[0].message,
+        "governance query evaluation failed"
+    );
+    assert!(
+        report.findings[0]
+            .detail
+            .as_ref()
+            .is_some_and(|detail| detail.contains(&native_message))
+    );
 }
 
 #[test]
@@ -124,7 +153,8 @@ fn authored_program_heads_are_unknown_until_finite_closure_is_selected() {
                 .map(|row| row.predicate.clone())
                 .collect::<BTreeSet<_>>();
             assert_eq!(derived.contains("https://example.org/forbidden"), seed);
-            let findings = check_non_entailment_obligations(&result).unwrap();
+            let assessment = assess_non_entailment_obligations(&result).unwrap();
+            let findings: Vec<_> = assessment.findings().collect();
             let unknown = findings
                 .iter()
                 .any(|finding| finding.code == "verify.non-entailment.not-discharged");
@@ -299,6 +329,7 @@ fn standing_obligations_discharge_on_the_real_strata() {
     let no_candidates = BTreeMap::new();
     assert!(
         check_reachability(
+            "urn:test:world",
             &counterpart,
             heads.contains(&counterpart.forbidden_predicate),
             &no_candidates
@@ -307,14 +338,15 @@ fn standing_obligations_discharge_on_the_real_strata() {
     );
     assert!(
         check_reachability(
+            "urn:test:world",
             &deception,
             heads.contains(&deception.forbidden_predicate),
             &no_candidates
         )
         .is_none()
     );
-    assert!(check_discharge_conditions(&counterpart).is_empty());
-    assert!(check_discharge_conditions(&deception).is_empty());
+    assert!(check_discharge_conditions("urn:test:world", &counterpart).is_empty());
+    assert!(check_discharge_conditions("urn:test:world", &deception).is_empty());
 }
 
 #[test]
@@ -329,17 +361,21 @@ fn reachable_head_remains_unknown_without_a_counterexample() {
         &["DischargeSyntacticReachability"],
     );
     let no_candidates = BTreeMap::new();
-    let finding = check_reachability(&counterpart, true, &no_candidates).expect("must fire");
-    assert_eq!(finding.severity, Severity::Error);
-    assert_eq!(finding.code, "verify.non-entailment.not-discharged");
-    assert!(finding.message.contains("logic:ObligationUnknown"));
-    assert!(!finding.message.contains("logic:ObligationViolated"));
+    let finding = check_reachability("urn:test:world", &counterpart, true, &no_candidates)
+        .expect("must fire");
+    assert_eq!(finding.grade().severity, Severity::Error);
+    assert_eq!(
+        gmeow_errors::code::code_str(finding.code()),
+        "verify.non-entailment.not-discharged"
+    );
+    assert!(finding.message().contains("logic:ObligationUnknown"));
+    assert!(!finding.message().contains("logic:ObligationViolated"));
     let finite_only = obligation(
         "ex:finite",
         &counterpart.forbidden_predicate,
         &["DischargeFiniteClosure"],
     );
-    assert!(check_reachability(&finite_only, true, &no_candidates).is_none());
+    assert!(check_reachability("urn:test:world", &finite_only, true, &no_candidates).is_none());
 }
 
 /// A completed finite closure is a sufficient discharge condition even when
@@ -388,13 +424,14 @@ fn arm_b_finite_closure_green_then_red() {
     // never derives it; an asserted, attributed intent claim is EDB, not derived).
     let empty = BTreeSet::new();
     let no_candidates = BTreeMap::new();
-    assert!(check_finite_closure(&deception, &empty, &no_candidates).is_none());
+    assert!(check_finite_closure("urn:test:world", &deception, &empty, &no_candidates).is_none());
     // Red: a (synthetic) derivation of the forbidden predicate trips the obligation.
     let mut derived = BTreeSet::new();
     derived.insert(pred.to_owned());
-    let finding = check_finite_closure(&deception, &derived, &no_candidates).expect("must fire");
-    assert_eq!(finding.severity, Severity::Error);
-    assert!(finding.code.contains("non-entailment.derived"));
+    let finding = check_finite_closure("urn:test:world", &deception, &derived, &no_candidates)
+        .expect("must fire");
+    assert_eq!(finding.grade().severity, Severity::Error);
+    assert!(gmeow_errors::code::code_str(finding.code()).contains("non-entailment.derived"));
 }
 
 #[test]
@@ -405,7 +442,9 @@ fn counterexample_survives_without_finite_closure_condition() {
     let mut derived = BTreeSet::new();
     derived.insert(pred.to_owned());
     let no_candidates = BTreeMap::new();
-    assert!(check_finite_closure(&counterpart, &derived, &no_candidates).is_some());
+    assert!(
+        check_finite_closure("urn:test:world", &counterpart, &derived, &no_candidates).is_some()
+    );
 }
 
 #[test]
@@ -513,10 +552,10 @@ fn unwired_discharge_condition_is_a_hard_error() {
         "https://blackcatinformatics.ca/gmeow/somePredicate",
         &["DischargeBoundedCorpus"],
     );
-    let findings = check_discharge_conditions(&obl);
+    let findings = check_discharge_conditions("urn:test:world", &obl);
     assert_eq!(findings.len(), 1);
-    assert!(findings[0].code.contains("unwired-discharge"));
-    assert_eq!(findings[0].severity, Severity::Error);
+    assert!(gmeow_errors::code::code_str(findings[0].code()).contains("unwired-discharge"));
+    assert_eq!(findings[0].grade().severity, Severity::Error);
 }
 
 #[test]
@@ -526,9 +565,9 @@ fn missing_discharge_condition_is_a_hard_error() {
         "https://blackcatinformatics.ca/gmeow/somePredicate",
         &[],
     );
-    let findings = check_discharge_conditions(&obl);
+    let findings = check_discharge_conditions("urn:test:world", &obl);
     assert_eq!(findings.len(), 1);
-    assert!(findings[0].code.contains("no-discharge"));
+    assert!(gmeow_errors::code::code_str(findings[0].code()).contains("no-discharge"));
 }
 
 /// Build a minimal in-memory dataset from N-Triples for query tests.

@@ -51,6 +51,7 @@ impl DiagNode {
         // The typed conformance-failure class the violated law declares — the SPECIFIC
         // failure the generic `code` (a shared SHACL component name) cannot name.
         finding.failure_class = self.failure_class.clone();
+        finding.cited_iris = self.cited_iris.clone();
         // The flat text-only suggestion twin (kept so the existing suggestion
         // renderers are unchanged) AND the faithful structured projection that
         // preserves each advice's standpoint + outward help URI (the lossy step

@@ -218,6 +218,9 @@ pub struct DiagNode {
     /// (`gmeow:findingDerivedFromQuad`). Not part of the identity fingerprint.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub derived_from_quads: Vec<String>,
+    /// IRI-typed evidence citations; payload, never a message-derived identity.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cited_iris: Vec<String>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     /// The DOCUMENTED ontology terms this witness structurally concerns — payload,
@@ -559,6 +562,9 @@ impl DiagLedger {
                 slot.labels.push(label);
             }
         }
+        slot.cited_iris.extend(incoming.cited_iris);
+        slot.cited_iris.sort();
+        slot.cited_iris.dedup();
         for tag in incoming.tags {
             if !slot.tags.contains(&tag) {
                 slot.tags.push(tag);

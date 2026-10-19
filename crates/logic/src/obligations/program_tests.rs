@@ -84,7 +84,7 @@ fn native_schema_consequences_of_nonfiring_authored_heads_are_possible() {
     assert_eq!(status(&result), ObligationDisposition::Unknown);
     let assessment = assess_non_entailment_obligations(&result).unwrap();
     assert!(
-        assessment.findings.iter().any(|finding| finding
+        assessment.findings().any(|finding| finding
             .detail
             .as_ref()
             .is_some_and(|detail| detail.contains("dl:subPropertyOf"))),
@@ -173,6 +173,98 @@ fn foreign_world_counterexamples_do_not_violate_a_local_obligation() {
         foreign.disposition,
         ObligationDisposition::Violated(_)
     ));
+}
+
+#[test]
+fn unsupported_conditions_retain_distinct_worlds_and_native_outcomes() {
+    let declaration = "ex:obligation logic:instanceOf logic:NonEntailmentObligation ;
+        logic:obligationForbiddenPredicate ex:forbidden ;
+        logic:obligationDischargeCondition logic:Unwired,
+            <https://blackcatinformatics.ca/logic/Unwired:Condition> .
+        ex:candidate logic:instanceOf logic:FormalizationCandidate ;
+            logic:candidateNonEntailment ex:obligation .";
+    let text = format!(
+        "@prefix logic: <{LOGIC_NS}> . @prefix ex: <https://example.org/> .
+         ex:first {{ {declaration} }} ex:second {{ {declaration} }}"
+    );
+    let store = purrdf::parse_dataset(text.as_bytes(), "application/trig", None).unwrap();
+    let result = run(&program(vec![]), &store);
+    let assessment = assess_non_entailment_obligations(&result).unwrap();
+    assert_eq!(assessment.outcomes.len(), 2);
+    assert!(assessment.outcomes.iter().all(|outcome| {
+        outcome.obligation == "https://example.org/obligation"
+            && outcome.disposition == ObligationDisposition::InvalidDischarge
+    }));
+    let native_outcomes = assessment.outcomes.clone();
+    let analysis = assessment.analysis;
+    let mut projection = assessment.findings().collect::<Vec<_>>();
+    let errors = projection
+        .iter()
+        .filter(|finding| finding.severity == Severity::Error)
+        .collect::<Vec<_>>();
+    assert_eq!(errors.len(), 4);
+    assert_eq!(
+        errors
+            .iter()
+            .map(|finding| finding.finding_iri.as_ref().unwrap())
+            .collect::<BTreeSet<_>>()
+            .len(),
+        4
+    );
+    for world in ["https://example.org/first", "https://example.org/second"] {
+        for condition in [
+            "https://blackcatinformatics.ca/logic/Unwired",
+            "https://blackcatinformatics.ca/logic/Unwired:Condition",
+        ] {
+            let finding = errors
+                .iter()
+                .find(|finding| {
+                    finding.tags.contains(&format!("world:{world}"))
+                        && finding.cited_iris.iter().any(|iri| iri == condition)
+                })
+                .unwrap();
+            assert_eq!(
+                finding.primary_location().unwrap().logical.as_deref(),
+                Some("https://example.org/obligation")
+            );
+            assert!(
+                finding
+                    .cited_iris
+                    .iter()
+                    .any(|iri| iri == "https://example.org/candidate")
+            );
+            assert!(
+                finding
+                    .related_labels
+                    .iter()
+                    .any(|label| label.location.logical.as_deref() == Some(world))
+            );
+        }
+    }
+    let inventories = projection
+        .iter()
+        .filter(|finding| finding.code == "verify.non-entailment.inventory")
+        .collect::<Vec<_>>();
+    let worlds = &result.native_execution().unwrap().families;
+    assert_eq!(inventories.len(), worlds.len());
+    for world in worlds {
+        let inventory = inventories
+            .iter()
+            .find(|finding| {
+                finding.primary_location().unwrap().logical.as_deref() == Some(world.world.as_str())
+            })
+            .unwrap();
+        assert_eq!(inventory.severity, Severity::Note);
+        assert_eq!(inventory.category, Some(FindingCategory::PolicyWarning));
+    }
+    projection.clear();
+    assert_eq!(assessment.findings().count(), 4 + worlds.len());
+    assert_eq!(assessment.outcomes, native_outcomes);
+    assert_eq!(assessment.analysis, analysis);
+    assert_eq!(
+        assessment.ledger().verdict(),
+        gmeow_errors::GateVerdict::Fatal
+    );
 }
 
 #[test]

@@ -246,7 +246,9 @@ fn intern_finding(
     for guidance in &finding.guidance {
         diag = diag.with_guidance(guidance.clone());
     }
-    diag = diag.with_derived_from_quads(finding.derived_from_quads.clone());
+    diag = diag
+        .with_derived_from_quads(finding.derived_from_quads.clone())
+        .with_cited_iris(finding.cited_iris.clone());
     for suggestion in &finding.suggestions {
         diag = diag.with_advice(Advice {
             standpoint,

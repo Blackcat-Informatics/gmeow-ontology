@@ -393,6 +393,8 @@ pub struct DiagInner {
     /// (`gmeow:findingDerivedFromQuad`) — the explain-skeleton cited IRIs of the
     /// reasoned quads that fired. Empty for a non-reasoned diagnostic.
     pub derived_from_quads: Vec<String>,
+    /// Actual IRI-typed evidence terms, distinct from quad-reifier provenance.
+    pub cited_iris: Vec<String>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     /// The DOCUMENTED ontology terms this diagnostic structurally concerns (a SHACL
@@ -434,6 +436,7 @@ impl Diag {
             remediation: Vec::new(),
             guidance: Vec::new(),
             derived_from_quads: Vec::new(),
+            cited_iris: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),
@@ -594,6 +597,11 @@ impl Diag {
     }
     pub fn with_label(mut self, label: Label) -> Self {
         self.0.labels.push(label);
+        self
+    }
+    /// Carry citations obtained from typed IRI bindings, never from rendered prose.
+    pub fn with_cited_iris(mut self, iris: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.0.cited_iris.extend(iris.into_iter().map(Into::into));
         self
     }
     pub fn with_observed(mut self, slot: Slot) -> Self {

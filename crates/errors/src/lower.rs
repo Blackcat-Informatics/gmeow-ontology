@@ -63,6 +63,9 @@ pub(crate) fn lower(
         &inner.source_ctx,
     );
 
+    let mut cited_iris = inner.cited_iris.clone();
+    cited_iris.sort();
+    cited_iris.dedup();
     DiagNode {
         fingerprint,
         stage,
@@ -77,6 +80,7 @@ pub(crate) fn lower(
         remediation: inner.remediation.clone(),
         guidance: inner.guidance.clone(),
         derived_from_quads: inner.derived_from_quads.clone(),
+        cited_iris,
         labels: inner.labels.clone(),
         tags: inner.tags.clone(),
         documented_terms: inner.documented_terms.clone(),
