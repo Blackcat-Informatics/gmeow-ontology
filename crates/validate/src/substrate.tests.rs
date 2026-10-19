@@ -87,6 +87,37 @@ fn identical_umbrella_versions_do_not_hide_a_different_core() {
 }
 
 #[test]
+fn production_only_components_need_not_be_linked_into_fuzzers() {
+    let temp = fixture();
+    let root = temp.path();
+    let schema = package("purrdf-jsonschema", "3.0.0", "schema-release");
+    std::fs::write(
+        root.join("Cargo.lock"),
+        format!("{}{schema}", lock("3.0.0", "same-release")),
+    )
+    .unwrap();
+    verify_fuzz_substrate(root).unwrap();
+
+    for changed in [
+        package("purrdf-jsonschema", "3.0.0", "different-schema"),
+        package("purrdf-new", "3.0.0", "fuzz-only"),
+    ] {
+        std::fs::write(
+            root.join("fuzz/Cargo.lock"),
+            format!("{}{changed}", lock("3.0.0", "same-release")),
+        )
+        .unwrap();
+        assert!(verify_fuzz_substrate(root).is_err());
+    }
+    std::fs::write(
+        root.join("fuzz/Cargo.lock"),
+        format!("{}{schema}", lock("3.0.0", "same-release")),
+    )
+    .unwrap();
+    verify_fuzz_substrate(root).unwrap();
+}
+
+#[test]
 fn direct_core_and_fuzz_requirements_are_the_same_registry_contract() {
     let temp = fixture();
     let root = temp.path();

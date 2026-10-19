@@ -338,11 +338,11 @@ pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfRe
     })
 }
 
-/// Require the standalone fuzz workspace to select exactly the production substrate.
+/// Require every fuzz-selected PurRDF package to match the production substrate.
 ///
 /// # Errors
-/// Rejects missing lockfiles and any differing PurRDF package, release, source, or
-/// checksum. The two workspaces may select different non-PurRDF dependencies.
+/// Rejects missing lockfiles, fuzz-only PurRDF packages, and differing releases,
+/// sources or checksums. Production-only packages need not be linked by fuzzers.
 pub fn verify_fuzz_substrate(root: &Path) -> Result<()> {
     let root_resolution = resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock"))?;
     let fuzz_resolution =
@@ -352,13 +352,12 @@ pub fn verify_fuzz_substrate(root: &Path) -> Result<()> {
     }
     let production = locked_purrdf_packages(&root.join("Cargo.lock"))?;
     let fuzz = locked_purrdf_packages(&root.join("fuzz/Cargo.lock"))?;
-    if production != fuzz {
-        let names: std::collections::BTreeSet<_> = production.keys().chain(fuzz.keys()).collect();
-        let changed: Vec<_> = names
-            .into_iter()
-            .filter(|name| production.get(*name) != fuzz.get(*name))
-            .cloned()
-            .collect();
+    let changed: Vec<_> = fuzz
+        .iter()
+        .filter(|(name, identity)| production.get(*name) != Some(*identity))
+        .map(|(name, _)| name.as_str())
+        .collect();
+    if !changed.is_empty() {
         return Err(invalid(format!(
             "fuzz/Cargo.lock differs from Cargo.lock for PurRDF packages: {}",
             changed.join(", ")
