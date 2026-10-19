@@ -978,6 +978,58 @@ fn standard_output_macros_retain_nested_input_ownership() {
 
 /// Diagnostic syntax retains nested file bytes while unknown capabilities fail closed.
 #[test]
+fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
+    for nested in [false, true] {
+        let span = "tracing::info_span!(\"phase\", label = include_str!(\"label.txt\"))";
+        let source = if nested {
+            format!("fn phase() {{ let _ = quote! {{ {span} }}; }}")
+        } else {
+            format!("fn phase() {{ let _ = {span}; }}")
+        };
+        let root = fixture(&source);
+        write(root.path(), "crate/src/label.txt", "first");
+        assert!(InputInventory::collect(root.path(), &selection()).is_err());
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            "[package]\nname='example'\nversion='1.0.0'\n[dependencies]\ntracing='0.1'\n",
+        );
+        let mut selected = selection();
+        selected.units[0].dependency_names.push("tracing".into());
+        let before = InputInventory::collect(root.path(), &selected).unwrap();
+        assert!(before.files.contains_key("crate/src/label.txt"));
+        gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]).unwrap();
+        write(root.path(), "crate/src/label.txt", "second");
+        assert_ne!(
+            before,
+            InputInventory::collect(root.path(), &selected).unwrap()
+        );
+        for unowned in [
+            "fn phase() { other::info_span!(\"phase\"); }",
+            "fn phase() { info_span!(\"phase\"); }",
+            "fn phase() { quote! { other::info_span!(\"phase\") }; }",
+            "fn phase() { wrong::tracing::info_span!(\"phase\"); }",
+            "fn phase() { quote! { wrong::tracing::info_span!(\"phase\") }; }",
+            "fn phase() { tracing::info_span!(\"phase\", value = unknown_input!()); }",
+            "fn phase() { quote! { tracing::info_span!(\"phase\", value = unknown_input!()) }; }",
+            "fn phase() { tracing::info_span!(\"phase\", value = { mod hidden; 1 }); }",
+            "fn phase() { quote! { tracing::info_span!(\"phase\", value = { mod hidden; 1 }) }; }",
+        ] {
+            write(root.path(), "crate/src/lib.rs", unowned);
+            assert!(
+                InputInventory::collect(root.path(), &selected).is_err(),
+                "{unowned}"
+            );
+            assert!(
+                gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
+                    .is_err(),
+                "{unowned}"
+            );
+        }
+    }
+}
+
+#[test]
 fn diagnostic_macros_retain_nested_inputs_and_refuse_unowned_capabilities() {
     for name in ["define_diag_kind", "impl_diag_kind"] {
         let root = fixture(&format!(

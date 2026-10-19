@@ -12,6 +12,23 @@ use syn::{
     visit::{self, Visit},
 };
 
+/// Dependency-owned macros whose namespace is part of the input capability.
+fn qualified_macro(owner: &str, name: &str) -> Option<&'static str> {
+    match (owner, name) {
+        ("inventory", "collect") => Some("inventory::collect"),
+        ("tracing", "info_span") => Some("tracing::info_span"),
+        _ => None,
+    }
+}
+
+fn contains_module_declaration(tokens: TokenStream) -> bool {
+    tokens.into_iter().any(|token| match token {
+        TokenTree::Ident(name) => name == "mod",
+        TokenTree::Group(group) => contains_module_declaration(group.stream()),
+        _ => false,
+    })
+}
+
 pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Result<()> {
     collect_selected(workspace, inventory, false)
 }
@@ -460,18 +477,22 @@ impl Scanner<'_> {
                     && syn::parse2::<syn::Ident>(TokenStream::from(TokenTree::Ident(name.clone())))
                         .is_ok()
                 {
-                    let registry_collect = name == "collect"
-                        && index >= 3
-                        && matches!(&tokens[index - 3], TokenTree::Ident(owner) if owner == "inventory")
+                    let qualified = index >= 3
                         && matches!(&tokens[index - 2], TokenTree::Punct(colon) if colon.as_char() == ':')
                         && matches!(&tokens[index - 1], TokenTree::Punct(colon) if colon.as_char() == ':')
                         && (index == 3
                             || !matches!(&tokens[index - 4], TokenTree::Punct(colon) if colon.as_char() == ':'));
-                    let name = if registry_collect {
-                        "inventory::collect".to_owned()
+                    let owner = if qualified {
+                        match &tokens[index - 3] {
+                            TokenTree::Ident(owner) => {
+                                qualified_macro(&owner.to_string(), &name.to_string())
+                            }
+                            _ => None,
+                        }
                     } else {
-                        name.to_string()
+                        None
                     };
+                    let name = owner.map(str::to_owned).unwrap_or_else(|| name.to_string());
                     self.macro_input(&name, group.stream())?;
                     index += 3;
                     continue;
@@ -531,6 +552,23 @@ impl Scanner<'_> {
                     .iter()
                     .any(|name| name == "minijinja") =>
             {
+                self.tokens(tokens)
+            }
+            // The selected tracing implementation owns this qualified span
+            // constructor. Walk every field expression for nested source inputs.
+            "tracing::info_span"
+                if self
+                    .unit
+                    .dependency_names
+                    .iter()
+                    .any(|name| name == "tracing") =>
+            {
+                if contains_module_declaration(tokens.clone()) {
+                    return Err(fail(format!(
+                        "tracing span contains a module declaration with no source owner in {}",
+                        self.file.display()
+                    )));
+                }
                 self.tokens(tokens)
             }
             "macro_rules" => {
@@ -735,10 +773,9 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
             .map(|part| part.ident.to_string())
             .unwrap_or_default();
         if mac.path.segments.len() == 2
-            && mac.path.segments[0].ident == "inventory"
-            && name == "collect"
+            && let Some(qualified) = qualified_macro(&mac.path.segments[0].ident.to_string(), &name)
         {
-            name = "inventory::collect".into();
+            name = qualified.into();
         }
         if let Err(e) = self.macro_input(&name, mac.tokens.clone()) {
             self.error = Some(e);
