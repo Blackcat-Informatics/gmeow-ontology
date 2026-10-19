@@ -1107,6 +1107,180 @@ fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
 }
 
 #[test]
+fn tracing_extern_crate_aliases_cannot_hide_embedded_inputs() {
+    for edition in ["2018", "2021", "2024"] {
+        for (alias, owner, raw, placement, quoted) in [
+            ("tracing", "self", false, "before", false),
+            ("telemetry", "self", false, "after", true),
+            ("tracing", "other", false, "after", false),
+            ("telemetry", "other", false, "include", false),
+            ("tracing", "self", true, "include", true),
+            ("telemetry", "other", true, "after", true),
+            ("tracing", "self", false, "reused", false),
+            ("tracing", "self", false, "macro", false),
+            ("tracing", "self", false, "forwarded", false),
+        ] {
+            let binding = if raw {
+                format!("r#{alias}")
+            } else {
+                alias.into()
+            };
+            let declaration = format!("extern crate {owner} as {binding};");
+            let call = format!("::{alias}::info_span!(\"hidden.txt\")");
+            let body = if quoted {
+                format!("quote! {{ {call}; }}")
+            } else {
+                call
+            };
+            let phase = format!("fn phase() {{ let _ = {body}; }}");
+            let root = fixture("");
+            let source = match placement {
+                "before" => format!("{declaration}\n{phase}"),
+                "after" => format!("{phase}\n{declaration}"),
+                "include" => {
+                    write(root.path(), "crate/src/alias.rs", &declaration);
+                    format!("{phase}\ninclude!(\"alias.rs\");")
+                }
+                "reused" => {
+                    write(root.path(), "crate/src/mod.rs", &declaration);
+                    format!("#[path=\"mod.rs\"] mod local;\n{phase}\ninclude!(\"mod.rs\");")
+                }
+                "macro" => {
+                    format!("macro_rules! bind {{ () => {{ {declaration} }}; }} bind!();\n{phase}")
+                }
+                "forwarded" => format!(
+                    "macro_rules! bind {{ ($item:item) => {{ $item }}; }} bind! {{ {declaration} }}\n{phase}"
+                ),
+                _ => unreachable!(),
+            };
+            write(
+                root.path(),
+                "crate/src/lib.rs",
+                &format!("pub use core::include_str as info_span;\n{source}"),
+            );
+            write(
+                root.path(),
+                "crate/src/hidden.txt",
+                "unrecorded source input",
+            );
+            write(
+                root.path(),
+                "crate/Cargo.toml",
+                &format!(
+                    "[package]\nname='example'\nversion='1.0.0'\nedition='{edition}'\n[dependencies]\n{alias}={{package='tracing',version='0.1'}}\nother='0.1'\n",
+                ),
+            );
+            let mut selected = tracing_selection(root.path(), alias);
+            selected.units[0].edition = edition.into();
+            write(
+                root.path(),
+                "other/Cargo.toml",
+                "[package]\nname='other'\nversion='0.1.0'\n",
+            );
+            write(
+                root.path(),
+                "other/src/lib.rs",
+                "pub use core::include_str as info_span;\n",
+            );
+            selected.units.push(UnitSelection {
+                package: "path+file://<workspace>/other#other@0.1.0".into(),
+                manifest: Some("other/Cargo.toml".into()),
+                source: Some("other/src/lib.rs".into()),
+                target: "other".into(),
+                ..selected.units[1].clone()
+            });
+            selected.units[0].dependencies.push(2);
+            selected.units[0].dependency_names.push("other".into());
+            let error = InputInventory::collect(root.path(), &selected)
+                .expect_err("a root extern crate alias must not grant tracing ownership");
+            let message = if placement == "macro" {
+                "source-producing declarative macro"
+            } else {
+                "extern crate"
+            };
+            assert!(
+                error.to_string().contains(message),
+                "{edition} {placement}: {error}"
+            );
+            let error =
+                gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
+                    .expect_err("portable ownership must also reject the shadowing alias");
+            assert!(
+                error.to_string().contains(message),
+                "{edition} {placement}: {error}"
+            );
+        }
+    }
+}
+
+#[test]
+fn tracing_extern_crate_scope_keeps_genuine_and_inactive_owners() {
+    for alias in ["tracing", "telemetry"] {
+        for location in [
+            "genuine",
+            "inactive",
+            "inline",
+            "external",
+            "block",
+            "forwarded",
+        ] {
+            let call =
+                format!("::{alias}::info_span!(\"phase\", label = include_str!(\"label.txt\"))");
+            let phase = format!("fn phase() {{ let _ = {call}; }}");
+            let root = fixture("");
+            let source = match location {
+                "genuine" => format!("extern crate {alias};\n{phase}"),
+                "inactive" => format!("#[cfg(any())] extern crate self as {alias};\n{phase}"),
+                "inline" => format!("mod local {{ extern crate self as {alias}; {phase} }}"),
+                "external" => {
+                    write(
+                        root.path(),
+                        "crate/src/local.rs",
+                        &format!("extern crate self as {alias}; {phase}"),
+                    );
+                    "mod local;".into()
+                }
+                "block" => {
+                    format!("fn phase() {{ extern crate self as {alias}; let _ = {call}; }}")
+                }
+                "forwarded" => format!(
+                    "macro_rules! forward {{ ($value:expr) => {{ $value }}; }}\nfn phase() {{ let _ = ::{alias}::info_span!(\"phase\", label=forward!(include_str!(\"label.txt\"))); }}"
+                ),
+                _ => unreachable!(),
+            };
+            write(
+                root.path(),
+                "crate/src/lib.rs",
+                &format!("{source}\n#[cfg(test)] #[path=\"checks.rs\"] mod checks;"),
+            );
+            write(root.path(), "crate/src/label.txt", "owned embedded input");
+            write(root.path(), "crate/src/checks.rs", "fn check() {}\n");
+            write(
+                root.path(),
+                "crate/Cargo.toml",
+                &format!(
+                    "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{alias}={{package='tracing',version='0.1'}}\n",
+                ),
+            );
+            let selected = tracing_selection(root.path(), alias);
+            let inventory = InputInventory::collect(root.path(), &selected).unwrap();
+            assert!(
+                inventory.files.contains_key("crate/src/label.txt"),
+                "{alias} {location}"
+            );
+            let excluded =
+                gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
+                    .unwrap();
+            assert_eq!(
+                excluded.into_iter().collect::<Vec<_>>(),
+                ["crate/src/checks.rs"],
+                "{alias} {location}"
+            );
+        }
+    }
+}
+
+#[test]
 fn portable_tracing_requires_registry_package_identity() {
     for nested in [false, true] {
         let span = "::tracing::info_span!(\"phase\", label = include_str!(\"label.txt\"))";

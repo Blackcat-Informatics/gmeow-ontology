@@ -7,6 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use syn::{
     Attribute, Expr, Item, Meta, Token,
+    ext::IdentExt,
     parse::Parser,
     punctuated::Punctuated,
     visit::{self, Visit},
@@ -94,6 +95,7 @@ fn collect_selected(
                 .to_path_buf(),
             attribute_directory: path.parent().unwrap().to_path_buf(),
             stack: Vec::new(),
+            scope_depth: 0,
             seen: BTreeSet::new(),
             excluded: &mut excluded,
             macros: BTreeSet::new(),
@@ -237,6 +239,7 @@ fn semantic_inventory(
             directory: path.parent().unwrap().to_path_buf(),
             attribute_directory: path.parent().unwrap().to_path_buf(),
             stack: Vec::new(),
+            scope_depth: 0,
             seen: BTreeSet::new(),
             excluded: &mut excluded,
             macros: BTreeSet::new(),
@@ -266,7 +269,8 @@ struct Scanner<'a> {
     directory: PathBuf,
     attribute_directory: PathBuf,
     stack: Vec<PathBuf>,
-    seen: BTreeSet<(PathBuf, PathBuf)>,
+    scope_depth: usize,
+    seen: BTreeSet<(PathBuf, PathBuf, bool)>,
     excluded: &'a mut BTreeSet<String>,
     macros: BTreeSet<String>,
     semantic: bool,
@@ -296,7 +300,10 @@ impl Scanner<'_> {
                 path.parent().unwrap().join(path.file_stem().unwrap())
             }
         });
-        if !self.seen.insert((path.clone(), directory.clone())) {
+        if !self
+            .seen
+            .insert((path.clone(), directory.clone(), self.scope_depth == 0))
+        {
             return Ok(());
         }
         self.inventory.add_file(
@@ -667,7 +674,15 @@ impl Scanner<'_> {
             | "quote"
             | "parse_macro_input"
             | "submit" => self.tokens(tokens),
-            local if self.macros.contains(local) => self.tokens(tokens),
+            local if self.macros.contains(local) => {
+                if contains_extern_crate_declaration(tokens.clone()) {
+                    return Err(fail(format!(
+                        "extern crate declaration passed to {local}! needs an explicit source owner in {}",
+                        self.file.display()
+                    )));
+                }
+                self.tokens(tokens)
+            }
             _ => Err(fail(format!(
                 "macro {name}! has no selected source-input capability owner in {}",
                 self.file.display()
@@ -751,6 +766,7 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         }
     }
     fn visit_item_mod(&mut self, module: &'ast syn::ItemMod) {
+        self.scope_depth += 1;
         let result = (|| {
             let Some(attrs) = self.attributes(&module.attrs)? else {
                 return Ok(());
@@ -788,14 +804,37 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
                 self.file(&path, false)
             }
         })();
+        self.scope_depth -= 1;
         if let Err(e) = result {
             self.error = Some(e);
         }
     }
     fn visit_block(&mut self, block: &'ast syn::Block) {
         let previous = self.macros.clone();
+        self.scope_depth += 1;
         visit::visit_block(self, block);
+        self.scope_depth -= 1;
         self.macros = previous;
+    }
+    fn visit_item_extern_crate(&mut self, item: &'ast syn::ItemExternCrate) {
+        let source = item.ident.unraw().to_string();
+        let binding = item
+            .rename
+            .as_ref()
+            .map_or(&item.ident, |(_, alias)| alias)
+            .unraw()
+            .to_string();
+        if self.scope_depth == 0
+            && self.tracing_names.contains(&binding)
+            && !self.tracing_names.contains(&source)
+        {
+            self.error = Some(fail(format!(
+                "extern crate alias {binding} shadows the selected tracing source owner in {}",
+                self.file.display()
+            )));
+            return;
+        }
+        visit::visit_item_extern_crate(self, item);
     }
     fn visit_item_macro(&mut self, item: &'ast syn::ItemMacro) {
         if item.mac.path.is_ident("macro_rules")
@@ -976,7 +1015,20 @@ fn tokens_mention_test(tokens: TokenStream) -> bool {
         _ => false,
     })
 }
+fn contains_extern_crate_declaration(tokens: TokenStream) -> bool {
+    let tokens: Vec<_> = tokens.into_iter().collect();
+    tokens.windows(2).any(|pair| {
+        matches!(pair, [TokenTree::Ident(first), TokenTree::Ident(second)] if first == "extern" && second == "crate")
+    }) || tokens.into_iter().any(|token| match token {
+        TokenTree::Group(group) => contains_extern_crate_declaration(group.stream()),
+        _ => false,
+    })
+}
+
 fn contains_source_declaration(tokens: TokenStream) -> bool {
+    if contains_extern_crate_declaration(tokens.clone()) {
+        return true;
+    }
     let tokens: Vec<_> = tokens.into_iter().collect();
     for (index, token) in tokens.iter().enumerate() {
         match token {

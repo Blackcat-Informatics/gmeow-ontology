@@ -940,14 +940,21 @@ impl AdaptiveDomain {
     /// Materialize only the values admitted by the current join column.
     fn intersected(&self, filter: &Domain) -> Domain {
         match self {
-            Self::Dense(domain) => Domain(
-                domain
-                    .0
-                    .iter()
-                    .zip(&filter.0)
-                    .map(|(values, allowed)| values & allowed)
-                    .collect(),
-            ),
+            Self::Dense(domain) => {
+                debug_assert_eq!(
+                    domain.0.len(),
+                    filter.0.len(),
+                    "value-flow column and filter must share one universe width"
+                );
+                Domain(
+                    domain
+                        .0
+                        .iter()
+                        .zip(&filter.0)
+                        .map(|(values, allowed)| values & allowed)
+                        .collect(),
+                )
+            }
             Self::Sparse { size, values } => {
                 let mut domain = Domain::empty(*size);
                 for &value in values {
