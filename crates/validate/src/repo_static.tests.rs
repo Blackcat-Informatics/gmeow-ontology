@@ -3455,6 +3455,17 @@ fn owl_purity_covers_rdfs_attachments_and_inverse_property_structure() {
         let mut valid = RepoStaticReport::default();
         check_projection_purity(temp.path(), &mut valid);
         assert!(valid.ok(), "{attachment}: {:?}", valid.errors);
+        write(&path, &source.replace("logic:formalizes ex:law ; ", ""));
+        let mut unbacked = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut unbacked);
+        assert!(
+            unbacked
+                .errors
+                .iter()
+                .any(|error| error.contains("generated OWL construct")),
+            "unbacked {attachment}: {:?}",
+            unbacked.errors
+        );
         write(&path, &format!("{source} ex:Named a owl:Class ."));
         let mut invalid = RepoStaticReport::default();
         check_projection_purity(temp.path(), &mut invalid);
