@@ -5,7 +5,110 @@ use std::borrow::Cow;
 
 use super::*;
 use crate::grade::{GateVerdict, gate};
-use purrdf_core::LossEntry;
+use purrdf_core::{DiagnosticParameter, DiagnosticPresentation, DiagnosticValue, LossEntry};
+
+#[test]
+fn native_subjects_remain_distinct_from_the_stage_location_through_replay() {
+    let mut ledger = DiagLedger::new();
+    for subject in ["urn:subject:a", "urn:subject:b"] {
+        let mut location = RdfLocation::logical("parse-stage").with_subject(subject);
+        location.path = Some("input.gts".to_owned());
+        location.line = Some(3);
+        location.column = Some(7);
+        location.gts_quad_index = Some(0);
+        location.gts_frame_index = Some(u64::MAX);
+        let native = RdfDiagnostic::new(RdfSeverity::Error, "native.subject", "invalid subject")
+            .with_location(location.clone());
+        let diag = Diag::from_rdf(&native, &mut ledger, StageId::new("parse"));
+        assert_eq!(
+            diag.inner().source_ctx.location,
+            Location::from_rdf(&location)
+        );
+        assert_eq!(diag.inner().source_ctx.focus.as_ref().unwrap().0, subject);
+        ledger.attach(diag, StageId::new("parse"));
+    }
+    assert_eq!(ledger.len(), 2);
+    let nodes = ledger.emit_sorted();
+    assert_ne!(nodes[0].fingerprint, nodes[1].fingerprint);
+    let report = ledger.project_report("native");
+    for finding in &report.findings {
+        assert_eq!(
+            finding.primary_location().unwrap().logical.as_deref(),
+            Some("parse-stage")
+        );
+        assert!(finding.locations.iter().any(|location| {
+            matches!(
+                location.logical.as_deref(),
+                Some("urn:subject:a" | "urn:subject:b")
+            )
+        }));
+    }
+    let serialized = serde_json::to_vec(&nodes).unwrap();
+    let mut replay = DiagLedger::new();
+    replay.replay(serde_json::from_slice::<Vec<crate::DiagNode>>(&serialized).unwrap());
+    assert_eq!(
+        crate::render::to_json(&replay.project_report("native")).unwrap(),
+        crate::render::to_json(&report).unwrap()
+    );
+}
+
+#[test]
+fn native_presentation_remains_typed_until_cause_lowering() {
+    let detail = DiagnosticPresentation::new(
+        "native.address.detail",
+        "wire offset {offset}",
+        vec![DiagnosticParameter::new(
+            "offset",
+            DiagnosticValue::Unsigned(u64::MAX),
+        )],
+    )
+    .unwrap();
+    let presentation = DiagnosticPresentation::new(
+        "native.address",
+        "invalid subject {subject}",
+        vec![DiagnosticParameter::new(
+            "subject",
+            DiagnosticValue::Text("urn:subject:a".to_owned()),
+        )],
+    )
+    .unwrap()
+    .with_detail(detail)
+    .unwrap();
+    let native = RdfDiagnostic::new(RdfSeverity::Error, "native.address", "")
+        .with_presentation(presentation)
+        .with_location(RdfLocation::logical("parse-stage").with_subject("urn:subject:a"));
+    let mut ledger = DiagLedger::new();
+    let diag = Diag::from_rdf(&native, &mut ledger, StageId::new("parse"));
+    let cause = diag
+        .downcast_ref::<RdfDiagnostic>()
+        .expect("original native type retained");
+    assert_eq!(cause, &native);
+    let presentation = cause.presentation().unwrap();
+    assert_eq!(presentation.message_id(), "native.address");
+    assert_eq!(
+        presentation.detail().unwrap().parameters()[0].value(),
+        &DiagnosticValue::Unsigned(u64::MAX)
+    );
+    ledger.attach(diag, StageId::new("parse"));
+    let nodes = ledger.emit_sorted();
+    assert_eq!(nodes[0].frames.len(), 1);
+    assert_eq!(nodes[0].frames[0].message, native.to_string());
+    let report = ledger.project_report("native");
+    assert!(
+        report.findings[0]
+            .detail
+            .as_deref()
+            .unwrap()
+            .contains(&format!("wire offset {}", u64::MAX))
+    );
+    let serialized = serde_json::to_vec(&nodes).unwrap();
+    let mut replay = DiagLedger::new();
+    replay.replay(serde_json::from_slice::<Vec<crate::DiagNode>>(&serialized).unwrap());
+    assert_eq!(
+        crate::render::to_json(&replay.project_report("native")).unwrap(),
+        crate::render::to_json(&report).unwrap()
+    );
+}
 
 fn diagnostic_with_dropped_lang_tag() -> RdfDiagnostic {
     RdfDiagnostic::new(
@@ -25,6 +128,51 @@ fn losses_with_dropped_lang_tag() -> LossLedger {
         location: None,
     });
     losses
+}
+
+#[test]
+fn loss_subjects_remain_distinct_witnesses() {
+    let mut losses = LossLedger::new();
+    for subject in ["urn:subject:a", "urn:subject:b"] {
+        losses.record(LossEntry {
+            code: Cow::Borrowed("dropped-language-tag"),
+            from: Cow::Borrowed("rdf-1.2-dataset"),
+            to: Cow::Borrowed("fixture-codec"),
+            note: Cow::Borrowed("language tag dropped"),
+            location: Some(Box::new(
+                RdfLocation::logical("projection-stage").with_subject(subject),
+            )),
+        });
+    }
+    let mut ledger = DiagLedger::new();
+    let parent = Diag::from_rdf_with_losses(
+        &diagnostic_with_dropped_lang_tag(),
+        &losses,
+        &mut ledger,
+        StageId::new("project"),
+    );
+    assert_eq!(ledger.len(), 2);
+    ledger.attach(parent, StageId::new("project"));
+    let nodes = ledger.emit_sorted();
+    let parent = nodes
+        .iter()
+        .find(|node| node.code == "lang.projection")
+        .unwrap();
+    assert_eq!(parent.antecedents.len(), 2);
+    assert_ne!(parent.antecedents[0], parent.antecedents[1]);
+    for child in nodes
+        .iter()
+        .filter(|node| node.code == "dropped-language-tag")
+    {
+        assert_eq!(
+            child.source_ctx.location.logical.as_deref(),
+            Some("projection-stage")
+        );
+        assert!(matches!(
+            child.source_ctx.focus.as_ref().unwrap().0.as_str(),
+            "urn:subject:a" | "urn:subject:b"
+        ));
+    }
 }
 
 #[test]

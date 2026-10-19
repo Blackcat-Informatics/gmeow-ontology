@@ -260,8 +260,8 @@ pub fn finding_from_shacl(result: &ValidationResult, classes: &FailureClassIndex
 
 /// The gating STANDPOINT a SHACL result of a given severity asserts — the leg the
 /// `logic:ruleGateFatalVerdict` up-set derivation reads alongside severity and the
-/// category's blocking projection. This mirrors `gmeow_errors::rdf::default_standpoint`
-/// (the mapping the run-ledger's `Diag::from_rdf` fold uses), so a routed SHACL finding
+/// category's blocking projection. This mirrors [`gmeow_errors::Grade::for_external_severity`]
+/// (the mapping the run-ledger's forward fold uses), so a routed SHACL finding
 /// carries the SAME standpoint the forward run-ledger node does: an `sh:Violation`
 /// (Error) is Binding — the only standpoint that can join the gate-fatal up-set — while
 /// warnings/info are non-binding and never gate.

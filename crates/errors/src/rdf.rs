@@ -32,25 +32,6 @@ pub fn severity_from_rdf(severity: RdfSeverity) -> Severity {
     }
 }
 
-/// The default category for an ingested RDF diagnostic of a given severity. An
-/// error is a blocking structural defect; anything softer is a non-gating policy
-/// note. A producer with more context can override the grade after ingestion.
-fn default_category(severity: Severity) -> FindingCategory {
-    match severity {
-        Severity::Error => FindingCategory::ModelingDisciplineViolation,
-        _ => FindingCategory::PolicyWarning,
-    }
-}
-
-/// The default standpoint for an ingested RDF diagnostic of a given severity.
-fn default_standpoint(severity: Severity) -> Standpoint {
-    match severity {
-        Severity::Error => Standpoint::Binding,
-        Severity::Warning => Standpoint::Perspectival,
-        Severity::Note | Severity::Info => Standpoint::Advisory,
-    }
-}
-
 impl Location {
     /// Project an [`RdfLocation`] into a [`Location`], preserving every GTS wire
     /// coordinate (both sides use the portable `u64` logical
@@ -82,8 +63,9 @@ impl Location {
 }
 
 impl Diag {
-    /// Project a purrdf [`RdfDiagnostic`] without conversion losses into a [`Diag`].
-    /// The parent itself is returned unattached — the caller attaches it.
+    /// Ingest a native diagnostic, retaining its original typed value as the
+    /// live cause and its subject as the focus. The caller attaches the parent;
+    /// the original error chain is lowered only at that serialization boundary.
     pub fn from_rdf(diagnostic: &RdfDiagnostic, ledger: &mut DiagLedger, stage: StageId) -> Diag {
         Self::from_rdf_with_losses(diagnostic, &LossLedger::new(), ledger, stage)
     }
@@ -113,6 +95,9 @@ impl Diag {
             );
             if let Some(location) = &loss.location {
                 child = child.with_location(Location::from_rdf(location));
+                if let Some(subject) = &location.subject {
+                    child = child.with_focus(subject.clone());
+                }
             }
             antecedents.push(ledger.attach(child, stage.clone()));
         }
@@ -120,16 +105,16 @@ impl Diag {
         let severity = severity_from_rdf(diagnostic.severity);
         let mut parent = Diag::new(
             register_code(&diagnostic.code),
-            Grade::new(
-                severity,
-                default_category(severity),
-                default_standpoint(severity),
-            ),
+            Grade::for_external_severity(severity),
             diagnostic.message.clone(),
         )
+        .with_source(diagnostic.clone())
         .with_antecedents(antecedents);
         if let Some(location) = &diagnostic.location {
             parent = parent.with_location(Location::from_rdf(location));
+            if let Some(subject) = &location.subject {
+                parent = parent.with_focus(subject.clone());
+            }
         }
         parent
     }

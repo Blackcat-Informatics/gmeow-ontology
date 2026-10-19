@@ -10,8 +10,7 @@
 
 use std::collections::BTreeMap;
 
-use gmeow_errors::{Diag, DiagLedger, DiagNode, Report, Severity, StageId, model::Location};
-use purrdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
+use gmeow_errors::{Diag, DiagLedger, DiagNode, Grade, Report, StageId, register_code};
 
 /// The four committed logical paths a diagnostics report renders to.
 pub struct DiagnosticsPaths<'a> {
@@ -25,44 +24,13 @@ pub struct DiagnosticsPaths<'a> {
     pub rdf: &'a str,
 }
 
-/// Map the canonical [`Severity`] to the purrdf ingestion boundary's [`RdfSeverity`]
-/// (the inverse of `gmeow_errors::severity_from_rdf`).
-fn rdf_severity(severity: Severity) -> RdfSeverity {
-    match severity {
-        Severity::Error => RdfSeverity::Error,
-        Severity::Warning => RdfSeverity::Warning,
-        Severity::Note => RdfSeverity::Note,
-        Severity::Info => RdfSeverity::Info,
-    }
-}
-
-/// Preserve the supplied physical, logical and wire source coordinates at the
-/// native diagnostic boundary. There is no backward text-ingestion path to emulate.
-fn rdf_location(location: &Location) -> RdfLocation {
-    RdfLocation {
-        path: location.path.clone(),
-        line: location.line,
-        column: location.column,
-        logical: location.logical.clone(),
-        gts_term_id: location.gts_term_id,
-        gts_quad_index: location.gts_quad_index,
-        gts_reifier_id: location.gts_reifier_id,
-        gts_frame_index: location.gts_frame_index,
-        gts_segment_index: location.gts_segment_index,
-        subject: None,
-    }
-}
-
 /// The FORWARD projection of a producer's `gmeow_errors::Report` findings into the
 /// pre-lowered [`DiagNode`]s the run-level `DiagLedger` folds — the SINGLE source of
 /// the run ledger (the backward RDF→ledger read is gone).
 ///
-/// Each `Finding` becomes an [`RdfDiagnostic`] carrying its severity / code / message
-/// and primary location, then goes through `Diag::from_rdf`, attached to a
-/// local ledger attributed to `stage`. Explicit GMEOW grades override the native
-/// ingestion defaults. The typed source graph is carried separately
-/// because the native `RdfLocation` has no graph slot; it must not disappear at
-/// this production bridge.
+/// GMEOW findings enter directly, with their source coordinates and explicit
+/// grades. They are never reconstructed as native errors: that would manufacture
+/// an upstream cause that did not occur.
 ///
 /// The report is normalized first (the RDF renderer normalizes too), so the fold is a
 /// pure function of the report content, independent of finding insertion order.
@@ -72,24 +40,19 @@ pub fn finding_nodes(report: &Report, stage: &str) -> Vec<DiagNode> {
     let mut ledger = DiagLedger::new();
     let stage_id = StageId::new(stage);
     for finding in &normalized.findings {
-        let mut rdf_diag = RdfDiagnostic::new(
-            rdf_severity(finding.severity),
-            finding.code.clone(),
+        let defaults = Grade::for_external_severity(finding.severity);
+        let mut parent = Diag::new(
+            register_code(&finding.code),
+            Grade::new(
+                finding.severity,
+                finding.category.unwrap_or(defaults.category),
+                finding.standpoint.unwrap_or(defaults.standpoint),
+            ),
             finding.message.clone(),
         );
         if let Some(location) = finding.primary_location() {
-            let rdf_location = rdf_location(location);
-            if !rdf_location.is_empty() {
-                rdf_diag = rdf_diag.with_location(rdf_location);
-            }
+            parent = parent.with_location(location.clone());
         }
-        let mut parent = Diag::from_rdf(&rdf_diag, &mut ledger, stage_id.clone());
-        let grade = parent.grade();
-        parent = parent.with_grade(gmeow_errors::Grade::new(
-            finding.severity,
-            finding.category.unwrap_or(grade.category),
-            finding.standpoint.unwrap_or(grade.standpoint),
-        ));
         if let Some(graph) = &finding.source_graph {
             parent = parent.with_graph(graph.clone());
         }

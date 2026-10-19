@@ -531,13 +531,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_errors::rdf::default_standpoint",
-    "gmeow_validate::findings::standpoint_from_shacl"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_gmn_wasm::test_crate::npm_package_version::manifest_version",
     "gmeow_mcp_core_wasm::test_crate::npm_package_version::manifest_version",
     "gmeow_mcp_wasm::test_crate::npm_package_version::manifest_version",

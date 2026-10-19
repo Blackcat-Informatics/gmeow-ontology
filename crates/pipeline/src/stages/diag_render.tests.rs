@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
-use gmeow_errors::{Finding, FindingCategory, StageId};
+use gmeow_errors::{Finding, FindingCategory, Location, Severity, StageId};
 
 #[test]
 fn production_forward_fold_retains_distinct_named_source_graphs() {
@@ -26,6 +26,10 @@ fn production_forward_fold_retains_distinct_named_source_graphs() {
     let nodes = finding_nodes(&report, "synthetic");
     assert_eq!(nodes.len(), 2);
     for node in &nodes {
+        assert!(
+            node.frames.is_empty(),
+            "a report finding must not acquire an invented native cause"
+        );
         assert_eq!(node.source_ctx.location.line, Some(17));
         assert_eq!(node.source_ctx.location.column, Some(9));
         assert_eq!(
