@@ -150,11 +150,10 @@ fn sarif_artifacts(report: &Report) -> Vec<Value> {
 /// for a NON-ledger finding that carries no `finding_iri`. Ledger identities are
 /// reused verbatim; the fallback uses the first eight digest bytes as lowercase hex.
 ///
-/// **v2**: incorporates canonical attribution roles + slice IRIs so that two
-/// otherwise-identical findings (same severity/code/location/message) produce
-/// different fingerprints when their structured attribution differs. Attributions
-/// are sorted by `(role, slice_iri)` for order-independence. Separator bytes keep
-/// `"ab|c"` distinct from `"a|bc"`.
+/// **v3** reuses canonical ledger addresses and retains named source graphs in
+/// the wire-only fallback. Canonical attribution roles and slice IRIs remain in
+/// the fallback, sorted by `(role, slice_iri)` for order-independence. Separator
+/// bytes keep `"ab|c"` distinct from `"a|bc"`.
 fn stable_fingerprint(finding: &Finding) -> String {
     // Ledger witnesses already have a content address. Rehashing their message
     // would give code scanning a second, wording-dependent identity.
@@ -882,7 +881,7 @@ fn sarif_result(finding: &Finding) -> Value {
         "level": finding.severity.sarif_level(),
         "message": { "text": finding.message },
         "partialFingerprints": {
-            "gmeowFindingHash/v2": stable_fingerprint(finding),
+            "gmeowFindingHash/v3": stable_fingerprint(finding),
         },
     });
 

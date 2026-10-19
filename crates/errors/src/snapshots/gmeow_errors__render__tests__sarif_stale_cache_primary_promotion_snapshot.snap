@@ -38,7 +38,7 @@ expression: value
             "text": "missing property"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "54581853a34ebd04"
+            "gmeowFindingHash/v3": "54581853a34ebd04"
           },
           "ruleId": "shacl.MinCount"
         }

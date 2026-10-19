@@ -22,6 +22,55 @@ fn test_context(stage_id: &str, salt: &str) -> StageKeyContext {
 }
 
 #[test]
+fn pre_graph_diagnostic_cache_revision_is_a_miss_before_hydration() {
+    let dir = tempfile::tempdir().unwrap();
+    let cache = PipelineCache::open(dir.path()).unwrap();
+    let context = test_context("stage-diagnostics", "identity-revision");
+    let product = StageProduct::from_artifacts(
+        "stage-diagnostics",
+        BTreeMap::from([(
+            "diagnostics.json".to_owned(),
+            b"old diagnostic identity".to_vec(),
+        )]),
+    );
+    let selection = full_selection(&product);
+    let mut manifest = CachedBundle::from_product(&product, &selection).unwrap();
+    manifest.version = 16;
+    let bytes = bincode::serialize(&manifest).unwrap();
+    let mut prior = context.action_context();
+    prior
+        .dimensions
+        .insert("pipeline-cache-version".to_owned(), "16".to_owned());
+    let mut receipt = StageReceipt::from_product(
+        context.clone(),
+        "stable",
+        "persistent",
+        &selection,
+        &product,
+        Some(gmeow_action_cache::bytes_digest(&bytes)),
+        u64::try_from(bytes.len()).unwrap(),
+    )
+    .unwrap();
+    receipt.action_key = prior.key().to_string();
+    cache
+        .store
+        .publish(&prior, product.digest.clone(), receipt, &bytes)
+        .unwrap();
+    assert!(cache.store.get::<StageReceipt>(&prior).unwrap().is_some());
+    assert_ne!(prior.key(), context.action_context().key());
+    assert!(cache.get(&context).unwrap().is_none());
+    assert!(cache.inspect_receipt(&context).unwrap().is_none());
+    // A current publication still round-trips in the same store; the revision
+    // boundary never suppresses legitimate warm diagnostic products.
+    persist_test_product(&cache, &context, &product);
+    assert_eq!(
+        cache.get(&context).unwrap().unwrap().product.artifacts(),
+        product.artifacts()
+    );
+    assert!(cache.store.get::<StageReceipt>(&prior).unwrap().is_some());
+}
+
+#[test]
 fn selected_dimension_is_a_first_class_action_key_input() {
     let base = StageKeyContext::new("stage", "test-v1", Vec::new(), Vec::new());
     assert_eq!(

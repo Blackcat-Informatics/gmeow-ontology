@@ -46,6 +46,17 @@ fn named_graph_identity_survives_merge_replay_and_every_projection() {
         let sarif: serde_json::Value =
             serde_json::from_str(&render::to_sarif(&report).unwrap()).unwrap();
         let results = sarif["runs"][0]["results"].as_array().unwrap();
+        for result in results {
+            assert_eq!(
+                result["partialFingerprints"]
+                    .as_object()
+                    .unwrap()
+                    .keys()
+                    .map(String::as_str)
+                    .collect::<Vec<_>>(),
+                ["gmeowFindingHash/v3"]
+            );
+        }
         assert_ne!(
             results[0]["partialFingerprints"],
             results[1]["partialFingerprints"]
@@ -95,7 +106,7 @@ fn named_graph_identity_survives_merge_replay_and_every_projection() {
         let original = results
             .iter()
             .find(|row| {
-                row["partialFingerprints"]["gmeowFindingHash/v2"] == iri.as_deref().unwrap()
+                row["partialFingerprints"]["gmeowFindingHash/v3"] == iri.as_deref().unwrap()
             })
             .unwrap();
         let reworded_result = changed["runs"][0]["results"]

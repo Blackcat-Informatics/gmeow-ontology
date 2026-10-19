@@ -28,7 +28,7 @@ expression: value
             "text": "consider a more specific sortal"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "5e060aab50fba194"
+            "gmeowFindingHash/v3": "5e060aab50fba194"
           },
           "properties": {
             "gmeow.suggestions": [
