@@ -135,7 +135,7 @@ struct Entry {
 /// Build the per-slice terminology glossary corpus by folding every reviewed `.po`
 /// catalog pair under `root` into its `(slice, language)` `gmeow:Glossary`.
 pub fn build_corpus(root: &Path) -> Result<LangGlossaryCorpus, gmeow_errors::Diag> {
-    let entries = build_entries(root)?;
+    let entries = build_entries(root, "stage-mappings")?;
     Ok(LangGlossaryCorpus {
         ntriples: emit_ntriples(&entries),
     })
@@ -143,19 +143,23 @@ pub fn build_corpus(root: &Path) -> Result<LangGlossaryCorpus, gmeow_errors::Dia
 
 /// Fold every reviewed `.po` catalog pair under `root` into the sorted list of term-grain
 /// [`Entry`] records — the SINGLE derivation both the N-Triples corpus ([`emit_ntriples`])
-/// and the human-readable table ([`render_glossary_table`]) project, so the graph and the
-/// table can never drift (they share one in-memory list, never two parses of the `.po`).
-fn build_entries(root: &Path) -> Result<Vec<Entry>, gmeow_errors::Diag> {
-    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-mappings".to_string(),
-                message: format!("lang-glossary slice catalog: {e}"),
-            })
-        })?;
+/// and the human-readable table ([`render_glossary_table`]) project. Each invocation
+/// currently discovers its own catalog; sharing the derivation is not shared execution.
+fn build_entries(root: &Path, stage: &str) -> Result<Vec<Entry>, gmeow_errors::Diag> {
+    let catalog = crate::node::measure_stage_phase(stage, "discover-slice-catalog", || {
+        SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+    })
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("lang-glossary slice catalog: {e}"),
+        })
+    })?;
     // The ontology-resident homograph escape — the SAME loader the make i18n-lint gate
     // consults (One Canonical Source), read from authored TTL only.
-    let homographs = declared_homograph_sources(root);
+    let homographs = crate::node::measure_stage_phase(stage, "read-homographs", || {
+        declared_homograph_sources(root)
+    });
 
     let mut entries: Vec<Entry> = Vec::new();
     for record in catalog.records() {
@@ -592,10 +596,17 @@ fn render_vartrans_statements(entries: &[Entry]) -> String {
 /// fold` holds by construction (identical prefix selection + renderer on both legs, exactly
 /// like `generated/evals/scores.ttl`). No banner: an RDF file travels as RDF, never a blob.
 fn vartrans_fanout_ttl(entries: &[Entry]) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    purrdf::turtle_normalize::canonical_turtle(
-        render_vartrans_statements(entries).as_bytes(),
-        &crate::stages::superset::rdf_prefixes(),
-    )
+    let statements = crate::node::measure_stage_phase(
+        "stage-export-glossary",
+        "render-vartrans-statements",
+        || render_vartrans_statements(entries),
+    );
+    crate::node::measure_stage_phase("stage-export-glossary", "canonicalize-vartrans", || {
+        purrdf::turtle_normalize::canonical_turtle(
+            statements.as_bytes(),
+            &crate::stages::superset::rdf_prefixes(),
+        )
+    })
     .map(String::into_bytes)
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -750,10 +761,10 @@ const LOWERING_TARGETS: &[LoweringTarget] = &[
 /// `lang:ProjectionEmission` record (folded into `graph/lang-projection-corpus`) declaring its
 /// target name, the projected source senses, its `SoundUnderApproximation` preservation kind,
 /// and every dropped construct — plus its `ProjectionResult` row + interned drops. Derived from
-/// the SAME reviewed-crossing [`build_entries`] list the rendered artifacts and the graph
-/// project, never a second parse.
+/// the same deterministic reviewed-crossing [`build_entries`] derivation as the rendered
+/// artifacts and the graph. This invocation currently reads its own inputs.
 pub fn build_lowering_corpus(root: &Path) -> Result<GlossaryLoweringCorpus, gmeow_errors::Diag> {
-    let entries = build_entries(root)?;
+    let entries = build_entries(root, "stage-mappings")?;
     Ok(build_lowering_from_entries(&entries))
 }
 
@@ -848,8 +859,8 @@ fn build_lowering_from_entries(entries: &[Entry]) -> GlossaryLoweringCorpus {
 
 /// The `stage-export-glossary` export leaf: the committed human-readable terminology
 /// glossary table, projected from the SAME reviewed `.po` fold `graph/lang-glossary-corpus`
-/// carries (via [`build_entries`]) — never a second parse, so the table and the graph
-/// cannot drift. A source-reading leaf like [`crate::stages::matrix::MatrixStage`]
+/// carries (via [`build_entries`]). The source-reading leaf currently repeats that
+/// derivation independently, like [`crate::stages::matrix::MatrixStage`]
 /// (`consumes() == []`): it reads the authored catalogs + homograph declarations directly.
 /// Its two NON-RDF surfaces are tarred into the `lang:` family's archive by
 /// `stage-archive-blobs`; the `.vartrans.ttl` rides its RDF-fanout named graph.
@@ -863,8 +874,8 @@ impl Stage for GlossaryTableStage {
         &[]
     }
     fn cache_policy(&self) -> CachePolicy {
-        // Measured contribution: 62.0 MB serialized for a ~3.0 s source fold.
-        // Hydration is not cheaper than rebuilding this deterministic leaf.
+        // This leaf currently recomputes. Attribute source discovery and rendering
+        // with phase observations before changing its cache policy.
         CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
@@ -899,8 +910,13 @@ impl Stage for GlossaryTableStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let entries = build_entries(input.root)?;
-        let md = render_glossary_table(&entries);
+        let entries = crate::node::measure_stage_phase(self.id(), "build-entries", || {
+            build_entries(input.root, self.id())
+        })?;
+        tracing::info!(target: "pipeline_phase", stage = self.id(), entries = entries.len(), "glossary input size");
+        let md = crate::node::measure_stage_phase(self.id(), "render-table", || {
+            render_glossary_table(&entries)
+        });
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(GLOSSARY_TABLE_PATH.to_string(), md.into_bytes());
         // The two external terminology-interchange lowerings (Principle-17 generated
@@ -917,12 +933,20 @@ impl Stage for GlossaryTableStage {
         );
         artifacts.insert(
             GLOSSARY_TBX_PATH.to_string(),
-            render_tbx(&entries).into_bytes(),
+            crate::node::measure_stage_phase(self.id(), "render-tbx", || {
+                render_tbx(&entries).into_bytes()
+            }),
         );
-        Ok(StageOutput::new(StageProduct::from_artifacts(
+        tracing::info!(
+            target: "pipeline_phase", stage = self.id(),
+            artifact_bytes = artifacts.values().map(Vec::len).sum::<usize>(),
+            "glossary output size"
+        );
+        Ok(crate::node::measure_stage_phase(
             self.id(),
-            artifacts,
-        )))
+            "publish-glossary-product",
+            || StageOutput::new(StageProduct::from_artifacts(self.id(), artifacts)),
+        ))
     }
 }
 

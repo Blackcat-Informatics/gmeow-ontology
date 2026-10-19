@@ -187,6 +187,7 @@ jobs:
       # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
         env:
+          GMEOW_LOG: warn,pipeline_phase=info
           SYNC_VERBOSE: "1"
           SYNC_TIMINGS_JSON: dist/sync/update-timings.json
         run: |
@@ -502,6 +503,8 @@ jobs:
             test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-
 
       - name: Produce optimized corpus fixtures before any test runner starts
+        env:
+          GMEOW_LOG: warn,pipeline_phase=info
         run: >-
           make produce-producer-independent-test-fixtures
           FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json

@@ -28,6 +28,21 @@ use crate::bundle::{
 /// The GMEOW namespace prefix that every pipeline term lives under.
 pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
+/// Observe a producer phase without putting clock values in its product or key.
+/// The work's return value, including an original typed refusal, is unchanged.
+pub(crate) fn measure_stage_phase<T>(stage: &str, phase: &str, work: impl FnOnce() -> T) -> T {
+    let span = tracing::info_span!(target: "pipeline_phase", "producer_phase", stage, phase);
+    let _entered = span.enter();
+    let started = std::time::Instant::now();
+    tracing::info!(target: "pipeline_phase", stage, phase, event = "start", "producer phase boundary");
+    let value = work();
+    tracing::info!(
+        target: "pipeline_phase", stage, phase, event = "end",
+        elapsed_ms = %started.elapsed().as_millis(), "producer phase boundary"
+    );
+    value
+}
+
 /// The `gmeow:engineResource` IRI: the process-wide reasoning engine, declared as
 /// an exclusive [`Stage::resources`] requirement by the sole `Reason` stage. The
 /// scheduler serializes any two stages requiring the same resource (the
