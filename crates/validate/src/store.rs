@@ -157,13 +157,7 @@ pub fn duplicate_validation_results(
 pub fn parse_file_dataset(path: &Path) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let bytes = std::fs::read(path).map_err(|error| source_io_error(path, "read", error))?;
     parse_dataset(&bytes, "text/turtle", None).map_err(|error| {
-        let mut location = error
-            .location
-            .as_deref()
-            .map(gmeow_errors::Location::from_rdf)
-            .unwrap_or_default();
-        location.path = Some(path.to_string_lossy().into_owned());
-        Diag::new(
+        let diag = Diag::new(
             crate::error::Parse::register(),
             gmeow_errors::Grade::new(
                 gmeow_errors::Severity::Error,
@@ -172,8 +166,10 @@ pub fn parse_file_dataset(path: &Path) -> gmeow_errors::Result<Arc<RdfDataset>> 
             ),
             format!("syntax error in {}: {error}", path.display()),
         )
-        .with_location(location)
-        .with_source(error)
+        .with_rdf_source(error);
+        let mut location = diag.inner().source_ctx.location.clone();
+        location.path = Some(path.to_string_lossy().into_owned());
+        diag.with_location(location)
     })
 }
 

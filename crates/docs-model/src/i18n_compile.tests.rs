@@ -4,6 +4,33 @@
 use super::*;
 
 #[test]
+fn malformed_rdf_retains_native_cause_under_the_translation_operation() {
+    let bytes = b"this is not turtle <<< @@@";
+    let native = purrdf::parse_dataset(bytes, "text/turtle", None).unwrap_err();
+    let failure = parse_rdf_literals(bytes, "turtle").unwrap_err();
+    assert_eq!(failure.code(), RdfParse::register());
+    assert_eq!(
+        failure.downcast_ref::<purrdf::RdfDiagnostic>(),
+        Some(&native)
+    );
+    if let Some(location) = &native.location {
+        assert_eq!(
+            failure.inner().source_ctx.location,
+            gmeow_errors::Location::from_rdf(location)
+        );
+        assert_eq!(
+            failure
+                .inner()
+                .source_ctx
+                .focus
+                .as_ref()
+                .map(|focus| focus.0.as_str()),
+            location.subject.as_deref()
+        );
+    }
+}
+
+#[test]
 fn parse_po_reads_fuzzy_and_language() {
     let text = "msgid \"\"\nmsgstr \"\"\n\"Language: fr\\n\"\n\n#, fuzzy\nmsgctxt \"x|rdfs:label\"\nmsgid \"A\"\nmsgstr \"B\"\n";
     assert_eq!(language_from_po(text).unwrap(), Some("fr".to_owned()));

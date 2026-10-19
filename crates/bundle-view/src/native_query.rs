@@ -84,15 +84,8 @@ pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, gm
             let kind = crate::error::Parse {
                 message: error.to_string(),
             };
-            let location = error
-                .location
-                .as_deref()
-                .map(gmeow_errors::Location::from_rdf);
             let mut diag = gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
-                .with_source(error);
-            if let Some(location) = location {
-                diag = diag.with_location(location);
-            }
+                .with_rdf_source(error);
             if let Some(class) = kind.failure_class() {
                 diag = diag.with_failure_class(class);
             }

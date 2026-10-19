@@ -113,8 +113,33 @@ fn distinguishable_results_all_survive_the_collapse() {
 #[test]
 fn parse_file_dataset_rejects_bad_turtle() {
     let (_tmp, path) = write_tmp("gmeow_validate_store_bad.ttl", "this is not turtle <<< @@@");
-    let result = parse_file_dataset(&path);
-    assert!(result.is_err(), "malformed Turtle must parse-error");
+    let failure = parse_file_dataset(&path).unwrap_err();
+    let native =
+        purrdf::parse_dataset(b"this is not turtle <<< @@@", "text/turtle", None).unwrap_err();
+    assert_eq!(failure.code(), crate::error::Parse::register());
+    assert_eq!(
+        failure.downcast_ref::<purrdf::RdfDiagnostic>(),
+        Some(&native)
+    );
+    let location = &failure.inner().source_ctx.location;
+    assert_eq!(
+        location.path.as_deref(),
+        Some(path.to_string_lossy().as_ref())
+    );
+    if let Some(native_location) = &native.location {
+        let mut expected = gmeow_errors::Location::from_rdf(native_location);
+        expected.path = location.path.clone();
+        assert_eq!(location, &expected);
+        assert_eq!(
+            failure
+                .inner()
+                .source_ctx
+                .focus
+                .as_ref()
+                .map(|focus| focus.0.as_str()),
+            native_location.subject.as_deref()
+        );
+    }
 }
 
 #[test]

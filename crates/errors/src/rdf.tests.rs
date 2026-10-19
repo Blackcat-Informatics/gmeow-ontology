@@ -8,6 +8,56 @@ use crate::grade::{GateVerdict, gate};
 use purrdf_core::{DiagnosticParameter, DiagnosticPresentation, DiagnosticValue, LossEntry};
 
 #[test]
+fn native_source_preserves_explicit_domain_semantics_and_original_anchor() {
+    let native = RdfDiagnostic::new(
+        RdfSeverity::Warning,
+        "native.warning",
+        "original observation",
+    )
+    .with_detail("original detail")
+    .with_location(RdfLocation::logical("native-stage").with_subject("urn:native:subject"));
+    let expected = native.clone();
+    let code = register_code("gmeow.native.operation");
+    let grade = Grade::new(
+        Severity::Error,
+        FindingCategory::PermittedEpistemicConflict,
+        Standpoint::Advisory,
+    );
+    let graph = purrdf_core::BaseIri::parse("urn:world:test").unwrap();
+    let diag = Diag::new(code, grade, "operation observation")
+        .with_graph(graph.clone())
+        .with_failure_class("urn:failure-class")
+        .with_rdf_source(native);
+    assert_eq!(diag.code(), code);
+    assert_eq!(diag.grade(), grade);
+    assert_eq!(diag.inner().message, "operation observation");
+    assert_eq!(diag.inner().source_ctx.graph.as_ref(), Some(&graph));
+    assert_eq!(
+        diag.inner().failure_class.as_deref(),
+        Some("urn:failure-class")
+    );
+    assert_eq!(
+        diag.inner().source_ctx.location.logical.as_deref(),
+        Some("native-stage")
+    );
+    assert_eq!(
+        diag.inner().source_ctx.focus.as_ref().unwrap().0,
+        "urn:native:subject"
+    );
+    assert_eq!(diag.downcast_ref::<RdfDiagnostic>(), Some(&expected));
+    let mut ledger = DiagLedger::new();
+    ledger.attach(diag, StageId::new("operation"));
+    assert_ne!(ledger.verdict(), GateVerdict::Fatal);
+    assert!(
+        ledger.project_report("operation").findings[0]
+            .detail
+            .as_deref()
+            .unwrap()
+            .contains("original detail")
+    );
+}
+
+#[test]
 fn native_subjects_remain_distinct_from_the_stage_location_through_replay() {
     let mut ledger = DiagLedger::new();
     for subject in ["urn:subject:a", "urn:subject:b"] {
@@ -19,7 +69,7 @@ fn native_subjects_remain_distinct_from_the_stage_location_through_replay() {
         location.gts_frame_index = Some(u64::MAX);
         let native = RdfDiagnostic::new(RdfSeverity::Error, "native.subject", "invalid subject")
             .with_location(location.clone());
-        let diag = Diag::from_rdf(&native, &mut ledger, StageId::new("parse"));
+        let diag = Diag::from_rdf(native);
         assert_eq!(
             diag.inner().source_ctx.location,
             Location::from_rdf(&location)
@@ -78,7 +128,7 @@ fn native_presentation_remains_typed_until_cause_lowering() {
         .with_presentation(presentation)
         .with_location(RdfLocation::logical("parse-stage").with_subject("urn:subject:a"));
     let mut ledger = DiagLedger::new();
-    let diag = Diag::from_rdf(&native, &mut ledger, StageId::new("parse"));
+    let diag = Diag::from_rdf(native.clone());
     let cause = diag
         .downcast_ref::<RdfDiagnostic>()
         .expect("original native type retained");
@@ -146,7 +196,7 @@ fn loss_subjects_remain_distinct_witnesses() {
     }
     let mut ledger = DiagLedger::new();
     let parent = Diag::from_rdf_with_losses(
-        &diagnostic_with_dropped_lang_tag(),
+        diagnostic_with_dropped_lang_tag(),
         &losses,
         &mut ledger,
         StageId::new("project"),
@@ -179,7 +229,7 @@ fn loss_subjects_remain_distinct_witnesses() {
 fn losses_become_non_gating_projection_loss_children() {
     let mut ledger = DiagLedger::new();
     let parent = Diag::from_rdf_with_losses(
-        &diagnostic_with_dropped_lang_tag(),
+        diagnostic_with_dropped_lang_tag(),
         &losses_with_dropped_lang_tag(),
         &mut ledger,
         StageId::new("ingest"),
@@ -215,10 +265,10 @@ fn double_lowering_across_two_stages_is_idempotent() {
     let d = diagnostic_with_dropped_lang_tag();
     let losses = losses_with_dropped_lang_tag();
     let mut ledger = DiagLedger::new();
-    let p_a = Diag::from_rdf_with_losses(&d, &losses, &mut ledger, StageId::new("stage-a"));
+    let p_a = Diag::from_rdf_with_losses(d.clone(), &losses, &mut ledger, StageId::new("stage-a"));
     ledger.attach(p_a, StageId::new("stage-a"));
     let before = ledger.emit_sorted().len();
-    let p_b = Diag::from_rdf_with_losses(&d, &losses, &mut ledger, StageId::new("stage-b"));
+    let p_b = Diag::from_rdf_with_losses(d, &losses, &mut ledger, StageId::new("stage-b"));
     ledger.attach(p_b, StageId::new("stage-b"));
     let after = ledger.emit_sorted().len();
     // Identical content across stages hash-conses — no growth, no doubled frames.

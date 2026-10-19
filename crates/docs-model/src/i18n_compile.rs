@@ -12,8 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use gmeow_errors::{
-    Diag, DiagLedger, FindingCategory, GateVerdict, Grade, Location, Result, Severity, StageId,
-    Standpoint,
+    Diag, DiagLedger, FindingCategory, GateVerdict, Grade, Result, Severity, StageId, Standpoint,
 };
 use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
@@ -179,11 +178,6 @@ fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>> 
 
     let media_type = media_type_for_format(format)?;
     let dataset = purrdf::parse_dataset(bytes, media_type, None).map_err(|e| {
-        let location = e
-            .location
-            .as_deref()
-            .map(Location::from_rdf)
-            .unwrap_or_default();
         Diag::new(
             RdfParse::register(),
             Grade::new(
@@ -193,8 +187,7 @@ fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>> 
             ),
             format!("RDF parse error: {e}"),
         )
-        .with_location(location)
-        .with_source(e)
+        .with_rdf_source(e)
     })?;
     let mut rows = Vec::new();
     for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {

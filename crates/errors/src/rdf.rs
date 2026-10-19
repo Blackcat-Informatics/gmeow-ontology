@@ -66,16 +66,37 @@ impl Diag {
     /// Ingest a native diagnostic, retaining its original typed value as the
     /// live cause and its subject as the focus. The caller attaches the parent;
     /// the original error chain is lowered only at that serialization boundary.
-    pub fn from_rdf(diagnostic: &RdfDiagnostic, ledger: &mut DiagLedger, stage: StageId) -> Diag {
-        Self::from_rdf_with_losses(diagnostic, &LossLedger::new(), ledger, stage)
+    #[track_caller]
+    pub fn from_rdf(diagnostic: RdfDiagnostic) -> Diag {
+        Diag::new(
+            register_code(&diagnostic.code),
+            Grade::for_external_severity(severity_from_rdf(diagnostic.severity)),
+            diagnostic.message.clone(),
+        )
+        .with_rdf_source(diagnostic)
+    }
+
+    /// Attach an original native cause and its source anchor to a diagnostic
+    /// with an explicit GMEOW code, grade and observation. Native location and
+    /// subject replace the corresponding anchors when supplied; callers can
+    /// then add more specific physical context. Existing causes cannot be replaced.
+    pub fn with_rdf_source(mut self, diagnostic: RdfDiagnostic) -> Diag {
+        if let Some(location) = &diagnostic.location {
+            self = self.with_location(Location::from_rdf(location));
+            if let Some(subject) = &location.subject {
+                self = self.with_focus(subject.clone());
+            }
+        }
+        self.with_source(diagnostic)
     }
 
     /// Project a purrdf [`RdfDiagnostic`] and its unified [`LossLedger`] into a
     /// [`Diag`]. Each loss is attached to `ledger` as a non-gating
     /// `ProjectionLoss` child witness, and the returned parent carries those
     /// children as DAG antecedents.
+    #[track_caller]
     pub fn from_rdf_with_losses(
-        diagnostic: &RdfDiagnostic,
+        diagnostic: RdfDiagnostic,
         losses: &LossLedger,
         ledger: &mut DiagLedger,
         stage: StageId,
@@ -102,21 +123,7 @@ impl Diag {
             antecedents.push(ledger.attach(child, stage.clone()));
         }
 
-        let severity = severity_from_rdf(diagnostic.severity);
-        let mut parent = Diag::new(
-            register_code(&diagnostic.code),
-            Grade::for_external_severity(severity),
-            diagnostic.message.clone(),
-        )
-        .with_source(diagnostic.clone())
-        .with_antecedents(antecedents);
-        if let Some(location) = &diagnostic.location {
-            parent = parent.with_location(Location::from_rdf(location));
-            if let Some(subject) = &location.subject {
-                parent = parent.with_focus(subject.clone());
-            }
-        }
-        parent
+        Self::from_rdf(diagnostic).with_antecedents(antecedents)
     }
 }
 
