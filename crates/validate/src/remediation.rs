@@ -66,17 +66,21 @@ pub fn attach_remediations(report: &mut Report) {
         let standpoint = finding.standpoint.unwrap_or(Standpoint::Binding);
         let location = finding.primary_location().cloned().unwrap_or_default();
 
-        let diag = Diag::new(
+        let mut diag = Diag::new(
             register_code(&finding.code),
             Grade::new(finding.severity, category, standpoint),
             finding.message.clone(),
         )
         .with_location(location.clone());
+        if let Some(graph) = &finding.source_graph {
+            diag = diag.with_graph(graph.clone());
+        }
         ledger.attach(diag, stage.clone());
 
         // The fingerprint the ledger interned this witness under — the annotate key.
         let source_ctx = SourceContext {
             location,
+            graph: finding.source_graph.clone(),
             ..SourceContext::default()
         };
         let fingerprint = DiagFingerprint::compute(&finding.code, category, &source_ctx);

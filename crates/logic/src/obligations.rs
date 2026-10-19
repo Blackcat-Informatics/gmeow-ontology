@@ -338,7 +338,7 @@ fn attribute_to_candidates(
 
 #[track_caller]
 fn obligation_diag(
-    world: &str,
+    world: &purrdf::iri::BaseIri,
     obligation: &Obligation,
     field: &str,
     code: &str,
@@ -358,19 +358,12 @@ fn obligation_diag(
         ..Location::default()
     })
     .with_focus(
-        serde_json::to_string(&(world, &obligation.forbidden_predicate, field))
+        serde_json::to_string(&(&obligation.forbidden_predicate, field))
             .expect("native obligation coordinates serialize"),
     )
-    .with_tag(format!("world:{world}"))
+    .with_graph(world.clone())
     .with_tag("formalization-governance")
     .with_tag("non-entailment")
-    .with_label(Label {
-        location: Location {
-            logical: Some(world.to_owned()),
-            ..Location::default()
-        },
-        text: "native world".to_owned(),
-    })
     .with_label(Label {
         location: Location {
             logical: Some(obligation.forbidden_predicate.clone()),
@@ -411,7 +404,7 @@ fn candidates_by_obligation(
 /// Arm A — syntactic reachability. A matching head prevents syntactic discharge;
 /// whether its body is satisfied requires evaluation and cannot be inferred here.
 fn check_reachability(
-    world: &str,
+    world: &purrdf::iri::BaseIri,
     obligation: &Obligation,
     may_write: bool,
     candidates: &BTreeMap<String, BTreeSet<String>>,
@@ -441,7 +434,7 @@ fn check_reachability(
 
 /// Positive evidence is independent of the selected negative-proof arm.
 fn check_finite_closure(
-    world: &str,
+    world: &purrdf::iri::BaseIri,
     obligation: &Obligation,
     derived_predicates: &BTreeSet<String>,
     candidates: &BTreeMap<String, BTreeSet<String>>,
@@ -456,7 +449,7 @@ fn check_finite_closure(
 }
 
 /// Each unsupported declared condition retains its own native-IRI anchor.
-fn check_discharge_conditions(world: &str, obligation: &Obligation) -> Vec<Diag> {
+fn check_discharge_conditions(world: &purrdf::iri::BaseIri, obligation: &Obligation) -> Vec<Diag> {
     let mut diagnostics = Vec::new();
     if obligation.discharge_conditions.is_empty() {
         diagnostics.push(obligation_diag(world, obligation, "discharge-condition",

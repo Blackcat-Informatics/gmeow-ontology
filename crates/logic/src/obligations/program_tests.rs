@@ -219,7 +219,7 @@ fn unsupported_conditions_retain_distinct_worlds_and_native_outcomes() {
             let finding = errors
                 .iter()
                 .find(|finding| {
-                    finding.tags.contains(&format!("world:{world}"))
+                    finding.source_graph.as_ref().map(|graph| graph.as_str()) == Some(world)
                         && finding.cited_iris.iter().any(|iri| iri == condition)
                 })
                 .unwrap();
@@ -232,12 +232,6 @@ fn unsupported_conditions_retain_distinct_worlds_and_native_outcomes() {
                     .cited_iris
                     .iter()
                     .any(|iri| iri == "https://example.org/candidate")
-            );
-            assert!(
-                finding
-                    .related_labels
-                    .iter()
-                    .any(|label| label.location.logical.as_deref() == Some(world))
             );
         }
     }

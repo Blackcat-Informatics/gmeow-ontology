@@ -8,6 +8,162 @@ use crate::ledger::{DiagLedger, fingerprint_iri};
 use crate::model::Location;
 
 #[test]
+fn named_graph_identity_survives_merge_replay_and_every_projection() {
+    use crate::render;
+    let mut expected = None;
+    for graphs in [
+        ["urn:world:b", "urn:world:a"],
+        ["urn:world:a", "urn:world:b"],
+    ] {
+        let mut ledger = DiagLedger::new();
+        for graph in graphs {
+            let diag = diag_at(
+                "test.project.graph",
+                "same.ttl",
+                Grade::new(
+                    Severity::Error,
+                    FindingCategory::DataShapeViolation,
+                    Standpoint::Binding,
+                ),
+            )
+            .with_focus("urn:focus")
+            .with_graph(purrdf_core::BaseIri::parse(graph).unwrap());
+            ledger.attach(diag, StageId::new("test"));
+        }
+        assert_eq!(ledger.len(), 2);
+        let report = ledger.project_report("test").normalized();
+        assert_ne!(
+            report.findings[0].finding_iri,
+            report.findings[1].finding_iri
+        );
+        assert_ne!(report.findings[0].anchor_iri, report.findings[1].anchor_iri);
+        let json = render::to_json(&report).unwrap();
+        if let Some(expected) = &expected {
+            assert_eq!(&json, expected);
+        } else {
+            expected = Some(json.clone());
+        }
+        let sarif: serde_json::Value =
+            serde_json::from_str(&render::to_sarif(&report).unwrap()).unwrap();
+        let results = sarif["runs"][0]["results"].as_array().unwrap();
+        assert_ne!(
+            results[0]["partialFingerprints"],
+            results[1]["partialFingerprints"]
+        );
+        for graph in graphs {
+            assert!(json.contains(graph));
+            assert!(
+                results
+                    .iter()
+                    .any(|result| result["properties"]["gmeow.sourceGraph"] == graph)
+            );
+            assert!(render::to_text(&report).contains(&format!("source graph: {graph}")));
+            assert!(render::to_html(&report).contains(graph));
+            assert!(render::to_gmeow_rdf(&report).contains(&format!(
+                "<https://blackcatinformatics.ca/gmeow/findingSourceGraph> <{graph}>"
+            )));
+        }
+        let native = render::to_gmeow_dataset(&report).unwrap();
+        for graph in graphs {
+            assert!(native.quads().any(|quad| {
+                native.resolve(quad.p)
+                    == purrdf_core::TermRef::Iri(
+                        "https://blackcatinformatics.ca/gmeow/findingSourceGraph",
+                    )
+                    && native.resolve(quad.o) == purrdf_core::TermRef::Iri(graph)
+                    && quad.g.is_some_and(|id| {
+                        native.resolve(id)
+                            == purrdf_core::TermRef::Iri(
+                                "https://blackcatinformatics.ca/gmeow/graph/diagnostics",
+                            )
+                    })
+            }));
+        }
+        let bytes = serde_json::to_vec(&ledger.emit_sorted()).unwrap();
+        let nodes: Vec<crate::DiagNode> = serde_json::from_slice(&bytes).unwrap();
+        let mut replay = DiagLedger::new();
+        replay.replay(nodes);
+        assert_eq!(
+            render::to_json(&replay.project_report("test")).unwrap(),
+            json
+        );
+        let mut reworded = report.clone();
+        reworded.findings[0].message = "different prose".into();
+        let changed: serde_json::Value =
+            serde_json::from_str(&render::to_sarif(&reworded).unwrap()).unwrap();
+        let iri = &report.findings[0].finding_iri;
+        let original = results
+            .iter()
+            .find(|row| {
+                row["partialFingerprints"]["gmeowFindingHash/v2"] == iri.as_deref().unwrap()
+            })
+            .unwrap();
+        let reworded_result = changed["runs"][0]["results"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| {
+                row["properties"]["gmeow.sourceGraph"]
+                    == report.findings[0].source_graph.as_ref().unwrap().as_str()
+            })
+            .unwrap();
+        assert_eq!(
+            reworded_result["partialFingerprints"],
+            original["partialFingerprints"]
+        );
+    }
+}
+
+#[test]
+fn graph_replay_refuses_relative_or_malformed_identity_without_normalizing() {
+    let graph = "https://example.org/a/../b/é";
+    let ctx = crate::SourceContext {
+        graph: Some(purrdf_core::BaseIri::parse(graph).unwrap()),
+        ..crate::SourceContext::default()
+    };
+    assert!(ctx.is_non_trivial());
+    let mut value = serde_json::to_value(&ctx).unwrap();
+    assert_eq!(value["graph"], graph);
+    assert_eq!(
+        serde_json::from_value::<crate::SourceContext>(value.clone()).unwrap(),
+        ctx
+    );
+    for bad in ["relative", "http://example.org/<bad>", ""] {
+        value["graph"] = serde_json::json!(bad);
+        assert!(serde_json::from_value::<crate::SourceContext>(value.clone()).is_err());
+        let mut finding =
+            serde_json::to_value(crate::Finding::new(Severity::Error, "code", "message")).unwrap();
+        finding["source_graph"] = serde_json::json!(bad);
+        assert!(serde_json::from_value::<crate::Finding>(finding).is_err());
+    }
+    let unscoped = serde_json::to_value(crate::SourceContext::default()).unwrap();
+    assert!(unscoped.get("graph").is_none());
+    assert!(!crate::SourceContext::default().is_non_trivial());
+}
+
+#[test]
+#[should_panic(expected = "contradicts its pinned digest")]
+fn graph_identity_cannot_be_replaced_in_a_pinned_node() {
+    let mut ledger = DiagLedger::new();
+    ledger.attach(
+        diag_at(
+            "test.graph.pin",
+            "same.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_graph(purrdf_core::BaseIri::parse("urn:world:a").unwrap()),
+        StageId::new("test"),
+    );
+    let mut node = ledger.emit_sorted()[0].clone();
+    node.source_ctx.graph = Some(purrdf_core::BaseIri::parse("urn:world:b").unwrap());
+    DiagLedger::new().replay([node]);
+}
+
+#[test]
 fn projection_normalization_preserves_the_primary_source_location() {
     let mut ledger = DiagLedger::new();
     ledger.attach(

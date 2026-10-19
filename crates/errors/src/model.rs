@@ -471,6 +471,13 @@ pub struct Finding {
     pub severity: Severity,
     pub code: String,
     pub message: String,
+    /// Original named graph, distinct from both focus and the projection graph.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "crate::source_graph"
+    )]
+    pub source_graph: Option<purrdf_core::BaseIri>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -624,6 +631,7 @@ impl Finding {
             severity,
             code: code.into(),
             message: message.into(),
+            source_graph: None,
             tool: None,
             locations: Vec::new(),
             related_locations: Vec::new(),
@@ -884,8 +892,17 @@ impl Report {
         for finding in &mut self.findings {
             finding.normalize();
         }
-        self.findings
-            .sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
+        self.findings.sort_by(|a, b| {
+            a.sort_key()
+                .cmp(&b.sort_key())
+                .then_with(|| {
+                    a.source_graph
+                        .as_ref()
+                        .map(|g| g.as_str())
+                        .cmp(&b.source_graph.as_ref().map(|g| g.as_str()))
+                })
+                .then_with(|| a.finding_iri.cmp(&b.finding_iri))
+        });
         self.rules.sort_by(|a, b| a.id.cmp(&b.id));
         self.rules.dedup_by(|a, b| a.id == b.id);
     }

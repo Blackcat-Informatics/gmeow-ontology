@@ -284,13 +284,22 @@ impl Remediation {
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct SourceContext {
     pub location: SourceLocation,
+    /// Named graph identity. The native type guarantees an absolute IRI;
+    /// it is never used to resolve or normalize source terms.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "crate::source_graph"
+    )]
+    pub graph: Option<purrdf_core::BaseIri>,
     pub focus: Option<Focus>,
     pub term_role: Option<TermRole>,
 }
 
 impl SourceContext {
     /// Whether this context names a *genuine* source position — a non-empty path,
-    /// a logical anchor (e.g. a SHACL finding's focus-node IRI, which rides in
+    /// a named graph, a GTS wire coordinate, a logical anchor (e.g. a SHACL
+    /// finding's focus-node IRI, which rides in
     /// `location.logical`), OR a focus node — as opposed to the empty/default anchor
     /// every locationless finding collapses onto. This is the guard the
     /// cross-node-glut meta-rule joins on: only a non-trivial anchor is typed
@@ -307,6 +316,12 @@ impl SourceContext {
                 .as_deref()
                 .is_some_and(|l| !l.is_empty())
             || self.focus.as_ref().is_some_and(|f| !f.0.is_empty())
+            || self.graph.is_some()
+            || self.location.gts_term_id.is_some()
+            || self.location.gts_quad_index.is_some()
+            || self.location.gts_reifier_id.is_some()
+            || self.location.gts_frame_index.is_some()
+            || self.location.gts_segment_index.is_some()
     }
 }
 
@@ -550,6 +565,11 @@ impl Diag {
     }
     pub fn with_focus(mut self, focus: impl Into<String>) -> Self {
         self.0.source_ctx.focus = Some(Focus(focus.into()));
+        self
+    }
+    /// Retain the original named graph as a typed source-identity coordinate.
+    pub fn with_graph(mut self, graph: purrdf_core::BaseIri) -> Self {
+        self.0.source_ctx.graph = Some(graph);
         self
     }
     pub fn with_term_role(mut self, role: TermRole) -> Self {

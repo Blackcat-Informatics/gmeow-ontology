@@ -7,6 +7,28 @@ use std::collections::{BTreeSet, HashSet};
 use purrdf::{DatasetView, GraphMatch, parse_dataset};
 
 #[test]
+fn finding_bridge_retains_distinct_native_source_graphs() {
+    let mut ledger = DiagLedger::new();
+    for graph in ["urn:world:a", "urn:world:b"] {
+        let mut finding = Finding::new(Severity::Error, "test.graph.bridge", "same observation");
+        finding.add_location(gmeow_errors::Location {
+            logical: Some("urn:focus".into()),
+            ..Default::default()
+        });
+        finding.source_graph = Some(purrdf::iri::BaseIri::parse(graph).unwrap());
+        intern_finding(&mut ledger, run_stage(), Standpoint::Binding, &finding);
+    }
+    assert_eq!(ledger.len(), 2);
+    let report = ledger.project_report("test");
+    let graphs: BTreeSet<_> = report
+        .findings
+        .iter()
+        .map(|finding| finding.source_graph.as_ref().unwrap().as_str())
+        .collect();
+    assert_eq!(graphs, BTreeSet::from(["urn:world:a", "urn:world:b"]));
+}
+
+#[test]
 fn gufo_rule_branches_and_range_groups_remain_distinct_after_interning() {
     let source = r#"
         @prefix g: <https://blackcatinformatics.ca/gmeow/> .

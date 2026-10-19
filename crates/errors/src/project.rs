@@ -44,6 +44,7 @@ impl DiagNode {
             });
         }
         finding.tags = self.tags.clone();
+        finding.source_graph = self.source_ctx.graph.clone();
         finding.attributions = self.attributions.clone();
         // The documented-term attributions (a SHACL violation's constrained property,
         // etc.) ride onto the finding for the docs per-term diagnostics join.

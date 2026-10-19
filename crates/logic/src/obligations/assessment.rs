@@ -7,8 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use gmeow_errors::{
-    Diag, DiagLedger, Finding, FindingCategory, Grade, Label, Location, ResultExt, Severity,
-    StageId, Standpoint, register_code,
+    Diag, DiagLedger, Finding, FindingCategory, Grade, Location, ResultExt, Severity, StageId,
+    Standpoint, register_code,
 };
 use purrdf::{DatasetMut, MutableDataset, QuadValues, RdfDataset, TermValue};
 
@@ -212,6 +212,7 @@ fn assess_world(
     assessment: &mut ObligationAssessment,
 ) -> gmeow_errors::Result<()> {
     let world = ledger.world.as_str();
+    let source_graph = purrdf::iri::BaseIri::parse(world)?;
     let (store, authored) = governance_view(ledger)?;
     let obligations = parse_obligations(&store)?;
     let candidates = candidates_by_obligation(&store)?;
@@ -228,7 +229,7 @@ fn assess_world(
         });
     let mut discharged = 0;
     for obligation in &obligations {
-        let conditions = check_discharge_conditions(world, obligation);
+        let conditions = check_discharge_conditions(&source_graph, obligation);
         let conditions_valid = conditions.is_empty();
         for diag in conditions {
             assessment.record(attribute_to_candidates(diag, &obligation.iri, &candidates));
@@ -250,14 +251,14 @@ fn assess_world(
             ObligationDisposition::Violated(_) => {
                 let predicates = BTreeSet::from([obligation.forbidden_predicate.clone()]);
                 if let Some(diag) =
-                    check_finite_closure(world, obligation, &predicates, &candidates)
+                    check_finite_closure(&source_graph, obligation, &predicates, &candidates)
                 {
                     assessment.record(diag);
                 }
             }
             ObligationDisposition::Unknown => {
-                let diag = check_reachability(world, obligation, may_write, &candidates).unwrap_or_else(|| {
-                        attribute_to_candidates(obligation_diag(world, obligation, "absence-proof",
+                let diag = check_reachability(&source_graph, obligation, may_write, &candidates).unwrap_or_else(|| {
+                        attribute_to_candidates(obligation_diag(&source_graph, obligation, "absence-proof",
                             "verify.non-entailment.not-discharged",
                             format!("non-entailment obligation <{}> has no certified selected absence proof (logic:ObligationUnknown); source_complete={source_complete}, finite_complete={finite_complete}", obligation.iri),
                         ), &obligation.iri, &candidates)
@@ -282,8 +283,7 @@ fn assess_world(
         ))
         .with_location(Location { logical: Some(world.to_owned()), ..Location::default() })
         .with_focus("obligation-inventory")
-        .with_tag(format!("world:{world}"))
-        .with_label(Label { location: Location { logical: Some(world.to_owned()), ..Location::default() }, text: "native world".to_owned() })
+        .with_graph(source_graph)
         .with_cited_iris(obligations
         .iter()
         .filter(|obligation| !obligation.iri.starts_with("_:"))

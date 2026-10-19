@@ -223,6 +223,9 @@ fn intern_finding(
     if let Some(location) = finding.locations.first() {
         diag = diag.with_location(location.clone());
     }
+    if let Some(graph) = &finding.source_graph {
+        diag = diag.with_graph(graph.clone());
+    }
     // Carry each secondary anchor (SHACL result-path / offending value) as a
     // first-class labelled span; `to_finding` re-emits these as related locations.
     for related in &finding.related_locations {

@@ -50,8 +50,8 @@ fn feed(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 }
 
 /// Feed the **code-blind source-position identity** — `(path, line, column,
-/// logical, term_role, focus)` in this EXACT order — into `hasher`. The SINGLE
-/// definition of the anchor field-feed, shared by [`DiagFingerprint::compute`]
+/// logical, term_role, focus)` followed by supplied graph/wire coordinates — into
+/// `hasher`. The SINGLE definition of the anchor field-feed, shared by [`DiagFingerprint::compute`]
 /// (after its `code`+`category` prefix) and [`DiagFingerprint::anchor`], so the two
 /// paths are structurally identical and cannot silently drift apart — a drift would
 /// break the cross-node join key the glut meta-rule depends on.
@@ -87,6 +87,25 @@ fn feed_source_ctx(hasher: &mut blake3::Hasher, ctx: &SourceContext) {
             .unwrap_or("")
             .as_bytes(),
     );
+    // An absent graph keeps existing unscoped identities unchanged. A supplied
+    // graph is a separate framed coordinate, never encoded in focus or prose.
+    if let Some(graph) = &ctx.graph {
+        feed(hasher, b"graph", graph.as_str().as_bytes());
+    }
+    for (tag, coordinate) in [
+        (b"gts_term_id".as_slice(), ctx.location.gts_term_id),
+        (b"gts_quad_index".as_slice(), ctx.location.gts_quad_index),
+        (b"gts_reifier_id".as_slice(), ctx.location.gts_reifier_id),
+        (b"gts_frame_index".as_slice(), ctx.location.gts_frame_index),
+        (
+            b"gts_segment_index".as_slice(),
+            ctx.location.gts_segment_index,
+        ),
+    ] {
+        if let Some(coordinate) = coordinate {
+            feed(hasher, tag, &coordinate.to_le_bytes());
+        }
+    }
 }
 
 impl DiagFingerprint {
@@ -104,7 +123,7 @@ impl DiagFingerprint {
     }
 
     /// The **code-blind source anchor** fingerprint: `blake3` over the source
-    /// position `(path, line, column, logical, term_role, focus)` ONLY —
+    /// position, graph, term role, focus and supplied wire coordinates —
     /// deliberately EXCLUDING `code` and `category`. Two findings with DIFFERENT
     /// codes at the SAME source anchor therefore share one anchor fingerprint,
     /// which is the cross-node join key the same-fingerprint merge (which keys on

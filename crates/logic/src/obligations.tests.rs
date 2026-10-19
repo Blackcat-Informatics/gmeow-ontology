@@ -329,7 +329,7 @@ fn standing_obligations_discharge_on_the_real_strata() {
     let no_candidates = BTreeMap::new();
     assert!(
         check_reachability(
-            "urn:test:world",
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
             &counterpart,
             heads.contains(&counterpart.forbidden_predicate),
             &no_candidates
@@ -338,15 +338,27 @@ fn standing_obligations_discharge_on_the_real_strata() {
     );
     assert!(
         check_reachability(
-            "urn:test:world",
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
             &deception,
             heads.contains(&deception.forbidden_predicate),
             &no_candidates
         )
         .is_none()
     );
-    assert!(check_discharge_conditions("urn:test:world", &counterpart).is_empty());
-    assert!(check_discharge_conditions("urn:test:world", &deception).is_empty());
+    assert!(
+        check_discharge_conditions(
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+            &counterpart
+        )
+        .is_empty()
+    );
+    assert!(
+        check_discharge_conditions(
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+            &deception
+        )
+        .is_empty()
+    );
 }
 
 #[test]
@@ -361,8 +373,13 @@ fn reachable_head_remains_unknown_without_a_counterexample() {
         &["DischargeSyntacticReachability"],
     );
     let no_candidates = BTreeMap::new();
-    let finding = check_reachability("urn:test:world", &counterpart, true, &no_candidates)
-        .expect("must fire");
+    let finding = check_reachability(
+        &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+        &counterpart,
+        true,
+        &no_candidates,
+    )
+    .expect("must fire");
     assert_eq!(finding.grade().severity, Severity::Error);
     assert_eq!(
         gmeow_errors::code::code_str(finding.code()),
@@ -375,7 +392,15 @@ fn reachable_head_remains_unknown_without_a_counterexample() {
         &counterpart.forbidden_predicate,
         &["DischargeFiniteClosure"],
     );
-    assert!(check_reachability("urn:test:world", &finite_only, true, &no_candidates).is_none());
+    assert!(
+        check_reachability(
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+            &finite_only,
+            true,
+            &no_candidates
+        )
+        .is_none()
+    );
 }
 
 /// A completed finite closure is a sufficient discharge condition even when
@@ -424,12 +449,25 @@ fn arm_b_finite_closure_green_then_red() {
     // never derives it; an asserted, attributed intent claim is EDB, not derived).
     let empty = BTreeSet::new();
     let no_candidates = BTreeMap::new();
-    assert!(check_finite_closure("urn:test:world", &deception, &empty, &no_candidates).is_none());
+    assert!(
+        check_finite_closure(
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+            &deception,
+            &empty,
+            &no_candidates
+        )
+        .is_none()
+    );
     // Red: a (synthetic) derivation of the forbidden predicate trips the obligation.
     let mut derived = BTreeSet::new();
     derived.insert(pred.to_owned());
-    let finding = check_finite_closure("urn:test:world", &deception, &derived, &no_candidates)
-        .expect("must fire");
+    let finding = check_finite_closure(
+        &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+        &deception,
+        &derived,
+        &no_candidates,
+    )
+    .expect("must fire");
     assert_eq!(finding.grade().severity, Severity::Error);
     assert!(gmeow_errors::code::code_str(finding.code()).contains("non-entailment.derived"));
 }
@@ -443,7 +481,13 @@ fn counterexample_survives_without_finite_closure_condition() {
     derived.insert(pred.to_owned());
     let no_candidates = BTreeMap::new();
     assert!(
-        check_finite_closure("urn:test:world", &counterpart, &derived, &no_candidates).is_some()
+        check_finite_closure(
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+            &counterpart,
+            &derived,
+            &no_candidates
+        )
+        .is_some()
     );
 }
 
@@ -552,7 +596,10 @@ fn unwired_discharge_condition_is_a_hard_error() {
         "https://blackcatinformatics.ca/gmeow/somePredicate",
         &["DischargeBoundedCorpus"],
     );
-    let findings = check_discharge_conditions("urn:test:world", &obl);
+    let findings = check_discharge_conditions(
+        &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+        &obl,
+    );
     assert_eq!(findings.len(), 1);
     assert!(gmeow_errors::code::code_str(findings[0].code()).contains("unwired-discharge"));
     assert_eq!(findings[0].grade().severity, Severity::Error);
@@ -565,7 +612,10 @@ fn missing_discharge_condition_is_a_hard_error() {
         "https://blackcatinformatics.ca/gmeow/somePredicate",
         &[],
     );
-    let findings = check_discharge_conditions("urn:test:world", &obl);
+    let findings = check_discharge_conditions(
+        &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+        &obl,
+    );
     assert_eq!(findings.len(), 1);
     assert!(gmeow_errors::code::code_str(findings[0].code()).contains("no-discharge"));
 }

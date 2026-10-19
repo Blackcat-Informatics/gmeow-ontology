@@ -22,6 +22,54 @@ fn diag_at(code: &'static str, category: FindingCategory, path: &str, message: &
 }
 
 #[test]
+fn distinct_wire_coordinates_never_merge_at_one_source_anchor() {
+    let mut ledger = DiagLedger::new();
+    let locations = [
+        Location::default(),
+        Location::default().with_gts_term(0),
+        Location::default().with_gts_quad(0),
+        Location::default().with_gts_reifier(0),
+        Location::default().with_gts_frame(0),
+        Location::default().with_gts_segment(0),
+    ];
+    for location in locations {
+        if location != Location::default() {
+            assert!(
+                SourceContext {
+                    location: location.clone(),
+                    ..SourceContext::default()
+                }
+                .is_non_trivial()
+            );
+        }
+        ledger.attach(
+            diag_at(
+                "test.wire.anchor",
+                FindingCategory::DataShapeViolation,
+                "bundle.gts",
+                "one observation",
+            )
+            .with_location(Location {
+                path: Some("bundle.gts".into()),
+                ..location
+            }),
+            StageId::new("test"),
+        );
+    }
+    assert_eq!(ledger.len(), 6);
+    let report = ledger.project_report("test");
+    assert_eq!(
+        report
+            .findings
+            .iter()
+            .map(|finding| finding.anchor_iri.as_ref().unwrap())
+            .collect::<std::collections::BTreeSet<_>>()
+            .len(),
+        6
+    );
+}
+
+#[test]
 fn recorded_rejection_preserves_causal_closure_and_live_source_at_the_boundary() {
     let mut ledger = DiagLedger::new();
     let cause = ledger.attach(

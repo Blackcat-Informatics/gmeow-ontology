@@ -29,6 +29,7 @@ pub mod model;
 pub mod project;
 pub mod rdf;
 pub mod render;
+mod source_graph;
 
 /// The crate result alias: an error defaults to [`Diag`].
 pub type Result<T, E = diag::Diag> = std::result::Result<T, E>;
