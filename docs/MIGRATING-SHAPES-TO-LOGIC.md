@@ -60,21 +60,32 @@ A hand-authored shape is one of two fragments:
 Author the backing axiom in the **owning slice's `module.ttl`**; `derive_validation_shapes`
 (`crates/logic-compile/src/frontend.rs`) reproduces it into `validation-shapes.ttl`.
 
-- Range / class obligation → `rdfs:range` / `owl:allValuesFrom`; existence → an
-  `owl:allValuesFrom` restriction plus a class-scoped `ClosedWorldClosure` entry carrying both
-  `logic:onClass` and `logic:closureKey`. The closure entry projects `sh:minCount 1` without
-  adding an OWL existential that would mint a reasoner witness.
-- Datatype / nodekind / value-set → `rdfs:range` / `owl:DatatypeProperty` / `owl:oneOf`.
+Author semantic declarations and restrictions in `logic:`. OWL/RDFS spellings belong
+to generated projections or the legacy equivalence oracle; they are not migration inputs
+to add to a slice.
+
+- Class or datatype obligations → a `logic:Restriction` attached by `logic:subClassOf`,
+  with `logic:onProperty` and `logic:allValuesFrom` naming the class or datatype.
+  Property ranges use `logic:range`; deriving closed-world checks from a range requires
+  the explicit class/property closure policy below.
+- Required paths (`sh:minCount 1`) → `logic:allValuesFrom` plus a `logic:ClosureEntry`
+  carrying `logic:onClass`, `logic:closureKey` and
+  `logic:closureValue logic:ClosedWorldClosure`. This projects the required-path check
+  without an existential that would mint a reasoner witness.
+- Value sets → `logic:oneOf` in the restriction's filler. Declare datatype properties as
+  `logic:DatatypeProperty`; a property declaration alone is not a value constraint.
+  Procedural node-kind conditions use the formula relations below.
 
 **Reasoner-safety (mandatory).** Cardinality restrictions must stay inside the EL fragment
 or `make reason-verify` **hard-fails**:
 
-- NEVER `owl:cardinality` / `owl:minCardinality` / `owl:maxCardinality` (out of EL).
-- Existence (`sh:minCount 1`) → `owl:allValuesFrom` plus an explicit class-scoped
-  `logic:ClosedWorldClosure` entry for the constrained class/property pair.
-- Bounded count → `owl:maxQualifiedCardinality` + `owl:onClass`/`owl:onDataRange`
-  only where the reasoner profile permits it; prefer `owl:FunctionalProperty` for at-most-one.
-- Avoid exact/single-node `owl:qualifiedCardinality` (skolem explosion).
+- NEVER `logic:cardinality` / `logic:minCardinality` / `logic:maxCardinality` (out of EL).
+- Required paths use the universal restriction and explicit closure entry above.
+- Bounded count → `logic:maxQualifiedCardinality` + `logic:onClass`/`logic:onDataRange`
+  only where the reasoner profile permits it. At-most-one uses a
+  `logic:PropertyCharacteristicAssertion` naming the property with `logic:characterizes`
+  and `logic:characteristicSort logic:functionalProperty`.
+- Avoid exact/single-node `logic:qualifiedCardinality` (skolem explosion).
 
 ## Procedural migration
 
