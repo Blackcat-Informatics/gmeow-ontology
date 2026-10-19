@@ -1283,6 +1283,9 @@ impl FlowSummary {
                 .get(&value)
                 .map_or_else(|| Domain::empty(size), AdaptiveDomain::to_domain);
             for predicate in &self.rectangle_relations {
+                if !required[1].contains(*predicate) {
+                    continue;
+                }
                 let relation = self
                     .relations
                     .get(predicate)

@@ -173,7 +173,7 @@ fn domain_subject_seeds_keep_exact_class_support_across_wide_metadata() {
             object: TermValue::iri("urn:object"),
         });
     }
-    let observed: Vec<_> = facts
+    let mut observed: Vec<_> = facts
         .iter()
         .map(|fact| {
             StatementPattern::statement(&[
@@ -183,13 +183,20 @@ fn domain_subject_seeds_keep_exact_class_support_across_wide_metadata() {
             ])
         })
         .collect();
+    let outputs: Vec<_> = (0..1024)
+        .map(|index| {
+            StatementPattern::relation(Some(&format!("urn:unrelated-output:{index}")), None)
+        })
+        .collect();
+    observed.extend(outputs.iter().cloned());
     let analysis = ValueFlow::with_observations(
         &rules[index..=index],
         &effects[index..=index],
         SemanticVocabulary::GroundedLogicV1,
         &observed,
     );
-    let state = analysis.summarize(facts.iter());
+    let mut state = analysis.summarize(facts.iter());
+    analysis.seed_patterns(&mut state, outputs.iter());
     let rule = &analysis.rules[0];
     let head = &rule.heads[0];
     let Slot::Variable(subject) = head[0] else {
@@ -874,16 +881,18 @@ fn large_operator_universe_keeps_unreachable_protected_target_excluded() {
 }
 
 #[test]
-fn dynamic_predicate_join_ignores_unrelated_relations_without_losing_reachability() {
+fn dynamic_predicate_join_keeps_matching_rectangle_and_ignores_unrelated_relations() {
     let (rule, effect) = subproperty_flow();
     let mut facts = Vec::new();
     for index in 0..4096 {
         let property = format!("urn:property:{index}");
-        facts.push(Fact {
-            subject: TermValue::iri(&property),
-            predicate: property.clone(),
-            object: TermValue::iri(format!("urn:object:{index}")),
-        });
+        if index != 0 {
+            facts.push(Fact {
+                subject: TermValue::iri(&property),
+                predicate: property.clone(),
+                object: TermValue::iri(format!("urn:object:{index}")),
+            });
+        }
         facts.push(Fact {
             subject: TermValue::iri(&property),
             predicate: SUBPROPERTY.to_owned(),
@@ -894,17 +903,25 @@ fn dynamic_predicate_join_ignores_unrelated_relations_without_losing_reachabilit
             }),
         });
     }
+    // The selected relation is reachable only through this possible output.
+    let output = StatementPattern::statement(&[
+        EvalTerm::named("urn:property:0"),
+        EvalTerm::named("urn:property:0"),
+        EvalTerm::named("urn:object:0"),
+    ]);
     let analysis = ValueFlow::with_observations(
         &[rule],
         std::slice::from_ref(&effect),
         SemanticVocabulary::GroundedLogicV1,
-        &[StatementPattern::relation(Some(PROTECTED_BODY), None)],
+        &[
+            StatementPattern::relation(Some(PROTECTED_BODY), None),
+            output.clone(),
+        ],
     )
     .with_source_operators(facts.iter());
-    let refined = analysis.refine(
-        std::slice::from_ref(&effect),
-        &analysis.summarize(facts.iter()),
-    );
+    let mut summary = analysis.summarize(facts.iter());
+    analysis.seed_patterns(&mut summary, std::iter::once(&output));
+    let refined = analysis.refine(std::slice::from_ref(&effect), &summary);
     assert_eq!(
         analysis.overlapping_writer(
             &StatementPattern::relation(Some(PROTECTED_BODY), None),
