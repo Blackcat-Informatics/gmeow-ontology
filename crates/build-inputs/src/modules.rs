@@ -187,17 +187,20 @@ fn semantic_inventory(
             .map(|parent| parent.join("Cargo.toml"))
             .find(|candidate| candidate.is_file())
             .ok_or_else(|| fail("kernel root has no manifest owner"))?;
-        let dependency_names = if ownership_only {
-            let value = std::fs::read_to_string(&manifest)
-                .map_err(fail)?
-                .parse::<toml::Value>()
-                .map_err(fail)?;
-            crate::cargo::declared_dependency_names(&value)
-                .into_iter()
-                .collect()
+        let declarations = if ownership_only {
+            Some(
+                std::fs::read_to_string(&manifest)
+                    .map_err(fail)?
+                    .parse::<toml::Value>()
+                    .map_err(fail)?,
+            )
         } else {
-            vec![]
+            None
         };
+        let dependencies = declarations
+            .as_ref()
+            .map(crate::cargo::declared_dependencies)
+            .unwrap_or_default();
         let unit = UnitSelection {
             package: "native-semantic-kernel".into(),
             manifest: Some(relative(workspace, &manifest)?),
@@ -207,21 +210,26 @@ fn semantic_inventory(
             kinds: vec!["lib".into()],
             cfg: crate::CfgContext::from_rustc("", &[], true)?,
             dependencies: vec![],
-            dependency_names,
+            dependency_names: dependencies
+                .keys()
+                .map(|name| name.replace('-', "_"))
+                .collect(),
             controller: false,
         };
+        let tracing_names = if matches!(unit.edition.as_str(), "2018" | "2021" | "2024") {
+            match &declarations {
+                Some(owner) => {
+                    crate::cargo::portable_tracing_names(workspace, owner, &dependencies)?
+                }
+                None => BTreeSet::new(),
+            }
+        } else {
+            BTreeSet::new()
+        };
         let mut scanner = Scanner {
-            // This portable policy traversal has no resolved Cargo units. Keep
-            // its declared-name grant distinct from production admission.
-            tracing_names: unit
-                .dependency_names
-                .iter()
-                .filter(|name| {
-                    matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
-                        && name.as_str() == "tracing"
-                })
-                .cloned()
-                .collect(),
+            // Portable policy has declarations, not selected Cargo units. Only
+            // an unambiguous crates.io tracing declaration grants this macro.
+            tracing_names,
             workspace,
             inventory: &mut inventory,
             unit: &unit,

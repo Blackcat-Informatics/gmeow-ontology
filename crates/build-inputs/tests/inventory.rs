@@ -1107,6 +1107,193 @@ fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
 }
 
 #[test]
+fn portable_tracing_requires_registry_package_identity() {
+    for nested in [false, true] {
+        let span = "::tracing::info_span!(\"phase\", label = include_str!(\"label.txt\"))";
+        let source = if nested {
+            format!("fn phase() {{ quote! {{ let _ = {span}; }}; }}")
+        } else {
+            format!("fn phase() {{ let _ = {span}; }}")
+        };
+        for dependency in [
+            "{package='other',path='../fake'}",
+            "{path='../fake'}",
+            "{version='0.1',path='../fake'}",
+            "{git='https://example.invalid/tracing'}",
+            "{version='0.1',git='https://example.invalid/tracing'}",
+            "{version='0.1',registry='other'}",
+            "{version='0.1',package='other'}",
+        ] {
+            let root = fixture(&source);
+            write(root.path(), "crate/src/label.txt", "embedded input");
+            write(
+                root.path(),
+                "crate/Cargo.toml",
+                &format!(
+                    "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\ntracing={dependency}\n",
+                ),
+            );
+            let error =
+                gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
+                    .expect_err("a dependency name cannot grant registry macro ownership");
+            assert!(
+                error
+                    .to_string()
+                    .contains("no selected source-input capability owner"),
+                "{dependency}: {error}"
+            );
+        }
+    }
+}
+
+#[test]
+fn portable_tracing_preserves_registry_aliases_and_workspace_declarations() {
+    for (alias, dependency, inherited) in [
+        ("tracing", "'0.1'", ""),
+        ("tracing", "{version='0.1',registry='crates-io'}", ""),
+        ("telemetry", "{package='tracing',version='0.1'}", ""),
+        ("tracing", "{workspace=true}", "tracing='0.1'"),
+        (
+            "trace-events",
+            "{workspace=true,features=['std']}",
+            "trace-events={package='tracing',version='0.1'}",
+        ),
+    ] {
+        let name = alias.replace('-', "_");
+        let root = fixture(&format!(
+            "fn phase() {{ let _ = ::{name}::info_span!(\"phase\", label = include_str!(\"label.txt\")); }}\n#[cfg(test)] #[path=\"checks.rs\"] mod checks;",
+        ));
+        write(root.path(), "crate/src/label.txt", "embedded input");
+        write(root.path(), "crate/src/checks.rs", "fn check() {}\n");
+        write(
+            root.path(),
+            "Cargo.toml",
+            &format!("[workspace]\nmembers=['crate']\n[workspace.dependencies]\n{inherited}\n"),
+        );
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            &format!(
+                "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{alias}={dependency}\n",
+            ),
+        );
+        let excluded =
+            gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]).unwrap();
+        assert_eq!(
+            excluded.into_iter().collect::<Vec<_>>(),
+            ["crate/src/checks.rs"],
+            "{alias}: {dependency}"
+        );
+    }
+}
+
+#[test]
+fn portable_tracing_refuses_source_overrides_and_ambiguous_target_owners() {
+    for (dependency, manifest_extra, workspace_extra, config) in [
+        (
+            "{workspace=true}",
+            "",
+            "[workspace.dependencies]\ntracing={path='../fake'}",
+            "",
+        ),
+        (
+            "{workspace=true,package='other'}",
+            "",
+            "[workspace.dependencies]\ntracing='0.1'",
+            "",
+        ),
+        (
+            "'0.1'",
+            "[target.'cfg(windows)'.dependencies]\ntracing={path='../fake'}",
+            "",
+            "",
+        ),
+        (
+            "'0.1'",
+            "",
+            "[patch.crates-io]\ntracing={path='../fake'}",
+            "",
+        ),
+        (
+            "'0.1'",
+            "",
+            "[patch.crates-io]\nreplacement={package='tracing',git='https://example.invalid/tracing'}",
+            "",
+        ),
+        (
+            "'0.1'",
+            "",
+            "[replace]\n\"tracing:0.1.0\"={path='../fake'}",
+            "",
+        ),
+        ("'0.1'", "", "", "paths=['../fake']"),
+        (
+            "'0.1'",
+            "",
+            "",
+            "[source.crates-io]\nreplace-with='fake'\n[source.fake]\ndirectory='../fake'",
+        ),
+        (
+            "'0.1'",
+            "",
+            "",
+            "[source.crates-io]\nregistry='https://example.invalid/index'",
+        ),
+        (
+            "'0.1'",
+            "",
+            "",
+            "[registries.crates-io]\nindex='https://example.invalid/index'",
+        ),
+        (
+            "'0.1'",
+            "",
+            "",
+            "[patch.crates-io]\ntracing={path='../fake'}",
+        ),
+    ] {
+        let root = fixture("fn phase() { let _ = ::tracing::info_span!(\"phase\"); }");
+        write(
+            root.path(),
+            "Cargo.toml",
+            &format!("[workspace]\nmembers=['crate']\n{workspace_extra}\n"),
+        );
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            &format!(
+                "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\ntracing={dependency}\n{manifest_extra}\n",
+            ),
+        );
+        if !config.is_empty() {
+            write(root.path(), ".cargo/config.toml", config);
+        }
+        let error = gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
+            .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("no selected source-input capability owner"),
+            "{dependency}, {manifest_extra}, {workspace_extra}, {config}: {error}"
+        );
+    }
+    let root = fixture("fn phase() { let _ = ::tracing::info_span!(\"phase\"); }");
+    write(
+        root.path(),
+        "crate/Cargo.toml",
+        "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\ntracing.workspace=true\n",
+    );
+    let error =
+        gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("missing workspace dependency tracing"),
+        "{error}"
+    );
+}
+
+#[test]
 fn diagnostic_macros_retain_nested_inputs_and_refuse_unowned_capabilities() {
     for name in ["define_diag_kind", "impl_diag_kind"] {
         let root = fixture(&format!(

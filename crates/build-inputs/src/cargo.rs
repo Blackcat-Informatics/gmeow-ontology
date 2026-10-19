@@ -345,21 +345,157 @@ fn selected_inherited(
     }
 }
 
-/// Declared macro capability names for a portable source-policy traversal, not
-/// a selected Cargo feature/dependency identity. Every target branch is retained.
-pub(crate) fn declared_dependency_names(value: &toml::Value) -> BTreeSet<String> {
-    let mut names = BTreeSet::new();
+/// Retain every declaration for portable policy, including conflicting target
+/// branches. Manifest keys alone do not establish a macro's package or source.
+pub(crate) fn declared_dependencies(value: &toml::Value) -> BTreeMap<String, Vec<&toml::Value>> {
+    let mut declared: BTreeMap<String, Vec<&toml::Value>> = BTreeMap::new();
     for key in ["dependencies", "build-dependencies"] {
         if let Some(dependencies) = value.get(key).and_then(toml::Value::as_table) {
-            names.extend(dependencies.keys().map(|name| name.replace('-', "_")));
+            for (name, dependency) in dependencies {
+                declared.entry(name.clone()).or_default().push(dependency);
+            }
         }
     }
     if let Some(targets) = value.get("target").and_then(toml::Value::as_table) {
         for target in targets.values() {
-            names.extend(declared_dependency_names(target));
+            for (name, declarations) in declared_dependencies(target) {
+                declared.entry(name).or_default().extend(declarations);
+            }
         }
     }
-    names
+    declared
+}
+
+fn dependency_package<'a>(name: &'a str, dependency: &'a toml::Value) -> Option<&'a str> {
+    match dependency.get("package") {
+        Some(package) => package.as_str(),
+        None => Some(name),
+    }
+}
+
+fn registry_tracing(name: &str, dependency: &toml::Value) -> bool {
+    dependency_package(name, dependency) == Some("tracing")
+        && dependency
+            .as_str()
+            .or_else(|| dependency.get("version").and_then(toml::Value::as_str))
+            .is_some_and(|version| !version.trim().is_empty())
+        && [
+            "path",
+            "git",
+            "rev",
+            "branch",
+            "tag",
+            "registry-index",
+            "workspace",
+        ]
+        .iter()
+        .all(|key| dependency.get(key).is_none())
+        && match dependency.get("registry") {
+            None => true,
+            Some(registry) => registry.as_str() == Some("crates-io"),
+        }
+}
+
+fn overrides_tracing(value: &toml::Value) -> bool {
+    // Portable policy has no selected package IDs for deprecated replacements.
+    value
+        .get("replace")
+        .and_then(toml::Value::as_table)
+        .is_some_and(|replacements| !replacements.is_empty())
+        || value
+            .get("patch")
+            .and_then(toml::Value::as_table)
+            .into_iter()
+            .flat_map(|sources| sources.values())
+            .filter_map(toml::Value::as_table)
+            .flat_map(|packages| packages.iter())
+            .any(|(name, dependency)| dependency_package(name, dependency) == Some("tracing"))
+}
+
+pub(crate) fn portable_tracing_names(
+    workspace: &Path,
+    owner: &toml::Value,
+    declared: &BTreeMap<String, Vec<&toml::Value>>,
+) -> Result<BTreeSet<String>> {
+    if declared.is_empty() {
+        return Ok(BTreeSet::new());
+    }
+    let root_path = workspace.join("Cargo.toml");
+    let root: Option<toml::Value> = if root_path.is_file() {
+        Some(
+            std::fs::read_to_string(checked_path(workspace, Path::new("Cargo.toml"))?)
+                .map_err(fail)?
+                .parse()
+                .map_err(fail)?,
+        )
+    } else {
+        None
+    };
+    let mut allowed: BTreeMap<String, bool> = BTreeMap::new();
+    for (name, declarations) in declared {
+        let mut admitted = true;
+        for declaration in declarations {
+            let dependency =
+                if declaration.get("workspace").and_then(toml::Value::as_bool) == Some(true) {
+                    if declaration.as_table().is_none_or(|fields| {
+                        fields.keys().any(|key| {
+                            !matches!(
+                                key.as_str(),
+                                "workspace" | "optional" | "features" | "default-features"
+                            )
+                        })
+                    }) {
+                        admitted = false;
+                        break;
+                    }
+                    root.as_ref()
+                        .and_then(|value| value.get("workspace"))
+                        .and_then(|value| value.get("dependencies"))
+                        .and_then(|value| value.get(name))
+                        .ok_or_else(|| fail(format!("missing workspace dependency {name}")))?
+                } else {
+                    declaration
+                };
+            admitted &= registry_tracing(name, dependency);
+        }
+        allowed
+            .entry(name.replace('-', "_"))
+            .and_modify(|previous| *previous &= admitted)
+            .or_insert(admitted);
+    }
+    let names: BTreeSet<_> = allowed
+        .into_iter()
+        .filter_map(|(name, admitted)| admitted.then_some(name))
+        .collect();
+    if names.is_empty() || overrides_tracing(root.as_ref().unwrap_or(owner)) {
+        return Ok(BTreeSet::new());
+    }
+    for config in [".cargo/config.toml", ".cargo/config"] {
+        if !workspace.join(config).is_file() {
+            continue;
+        }
+        let value: toml::Value =
+            std::fs::read_to_string(checked_path(workspace, Path::new(config))?)
+                .map_err(fail)?
+                .parse()
+                .map_err(fail)?;
+        if overrides_tracing(&value)
+            || value
+                .get("paths")
+                .is_some_and(|paths| paths.as_array().is_none_or(|paths| !paths.is_empty()))
+            || value
+                .get("source")
+                .and_then(|value| value.get("crates-io"))
+                .is_some()
+            || value
+                .get("registries")
+                .and_then(|value| value.get("crates-io"))
+                .is_some()
+        {
+            return Ok(BTreeSet::new());
+        }
+    }
+    Ok(names)
 }
 
 /// Inspect declared local dependency ownership for structural controls. This is
