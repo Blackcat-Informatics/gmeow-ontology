@@ -6,6 +6,64 @@ use std::collections::{BTreeSet, HashSet};
 
 use purrdf::{DatasetView, GraphMatch, parse_dataset};
 
+#[test]
+fn gufo_rule_branches_and_range_groups_remain_distinct_after_interning() {
+    let source = r#"
+        @prefix g: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix gufo: <http://purl.org/nemo/gufo#> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        g:Mixed a owl:Class, gufo:Role, gufo:Kind ; rdfs:subClassOf g:Ancestor .
+        g:Ancestor a owl:Class, gufo:Role .
+        g:axisA g:coequalFacet true ; rdfs:range g:RangeA .
+        g:axisB g:coequalFacet true ; rdfs:range g:RangeA .
+        g:axisC g:coequalFacet true ; rdfs:range g:RangeB .
+        g:axisD g:coequalFacet true ; rdfs:range g:RangeB .
+    "#;
+    let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let cfg = gufo::GufoConfig {
+        namespace: "https://blackcatinformatics.ca/gmeow/".into(),
+    };
+    let mut findings = gufo::anti_rigidity_discipline(&dataset, &cfg);
+    let mixed: Vec<_> = findings
+        .iter()
+        .filter(|finding| {
+            finding
+                .primary_location()
+                .and_then(|location| location.logical.as_deref())
+                == Some("https://blackcatinformatics.ca/gmeow/Mixed")
+        })
+        .collect();
+    assert_eq!(mixed.len(), 2);
+    let ranges = gufo::coequal_facet_orthogonality(&dataset, &cfg);
+    assert_eq!(ranges.len(), 3);
+    findings.extend(ranges);
+    let expected = findings.len();
+    let mut ledger = DiagLedger::new();
+    for finding in &findings {
+        intern_finding(&mut ledger, run_stage(), Standpoint::Binding, finding);
+    }
+    assert_eq!(ledger.len(), expected);
+    let identities: Vec<_> = ledger
+        .emit_sorted()
+        .iter()
+        .map(|node| node.fingerprint)
+        .collect();
+    for mut finding in findings {
+        finding.message = "Different wording, unchanged rule and source".into();
+        intern_finding(&mut ledger, run_stage(), Standpoint::Binding, &finding);
+    }
+    assert_eq!(ledger.len(), expected);
+    assert_eq!(
+        ledger
+            .emit_sorted()
+            .iter()
+            .map(|node| node.fingerprint)
+            .collect::<Vec<_>>(),
+        identities
+    );
+}
+
 /// Write `contents` to `name` inside a fresh RAII temp directory.
 ///
 /// The returned [`tempfile::TempDir`] owns the directory: it is removed on

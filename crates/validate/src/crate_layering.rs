@@ -78,12 +78,35 @@ fn violation(path: &str, focus: &str, message: impl Into<String>) -> Diag {
     .with_focus(focus)
 }
 
-fn source_path(crates_dir: &Path, path: &Path) -> String {
-    path.strip_prefix(crates_dir.parent().unwrap_or(crates_dir))
-        .expect("crate-layering source must belong to its selected source root")
-        .to_str()
-        .expect("crate-layering source path must be valid UTF-8")
-        .replace('\\', "/")
+fn source_path(crates_dir: &Path, path: &Path) -> gmeow_errors::Result<String> {
+    let root = crates_dir.parent().unwrap_or(crates_dir);
+    let relative = path.strip_prefix(root).map_err(|error| {
+        let identity = serde_json::to_string(&(
+            root.as_os_str().as_encoded_bytes(),
+            path.as_os_str().as_encoded_bytes(),
+        ))
+        .expect("native source-root coordinates serialize");
+        violation(
+            "",
+            &identity,
+            format!("source {path:?} is outside the selected crate root"),
+        )
+        .with_location(Location::default())
+        .with_source(error)
+    })?;
+    String::from_utf8(relative.as_os_str().as_encoded_bytes().to_vec())
+        .map(|path| path.replace(std::path::MAIN_SEPARATOR, "/"))
+        .map_err(|error| {
+            let identity =
+                serde_json::to_string(error.as_bytes()).expect("native path bytes serialize");
+            violation(
+                "",
+                &identity,
+                format!("crate-layering source path {relative:?} is not valid UTF-8"),
+            )
+            .with_location(Location::default())
+            .with_source(error)
+        })
 }
 
 fn layering_stage() -> StageId {
@@ -138,7 +161,7 @@ fn first_party_deps(manifest: &Value) -> BTreeSet<String> {
 }
 
 fn manifest_paths(crates_dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
-    let source = source_path(crates_dir, crates_dir);
+    let source = source_path(crates_dir, crates_dir)?;
     let entries = fs::read_dir(crates_dir).map_err(|err| {
         violation(
             &source,
@@ -232,7 +255,13 @@ fn sorted_deps(edges: &BTreeMap<String, BTreeSet<String>>, node: &str) -> Vec<St
 /// Run the crate-layering gate over every `crates/*/Cargo.toml`.
 pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
     let mut report = CrateLayeringReport::default();
-    let directory = source_path(crates_dir, crates_dir);
+    let directory = match source_path(crates_dir, crates_dir) {
+        Ok(directory) => directory,
+        Err(diag) => {
+            report.ledger.attach(diag, layering_stage());
+            return report;
+        }
+    };
 
     if !crates_dir.is_dir() {
         report.ledger.attach(
@@ -267,7 +296,13 @@ pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
 
     let mut manifest_sources = BTreeMap::new();
     for manifest_path in manifests {
-        let source = source_path(crates_dir, &manifest_path);
+        let source = match source_path(crates_dir, &manifest_path) {
+            Ok(source) => source,
+            Err(diag) => {
+                report.ledger.attach(diag, layering_stage());
+                continue;
+            }
+        };
         let text = match fs::read_to_string(&manifest_path) {
             Ok(text) => text,
             Err(err) => {

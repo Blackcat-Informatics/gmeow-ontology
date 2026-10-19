@@ -7,6 +7,101 @@ use crate::grade::{FindingCategory, Grade, Severity, Standpoint};
 use crate::ledger::{DiagLedger, fingerprint_iri};
 use crate::model::Location;
 
+#[test]
+fn projection_normalization_preserves_the_primary_source_location() {
+    let mut ledger = DiagLedger::new();
+    ledger.attach(
+        diag_at(
+            "test.project.primary",
+            "z-source.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_location(Location {
+            path: Some("z-source.ttl".into()),
+            logical: Some("urn:source".into()),
+            ..Location::default()
+        })
+        .with_focus("a-focus"),
+        StageId::new("test"),
+    );
+    let report = ledger.project_report("test").normalized();
+    let finding = &report.findings[0];
+    assert_eq!(
+        finding.primary_location().unwrap().path.as_deref(),
+        Some("z-source.ttl")
+    );
+    assert_eq!(
+        finding.primary_location().unwrap().logical.as_deref(),
+        Some("urn:source")
+    );
+    assert!(
+        finding
+            .locations
+            .iter()
+            .any(|location| location.logical.as_deref() == Some("a-focus"))
+    );
+    assert_eq!(
+        report.normalized().findings[0].primary_location(),
+        finding.primary_location()
+    );
+}
+
+#[test]
+fn merged_observations_have_one_canonical_order_on_every_projection_and_replay() {
+    let mut expected = None;
+    for reversed in [false, true] {
+        let mut ledger = DiagLedger::new();
+        let mut observations = vec![("zeta", "9"), ("alpha", "2"), ("alpha", "1")];
+        if reversed {
+            observations.reverse();
+        }
+        for (message, value) in observations {
+            let mut diag = diag_at(
+                "test.project.messages",
+                "source.ttl",
+                Grade::new(
+                    Severity::Error,
+                    FindingCategory::DataShapeViolation,
+                    Standpoint::Binding,
+                ),
+            );
+            diag.inner_mut().message = message.into();
+            ledger.attach(
+                diag.with_observed(crate::Slot::new(value)),
+                StageId::new("test"),
+            );
+        }
+        assert_eq!(
+            ledger.messages(Severity::Error).collect::<Vec<_>>(),
+            ["alpha", "alpha", "zeta"]
+        );
+        let nodes: Vec<_> = ledger.emit_sorted().into_iter().cloned().collect();
+        assert_eq!(nodes[0].observations.len(), 3);
+        assert_eq!(
+            nodes[0].observations[0].observed.as_ref().unwrap().lexical,
+            "1"
+        );
+        let report = serde_json::to_vec(&ledger.project_report("test")).unwrap();
+        if let Some(expected) = &expected {
+            assert_eq!(&report, expected);
+        } else {
+            expected = Some(report.clone());
+        }
+        let mut nodes = nodes;
+        nodes[0].observations.reverse();
+        let mut replay = DiagLedger::new();
+        replay.replay(nodes);
+        assert_eq!(
+            serde_json::to_vec(&replay.project_report("test")).unwrap(),
+            report
+        );
+    }
+}
+
 fn diag_at(code: &'static str, path: &str, grade: Grade) -> Diag {
     let c = register_code(code);
     Diag::new(c, grade, "msg").with_location(Location {

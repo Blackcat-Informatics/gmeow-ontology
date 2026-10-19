@@ -179,7 +179,7 @@ impl SerLocation {
 /// One distinct observation carried by a node. Merging preserves every distinct
 /// observation (a multiset) rather than overwriting — no silent data loss when
 /// two findings share an anchor but observed different values (R1).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Observation {
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -470,7 +470,9 @@ impl DiagLedger {
     /// runs; `check_cycles` additionally runs the O(ancestors) acyclicity walk.
     /// [`replay`](DiagLedger::replay) passes `false` for cached, already-validated
     /// nodes — re-checking them would make replay O(N²).
-    fn insert_inner(&mut self, node: DiagNode, check_cycles: bool) -> DiagRef {
+    fn insert_inner(&mut self, mut node: DiagNode, check_cycles: bool) -> DiagRef {
+        node.observations.sort();
+        node.observations.dedup();
         // F1: a node must be self-consistent — its stored fingerprint must equal
         // the fingerprint recomputed from its identity fields.
         assert!(
@@ -524,6 +526,7 @@ impl DiagLedger {
                 slot.observations.push(obs);
             }
         }
+        slot.observations.sort();
         // Union the content-addressed antecedent edges.
         let mut edges = slot.antecedents.to_vec();
         for fp in incoming.antecedents.into_vec() {

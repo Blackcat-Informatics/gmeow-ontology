@@ -95,7 +95,7 @@ pub struct Focus(pub String);
 
 /// A structured `observed`/`expected` value carried beside the message, so a
 /// consumer can compare values without parsing prose.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Slot {
     pub lexical: String,
     pub datatype: Option<String>,

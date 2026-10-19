@@ -3,6 +3,43 @@
 
 use super::*;
 
+#[test]
+fn a_foreign_source_path_is_a_typed_refusal() {
+    let error = source_path(
+        Path::new("workspace/crates"),
+        Path::new("outside/Cargo.toml"),
+    )
+    .unwrap_err();
+    assert!(error.is::<std::path::StripPrefixError>());
+    assert_eq!(error.gate(), GateVerdict::Fatal);
+}
+
+#[cfg(unix)]
+#[test]
+fn non_utf8_source_paths_fail_without_panicking_or_merging_distinct_paths() {
+    use std::ffi::OsString;
+    use std::os::unix::ffi::OsStringExt;
+    let fixture = tempfile::tempdir().unwrap();
+    let crates = fixture.path().join("crates");
+    for byte in [0xfe, 0xff] {
+        let directory = crates.join(OsString::from_vec(vec![b'g', byte]));
+        fs::create_dir_all(&directory).unwrap();
+        let manifest = directory.join("Cargo.toml");
+        fs::write(
+            &manifest,
+            "[package]\nname = \"gmeow-test\"\nversion = \"0.1.0\"\n",
+        )
+        .unwrap();
+        let error = source_path(&crates, &manifest).unwrap_err();
+        assert!(error.is::<std::string::FromUtf8Error>());
+        assert!(error.inner().source_ctx.location.path.is_none());
+    }
+    let report = check_crate_layering(&crates);
+    assert!(!report.ok());
+    assert_eq!(report.ledger().len(), 2);
+    assert_eq!(report.errors().len(), 2);
+}
+
 fn write_crate(crates_dir: &Path, name: &str, deps: &[(&str, &str)], registry: &[(&str, &str)]) {
     let crate_dir = crates_dir.join(name);
     fs::create_dir_all(&crate_dir).expect("crate dir should be created");

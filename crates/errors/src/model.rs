@@ -749,7 +749,9 @@ impl Finding {
         self.tags.dedup();
         self.suggestions.sort();
         self.suggestions.dedup();
-        self.locations.sort_by_key(Location::display);
+        if let Some((_, secondary)) = self.locations.split_first_mut() {
+            secondary.sort_by_key(Location::display);
+        }
         self.related_locations.sort_by_key(Location::display);
         // Deterministic order for the text-bearing secondary spans, keyed on the
         // rendered location then the message so a multi-label finding projects the
