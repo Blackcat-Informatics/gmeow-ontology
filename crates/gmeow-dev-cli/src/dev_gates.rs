@@ -693,10 +693,13 @@ pub fn audit(files: &[PathBuf], json_out: bool, strict: bool) -> i32 {
             println!("{text}");
         }
     }
-    if !report.shacl_errors.is_empty() {
-        return fail(format!("{} SHACL error(s)", report.shacl_errors.len()));
+    if !report.ok() {
+        return fail(format!(
+            "{} SHACL error(s)",
+            report.shacl_count(Severity::Error)
+        ));
     }
-    let flagged: usize = report.findings.values().map(Vec::len).sum();
+    let flagged = report.flagged();
     if strict && flagged > 0 {
         return fail(format!("{flagged} flagged claim(s) (--strict)"));
     }

@@ -18,6 +18,7 @@
 
 use std::sync::Arc;
 
+use gmeow_errors::DiagKind;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue, parse_dataset};
 
@@ -79,10 +80,23 @@ pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, gm
                 substitutions: &[],
             },
         )
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: e.to_string(),
-            })
+        .map_err(|error| {
+            let kind = crate::error::Parse {
+                message: error.to_string(),
+            };
+            let location = error
+                .location
+                .as_deref()
+                .map(gmeow_errors::Location::from_rdf);
+            let mut diag = gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
+                .with_source(error);
+            if let Some(location) = location {
+                diag = diag.with_location(location);
+            }
+            if let Some(class) = kind.failure_class() {
+                diag = diag.with_failure_class(class);
+            }
+            diag
         })
 }
 
@@ -116,5 +130,22 @@ pub fn term_str(term: Option<&TermValue>) -> Option<String> {
         Some(TermValue::Literal { lexical_form, .. }) => Some(lexical_form.clone()),
         Some(TermValue::Iri(iri)) => Some(iri.clone()),
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn query_failure_retains_native_cause_and_registered_class() {
+        let dataset = purrdf::RdfDatasetBuilder::new().freeze().unwrap();
+        let failure = select(&dataset, "SELECT WHERE {").unwrap_err();
+        assert!(failure.downcast_ref::<purrdf::RdfDiagnostic>().is_some());
+        assert_eq!(failure.code(), crate::error::Parse::register());
+        assert_eq!(
+            failure.inner().failure_class.as_deref(),
+            crate::error::Parse::FAILURE_CLASS
+        );
     }
 }

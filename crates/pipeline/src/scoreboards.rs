@@ -18,8 +18,8 @@ use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
 use gmeow_errors::{
-    Diag, DiagLedger, FindingCategory, Grade, Location, Report, ResultExt, Severity, StageId,
-    Standpoint, register_code,
+    Diag, DiagLedger, FindingCategory, GateVerdict, Grade, Location, Report, ResultExt, Severity,
+    StageId, Standpoint, register_code,
 };
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri;
@@ -28,7 +28,9 @@ use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfLiteral, SerializeGraph, TermRef, TermValue,
     flat_dataset_from_quads, parse_dataset, serialize_dataset,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+
+pub mod corpus_observation;
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -157,11 +159,14 @@ WHERE {
 ORDER BY ?claim ?span
 "#;
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+type AuditRows = BTreeMap<String, Vec<BTreeMap<String, Option<String>>>>;
+
+#[derive(Debug, Clone, Default)]
 pub struct ClaimAuditReport {
-    pub findings: BTreeMap<String, Vec<Vec<String>>>,
-    pub shacl_errors: Vec<String>,
-    pub shacl_warnings: Vec<String>,
+    /// Tabular product data used by claim flags and the text/JSON views.
+    /// Diagnostic witnesses are recorded from typed bindings before this projection.
+    query_rows: AuditRows,
+    ledger: DiagLedger,
     pub claims: Vec<FlatClaim>,
 }
 
@@ -169,12 +174,149 @@ impl ClaimAuditReport {
     pub fn flagged(&self) -> usize {
         AUDIT_HEADLINE
             .iter()
-            .map(|name| self.findings.get(*name).map_or(0, Vec::len))
+            .map(|name| self.query_rows.get(*name).map_or(0, Vec::len))
             .sum()
+    }
+
+    pub fn ledger(&self) -> &DiagLedger {
+        &self.ledger
+    }
+
+    pub fn ok(&self) -> bool {
+        self.ledger.verdict() == GateVerdict::Collected
+    }
+
+    pub fn shacl_count(&self, severity: Severity) -> usize {
+        self.ledger
+            .emit_sorted()
+            .into_iter()
+            .filter(|node| {
+                node.stage.as_str() == "scoreboard.audit.shacl" && node.grade.severity == severity
+            })
+            .count()
+    }
+
+    fn record_query(
+        &mut self,
+        path: &Path,
+        name: String,
+        solutions: native_query::Solutions,
+    ) -> gmeow_errors::Result<()> {
+        let code = match name.as_str() {
+            "claims-without-evidence" => Some("audit.ungrounded-claim"),
+            "claims-contradicted-by-higher-confidence" => Some("audit.contradicted-claim"),
+            "stale-source-claims" => Some("audit.stale-source"),
+            _ => None,
+        };
+        let claim_column = solutions.col("claim");
+        if (code.is_some() && claim_column.is_none())
+            || (name == "contradictions"
+                && (claim_column.is_none() || solutions.col("contradiction").is_none()))
+            || solutions.variables.iter().collect::<BTreeSet<_>>().len()
+                != solutions.variables.len()
+            || solutions
+                .rows
+                .iter()
+                .any(|row| row.len() != solutions.variables.len())
+            || self.query_rows.contains_key(&name)
+        {
+            return Err(Diag::of_kind(crate::error::Scoreboard {
+                message: format!("invalid or duplicate audit query result {name}: headline queries require ?claim and every row must match the projected columns"),
+            }).with_location(Location::new(Some(path.to_string_lossy().into_owned()), None, None, None)));
+        }
+        let rows = solutions
+            .rows
+            .into_iter()
+            .map(|row| {
+                let values: Vec<_> = row
+                    .iter()
+                    .map(|cell| cell.as_ref().map(term_value))
+                    .collect();
+                if let Some(code) = code {
+                    // Native canonical bytes retain RDF kind, blank scope, datatype,
+                    // language, direction and nested triple structure, including unbound slots.
+                    let bindings: BTreeMap<_, _> = solutions
+                        .variables
+                        .iter()
+                        .zip(&row)
+                        .map(|(variable, cell)| {
+                            (variable, cell.as_ref().map(TermValue::to_canonical_bytes))
+                        })
+                        .collect();
+                    let mut diag = Diag::new(
+                        register_code(code),
+                        Grade::new(
+                            Severity::Warning,
+                            FindingCategory::PolicyWarning,
+                            Standpoint::Perspectival,
+                        ),
+                        values
+                            .iter()
+                            .map(|value| value.as_deref().unwrap_or("unbound"))
+                            .collect::<Vec<_>>()
+                            .join(" | "),
+                    )
+                    .with_focus(
+                        serde_json::to_string(&bindings).expect("typed audit bindings serialize"),
+                    )
+                    .with_location(Location::new(
+                        Some(path.to_string_lossy().into_owned()),
+                        None,
+                        None,
+                        claim_column
+                            .and_then(|column| row[column].as_ref())
+                            .map(term_value),
+                    ));
+                    for (variable, cell) in solutions.variables.iter().zip(&row) {
+                        if let Some(term) = cell {
+                            diag = diag.with_label(gmeow_errors::Label {
+                                location: Location {
+                                    logical: Some(
+                                        purrdf::shapes::term::term_value_to_native(term)
+                                            .to_string(),
+                                    ),
+                                    ..Location::default()
+                                },
+                                text: format!("?{variable}"),
+                            });
+                        }
+                    }
+                    self.ledger
+                        .attach(diag, StageId::new("scoreboard.audit.query"));
+                }
+                solutions.variables.iter().cloned().zip(values).collect()
+            })
+            .collect();
+        self.query_rows.insert(name, rows);
+        Ok(())
+    }
+
+    fn query(
+        &mut self,
+        store: &Arc<RdfDataset>,
+        path: &Path,
+        text: &str,
+    ) -> gmeow_errors::Result<()> {
+        let name = path
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::Scoreboard {
+                    message: format!("invalid audit query filename: {}", path.display()),
+                })
+            })?;
+        let solutions = native_query::select(store, text)
+            .with_ctx(|| format!("claim audit query {}", path.display()))
+            .map_err(|diag| {
+                let mut location = diag.inner().source_ctx.location.clone();
+                location.path = Some(path.to_string_lossy().into_owned());
+                diag.with_location(location)
+            })?;
+        self.record_query(path, name.to_owned(), solutions)
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FlatClaim {
     pub claim: String,
     pub text: Option<String>,
@@ -186,7 +328,7 @@ pub struct FlatClaim {
     pub contradicts: Vec<String>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ClaimEvidence {
     pub span: String,
     pub chunk: Option<String>,
@@ -196,7 +338,7 @@ pub struct ClaimEvidence {
     pub polarity: Option<String>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ClaimFlags {
     pub ungrounded: bool,
     pub contradicted: bool,
@@ -388,26 +530,19 @@ pub fn claim_audit(root: &Path, files: &[PathBuf]) -> gmeow_errors::Result<Claim
     let mut report = ClaimAuditReport::default();
     let phase_started = Instant::now();
     for query_path in audit_query_files(root)? {
-        let name = query_path
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
-                    message: format!("invalid audit query filename: {}", query_path.display()),
-                })
-            })?
-            .to_owned();
         let text = fs::read_to_string(&query_path)
             .with_ctx(|| format!("failed to read {}", query_path.display()))?;
-        report.findings.insert(name, select_rows(&store, &text)?);
+        let source_path = query_path
+            .strip_prefix(root)
+            .expect("audit query must belong to the selected source root");
+        report.query(&store, source_path, &text)?;
     }
     trace_claim_audit_phase(trace, "audit-queries", phase_started);
 
     let phase_started = Instant::now();
     let shacl = run_claim_shacl(root, &store)?;
     trace_claim_audit_phase(trace, "shacl", phase_started);
-    report.shacl_errors = shacl.0;
-    report.shacl_warnings = shacl.1;
+    report.ledger.union(&shacl);
 
     let phase_started = Instant::now();
     report.claims = flat_claims(&store, &report)?;
@@ -430,21 +565,40 @@ fn trace_claim_audit_phase(enabled: bool, label: &str, started: Instant) {
 pub fn render_claim_audit_text(report: &ClaimAuditReport) -> String {
     let mut lines = Vec::new();
     for name in AUDIT_HEADLINE {
-        let rows = report.findings.get(*name).cloned().unwrap_or_default();
-        lines.push(format!("{name}: {}", rows.len()));
-        for row in rows {
+        let rows = report.query_rows.get(*name);
+        lines.push(format!("{name}: {}", rows.map_or(0, Vec::len)));
+        for row in rows.into_iter().flatten() {
             lines.push(format!(
                 "  {}",
-                row.iter().map(|v| local(v)).collect::<Vec<_>>().join(" | ")
+                row.iter()
+                    .map(|(variable, value)| format!(
+                        "?{variable}={}",
+                        value.as_deref().map(local).unwrap_or("unbound")
+                    ))
+                    .collect::<Vec<_>>()
+                    .join(" | ")
             ));
         }
     }
-    let coverage = report.findings.get("evidence-coverage").map_or(0, Vec::len);
+    let coverage = report
+        .query_rows
+        .get("evidence-coverage")
+        .map_or(0, Vec::len);
     lines.push(format!("claims audited: {coverage}"));
-    if !report.shacl_errors.is_empty() {
-        lines.push(format!("SHACL errors: {}", report.shacl_errors.len()));
+    let errors = report.shacl_count(Severity::Error);
+    if errors > 0 {
+        lines.push(format!("SHACL errors: {errors}"));
     }
-    lines.push(format!("SHACL warnings: {}", report.shacl_warnings.len()));
+    lines.push(format!(
+        "SHACL warnings: {}",
+        report.shacl_count(Severity::Warning)
+    ));
+    for (severity, label) in [(Severity::Note, "notes"), (Severity::Info, "information")] {
+        let count = report.shacl_count(severity);
+        if count > 0 {
+            lines.push(format!("SHACL {label}: {count}"));
+        }
+    }
     lines.join("\n")
 }
 
@@ -454,89 +608,9 @@ pub fn render_claim_audit_json(report: &ClaimAuditReport) -> gmeow_errors::Resul
 }
 
 pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {
-    let stage = StageId::new("scoreboard.audit");
-    let mut ledger = DiagLedger::new();
-    // Headline claim-audit rows are non-gating policy warnings (Perspectival): a
-    // coherent PolicyWarning never contributes to gate fatality whatever its
-    // Warning severity, so `make check` is unaffected.
-    for (stem, suffix) in [
-        ("claims-without-evidence", "ungrounded-claim"),
-        (
-            "claims-contradicted-by-higher-confidence",
-            "contradicted-claim",
-        ),
-        ("stale-source-claims", "stale-source"),
-    ] {
-        for row in report.findings.get(stem).into_iter().flatten() {
-            let subject = row.first().cloned().unwrap_or_default();
-            let message = if row.is_empty() {
-                stem.to_owned()
-            } else {
-                row.join(" | ")
-            };
-            let mut diag = Diag::new(
-                register_code(&format!("audit.{suffix}")),
-                Grade::new(
-                    Severity::Warning,
-                    FindingCategory::PolicyWarning,
-                    Standpoint::Perspectival,
-                ),
-                message,
-            )
-            // Distinct rows sharing (code, category, subject) must not hash-cons
-            // merge and drop; a message-independent per-row focus keeps each
-            // finding a distinct fingerprint. The subject IRI (mirrored in the
-            // logical location) keys the anchor.
-            .with_focus(subject.clone());
-            if !subject.is_empty() {
-                diag = diag.with_location(Location {
-                    logical: Some(subject),
-                    ..Location::default()
-                });
-            }
-            ledger.attach(diag, stage.clone());
-        }
-    }
-    // SHACL errors gate (DataShapeViolation is Blocking, Binding standpoint) ⇒
-    // gate Fatal, so a shape violation still fails the diagnostics fold.
-    for message in &report.shacl_errors {
-        ledger.attach(
-            Diag::new(
-                register_code("audit.shacl-error"),
-                Grade::new(
-                    Severity::Error,
-                    FindingCategory::DataShapeViolation,
-                    Standpoint::Binding,
-                ),
-                message,
-            )
-            .with_focus(message.clone()),
-            stage.clone(),
-        );
-    }
-    // SHACL warnings are the same shape kind surfaced non-gating (Perspectival).
-    for message in &report.shacl_warnings {
-        ledger.attach(
-            Diag::new(
-                register_code("audit.shacl-warning"),
-                Grade::new(
-                    Severity::Warning,
-                    FindingCategory::DataShapeViolation,
-                    Standpoint::Perspectival,
-                ),
-                message,
-            )
-            .with_focus(message.clone()),
-            stage.clone(),
-        );
-    }
-    ledger.project_report("audit")
+    report.ledger.project_report("audit")
 }
 
-/// A report-only gate disclosing the lawful executor's lift counts and the heuristic
-/// categories it drops. It never fails (scoreboard-only) — its purpose is to keep the
-/// lawful-vs-heuristic coverage delta visible as honest loss-ledger residue rather than
-/// silently fabricating the dropped coverage.
 fn residue_gate(executor: &put_executor::LiftedDataset) -> GateResult {
     let mut gate = GateResult::new(
         "loss-ledger-residue",
@@ -1019,61 +1093,49 @@ fn select_rows(store: &Arc<RdfDataset>, query: &str) -> gmeow_errors::Result<Vec
         .collect())
 }
 
-fn run_claim_shacl(
-    root: &Path,
-    store: &Arc<RdfDataset>,
-) -> gmeow_errors::Result<(Vec<String>, Vec<String>)> {
+fn run_claim_shacl(root: &Path, store: &Arc<RdfDataset>) -> gmeow_errors::Result<DiagLedger> {
     let trace = std::env::var_os("GMEOW_CLAIM_AUDIT_TIMING").is_some();
     let phase_started = Instant::now();
     let shapes_ttl = shapes_turtle(root)?;
     trace_claim_audit_phase(trace, "shacl.load-shapes", phase_started);
 
     let phase_started = Instant::now();
-    let shapes = retain_claim_audit_shapes(
-        purrdf::shapes::engine::parse_shapes(&shapes_ttl, None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
-                message: e.to_string(),
-            })
-        })?,
-    )?;
+    let (shapes, classes) = prepare_claim_shapes(&shapes_ttl)?;
     trace_claim_audit_phase(trace, "shacl.parse-shapes", phase_started);
 
     let phase_started = Instant::now();
-    let shacl = purrdf::shapes::engine::validate_dataset(store.as_ref(), &shapes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
-            message: e.to_string(),
-        })
-    })?;
+    let ledger = validate_claim_shapes(store, &shapes, &classes)?;
     trace_claim_audit_phase(trace, "shacl.validate", phase_started);
-    if shacl.conforms {
-        return Ok((Vec::new(), Vec::new()));
+    Ok(ledger)
+}
+
+fn prepare_claim_shapes(
+    text: &str,
+) -> gmeow_errors::Result<(
+    purrdf::shapes::shapes::Shapes,
+    gmeow_validate::findings::FailureClassIndex,
+)> {
+    let (dataset, shapes) = gmeow_validate::store::parse_validation_shapes(text)?;
+    let classes = gmeow_validate::findings::FailureClassIndex::from_shapes_dataset(&dataset);
+    Ok((retain_claim_audit_shapes(shapes)?, classes))
+}
+
+fn validate_claim_shapes(
+    store: &RdfDataset,
+    shapes: &purrdf::shapes::shapes::Shapes,
+    classes: &gmeow_validate::findings::FailureClassIndex,
+) -> gmeow_errors::Result<DiagLedger> {
+    let report = purrdf::shapes::engine::validate_dataset(store, shapes)
+        .ctx("claim audit SHACL validation")?;
+    let mut ledger = DiagLedger::new();
+    // Conformance is not permission to discard collected non-fatal observations.
+    for result in report.results {
+        ledger.attach(
+            gmeow_validate::findings::diag_from_shacl(&result, classes),
+            StageId::new("scoreboard.audit.shacl"),
+        );
     }
-    let mut violations = Vec::new();
-    let mut warnings = Vec::new();
-    for result in shacl.results {
-        let line = shacl_line(&result);
-        match result.severity {
-            purrdf::shapes::report::Severity::Violation => violations.push(line),
-            purrdf::shapes::report::Severity::Warning
-            | purrdf::shapes::report::Severity::Info
-            | purrdf::shapes::report::Severity::Debug
-            | purrdf::shapes::report::Severity::Trace
-            | purrdf::shapes::report::Severity::Other(_) => {
-                warnings.push(line);
-            }
-        }
-    }
-    let errors = if violations.is_empty() {
-        Vec::new()
-    } else {
-        vec![format!("SHACL violations:\n{}", violations.join("\n"))]
-    };
-    let warnings = if warnings.is_empty() {
-        Vec::new()
-    } else {
-        vec![format!("SHACL warnings:\n{}", warnings.join("\n"))]
-    };
-    Ok((errors, warnings))
+    Ok(ledger)
 }
 
 fn retain_claim_audit_shapes(
@@ -1166,14 +1228,6 @@ fn shapes_turtle(root: &Path) -> gmeow_errors::Result<String> {
         .map(|parts| parts.join("\n"))
 }
 
-fn shacl_line(result: &purrdf::shapes::report::ValidationResult) -> String {
-    let focus = result.focus_value();
-    match gmeow_validate::findings::shacl_message(result) {
-        Some(message) => format!("{focus}: {message}"),
-        None => focus,
-    }
-}
-
 fn flat_claims(
     store: &Arc<RdfDataset>,
     report: &ClaimAuditReport,
@@ -1184,23 +1238,30 @@ fn flat_claims(
             (
                 *name,
                 report
-                    .findings
+                    .query_rows
                     .get(*name)
                     .into_iter()
                     .flatten()
-                    .filter_map(|row| row.first().cloned())
+                    .filter_map(|row| row.get("claim").cloned().flatten())
                     .collect(),
             )
         })
         .collect();
 
     let mut contradiction_members: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for row in report.findings.get("contradictions").into_iter().flatten() {
-        if row.len() >= 4 {
+    for row in report
+        .query_rows
+        .get("contradictions")
+        .into_iter()
+        .flatten()
+    {
+        if let (Some(Some(contradiction)), Some(Some(claim))) =
+            (row.get("contradiction"), row.get("claim"))
+        {
             contradiction_members
-                .entry(row[0].clone())
+                .entry(contradiction.clone())
                 .or_default()
-                .insert(row[3].clone());
+                .insert(claim.clone());
         }
     }
 

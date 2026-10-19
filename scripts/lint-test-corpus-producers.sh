@@ -22,7 +22,11 @@ repository_bound_calls='(^|[^[:alnum:]_])((render_term_manifest|run_full(_scoped
 coherence_producers='(^|[^[:alnum:]_])observe_(disjoint_clash|relcomp|characteristics)[[:space:]]*\('
 producer_calls="${producer_calls}|${coherence_producers}"
 repository_bound_calls="${repository_bound_calls}|${coherence_producers}"
+audit_producers='(^|[^[:alnum:]_])(claim_audit|produce_claim_audit_observation)[[:space:]]*\('
+producer_calls="${producer_calls}|${audit_producers}"
+repository_bound_calls="${repository_bound_calls}|${audit_producers}"
 producer_cli='((\.arg\("(build|feedback|sync|check-sync|slice-spec-worker|medium-sweep|medium-seed|term-release-authority|doc-lint|explain|acceptance|slice-quality-gate|slice-quality-seed-floors|slice-quality-relocation-preview)"\)|\.args\(\[[^]]*"(build|feedback|sync|check-sync|slice-spec-worker|medium-sweep|medium-seed|term-release-authority|doc-lint|explain|acceptance|slice-quality-gate|slice-quality-seed-floors|slice-quality-relocation-preview)")|(\.arg\("(build|feedback|sync|check-sync|slice-spec-worker|medium-sweep|medium-seed|docs-measure|docs-measure-verify|doc-lint|slice-quality-gate|slice-quality-seed-floors|slice-quality-relocation-preview)"\)|\.args\(\[[^]]*"(build|feedback|sync|check-sync|slice-spec-worker|medium-sweep|medium-seed|docs-measure|docs-measure-verify|doc-lint|slice-quality-gate|slice-quality-seed-floors|slice-quality-relocation-preview)"))'
+producer_cli="${producer_cli}|(\.arg\(\"audit\"\)|\.args\(\[[^]]*\"audit\")"
 real_docs_render='render_(site|site_lang|site_lang_exec|book)[[:space:]]*\('
 test_side_refresh='(GMEOW_[A-Z0-9_]*BLESS|GMN1_VECTORS_BLESS|UPDATE_GOLDENS|REGEN_[A-Z0-9_]*|bless::write_expected)'
 

@@ -57,7 +57,7 @@ impl ConformanceOntology {
         })
     }
 
-    fn reader(&self) -> FixtureResult<&Arc<RdfDataset>> {
+    pub(super) fn reader(&self) -> FixtureResult<&Arc<RdfDataset>> {
         if let Some(reader) = self.reader.get() {
             return Ok(reader);
         }

@@ -21,6 +21,7 @@ use super::{FixtureResult, fail};
 mod conformance_ontology;
 
 pub(super) const NAMES: &[&str] = &[
+    gmeow_pipeline::scoreboards::corpus_observation::ARTIFACT,
     gmeow_docs::gmn1_primer::teachability::ARTIFACT,
     "prepared-verify-gates.json",
     "gmn-codebook.cbor",
@@ -176,6 +177,12 @@ impl<'a> Sources<'a> {
     pub(super) fn produce(&self, name: &str) -> FixtureResult<Vec<u8>> {
         let member_limit = archive::MAX_NATIVE_MEMBER_BYTES;
         match name {
+            gmeow_pipeline::scoreboards::corpus_observation::ARTIFACT => {
+                gmeow_pipeline::scoreboards::corpus_observation::produce_claim_audit_observation(
+                    self.conformance_ontology()?.reader()?.as_ref(),
+                    &self.shapes()?.production,
+                )
+            }
             gmeow_docs::gmn1_primer::teachability::ARTIFACT => {
                 let bytes = self.member(
                     REP_EXAMPLES,
