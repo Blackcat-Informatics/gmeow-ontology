@@ -13,21 +13,26 @@ fn snapshot() -> Vec<u8> {
         .expect("authenticated snapshot; tests never produce it")
 }
 
-/// The DEV surface is the 38 consumer tools plus exactly 4, and the 5 consumer
-/// resources plus exactly 1. The dev tools are advertised AFTER the builtins.
+/// The registered developer operations extend the consumer surface in order.
 #[test]
-fn dev_surface_is_forty_two_tools_and_seven_resources() {
+fn dev_surface_extends_consumer_tools_and_resources() {
     let server = dev_server(&snapshot(), repo_root()).expect("dev server constructs");
     let names = server.surface().tool_names();
     assert_eq!(
         names.len(),
-        42,
-        "the dev tool surface is the 38 consumer tools + 4, got {names:?}"
+        gmeow_mcp::TOOL_COUNT + 5,
+        "the dev tool surface adds exactly its registered operations, got {names:?}"
     );
     assert_eq!(
-        &names[38..],
-        ["validate", "reason", "sync", "constitution"],
-        "the four dev tools are advertised after the consumer builtins"
+        &names[gmeow_mcp::TOOL_COUNT..],
+        [
+            "submit_packet_candidate",
+            "validate",
+            "reason",
+            "sync",
+            "constitution"
+        ],
+        "the dev tools are advertised after the consumer builtins"
     );
     let resources = server.surface().resource_descriptors();
     assert_eq!(
@@ -46,6 +51,60 @@ fn dev_surface_is_forty_two_tools_and_seven_resources() {
         resources[6]["uri"], CONSTITUTION_URI,
         "the Constitution resource is advertised last"
     );
+}
+
+/// The authentic policy and snapshot are supplied by the explicit producer.
+/// This test authors only a tiny independent candidate slice, never a corpus.
+#[test]
+fn packet_candidate_composes_the_source_theory_with_the_governed_submission() {
+    let snapshot = snapshot();
+    let root = repo_root();
+    let fixture = tempfile::Builder::new()
+        .prefix("packet-candidate-")
+        .tempdir_in(root.join(".cache"))
+        .unwrap();
+    std::fs::write(
+        fixture.path().join("manifest.ttl"),
+        "<urn:candidate:slice> a <https://blackcatinformatics.ca/gmeow/Slice> .",
+    )
+    .unwrap();
+    std::fs::write(fixture.path().join("module.ttl"), r#"
+        @prefix ex: <urn:candidate:> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+        ex:a a ex:B ; rdfs:isDefinedBy ex:slice ; rdfs:label "A" ; skos:definition "The candidate's subject." .
+        ex:B rdfs:isDefinedBy ex:slice ; rdfs:label "B" ; skos:definition "The asserted class." .
+    "#).unwrap();
+    let formula = r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <urn:candidate:> .
+        ex:formula a logic:Formula ;
+            logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+            logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;
+            logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .
+    "#;
+    let server = dev_server(&snapshot, root).unwrap();
+    let result = server.call_tool_result(
+        "submit_packet_candidate",
+        &json!({
+            "slice_dir":fixture.path().to_str().unwrap(), "formula":formula,
+            "standpoint":"urn:candidate:standpoint", "dry_run":true,
+        }),
+    );
+    assert_eq!(result["isError"], false, "{result}");
+    let body: serde_json::Value =
+        serde_json::from_str(result["content"][0]["text"].as_str().unwrap()).unwrap();
+    assert_eq!(body["ok"], true);
+    assert_eq!(body["dry_run"], true);
+    assert_eq!(body["admissible"], true);
+    assert_eq!(body["packet_context"]["slice"], "urn:candidate:slice");
+    assert!(
+        body["packet_context"]["packet"]
+            .as_str()
+            .unwrap()
+            .starts_with("urn:candidate:slice/authoring-packet/")
+    );
+    assert_eq!(body["packet_context"]["kb_format"], "application/n-quads");
 }
 
 /// Every dev tool is DISPATCHABLE, not merely advertised — the registration seam
@@ -92,7 +151,13 @@ fn the_reason_tool_dispatches_and_reports_its_status_axes_heavy_offgate() {
 #[test]
 fn the_dev_tools_are_absent_from_a_plain_consumer_server() {
     let server = McpServer::from_snapshot(&snapshot()).expect("consumer server constructs");
-    for dev_only in ["validate", "reason", "sync", "constitution"] {
+    for dev_only in [
+        "submit_packet_candidate",
+        "validate",
+        "reason",
+        "sync",
+        "constitution",
+    ] {
         let err = server
             .surface()
             .dispatch_tool(&server, dev_only, &json!({}))

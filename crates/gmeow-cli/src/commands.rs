@@ -1262,6 +1262,7 @@ pub fn candidate_submit(
         &gmeow_mcp::CandidateSubmitInput {
             formula_ttl: &formula_ttl,
             kb_ttl: &kb_ttl,
+            kb_format: "text/turtle",
             standpoint,
             math_conjecture,
             for_slice,

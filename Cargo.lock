@@ -1912,7 +1912,9 @@ dependencies = [
  "gmeow-logic",
  "gmeow-mcp",
  "gmeow-pipeline",
+ "gmeow-slice-brief",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
