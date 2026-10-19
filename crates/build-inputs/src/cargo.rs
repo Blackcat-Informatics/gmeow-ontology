@@ -14,6 +14,8 @@ pub struct UnitSelection {
     pub manifest: Option<String>,
     pub source: Option<String>,
     pub target: String,
+    /// Edition selected by Cargo for this exact target.
+    pub edition: String,
     pub kinds: Vec<String>,
     pub cfg: CfgContext,
     pub dependencies: Vec<usize>,
@@ -45,6 +47,12 @@ impl ProductionSelection {
             }
         }
         for unit in &self.units {
+            if !matches!(unit.edition.as_str(), "2015" | "2018" | "2021" | "2024") {
+                return Err(fail(format!(
+                    "unsupported selected Rust edition {}",
+                    unit.edition
+                )));
+            }
             if unit.manifest.is_some() != unit.source.is_some() {
                 return Err(fail(
                     "local source root and Cargo manifest must have the same owner",
@@ -500,4 +508,51 @@ pub fn cargo_policy_files(workspace: &Path) -> Result<Vec<String>> {
         }
     }
     Ok(files)
+}
+
+/// Resolve the manifest-owned edition for a portable source-policy or extraction traversal.
+pub fn source_edition(workspace: &Path, source: &str) -> Result<String> {
+    let mut directory = workspace
+        .join(source)
+        .parent()
+        .ok_or_else(|| fail("source has no parent"))?
+        .to_path_buf();
+    loop {
+        let manifest = directory.join("Cargo.toml");
+        if manifest.try_exists().map_err(fail)? {
+            let package: toml::Value = std::fs::read_to_string(&manifest)
+                .map_err(fail)?
+                .parse()
+                .map_err(fail)?;
+            let edition = package
+                .get("package")
+                .and_then(|package| package.get("edition"));
+            if let Some(edition) = edition.and_then(toml::Value::as_str) {
+                return Ok(edition.to_owned());
+            }
+            if edition
+                .and_then(|edition| edition.get("workspace"))
+                .and_then(toml::Value::as_bool)
+                == Some(true)
+            {
+                let root: toml::Value = std::fs::read_to_string(workspace.join("Cargo.toml"))
+                    .map_err(fail)?
+                    .parse()
+                    .map_err(fail)?;
+                return root
+                    .get("workspace")
+                    .and_then(|workspace| workspace.get("package"))
+                    .and_then(|package| package.get("edition"))
+                    .and_then(toml::Value::as_str)
+                    .map(str::to_owned)
+                    .ok_or_else(|| fail("missing workspace Rust edition"));
+            }
+            if package.get("package").is_some() {
+                return Ok("2015".into());
+            }
+        }
+        if directory == workspace || !directory.pop() {
+            return Err(fail("source has no Cargo edition owner"));
+        }
+    }
 }

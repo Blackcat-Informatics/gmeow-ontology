@@ -30,6 +30,7 @@ fn cache_key(root: &Path) -> String {
                 manifest: Some(manifest.clone()),
                 source: Some(directory.join("src/lib.rs").to_str().unwrap().to_owned()),
                 target: "fixture".into(),
+                edition: "2024".into(),
                 kinds: vec!["lib".into()],
                 cfg: CfgContext::from_rustc(
                     "unix\ntarget_arch=\"x86_64\"\ntarget_os=\"linux\"",

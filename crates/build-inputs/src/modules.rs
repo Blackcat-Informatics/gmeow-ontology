@@ -76,8 +76,9 @@ fn collect_selected(
             .iter()
             .zip(&unit.dependencies)
             .filter(|(_, index)| {
-                crate::cargo::package_parts(&units[**index].package)
-                    .is_ok_and(|(_, name, _)| name == "tracing")
+                matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
+                    && crate::cargo::package_parts(&units[**index].package)
+                        .is_ok_and(|(_, name, _)| name == "tracing")
             })
             .map(|(name, _)| name.clone())
             .collect();
@@ -202,6 +203,7 @@ fn semantic_inventory(
             manifest: Some(relative(workspace, &manifest)?),
             source: Some((*source).into()),
             target: "semantic-kernel".into(),
+            edition: crate::cargo::source_edition(workspace, source)?,
             kinds: vec!["lib".into()],
             cfg: crate::CfgContext::from_rustc("", &[], true)?,
             dependencies: vec![],
@@ -214,7 +216,10 @@ fn semantic_inventory(
             tracing_names: unit
                 .dependency_names
                 .iter()
-                .filter(|name| name.as_str() == "tracing")
+                .filter(|name| {
+                    matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
+                        && name.as_str() == "tracing"
+                })
                 .cloned()
                 .collect(),
             workspace,

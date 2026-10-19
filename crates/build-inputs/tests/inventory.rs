@@ -20,6 +20,7 @@ fn selection() -> ProductionSelection {
             manifest: Some("crate/Cargo.toml".into()),
             source: Some("crate/src/lib.rs".into()),
             target: "example".into(),
+            edition: "2024".into(),
             kinds: vec!["lib".into()],
             cfg: CfgContext::from_rustc(
                 "unix\ntarget_arch=\"x86_64\"\ntarget_os=\"linux\"",
@@ -989,6 +990,7 @@ fn tracing_selection(root: &Path, alias: &str) -> ProductionSelection {
         manifest: Some("telemetry/Cargo.toml".into()),
         source: Some("telemetry/src/lib.rs".into()),
         target: "tracing".into(),
+        edition: "2024".into(),
         ..selected.units[0].clone()
     });
     selected.units[0].dependencies.push(1);
@@ -1062,7 +1064,7 @@ fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
         write(
             root.path(),
             "crate/Cargo.toml",
-            "[package]\nname='example'\nversion='1.0.0'\n[dependencies]\ntracing='0.1'\n",
+            "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\ntracing='0.1'\n",
         );
         let selected = tracing_selection(root.path(), "tracing");
         let before = InputInventory::collect(root.path(), &selected).unwrap();
@@ -1216,4 +1218,83 @@ fn controller_profile_code_selection_is_owned_without_developer_optimization_chu
         before,
         InputInventory::collect(root.path(), &selected).unwrap()
     );
+}
+
+#[test]
+fn rust_2015_tracing_names_never_hide_embedded_source() {
+    for alias in ["tracing", "telemetry"] {
+        for nested in [false, true] {
+            let span = format!("::{alias}::info_span!(\"hidden.txt\")");
+            let call = if nested {
+                format!("quote! {{ {span} }}")
+            } else {
+                span
+            };
+            let root = fixture(&format!(
+                "mod {alias} {{ pub(crate) use std::include_str as info_span; }} fn phase() {{ let _ = {call}; }}",
+            ));
+            write(root.path(), "crate/src/hidden.txt", "embedded source");
+            write(
+                root.path(),
+                "crate/Cargo.toml",
+                &format!(
+                    "[package]\nname='example'\nversion='1.0.0'\nedition='2015'\n[dependencies]\n{alias}={{package='tracing',path='../telemetry'}}\n",
+                ),
+            );
+            let mut selected = tracing_selection(root.path(), alias);
+            selected.units[0].edition = "2015".into();
+            let error = InputInventory::collect(root.path(), &selected).unwrap_err();
+            assert!(
+                error
+                    .to_string()
+                    .contains("no selected source-input capability owner"),
+                "{error}"
+            );
+            assert!(
+                gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
+                    .is_err()
+            );
+            for edition in ["2018", "2021", "2024"] {
+                selected.units[0].edition = edition.into();
+                InputInventory::collect(root.path(), &selected).unwrap();
+            }
+            selected.units[0].edition = "2099".into();
+            assert!(
+                selected
+                    .validate()
+                    .unwrap_err()
+                    .to_string()
+                    .contains("unsupported selected Rust edition")
+            );
+        }
+    }
+}
+
+#[test]
+fn portable_source_editions_resolve_declared_inherited_and_language_default() {
+    let root = fixture("pub fn source() {}\n");
+    assert_eq!(
+        gmeow_build_inputs::source_edition(root.path(), "crate/src/lib.rs").unwrap(),
+        "2015"
+    );
+    write(
+        root.path(),
+        "Cargo.toml",
+        "[workspace]\nmembers=['crate']\n[workspace.package]\nedition='2024'\n",
+    );
+    write(
+        root.path(),
+        "crate/Cargo.toml",
+        "[package]\nname='example'\nversion='1.0.0'\nedition.workspace=true\n",
+    );
+    assert_eq!(
+        gmeow_build_inputs::source_edition(root.path(), "crate/src/lib.rs").unwrap(),
+        "2024"
+    );
+    write(
+        root.path(),
+        "Cargo.toml",
+        "[workspace]\nmembers=['crate']\n",
+    );
+    assert!(gmeow_build_inputs::source_edition(root.path(), "crate/src/lib.rs").is_err());
 }
