@@ -136,25 +136,29 @@ impl DiagNode {
 impl DiagLedger {
     /// Project the whole ledger to a [`Report`], in the ledger's total
     /// deterministic `(stage, fingerprint)` order. Built from the same
-    /// [`findings`](DiagLedger::findings) projection so the two surfaces can never
+    /// [`iter_findings`](DiagLedger::iter_findings) projection so the exit surfaces never
     /// diverge.
     pub fn project_report(&self, tool: &str) -> Report {
         let mut report = Report::new(tool);
-        for finding in self.findings(tool) {
+        for finding in self.iter_findings(tool) {
             report.add_finding(finding);
         }
         report
     }
 
     /// Every finding this ledger projects, in deterministic order — the single
-    /// finding-projection surface, produced directly without building an
-    /// intermediate [`Report`]. [`project_report`](DiagLedger::project_report)
-    /// reuses this.
+    /// owned form of [`iter_findings`](DiagLedger::iter_findings), produced directly
+    /// without building an intermediate [`Report`].
     pub fn findings(&self, tool: &str) -> Vec<Finding> {
+        self.iter_findings(tool).collect()
+    }
+
+    /// Project findings only as an exit consumer requests them. Domain reports can
+    /// borrow this view without retaining a second finding store beside the ledger.
+    pub fn iter_findings<'a>(&'a self, tool: &'a str) -> impl Iterator<Item = Finding> + 'a {
         self.emit_sorted()
-            .iter()
-            .map(|n| n.to_finding(tool))
-            .collect()
+            .into_iter()
+            .map(move |node| node.to_finding(tool))
     }
 }
 

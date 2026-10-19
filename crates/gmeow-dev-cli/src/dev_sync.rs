@@ -285,8 +285,8 @@ fn stream_report(reporter: &dyn Reporter, report: &RunReport, include_timings: b
         }
     }
     let mut diagnostics = gmeow_errors::Report::new("pipeline");
-    for finding in &report.findings {
-        diagnostics.add_finding(finding.clone());
+    for finding in report.findings() {
+        diagnostics.add_finding(finding);
     }
     reporter.report(&diagnostics.normalized());
 }

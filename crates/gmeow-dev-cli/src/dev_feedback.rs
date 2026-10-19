@@ -355,15 +355,20 @@ fn pipeline_feedback(run: gmeow_pipeline::run::RunReport) -> (Report, bool) {
     let accepted = run.is_clean();
     let mut report = Report::new("feedback");
     record_gate_verdict(&mut report, "pipeline_gate_verdict", accepted);
-    for path in run.drifted {
+    for path in &run.drifted {
         let mut finding = Finding::new(Severity::Error, "generator.drift", path.clone())
             .with_tool("pipeline")
             .with_category(gmeow_errors::FindingCategory::ModelingDisciplineViolation)
             .with_standpoint(gmeow_errors::Standpoint::Binding);
-        finding.add_location(gmeow_errors::Location::new(Some(path), None, None, None));
+        finding.add_location(gmeow_errors::Location::new(
+            Some(path.clone()),
+            None,
+            None,
+            None,
+        ));
         report.add_finding(finding);
     }
-    for finding in run.findings {
+    for finding in run.findings() {
         report.add_finding(finding);
     }
     (report, accepted)

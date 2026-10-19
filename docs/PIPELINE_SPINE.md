@@ -143,7 +143,9 @@ reports retain an explicit diagnostic graph declaration. Action persistence uses
 mandatory CBOR for the full publication, including report-only evidence and
 metadata; those bytes enter the normal cache receipt and hydration accounting.
 Required JSON, SARIF, HTML and RDF artifacts remain terminal presentations, and
-the run ledger retains its established pre-meta finding projection. This removes
+the run ledger retains its established pre-meta findings. Run reports borrow a
+live projection of that ledger at each exit, with no cached finding vector to
+duplicate or diverge from later ledger additions. This removes
 transport reparsing; it still retains two rich reports alongside terminal bytes.
 
 Mapping source admission also publishes one immutable `CorrespondenceAnalysis`.
