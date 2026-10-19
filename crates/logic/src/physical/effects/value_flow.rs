@@ -1198,6 +1198,25 @@ impl FlowSummary {
         (logical, resident, dense)
     }
 
+    fn distinct_support_rows(&self) -> usize {
+        // Shared supports are immutable. Hash each resident row only once, while
+        // still coalescing equal content held by different pointers or encodings.
+        let mut resident =
+            std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::default());
+        self.relations
+            .values()
+            .flat_map(|relation| {
+                relation
+                    .by_subject
+                    .values()
+                    .chain(relation.by_object.values())
+            })
+            .filter(|row| resident.insert(Row::as_ptr(row)))
+            .map(|row| SupportContent(row))
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+    }
+
     /// Trace the footprint of a large closed summary: keyed rows, the shared
     /// rows actually resident, and the distinct contents they hold.
     fn trace_footprint(&self, rules: usize) {
@@ -1211,17 +1230,6 @@ impl FlowSummary {
             .values()
             .map(|relation| relation.by_subject.len() + relation.by_object.len())
             .sum();
-        let distinct: std::collections::HashSet<SupportContent<'_>> = self
-            .relations
-            .values()
-            .flat_map(|relation| {
-                relation
-                    .by_subject
-                    .values()
-                    .chain(relation.by_object.values())
-            })
-            .map(|row| SupportContent(row))
-            .collect();
         tracing::info!(
             target: "pipeline_reasoning_detail",
             phase = "refine-closure-footprint",
@@ -1229,7 +1237,7 @@ impl FlowSummary {
             relations = self.relations.len(),
             keyed_rows = keyed,
             resident_dense_rows = dense,
-            distinct_rows = distinct.len(),
+            distinct_rows = self.distinct_support_rows(),
             interned_rows = self.rows.rows.len(),
             logical_support_mb = logical >> 20,
             resident_support_mb = resident >> 20,
@@ -2723,7 +2731,9 @@ impl ValueFlow {
                 }
             }
             if candidates.len() >= 1_000 {
-                let support = state.support_bytes();
+                // Field expressions run only for an enabled event. The three
+                // fields share one scan, and a disabled event performs none.
+                let support = std::cell::LazyCell::new(|| state.support_bytes());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",

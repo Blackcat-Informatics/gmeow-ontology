@@ -1804,6 +1804,34 @@ fn support_content_identifies_equal_sets_across_representations() {
 }
 
 #[test]
+fn footprint_counts_shared_and_equivalent_support_contents_once() {
+    let size = 65_536;
+    let analysis = ValueFlow::new(&[], &[], SemanticVocabulary::Exact);
+    let mut summary = analysis.summarize(std::iter::empty());
+    let shared = Row::new(AdaptiveDomain::Dense(Domain::all(size)));
+    let mut relation = RelationSummary::empty(size);
+    for value in 0..32_768 {
+        relation.by_subject.insert(value, Row::clone(&shared));
+    }
+    // Equal content under a separate pointer and representation still counts once.
+    relation.by_object.insert(
+        0,
+        Row::new(AdaptiveDomain::Sparse {
+            size,
+            values: (0..size).collect(),
+        }),
+    );
+    let mut second = RelationSummary::empty(size);
+    second.by_subject.insert(0, Row::clone(&shared));
+    second
+        .by_object
+        .insert(1, Row::new(AdaptiveDomain::Dense(Domain::one(size, 7))));
+    summary.relations.insert(0, relation);
+    summary.relations.insert(1, second);
+    assert_eq!(summary.distinct_support_rows(), 2);
+}
+
+#[test]
 fn class_partitioned_closure_equals_the_per_candidate_closure() {
     const SAME: &str = "http://www.w3.org/2002/07/owl#sameAs";
     const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";

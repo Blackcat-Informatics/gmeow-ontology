@@ -187,7 +187,7 @@ jobs:
       # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
         env:
-          GMEOW_LOG: warn,pipeline_phase=info
+          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
           SYNC_VERBOSE: "1"
           SYNC_TIMINGS_JSON: dist/sync/update-timings.json
         run: |
@@ -504,7 +504,7 @@ jobs:
 
       - name: Produce optimized corpus fixtures before any test runner starts
         env:
-          GMEOW_LOG: warn,pipeline_phase=info
+          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
         run: >-
           make produce-producer-independent-test-fixtures
           FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
