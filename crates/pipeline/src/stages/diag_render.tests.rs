@@ -5,6 +5,54 @@ use super::*;
 use gmeow_errors::{Finding, FindingCategory, StageId};
 
 #[test]
+fn production_forward_fold_retains_distinct_named_source_graphs() {
+    let mut report = Report::new("synthetic");
+    for graph in ["urn:world:a", "urn:world:b"] {
+        let mut finding = Finding::new(Severity::Error, "test.graph.forward", "same observation")
+            .with_category(FindingCategory::PermittedEpistemicConflict)
+            .with_standpoint(gmeow_errors::Standpoint::Advisory);
+        finding.add_location(
+            Location::new(
+                Some("same.ttl".into()),
+                Some(17),
+                Some(9),
+                Some("urn:focus".into()),
+            )
+            .with_gts_quad(0),
+        );
+        finding.source_graph = Some(purrdf::iri::BaseIri::parse(graph).unwrap());
+        report.add_finding(finding);
+    }
+    let nodes = finding_nodes(&report, "synthetic");
+    assert_eq!(nodes.len(), 2);
+    for node in &nodes {
+        assert_eq!(node.source_ctx.location.line, Some(17));
+        assert_eq!(node.source_ctx.location.column, Some(9));
+        assert_eq!(
+            node.source_ctx.location.logical.as_deref(),
+            Some("urn:focus")
+        );
+        assert_eq!(node.source_ctx.location.gts_quad_index, Some(0));
+        assert_eq!(
+            node.grade.category,
+            FindingCategory::PermittedEpistemicConflict
+        );
+        assert_eq!(node.grade.standpoint, gmeow_errors::Standpoint::Advisory);
+    }
+    let mut ledger = DiagLedger::new();
+    ledger.replay(nodes.clone());
+    assert_ne!(ledger.verdict(), gmeow_errors::GateVerdict::Fatal);
+    let graphs: std::collections::BTreeSet<_> = nodes
+        .iter()
+        .map(|node| node.source_ctx.graph.as_ref().unwrap().as_str())
+        .collect();
+    assert_eq!(
+        graphs,
+        std::collections::BTreeSet::from(["urn:world:a", "urn:world:b"])
+    );
+}
+
+#[test]
 fn native_diagnostics_preserve_evidence_grades_and_exact_location_values() {
     use gmeow_errors::Standpoint;
     use gmeow_errors::model::RelatedLabel;
@@ -25,6 +73,7 @@ fn native_diagnostics_preserve_evidence_grades_and_exact_location_values() {
         .with_category(FindingCategory::ModelingDisciplineViolation)
         .with_standpoint(Standpoint::Binding);
     finding.finding_iri = Some(subject.into());
+    finding.source_graph = Some(purrdf::iri::BaseIri::parse("urn:world:source").unwrap());
     finding.antecedents.push(root.into());
     finding.locations.push(location.clone());
     finding.related_labels.push(RelatedLabel {
@@ -57,21 +106,55 @@ fn native_diagnostics_preserve_evidence_grades_and_exact_location_values() {
     let has = |s: &str, p: &str, o: RdfTerm| {
         assert!(
             quads.contains(&RdfQuad::new(RdfTerm::iri(s), p, o).in_graph(RdfTerm::iri(graph))),
-            "missing {s} {p}"
+            "missing {s} {p}; actual rows: {:?}",
+            quads
+                .iter()
+                .filter(|quad| quad.predicate == p)
+                .collect::<Vec<_>>()
         );
     };
     has(
         subject,
         &format!("{namespace}findingMessage"),
-        RdfTerm::literal(RdfLiteral::typed(
-            message,
-            "http://www.w3.org/2001/XMLSchema#string",
-        )),
+        RdfTerm::literal(RdfLiteral::simple(message)),
     );
+    // The owned view omits the redundant xsd:string annotation. Check the
+    // native datatype as well as the exact lexical value, language and direction.
+    let message_quad = rendered
+        .dataset
+        .quads()
+        .find(|quad| {
+            rendered.dataset.resolve(quad.s) == purrdf::TermRef::Iri(subject)
+                && rendered.dataset.resolve(quad.p)
+                    == purrdf::TermRef::Iri("https://blackcatinformatics.ca/gmeow/findingMessage")
+        })
+        .unwrap();
+    match rendered.dataset.resolve(message_quad.o) {
+        purrdf::TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            assert_eq!(lexical, message);
+            assert_eq!(
+                rendered.dataset.resolve(datatype),
+                purrdf::TermRef::Iri("http://www.w3.org/2001/XMLSchema#string")
+            );
+            assert_eq!(language, None);
+            assert_eq!(direction, None);
+        }
+        other => panic!("finding message is not a literal: {other:?}"),
+    }
     has(
         subject,
         &format!("{namespace}findingAntecedent"),
         RdfTerm::iri(root),
+    );
+    has(
+        subject,
+        &format!("{namespace}findingSourceGraph"),
+        RdfTerm::iri("urn:world:source"),
     );
     has(
         root,
@@ -142,11 +225,8 @@ fn report_with_one_finding() -> Report {
     report
 }
 
-/// Node-equivalence: the FORWARD `finding_nodes` fold carries the SAME
-/// code / severity / stage / category the retired backward `Diag::from_rdf` ingest
-/// produced — so the shipped `graph/diagnostics` RDF and the model goldens do not
-/// change. Category is derived from severity (Error → ModelingDisciplineViolation),
-/// exactly as `gmeow_errors::rdf::default_category` maps it, NOT from `finding.category`.
+/// Findings without an explicit category retain the native ingestion defaults.
+/// Explicit producer grades are covered by the source-graph bridge control.
 #[test]
 fn forward_nodes_carry_expected_code_severity_stage_category() {
     let nodes = finding_nodes(&report_with_one_finding(), "stage-validate");

@@ -36,18 +36,14 @@ fn rdf_severity(severity: Severity) -> RdfSeverity {
     }
 }
 
-/// Project a finding [`Location`] into the LOSSY [`RdfLocation`] the diagnostics RDF
-/// carries — path + GTS wire coordinates ONLY. The committed `gmeow:Finding` N-Quads
-/// projection (`gmeow_errors::render::to_gmeow_rdf`) emits only these coordinates (no
-/// `line`/`column`/`logical`), so the FORWARD `Finding → DiagNode` fold must reproduce
-/// exactly the same `RdfLocation` the BACKWARD (render → parse → ingest) path did,
-/// making the two ledgers byte-identical (zero golden churn).
-fn rdf_location_lossy(location: &Location) -> RdfLocation {
+/// Preserve the supplied physical, logical and wire source coordinates at the
+/// native diagnostic boundary. There is no backward text-ingestion path to emulate.
+fn rdf_location(location: &Location) -> RdfLocation {
     RdfLocation {
         path: location.path.clone(),
-        line: None,
-        column: None,
-        logical: None,
+        line: location.line,
+        column: location.column,
+        logical: location.logical.clone(),
         gts_term_id: location.gts_term_id,
         gts_quad_index: location.gts_quad_index,
         gts_reifier_id: location.gts_reifier_id,
@@ -62,11 +58,11 @@ fn rdf_location_lossy(location: &Location) -> RdfLocation {
 /// the run ledger (the backward RDF→ledger read is gone).
 ///
 /// Each `Finding` becomes an [`RdfDiagnostic`] carrying its severity / code / message
-/// and (lossily, via [`rdf_location_lossy`]) its primary location, then goes through
-/// the EXACT `Diag::from_rdf` mapping the retired backward path used, attached to a
-/// LOCAL ledger attributed to `stage`. The returned nodes are byte-identical to what
-/// the backward `graph/diagnostics` ingest produced for the same report, so no shipped
-/// artifact or golden changes.
+/// and primary location, then goes through `Diag::from_rdf`, attached to a
+/// local ledger attributed to `stage`. Explicit GMEOW grades override the native
+/// ingestion defaults. The typed source graph is carried separately
+/// because the native `RdfLocation` has no graph slot; it must not disappear at
+/// this production bridge.
 ///
 /// The report is normalized first (the RDF renderer normalizes too), so the fold is a
 /// pure function of the report content, independent of finding insertion order.
@@ -82,12 +78,21 @@ pub fn finding_nodes(report: &Report, stage: &str) -> Vec<DiagNode> {
             finding.message.clone(),
         );
         if let Some(location) = finding.primary_location() {
-            let rdf_location = rdf_location_lossy(location);
+            let rdf_location = rdf_location(location);
             if !rdf_location.is_empty() {
                 rdf_diag = rdf_diag.with_location(rdf_location);
             }
         }
-        let parent = Diag::from_rdf(&rdf_diag, &mut ledger, stage_id.clone());
+        let mut parent = Diag::from_rdf(&rdf_diag, &mut ledger, stage_id.clone());
+        let grade = parent.grade();
+        parent = parent.with_grade(gmeow_errors::Grade::new(
+            finding.severity,
+            finding.category.unwrap_or(grade.category),
+            finding.standpoint.unwrap_or(grade.standpoint),
+        ));
+        if let Some(graph) = &finding.source_graph {
+            parent = parent.with_graph(graph.clone());
+        }
         ledger.attach(parent, stage_id.clone());
     }
     let nodes: Vec<DiagNode> = ledger.emit_sorted().into_iter().cloned().collect();
