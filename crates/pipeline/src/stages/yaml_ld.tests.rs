@@ -1117,11 +1117,6 @@ fn annotation_fragment_validates_against_json_schema() {
     schema.as_object_mut().unwrap().remove("properties");
     schema.as_object_mut().unwrap().remove("type");
 
-    let validator = jsonschema::options()
-        .with_draft(jsonschema::Draft::Draft202012)
-        .build(&schema)
-        .expect("annotation subschema compiles");
-
     // Sample fragment mirroring the annotation objects the serializer emits:
     // typed-literal value objects (string `@value` + `@type`) and IRI objects.
     let fragment = serde_json::json!({
@@ -1130,10 +1125,12 @@ fn annotation_fragment_validates_against_json_schema() {
         "gmeow:assertedAt": {"@value": "2026-06-05T00:00:00Z", "@type": "xsd:dateTime"}
     });
 
-    let errors: Vec<String> = validator
-        .iter_errors(&fragment)
-        .map(|e| e.to_string())
-        .collect();
+    let errors = gmeow_validate::instance::validate_instance(
+        &serde_json::to_vec(&fragment).expect("serialize annotation fragment"),
+        gmeow_validate::instance::InstanceFormat::Json,
+        &serde_json::to_vec(&schema).expect("serialize annotation schema"),
+    )
+    .expect("annotation subschema compiles and evaluates");
     assert!(
         errors.is_empty(),
         "sample @annotation fragment must validate against the $defs/Annotation schema: {errors:?}"

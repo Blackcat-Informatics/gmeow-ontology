@@ -309,12 +309,12 @@ names = ['^(hex_value|hex_val|hex_digit|hex_nibble|lower_hex_value|unhex|encode_
 id = "json-schema-validation"
 summary = "JSON Schema validation, drafts 2020-12, 2019-09 and 07"
 home = "extern:purrdf_jsonschema::Schema"
-entry_points = []
+entry_points = ["gmeow_validate::instance::validate_instance"]
 spec = "JSON Schema Core and Validation, drafts 2020-12, 2019-09 and 07, checked by the JSON-Schema-Test-Suite"
 vectors = []
 bench = []
 sites = []
-replaces_external = []
+replaces_external = ["jsonschema"]
 enforced = true
 
 [job.forbidden]

@@ -70,12 +70,8 @@ regex.workspace = true
 toml = "0.8"
 # Match manifest requirements to the exact committed substrate resolution.
 semver.workspace = true
-# JSON Schema draft-2020-12 instance validator. default-features off drops the
-# network/file remote-$ref resolvers (reqwest/rustls/resolve-http): the GMEOW JSON
-# Schema is fully self-contained ($defs-local refs only), so we never fetch remote
-# schemas. No optional resolver feature is enabled — a capability cfg would be
-# optionality, not compliance.
-jsonschema.workspace = true
+# Native JSON Schema engine with embedded, offline draft-2020-12 meta-schemas.
+purrdf-jsonschema.workspace = true
 # Data parallelism: the per-example SHACL pass (the dominant cost of `validate`) is
 # embarrassingly parallel across the ~100 slice examples, and the three DSL SHACL
 # phases are independent — both fan out over rayon against the shared read-only store.

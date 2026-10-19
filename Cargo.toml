@@ -204,6 +204,8 @@ purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf"
 purrdf-core = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
 # The substrate's one JSON/YAML/CBOR/XML home; the facade does not re-export it.
 purrdf-lex = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
+# The substrate JSON Schema engine; meta-schemas are embedded by the validator.
+purrdf-jsonschema = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
 # The substrate's one Ed25519 implementation (GTS signing and verification keys).
 purrdf-ed25519 = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
 # The substrate's one BLAKE3/hex home.
@@ -234,10 +236,6 @@ ciborium = "0.2"
 # Snapshot goldens. The version is fixed here; a crate that asserts JSON snapshots
 # adds `features = ["json"]` at its own site, since not every consumer needs it.
 insta = { version = "1.48" }
-# JSON Schema validation of shipped JSON projections. `default-features = false` is
-# part of the shared fact, not a per-crate choice: the default feature set pulls a
-# network-fetching resolver that no gate is permitted to depend on.
-jsonschema = { version = "0.46", default-features = false }
 # Unix process resource accounting for the report-only performance sampler. The
 # sampler reads `getrusage(RUSAGE_CHILDREN)` around exactly one measured command;
 # production libraries never call libc through this dependency.

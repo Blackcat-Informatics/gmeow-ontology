@@ -89,12 +89,9 @@ fn required_rejects_an_incomplete_instance_the_old_open_world_schema_accepted() 
         "an incomplete instance of a modeled class must be rejected (the old \
          open-world schema accepted it)"
     );
-    // We deliberately DON'T assert on the `jsonschema` crate's message wording
-    // here: a bare-node root collapses its sub-error into the top-level union, so
-    // the missing `gmeow:req` is not surfaced, and matching on "anyOf" would be
-    // brittle across dependency upgrades. The non-empty rejection above is the
-    // contract; the property-NAMING guarantee is asserted in the @graph-envelope
-    // variant below, where the per-node sub-error surfaces `gmeow:req` structurally.
+    // The non-empty rejection is the contract here; property naming is asserted
+    // in the @graph-envelope variant below. Exact Basic-output messages are
+    // pinned by the focused instance-validator tests.
 }
 
 #[test]

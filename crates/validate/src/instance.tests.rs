@@ -60,7 +60,8 @@ fn malformed_schema_is_a_hard_error() {
     let not_json = b"this is not json";
     let err = validate_instance(br#"{}"#, InstanceFormat::Json, not_json)
         .expect_err("a non-JSON schema must be a hard error");
-    assert!(err.is::<crate::error::Parse>());
+    assert_eq!(err.code(), crate::error::Parse::register());
+    assert!(err.is::<purrdf_lex::json::Error>());
     assert!(err.message().contains("invalid JSON schema"), "got {err}");
 }
 
@@ -68,9 +69,123 @@ fn malformed_schema_is_a_hard_error() {
 fn unparsable_instance_is_a_hard_error() {
     let err = validate_instance(b"not json", InstanceFormat::Json, SCHEMA)
         .expect_err("an unparsable instance must be a hard error");
-    assert!(err.is::<crate::error::Parse>());
+    assert_eq!(err.code(), crate::error::Parse::register());
+    assert!(err.is::<purrdf_lex::json::Error>());
     assert!(
         err.message().contains("could not parse JSON instance"),
         "got {err}"
     );
+}
+
+#[test]
+fn nested_violations_use_escaped_pointers_and_sorted_messages() {
+    let schema = br#"{
+        "type": "object",
+        "properties": {
+            "z": {"type": "integer"},
+            "a/b~c": {"type": "array", "items": {"type": "string"}}
+        }
+    }"#;
+    let instance = br#"{"z": "wrong", "a/b~c": [false]}"#;
+    let errors = validate_instance(instance, InstanceFormat::Json, schema).unwrap();
+    // Basic output includes applicator explanations as well as leaf failures.
+    // Retain all of them and deliberately pin the native message spelling.
+    assert_eq!(
+        errors,
+        [
+            "/: properties [\"z\", \"a/b~c\"] failed their schemas",
+            "/a~1b~0c/0: expected string, found boolean",
+            "/a~1b~0c: items [0] failed the items schema",
+            "/z: expected integer, found string",
+        ]
+    );
+    let yaml = b"z: wrong\na/b~c: [false]\n";
+    assert_eq!(
+        errors,
+        validate_instance(yaml, InstanceFormat::Yaml, schema).unwrap()
+    );
+}
+
+#[test]
+fn false_schema_is_a_root_violation_not_an_engine_failure() {
+    let errors = validate_instance(b"null", InstanceFormat::Json, b"false").unwrap();
+    assert_eq!(errors.len(), 1);
+    assert!(errors[0].starts_with("/: "), "{errors:?}");
+    assert!(
+        validate_instance(b"null", InstanceFormat::Json, b"true")
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
+fn invalid_keyword_type_is_a_typed_schema_failure() {
+    let err = validate_instance(b"{}", InstanceFormat::Json, br#"{"required": 17}"#)
+        .expect_err("an invalid schema must not become an instance verdict");
+    assert_eq!(err.code(), crate::error::Parse::register());
+    assert!(err.is::<purrdf_jsonschema::SchemaError>(), "{err:?}");
+}
+
+#[test]
+fn unavailable_reference_is_a_hard_error_without_a_resolver() {
+    let err = validate_instance(
+        b"{}",
+        InstanceFormat::Json,
+        br#"{"$ref": "https://example.invalid/not-registered"}"#,
+    )
+    .expect_err("validation cannot fetch an unavailable schema");
+    assert!(
+        matches!(
+            err.downcast_ref::<purrdf_jsonschema::SchemaError>(),
+            Some(purrdf_jsonschema::SchemaError::UnresolvedReference { .. })
+        ),
+        "{err:?}"
+    );
+}
+
+#[test]
+fn malformed_yaml_and_non_utf8_are_hard_errors() {
+    let malformed = validate_instance(b"[unterminated", InstanceFormat::Yaml, SCHEMA)
+        .expect_err("malformed YAML cannot produce a verdict");
+    assert_eq!(malformed.code(), crate::error::Parse::register());
+    assert!(
+        malformed
+            .message()
+            .contains("could not parse YAML instance")
+    );
+    let non_utf8 =
+        validate_instance(&[0xff], InstanceFormat::Yaml, SCHEMA).expect_err("YAML must be UTF-8");
+    assert!(non_utf8.is::<std::str::Utf8Error>());
+}
+
+#[test]
+fn local_reference_and_exact_numeric_values_validate_in_both_formats() {
+    let schema = br##"{
+        "$defs": {"amount": {"const": 9007199254740993}},
+        "properties": {"amount": {"$ref": "#/$defs/amount"}},
+        "required": ["amount"]
+    }"##;
+    for (instance, format) in [
+        (
+            br#"{"amount": 9007199254740993}"#.as_slice(),
+            InstanceFormat::Json,
+        ),
+        (
+            b"amount: 9007199254740993\n".as_slice(),
+            InstanceFormat::Yaml,
+        ),
+    ] {
+        assert!(
+            validate_instance(instance, format, schema)
+                .unwrap()
+                .is_empty()
+        );
+    }
+    let errors = validate_instance(
+        br#"{"amount": 9007199254740992}"#,
+        InstanceFormat::Json,
+        schema,
+    )
+    .unwrap();
+    assert!(!errors.is_empty());
 }

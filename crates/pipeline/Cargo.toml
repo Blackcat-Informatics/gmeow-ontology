@@ -222,6 +222,3 @@ insta = { workspace = true, features = ["json"] }
 # Determinism tests for the YAML-LD-star / JSON-LD-star emitter vary hash-map
 # seeds to prove that output order is independent of input collection order.
 ahash = "0.8"
-# Validate sample @annotation fragments against the SHACL-derived JSON Schema
-# the `json_schema` export leaf compiles.
-jsonschema.workspace = true
