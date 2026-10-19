@@ -118,6 +118,35 @@ fn production_only_components_need_not_be_linked_into_fuzzers() {
 }
 
 #[test]
+fn invalid_production_only_components_are_rejected_before_subset_admission() {
+    let incomplete = package("purrdf-jsonschema", "3.0.0", "schema-release")
+        .lines()
+        .filter(|line| !line.starts_with("checksum = "))
+        .collect::<Vec<_>>()
+        .join("\n");
+    for (component, expected) in [
+        (incomplete, "requires its complete release checksum"),
+        (
+            package("purrdf-jsonschema", "3.0.1", "other-release"),
+            "differs from the selected purrdf release or source",
+        ),
+    ] {
+        let temp = fixture();
+        let root = temp.path();
+        resolve_purrdf(&root.join("fuzz/Cargo.toml"), &root.join("fuzz/Cargo.lock"))
+            .expect("the unchanged fuzz resolution is valid");
+        std::fs::write(
+            root.join("Cargo.lock"),
+            format!("{}{component}", lock("3.0.0", "same-release")),
+        )
+        .unwrap();
+        let error = verify_fuzz_substrate(root).unwrap_err().to_string();
+        assert!(error.contains("purrdf-jsonschema"), "{error}");
+        assert!(error.contains(expected), "{error}");
+    }
+}
+
+#[test]
 fn direct_core_and_fuzz_requirements_are_the_same_registry_contract() {
     let temp = fixture();
     let root = temp.path();
