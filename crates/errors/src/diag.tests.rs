@@ -145,6 +145,40 @@ fn blanket_from_preserves_downcast() {
 }
 
 #[test]
+fn domain_diagnostic_preserves_the_original_cause_until_lowering() {
+    let code = register_code("test.domain-cause");
+    let grade = Grade::new(
+        Severity::Error,
+        FindingCategory::ModelingDisciplineViolation,
+        Standpoint::Binding,
+    );
+    let diag = Diag::new(code, grade, "manifest could not be read").with_source(EvidenceFailure {
+        source: io::Error::new(io::ErrorKind::NotFound, "original missing source"),
+    });
+    assert_eq!(diag.code(), code);
+    assert_eq!(diag.grade(), grade);
+    let cause = diag.downcast_ref::<EvidenceFailure>().unwrap();
+    assert_eq!(cause.source.kind(), io::ErrorKind::NotFound);
+    let mut ledger = crate::DiagLedger::new();
+    ledger.attach(diag, StageId::new("test.domain-cause"));
+    let nodes = ledger.emit_sorted();
+    assert_eq!(nodes[0].code, "test.domain-cause");
+    assert!(
+        nodes[0]
+            .frames
+            .iter()
+            .any(|frame| frame.message == "original missing source")
+    );
+}
+
+#[test]
+#[should_panic(expected = "diagnostic source must not replace an existing causal chain")]
+fn attaching_a_source_cannot_discard_an_existing_causal_chain() {
+    let _ = Diag::from(io::Error::new(io::ErrorKind::NotFound, "original cause"))
+        .with_source(io::Error::other("replacement"));
+}
+
+#[test]
 fn of_kind_preserves_code_grade_and_downcast() {
     let diag = Diag::of_kind(MyKind);
     assert_eq!(diag.code(), register_code("test.diagkind.my-kind"));

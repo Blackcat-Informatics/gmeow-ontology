@@ -49,7 +49,7 @@ fn live_workspace_passes() {
     // resolves to a `crates/*` member. There are no RDF-crate-topology
     // assertions (kernel/events/adapter edges): those crates live in the sibling
     // `purrdf` package, not this workspace.
-    assert!(report.ok(), "{:?}", report.errors);
+    assert!(report.ok(), "{:?}", report.errors());
     assert!(
         !report.edges.is_empty(),
         "the live workspace must contribute crate edges"
@@ -74,7 +74,7 @@ fn registry_dep_is_not_first_party() {
         &[],
     );
     let report = check_crate_layering(&crates);
-    assert!(report.ok(), "{:?}", report.errors);
+    assert!(report.ok(), "{:?}", report.errors());
     assert_eq!(
         report.edges.get(KERNEL_CRATE),
         Some(&BTreeSet::from([RDF_EVENTS_CRATE.to_owned()]))
@@ -91,8 +91,8 @@ fn cycle_is_detected() {
     let report = check_crate_layering(&crates);
     assert!(!report.ok());
     let cycle_errors = report
-        .errors
-        .iter()
+        .errors()
+        .into_iter()
         .filter(|e| e.contains("cycle"))
         .collect::<Vec<_>>();
     assert!(!cycle_errors.is_empty());
@@ -115,7 +115,7 @@ fn dangling_path_edge_fails() {
     assert!(!report.ok());
     assert!(
         report
-            .errors
+            .errors()
             .iter()
             .any(|e| e.contains("not a crates/* member"))
     );
@@ -150,7 +150,7 @@ fn renamed_package_path_dep_is_first_party() {
     // by its resolved package name (`gmeow-errors`), so it becomes a real
     // graph edge. No RDF-core-purity rule constrains it (that layering is the
     // sibling `purrdf` package's concern), so this edge does not trip a gate.
-    assert!(report.ok(), "{:?}", report.errors);
+    assert!(report.ok(), "{:?}", report.errors());
     assert_eq!(
         report.edges.get(KERNEL_CRATE),
         Some(&BTreeSet::from([
@@ -176,7 +176,7 @@ fn target_table_path_dep_is_first_party() {
     )
     .unwrap();
     let report = check_crate_layering(&crates);
-    assert!(report.ok(), "{:?}", report.errors);
+    assert!(report.ok(), "{:?}", report.errors());
     assert_eq!(
         report.edges.get("gmeow-a"),
         Some(&BTreeSet::from(["gmeow-b".to_owned()]))
@@ -198,11 +198,116 @@ fn diagnostics_projection_carries_errors() {
     let report = check_crate_layering(&crates);
     assert!(!report.ok());
     let diagnostics = to_diagnostics_report(&report);
-    assert_eq!(diagnostics.findings.len(), report.errors.len());
+    assert_eq!(diagnostics.findings.len(), report.errors().len());
     assert!(
         diagnostics
             .findings
             .iter()
             .any(|finding| finding.code == "crate-layering.violation")
     );
+}
+
+#[test]
+fn distinct_dependency_sources_keep_distinct_ledger_witnesses() {
+    let temp = tempfile::tempdir().unwrap();
+    let crates = temp.path().join("crates");
+    write_crate(
+        &crates,
+        "gmeow-a",
+        &[("gmeow-x", "gmeow-x"), ("gmeow-y", "gmeow-y")],
+        &[],
+    );
+    fs::rename(crates.join("gmeow-a"), crates.join("different-directory")).unwrap();
+    write_crate(&crates, "gmeow-b", &[("gmeow-x", "gmeow-x")], &[]);
+    let report = check_crate_layering(&crates);
+    assert!(!report.ok());
+    assert_eq!(report.ledger().len(), 3);
+    assert_eq!(report.errors().len(), 3);
+    let anchors: BTreeSet<_> = report
+        .ledger()
+        .emit_sorted()
+        .into_iter()
+        .map(|node| {
+            assert_eq!(node.code, crate::codes::CRATE_LAYERING_VIOLATION);
+            assert_eq!(node.stage.as_str(), "validate.crate-layering");
+            (
+                node.source_ctx.location.path.as_deref().unwrap(),
+                node.source_ctx.focus.as_ref().unwrap().0.as_str(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        anchors,
+        BTreeSet::from([
+            ("crates/different-directory/Cargo.toml", "gmeow-x"),
+            ("crates/different-directory/Cargo.toml", "gmeow-y"),
+            ("crates/gmeow-b/Cargo.toml", "gmeow-x"),
+        ])
+    );
+    let projection = to_diagnostics_report(&report);
+    assert_eq!(projection.findings.len(), 3);
+    assert!(projection.findings.iter().all(|finding| {
+        finding.finding_iri.is_some()
+            && finding.standpoint == Some(Standpoint::Binding)
+            && finding
+                .primary_location()
+                .unwrap()
+                .path
+                .as_deref()
+                .is_some_and(|path| path.starts_with("crates/") && !Path::new(path).is_absolute())
+    }));
+}
+
+#[test]
+fn manifest_read_and_parse_causes_survive_ledger_projection() {
+    for bytes in [b"[package\n".as_slice(), b"\xff".as_slice()] {
+        let temp = tempfile::tempdir().unwrap();
+        let crates = temp.path().join("crates");
+        let path = crates.join("broken/Cargo.toml");
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, bytes).unwrap();
+        let cause = match fs::read_to_string(&path) {
+            Ok(text) => text.parse::<Value>().unwrap_err().to_string(),
+            Err(error) => error.to_string(),
+        };
+        let report = check_crate_layering(&crates);
+        assert!(!report.ok());
+        let nodes = report.ledger().emit_sorted();
+        assert_eq!(nodes.len(), 1);
+        assert_eq!(
+            nodes[0].source_ctx.location.path.as_deref(),
+            Some("crates/broken/Cargo.toml")
+        );
+        assert!(nodes[0].frames.iter().any(|frame| frame.message == cause));
+        let projection = to_diagnostics_report(&report);
+        assert!(
+            projection.findings[0]
+                .detail
+                .as_ref()
+                .unwrap()
+                .contains(&cause)
+        );
+    }
+}
+
+#[test]
+fn wording_is_not_a_crate_layering_witness_identity() {
+    let mut report = CrateLayeringReport::default();
+    for message in ["dependency missing", "the same dependency is absent"] {
+        report.ledger.attach(
+            violation("crates/a/Cargo.toml", "gmeow-missing", message),
+            layering_stage(),
+        );
+    }
+    assert_eq!(report.ledger().len(), 1);
+    assert_eq!(
+        report.errors().len(),
+        2,
+        "retain both observations of the witness"
+    );
+    let projection = to_diagnostics_report(&report);
+    assert_eq!(projection.findings.len(), 1);
+    let text = serde_json::to_string(&projection).unwrap();
+    assert!(text.contains("dependency missing"));
+    assert!(text.contains("the same dependency is absent"));
 }

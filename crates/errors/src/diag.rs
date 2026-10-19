@@ -452,9 +452,8 @@ impl Diag {
         let grade = kind.grade();
         let failure_class = kind.failure_class().map(str::to_owned);
         let message = kind.to_string();
-        let mut diag = Diag::new(code, grade, message);
+        let mut diag = Diag::new(code, grade, message).with_source(kind);
         diag.0.failure_class = failure_class;
-        diag.0.source = Some(Box::new(kind));
         diag
     }
 
@@ -525,6 +524,18 @@ impl Diag {
     }
 
     // --- builders (the sole mutation surface) --------------------------------
+
+    /// Retain an operation's original typed cause until ledger lowering. The
+    /// diagnostic's domain code, grade and observation remain unchanged.
+    /// Replacing an existing causal chain is an invariant violation.
+    pub fn with_source(mut self, source: impl StdError + Send + Sync + 'static) -> Self {
+        assert!(
+            self.0.source.is_none(),
+            "diagnostic source must not replace an existing causal chain"
+        );
+        self.0.source = Some(Box::new(source));
+        self
+    }
 
     #[track_caller]
     pub fn with_context(mut self, label: impl Into<String>) -> Self {
@@ -633,7 +644,7 @@ impl<E: StdError + Send + Sync + 'static> From<E> for Diag {
     #[track_caller]
     fn from(err: E) -> Self {
         let message = err.to_string();
-        let mut diag = Diag::new(
+        Diag::new(
             code::foreign_code(),
             Grade::new(
                 Severity::Error,
@@ -641,9 +652,8 @@ impl<E: StdError + Send + Sync + 'static> From<E> for Diag {
                 Standpoint::Binding,
             ),
             message,
-        );
-        diag.0.source = Some(Box::new(err));
-        diag
+        )
+        .with_source(err)
     }
 }
 

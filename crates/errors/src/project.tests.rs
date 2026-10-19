@@ -40,6 +40,48 @@ fn projected_finding_carries_the_grade_standpoint() {
 }
 
 #[test]
+fn projection_retains_focus_and_a_distinct_logical_source_anchor() {
+    for logical in [None, Some("urn:source:expression")] {
+        let mut diag = diag_at(
+            "test.project.focus",
+            "slices/example/module.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_focus("urn:source:term");
+        diag.inner_mut().source_ctx.location.logical = logical.map(str::to_owned);
+        let mut ledger = DiagLedger::new();
+        ledger.attach(diag, StageId::new("test.project.focus"));
+        let report = ledger.project_report("validate");
+        let finding = &report.findings[0];
+        assert_eq!(
+            finding.primary_location().unwrap().path.as_deref(),
+            Some("slices/example/module.ttl")
+        );
+        assert!(
+            finding
+                .locations
+                .iter()
+                .any(|location| location.logical.as_deref() == Some("urn:source:term"))
+        );
+        if let Some(logical) = logical {
+            assert_eq!(
+                finding.primary_location().unwrap().logical.as_deref(),
+                Some(logical)
+            );
+        }
+        let wire = crate::render::to_sarif(&report).unwrap();
+        assert!(wire.contains("urn:source:term"));
+        if let Some(logical) = logical {
+            assert!(wire.contains(logical));
+        }
+    }
+}
+
+#[test]
 fn projected_finding_carries_labels_as_related_locations() {
     // A multi-anchor witness (e.g. a SHACL result with a result-path / value,
     // or a "defined here / used there" lint) carries its secondary Label spans

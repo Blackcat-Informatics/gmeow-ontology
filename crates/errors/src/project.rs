@@ -26,7 +26,23 @@ impl DiagNode {
             .with_tool(tool)
             .with_category(self.grade.category)
             .with_standpoint(self.grade.standpoint);
-        finding.add_location(self.source_ctx.location.clone());
+        let mut location = self.source_ctx.location.clone();
+        let distinct_focus = self.source_ctx.focus.as_ref().filter(|focus| {
+            location
+                .logical
+                .as_deref()
+                .is_some_and(|logical| logical != focus.0)
+        });
+        if location.logical.is_none() {
+            location.logical = self.source_ctx.focus.as_ref().map(|focus| focus.0.clone());
+        }
+        finding.add_location(location);
+        if let Some(focus) = distinct_focus {
+            finding.add_location(Location {
+                logical: Some(focus.0.clone()),
+                ..Location::default()
+            });
+        }
         finding.tags = self.tags.clone();
         finding.attributions = self.attributions.clone();
         // The documented-term attributions (a SHACL violation's constrained property,
@@ -134,6 +150,19 @@ impl DiagNode {
 }
 
 impl DiagLedger {
+    /// Borrow every observation at a selected severity in deterministic order,
+    /// including observations joined under the same witness identity.
+    pub fn messages(&self, severity: crate::Severity) -> impl Iterator<Item = &str> {
+        self.emit_sorted()
+            .into_iter()
+            .filter(move |node| node.grade.severity == severity)
+            .flat_map(|node| {
+                node.observations
+                    .iter()
+                    .map(|observation| observation.message.as_str())
+            })
+    }
+
     /// Project the whole ledger to a [`Report`], in the ledger's total
     /// deterministic `(stage, fingerprint)` order. Built from the same
     /// [`iter_findings`](DiagLedger::iter_findings) projection so the exit surfaces never

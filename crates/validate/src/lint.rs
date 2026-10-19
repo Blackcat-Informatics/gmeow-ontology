@@ -224,12 +224,7 @@ impl LintReport {
     }
 
     fn messages(&self, severity: Severity) -> Vec<String> {
-        self.ledger
-            .emit_sorted()
-            .into_iter()
-            .filter(|node| node.grade.severity == severity)
-            .flat_map(|node| node.observations.iter().map(|o| o.message.clone()))
-            .collect()
+        self.ledger.messages(severity).map(str::to_owned).collect()
     }
 }
 
