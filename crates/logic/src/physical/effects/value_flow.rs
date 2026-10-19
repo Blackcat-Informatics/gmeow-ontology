@@ -937,6 +937,29 @@ impl AdaptiveDomain {
         }
     }
 
+    /// Materialize only the values admitted by the current join column.
+    fn intersected(&self, filter: &Domain) -> Domain {
+        match self {
+            Self::Dense(domain) => Domain(
+                domain
+                    .0
+                    .iter()
+                    .zip(&filter.0)
+                    .map(|(values, allowed)| values & allowed)
+                    .collect(),
+            ),
+            Self::Sparse { size, values } => {
+                let mut domain = Domain::empty(*size);
+                for &value in values {
+                    if filter.contains(value) {
+                        domain.insert(value);
+                    }
+                }
+                domain
+            }
+        }
+    }
+
     fn intersect_union_into(&self, filter: &Domain, output: &mut Domain) -> bool {
         match self {
             Self::Dense(domain) => {
@@ -2201,13 +2224,11 @@ impl ValueFlow {
                         continue;
                     };
                     let mut row = [
-                        relation.columns[0].to_domain(),
+                        relation.columns[0].intersected(&required[0]),
                         self.universe.predicates(&Domain::one(size, predicate)),
-                        relation.columns[1].to_domain(),
+                        relation.columns[1].intersected(&required[2]),
                     ];
-                    for (values, wanted) in row.iter_mut().zip(&required) {
-                        values.intersect(wanted);
-                    }
+                    row[1].intersect(&required[1]);
                     if !row[0].is_empty() && row[0].is_subset_of(&self.conditioned) {
                         let mut objects = Domain::empty(size);
                         let subjects =

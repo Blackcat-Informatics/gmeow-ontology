@@ -85,21 +85,38 @@ fn column_fixed_point_covers_every_concrete_positive_derivation() {
                 source.insert(fact.clone());
             }
         }
-        let input = analysis.summarize(source.facts().iter());
-        let refined = analysis.refine(&effects, &input);
         let concrete = least_model_of_reduct(&source, &rules, &FactStore::new()).unwrap();
-        for row in concrete.derivations {
-            let rule = rules
-                .iter()
-                .position(|rule| rule.rule_iri == row.rule_iri)
-                .unwrap();
-            let range = refined[rule].writes[0]
-                .ranges
-                .as_ref()
-                .expect("reachable producer");
-            assert!(range[0].contains(analysis.universe.value(&row.subject)));
-            assert!(range[1].contains(analysis.universe.iri(&row.predicate)));
-            assert!(range[2].contains(analysis.universe.value(&row.object)));
+        // Column storage must not affect coverage, including the empty and
+        // recursive cases. Compare both layouts with concrete native execution.
+        for dense_columns in [false, true] {
+            let mut input = analysis.summarize(source.facts().iter());
+            for relation in input.relations.values_mut() {
+                for column in &mut relation.columns {
+                    let domain = column.to_domain();
+                    *column = if dense_columns {
+                        AdaptiveDomain::Dense(domain)
+                    } else {
+                        AdaptiveDomain::Sparse {
+                            size: analysis.universe.size(),
+                            values: domain.indices().collect(),
+                        }
+                    };
+                }
+            }
+            let refined = analysis.refine(&effects, &input);
+            for row in &concrete.derivations {
+                let rule = rules
+                    .iter()
+                    .position(|rule| rule.rule_iri == row.rule_iri)
+                    .unwrap();
+                let range = refined[rule].writes[0]
+                    .ranges
+                    .as_ref()
+                    .expect("reachable producer");
+                assert!(range[0].contains(analysis.universe.value(&row.subject)));
+                assert!(range[1].contains(analysis.universe.iri(&row.predicate)));
+                assert!(range[2].contains(analysis.universe.value(&row.object)));
+            }
         }
     }
 }
