@@ -59,6 +59,7 @@ fn dev_surface_extends_consumer_tools_and_resources() {
 fn packet_candidate_composes_the_source_theory_with_the_governed_submission() {
     let snapshot = snapshot();
     let root = repo_root();
+    std::fs::create_dir_all(root.join(".cache")).unwrap();
     let fixture = tempfile::Builder::new()
         .prefix("packet-candidate-")
         .tempdir_in(root.join(".cache"))

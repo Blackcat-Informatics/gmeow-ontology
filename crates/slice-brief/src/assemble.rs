@@ -105,7 +105,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
     // The slice authoring dataset (module + examples + tests + mappings) and the
     // slice identity — loaded through the SHARED helpers so `exemplar_tiers`
     // and this assembly read byte-identical inputs.
-    let ds = load_slice_dataset(inputs.slice_dir)?;
+    let ds = load_slice_dataset(inputs.slice_dir, &[])?;
     let slice_iri = slice_identity(inputs.slice_dir)?;
     assemble_packet_from_source(inputs, &ds, slice_iri)
 }
@@ -118,7 +118,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
 pub fn assemble_candidate_packet(
     inputs: &BriefInputs,
 ) -> gmeow_errors::Result<crate::knowledge_base::CandidatePacket> {
-    let ds = load_slice_dataset(inputs.slice_dir)?;
+    let ds = load_slice_dataset(inputs.slice_dir, &[inputs.slice_dir.join("module.ttl")])?;
     let slice_iri = slice_identity(inputs.slice_dir)?;
     let packet = assemble_packet_from_source(inputs, &ds, slice_iri)?;
     crate::knowledge_base::CandidatePacket::from_source(packet, &ds)
@@ -458,11 +458,14 @@ fn ordered_pair(a: &str, b: &str) -> (String, String) {
 ///
 /// # Errors
 /// Hard-fails if any of the slice's Turtle sources cannot be read or parsed.
-fn load_slice_dataset(slice_dir: &Path) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+fn load_slice_dataset(
+    slice_dir: &Path,
+    required_sources: &[PathBuf],
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
-    // The module is a required source, including when it is absent. The path
-    // enumerator filters missing files; the native loader must instead refuse it.
-    paths.push(slice_dir.join("module.ttl"));
+    // Candidate submission declares its module mandatory. Selection profiles may
+    // legitimately mint no terms and carry no module.
+    paths.extend_from_slice(required_sources);
     collect_ttl(&slice_dir.join("mappings"), &mut paths)?;
     paths.sort();
     paths.dedup();
@@ -576,7 +579,7 @@ pub fn exemplar_tiers(
     slice_dir: &Path,
     shapes: &ShapeUnion,
 ) -> gmeow_errors::Result<BTreeMap<String, i64>> {
-    let ds = load_slice_dataset(slice_dir)?;
+    let ds = load_slice_dataset(slice_dir, &[])?;
     let slice_iri = slice_identity(slice_dir)?;
     let terms = defined_terms(&ds, &slice_iri);
 

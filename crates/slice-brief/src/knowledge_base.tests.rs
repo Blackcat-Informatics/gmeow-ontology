@@ -111,7 +111,7 @@ fn packet_theory_rejects_a_term_absent_from_its_source() {
 }
 
 #[test]
-fn candidate_packet_refuses_a_missing_required_module() {
+fn selection_packets_remain_valid_but_candidate_packets_require_a_module() {
     let fixture = tempfile::tempdir().unwrap();
     std::fs::write(
         fixture.path().join("manifest.ttl"),
@@ -126,6 +126,13 @@ fn candidate_packet_refuses_a_missing_required_module() {
         exemplar_tiers: &tiers,
         exemplar_target: 0,
     };
+    assert_eq!(crate::assemble_packet(&inputs).unwrap().term_count, 0);
+    let shapes = purrdf::shapes::engine::parse_shapes("", None).unwrap();
+    assert!(
+        crate::exemplar_tiers(fixture.path(), &shapes)
+            .unwrap()
+            .is_empty()
+    );
     let error = crate::assemble_candidate_packet(&inputs)
         .err()
         .expect("a selected module may not disappear into an empty theory");
