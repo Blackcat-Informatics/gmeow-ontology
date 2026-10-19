@@ -13,7 +13,7 @@ use syn::{
 };
 
 /// Dependency-owned macros whose namespace is part of the input capability.
-fn qualified_macro(path: &syn::Path) -> Option<&'static str> {
+fn qualified_macro(path: &syn::Path, tracing_names: &BTreeSet<String>) -> Option<&'static str> {
     if path.segments.len() != 2 {
         return None;
     }
@@ -24,7 +24,9 @@ fn qualified_macro(path: &syn::Path) -> Option<&'static str> {
         ("inventory", "collect") => Some("inventory::collect"),
         // A relative name can resolve to a local module re-exporting an
         // input-bearing macro. Only the external-prelude path owns this grant.
-        ("tracing", "info_span") if path.leading_colon.is_some() => Some("tracing::info_span"),
+        (owner, "info_span") if path.leading_colon.is_some() && tracing_names.contains(owner) => {
+            Some("tracing::info_span")
+        }
         _ => None,
     }
 }
@@ -69,7 +71,18 @@ fn collect_selected(
     for unit in &units {
         let Some(source) = &unit.source else { continue };
         let path = checked_path(workspace, Path::new(source))?;
+        let tracing_names = unit
+            .dependency_names
+            .iter()
+            .zip(&unit.dependencies)
+            .filter(|(_, index)| {
+                crate::cargo::package_parts(&units[**index].package)
+                    .is_ok_and(|(_, name, _)| name == "tracing")
+            })
+            .map(|(name, _)| name.clone())
+            .collect();
         let mut scanner = Scanner {
+            tracing_names,
             workspace,
             inventory,
             unit,
@@ -196,6 +209,14 @@ fn semantic_inventory(
             controller: false,
         };
         let mut scanner = Scanner {
+            // This portable policy traversal has no resolved Cargo units. Keep
+            // its declared-name grant distinct from production admission.
+            tracing_names: unit
+                .dependency_names
+                .iter()
+                .filter(|name| name.as_str() == "tracing")
+                .cloned()
+                .collect(),
             workspace,
             inventory: &mut inventory,
             unit: &unit,
@@ -224,6 +245,7 @@ fn semantic_inventory(
 }
 
 struct Scanner<'a> {
+    tracing_names: BTreeSet<String>,
     workspace: &'a Path,
     inventory: &'a mut InputInventory,
     unit: &'a UnitSelection,
@@ -505,7 +527,7 @@ impl Scanner<'_> {
                     let path = tokens[start..=index].iter().cloned().collect();
                     let owner = syn::parse2::<syn::Path>(path)
                         .ok()
-                        .and_then(|path| qualified_macro(&path));
+                        .and_then(|path| qualified_macro(&path, &self.tracing_names));
                     let name = owner.map(str::to_owned).unwrap_or_else(|| name.to_string());
                     self.macro_input(&name, group.stream())?;
                     index += 3;
@@ -570,13 +592,7 @@ impl Scanner<'_> {
             }
             // The selected tracing implementation owns this qualified span
             // constructor. Walk every field expression for nested source inputs.
-            "tracing::info_span"
-                if self
-                    .unit
-                    .dependency_names
-                    .iter()
-                    .any(|name| name == "tracing") =>
-            {
+            "tracing::info_span" => {
                 if contains_module_declaration(tokens.clone()) {
                     return Err(fail(format!(
                         "tracing span contains a module declaration with no source owner in {}",
@@ -786,7 +802,7 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
             .last()
             .map(|part| part.ident.to_string())
             .unwrap_or_default();
-        if let Some(qualified) = qualified_macro(&mac.path) {
+        if let Some(qualified) = qualified_macro(&mac.path, &self.tracing_names) {
             name = qualified.into();
         }
         if let Err(e) = self.macro_input(&name, mac.tokens.clone()) {

@@ -304,7 +304,7 @@ fn prune_empty_tables(value: &mut toml::Value) {
         table.retain(|_, value| !value.as_table().is_some_and(|table| table.is_empty()));
     }
 }
-fn package_parts(id: &str) -> Result<(&str, &str, &str)> {
+pub(crate) fn package_parts(id: &str) -> Result<(&str, &str, &str)> {
     let (source, package) = id
         .rsplit_once('#')
         .ok_or_else(|| fail(format!("invalid Cargo package identity {id}")))?;

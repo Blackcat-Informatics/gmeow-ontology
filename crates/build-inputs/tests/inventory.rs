@@ -976,6 +976,71 @@ fn standard_output_macros_retain_nested_input_ownership() {
     }
 }
 
+fn tracing_selection(root: &Path, alias: &str) -> ProductionSelection {
+    write(
+        root,
+        "telemetry/Cargo.toml",
+        "[package]\nname='tracing'\nversion='0.1.0'\n",
+    );
+    write(root, "telemetry/src/lib.rs", "pub fn telemetry() {}\n");
+    let mut selected = selection();
+    selected.units.push(UnitSelection {
+        package: "path+file://<workspace>/telemetry#tracing@0.1.0".into(),
+        manifest: Some("telemetry/Cargo.toml".into()),
+        source: Some("telemetry/src/lib.rs".into()),
+        target: "tracing".into(),
+        ..selected.units[0].clone()
+    });
+    selected.units[0].dependencies.push(1);
+    selected.units[0].dependency_names.push(alias.into());
+    selected
+}
+
+#[test]
+fn renamed_tracing_spans_follow_selected_package_identity() {
+    for nested in [false, true] {
+        let span = "::telemetry::info_span!(\"phase\", label = include_str!(\"label.txt\"))";
+        let source = if nested {
+            format!("fn phase() {{ quote! {{ let _ = {span}; }}; }}")
+        } else {
+            format!("fn phase() {{ let _ = {span}; }}")
+        };
+        let root = fixture(&source);
+        write(root.path(), "crate/src/label.txt", "first");
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            "[package]\nname='example'\nversion='1.0.0'\n[dependencies]\ntelemetry={package='tracing',path='../telemetry'}\n",
+        );
+        let mut selected = tracing_selection(root.path(), "telemetry");
+        let before = InputInventory::collect(root.path(), &selected).unwrap();
+        assert!(before.files.contains_key("crate/src/label.txt"));
+        write(root.path(), "crate/src/label.txt", "second");
+        assert_ne!(
+            before,
+            InputInventory::collect(root.path(), &selected).unwrap()
+        );
+        selected.units[1].package = "path+file://<workspace>/telemetry#not-tracing@0.1.0".into();
+        assert!(InputInventory::collect(root.path(), &selected).is_err());
+        selected.units[1].package = "path+file://<workspace>/telemetry#tracing@0.1.0".into();
+        selected.units[0].dependency_names[0] = "different_alias".into();
+        assert!(InputInventory::collect(root.path(), &selected).is_err());
+        selected.units[0].dependency_names[0] = "telemetry".into();
+        for unowned in [
+            source.replace("::telemetry::", "telemetry::"),
+            source.replace("::telemetry::", "::wrong::telemetry::"),
+            source.replace("include_str!(\"label.txt\")", "unknown_input!()"),
+            source.replace("include_str!(\"label.txt\")", "{ mod hidden; 1 }"),
+        ] {
+            write(root.path(), "crate/src/lib.rs", &unowned);
+            assert!(
+                InputInventory::collect(root.path(), &selected).is_err(),
+                "{unowned}"
+            );
+        }
+    }
+}
+
 /// Diagnostic syntax retains nested file bytes while unknown capabilities fail closed.
 #[test]
 fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
@@ -999,8 +1064,7 @@ fn tracing_spans_require_the_selected_owner_and_retain_nested_inputs() {
             "crate/Cargo.toml",
             "[package]\nname='example'\nversion='1.0.0'\n[dependencies]\ntracing='0.1'\n",
         );
-        let mut selected = selection();
-        selected.units[0].dependency_names.push("tracing".into());
+        let selected = tracing_selection(root.path(), "tracing");
         let before = InputInventory::collect(root.path(), &selected).unwrap();
         assert!(before.files.contains_key("crate/src/label.txt"));
         gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]).unwrap();
