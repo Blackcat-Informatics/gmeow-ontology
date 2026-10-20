@@ -320,3 +320,65 @@ fn cross_stage_shared_fingerprint_min_merges_order_independently() {
     let single = finding_nodes(&report, "stage-z");
     assert_eq!(single[0].stage, StageId::new("stage-z"));
 }
+
+#[test]
+fn forward_fold_preserves_distinct_focus_and_secondary_coordinates() {
+    let primary = Location::new(
+        Some("same.ttl".into()),
+        Some(17),
+        Some(9),
+        Some("urn:anchor".into()),
+    );
+    let related =
+        Location::new(Some("related.ttl".into()), Some(23), Some(4), None).with_gts_quad(7);
+    let mut original = DiagLedger::new();
+    for focus in ["urn:subject:a", "urn:subject:b"] {
+        original.attach(
+            Diag::new(
+                register_code("test.focus.forward"),
+                Grade::for_external_severity(Severity::Error),
+                "same observation",
+            )
+            .with_location(primary.clone())
+            .with_focus(focus)
+            .with_graph(purrdf::iri::BaseIri::parse("urn:world").unwrap())
+            .with_label(gmeow_errors::Label {
+                location: related.clone(),
+                text: "defined here".into(),
+            }),
+            StageId::new("synthetic"),
+        );
+    }
+    let mut report = Report::new("synthetic");
+    for node in original.emit_sorted() {
+        report.add_finding(node.to_finding("synthetic"));
+    }
+    // Exercise the actual serialized report boundary as well as its normalization.
+    let report: Report = serde_json::from_slice(&serde_json::to_vec(&report).unwrap()).unwrap();
+    let nodes = finding_nodes(&report, "synthetic");
+    assert_eq!(nodes.len(), 2, "distinct source subjects must not collapse");
+    let original_fingerprints: std::collections::BTreeSet<_> = original
+        .emit_sorted()
+        .iter()
+        .map(|node| node.fingerprint)
+        .collect();
+    let folded_fingerprints: std::collections::BTreeSet<_> =
+        nodes.iter().map(|node| node.fingerprint).collect();
+    assert_eq!(original_fingerprints, folded_fingerprints);
+    for node in nodes {
+        assert_eq!(node.source_ctx.location, primary);
+        assert!(
+            node.labels
+                .iter()
+                .any(|label| label.location == related && label.text == "defined here")
+        );
+        let projected = node.to_finding("synthetic");
+        assert!(projected.related_locations.contains(&related));
+        assert!(
+            projected
+                .related_labels
+                .iter()
+                .any(|label| label.location == related && label.message == "defined here")
+        );
+    }
+}

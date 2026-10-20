@@ -53,6 +53,26 @@ pub fn finding_nodes(report: &Report, stage: &str) -> Vec<DiagNode> {
         if let Some(location) = finding.primary_location() {
             parent = parent.with_location(location.clone());
         }
+        if let Some(focus) = &finding.source_focus {
+            parent = parent.with_focus(focus.clone());
+        }
+        for location in finding
+            .locations
+            .iter()
+            .skip(1)
+            .chain(&finding.related_locations)
+        {
+            parent = parent.with_label(gmeow_errors::Label {
+                location: location.clone(),
+                text: String::new(),
+            });
+        }
+        for label in &finding.related_labels {
+            parent = parent.with_label(gmeow_errors::Label {
+                location: label.location.clone(),
+                text: label.message.clone(),
+            });
+        }
         if let Some(graph) = &finding.source_graph {
             parent = parent.with_graph(graph.clone());
         }

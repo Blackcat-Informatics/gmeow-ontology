@@ -478,6 +478,9 @@ pub struct Finding {
         with = "crate::source_graph"
     )]
     pub source_graph: Option<purrdf_core::BaseIri>,
+    /// Subject identity, distinct from the primary location and named graph.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_focus: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -632,6 +635,7 @@ impl Finding {
             code: code.into(),
             message: message.into(),
             source_graph: None,
+            source_focus: None,
             tool: None,
             locations: Vec::new(),
             related_locations: Vec::new(),
