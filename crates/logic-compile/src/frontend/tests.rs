@@ -1859,6 +1859,148 @@ fn derive_datatype_target_lowers_to_sh_datatype_not_sh_class() {
 }
 
 #[test]
+fn derive_language_literal_datatypes_are_not_classes() {
+    for datatype in ["langString", "dirLangString"] {
+        let ds = shape_dataset(&format!(
+            "g:Record a logic:Class ; logic:subClassOf [ a logic:Restriction ;\n\
+                logic:onProperty g:words ; logic:allValuesFrom rdf:{datatype} ] .\n\
+             g:words a logic:DatatypeProperty ; logic:range rdf:{datatype} .\n\
+             [] a logic:ClosureEntry ; logic:closureKey g:words ;\n\
+                logic:closureValue logic:ClosedWorldClosure ."
+        ));
+        let shapes = derive_validation_shapes(&ds).unwrap();
+        assert_eq!(shapes.len(), 2, "class and property shapes: {datatype}");
+        let components = all_components(&shapes);
+        assert_eq!(
+            components
+                .iter()
+                .filter(|c| matches!(c, ConstraintComponent::Datatype(d) if d.ends_with(datatype)))
+                .count(),
+            2
+        );
+        assert!(
+            !components
+                .iter()
+                .any(|c| matches!(c, ConstraintComponent::Class(_)))
+        );
+    }
+}
+
+#[test]
+fn derive_canonical_named_datarange_uses_structural_typing() {
+    for typing in ["a", "logic:instanceOf"] {
+        let ds = shape_dataset(&format!(
+            "g:Digest {typing} logic:Datarange .\n\
+             g:Record a logic:Class ; logic:subClassOf [ a logic:Restriction ;\n\
+                 logic:onProperty g:digest ; logic:allValuesFrom g:Digest ] ."
+        ));
+        let shapes = derive_validation_shapes(&ds).unwrap();
+        let components = all_components(&shapes);
+        assert!(
+            components
+                .iter()
+                .any(|c| matches!(c, ConstraintComponent::Datatype(d) if d.ends_with("/Digest")))
+        );
+        assert!(
+            !components
+                .iter()
+                .any(|c| matches!(c, ConstraintComponent::Class(_)))
+        );
+    }
+}
+
+#[test]
+fn derive_anonymous_closed_range_preserves_optin_and_optout() {
+    for range in ["rdfs:range", "logic:range"] {
+        for (closure, expected) in [
+            ("", 0),
+            (
+                "[] a logic:ClosureEntry ; logic:closureKey g:words ; logic:closureValue logic:ClosedWorldClosure .",
+                1,
+            ),
+            (
+                "[] a logic:ClosureEntry ; logic:closureKey g:words ; logic:closureValue logic:ClosedWorldClosure . [] a logic:ClosureEntry ; logic:closureKey g:words ; logic:closureValue logic:OpenWorldClosure .",
+                0,
+            ),
+        ] {
+            let ds = shape_dataset(&format!(
+                "g:words a logic:DatatypeProperty ; {range} [ logic:unionOf (rdf:langString rdf:dirLangString) ] . {closure}"
+            ));
+            let shapes = derive_validation_shapes(&ds).unwrap();
+            assert_eq!(shapes.len(), expected, "{range}: {closure}");
+            if expected == 1 {
+                assert!(
+                    matches!(&shapes[0].target, ShapeTarget::ObjectsOf(p) if p.ends_with("/words"))
+                );
+                let [ConstraintComponent::Or(branches)] = shapes[0].node_components.as_slice()
+                else {
+                    panic!("expected a range union: {shapes:?}");
+                };
+                assert_eq!(branches.len(), 2);
+                assert!(
+                    branches
+                        .iter()
+                        .all(|c| matches!(c, ConstraintComponent::Datatype(_)))
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn derive_closed_range_rejects_malformed_union_without_partial_members() {
+    for expression in [
+        "[ logic:unionOf [ rdf:first rdf:langString ] ]",
+        "[ logic:unionOf [ rdf:first rdf:langString ; rdf:rest 7 ] ]",
+        "[ logic:unionOf [ rdf:first rdf:langString ; rdf:rest rdf:nil, <urn:tail> ] ]",
+        "[ logic:unionOf (rdf:langString \"not a datatype\") ]",
+        "[ logic:unionOf (rdf:langString [ a logic:Class ]) ]",
+        "[ logic:unionOf (rdf:langString), (rdf:dirLangString) ]",
+        "[ logic:unionOf [ rdf:first rdfs:Resource ] ]",
+        "[ logic:unsupportedExpression g:Value ]",
+        "[ logic:onDatatype xsd:string ; logic:withRestrictions () ]",
+        "\"not a range\"",
+    ] {
+        let ds = shape_dataset(&format!(
+            "g:words a logic:DatatypeProperty ; logic:range {expression} .\n\
+             [] a logic:ClosureEntry ; logic:closureKey g:words ;\n\
+                logic:closureValue logic:ClosedWorldClosure ."
+        ));
+        let error = derive_validation_shapes(&ds).expect_err(expression);
+        assert_eq!(
+            gmeow_errors::code::code_str(error.code()),
+            "logic-compile.frontend"
+        );
+        assert_eq!(
+            error
+                .inner()
+                .source_ctx
+                .focus
+                .as_ref()
+                .map(|focus| focus.0.as_str()),
+            Some("https://blackcatinformatics.ca/gmeow/words")
+        );
+    }
+}
+
+#[test]
+fn derive_closed_range_preserves_empty_and_universal_union_meaning() {
+    let closed = "[] a logic:ClosureEntry ; logic:closureKey g:value ; logic:closureValue logic:ClosedWorldClosure .";
+    let empty = shape_dataset(&format!(
+        "g:value a logic:DatatypeProperty ; logic:range [ logic:unionOf () ] . {closed}"
+    ));
+    let shapes = derive_validation_shapes(&empty).unwrap();
+    assert_eq!(shapes.len(), 1);
+    assert!(
+        matches!(shapes[0].node_components.as_slice(), [ConstraintComponent::In(values)] if values.is_empty())
+    );
+    let universal = shape_dataset(&format!(
+        "g:value a logic:DatatypeProperty ; logic:range [ logic:unionOf (rdf:langString rdfs:Resource) ] . {closed}"
+    ));
+    assert!(derive_validation_shapes(&universal).unwrap().is_empty());
+}
+
+#[test]
 fn derive_class_target_stays_sh_class() {
     let ds = shape_dataset(
         "g:Doc a owl:Class . \

@@ -2372,12 +2372,21 @@ pub fn derive_validation_shapes(
     // authority ([`is_authoring_namespace`]) kept for call-site brevity in this function.
     let is_authoring_ns = is_authoring_namespace;
 
-    // A range target is a DATATYPE (→ sh:datatype) rather than a class (→ sh:class) when it is
-    // in the XSD space, is rdfs:Literal, or is declared `a rdfs:Datatype`.
+    // RDF language literals are datatypes too; they are not classes whose
+    // instances happen to carry text. Read canonical datatype declarations
+    // through the same structural typing view as other compiler declarations.
     let is_datatype = |iri: &str| -> bool {
         iri.starts_with(xsd)
             || iri == rdfs_literal
-            || objects(store, &Subject::Iri(iri.to_owned()), &nn(RDF_TYPE)).contains(&rdfs_datatype)
+            || matches!(
+                iri,
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                    | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+            )
+            || {
+                let types = structural_classes(store, &Subject::Iri(iri.to_owned()));
+                types.contains(&rdfs_datatype) || types.contains(&Node::iri(logic_iri("Datarange")))
+            }
     };
 
     // The single classification component for an IRI target: `None` for `rdfs:Resource`, the
@@ -3333,12 +3342,65 @@ pub fn derive_validation_shapes(
             }
             // {rdfs,logic}:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
             for c in restriction_objects(&p_subj, &p_range, &p_logic_range) {
-                if let Node::Iri(c) = c
-                    && let Some(cc) = classify_on(p, &c)
-                {
+                let components = match c {
+                    Node::Iri(c) => classify_on(p, &c).into_iter().collect(),
+                    filler @ Node::Blank { .. } => {
+                        let fs = term_as_subject(&filler).expect("blank range has a subject");
+                        let failure = |detail| {
+                            Diag::of_kind(crate::error::Frontend { detail }).with_focus(p.clone())
+                        };
+                        let mut heads = Vec::new();
+                        for head in restriction_objects(&fs, &p_unionof, &p_logic_unionof) {
+                            if !heads.contains(&head) {
+                                heads.push(head);
+                            }
+                        }
+                        if let Some(head) = heads.first() {
+                            if heads.len() != 1 {
+                                return Err(failure(
+                                    "a closed range has conflicting union lists".into(),
+                                ));
+                            }
+                            let members = crate::lists::walk(store, head).map_err(|defect| {
+                                failure(format!("invalid closed range union: {}", defect.reason()))
+                            })?;
+                            let mut branches = Vec::new();
+                            let mut unrestricted = false;
+                            for (_, member) in members {
+                                let Node::Iri(iri) = member else {
+                                    return Err(failure("a closed range union requires named class or datatype members".into()));
+                                };
+                                if let Some(component) = classify_on(p, &iri) {
+                                    branches.push(component);
+                                } else {
+                                    unrestricted = true;
+                                }
+                            }
+                            if unrestricted {
+                                Vec::new()
+                            } else if branches.is_empty() {
+                                // The empty union admits no value, not every value.
+                                vec![ConstraintComponent::In(Vec::new())]
+                            } else {
+                                vec![ConstraintComponent::Or(branches)]
+                            }
+                        } else {
+                            return Err(failure(
+                                "unsupported anonymous closed range expression".into(),
+                            ));
+                        }
+                    }
+                    _ => {
+                        return Err(Diag::of_kind(crate::error::Frontend {
+                            detail: "a closed property range must be a resource".into(),
+                        })
+                        .with_focus(p.clone()));
+                    }
+                };
+                if !components.is_empty() {
                     entry_for(&mut acc, ShapeTarget::ObjectsOf(p.clone()))
                         .1
-                        .push(cc);
+                        .extend(components);
                 }
             }
         }
