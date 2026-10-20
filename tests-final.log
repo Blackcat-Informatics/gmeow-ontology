@@ -1,0 +1,48 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-docs-model) & test(rdf::tests)) | (package(gmeow-pipeline) & test(glossary_words_preserve)) | (package(gmeow-validate) & test(word_values_admit)) | (package(gmeow-docs) & binary(rdf_golden))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 3m 38s
+────────────
+ Nextest run ID 8087d0cc-ef55-435b-bed5-38dcb728f9b5 with nextest profile: ci
+    Starting 14 tests across 50 binaries (2061 tests and 176 binaries skipped)
+        PASS [   0.005s] ( 1/14) gmeow-docs::rdf_golden gmeow_rdf_projection_is_deterministic
+        PASS [   0.005s] ( 2/14) gmeow-docs-model rdf::tests::empty_model_yields_empty_string
+        PASS [   0.005s] ( 3/14) gmeow-docs::rdf_golden gmeow_rdf_types_the_definition_flag_as_xsd_boolean
+        PASS [   0.005s] ( 4/14) gmeow-docs::rdf_golden gmeow_rdf_carries_the_documentation_vocabulary_in_the_named_graph
+        PASS [   0.006s] ( 5/14) gmeow-docs::rdf_golden gmeow_rdf_reparses_through_native_codec
+        PASS [   0.008s] ( 6/14) gmeow-pipeline stages::lang_glossary::tests::glossary_words_preserve_source_and_translation_languages
+        PASS [   0.031s] ( 7/14) gmeow-docs-model rdf::tests::search_facets_carry_real_content_and_honest_absence
+        PASS [   0.031s] ( 8/14) gmeow-docs-model rdf::tests::projection_is_well_formed_and_deterministic
+        PASS [   0.031s] ( 9/14) gmeow-docs-model rdf::tests::undecided_reasoning_projection_never_invents_satisfiable_classes
+        PASS [   0.031s] (10/14) gmeow-docs-model rdf::tests::authored_and_computed_same_release_entries_have_distinct_rdf_identities
+        PASS [   0.031s] (11/14) gmeow-docs-model rdf::tests::entailment_dag_round_trips_rule_conclusion_and_all_premises
+        PASS [   0.032s] (12/14) gmeow-docs-model rdf::tests::documentation_words_retain_their_known_language
+        PASS [   0.045s] (13/14) gmeow-validate::open_world_projection word_values_admit_language_without_closing_subject_domains
+        PASS [   0.061s] (14/14) gmeow-docs::rdf_golden gmeow_rdf_projection_golden
+────────────
+     Summary [   0.076s] 14 tests run: 14 passed, 2061 skipped

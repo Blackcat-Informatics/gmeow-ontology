@@ -1,0 +1,36 @@
+# Natural-language property migration
+
+This semantic subset is complete for the word properties listed below; the full machine-field/digest/media/time contract remains in plan.md. Untagged xsd:string means unspecified language; supplied language/direction is never invented or stripped.
+
+| Owner | Property | Constraint target |
+| --- | --- | --- |
+| slices/core/ai/module.ttl | gmeow:modelProvider | gmeow:ModelCard |
+| slices/core/diagnostics/module.ttl | gmeow:findingMessage | gmeow:Finding |
+| slices/core/diagnostics/module.ttl | gmeow:findingSuggestion | gmeow:Finding |
+| slices/core/diagnostics/module.ttl | gmeow:ruleRemediation | gmeow:ValidationRule |
+| slices/core/diagnostics/module.ttl | gmeow:findingRemediation | gmeow:Finding |
+| slices/core/diagnostics/module.ttl | gmeow:adviceAvoidWhen | gmeow:AdviceEntry |
+| slices/core/diagnostics/module.ttl | gmeow:adviceUseWhen | gmeow:AdviceEntry |
+| slices/core/diagnostics/module.ttl | gmeow:adviceHowToUse | gmeow:AdviceEntry |
+| slices/core/diagnostics/module.ttl | gmeow:findingHowToUse | gmeow:Finding |
+| slices/core/diagnostics/module.ttl | gmeow:findingUseWhen | gmeow:Finding |
+| slices/core/diagnostics/module.ttl | gmeow:findingAvoidWhen | gmeow:Finding |
+| slices/core/documentation/module.ttl | gmeow:docClaim | gmeow:DocEvidence |
+| slices/core/documentation/module.ttl | gmeow:conformanceRationale | gmeow:DocFixture |
+| slices/core/documentation/module.ttl | gmeow:docSearchLabel | property values |
+| slices/core/documentation/module.ttl | gmeow:docSearchDefinition | property values |
+| slices/core/documentation/module.ttl | gmeow:docTitle | gmeow:DocumentedDocument |
+| slices/core/documentation/module.ttl | gmeow:docSearchAdvice | gmeow:DocumentedTerm |
+| slices/core/norms/module.ttl | gmeow:conditionText | gmeow:Condition |
+| slices/core/slice-quality-rubric/module.ttl | gmeow:qualityApplicabilityReason | gmeow:QualityAxisApplicability |
+| slices/extensions/embedding-projection/module.ttl | gmeow:externalRole | gmeow:ExternalBinding |
+| slices/extensions/embedding-projection/module.ttl | gmeow:indexLossContract | gmeow:DerivedVectorIndex |
+| slices/extensions/embedding-projection/module.ttl | gmeow:queryContext | gmeow:SimilarityObservation |
+| slices/extensions/graphrag/module.ttl | gmeow:forQuery | gmeow:RetrievalEvent |
+| slices/extensions/music/module.ttl | gmeow:decisionSequence | gmeow:PerformanceDecision |
+| slices/extensions/narrative/module.ttl | gmeow:positionLabel | gmeow:NarrativePosition |
+| slices/grounding/lang/module.ttl | gmeow:glossarySource | gmeow:GlossaryEntry |
+| slices/grounding/lang/module.ttl | gmeow:glossaryTranslation | gmeow:GlossaryEntry |
+| slices/grounding/logic/module.ttl | logic:withdrawalReason | logic:Conjecture |
+| slices/grounding/logic/module.ttl | logic:message | logic:Constraint |
+| slices/grounding/logic/module.ttl | logic:fragmentBoundaryReason | property values |

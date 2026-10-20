@@ -1,0 +1,1343 @@
+./scripts/test-check-sync-prerequisites.sh
+check-sync prerequisites fail closed OK
+pre-commit run --all-files --show-diff-on-failure
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check json...............................................................Passed
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Failed
+- hook id: codespell
+- exit code: 65
+
+crates/pipeline/src/stages/lang_glossary.tests.rs:18: mot ==> not
+
+yamllint.................................................................Passed
+Lint GitHub Actions workflow files.......................................Passed
+markdownlint-cli2........................................................Passed
+shellcheck...............................................................Passed
+zizmor...................................................................Passed
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+pre-commit hook(s) made changes.
+If you are seeing this message in CI, reproduce locally with: `pre-commit run --all-files`.
+To run `pre-commit` as part of git workflow, use `pre-commit install`.
+All changes made by hooks:
+diff --git crates/docs-model/src/rdf.rs crates/docs-model/src/rdf.rs
+index 8e26919e7..8546b862c 100644
+--- crates/docs-model/src/rdf.rs
++++ crates/docs-model/src/rdf.rs
+@@ -119,6 +119,7 @@ pub fn to_gmeow_rdf(
+         lines.push(format!("{s} <{p}> {o} {graph} ."));
+     };
+     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
++    let prose = |value: &str| format!("{}@{}", literal(value), gmeow_errors::abox::X_GMEOW_ENGLISH);
+ 
+     // Every projected subject is generated A-Box instance data, not vocabulary
+     // surface: tag it with a human label, a derived definition-equivalent, its
+@@ -255,14 +256,14 @@ pub fn to_gmeow_rdf(
+         triple(
+             &subject,
+             &format!("{GMEOW}docSearchLabel"),
+-            &literal(term.label.as_deref().unwrap_or(&term.curie)),
++            &prose(term.label.as_deref().unwrap_or(&term.curie)),
+             &mut lines,
+         );
+         if let Some(definition) = &term.definition {
+             triple(
+                 &subject,
+                 &format!("{GMEOW}docSearchDefinition"),
+-                &literal(definition),
++                &prose(definition),
+                 &mut lines,
+             );
+         }
+@@ -270,7 +271,7 @@ pub fn to_gmeow_rdf(
+             triple(
+                 &subject,
+                 &format!("{GMEOW}docSearchAdvice"),
+-                &literal(&advice),
++                &prose(&advice),
+                 &mut lines,
+             );
+         }
+@@ -392,7 +393,7 @@ pub fn to_gmeow_rdf(
+             triple(
+                 &ev_iri,
+                 &format!("{GMEOW}docClaim"),
+-                &literal(&ev.claim),
++                &prose(&ev.claim),
+                 &mut lines,
+             );
+             // The grounding edge is mandatory and never empty — the fail-fast
+@@ -510,7 +511,7 @@ pub fn to_gmeow_rdf(
+         triple(
+             &subject,
+             &format!("{GMEOW}docSearchLabel"),
+-            &literal(&slice_display(slice)),
++            &prose(&slice_display(slice)),
+             &mut lines,
+         );
+ 
+@@ -601,7 +602,7 @@ pub fn to_gmeow_rdf(
+             triple(
+                 &subject,
+                 &format!("{GMEOW}docTitle"),
+-                &literal(&doc.title),
++                &prose(&doc.title),
+                 &mut lines,
+             );
+             triple(
+@@ -667,14 +668,14 @@ pub fn to_gmeow_rdf(
+         triple(
+             &subject,
+             &format!("{GMEOW}docSearchLabel"),
+-            &literal(&concern_display(concern)),
++            &prose(&concern_display(concern)),
+             &mut lines,
+         );
+         if let Some(definition) = &concern.definition {
+             triple(
+                 &subject,
+                 &format!("{GMEOW}docSearchDefinition"),
+-                &literal(definition),
++                &prose(definition),
+                 &mut lines,
+             );
+         }
+@@ -792,7 +793,7 @@ pub fn to_gmeow_rdf(
+             triple(
+                 subject,
+                 &format!("{GMEOW}conformanceRationale"),
+-                &literal(rationale),
++                &prose(rationale),
+                 &mut lines,
+             );
+         }
+diff --git crates/docs-model/src/rdf.tests.rs crates/docs-model/src/rdf.tests.rs
+index 34a5cd44d..af1537501 100644
+--- crates/docs-model/src/rdf.tests.rs
++++ crates/docs-model/src/rdf.tests.rs
+@@ -105,6 +105,42 @@ fn projection_is_well_formed_and_deterministic() {
+     assert!(a.ends_with('\n'));
+ }
+ 
++/// Documentation prose retains the known carrier language, while machine
++/// provenance and alignment tokens remain untagged.
++#[test]
++fn documentation_words_retain_their_known_language() {
++    let mut model = tiny_model();
++    model.terms[0].scope_notes = vec!["Keep the source context.".to_owned()];
++    let wire = to_gmeow_rdf(&model, &BTreeMap::new());
++    let dataset = purrdf::parse_dataset(wire.as_bytes(), "application/n-quads", None).unwrap();
++    let mut words = 0;
++    let mut machine = 0;
++    for quad in dataset.quads() {
++        let purrdf::TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
++            continue;
++        };
++        match predicate.strip_prefix(GMEOW) {
++            Some("docSearchLabel" | "docSearchDefinition" | "docSearchAdvice") => {
++                let purrdf::TermRef::Literal { language, .. } = dataset.resolve(quad.o) else {
++                    panic!("documentation words must be literals");
++                };
++                assert_eq!(language, Some(gmeow_errors::abox::X_GMEOW_ENGLISH));
++                words += 1;
++            }
++            Some("docUrl" | "docCategory") => {
++                let purrdf::TermRef::Literal { language, .. } = dataset.resolve(quad.o) else {
++                    panic!("machine fields must be literals");
++                };
++                assert!(language.is_none());
++                machine += 1;
++            }
++            _ => {}
++        }
++    }
++    assert!(words >= 4);
++    assert!(machine >= 2);
++}
++
+ #[test]
+ fn authored_and_computed_same_release_entries_have_distinct_rdf_identities() {
+     let mut model = tiny_model();
+diff --git crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap
+index 42206ec00..52059d894 100644
+--- crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap
++++ crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap
+@@ -12,12 +12,12 @@ expression: nq
+ <https://blackcatinformatics.ca/gmeow/documentation/term/cat> <http://www.w3.org/2004/02/skos/core#definition> "Documentation projection for https://blackcatinformatics.ca/gmeow/Cat (Class)."@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/term/cat> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/documentation> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "Cat" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docSearchDefinition> "A small domesticated felid." <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "Cat"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docSearchDefinition> "A small domesticated felid."@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocEvidence> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docEvidenceKind> <https://blackcatinformatics.ca/gmeow/docEvidenceKindCompetency> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/Cat> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docClaim> "exercised by 1 competency question(s)" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docClaim> "exercised by 1 competency question(s)"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docGroundedBy> <https://blackcatinformatics.ca/gmeow/cq/cats-are-animals> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docProducedByChain> "stage-docs-render <- stage-source-load" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docCompetencyCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+@@ -29,7 +29,7 @@ expression: nq
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocEvidence> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <https://blackcatinformatics.ca/gmeow/docEvidenceKind> <https://blackcatinformatics.ca/gmeow/docEvidenceKindFixture> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/Cat> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <https://blackcatinformatics.ca/gmeow/docClaim> "has 1 conformance fixture(s)" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <https://blackcatinformatics.ca/gmeow/docClaim> "has 1 conformance fixture(s)"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <https://blackcatinformatics.ca/gmeow/docGroundedBy> <https://blackcatinformatics.ca/gmeow/documentation/fixture/zoo-cat-ok-ttl> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <https://blackcatinformatics.ca/gmeow/docProducedByChain> "stage-docs-render <- stage-source-load" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/fixture> <https://blackcatinformatics.ca/gmeow/docFixtureCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+@@ -40,7 +40,7 @@ expression: nq
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocEvidence> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <https://blackcatinformatics.ca/gmeow/docEvidenceKind> <https://blackcatinformatics.ca/gmeow/docEvidenceKindProvenance> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/Cat> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <https://blackcatinformatics.ca/gmeow/docClaim> "rendered by the docs build pipeline (2 stage(s))" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <https://blackcatinformatics.ca/gmeow/docClaim> "rendered by the docs build pipeline (2 stage(s))"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <https://blackcatinformatics.ca/gmeow/docGroundedBy> <https://blackcatinformatics.ca/gmeow/stage-docs-render> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <https://blackcatinformatics.ca/gmeow/docProducedByChain> "stage-docs-render <- stage-source-load" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/provenance> <https://blackcatinformatics.ca/gmeow/docProvenanceDepth> "2"^^<http://www.w3.org/2001/XMLSchema#integer> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+@@ -75,11 +75,11 @@ expression: nq
+ <https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <http://www.w3.org/2004/02/skos/core#definition> "Documentation projection for https://blackcatinformatics.ca/gmeow/hasOwner (Property)."@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/documentation> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "gmeow:hasOwner" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "gmeow:hasOwner"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocEvidence> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <https://blackcatinformatics.ca/gmeow/docEvidenceKind> <https://blackcatinformatics.ca/gmeow/docEvidenceKindProvenance> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/hasOwner> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <https://blackcatinformatics.ca/gmeow/docClaim> "rendered by the docs build pipeline (2 stage(s))" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <https://blackcatinformatics.ca/gmeow/docClaim> "rendered by the docs build pipeline (2 stage(s))"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <https://blackcatinformatics.ca/gmeow/docGroundedBy> <https://blackcatinformatics.ca/gmeow/stage-docs-render> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <https://blackcatinformatics.ca/gmeow/docProducedByChain> "stage-docs-render <- stage-source-load" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/hasowner/provenance> <https://blackcatinformatics.ca/gmeow/docProvenanceDepth> "2"^^<http://www.w3.org/2001/XMLSchema#integer> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+@@ -111,7 +111,7 @@ expression: nq
+ <https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <http://www.w3.org/2004/02/skos/core#definition> "Documentation projection for slice https://blackcatinformatics.ca/gmeow/slice/zoo."@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/documentation> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "Zoo" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "Zoo"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/docMissesDimension> <https://blackcatinformatics.ca/gmeow/dimDefinition> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/docMissesDimension> <https://blackcatinformatics.ca/gmeow/dimLabel> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/docMissesDimension> <https://blackcatinformatics.ca/gmeow/dimUsageAdvice> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+@@ -139,7 +139,7 @@ expression: nq
+ <https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <http://www.w3.org/2004/02/skos/core#definition> "Documentation projection for concern https://blackcatinformatics.ca/gmeow/concern/animals."@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/documentation> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "Animals" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <https://blackcatinformatics.ca/gmeow/docSearchLabel> "Animals"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/mapping-set/zoo-sssom> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocumentedMappingSet> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/mapping-set/zoo-sssom> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/mapping/zoo-sssom> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/mapping-set/zoo-sssom> <https://blackcatinformatics.ca/gmeow/docUrl> "linkages/index.html" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+diff --git crates/pipeline/src/stages/lang_glossary.rs crates/pipeline/src/stages/lang_glossary.rs
+index 580518370..4c36a19f4 100644
+--- crates/pipeline/src/stages/lang_glossary.rs
++++ crates/pipeline/src/stages/lang_glossary.rs
+@@ -280,15 +280,17 @@ fn emit_ntriples(entries: &[Entry]) -> Vec<u8> {
+             &iri(GMEOW_NS, "glossaryPredicate"),
+             &e.predicate,
+         ));
+-        lines.push(triple_lit(
++        lines.push(triple_langlit(
+             &e.entry_iri,
+             &iri(GMEOW_NS, "glossarySource"),
+             &e.source,
++            "x-gmeow-english",
+         ));
+-        lines.push(triple_lit(
++        lines.push(triple_langlit(
+             &e.entry_iri,
+             &iri(GMEOW_NS, "glossaryTranslation"),
+             &e.translation,
++            &e.lang,
+         ));
+         lines.push(triple(
+             &e.entry_iri,
+diff --git crates/pipeline/src/stages/lang_glossary.tests.rs crates/pipeline/src/stages/lang_glossary.tests.rs
+index 691364bc6..7be9c1a48 100644
+--- crates/pipeline/src/stages/lang_glossary.tests.rs
++++ crates/pipeline/src/stages/lang_glossary.tests.rs
+@@ -3,6 +3,45 @@
+ 
+ use super::*;
+ 
++/// A tiny authored translation pair retains both actual languages through the
++/// production glossary emitter; this never builds the repository corpus.
++#[test]
++fn glossary_words_preserve_source_and_translation_languages() {
++    let entries = [Entry {
++        glossary_iri: "urn:synthetic:glossary".into(),
++        slice_iri: "urn:synthetic:slice".into(),
++        lang: "fr".into(),
++        entry_iri: "urn:synthetic:entry".into(),
++        term: "urn:synthetic:term".into(),
++        predicate: "http://www.w3.org/2000/01/rdf-schema#label".into(),
++        source: "a source word".into(),
++        translation: "un mot traduit".into(),
++        concept_iri: "urn:synthetic:concept".into(),
++        sense_iri: "urn:synthetic:sense".into(),
++        unit_iri: "urn:synthetic:unit".into(),
++    }];
++    let wire = emit_ntriples(&entries);
++    let dataset = purrdf::parse_dataset(&wire, "application/n-triples", None).unwrap();
++    let mut observed = std::collections::BTreeMap::new();
++    for quad in dataset.quads() {
++        if let (purrdf::TermRef::Iri(predicate), purrdf::TermRef::Literal { language, .. }) =
++            (dataset.resolve(quad.p), dataset.resolve(quad.o))
++            && matches!(predicate, p if p == iri(GMEOW_NS, "glossarySource") || p == iri(GMEOW_NS, "glossaryTranslation"))
++        {
++            observed.insert(predicate.to_owned(), language.map(str::to_owned));
++        }
++    }
++    assert_eq!(observed.len(), 2);
++    assert_eq!(
++        observed[&iri(GMEOW_NS, "glossarySource")].as_deref(),
++        Some("x-gmeow-english")
++    );
++    assert_eq!(
++        observed[&iri(GMEOW_NS, "glossaryTranslation")].as_deref(),
++        Some("fr")
++    );
++}
++
+ #[test]
+ fn glossary_table_cells_escape_structural_characters() {
+     assert_eq!(cell("a | b"), "a \\| b");
+diff --git crates/validate/tests/open_world_projection.rs crates/validate/tests/open_world_projection.rs
+index 297ff2f5a..f6a7e2875 100644
+--- crates/validate/tests/open_world_projection.rs
++++ crates/validate/tests/open_world_projection.rs
+@@ -148,6 +148,49 @@ fn language_literal_projection_and_calendar_precision_use_generated_ranges() {
+     }
+ }
+ 
++/// Word restrictions admit explicit and unspecified language while preserving
++/// open-world subject typing and rejecting values outside the text contract.
++#[test]
++fn word_values_admit_language_without_closing_subject_domains() {
++    let prefixes = "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
++        @prefix g: <https://blackcatinformatics.ca/gmeow/> .\n\
++        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
++        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
++        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
++    let source = format!(
++        "{prefixes}g:conditionText a logic:DatatypeProperty ; logic:domain g:Condition ;\n\
++            logic:range rdfs:Literal .\n\
++         g:Condition a logic:Class ; logic:subClassOf [ a logic:Restriction ;\n\
++            logic:onProperty g:conditionText ; logic:allValuesFrom [\n\
++                logic:unionOf (xsd:string rdf:langString rdf:dirLangString) ] ] ."
++    );
++    let source = parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
++    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(&source).unwrap();
++    assert_eq!(shapes.len(), 1);
++    let mut wire = String::from("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
++    for shape in &shapes {
++        wire.push_str(
++            &gmeow_logic_compile::projections::shapes::project_validation_shape_shacl(shape),
++        );
++    }
++    assert!(!wire.contains("sh:targetSubjectsOf"));
++    for (value, expected) in [
++        ("\"the condition\"@en", true),
++        ("\"la condition\"@fr", true),
++        ("\"source words\"@x-gmeow-english", true),
++        ("\"الشرط\"@ar--rtl", true),
++        ("\"unspecified language\"", true),
++        ("42", false),
++        ("true", false),
++        ("<urn:identifier>", false),
++    ] {
++        let data = format!("{prefixes}<urn:record> a g:Condition ; g:conditionText {value} .");
++        assert_eq!(shacl_conforms(&wire, &data), expected, "{value}");
++    }
++    let untyped = format!("{prefixes}<urn:record> g:conditionText \"the condition\"@en .");
++    assert!(shacl_conforms(&wire, &untyped));
++}
++
+ /// The gmeow namespace table used by both the schema compiler and the JSON-LD
+ /// projector — identical to the corpus sweep's, so CURIE compaction matches
+ /// production exactly.
+diff --git slices/core/ai/docs.md slices/core/ai/docs.md
+index cf84ee89e..5605b893d 100644
+--- slices/core/ai/docs.md
++++ slices/core/ai/docs.md
+@@ -272,3 +272,13 @@ requested alias, actual model, original answer, three cited sources and redactio
+ count together, with a separate explicit-zero example. Content-addressing and exact
+ byte provenance use the existing source machinery; these text properties do not
+ replace an original byte digest or specify a new digest algorithm.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:modelProvider` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/core/ai/module.ttl slices/core/ai/module.ttl
+index 16a7b37a3..78d082221 100644
+--- slices/core/ai/module.ttl
++++ slices/core/ai/module.ttl
+@@ -1,3 +1,4 @@
++@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+ @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+ @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@@ -575,7 +576,7 @@ gmeow:modelProvider
+     rdfs:domain gmeow:ModelCard ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+     rdfs:label "model provider"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The organization providing the model, as named on the card."@x-gmeow-english ;
+     skos:example "ex:opusCard gmeow:modelProvider \"Anthropic\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid using it where the provider must be a first-class linkable gmeow:Organization (model that as an agent and attribute it); this is the card's flat as-named string."@x-gmeow-english ;
+@@ -1233,3 +1234,6 @@ gmeow:answerText
+     gmeow:avoidWhen "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."@x-gmeow-english ;
+     gmeow:howToUse "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."@x-gmeow-english ;
+     gmeow:useWhen "Use when preserving what was asked and answered without treating generated words as established facts."@x-gmeow-english .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:ModelCard logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:modelProvider ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/core/ai/tests/structural.ttl slices/core/ai/tests/structural.ttl
+index 3dc31c015..45c5f25f5 100644
+--- slices/core/ai/tests/structural.ttl
++++ slices/core/ai/tests/structural.ttl
+@@ -158,3 +158,11 @@ ot:saConsultationMachinery a gmeow:StructuralAssertion ;
+     gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+     gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:modelAlias (logic:domain|rdfs:domain) gmeow:ModelInvocation ; (logic:range|rdfs:range) <http://www.w3.org/2001/XMLSchema#token> . gmeow:externalRedactionCount (logic:domain|rdfs:domain) gmeow:ModelInvocation ; (logic:range|rdfs:range) <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> . }" ;
+     gmeow:saRationale "Requested aliases and redacted-item counts are machine values, not prose." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:saaiWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:modelProvider (logic:range|rdfs:range) rdfs:Literal . gmeow:ModelCard (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:modelProvider ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/core/diagnostics/docs.md slices/core/diagnostics/docs.md
+index bed56e41f..2e5b2777c 100644
+--- slices/core/diagnostics/docs.md
++++ slices/core/diagnostics/docs.md
+@@ -223,3 +223,13 @@ file aligns to external vocabularies only, that unification is documented here r
+   appears; the slice is a projection, not a verdict mint.
+ - **Annotation completeness** (Principle 8) — all 16 locally-declared terms carry an `rdfs:label`, a
+   `skos:definition`, `rdfs:isDefinedBy` the diagnostics slice IRI, and a `gmeow:graphBoxRole`.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:findingMessage`, `gmeow:findingSuggestion`, `gmeow:ruleRemediation`, `gmeow:findingRemediation`, `gmeow:adviceAvoidWhen`, `gmeow:adviceUseWhen`, `gmeow:adviceHowToUse`, `gmeow:findingHowToUse`, `gmeow:findingUseWhen`, `gmeow:findingAvoidWhen` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/core/diagnostics/module.ttl slices/core/diagnostics/module.ttl
+index 8cdd10ff7..deabc9c5a 100644
+--- slices/core/diagnostics/module.ttl
++++ slices/core/diagnostics/module.ttl
+@@ -35,7 +35,7 @@ gmeow:Finding
+         [
+             a logic:Restriction ;
+             logic:onProperty gmeow:findingMessage ;
+-            logic:someValuesFrom xsd:string ;
++            logic:someValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+         ] ;
+     logic:subClassOf
+         [
+@@ -145,7 +145,7 @@ gmeow:findingMessage
+     rdfs:domain gmeow:Finding ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "finding message"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The human-readable message of a finding — the one-line description shown in CLI, SARIF, and HTML. Distinct from gmeow:findingCode (the stable rule key): the message explains this occurrence, the code names the rule."@x-gmeow-english ;
+     skos:example "ex:f1 gmeow:findingMessage \"missing required skos:definition\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid overloading it with the rule key (use gmeow:findingCode) or the location text; the message is prose about this occurrence."@x-gmeow-english ;
+@@ -172,7 +172,7 @@ gmeow:findingSuggestion
+     rdfs:domain gmeow:Finding ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "finding suggestion"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "A remediation suggestion attached to a finding — one line of advice on how to act on the diagnostic. A finding may carry several (each a distinct gmeow:findingSuggestion triple), rendered as a list in CLI/HTML, SARIF result properties, and the LSP message. The gmeow: RDF projection of the Rust gmeow_diagnostics::Finding.suggestions, sorted and deduplicated at normalization so the projection is deterministic. The advisory (Severity::Note/Info) soft tier carries these as its 'consider this instead' prose."@x-gmeow-english ;
+     skos:example "ex:f1 gmeow:findingSuggestion \"use gmeow:Kind for rigid sortals\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid overloading it with the verdict (that is gmeow:findingSeverity) or the rule key (gmeow:findingCode); a suggestion is actionable advice about this occurrence, not the finding's identity or grade."@x-gmeow-english ;
+@@ -559,7 +559,7 @@ gmeow:ruleRemediation
+     rdfs:domain gmeow:ValidationRule ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "rule remediation"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The standing, rule-level remediation guidance of an enforced check — the prose that tells a reader how to fix a violation of the rule, authored in the validator rule registry (the `REMEDIATIONS` catalog of crates/validate) and projected into the bundle once on the gmeow:ValidationRule, then onto each of its findings as gmeow:findingRemediation. The sibling of gmeow:ruleHelpUri: where the help URI points OUT to the catalog, ruleRemediation carries the fix text IN. It is rendered verbatim into the SARIF result fixes, the flat JSON, and the human CLI/HTML output; it is NEVER fabricated at render time — a finding with no authored remediation carries none rather than an invented suggestion."@x-gmeow-english ;
+     skos:example "ex:ruleRelatorMediation gmeow:ruleRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid fabricating it at render time (it is authored in the validator rule registry and projected into the bundle; a rule with no authored guidance carries no remediation) and avoid confusing it with gmeow:ruleHelpUri (the outward catalog link) or gmeow:ruleCode (the identity); ruleRemediation is the standing fix prose the rule's findings project."@x-gmeow-english ;
+@@ -572,7 +572,7 @@ gmeow:findingRemediation
+     rdfs:domain gmeow:Finding ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "finding remediation"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The occurrence projection of gmeow:ruleRemediation onto a finding — the fix guidance of the finding's rule, authored in the validator rule registry and projected into the bundle, carried on the gmeow:Finding so every surface (SARIF fixes, JSON, CLI, HTML) can render 'how to fix this' beside the message. The sibling of gmeow:findingSuggestion (occurrence advice) and gmeow:findingHelpUri (the rule's outward link): findingRemediation is the standing remediation prose resolved onto the occurrence. It is projected verbatim from the rule's gmeow:ruleRemediation, NEVER fabricated at render time; a finding whose rule authors no remediation carries none."@x-gmeow-english ;
+     skos:example "ex:f1 gmeow:findingRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid inventing it at render time (project it from the rule's gmeow:ruleRemediation, never fabricate) and avoid conflating it with gmeow:findingSuggestion (per-occurrence advice) or gmeow:findingMessage (the description of what went wrong); findingRemediation is the projected fix guidance."@x-gmeow-english ;
+@@ -632,7 +632,7 @@ gmeow:adviceAvoidWhen
+     rdfs:domain gmeow:AdviceEntry ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "advice avoid when"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The catalog-side PROHIBITION prose of a gmeow:AdviceEntry — the verbatim gmeow:avoidWhen recommendation of the entry's governed term, projected from the realized advisory carrier's logic:message (which check_advice_message_prose_binding binds equal to the term's authored gmeow:avoidWhen). The advice peer of gmeow:ruleRemediation: where ruleRemediation carries an enforced rule's fix prose, adviceAvoidWhen carries a recommendation's 'avoid this when…' prose. Multi-valued (a term may bear several avoidWhen constraints); rendered verbatim into the advice section and the MCP advise recommendation, NEVER fabricated at render time — a term with no avoidWhen carrier carries none."@x-gmeow-english ;
+     skos:example "ex:adviceEntity gmeow:adviceAvoidWhen \"Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies…\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid fabricating it at render time (it is projected verbatim from the term's realized avoidWhen carrier; an entry with no avoidWhen carrier carries none) and avoid conflating it with gmeow:adviceHowToUse (the corrective directive) or gmeow:adviceUseWhen (the permission gate); adviceAvoidWhen is the prohibition leg."@x-gmeow-english ;
+@@ -645,7 +645,7 @@ gmeow:adviceUseWhen
+     rdfs:domain gmeow:AdviceEntry ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "advice use when"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The catalog-side CONDITIONAL-PERMISSION prose of a gmeow:AdviceEntry — the verbatim gmeow:useWhen recommendation of the entry's governed term, projected from the term's realized logic:AdviceGuidance carrier (which formalizes the term and surfaces its verbatim useWhen prose). The permission-gate peer of gmeow:adviceAvoidWhen: it tells a reader WHEN the governed term is the right choice. Multi-valued; rendered verbatim into the advice section and the MCP advise recommendation, NEVER fabricated — a term with no useWhen guidance carrier carries none."@x-gmeow-english ;
+     skos:example "ex:adviceEntity gmeow:adviceUseWhen \"Use for a genuinely category-neutral resource where no more specific sortal applies…\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid fabricating it at render time (it is projected verbatim from the term's realized logic:AdviceGuidance carrier; an entry with no useWhen guidance carries none) and avoid conflating it with gmeow:adviceAvoidWhen (the prohibition) or gmeow:adviceHowToUse (the directive); adviceUseWhen is the conditional-permission leg."@x-gmeow-english ;
+@@ -658,7 +658,7 @@ gmeow:adviceHowToUse
+     rdfs:domain gmeow:AdviceEntry ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "advice how to use"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The catalog-side POSITIVE-DIRECTIVE prose of a gmeow:AdviceEntry — the verbatim gmeow:howToUse recommendation of the entry's governed term, projected from the term's own gmeow:howToUse annotation. The corrective-directive peer of gmeow:adviceAvoidWhen: where avoidWhen names the anti-pattern, howToUse names the correct enactment. In the MCP advise recommendation it is the sub-ideal repair (the secondary directive that becomes operative once the prohibition has been tripped — a contrary-to-duty shape). Multi-valued; rendered verbatim, NEVER fabricated — a term with no howToUse carries none."@x-gmeow-english ;
+     skos:example "ex:adviceEntity gmeow:adviceHowToUse \"Type the instance with the most specific applicable sortal; reserve the unqualified gmeow:Entity for category-neutral resources…\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid fabricating it at render time (it is projected verbatim from the term's gmeow:howToUse; an entry with no howToUse carries none) and avoid conflating it with gmeow:adviceAvoidWhen (the prohibition) or gmeow:adviceUseWhen (the permission gate); adviceHowToUse is the positive-directive leg."@x-gmeow-english ;
+@@ -681,7 +681,7 @@ gmeow:findingHowToUse
+     rdfs:domain gmeow:Finding ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "finding how to use"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:howToUse guidance onto the finding — the HOW-facet modeling recipe (companion properties, relators, statement metadata, or projection checks) carried on the gmeow:Finding so CLI/HTML/SARIF/LSP can render 'how to use this term' beside the message. Projected verbatim from the term's gmeow:howToUse in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no how-to-use guidance carries none."@x-gmeow-english ;
+     skos:example "ex:f1 gmeow:findingHowToUse \"Attach the mediating relator via gmeow:mediates before asserting the relationship.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:howToUse) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose); findingHowToUse is the term's own usage recipe, not the rule's fix guidance."@x-gmeow-english ;
+@@ -694,7 +694,7 @@ gmeow:findingUseWhen
+     rdfs:domain gmeow:Finding ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "finding use when"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:useWhen guidance onto the finding — the WHEN-facet modeling situation the term should be used in, carried on the gmeow:Finding. Projected verbatim from the term's gmeow:useWhen in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no use-when guidance carries none."@x-gmeow-english ;
+     skos:example "ex:f1 gmeow:findingUseWhen \"Use gmeow:Kind for rigid sortal categories.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:useWhen) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose) or gmeow:findingHowToUse (the HOW facet); findingUseWhen is the term's WHEN-facet usage guidance."@x-gmeow-english ;
+@@ -707,7 +707,7 @@ gmeow:findingAvoidWhen
+     rdfs:domain gmeow:Finding ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+     rdfs:label "finding avoid when"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:avoidWhen guidance onto the finding — the conditions under which the term should NOT be used (or should be promoted to a more precise construct), carried on the gmeow:Finding. Projected verbatim from the term's gmeow:avoidWhen in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no avoid-when guidance carries none."@x-gmeow-english ;
+     skos:example "ex:f1 gmeow:findingAvoidWhen \"Avoid gmeow:Kind for phase-sortals that change over the bearer's lifetime.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:avoidWhen) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose) or gmeow:findingUseWhen (the positive WHEN facet); findingAvoidWhen is the term's negative-scope usage guidance."@x-gmeow-english ;
+@@ -1373,7 +1373,7 @@ DOCTRINE.
+ 
+ gmeow:Finding rdfs:subClassOf
+     [ a logic:Restriction ; logic:onProperty gmeow:findingCode ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+-    [ a logic:Restriction ; logic:onProperty gmeow:findingMessage ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
++    [ a logic:Restriction ; logic:onProperty gmeow:findingMessage ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+ 
+ # gmeow:CrossNodeGlutWitnessShape wants EXACTLY TWO gmeow:glutWitnessOf links.
+ # A qualified-cardinality-2-onClass-<SpecificClass> restriction projects only
+@@ -1392,7 +1392,7 @@ gmeow:CrossNodeGlutWitness logic:subClassOf
+ # exact-one minCount restoration: min-qualified sibling restrictions
+ # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+ <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/findingCode> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#string> ] .
+-<https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/findingMessage> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#string> ] .
++<https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/findingMessage> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+ <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; logic:minQualifiedCardinality "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+ 
+ [ a logic:ClosureEntry ; logic:onClass gmeow:Finding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/findingSeverity" ; logic:closureValue logic:ClosedWorldClosure ] .
+@@ -1574,3 +1574,15 @@ gmeow:findingSeverityFunctionality
+     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:findingSeverity and nothing else. It is not a definition of gmeow:findingSeverity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+     skos:example "gmeow:findingSeverityFunctionality logic:characterizes gmeow:findingSeverity ."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxABox .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:Finding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:findingMessage ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:Finding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:findingSuggestion ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:ValidationRule logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleRemediation ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:Finding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:findingRemediation ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:AdviceEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:adviceAvoidWhen ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:AdviceEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:adviceUseWhen ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:AdviceEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:adviceHowToUse ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:Finding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:findingHowToUse ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:Finding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:findingUseWhen ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:Finding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:findingAvoidWhen ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/core/diagnostics/tests/structural.ttl slices/core/diagnostics/tests/structural.ttl
+index 3eadb8770..f18d8fd41 100644
+--- slices/core/diagnostics/tests/structural.ttl
++++ slices/core/diagnostics/tests/structural.ttl
+@@ -153,3 +153,11 @@ ASK {
+     UNION { ?s ?p ?forbidden . }
+ }""" ;
+     gmeow:saRationale "The diagnostics slice is a projection of the Rust-owned canonical report and MUST NOT mint truth or resolution bits (isTrue, isFalse, isResolved, findingOutcome). None of the forbidden terms may appear in any subject, predicate, or object position." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:sadiagnosticsWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:findingMessage (logic:range|rdfs:range) rdfs:Literal . gmeow:Finding (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:findingMessage ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:findingSuggestion (logic:range|rdfs:range) rdfs:Literal . gmeow:Finding (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:findingSuggestion ; (logic:allValuesFrom|owl:allValuesFrom) ?values1_0 ] . ?values1_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:ruleRemediation (logic:range|rdfs:range) rdfs:Literal . gmeow:ValidationRule (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:ruleRemediation ; (logic:allValuesFrom|owl:allValuesFrom) ?values2_0 ] . ?values2_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:findingRemediation (logic:range|rdfs:range) rdfs:Literal . gmeow:Finding (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:findingRemediation ; (logic:allValuesFrom|owl:allValuesFrom) ?values3_0 ] . ?values3_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:adviceAvoidWhen (logic:range|rdfs:range) rdfs:Literal . gmeow:AdviceEntry (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:adviceAvoidWhen ; (logic:allValuesFrom|owl:allValuesFrom) ?values4_0 ] . ?values4_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:adviceUseWhen (logic:range|rdfs:range) rdfs:Literal . gmeow:AdviceEntry (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:adviceUseWhen ; (logic:allValuesFrom|owl:allValuesFrom) ?values5_0 ] . ?values5_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:adviceHowToUse (logic:range|rdfs:range) rdfs:Literal . gmeow:AdviceEntry (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:adviceHowToUse ; (logic:allValuesFrom|owl:allValuesFrom) ?values6_0 ] . ?values6_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:findingHowToUse (logic:range|rdfs:range) rdfs:Literal . gmeow:Finding (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:findingHowToUse ; (logic:allValuesFrom|owl:allValuesFrom) ?values7_0 ] . ?values7_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:findingUseWhen (logic:range|rdfs:range) rdfs:Literal . gmeow:Finding (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:findingUseWhen ; (logic:allValuesFrom|owl:allValuesFrom) ?values8_0 ] . ?values8_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:findingAvoidWhen (logic:range|rdfs:range) rdfs:Literal . gmeow:Finding (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:findingAvoidWhen ; (logic:allValuesFrom|owl:allValuesFrom) ?values9_0 ] . ?values9_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/core/documentation/docs.md slices/core/documentation/docs.md
+index 4d267ddff..b2698a0a8 100644
+--- slices/core/documentation/docs.md
++++ slices/core/documentation/docs.md
+@@ -67,3 +67,13 @@ The orphan-zero contract is enforced in Rust rather than as a slice cell because
+ live `gmeow:graph/documentation` projection is produced downstream of `stage-validate`
+ and never seen by `make validate`; the gate re-derives the emitted term set from the
+ projection output itself, so a newly-emitted undeclared term reds the gate.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:docClaim`, `gmeow:conformanceRationale`, `gmeow:docSearchLabel`, `gmeow:docSearchDefinition`, `gmeow:docTitle`, `gmeow:docSearchAdvice` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/core/documentation/module.ttl slices/core/documentation/module.ttl
+index 1301d30fb..ea3ff8207 100644
+--- slices/core/documentation/module.ttl
++++ slices/core/documentation/module.ttl
+@@ -333,7 +333,7 @@ gmeow:docClaim
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:termStability gmeow:stabilityExperimental ;
+     rdfs:label "doc claim"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The short human claim a gmeow:DocEvidence node asserts (e.g. \"exercised by 3 competency question(s)\", \"has 2 projection-loss row(s)\") — the one-line summary the evidence panel renders. The claim WITHOUT its grounds would be a bare assertion; it always travels with at least one gmeow:docGroundedBy truthmaker."@x-gmeow-english ;
+     skos:example "ex:evCatCompetency gmeow:docClaim \"exercised by 1 competency question\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid packing multiple claims into one string, and avoid asserting a claim without its gmeow:docGroundedBy grounds — a claim without grounds is DARK."@x-gmeow-english ;
+@@ -578,7 +578,7 @@ gmeow:conformanceRationale
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:termStability gmeow:stabilityExperimental ;
+     rdfs:label "conformance rationale"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The human-readable \"why\" a conformance fixture conforms or violates, from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record — the prose explanation, never the machine violation code sitting beside it (that is gmeow:docViolationCode). Absent when the fixture carries no authored binding."@x-gmeow-english ;
+     skos:example "ex:fixtureCatBad gmeow:conformanceRationale \"A cat must declare an owner.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid fabricating a rationale for an unbound fixture (leave it absent) and avoid overloading it with the violation code — that is gmeow:docViolationCode."@x-gmeow-english ;
+@@ -1162,7 +1162,7 @@ gmeow:docSearchLabel
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:termStability gmeow:stabilityExperimental ;
+     rdfs:label "doc search label"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+     skos:definition "The REAL display label of a documentation-entry record (a gmeow:DocumentedTerm's own label or CURIE, a gmeow:DocumentedSlice / gmeow:DocumentedConcern display name), carried as the primary searchable field so an offline docs_search matches it directly from gmeow:graph/documentation. Distinct from the record's structural rdfs:label (which is the generated 'Documentation entry: …' annotation): this facet carries the term's own human name, the same value the site search-index.json indexes. Carried by every documentation-entry record; its domain is left open (the term/slice/concern record classes all carry it)."@x-gmeow-english ;
+     skos:example "ex:entryCat gmeow:docSearchLabel \"Cat\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid confusing it with the record's structural rdfs:label (that is the generated documentation-entry annotation, not the term's own name) and avoid emitting it empty — a labelless term falls back to its CURIE, never a vacuous facet."@x-gmeow-english ;
+@@ -1176,7 +1176,7 @@ gmeow:docSearchDefinition
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:termStability gmeow:stabilityExperimental ;
+     rdfs:label "doc search definition"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+     skos:definition "The REAL definition / comment prose of a documentation-entry record (a gmeow:DocumentedTerm's or gmeow:DocumentedConcern's own definition), carried as a searchable field so an offline docs_search matches on the definition text, not just the label. Absent when the record carries no definition (an honest absence, never a fabricated one). The same definition value the site search-index.json indexes."@x-gmeow-english ;
+     skos:example "ex:entryCat gmeow:docSearchDefinition \"A small domesticated felid.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid emitting it for a record with no authored definition (leave it absent) and avoid using the generated documentation-entry skos:definition here — this facet carries the term's own definition."@x-gmeow-english ;
+@@ -1207,7 +1207,7 @@ gmeow:docTitle
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:termStability gmeow:stabilityExperimental ;
+     rdfs:label "doc title"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The title of a gmeow:DocumentedDocument — the first ATX H1 of the Markdown source when present, else a humanized fallback from the filename stem (\"design/ARCHITECTURE.md\" → \"Architecture\"). The label shown for the document in its owning slice's child-document index and in the search corpus."@x-gmeow-english ;
+     skos:example "ex:entryDocZooArchitecture gmeow:docTitle \"Architecture\" ."@x-gmeow-english ;
+     skos:scopeNote "The document's own display title (its first H1 or a humanized filename), NOT the owning slice's title and NOT the record's structural rdfs:label (which is the generated documentation-entry annotation)."@x-gmeow-english ;
+@@ -1239,7 +1239,7 @@ gmeow:docSearchAdvice
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:termStability gmeow:stabilityExperimental ;
+     rdfs:label "doc search advice"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "One advisory-prose carrier of a gmeow:DocumentedTerm (a scope note, use-when, avoid-when, or how-to-use string), carried repeatably as a searchable field so an offline docs_search matches on advisory prose, not just the label and definition. The SAME flattened advice facet the site search-index.json indexes (crates/docs render term_advice_facet). Emitted once per advice string, in the stable scope→use-when→avoid-when→how-to-use field order; absent for a term carrying no advice."@x-gmeow-english ;
+     skos:example "ex:entryCat gmeow:docSearchAdvice \"Use for a domesticated cat; avoid for a wildcat.\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid collapsing the advisory carriers into one blob (each is one repeatable value) and avoid emitting it for a term with no advice (leave it absent)."@x-gmeow-english ;
+@@ -1381,3 +1381,11 @@ gmeow:DocumentedTermOwnerIriConstraint
+     skos:definition "The GMEOW Documentation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxConfigBox ,
+         gmeow:boxTBox .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:DocEvidence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docClaim ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:DocFixture logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:conformanceRationale ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docSearchLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
++[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docSearchDefinition" ; logic:closureValue logic:ClosedWorldClosure ] .
++gmeow:DocumentedDocument logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docTitle ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:DocumentedTerm logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docSearchAdvice ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/core/documentation/tests/structural.ttl slices/core/documentation/tests/structural.ttl
+index add654666..b77db9c79 100644
+--- slices/core/documentation/tests/structural.ttl
++++ slices/core/documentation/tests/structural.ttl
+@@ -283,3 +283,11 @@ ASK {
+     FILTER NOT EXISTS { ?anchor gmeow:maturityRequiresDimension ?d }
+ }""" ;
+     gmeow:saRationale "Every gmeow:DocCoverageDimension individual MUST be referenced by at least one gmeow:maturityRequiresDimension — all dimensions gate, so no ineligible partition remains. Since gmeow:docMaturityMaximal requires all nineteen, this holds today; asserting it means a future orphan dimension (minted but wired into no anchor's intent) reds this gate instead of silently sitting outside the ladder." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:sadocumentationWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:docClaim (logic:range|rdfs:range) rdfs:Literal . gmeow:DocEvidence (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:docClaim ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:conformanceRationale (logic:range|rdfs:range) rdfs:Literal . gmeow:DocFixture (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:conformanceRationale ; (logic:allValuesFrom|owl:allValuesFrom) ?values1_0 ] . ?values1_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:docSearchLabel (logic:range|rdfs:range) ?values3 . ?values3 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:docSearchDefinition (logic:range|rdfs:range) ?values4 . ?values4 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:docTitle (logic:range|rdfs:range) rdfs:Literal . gmeow:DocumentedDocument (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:docTitle ; (logic:allValuesFrom|owl:allValuesFrom) ?values5_0 ] . ?values5_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:docSearchAdvice (logic:range|rdfs:range) rdfs:Literal . gmeow:DocumentedTerm (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:docSearchAdvice ; (logic:allValuesFrom|owl:allValuesFrom) ?values6_0 ] . ?values6_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/core/norms/docs.md slices/core/norms/docs.md
+index 971604ead..ce34ca3fc 100644
+--- slices/core/norms/docs.md
++++ slices/core/norms/docs.md
+@@ -313,3 +313,13 @@ invariant queryable rather than a shape (divergence is legal).
+ `styleGuideFor` names what it voices (a `Persona` and/or `Register`). `voiceExemplifiedBy` attaches
+ byte-perfect content-digested `Document`s that carry `aboutnessEnacts` — the document does not
+ describe the voice, it is the voice; an undigested exemplar is a SHACL violation.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:conditionText` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/core/norms/module.ttl slices/core/norms/module.ttl
+index 85712947a..524b8ba55 100644
+--- slices/core/norms/module.ttl
++++ slices/core/norms/module.ttl
+@@ -457,7 +457,7 @@ gmeow:conditionText
+     rdfs:domain gmeow:Condition ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+     rdfs:label "condition text"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The natural-language statement of the condition — the canonical form, always present (SHACL). Formalizations approximate the prose, not the other way around."@x-gmeow-english ;
+     skos:example "ex:c1 gmeow:conditionText \"the data subject has requested erasure\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid omitting it (it is mandatory by SHACL) and avoid treating a machine formalization as the canonical form — that is a gmeow:ConditionExpression, a claim about this prose."@x-gmeow-english ;
+@@ -1893,7 +1893,7 @@ gmeow:DutyModalityConstraint
+ <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedNorm> ; logic:allValuesFrom logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/complianceVerdict> ; logic:allValuesFrom logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom logic:Thing ] .
+-<https://blackcatinformatics.ca/gmeow/Condition> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
++<https://blackcatinformatics.ca/gmeow/Condition> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+ <https://blackcatinformatics.ca/gmeow/ConditionExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/expressionLanguage> ; logic:allValuesFrom logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupMember> ; logic:allValuesFrom logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; logic:allValuesFrom logic:Thing ] .
+diff --git slices/core/norms/tests/competency.ttl slices/core/norms/tests/competency.ttl
+index b8329d982..5eec8a2c6 100644
+--- slices/core/norms/tests/competency.ttl
++++ slices/core/norms/tests/competency.ttl
+@@ -24,3 +24,27 @@ ex:cqDvvAuthority a gmeow:ExpectedRow ;
+     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vocabulary" ; gmeow:cellValueIri gmeow:AuthorityLevel ] .
+ ex:cqDvvModality a gmeow:ExpectedRow ;
+     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vocabulary" ; gmeow:cellValueIri gmeow:DeonticModality ] .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix logic: <https://blackcatinformatics.ca/logic/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++@prefix wordcase: <https://example.org/language-values/> .
++
++wordtest:cqConditionWords a gmeow:CompetencyQuestion ;
++    gmeow:cqDataFile "examples/language-values.ttl" ;
++    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?condition ?words WHERE { ?condition a gmeow:Condition ; gmeow:conditionText ?words . }" ;
++    gmeow:cqRationale "Condition recall preserves original language, direction and an explicitly unspecified language without coercing any value to a plain string." ;
++    gmeow:cqResultShape wordtest:conditionWordShape ;
++    gmeow:cqExpectRow wordtest:englishRow, wordtest:arabicRow, wordtest:unspecifiedRow .
++wordtest:conditionWordShape a logic:ResultShape ; logic:shapeCardinality logic:RowsExact ;
++    logic:declaresColumn [ logic:columnVariable "condition" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
++        [ logic:columnVariable "words" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
++wordtest:englishRow a gmeow:ExpectedRow ;
++    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri wordcase:english ],
++        [ a gmeow:ExpectedCell ; gmeow:cellVar "words" ; gmeow:cellValueLiteral "The requester consented."@en ] .
++wordtest:arabicRow a gmeow:ExpectedRow ;
++    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri wordcase:arabic ],
++        [ a gmeow:ExpectedCell ; gmeow:cellVar "words" ; gmeow:cellValueLiteral "وافق صاحب الطلب."@ar--rtl ] .
++wordtest:unspecifiedRow a gmeow:ExpectedRow ;
++    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri wordcase:unspecified ],
++        [ a gmeow:ExpectedCell ; gmeow:cellVar "words" ; gmeow:cellValueLiteral "Source words without a declared language." ] .
+diff --git slices/core/norms/tests/structural.ttl slices/core/norms/tests/structural.ttl
+index 1e5c62e1d..e99d5d661 100644
+--- slices/core/norms/tests/structural.ttl
++++ slices/core/norms/tests/structural.ttl
+@@ -534,3 +534,11 @@ ASK {
+     gmeow:registerClinical a gmeow:Register .
+ }""" ;
+     gmeow:saRationale "The persona-facing register seeds defined in the norms module (public, private, clinical) MUST be individuals of gmeow:Register, reusing the names-core register spine." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:sanormsWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:conditionText (logic:range|rdfs:range) rdfs:Literal . gmeow:Condition (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:conditionText ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/core/slice-quality-rubric/docs.md slices/core/slice-quality-rubric/docs.md
+index 1bd1f1a43..9bf514672 100644
+--- slices/core/slice-quality-rubric/docs.md
++++ slices/core/slice-quality-rubric/docs.md
+@@ -112,3 +112,13 @@ counts. Moving an unchanged corpus directory does not change its input identity;
+ changing any supplied file does. Shared axes retain their measurements when a
+ profile changes applicability elsewhere. Human, JSON and SARIF projections retain
+ axis dispositions and reasons.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:qualityApplicabilityReason` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/core/slice-quality-rubric/module.ttl slices/core/slice-quality-rubric/module.ttl
+index d94042d18..e5d415934 100644
+--- slices/core/slice-quality-rubric/module.ttl
++++ slices/core/slice-quality-rubric/module.ttl
+@@ -3879,7 +3879,7 @@ gmeow:qualityApplicabilityReason
+     gmeow:avoidWhen "Do not supply an empty reason or blame a missing required capability."@x-gmeow-english ;
+     gmeow:howToUse "Write one non-empty plain string that states the corpus boundary or implementation gap."@x-gmeow-english ;
+     logic:domain gmeow:QualityAxisApplicability ;
+-    logic:range xsd:string .
++    logic:range rdfs:Literal ;
+ 
+ gmeow:qualityProfileFull
+     a logic:NamedIndividual, gmeow:QualityMeasurementProfile ;
+@@ -3917,3 +3917,6 @@ gmeow:qualityProfileExternalSacred
+         gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ;
+         gmeow:qualityApplicabilityReason "This corpus does not adopt the GMEOW glyph inventory or its optimization objective."
+     ] .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:QualityAxisApplicability logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:qualityApplicabilityReason ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/core/slice-quality-rubric/tests/structural.ttl slices/core/slice-quality-rubric/tests/structural.ttl
+index 7719b4924..3669243f5 100644
+--- slices/core/slice-quality-rubric/tests/structural.ttl
++++ slices/core/slice-quality-rubric/tests/structural.ttl
+@@ -225,3 +225,11 @@ ASK {
+ }""" ;
+     gmeow:saFailWitness "tests/counter-examples/assessment-axis-aliased-to-dimension.ttl" ;
+     gmeow:saRationale "Several axes deliberately publish under one ISO dimension, so the axis-to-dimension map is many-to-one; declaring the axis a sub-property or equivalent of the dimension — or the dimension map injective — would assert a bijection the rubric does not have and would license recovering the axis from the dimension." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:saslice_quality_rubricWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:qualityApplicabilityReason (logic:range|rdfs:range) rdfs:Literal . gmeow:QualityAxisApplicability (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:qualityApplicabilityReason ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/extensions/embedding-projection/docs.md slices/extensions/embedding-projection/docs.md
+index 465205b31..c24bb21b0 100644
+--- slices/extensions/embedding-projection/docs.md
++++ slices/extensions/embedding-projection/docs.md
+@@ -162,3 +162,13 @@ mapping from container to meaning is specified in
+ [`design/PURREMB-PROFILE.md`](design/PURREMB-PROFILE.md); the whole scene is
+ authored end to end in
+ [`examples/purremb-bookshelf.ttl`](examples/purremb-bookshelf.ttl).
++
++## Literal language and direction
++
++The natural-language fields `gmeow:externalRole`, `gmeow:indexLossContract`, `gmeow:queryContext` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/extensions/embedding-projection/module.ttl slices/extensions/embedding-projection/module.ttl
+index f00402d9d..deddd0418 100644
+--- slices/extensions/embedding-projection/module.ttl
++++ slices/extensions/embedding-projection/module.ttl
+@@ -384,7 +384,7 @@ gmeow:externalRole
+     rdfs:domain gmeow:ExternalBinding ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+     rdfs:label "external role"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The caller-supplied role/scope of a gmeow:ExternalBinding — a verbatim label naming WHY the projection references the external artifact (e.g. \"source-corpus\", \"eval-set\"). purrdf mints NO role vocabulary, so the role is caller-supplied text (P12); the graph carries it verbatim so the binding's purpose is auditable without re-resolving the artifact."@x-gmeow-english ;
+     skos:example "ex:ext1 gmeow:externalRole \"source-corpus\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid inventing a fixed role vocabulary here (purrdf mints none — the role is caller-supplied) and avoid omitting it on a binding whose purpose must be auditable."@x-gmeow-english ;
+@@ -436,7 +436,7 @@ gmeow:indexLossContract
+     rdfs:domain gmeow:DerivedVectorIndex ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+     rdfs:label "index loss contract"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The declared loss contract a derived index is built to honour — a verbatim statement of the approximation guarantee (e.g. a target recall@k or an exactness assertion) the index binds alongside its exact matrix projection and prefix dimension. Kept as text (P12); the graph carries the contract so a retrieval's tolerated imperfection is auditable against the index's measured gmeow:approximationRecall."@x-gmeow-english ;
+     skos:example "ex:idx1 gmeow:indexLossContract \"recall@10>=0.98\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid encoding the loss contract as an opaque blob the graph cannot audit and avoid omitting it on a lossy accelerator whose approximation guarantee must be stated."@x-gmeow-english ;
+@@ -605,7 +605,7 @@ gmeow:queryContext
+     rdfs:domain gmeow:SimilarityObservation ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+     rdfs:label "query context"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The query context of a similarity observation, recorded verbatim — the retrieval intent, filter, or comparison prompt under which the pairwise proximity was observed. Kept as text (P12) so the observation is interpretable after the fact without re-running the retrieval; distinct from graphrag's gmeow:forQuery, which is a gmeow:RetrievalEvent's query string."@x-gmeow-english ;
+     skos:example "ex:sim1 gmeow:queryContext \"nearest neighbours of ex:docA under the internal bookshelf filter\" ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid conflating it with graphrag's gmeow:forQuery (that is a retrieval EVENT's query; this is a similarity OBSERVATION's context) and avoid encoding structured filters as opaque blobs the graph cannot audit."@x-gmeow-english ;
+@@ -2011,3 +2011,8 @@ gmeow:withMetricFunctionality
+     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:withMetric and nothing else. It is not a definition of gmeow:withMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+     skos:example "gmeow:withMetricFunctionality logic:characterizes gmeow:withMetric ."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxABox .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:ExternalBinding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:externalRole ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:DerivedVectorIndex logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:indexLossContract ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:SimilarityObservation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryContext ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/extensions/embedding-projection/tests/structural.ttl slices/extensions/embedding-projection/tests/structural.ttl
+index 5225eeb3e..53635c4c7 100644
+--- slices/extensions/embedding-projection/tests/structural.ttl
++++ slices/extensions/embedding-projection/tests/structural.ttl
+@@ -46,3 +46,11 @@ ep:saNoLegacyRdfContainers a gmeow:StructuralAssertion ;
+           UNION { ?s ?p ?o . FILTER(STRSTARTS(STR(?p), "http://www.w3.org/1999/02/22-rdf-syntax-ns#_")) }
+         }
+     """ .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:saembedding_projectionWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:externalRole (logic:range|rdfs:range) rdfs:Literal . gmeow:ExternalBinding (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:externalRole ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:indexLossContract (logic:range|rdfs:range) rdfs:Literal . gmeow:DerivedVectorIndex (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:indexLossContract ; (logic:allValuesFrom|owl:allValuesFrom) ?values1_0 ] . ?values1_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:queryContext (logic:range|rdfs:range) rdfs:Literal . gmeow:SimilarityObservation (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:queryContext ; (logic:allValuesFrom|owl:allValuesFrom) ?values2_0 ] . ?values2_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/extensions/graphrag/docs.md slices/extensions/graphrag/docs.md
+index 7d232fc55..e4eba338a 100644
+--- slices/extensions/graphrag/docs.md
++++ slices/extensions/graphrag/docs.md
+@@ -106,3 +106,13 @@ existing `wasGeneratedBy`.
+ A pre-generated summary of a community — GraphRAG's global-question substrate,
+ derived from the community's members and revisable rather than a black box.
+ `summarizesCommunity` (functional) names the community condensed.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:forQuery` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/extensions/graphrag/module.ttl slices/extensions/graphrag/module.ttl
+index 61c2be14a..95e38bded 100644
+--- slices/extensions/graphrag/module.ttl
++++ slices/extensions/graphrag/module.ttl
+@@ -1,3 +1,4 @@
++@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+ @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+ @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@@ -108,7 +109,7 @@ gmeow:forQuery
+     rdfs:domain gmeow:RetrievalEvent ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
+     rdfs:label "for query"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "The query text this retrieval served, recorded verbatim."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox .
+ 
+@@ -329,3 +330,6 @@ gmeow:summarizesCommunityFunctionality
+     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:summarizesCommunity and nothing else. It is not a definition of gmeow:summarizesCommunity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+     skos:example "gmeow:summarizesCommunityFunctionality logic:characterizes gmeow:summarizesCommunity ."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxABox .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:RetrievalEvent logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:forQuery ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/extensions/graphrag/tests/structural.ttl slices/extensions/graphrag/tests/structural.ttl
+index 1712e1d13..73f7cfd0d 100644
+--- slices/extensions/graphrag/tests/structural.ttl
++++ slices/extensions/graphrag/tests/structural.ttl
+@@ -115,3 +115,11 @@ ex:saRetrievalScoreIsAnnotationProperty a gmeow:StructuralAssertion ;
+ PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ ASK { gmeow:retrievalScore a owl:AnnotationProperty . }""" ;
+     gmeow:saRationale "gmeow:retrievalScore MUST be an owl:AnnotationProperty — per-result relevance scores are statement-level annotations so competing scores coexist and the OWL downcast stays DL-clean (Principle 3, Principle 9)." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:sagraphragWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:forQuery (logic:range|rdfs:range) rdfs:Literal . gmeow:RetrievalEvent (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:forQuery ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/extensions/music/docs.md slices/extensions/music/docs.md
+index b9bbc2561..ec81c8d5c 100644
+--- slices/extensions/music/docs.md
++++ slices/extensions/music/docs.md
+@@ -385,3 +385,13 @@ Every projection mapping row carries a mandatory `gmeow:lossyDrop` note.
+ - The **GTS `music-package`** single-file format.
+ - The **MCP analysis-claims** recall/revise surface.
+ - The **19-case stress corpus** that closes the music design.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:decisionSequence` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/extensions/music/module.ttl slices/extensions/music/module.ttl
+index ea14ae018..71f319e0f 100644
+--- slices/extensions/music/module.ttl
++++ slices/extensions/music/module.ttl
+@@ -1286,7 +1286,7 @@ gmeow:decisionSequence
+     rdfs:domain gmeow:PerformanceDecision ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+     rdfs:label "decision sequence"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "A human-readable record of the chosen fragment traversal order for one performance."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox .
+ 
+@@ -7250,7 +7250,7 @@ gmeow:TraversalConstraint rdfs:subClassOf
+ gmeow:PerformanceDecision rdfs:subClassOf
+     [ a logic:Restriction ; logic:onProperty gmeow:decisionPerformance ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+     [ a logic:Restriction ; logic:onProperty gmeow:decisionConstraint ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+-    [ a logic:Restriction ; logic:onProperty gmeow:decisionSequence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
++    [ a logic:Restriction ; logic:onProperty gmeow:decisionSequence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+ 
+ gmeow:GenerativeProcess rdfs:subClassOf
+     [ a logic:Restriction ; logic:onProperty gmeow:processKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+@@ -7309,7 +7309,7 @@ gmeow:MusicAnalysisClaim logic:subClassOf
+ <https://blackcatinformatics.ca/gmeow/TraversalConstraint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/constraintAppliesTo> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionPerformance> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionConstraint> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+-<https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#string> ] .
++<https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+ <https://blackcatinformatics.ca/gmeow/GenerativeProcess> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/processKind> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/OrnamentProfile> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/PerformanceParticipation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participationEvent> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+@@ -7730,7 +7730,7 @@ gmeow:OrnamentProfileApplicationConstraint
+ <https://blackcatinformatics.ca/gmeow/OrnamentProfile> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> ; logic:someValuesFrom logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionConstraint> ; logic:someValuesFrom logic:Thing ] .
+ <https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionPerformance> ; logic:someValuesFrom logic:Thing ] .
+-<https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
++<https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:someValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+ <https://blackcatinformatics.ca/gmeow/PitchAnchor> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorDegree> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+ <https://blackcatinformatics.ca/gmeow/PitchAnchor> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorFrequency> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+ <https://blackcatinformatics.ca/gmeow/PitchCollection> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/collectionKind> ; logic:someValuesFrom logic:Thing ] .
+@@ -9581,3 +9581,6 @@ gmeow:fnOutputEvaluatedPitchValue a logic:AnnotationProperty ;
+     logic:range gmeow:PitchValue ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+     gmeow:graphBoxRole gmeow:boxRBox .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:PerformanceDecision logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:decisionSequence ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/extensions/music/tests/structural.ttl slices/extensions/music/tests/structural.ttl
+index e330b3e1c..feaf9aceb 100644
+--- slices/extensions/music/tests/structural.ttl
++++ slices/extensions/music/tests/structural.ttl
+@@ -219,3 +219,11 @@ ASK {
+ }""" ;
+     gmeow:saFailWitness "tests/counter-examples/notation-system-with-duplicate-profiles.ttl" ;
+     gmeow:saRationale "A notation system has exactly one projection profile, so competing profile identities cannot silently supply different loss manifests for the same system." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:samusicWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:decisionSequence (logic:range|rdfs:range) rdfs:Literal . gmeow:PerformanceDecision (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:decisionSequence ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/extensions/narrative/docs.md slices/extensions/narrative/docs.md
+index 4d9896e9f..e66be5378 100644
+--- slices/extensions/narrative/docs.md
++++ slices/extensions/narrative/docs.md
+@@ -241,3 +241,13 @@ Depends on `kernel`, `documents` (CreativeWork, ContentSegment, the image spine)
+ Consumed by the deception slice's worked examples and by the lbox foundation-docs importer
+ (design context: 16,445 arc samples, 779 role links, 16,002 tags / 669 concepts) ahead of the narrative consumer child
+ consumer child.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:positionLabel` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/extensions/narrative/module.ttl slices/extensions/narrative/module.ttl
+index 638c8369a..e92446539 100644
+--- slices/extensions/narrative/module.ttl
++++ slices/extensions/narrative/module.ttl
+@@ -1,3 +1,4 @@
++@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+ @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+ @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@@ -610,7 +611,7 @@ gmeow:positionLabel
+     rdfs:domain gmeow:NarrativePosition ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+     rdfs:label "position label"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     skos:definition "A human-oriented label for this position — a chapter title ('Thirty-Three'), a named story moment ('the Longest Night'). Non-functional: co-equal labels coexist (Principle 9). A position must carry an ordinal or a label or both (SHACL)."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox .
+ 
+@@ -1577,3 +1578,6 @@ gmeow:arcTypeHomecoming
+     gmeow:avoidWhen "Avoid applying it to every arrival or using it as evidence of a legal residence."@x-gmeow-english ;
+     gmeow:howToUse "Keep the arc subject and frame explicit, whether the trajectory concerns a character, a household or the house itself."@x-gmeow-english ;
+     gmeow:useWhen "Use when a place becomes home or a return is interpreted as renewed belonging."@x-gmeow-english .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:NarrativePosition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:positionLabel ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/extensions/narrative/tests/structural.ttl slices/extensions/narrative/tests/structural.ttl
+index e38d19744..ff37b5ff5 100644
+--- slices/extensions/narrative/tests/structural.ttl
++++ slices/extensions/narrative/tests/structural.ttl
+@@ -379,3 +379,11 @@ ntest:saNarrativeValuesNotClasses a gmeow:StructuralAssertion ;
+     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+     gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { VALUES ?value { gmeow:beatFunctionIncitingIncident gmeow:beatFunctionThreshold gmeow:beatFunctionMidpoint gmeow:beatFunctionCrisis gmeow:beatFunctionClimax gmeow:beatFunctionResolution gmeow:beatFunctionOpenThread gmeow:arcTypeMemorial gmeow:arcTypeHomecoming } ?value a owl:Class . }" ;
+     gmeow:saRationale "Beat and arc classifications remain values instead of multiplying position or arc subclasses." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:sanarrativeWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:positionLabel (logic:range|rdfs:range) rdfs:Literal . gmeow:NarrativePosition (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:positionLabel ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/grounding/lang/docs.md slices/grounding/lang/docs.md
+index c423e6160..614052bf6 100644
+--- slices/grounding/lang/docs.md
++++ slices/grounding/lang/docs.md
+@@ -197,3 +197,13 @@ constituents of a composed form in index order, a word form's lexeme and morph f
+ by kind, the surfaces that realize one form as its encoding fan-out widens, and — for the profile
+ family — which analysis outputs cite a canonicalization/analyzer profile (and which one), with an
+ output naming no profile rejected so it does not answer.
++
++## Literal language and direction
++
++The natural-language fields `gmeow:glossarySource`, `gmeow:glossaryTranslation` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/grounding/lang/i18n/fr.po slices/grounding/lang/i18n/fr.po
+index 2c89489ce..ea6765574 100644
+--- slices/grounding/lang/i18n/fr.po
++++ slices/grounding/lang/i18n/fr.po
+@@ -594,16 +594,16 @@ msgid "glossary source"
+ msgstr "source de glossaire"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|skos:definition"
+-msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
+-msgstr "Le littéral source anglais qu'une entrée de glossaire rend — la valeur @x-gmeow-english que porte le msgid du catalogue. Fonctionnel : une source par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string. L'invariant de cohérence regroupe sur le gmeow:glossaryConcept de l'entrée (un sens que la projection frappe à partir de cette source), de sorte qu'une source correspond normalement à un concept et donc à une traduction, tandis qu'un homographe déclaré répartit une même source sur des concepts distincts."
++msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
++msgstr "Le littéral source anglais qu'une entrée de glossaire rend — la valeur @x-gmeow-english que porte le msgid du catalogue. Fonctionnel : une source par entrée. Domaine gmeow:GlossaryEntry, portée rdfs:Literal. L'invariant de cohérence regroupe sur le gmeow:glossaryConcept de l'entrée (un sens que la projection frappe à partir de cette source), de sorte qu'une source correspond normalement à un concept et donc à une traduction, tandis qu'un homographe déclaré répartit une même source sur des concepts distincts."
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|rdfs:label"
+ msgid "glossary translation"
+ msgstr "traduction de glossaire"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|skos:definition"
+-msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+-msgstr "Le rendu en langue cible auquel une entrée de glossaire lie sa source anglaise — le msgstr non fuzzy que porte le catalogue. Fonctionnel : une traduction par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string. Deux entrées partageant un gmeow:glossaryConcept doivent porter la même gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
++msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
++msgstr "Le rendu en langue cible auquel une entrée de glossaire lie sa source anglaise — le msgstr non fuzzy que porte le catalogue. Fonctionnel : une traduction par entrée. Domaine gmeow:GlossaryEntry, portée rdfs:Literal. Deux entrées partageant un gmeow:glossaryConcept doivent porter la même gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|rdfs:label"
+ msgid "glossary concept"
+diff --git slices/grounding/lang/i18n/zh.po slices/grounding/lang/i18n/zh.po
+index 49a9ae53d..939f1f394 100644
+--- slices/grounding/lang/i18n/zh.po
++++ slices/grounding/lang/i18n/zh.po
+@@ -594,16 +594,16 @@ msgid "glossary source"
+ msgstr "术语表源"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|skos:definition"
+-msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
+-msgstr "一个术语表条目所渲染的英文源字面量——目录 msgid 所携带的 @x-gmeow-english 值。函数性：每个条目一个源。定义域 gmeow:GlossaryEntry，值域 xsd:string。一致性不变式在条目的 gmeow:glossaryConcept 上分组（投影从该源铸造的一个义项），因此一个源通常映射到一个概念，从而映射到一种翻译，而一个已声明的同形异义词则把同一个源拆分到相异的概念上。"
++msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
++msgstr "一个术语表条目所渲染的英文源字面量——目录 msgid 所携带的 @x-gmeow-english 值。函数性：每个条目一个源。定义域 gmeow:GlossaryEntry，值域 rdfs:Literal。一致性不变式在条目的 gmeow:glossaryConcept 上分组（投影从该源铸造的一个义项），因此一个源通常映射到一个概念，从而映射到一种翻译，而一个已声明的同形异义词则把同一个源拆分到相异的概念上。"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|rdfs:label"
+ msgid "glossary translation"
+ msgstr "术语表翻译"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|skos:definition"
+-msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+-msgstr "一个术语表条目把其英文源绑定到的目标语言渲染——目录所携带的非 fuzzy 的 msgstr。函数性：每个条目一种翻译。定义域 gmeow:GlossaryEntry，值域 xsd:string。共享同一个 gmeow:glossaryConcept 的两个条目必须携带相同的 gmeow:glossaryTranslation（lang:GlossaryTermConsistencyConstraint）。"
++msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
++msgstr "一个术语表条目把其英文源绑定到的目标语言渲染——目录所携带的非 fuzzy 的 msgstr。函数性：每个条目一种翻译。定义域 gmeow:GlossaryEntry，值域 rdfs:Literal。共享同一个 gmeow:glossaryConcept 的两个条目必须携带相同的 gmeow:glossaryTranslation（lang:GlossaryTermConsistencyConstraint）。"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|rdfs:label"
+ msgid "glossary concept"
+diff --git slices/grounding/lang/module.ttl slices/grounding/lang/module.ttl
+index b441b5304..97d02c308 100644
+--- slices/grounding/lang/module.ttl
++++ slices/grounding/lang/module.ttl
+@@ -3708,8 +3708,8 @@ gmeow:glossarySource
+     rdfs:domain gmeow:GlossaryEntry ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+     rdfs:label "glossary source"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
+-    skos:definition "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."@x-gmeow-english ;
++    logic:range rdfs:Literal ;
++    skos:definition "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."@x-gmeow-english ;
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:avoidWhen "Avoid an entry with no gmeow:glossarySource — the source is the term being rendered."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox ;
+@@ -3722,8 +3722,8 @@ gmeow:glossaryTranslation
+     rdfs:domain gmeow:GlossaryEntry ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+     rdfs:label "glossary translation"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
+-    skos:definition "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."@x-gmeow-english ;
++    logic:range rdfs:Literal ;
++    skos:definition "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."@x-gmeow-english ;
+     gmeow:addedInVersion "0.1.0" ;
+     gmeow:avoidWhen "Avoid an entry with no gmeow:glossaryTranslation — an entry with no rendering carries no terminology — and avoid two entries of one concept rendering it two different ways (the gated inconsistency case)."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox ;
+@@ -12762,3 +12762,7 @@ gmeow:gmnSecurityRingFunctionality
+     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gmnSecurityRing and nothing else. It is not a definition of gmeow:gmnSecurityRing (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+     skos:example "gmeow:gmnSecurityRingFunctionality logic:characterizes gmeow:gmnSecurityRing ."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxABox .
++
++# Natural-language values retain language and direction; plain text declares no language.
++gmeow:GlossaryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:glossarySource ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++gmeow:GlossaryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:glossaryTranslation ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+diff --git slices/grounding/lang/tests/structural.ttl slices/grounding/lang/tests/structural.ttl
+index 4739bb36d..dcffcab2f 100644
+--- slices/grounding/lang/tests/structural.ttl
++++ slices/grounding/lang/tests/structural.ttl
+@@ -439,3 +439,11 @@ ASK {
+     ?formula a logic:Formula .
+ }""" ;
+     gmeow:saRationale "The rule that an analysis output MUST cite a canonicalization profile with a declared pipeline is authored in logic: as lang:ProfileAttributionConstraint carrying a logic:Formula integrity body and enforcing the typed lang:UnattributedAnalysisProfile failure — never a hand-authored shape — mirroring the lang:UnattributedEngineClaim discipline for engine readings." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:salangWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:glossarySource (logic:range|rdfs:range) rdfs:Literal . gmeow:GlossaryEntry (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:glossarySource ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:glossaryTranslation (logic:range|rdfs:range) rdfs:Literal . gmeow:GlossaryEntry (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:glossaryTranslation ; (logic:allValuesFrom|owl:allValuesFrom) ?values1_0 ] . ?values1_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+diff --git slices/grounding/logic/docs.md slices/grounding/logic/docs.md
+index 9b77bf0cf..a1118631c 100644
+--- slices/grounding/logic/docs.md
++++ slices/grounding/logic/docs.md
+@@ -298,3 +298,13 @@ from the doxastic, alethic, and temporal accessibility relations of the other
+ context types. The specialization is declared on the `gmeow:` side, never minted
+ as an axiom in this module, so the `logic:` foundation stays standalone
+ (Principle 17).
++
++## Literal language and direction
++
++The natural-language fields `logic:withdrawalReason`, `logic:message`, `logic:fragmentBoundaryReason` admit
++plain text with unspecified language, language-tagged text, and RDF 1.2 directional
++text. Supplied public or private-use language tags remain part of the literal.
++The canonical value restrictions derive the validation view; they do not add a
++closed-world requirement for an explicitly asserted subject type. A machine key,
++source expression, or byte payload uses its own declared property and datatype.
++See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+diff --git slices/grounding/logic/i18n/fr.po slices/grounding/logic/i18n/fr.po
+index 1a90ed9d0..0f544792f 100644
+--- slices/grounding/logic/i18n/fr.po
++++ slices/grounding/logic/i18n/fr.po
+@@ -10163,8 +10163,8 @@ msgid "The situation gate the well-founded materializer's phase action schemas g
+ msgstr "La barrière de situation sur laquelle les schémas d'action de phase du matérialiseur bien-fondé se fondent : le magasin par monde est sélectionné et ses faits EDB affirmés sont atteignables (la liste de mondes triée de crates/logic/src/wellfounded.rs materialize()). La logic:precondition partagée des trois schémas de phase intra-moteur — la transition de phase élémentaire ne s'applique qu'une fois qu'un monde est dans la portée."
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/withdrawalReason|http://www.w3.org/2004/02/skos/core#definition"
+-msgid "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range xsd:string."
+-msgstr "La justification en texte libre de l'auteur enregistrée lorsqu'une logic:Conjecture est retirée vers logic:ConjectureWithdrawn — la note humaine expliquant POURQUOI les tests ont cessé, portée sur le segment compensatoire de retrait-par-l'auteur ajouté à la bibliothèque de conjectures en ajout-seul. Distincte d'un contre-exemple trouvé (qu'une réfutation nomme via logic:conjectureRefutationWitness) : un retrait est une décision d'écriture délibérée d'arrêter les tests, de sorte que cette raison est une donnée affirmée-par-relecteur (le retrait porte logic:verdictProvenance logic:VerdictReviewerAsserted), JAMAIS produite par un moteur. Facultative et monovaluée ; présente exactement quand un retrait nomme une raison. Domaine logic:Conjecture, portée xsd:string."
++msgid "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range rdfs:Literal."
++msgstr "La justification en texte libre de l'auteur enregistrée lorsqu'une logic:Conjecture est retirée vers logic:ConjectureWithdrawn — la note humaine expliquant POURQUOI les tests ont cessé, portée sur le segment compensatoire de retrait-par-l'auteur ajouté à la bibliothèque de conjectures en ajout-seul. Distincte d'un contre-exemple trouvé (qu'une réfutation nomme via logic:conjectureRefutationWitness) : un retrait est une décision d'écriture délibérée d'arrêter les tests, de sorte que cette raison est une donnée affirmée-par-relecteur (le retrait porte logic:verdictProvenance logic:VerdictReviewerAsserted), JAMAIS produite par un moteur. Facultative et monovaluée ; présente exactement quand un retrait nomme une raison. Domaine logic:Conjecture, portée rdfs:Literal."
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/withRestrictions|http://www.w3.org/2004/02/skos/core#example"
+ msgid "ex:adultAge logic:withRestrictions ( [ xsd:minInclusive 18 ] ) ."
+diff --git slices/grounding/logic/i18n/zh.po slices/grounding/logic/i18n/zh.po
+index eefe36644..0202fb868 100644
+--- slices/grounding/logic/i18n/zh.po
++++ slices/grounding/logic/i18n/zh.po
+@@ -10163,8 +10163,8 @@ msgid "The situation gate the well-founded materializer's phase action schemas g
+ msgstr "良基物化器的相位动作模式所依据的情形闸门：每个世界的存储已被选定且其已断言的 EDB 事实可达（crates/logic/src/wellfounded.rs materialize() 的已排序世界列表）。是三个引擎内相位模式共享的 logic:precondition——基本相位转换仅在某个世界进入作用域后才适用。"
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/withdrawalReason|http://www.w3.org/2004/02/skos/core#definition"
+-msgid "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range xsd:string."
+-msgstr "当一个 logic:Conjecture 被退役为 logic:ConjectureWithdrawn 时所记录的作者自由文本理由——即解释为何停止测试的人工注记，承载于追加到仅追加猜想库的补偿性作者撤回区段之上。与所找到的反例相区分（反例由某次反驳经 logic:conjectureRefutationWitness 命名）：撤回是一项有意的作者决定，旨在停止测试，因此此理由是审阅者断言的数据（该撤回携带 logic:verdictProvenance logic:VerdictReviewerAsserted），绝非引擎产生。可选且单值；恰在某次撤回命名了一个理由时出现。定义域 logic:Conjecture，值域 xsd:string。"
++msgid "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range rdfs:Literal."
++msgstr "当一个 logic:Conjecture 被退役为 logic:ConjectureWithdrawn 时所记录的作者自由文本理由——即解释为何停止测试的人工注记，承载于追加到仅追加猜想库的补偿性作者撤回区段之上。与所找到的反例相区分（反例由某次反驳经 logic:conjectureRefutationWitness 命名）：撤回是一项有意的作者决定，旨在停止测试，因此此理由是审阅者断言的数据（该撤回携带 logic:verdictProvenance logic:VerdictReviewerAsserted），绝非引擎产生。可选且单值；恰在某次撤回命名了一个理由时出现。定义域 logic:Conjecture，值域 rdfs:Literal。"
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/withRestrictions|http://www.w3.org/2004/02/skos/core#example"
+ msgid "ex:adultAge logic:withRestrictions ( [ xsd:minInclusive 18 ] ) ."
+diff --git slices/grounding/logic/module.ttl slices/grounding/logic/module.ttl
+index 48c5f81e3..c8b5892fc 100644
+--- slices/grounding/logic/module.ttl
++++ slices/grounding/logic/module.ttl
+@@ -7094,10 +7094,10 @@ logic:conjectureLifecycleState
+ logic:withdrawalReason
+     a logic:DatatypeProperty ;
+     rdfs:domain logic:Conjecture ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+     rdfs:label "withdrawal reason"@x-gmeow-english ;
+-    skos:definition "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range xsd:string."@x-gmeow-english ;
++    skos:definition "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range rdfs:Literal."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxABox .
+ 
+ logic:ContradictionWitness
+@@ -15812,7 +15812,7 @@ logic:severity
+ logic:message
+     a logic:DatatypeProperty ;
+     rdfs:domain logic:Constraint ;
+-    rdfs:range xsd:string ;
++    logic:range rdfs:Literal ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+     rdfs:label "message"@x-gmeow-english ;
+     skos:definition "The advisory human-readable message a logic:Constraint violation attaches (projected to sh:message). Presentation-only and load-bearing-false: it carries no identity, so two constraints differing only in their message are the same constraint. Absent means no message."@x-gmeow-english ;
+@@ -17443,7 +17443,7 @@ logic:fragmentBoundaryReason
+     a logic:DatatypeProperty ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+     rdfs:label "fragment boundary reason"@x-gmeow-english ;
+-    rdfs:range xsd:string ;
++    logic:range [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+     skos:definition "The technical reason a retained-withhold record lies outside the certified-complete refutation fragment: the construct the kernel deliberately does not decide and why, free of any process reference."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox .
+ 
+@@ -24067,3 +24067,8 @@ logic:parameterRequired
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+     logic:domain logic:CallParameter ;
+     logic:range xsd:boolean .
++
++# Natural-language values retain language and direction; plain text declares no language.
++logic:Conjecture logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:withdrawalReason ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++logic:Constraint logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:message ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
++[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/logic/fragmentBoundaryReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+diff --git slices/grounding/logic/tests/structural.ttl slices/grounding/logic/tests/structural.ttl
+index 875cb07c7..c616cc051 100644
+--- slices/grounding/logic/tests/structural.ttl
++++ slices/grounding/logic/tests/structural.ttl
+@@ -1966,3 +1966,11 @@ ASK {
+     rdfs:range logic:UnsupportedFragmentCondition .
+ }""" ;
+     gmeow:saRationale "Signature guard 12 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
++
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix wordtest: <https://example.org/natural-language-values/tests/> .
++
++wordtest:salogicWords a gmeow:StructuralAssertion ;
++    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
++    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { logic:withdrawalReason (logic:range|rdfs:range) rdfs:Literal . logic:Conjecture (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) logic:withdrawalReason ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . logic:message (logic:range|rdfs:range) rdfs:Literal . logic:Constraint (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) logic:message ; (logic:allValuesFrom|owl:allValuesFrom) ?values1_0 ] . ?values1_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . logic:fragmentBoundaryReason (logic:range|rdfs:range) ?values2 . ?values2 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
++    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+make: *** [Makefile:260: lint] Error 1
