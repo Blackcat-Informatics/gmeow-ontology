@@ -1,0 +1,614 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic) | package(gmeow-logic-compile)) & (test(finite_numeric) | test(term_kind))' --no-tests=fail
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.47
+   Compiling cfg-if v1.0.4
+   Compiling serde_core v1.0.229
+   Compiling memchr v2.8.3
+   Compiling libc v0.2.189
+   Compiling serde v1.0.229
+   Compiling hashbrown v0.17.1
+   Compiling typenum v1.20.1
+   Compiling regex-syntax v0.8.11
+   Compiling itoa v1.0.18
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.151
+   Compiling cpufeatures v0.3.0
+   Compiling fastrand v2.5.0
+   Compiling const-oid v0.10.2
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling version_check v0.9.5
+   Compiling crossbeam-utils v0.8.22
+   Compiling equivalent v1.0.2
+   Compiling crossbeam-epoch v0.9.20
+   Compiling either v1.17.0
+   Compiling crossbeam-deque v0.8.7
+   Compiling rayon-core v1.13.0
+   Compiling once_cell v1.21.4
+   Compiling getrandom v0.3.4
+   Compiling smallvec v1.15.2
+   Compiling cmov v0.5.4
+   Compiling cpubits v0.1.1
+   Compiling twox-hash v2.1.3
+   Compiling visual-hashing v1.0.0
+   Compiling aho-corasick v1.1.4
+   Compiling generic-array v0.14.7
+   Compiling cpufeatures v0.2.17
+   Compiling rustix v1.1.4
+   Compiling getrandom v0.4.3
+   Compiling linux-raw-sys v0.12.1
+   Compiling zerocopy v0.8.55
+   Compiling foldhash v0.1.5
+   Compiling allocator-api2 v0.2.21
+   Compiling autocfg v1.5.1
+   Compiling structured-zstd v0.0.49
+   Compiling winnow v0.7.15
+   Compiling toml_write v0.1.2
+   Compiling ctutils v0.4.2
+   Compiling winnow v1.0.4
+   Compiling ciborium-io v0.2.2
+   Compiling glob v0.3.4
+   Compiling hybrid-array v0.4.15
+   Compiling num-traits v0.2.19
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.0
+   Compiling tracing-core v0.1.36
+   Compiling pin-project-lite v0.2.17
+   Compiling fixedbitset v0.5.7
+   Compiling regex-automata v0.4.16
+   Compiling log v0.4.33
+   Compiling base64 v0.22.1
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling inout v0.2.2
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling syn v3.0.3
+   Compiling syn v2.0.119
+   Compiling bit-vec v0.8.0
+   Compiling semver v1.0.28
+   Compiling simd-adler32 v0.3.10
+   Compiling crc32fast v1.5.0
+   Compiling adler2 v2.0.1
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.9
+   Compiling percent-encoding v2.3.2
+   Compiling digest v0.11.3
+   Compiling cipher v0.5.2
+   Compiling universal-hash v0.6.1
+   Compiling aead v0.6.1
+   Compiling bitflags v2.13.1
+   Compiling digest v0.10.7
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling bit-set v0.8.0
+   Compiling polyval v0.7.3
+   Compiling rayon v1.12.0
+   Compiling sha2 v0.11.0
+   Compiling ctr v0.10.1
+   Compiling aes v0.9.3
+   Compiling sha2 v0.10.9
+   Compiling miniz_oxide v0.8.9
+   Compiling cc v1.4.0
+   Compiling chrono v0.4.45
+   Compiling tinyvec_macros v0.1.1
+   Compiling toml v1.1.3+spec-1.1.0
+   Compiling petgraph v0.8.3
+   Compiling ghash v0.6.0
+   Compiling lazy_static v1.5.0
+   Compiling tinyvec v1.12.0
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling zeroize v1.9.0
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/lang-form)
+   Compiling serde_derive v1.0.229
+   Compiling regex v1.13.1
+   Compiling getrandom v0.2.17
+   Compiling aes-gcm v0.11.1
+   Compiling ring v0.17.14
+   Compiling untrusted v0.9.0
+   Compiling flate2 v1.1.9
+   Compiling httparse v1.10.1
+   Compiling rustls v0.23.46
+   Compiling unicode-normalization v0.1.25
+   Compiling rustls-pki-types v1.15.1
+   Compiling similar v2.7.0
+   Compiling bytes v1.12.1
+   Compiling unicode-script v0.5.8
+   Compiling subtle v2.6.1
+   Compiling utf8-zero v0.8.1
+   Compiling rustc-hash v2.1.3
+   Compiling anyhow v1.0.104
+   Compiling bstr v1.13.0
+   Compiling zerocopy-derive v0.8.55
+   Compiling tracing-attributes v0.1.31
+   Compiling fancy-regex v0.17.0
+   Compiling console v0.16.4
+   Compiling rustversion v1.0.23
+   Compiling heck v0.5.0
+   Compiling strsim v0.11.1
+   Compiling utf8parse v0.2.2
+   Compiling anstyle v1.0.14
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling webpki-roots v1.0.9
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling fnv v1.0.7
+   Compiling same-file v1.0.6
+   Compiling http v1.4.2
+   Compiling unicode-security v0.1.2
+   Compiling clap_lex v1.1.0
+   Compiling tempfile v3.27.0
+   Compiling anstyle-parse v1.0.0
+   Compiling clap_derive v4.6.4
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/license)
+   Compiling tracing v0.1.44
+   Compiling pulldown-cmark v0.13.4
+   Compiling pulldown-cmark-escape v0.11.0
+   Compiling walkdir v2.5.0
+   Compiling memo-map v0.3.3
+   Compiling unicase v2.9.0
+   Compiling synstructure v0.13.2
+   Compiling anstream v1.0.0
+   Compiling tiktoken-rs v0.12.0
+   Compiling memmap2 v0.9.11
+   Compiling stable_deref_trait v1.2.1
+   Compiling displaydoc v0.2.6
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/cost-measure)
+   Compiling thiserror v2.0.19
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-jsonschema v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling thiserror-impl v2.0.19
+   Compiling bytemuck_derive v1.11.0
+   Compiling ureq-proto v0.6.0
+   Compiling zerovec-derive v0.11.3
+   Compiling libm v0.2.16
+   Compiling clap_builder v4.6.2
+   Compiling zerofrom-derive v0.1.7
+   Compiling yoke-derive v0.8.2
+   Compiling yoke-derive v0.7.5
+   Compiling siphasher v1.0.3
+   Compiling arrayvec v0.7.8
+   Compiling zerovec-derive v0.10.3
+   Compiling ryu v1.0.23
+   Compiling paste v1.0.15
+   Compiling utf8_iter v1.0.4
+   Compiling writeable v0.6.3
+   Compiling litemap v0.8.2
+   Compiling unicode-segmentation v1.13.3
+   Compiling zerofrom v0.1.8
+   Compiling bytemuck v1.25.2
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling cargo-config2 v0.1.45
+   Compiling insta v1.48.0
+   Compiling minijinja v2.21.0
+   Compiling litemap v0.7.5
+   Compiling anstyle-parse v0.2.7
+   Compiling icu_properties_data v2.2.0
+   Compiling writeable v0.5.5
+   Compiling yoke v0.8.3
+   Compiling yoke v0.7.5
+   Compiling cobs v0.3.0
+   Compiling icu_normalizer_data v2.2.0
+   Compiling toml_edit v0.22.27
+   Compiling clap v4.6.4
+   Compiling icu_provider_macros v1.5.0
+   Compiling fdeflate v0.3.7
+   Compiling anstream v0.6.21
+   Compiling slotmap v1.1.1
+   Compiling parking_lot_core v0.9.12
+   Compiling float-cmp v0.9.0
+   Compiling zerovec v0.11.6
+   Compiling zerotrie v0.2.4
+   Compiling zerovec v0.10.4
+   Compiling core_maths v0.1.1
+   Compiling postcard v1.1.3
+   Compiling arrayref v0.3.9
+   Compiling scopeguard v1.2.0
+   Compiling weezl v0.1.12
+   Compiling strict-num v0.1.1
+   Compiling icu_locid_transform_data v1.5.1
+   Compiling num-conv v0.2.2
+   Compiling color_quant v1.1.0
+   Compiling time-core v0.1.9
+   Compiling roxmltree v0.20.0
+   Compiling ttf-parser v0.24.1
+   Compiling kurbo v0.11.3
+   Compiling lock_api v0.4.14
+   Compiling sharded-slab v0.1.7
+   Compiling matchers v0.2.0
+   Compiling toml v0.8.23
+   Compiling tracing-log v0.2.0
+   Compiling tiny-skia-path v0.11.4
+   Compiling thread_local v1.1.10
+   Compiling nu-ansi-term v0.50.3
+   Compiling deranged v0.5.8
+   Compiling portable-atomic v1.14.0
+   Compiling unicode-bidi-mirroring v0.3.0
+   Compiling unicode-ccc v0.3.0
+   Compiling powerfmt v0.2.0
+   Compiling tinystr v0.8.3
+   Compiling potential_utf v0.1.5
+   Compiling time-macros v0.2.32
+   Compiling tinystr v0.7.6
+   Compiling fontconfig-parser v0.5.8
+   Compiling rand_core v0.6.4
+   Compiling byteorder-lite v0.1.0
+   Compiling bitflags v1.3.2
+   Compiling unicode-properties v0.1.4
+   Compiling parking_lot v0.12.5
+   Compiling phf_shared v0.11.3
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/build-inputs)
+   Compiling half v2.7.1
+   Compiling ppv-lite86 v0.2.21
+   Compiling tracing-subscriber v0.3.23
+   Compiling icu_locale_core v2.2.0
+   Compiling icu_collections v2.2.0
+   Compiling strum_macros v0.26.4
+   Compiling svgtypes v0.15.3
+   Compiling rand v0.8.7
+   Compiling png v0.17.16
+   Compiling simplecss v0.2.2
+   Compiling icu_locid v1.5.0
+   Compiling quick-xml v0.41.0
+   Compiling pxfm v0.1.30
+   Compiling unicode-vo v0.1.0
+   Compiling xmlwriter v0.1.0
+   Compiling thiserror v1.0.69
+   Compiling wasmparser v0.221.3
+   Compiling rustybuzz v0.18.0
+   Compiling fontdb v0.21.0
+   Compiling pico-args v0.5.0
+   Compiling ciborium-ll v0.2.2
+   Compiling imagesize v0.13.0
+   Compiling unicode-bidi v0.3.18
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/action-cache)
+   Compiling time v0.3.54
+   Compiling icu_properties_data v1.5.1
+   Compiling downcast-rs v1.2.1
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/bundle-import)
+   Compiling linked-hash-map v0.5.6
+   Compiling zune-core v0.5.1
+   Compiling icu_provider v1.5.0
+   Compiling icu_provider v2.2.0
+   Compiling unscanny v0.1.0
+   Compiling data-url v0.3.2
+   Compiling phf_generator v0.11.3
+   Compiling strum v0.26.3
+   Compiling wasmi_core v0.40.0
+   Compiling unic-langid-impl v0.9.6
+   Compiling icu_collections v1.5.0
+   Compiling yaml-rust v0.4.5
+   Compiling gif v0.14.2
+   Compiling png v0.18.1
+   Compiling bincode v1.3.3
+   Compiling quick-xml v0.36.2
+   Compiling ciborium v0.2.2
+   Compiling enum-ordinalize-derive v4.4.1
+   Compiling thiserror-impl v1.0.69
+   Compiling fancy-regex v0.16.2
+   Compiling num-integer v0.1.46
+   Compiling form_urlencoded v1.2.2
+   Compiling unicode-math-class v0.1.0
+   Compiling numerals v0.1.4
+   Compiling zune-jpeg v0.5.15
+   Compiling icu_properties v2.2.0
+   Compiling icu_normalizer v2.2.0
+   Compiling icu_locid_transform v1.5.0
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/errors)
+   Compiling unsafe-libyaml v0.2.11
+   Compiling by_address v1.2.1
+   Compiling codex v0.1.1
+   Compiling palette v0.7.6
+   Compiling rust_decimal v1.42.1
+   Compiling thin-vec v0.2.18
+   Compiling biblatex v0.10.0
+   Compiling num-bigint v0.4.8
+   Compiling enum-ordinalize v4.4.1
+   Compiling wasmi_ir v0.40.0
+   Compiling unic-langid v0.9.6
+   Compiling phf_macros v0.11.3
+   Compiling citationberg v0.5.0
+   Compiling palette_derive v0.7.6
+   Compiling idna_adapter v1.2.2
+   Compiling rand_chacha v0.3.1
+   Compiling typst-utils v0.13.1
+   Compiling typst-timing v0.13.1
+   Compiling zerotrie v0.1.3
+   Compiling ecow v0.2.6
+   Compiling usvg v0.43.0
+   Compiling comemo-macros v0.4.0
+   Compiling approx v0.5.1
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling wait-timeout v0.2.1
+   Compiling csv-core v0.1.13
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/cli-core)
+   Compiling idna v1.1.0
+   Compiling wasmi_collections v0.40.0
+   Compiling fast-srgb8 v1.0.0
+   Compiling chinese-variant v1.1.6
+   Compiling mutate_once v0.1.2
+   Compiling plist v1.10.0
+   Compiling moxcms v0.8.1
+   Compiling spin v0.9.9
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling multi-stash v0.2.0
+   Compiling object v0.37.3
+   Compiling csv v1.4.0
+   Compiling comemo v0.4.0
+   Compiling icu_properties v1.5.1
+   Compiling lipsum v0.9.1
+   Compiling icu_provider_blob v1.5.0
+   Compiling kamadak-exif v0.6.1
+   Compiling typst-syntax v0.13.1
+   Compiling url v2.5.8
+   Compiling chinese-number v0.7.8
+   Compiling phf v0.11.3
+   Compiling typst-macros v0.13.1
+   Compiling qcms v0.3.0
+   Compiling typed-arena v2.0.2
+   Compiling az v1.3.0
+   Compiling typst-assets v0.13.1
+   Compiling syntect v5.3.0
+   Compiling bumpalo v3.20.3
+   Compiling font-types v0.11.3
+   Compiling polycool v0.4.0
+   Compiling icu_segmenter_data v1.5.1
+   Compiling stacker v0.1.24
+   Compiling diff v0.1.13
+   Compiling zune-core v0.4.12
+   Compiling quick-error v2.0.1
+   Compiling yansi v1.0.1
+   Compiling hayagriva v0.8.1
+   Compiling kurbo v0.13.1
+   Compiling tiny-skia v0.11.4
+   Compiling read-fonts v0.39.2
+   Compiling gif v0.13.3
+   Compiling rgb v0.8.53
+   Compiling derive_more-impl v2.1.1
+   Compiling zune-jpeg v0.4.21
+   Compiling image-webp v0.1.3
+   Compiling rustc_version v0.4.1
+   Compiling xmlparser v0.13.6
+   Compiling pretty_assertions v1.4.1
+   Compiling icu_provider_adapters v1.5.0
+   Compiling pdf-writer v0.12.1
+   Compiling proc-macro-error-attr3 v3.1.1
+   Compiling image v0.25.10
+   Compiling bincode-next v3.1.1
+   Compiling two-face v0.4.5
+   Compiling hypher v0.1.7
+   Compiling icu_segmenter v1.5.0
+   Compiling if_chain v1.0.3
+   Compiling either-or-both v0.3.1
+   Compiling derive_more v2.1.1
+   Compiling gungraun-macros v0.9.1
+   Compiling rapidhash v4.5.1
+   Compiling itertools v0.10.5
+   Compiling pastey v0.2.3
+   Compiling gungraun v0.19.4
+   Compiling cast v0.3.0
+   Compiling ar_archive_writer v0.5.2
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling resvg v0.43.0
+   Compiling unty-next v0.1.2
+   Compiling proc-macro-error3 v3.1.1
+   Compiling xmp-writer v0.3.3
+   Compiling tinytemplate v1.2.1
+   Compiling rand_core v0.9.5
+   Compiling is-terminal v0.4.17
+   Compiling gungraun-runner v0.19.4
+   Compiling anes v0.1.6
+   Compiling oorandom v11.1.5
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/pipeline)
+   Compiling quick-error v1.2.3
+   Compiling unarray v0.1.4
+   Compiling ahash v0.8.12
+   Compiling inventory v0.3.24
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/test-batch-macros)
+   Compiling wasm-bindgen-shared v0.2.125
+   Compiling wasm-bindgen v0.2.125
+   Compiling rand_chacha v0.9.0
+   Compiling rand_xorshift v0.4.0
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/slicetest)
+   Compiling normalize-line-endings v0.3.0
+   Compiling rusty-fork v0.3.1
+   Compiling predicates-core v1.0.10
+   Compiling snapbox-macros v0.4.0
+   Compiling float-cmp v0.10.0
+   Compiling filetime v0.2.29
+   Compiling os_pipe v1.2.3
+   Compiling toml_datetime v0.7.5+spec-1.1.0
+   Compiling content_inspector v0.2.4
+   Compiling difflib v0.4.0
+   Compiling termtree v0.5.1
+   Compiling dunce v1.0.5
+   Compiling criterion-plot v0.5.0
+   Compiling rand v0.9.5
+   Compiling humantime v2.4.0
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling assert_cmd v2.2.2
+   Compiling predicates v3.1.4
+   Compiling psm v0.1.31
+   Compiling automod v1.0.17
+   Compiling predicates-tree v1.0.13
+   Compiling shlex v1.3.0
+   Compiling ident_case v1.0.1
+   Compiling static_assertions v1.1.0
+   Compiling minimal-lexical v0.2.1
+   Compiling write-fonts v0.48.1
+   Compiling skrifa v0.42.1
+   Compiling snapbox v0.6.24
+   Compiling esaxx-rs v0.1.10
+   Compiling wasmi v0.40.0
+   Compiling castaway v0.2.4
+   Compiling criterion v0.5.1
+   Compiling toml_edit v0.23.10+spec-1.0.0
+   Compiling monostate-impl v0.1.18
+   Compiling itertools v0.14.0
+   Compiling base64 v0.13.1
+   Compiling proptest v1.11.0
+   Compiling macro_rules_attribute-proc_macro v0.2.2
+   Compiling humantime-serde v1.1.1
+   Compiling dary_heap v0.3.9
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling fancy-regex v0.14.0
+   Compiling monostate v0.1.18
+   Compiling compact_str v0.9.1
+   Compiling darling_core v0.20.11
+   Compiling unicode-normalization-alignments v0.1.12
+   Compiling unicode_categories v0.1.1
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/perf-evidence)
+   Compiling nom v7.1.3
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/helper-census)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/xtask)
+   Compiling rayon-cond v0.4.0
+   Compiling spm_precompiled v0.1.4
+   Compiling darling_macro v0.20.11
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling trycmd v0.15.11
+   Compiling darling v0.20.11
+   Compiling macro_rules_attribute v0.2.2
+   Compiling derive_builder_core v0.20.2
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling derive_builder_macro v0.20.2
+   Compiling derive_builder v0.20.2
+   Compiling tokenizers v0.22.2
+   Compiling subsetter v0.2.6
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling typst-library v0.13.1
+   Compiling svg2pdf v0.12.0
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling rustls-webpki v0.103.15
+   Compiling typst-svg v0.13.1
+   Compiling typst-eval v0.13.1
+   Compiling typst-layout v0.13.1
+   Compiling typst-realize v0.13.1
+   Compiling typst-pdf v0.13.1
+   Compiling typst-html v0.13.1
+   Compiling typst v0.13.1
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling ureq v3.3.0
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/gts-profile)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/foundation-corpus)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/query-wasm)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/music)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/math-lift)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/affect-ingest)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 4m 49s
+────────────
+ Nextest run ID 58b975e6-8b20-4505-8439-ce697800b170 with nextest profile: ci
+    Starting 19 tests across 28 binaries (3391 tests and 198 binaries skipped)
+        PASS [   0.007s] ( 1/19) gmeow-logic-compile result_shape::tests::term_kind_mismatch_is_hard_fail
+        PASS [   0.011s] ( 2/19) gmeow-logic-compile ir::tests::logic_axiom_keys_separate_term_kinds_polarity_and_field_boundaries
+        PASS [   0.012s] ( 3/19) gmeow-logic::reasoning_result_ttl_crosscheck every_term_kind_individual_is_declared
+        PASS [   0.026s] ( 4/19) gmeow-logic reason::enactment::term_kind_tests::malformed_kind_is_a_diagnostic_not_a_silently_omitted_check
+        PASS [   0.041s] ( 5/19) gmeow-logic reason::enactment::term_kind_tests::iri_kind_rejects_blank_values_without_changing_the_focus_identity
+        PASS [   0.041s] ( 6/19) gmeow-logic reason::enactment::term_kind_tests::predicate_scoped_kind_checks_every_subject_with_the_selected_path
+        PASS [   0.041s] ( 7/19) gmeow-logic reason::enactment::term_kind_tests::iri_kind_enforces_native_values_and_exact_law_identity
+        PASS [   0.041s] ( 8/19) gmeow-logic reason::enactment::term_kind_tests::literal_kind_accepts_datatype_language_and_direction_without_coercion
+        PASS [   0.042s] ( 9/19) gmeow-logic reason::enactment::term_kind_tests::cooccurrence_guards_preserve_both_directions_and_absence
+        PASS [   0.042s] (10/19) gmeow-logic reason::enactment::term_kind_tests::triple_values_do_not_masquerade_as_any_supported_node_kind
+        FAIL [   0.040s] (11/19) gmeow-logic reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity
+  stdout ───
+
+    running 1 test
+    test reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity ... FAILED
+
+    failures:
+
+    failures:
+        reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2142 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity' (4107032) panicked at crates/logic/src/reason/enactment/term_kind.tests.rs:43:5:
+    [RcViolationResidue { constraint_iri: "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint", gap: UnsupportedConsequent }]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.042s] (12/19) gmeow-logic reason::enactment::term_kind_tests::blank_or_iri_kind_accepts_blank_values_and_rejects_literals
+        PASS [   0.043s] (13/19) gmeow-logic reason::enactment::term_kind_tests::finite_numeric_intrinsic_runs_through_the_native_integrity_gate
+        PASS [   0.044s] (14/19) gmeow-logic reason::enactment::term_kind_tests::required_single_metadata_still_rejects_distinct_iri_values
+        PASS [   0.044s] (15/19) gmeow-logic reason::enactment::term_kind_tests::equality_expression_errors_drop_only_the_affected_candidate
+        PASS [   0.044s] (16/19) gmeow-logic reason::enactment::term_kind_tests::question_wording_language_guard_runs_through_native_integrity
+        PASS [   0.044s] (17/19) gmeow-logic reason::enactment::term_kind_tests::equality_filters_use_native_value_semantics_and_preserve_source_polarity
+        PASS [   0.058s] (18/19) gmeow-logic-compile projections::shapes::procedural_tests::finite_numeric_projection_preserves_exact_values_and_refuses_nonfinite_terms
+        PASS [   0.061s] (19/19) gmeow-logic-compile projections::shapes::procedural_tests::finite_numeric_measure_and_signed_pole_branches_validate_independently
+────────────
+     Summary [   0.091s] 19 tests run: 18 passed, 1 failed, 3391 skipped
+        FAIL [   0.040s] (11/19) gmeow-logic reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity
+  stdout ───
+
+    running 1 test
+    test reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity ... FAILED
+
+    failures:
+
+    failures:
+        reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2142 filtered out; finished in 0.03s
+
+  stderr ───
+
+    thread 'reason::enactment::term_kind_tests::finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity' (4107032) panicked at crates/logic/src/reason/enactment/term_kind.tests.rs:43:5:
+    [RcViolationResidue { constraint_iri: "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint", gap: UnsupportedConsequent }]
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100

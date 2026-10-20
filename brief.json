@@ -1,0 +1,127 @@
+{
+  "issue": 1657,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "math: tighten the signed radial-field value constraints and register the flagship scenes",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1544": "Complete math grounding for signed compactified radial fields",
+    "1443": "math: expressions hardening \u2014 missing Rust-validator failure classes + normalForm/content-key interning",
+    "1551": "Migrate math slice (and repo) to logic:-only grounding; retire sh:/owl: authoring + scope slicetest shapes per-slice",
+    "1255": "EPIC: Mathematics grounding layer (math:) \u2014 module implementation",
+    "1657": "math: tighten the signed radial-field value constraints and register the flagship scenes",
+    "1433": "EPIC: Grounding coherence & unity \u2014 tri-slice alignment program (logic:/lang:/math:)",
+    "1427": "logic: shared content-addressed structured-term arena for logic:/lang:/math: (hash-consed term DAG, binder-aware)",
+    "1550": "feat(math): signed compactified radial field grounding",
+    "1546": "feat(slice-quality): ratchet gate capping OWL/shape vocabulary growth (enforce logic:-grounding, Principle 17)",
+    "1254": "docs(mathematics): mathematics grounding-layer design set (14 charters)"
+  },
+  "link_relations": {
+    "1544": "mentions",
+    "1443": "mentions",
+    "1551": "mentions",
+    "1255": "mentions",
+    "1657": "mentions",
+    "1433": "2-hop",
+    "1427": "2-hop",
+    "1550": "2-hop",
+    "1546": "2-hop",
+    "1254": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1551,
+      "title": "Migrate math slice (and repo) to logic:-only grounding; retire sh:/owl: authoring + scope slicetest shapes per-slice",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1428,
+      "title": "logic/math: native moded builtin family \u2014 exact-\u211a arithmetic, SI dimension 7-vectors, bilinear-form distance",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1373,
+      "title": "logic: glyph enrichment \u2014 operator symbology plane for GMN (part of #1371)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1442,
+      "title": "validate: undeclared cross-slice usage becomes a gated error, peerage-aware",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1376,
+      "title": "gts/pipeline: machine-compression medium \u2014 per-corpus zstd dictionaries + packet envelope (part of #1371)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1546,
+      "title": "feat(slice-quality): ratchet gate capping OWL/shape vocabulary growth (enforce logic:-grounding, Principle 17)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1509,
+      "title": "logic: WorldStore over external datasets + stability commitment for dispatch_query/query_ir",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1444,
+      "title": "test-budget: conformance_affect_producer twin family sits at the 25s ceiling locally \u2014 flaky duration-budget reds",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1415,
+      "title": "feat(quality): per-slice quality report + opinionated uplift advisor (gmeow-dev slice-quality)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1571,
+      "title": "refactor(pipeline): cut over schema emitters to PurRDF and delete the legacy model",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1269,
+      "title": "lang: runtime & ingestion \u2014 total prose lift, CoNLL-U, grammar round-trip (RUNTIME)",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 41,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [
+      "77bd7a3da fix: enforce finite numeric radial-field and measure values"
+    ],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1867,
+        "title": "Enforce finite numeric radial-field and measure values",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1867",
+        "this_stage": true
+      },
+      {
+        "number": 1660,
+        "title": "chore(deficiencies): drain the ledger into tracked GitHub work",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1660",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1657-math-tighten-the-signed-radial-field"
+  },
+  "coverage": [
+    "issue #1657 + 4 comment(s) via github",
+    "link crawl: 10 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['math:', 'tighten', 'signed']: 11 other item(s)",
+    "GhpRsq-Defect-Class trailers: 3 distinct class(es) in the last 200 commits",
+    "prior attempts: 1 commit(s) citing #1657 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1657: 2",
+    "requirement candidates: 7 line(s); 2 comment(s) matched no rule",
+    "referenced artifacts: 12 path(s) (3 on disk), 27 identifier(s), 1 workspace package(s), 1 URL(s)"
+  ]
+}

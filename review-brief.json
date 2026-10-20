@@ -1,0 +1,31 @@
+{
+  "issue": 1657,
+  "branch": "paudley/1657-math-tighten-the-signed-radial-field",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "c290ab573d1b07de0164af5e0155409b8909ea05",
+      "subject": "fix: execute compound native numeric integrity laws",
+      "date": "2026-10-20"
+    }
+  ],
+  "files": [
+    "crates/logic-compile/src/relational_core.rs",
+    "crates/logic-compile/src/relational_core.tests.rs",
+    "crates/logic/src/counterfactual.rs",
+    "crates/logic/src/physical/builtin_eval.rs",
+    "crates/logic/src/physical/magic.rs",
+    "crates/logic/src/physical/plan.rs",
+    "crates/logic/src/physical/seminaive.rs",
+    "crates/logic/src/query_ir.rs",
+    "crates/logic/src/reason/enactment/term_kind.tests.rs",
+    "crates/logic/src/reference_resolver.rs",
+    "crates/logic/src/relational_core.rs",
+    "slices/grounding/math/examples/signed-radial-field-closed-form.ttl",
+    "slices/grounding/math/examples/signed-radial-field-qualitative.ttl",
+    "slices/grounding/math/tests/competency.ttl",
+    "slices/grounding/math/tests/example-conformance.ttl",
+    "slices/grounding/math/tests/structural.ttl"
+  ],
+  "adrs_touched": []
+}

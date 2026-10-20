@@ -1,0 +1,8 @@
+$ stagectl pr-checks 1884
+IN_PROGRESS producer-build
+IN_PROGRESS helpers
+SUCCESS    lint
+IN_PROGRESS rust-prebuild
+PENDING    CodeRabbit
+SUCCESS    license/cla
+state: pending

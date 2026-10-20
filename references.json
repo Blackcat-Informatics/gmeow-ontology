@@ -1,0 +1,274 @@
+{
+  "paths": [
+    {
+      "ref": "examples/closed-form-functions",
+      "path": "/home/paudley/Active/gmeow-ontology/examples/closed-form-functions",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "crates/validate/tests/example_sweep.rs:44",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/validate/tests/example_sweep.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "tests/structural.ttl",
+      "path": "/home/paudley/Active/gmeow-ontology/tests/structural.ttl",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": ".coderabbit.yaml",
+      "path": "/home/paudley/Active/gmeow-ontology/.coderabbit.yaml",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "agent/issue-1657-stage-1",
+      "path": "/home/paudley/Active/gmeow-ontology/agent/issue-1657-stage-1",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "slices/grounding/math/module.ttl:14834",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/grounding/math/module.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 16526,
+      "licence": "SPDX: CC-BY-4.0",
+      "commits": [
+        "f8824d0e9 fix: reject contradictory exact math projection judgments",
+        "0e09c13e7 docs: distinguish finite numeric and literal value branches",
+        "77bd7a3da fix: enforce finite numeric radial-field and measure values",
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "a794c70b3 fix(slices): qualify datatype-property counts by a data range, not owl:Thing",
+        "b10a1de8a feat(1682): complete owl:->logic: slice-authoring migration closeout",
+        "566b1302e docs(1682): correct stale OWL wording in slice constraint headers",
+        "6aeb64e5b fix(1682): complete the owl: retirement across readers, full-IRI constructs, characteristic projection, and translations",
+        "767e3a91c feat(1682): flip every slice module.ttl from owl: to canonical logic: authoring",
+        "db033e9c3 fix(1443): attribute the findings that had no class, and restore eight bounds that vanished"
+      ]
+    },
+    {
+      "ref": "crates/logic-compile/src/frontend.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/logic-compile/src/frontend.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 6764,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "fa80f5825 fix: project language datatypes and closed range unions (Principles 4, 7, 17, 18)",
+        "a0b0deb02 Execute native node-kind integrity checks",
+        "d89debcda fix(logic): separate configuration declarations from probabilistic execution",
+        "1c3bc726a fix(logic): preserve native source diagnostics through proof preparation",
+        "f033b9f3a docs(logic): clarify diagnostic contracts and native terminology",
+        "12380e2df fix(logic): remove facet string errors and ground service refusals",
+        "a9892dc72 feat(logic): catalogue reasoning contracts in classical proof tasks",
+        "f9dbb7ae7 feat(logic): certify Boolean source-class membership laws",
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "0ecbb06b8 fix(1787): carry every logic: list to graph/logic in one encoding (#1788)"
+      ]
+    },
+    {
+      "ref": "frontend.rs:4369-4378",
+      "path": "/home/paudley/Active/gmeow-ontology/frontend.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "frontend.rs:1748",
+      "path": "/home/paudley/Active/gmeow-ontology/frontend.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "frontend.rs:1820",
+      "path": "/home/paudley/Active/gmeow-ontology/frontend.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "crates/validate/tests/example_sweep.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/validate/tests/example_sweep.rs",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "slices/grounding/math/module.ttl",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/grounding/math/module.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 16526,
+      "licence": "SPDX: CC-BY-4.0",
+      "commits": [
+        "f8824d0e9 fix: reject contradictory exact math projection judgments",
+        "0e09c13e7 docs: distinguish finite numeric and literal value branches",
+        "77bd7a3da fix: enforce finite numeric radial-field and measure values",
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "a794c70b3 fix(slices): qualify datatype-property counts by a data range, not owl:Thing",
+        "b10a1de8a feat(1682): complete owl:->logic: slice-authoring migration closeout",
+        "566b1302e docs(1682): correct stale OWL wording in slice constraint headers",
+        "6aeb64e5b fix(1682): complete the owl: retirement across readers, full-IRI constructs, characteristic projection, and translations",
+        "767e3a91c feat(1682): flip every slice module.ttl from owl: to canonical logic: authoring",
+        "db033e9c3 fix(1443): attribute the findings that had no class, and restore eight bounds that vanished"
+      ]
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2090
+    },
+    {
+      "name": "measureResult",
+      "files": 20
+    },
+    {
+      "name": "PositiveInfinity",
+      "files": 47
+    },
+    {
+      "name": "example_sweep",
+      "files": 3
+    },
+    {
+      "name": "NON_CONFORMANT",
+      "files": 1
+    },
+    {
+      "name": "d56923da8",
+      "files": 0
+    },
+    {
+      "name": "termApplication",
+      "files": 23
+    },
+    {
+      "name": "termDistinct",
+      "files": 30
+    },
+    {
+      "name": "termEqual",
+      "files": 32
+    },
+    {
+      "name": "termGreater",
+      "files": 14
+    },
+    {
+      "name": "termGreaterEqual",
+      "files": 9
+    },
+    {
+      "name": "termIn",
+      "files": 191
+    },
+    {
+      "name": "termIndex",
+      "files": 181
+    },
+    {
+      "name": "termIri",
+      "files": 157
+    },
+    {
+      "name": "termIsBlankOrIri",
+      "files": 6
+    },
+    {
+      "name": "termIsIri",
+      "files": 11
+    },
+    {
+      "name": "termIsLiteral",
+      "files": 11
+    },
+    {
+      "name": "termLess",
+      "files": 10
+    },
+    {
+      "name": "termLessEqual",
+      "files": 9
+    },
+    {
+      "name": "termLiteral",
+      "files": 67
+    },
+    {
+      "name": "termLiteralDatatype",
+      "files": 49
+    },
+    {
+      "name": "termRegex",
+      "files": 21
+    },
+    {
+      "name": "termSequenceMarker",
+      "files": 20
+    },
+    {
+      "name": "termStrStarts",
+      "files": 17
+    },
+    {
+      "name": "termVariable",
+      "files": 142
+    },
+    {
+      "name": "ConstraintComponent::Datatype",
+      "files": 17
+    },
+    {
+      "name": "withRestrictions",
+      "files": 48
+    }
+  ],
+  "packages": [
+    "gmeow-ontology"
+  ],
+  "urls": [
+    "https://discord.gg/coderabbit"
+  ],
+  "truncated": []
+}

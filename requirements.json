@@ -1,0 +1,93 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 11,
+      "rules": [
+        "modal"
+      ],
+      "text": "`math:ExtendedRealValueConstraint` enforces the non-literal-must-be-a-pole case, but the guarded `logic:` fragment has no numeric-datatype test, so a non-numeric literal in an extended-real position passes.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 28,
+      "rules": [
+        "modal"
+      ],
+      "text": "- Closed-form leaf-linkage runtime enforcement is a `tests/structural.ttl` MUST cell over authored instances rather than a live `logic:Constraint`, because transitive AST traversal exceeds the guarded fragment.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 32,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Give the extended-real gate a numeric-datatype test, or record why the guarded fragment cannot carry one.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 33,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Decide how to forbid a finite-negative `measureResult` without breaking the literal-or-pole span.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 34,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Register the radial scenes as flagship scenarios, or state that the non-flagship surface is sufficient.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 18,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan",
+      "source": "comment 1",
+      "author": "coderabbitai",
+      "date": "2026-07-27T00:19:05Z"
+    },
+    {
+      "id": "C3.1",
+      "line": 45,
+      "rules": [
+        "modal"
+      ],
+      "text": "That is a vocabulary addition, not a one-line tightening, which is why I have not bundled it into the current run of small fixes. Item 2 (`math:MeasureResultNonNegativeConstraint`) plausibly wants the same builtin plus `logic:termGreaterEqual`, so the two should be designed together rather than separately.",
+      "source": "comment 3",
+      "author": "paudley",
+      "date": "2026-09-06T02:53:08Z"
+    }
+  ],
+  "silent_comments": [
+    {
+      "comment": 2,
+      "author": "paudley",
+      "date": "2026-09-04T16:20:51Z"
+    },
+    {
+      "comment": 4,
+      "author": "paudley",
+      "date": "2026-10-20T07:59:11Z"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/.stage/math-tighten-the-signed-radial-field/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/.stage/math-tighten-the-signed-radial-field/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/.stage/math-tighten-the-signed-radial-field/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/.stage/math-tighten-the-signed-radial-field/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1657-math-tighten-the-signed-radial-field/.stage/math-tighten-the-signed-radial-field/brief.json  (+ requirements.json, references.json)
+
+  - issue #1657 + 4 comment(s) via github
+  - link crawl: 10 issue(s) within 2 hop(s) of `#N` references
+  - forge search on ['math:', 'tighten', 'signed']: 11 other item(s)
+  - GhpRsq-Defect-Class trailers: 3 distinct class(es) in the last 200 commits
+  - prior attempts: 1 commit(s) citing #1657 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1657: 2
+  - requirement candidates: 7 line(s); 2 comment(s) matched no rule
+  - referenced artifacts: 12 path(s) (3 on disk), 27 identifier(s), 1 workspace package(s), 1 URL(s)
