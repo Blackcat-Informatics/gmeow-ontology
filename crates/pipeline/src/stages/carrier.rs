@@ -1095,20 +1095,36 @@ fn assemble_carrier(
     // recomputed from THIS run's source. Each producing stage emits the committed file
     // as the canonical fold of these triples, so the superset gate reconstructs them
     // byte-for-byte (PIPELINE_SPINE §5; RDF travels as RDF, never a blob).
-    for (path, bytes) in rdf_fanout_members(upstream)? {
-        let iri = crate::stages::superset::rdf_fanout_graph_iri(&path)
-            .ok_or_else(|| stage_err(&format!("non-RDF path in rdf_fanout_members: {path}")))?;
-        let media_type = if path.ends_with(".nt") {
-            "application/n-triples"
-        } else if path.ends_with(".nq") {
-            "application/n-quads"
-        } else {
-            "text/turtle"
-        };
-        datasets.push(parse_into_graph(&bytes, media_type, &iri)?);
-    }
+    let fanout = crate::node::measure_stage_phase("stage-snapshot", "collect-rdf-fanout", || {
+        rdf_fanout_members(upstream)
+    })?;
+    crate::node::measure_stage_phase(
+        "stage-snapshot",
+        "parse-rdf-fanout",
+        || -> Result<(), gmeow_errors::Diag> {
+            for (path, bytes) in fanout {
+                let iri =
+                    crate::stages::superset::rdf_fanout_graph_iri(&path).ok_or_else(|| {
+                        stage_err(&format!("non-RDF path in rdf_fanout_members: {path}"))
+                    })?;
+                let media_type = if path.ends_with(".nt") {
+                    "application/n-triples"
+                } else if path.ends_with(".nq") {
+                    "application/n-quads"
+                } else {
+                    "text/turtle"
+                };
+                datasets.push(parse_into_graph(&bytes, media_type, &iri)?);
+            }
+            Ok(())
+        },
+    )?;
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    let composed = std::sync::Arc::new(purrdf::RdfDataset::union(&refs)?);
+    let composed = std::sync::Arc::new(crate::node::measure_stage_phase(
+        "stage-snapshot",
+        "union-carrier-graphs",
+        || purrdf::RdfDataset::union(&refs),
+    )?);
 
     // Reasoner-derived gate verdicts (logic:ruleGateFatalVerdict). The reason stage's
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
@@ -1130,8 +1146,10 @@ fn assemble_carrier(
         &gate_source,
     )?
     .ok_or_else(|| stage_err("snapshot requires the authored findingGateVerdict rule"))?;
-    let verdicts = gate
-        .derived_verdict_dataset(&composed, GRAPH_DIAGNOSTICS)
+    let verdicts =
+        crate::node::measure_stage_phase("stage-snapshot", "derive-finding-gate-verdicts", || {
+            gate.derived_verdict_dataset(&composed, GRAPH_DIAGNOSTICS)
+        })
         .map_err(|e| stage_err(&format!("derive gate verdicts over the bundle: {e}")))?;
     let composed_final = if verdicts.quad_count() == 0 {
         composed
@@ -1204,19 +1222,34 @@ fn fold_coherence_certificate(
     // Bundle identity = digest of the composed carrier's canonical N-Quads, pinned with the
     // SAME digest primitive as the axiom-set hashes (so the certificate's bundle_hash and
     // axiom_hashes are computed under one deterministic primitive).
-    let composed_nq = purrdf::canonical_flat_nquads(composed.as_ref()).map_err(|e| {
+    let composed_nq = crate::node::measure_stage_phase(
+        "stage-snapshot",
+        "canonicalize-coherence-carrier",
+        || purrdf::canonical_flat_nquads(composed.as_ref()),
+    )
+    .map_err(|e| {
         stage_err(&format!(
             "serialize composed carrier for the coherence certificate: {e}"
         ))
     })?;
     let bundle_hash = purrdf::gts::writer::digest_string(composed_nq.as_bytes());
+    tracing::info!(
+        target: "pipeline_phase", stage = "stage-snapshot",
+        carrier_quads = composed.quad_count(), canonical_bytes = composed_nq.len(),
+        "coherence input size"
+    );
+    // Only the digest is needed by the certificate and final carrier union.
+    drop(composed_nq);
 
-    let outcome = crate::stages::release::build_coherence_outcome(
-        composed.as_ref(),
-        result.as_ref(),
-        bundle_hash,
-        COHERENCE_ISSUED_AT,
-    )?;
+    let outcome =
+        crate::node::measure_stage_phase("stage-snapshot", "assess-coherence-certificate", || {
+            crate::stages::release::build_coherence_outcome(
+                composed.as_ref(),
+                result.as_ref(),
+                bundle_hash,
+                COHERENCE_ISSUED_AT,
+            )
+        })?;
     if outcome.is_refused() {
         return Err(stage_err(
             "coherence certificate: the assembled bundle carries a forbidden integrity \
@@ -3261,8 +3294,12 @@ impl Stage for SnapshotStage {
         // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
         // presented as bytes by the sole terminal writer (`gts_sink::GtsSinkStage`),
         // never by this stage — the snapshot product carries the carrier, no byte lane.
-        let carrier = assemble_carrier(input.upstream)?;
-        let bundle = build_snapshot_bundle(carrier, input.upstream)?;
+        let carrier = crate::node::measure_stage_phase(self.id(), "assemble-carrier", || {
+            assemble_carrier(input.upstream)
+        })?;
+        let bundle = crate::node::measure_stage_phase(self.id(), "publish-native-handles", || {
+            build_snapshot_bundle(carrier, input.upstream)
+        })?;
         Ok(StageOutput::new(StageProduct::from_bundle(
             self.id(),
             std::sync::Arc::new(bundle),
@@ -3362,7 +3399,10 @@ fn build_snapshot_bundle(
         DatasetProvenance::new(),
     );
     crate::bundle::pin_diagnostics(&mut bundle, "stage-snapshot", diagnostics)?;
-    let pinned_logic = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC)?;
+    let pinned_logic =
+        crate::node::measure_stage_phase("stage-snapshot", "digest-logic-handle", || {
+            bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC)
+        })?;
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_LOGIC,
@@ -3370,7 +3410,10 @@ fn build_snapshot_bundle(
             pinned_logic,
         )
         .map_err(|e| stage_err(&format!("re-pin Logic handle on snapshot product: {e}")))?;
-    let pinned_reasoning = bundle.graph_digest(gmeow_logic::result_rdf::GRAPH_REASONING)?;
+    let pinned_reasoning =
+        crate::node::measure_stage_phase("stage-snapshot", "digest-reasoning-handle", || {
+            bundle.graph_digest(gmeow_logic::result_rdf::GRAPH_REASONING)
+        })?;
     bundle
         .pin_handle(
             gmeow_logic::result_rdf::GRAPH_REASONING,
@@ -3378,7 +3421,10 @@ fn build_snapshot_bundle(
             pinned_reasoning,
         )
         .map_err(|e| stage_err(&format!("re-pin Reasoning handle on snapshot product: {e}")))?;
-    let pinned_rc = bundle.graph_digest(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE)?;
+    let pinned_rc =
+        crate::node::measure_stage_phase("stage-snapshot", "digest-relational-handle", || {
+            bundle.graph_digest(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE)
+        })?;
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
@@ -3390,7 +3436,10 @@ fn build_snapshot_bundle(
                 "re-pin RelationalCore handle on snapshot product: {e}"
             ))
         })?;
-    let pinned_corr = bundle.graph_digest(crate::stages::compile_logic::GRAPH_CORRESPONDENCE)?;
+    let pinned_corr =
+        crate::node::measure_stage_phase("stage-snapshot", "digest-correspondence-handle", || {
+            bundle.graph_digest(crate::stages::compile_logic::GRAPH_CORRESPONDENCE)
+        })?;
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_CORRESPONDENCE,

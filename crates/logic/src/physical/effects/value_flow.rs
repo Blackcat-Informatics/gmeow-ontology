@@ -937,6 +937,36 @@ impl AdaptiveDomain {
         }
     }
 
+    /// Materialize only the values admitted by the current join column.
+    fn intersected(&self, filter: &Domain) -> Domain {
+        match self {
+            Self::Dense(domain) => {
+                debug_assert_eq!(
+                    domain.0.len(),
+                    filter.0.len(),
+                    "value-flow column and filter must share one universe width"
+                );
+                Domain(
+                    domain
+                        .0
+                        .iter()
+                        .zip(&filter.0)
+                        .map(|(values, allowed)| values & allowed)
+                        .collect(),
+                )
+            }
+            Self::Sparse { size, values } => {
+                let mut domain = Domain::empty(*size);
+                for &value in values {
+                    if filter.contains(value) {
+                        domain.insert(value);
+                    }
+                }
+                domain
+            }
+        }
+    }
+
     fn intersect_union_into(&self, filter: &Domain, output: &mut Domain) -> bool {
         match self {
             Self::Dense(domain) => {
@@ -1198,6 +1228,25 @@ impl FlowSummary {
         (logical, resident, dense)
     }
 
+    fn distinct_support_rows(&self) -> usize {
+        // Shared supports are immutable. Hash each resident row only once, while
+        // still coalescing equal content held by different pointers or encodings.
+        let mut resident =
+            std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::default());
+        self.relations
+            .values()
+            .flat_map(|relation| {
+                relation
+                    .by_subject
+                    .values()
+                    .chain(relation.by_object.values())
+            })
+            .filter(|row| resident.insert(Row::as_ptr(row)))
+            .map(|row| SupportContent(row))
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+    }
+
     /// Trace the footprint of a large closed summary: keyed rows, the shared
     /// rows actually resident, and the distinct contents they hold.
     fn trace_footprint(&self, rules: usize) {
@@ -1211,17 +1260,6 @@ impl FlowSummary {
             .values()
             .map(|relation| relation.by_subject.len() + relation.by_object.len())
             .sum();
-        let distinct: std::collections::HashSet<SupportContent<'_>> = self
-            .relations
-            .values()
-            .flat_map(|relation| {
-                relation
-                    .by_subject
-                    .values()
-                    .chain(relation.by_object.values())
-            })
-            .map(|row| SupportContent(row))
-            .collect();
         tracing::info!(
             target: "pipeline_reasoning_detail",
             phase = "refine-closure-footprint",
@@ -1229,7 +1267,7 @@ impl FlowSummary {
             relations = self.relations.len(),
             keyed_rows = keyed,
             resident_dense_rows = dense,
-            distinct_rows = distinct.len(),
+            distinct_rows = self.distinct_support_rows(),
             interned_rows = self.rows.rows.len(),
             logical_support_mb = logical >> 20,
             resident_support_mb = resident >> 20,
@@ -1275,6 +1313,9 @@ impl FlowSummary {
                 .get(&value)
                 .map_or_else(|| Domain::empty(size), AdaptiveDomain::to_domain);
             for predicate in &self.rectangle_relations {
+                if !required[1].contains(*predicate) {
+                    continue;
+                }
                 let relation = self
                     .relations
                     .get(predicate)
@@ -2121,7 +2162,7 @@ impl ValueFlow {
         if bindings.iter().any(Domain::is_empty) {
             return None;
         }
-        self.stabilize_bindings(rule, state, bindings)
+        self.stabilize_bindings(rule, state, bindings, 0)
     }
 
     /// Refine a seeded join from the rule's already-stable unseeded upper bound.
@@ -2146,7 +2187,19 @@ impl ValueFlow {
         if bindings.iter().any(Domain::is_empty) {
             return None;
         }
-        self.stabilize_bindings(rule, state, bindings)
+        // The upper bound is already stable. Start where the singleton changed
+        // an input, so dependent atoms see its narrowing before another broad
+        // scan. Every atom still runs on every pass until the same fixed point.
+        let first_atom = rule
+            .body
+            .iter()
+            .position(|atom| {
+                atom.iter().any(|slot| {
+                    matches!(slot, Slot::Variable(variable) if seeds.iter().any(|&(seeded, _)| seeded == *variable))
+                })
+            })
+            .unwrap_or(0);
+        self.stabilize_bindings(rule, state, bindings, first_atom)
     }
 
     fn stabilize_bindings(
@@ -2154,28 +2207,35 @@ impl ValueFlow {
         rule: &Rule,
         state: &FlowSummary,
         mut bindings: Vec<Domain>,
+        first_atom: usize,
     ) -> Option<Vec<Domain>> {
         let size = self.universe.size();
         loop {
             let mut changed = false;
-            for atom in &rule.body {
+            for atom in rule.body[first_atom..]
+                .iter()
+                .chain(&rule.body[..first_atom])
+            {
                 let required = self.universe.domains(atom, &bindings, true);
                 let mut possible: [Domain; 3] = std::array::from_fn(|_| Domain::empty(size));
-                let indexed_predicates =
-                    state.predicates_for_singleton(&required, &self.conditioned, size);
+                // Fixed predicates already select their relation and semantic alias.
+                // Only a dynamic predicate benefits from the reverse value index.
+                let indexed_predicates = if matches!(atom[1], Slot::Constant(_)) {
+                    None
+                } else {
+                    state.predicates_for_singleton(&required, &self.conditioned, size)
+                };
                 let predicates = indexed_predicates.as_ref().unwrap_or(&required[1]);
                 for predicate in predicates.indices() {
                     let Some(relation) = state.relations.get(&predicate) else {
                         continue;
                     };
                     let mut row = [
-                        relation.columns[0].to_domain(),
+                        relation.columns[0].intersected(&required[0]),
                         self.universe.predicates(&Domain::one(size, predicate)),
-                        relation.columns[1].to_domain(),
+                        relation.columns[1].intersected(&required[2]),
                     ];
-                    for (values, wanted) in row.iter_mut().zip(&required) {
-                        values.intersect(wanted);
-                    }
+                    row[1].intersect(&required[1]);
                     if !row[0].is_empty() && row[0].is_subset_of(&self.conditioned) {
                         let mut objects = Domain::empty(size);
                         let subjects =
@@ -2723,7 +2783,9 @@ impl ValueFlow {
                 }
             }
             if candidates.len() >= 1_000 {
-                let support = state.support_bytes();
+                // Field expressions run only for an enabled event. The three
+                // fields share one scan, and a disabled event performs none.
+                let support = std::cell::LazyCell::new(|| state.support_bytes());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",

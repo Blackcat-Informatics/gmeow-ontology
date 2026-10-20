@@ -17,6 +17,7 @@ mod resolution;
 pub use build_script::emit_action_identity;
 pub use cargo::{
     ProductionSelection, UnitSelection, cargo_policy_files, declared_path_dependency_manifests,
+    source_edition,
 };
 pub use cfg::{CfgContext, cfg_excludes_production};
 pub use dep_info::{CompilerArtifact, CompilerInputs, GeneratedInputs};
@@ -34,7 +35,7 @@ pub const SELECTION_ENV: &str = "GMEOW_PRODUCER_SOURCE_SELECTION";
 /// Commitment to the controller-written selection document named by SELECTION_ENV.
 pub const SELECTION_DIGEST_ENV: &str = "GMEOW_PRODUCER_SOURCE_SELECTION_SHA256";
 /// Executable inventory format. No older inventory has equivalent admission.
-pub const SCHEMA: u32 = 1;
+pub const SCHEMA: u32 = 2;
 /// Explicit identity for code that cannot produce corpus actions.
 pub const NON_PRODUCER: &str = "non-producer:test-debug";
 

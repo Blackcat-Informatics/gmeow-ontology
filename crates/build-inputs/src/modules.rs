@@ -2,15 +2,43 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::{InputInventory, InputRole, Result, UnitSelection, checked_path, fail, relative};
-use proc_macro2::{TokenStream, TokenTree};
+use proc_macro2::{Delimiter, TokenStream, TokenTree};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use syn::{
     Attribute, Expr, Item, Meta, Token,
+    ext::IdentExt,
     parse::Parser,
     punctuated::Punctuated,
     visit::{self, Visit},
 };
+
+/// Dependency-owned macros whose namespace is part of the input capability.
+fn qualified_macro(path: &syn::Path, tracing_names: &BTreeSet<String>) -> Option<&'static str> {
+    if path.segments.len() != 2 {
+        return None;
+    }
+    match (
+        path.segments[0].ident.to_string().as_str(),
+        path.segments[1].ident.to_string().as_str(),
+    ) {
+        ("inventory", "collect") => Some("inventory::collect"),
+        // A relative name can resolve to a local module re-exporting an
+        // input-bearing macro. Only the external-prelude path owns this grant.
+        (owner, "info_span") if path.leading_colon.is_some() && tracing_names.contains(owner) => {
+            Some("tracing::info_span")
+        }
+        _ => None,
+    }
+}
+
+fn contains_module_declaration(tokens: TokenStream) -> bool {
+    tokens.into_iter().any(|token| match token {
+        TokenTree::Ident(name) => name == "mod",
+        TokenTree::Group(group) => contains_module_declaration(group.stream()),
+        _ => false,
+    })
+}
 
 pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Result<()> {
     collect_selected(workspace, inventory, false)
@@ -44,7 +72,19 @@ fn collect_selected(
     for unit in &units {
         let Some(source) = &unit.source else { continue };
         let path = checked_path(workspace, Path::new(source))?;
+        let tracing_names = unit
+            .dependency_names
+            .iter()
+            .zip(&unit.dependencies)
+            .filter(|(_, index)| {
+                matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
+                    && crate::cargo::package_parts(&units[**index].package)
+                        .is_ok_and(|(_, name, _)| name == "tracing")
+            })
+            .map(|(name, _)| name.clone())
+            .collect();
         let mut scanner = Scanner {
+            tracing_names,
             workspace,
             inventory,
             unit,
@@ -55,6 +95,7 @@ fn collect_selected(
                 .to_path_buf(),
             attribute_directory: path.parent().unwrap().to_path_buf(),
             stack: Vec::new(),
+            scope_depth: 0,
             seen: BTreeSet::new(),
             excluded: &mut excluded,
             macros: BTreeSet::new(),
@@ -148,29 +189,49 @@ fn semantic_inventory(
             .map(|parent| parent.join("Cargo.toml"))
             .find(|candidate| candidate.is_file())
             .ok_or_else(|| fail("kernel root has no manifest owner"))?;
-        let dependency_names = if ownership_only {
-            let value = std::fs::read_to_string(&manifest)
-                .map_err(fail)?
-                .parse::<toml::Value>()
-                .map_err(fail)?;
-            crate::cargo::declared_dependency_names(&value)
-                .into_iter()
-                .collect()
+        let declarations = if ownership_only {
+            Some(
+                std::fs::read_to_string(&manifest)
+                    .map_err(fail)?
+                    .parse::<toml::Value>()
+                    .map_err(fail)?,
+            )
         } else {
-            vec![]
+            None
         };
+        let dependencies = declarations
+            .as_ref()
+            .map(crate::cargo::declared_dependencies)
+            .unwrap_or_default();
         let unit = UnitSelection {
             package: "native-semantic-kernel".into(),
             manifest: Some(relative(workspace, &manifest)?),
             source: Some((*source).into()),
             target: "semantic-kernel".into(),
+            edition: crate::cargo::source_edition(workspace, source)?,
             kinds: vec!["lib".into()],
             cfg: crate::CfgContext::from_rustc("", &[], true)?,
             dependencies: vec![],
-            dependency_names,
+            dependency_names: dependencies
+                .keys()
+                .map(|name| name.replace('-', "_"))
+                .collect(),
             controller: false,
         };
+        let tracing_names = if matches!(unit.edition.as_str(), "2018" | "2021" | "2024") {
+            match &declarations {
+                Some(owner) => {
+                    crate::cargo::portable_tracing_names(workspace, owner, &dependencies)?
+                }
+                None => BTreeSet::new(),
+            }
+        } else {
+            BTreeSet::new()
+        };
         let mut scanner = Scanner {
+            // Portable policy has declarations, not selected Cargo units. Only
+            // an unambiguous crates.io tracing declaration grants this macro.
+            tracing_names,
             workspace,
             inventory: &mut inventory,
             unit: &unit,
@@ -178,6 +239,7 @@ fn semantic_inventory(
             directory: path.parent().unwrap().to_path_buf(),
             attribute_directory: path.parent().unwrap().to_path_buf(),
             stack: Vec::new(),
+            scope_depth: 0,
             seen: BTreeSet::new(),
             excluded: &mut excluded,
             macros: BTreeSet::new(),
@@ -199,6 +261,7 @@ fn semantic_inventory(
 }
 
 struct Scanner<'a> {
+    tracing_names: BTreeSet<String>,
     workspace: &'a Path,
     inventory: &'a mut InputInventory,
     unit: &'a UnitSelection,
@@ -206,7 +269,8 @@ struct Scanner<'a> {
     directory: PathBuf,
     attribute_directory: PathBuf,
     stack: Vec<PathBuf>,
-    seen: BTreeSet<(PathBuf, PathBuf)>,
+    scope_depth: usize,
+    seen: BTreeSet<(PathBuf, PathBuf, bool)>,
     excluded: &'a mut BTreeSet<String>,
     macros: BTreeSet<String>,
     semantic: bool,
@@ -236,7 +300,10 @@ impl Scanner<'_> {
                 path.parent().unwrap().join(path.file_stem().unwrap())
             }
         });
-        if !self.seen.insert((path.clone(), directory.clone())) {
+        if !self
+            .seen
+            .insert((path.clone(), directory.clone(), self.scope_depth == 0))
+        {
             return Ok(());
         }
         self.inventory.add_file(
@@ -460,18 +527,28 @@ impl Scanner<'_> {
                     && syn::parse2::<syn::Ident>(TokenStream::from(TokenTree::Ident(name.clone())))
                         .is_ok()
                 {
-                    let registry_collect = name == "collect"
-                        && index >= 3
-                        && matches!(&tokens[index - 3], TokenTree::Ident(owner) if owner == "inventory")
-                        && matches!(&tokens[index - 2], TokenTree::Punct(colon) if colon.as_char() == ':')
-                        && matches!(&tokens[index - 1], TokenTree::Punct(colon) if colon.as_char() == ':')
-                        && (index == 3
-                            || !matches!(&tokens[index - 4], TokenTree::Punct(colon) if colon.as_char() == ':'));
-                    let name = if registry_collect {
-                        "inventory::collect".to_owned()
-                    } else {
-                        name.to_string()
-                    };
+                    let mut start = index;
+                    while start >= 2
+                        && matches!(&tokens[start - 2], TokenTree::Punct(colon) if colon.as_char() == ':')
+                        && matches!(&tokens[start - 1], TokenTree::Punct(colon) if colon.as_char() == ':')
+                    {
+                        start -= 2;
+                        if start > 0
+                            && matches!(&tokens[start - 1], TokenTree::Ident(ident)
+                                if syn::parse2::<syn::Ident>(TokenStream::from(
+                                    TokenTree::Ident(ident.clone())
+                                )).is_ok())
+                        {
+                            start -= 1;
+                        } else {
+                            break;
+                        }
+                    }
+                    let path = tokens[start..=index].iter().cloned().collect();
+                    let owner = syn::parse2::<syn::Path>(path)
+                        .ok()
+                        .and_then(|path| qualified_macro(&path, &self.tracing_names));
+                    let name = owner.map(str::to_owned).unwrap_or_else(|| name.to_string());
                     self.macro_input(&name, group.stream())?;
                     index += 3;
                     continue;
@@ -485,6 +562,12 @@ impl Scanner<'_> {
         Ok(())
     }
     fn macro_input(&mut self, name: &str, tokens: TokenStream) -> Result<()> {
+        if contains_opaque_source_syntax(tokens.clone(), MacroSyntaxContext::Argument) {
+            return Err(fail(format!(
+                "opaque macro input for {name}! needs an explicit source owner in {}",
+                self.file.display()
+            )));
+        }
         // Embedded data and compile-time scalar values do not add Rust modules.
         // The authenticated producer traversal still records every such input.
         if self.ownership_only
@@ -533,15 +616,16 @@ impl Scanner<'_> {
             {
                 self.tokens(tokens)
             }
-            "macro_rules" => {
-                if contains_source_declaration(tokens.clone()) {
-                    Err(fail(format!(
-                        "source-producing declarative macro needs an explicit owner in {}",
+            // The selected tracing implementation owns this qualified span
+            // constructor. Walk every field expression for nested source inputs.
+            "tracing::info_span" => {
+                if contains_module_declaration(tokens.clone()) {
+                    return Err(fail(format!(
+                        "tracing span contains a module declaration with no source owner in {}",
                         self.file.display()
-                    )))
-                } else {
-                    self.tokens(tokens)
+                    )));
                 }
+                self.tokens(tokens)
             }
             // These syntax-only macros are bound to the selected std/registry/local
             // package implementation. Their nested include expressions still count.
@@ -592,6 +676,15 @@ impl Scanner<'_> {
                 self.file.display()
             ))),
         }
+    }
+    fn macro_definition(&mut self, tokens: TokenStream) -> Result<()> {
+        if contains_source_declaration(tokens.clone()) {
+            return Err(fail(format!(
+                "source-producing declarative macro needs an explicit owner in {}",
+                self.file.display()
+            )));
+        }
+        self.tokens(tokens)
     }
     fn inactive(&mut self, item: &Item, attrs: &[Attribute]) -> Result<()> {
         let mentions_test = attrs.iter().any(|attr| meta_mentions_test(&attr.meta));
@@ -670,6 +763,7 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         }
     }
     fn visit_item_mod(&mut self, module: &'ast syn::ItemMod) {
+        self.scope_depth += 1;
         let result = (|| {
             let Some(attrs) = self.attributes(&module.attrs)? else {
                 return Ok(());
@@ -707,20 +801,52 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
                 self.file(&path, false)
             }
         })();
+        self.scope_depth -= 1;
         if let Err(e) = result {
             self.error = Some(e);
         }
     }
     fn visit_block(&mut self, block: &'ast syn::Block) {
         let previous = self.macros.clone();
+        self.scope_depth += 1;
         visit::visit_block(self, block);
+        self.scope_depth -= 1;
         self.macros = previous;
+    }
+    fn visit_item_extern_crate(&mut self, item: &'ast syn::ItemExternCrate) {
+        let source = item.ident.unraw().to_string();
+        let binding = item
+            .rename
+            .as_ref()
+            .map_or(&item.ident, |(_, alias)| alias)
+            .unraw()
+            .to_string();
+        if self.scope_depth == 0
+            && self.tracing_names.contains(&binding)
+            && !self.tracing_names.contains(&source)
+        {
+            self.error = Some(fail(format!(
+                "extern crate alias {binding} shadows the selected tracing source owner in {}",
+                self.file.display()
+            )));
+            return;
+        }
+        visit::visit_item_extern_crate(self, item);
     }
     fn visit_item_macro(&mut self, item: &'ast syn::ItemMacro) {
         if item.mac.path.is_ident("macro_rules")
             && let Some(name) = &item.ident
         {
             self.macros.insert(name.to_string());
+            for attr in &item.attrs {
+                self.visit_attribute(attr);
+            }
+            if self.error.is_none()
+                && let Err(error) = self.macro_definition(item.mac.tokens.clone())
+            {
+                self.error = Some(error);
+            }
+            return;
         }
         visit::visit_item_macro(self, item);
     }
@@ -734,11 +860,8 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
             .last()
             .map(|part| part.ident.to_string())
             .unwrap_or_default();
-        if mac.path.segments.len() == 2
-            && mac.path.segments[0].ident == "inventory"
-            && name == "collect"
-        {
-            name = "inventory::collect".into();
+        if let Some(qualified) = qualified_macro(&mac.path, &self.tracing_names) {
+            name = qualified.into();
         }
         if let Err(e) = self.macro_input(&name, mac.tokens.clone()) {
             self.error = Some(e);
@@ -898,7 +1021,51 @@ fn tokens_mention_test(tokens: TokenStream) -> bool {
         _ => false,
     })
 }
+#[derive(Clone, Copy)]
+enum MacroSyntaxContext {
+    Argument,
+    Definition,
+}
+
+/// Arguments may be rearranged by an opaque macro. Fixed ABI syntax is safe
+/// only in a definition; synthesized tokens require an explicit source owner.
+fn contains_opaque_source_syntax(tokens: TokenStream, context: MacroSyntaxContext) -> bool {
+    let tokens: Vec<_> = tokens.into_iter().collect();
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            TokenTree::Ident(name) if name == "extern" => {
+                let fixed_abi = match tokens.get(index + 1) {
+                    Some(TokenTree::Ident(name)) => name == "fn",
+                    Some(TokenTree::Group(group)) => group.delimiter() == Delimiter::Brace,
+                    Some(TokenTree::Literal(abi)) => syn::parse2::<syn::LitStr>(TokenStream::from(
+                        TokenTree::Literal(abi.clone()),
+                    ))
+                    .is_ok(),
+                    _ => false,
+                };
+                if matches!(context, MacroSyntaxContext::Argument) || !fixed_abi {
+                    return true;
+                }
+            }
+            TokenTree::Punct(dollar)
+                if dollar.as_char() == '$'
+                    && matches!(tokens.get(index + 1), Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Brace) =>
+            {
+                return true;
+            }
+            TokenTree::Group(group) if contains_opaque_source_syntax(group.stream(), context) => {
+                return true;
+            }
+            _ => {}
+        }
+    }
+    false
+}
+
 fn contains_source_declaration(tokens: TokenStream) -> bool {
+    if contains_opaque_source_syntax(tokens.clone(), MacroSyntaxContext::Definition) {
+        return true;
+    }
     let tokens: Vec<_> = tokens.into_iter().collect();
     for (index, token) in tokens.iter().enumerate() {
         match token {

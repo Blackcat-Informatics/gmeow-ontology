@@ -85,6 +85,15 @@ verification still uses the repo Makefile targets.
 Report exactly what ran. Do not invent percentages, extrapolate from unrelated
 inputs, or claim a speedup from a benchmark that did not exercise the changed path.
 
+Cold CI producers select
+`GMEOW_LOG=warn,pipeline_phase=info,pipeline_reasoning_detail=info` so the reasoning
+boundaries, large-input value-flow details and glossary/snapshot subphases remain
+visible before a stage completes. A start without an end identifies unfinished
+work; an end records elapsed time, not semantic acceptance. These observations never enter generated
+bytes or cache identities. Keep the same selected inputs and producer profile when
+comparing runs, and distinguish time spent discovering sources, rendering RDF,
+composing the carrier and publishing native handles.
+
 The validation timing JSON's `example-shacl.example_work` separates shared base
 projection and shape preparation from each example's parse, canonical projection,
 view binding and complete validation. Durations use microseconds; parallel example
