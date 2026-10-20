@@ -189,6 +189,50 @@ fn routed_shacl_findings_at_distinct_foci_get_distinct_anchors() {
     assert_ne!(findings[0].anchor_iri, findings[1].anchor_iri);
 }
 
+#[test]
+fn routed_constraint_sources_paths_and_values_are_not_message_identities() {
+    let mut base = min_count_result("https://ex/a");
+    base.source_constraint_component =
+        NamedNode::new_unchecked("http://www.w3.org/ns/shacl#DatatypeConstraintComponent");
+    base.value = Some(Term::NamedNode(NamedNode::new_unchecked(
+        "https://ex/first",
+    )));
+    let mut reworded = base.clone();
+    reworded.messages = vec![purrdf::shapes::term::Literal::new_simple_literal(
+        "different observation wording",
+    )];
+    let mut other_shape = base.clone();
+    other_shape.source_shape = Term::NamedNode(NamedNode::new_unchecked("https://ex/other-shape"));
+    let mut other_value = base.clone();
+    other_value.value = Some(Term::NamedNode(NamedNode::new_unchecked(
+        "https://ex/second",
+    )));
+    let mut other_path = base.clone();
+    other_path.result_path = Some(Term::NamedNode(NamedNode::new_unchecked(
+        "https://ex/other-path",
+    )));
+    let mut ledger = DiagLedger::new();
+    for result in [base, reworded, other_shape, other_value, other_path] {
+        let finding = finding_from_shacl(&result, &FailureClassIndex::empty());
+        assert!(finding.related_locations.iter().any(|location| {
+            location
+                .logical
+                .as_deref()
+                .is_some_and(|logical| logical.starts_with("shape "))
+        }));
+        ledger.attach(
+            diag_from_shacl(&result, &FailureClassIndex::empty()),
+            StageId::new("validate.shacl"),
+        );
+    }
+    assert_eq!(
+        ledger.len(),
+        4,
+        "only the wording variant is the same witness"
+    );
+    assert_eq!(ledger.messages(Severity::Error).count(), 5);
+}
+
 /// A shapes graph in which one node shape declares a typed failure class and a
 /// second, otherwise-identical shape declares none.
 fn shapes_with_failure_class() -> std::sync::Arc<purrdf::RdfDataset> {

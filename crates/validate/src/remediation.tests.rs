@@ -12,6 +12,8 @@ fn annotate_attaches_the_catalogue_remediation_with_the_binding_standpoint() {
         "discipline/relator-mediation",
         "relator does not mediate both relata",
     ));
+    report.findings[0].source_graph =
+        Some(purrdf::iri::BaseIri::parse("urn:world:remediation").unwrap());
     attach_remediations(&mut report);
     let finding = &report.findings[0];
     assert_eq!(

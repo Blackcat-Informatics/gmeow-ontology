@@ -39,7 +39,7 @@ expression: value
             "text": "missing property"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "af00eb15ae8cf76e"
+            "gmeowFindingHash/v3": "af00eb15ae8cf76e"
           },
           "relatedLocations": [
             {

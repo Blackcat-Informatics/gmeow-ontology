@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_docs::i18n_compile;
 
-use crate::dev_common::{fail, note, project_root};
+use crate::dev_common::{emit_report, fail, note, project_root};
 
 /// `gmeow-dev i18n extract [--root --output-dir --lang --terms-only]`.
 pub fn extract(
@@ -39,23 +39,25 @@ pub fn extract(
 pub fn lint(root: Option<&Path>, max_fuzzy_ratio: f64) -> i32 {
     let root = root.map(Path::to_path_buf).unwrap_or_else(project_root);
     let report = i18n_compile::lint_po_files(&root, max_fuzzy_ratio);
-    for warning in &report.warnings {
-        note("gmeow-dev.i18n.warning", warning);
-    }
-    for error in &report.errors {
-        note("gmeow-dev.i18n.error", error);
-    }
-    if !report.errors.is_empty() {
+    emit_report(&report.ledger().project_report("i18n-lint"));
+    let error_count = report
+        .ledger()
+        .messages(gmeow_errors::Severity::Error)
+        .count();
+    let warning_count = report
+        .ledger()
+        .messages(gmeow_errors::Severity::Warning)
+        .count();
+    if !report.ok() {
         return fail(format!(
             "i18n lint failed with {} error(s) and {} warning(s)",
-            report.errors.len(),
-            report.warnings.len()
+            error_count, warning_count
         ));
     }
     println!(
         "i18n lint passed ({} catalog language(s), {} warning(s))",
         report.total_counts.len(),
-        report.warnings.len()
+        warning_count
     );
     0
 }

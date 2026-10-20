@@ -14,7 +14,6 @@ fn report(mode: RunMode, ledger: DiagLedger) -> RunReport {
         written: 0,
         skipped_writes: 0,
         removed: 0,
-        findings: ledger.findings("gmeow-pipeline"),
         ledger,
         drifted: vec![],
         timings: vec![],
@@ -97,8 +96,8 @@ fn collected_diagnostics_record_receipts_without_replacing_the_final_selector() 
         let root = tempfile::tempdir().unwrap();
         let mut run = report(RunMode::Update, ledger_for(grade));
         run.stage_receipts = receipts.clone();
-        let findings = serde_json::to_vec(&run.findings).unwrap();
-        assert_eq!(run.findings.len(), 1);
+        let findings = serde_json::to_vec(&run.findings().collect::<Vec<_>>()).unwrap();
+        assert_eq!(run.findings().count(), 1);
         assert!(run.is_clean(), "{grade:?}");
         let mut finalized =
             crate::fixture::prepare_stage_fixture_candidate(root.path(), &receipts).unwrap();
@@ -127,7 +126,10 @@ fn collected_diagnostics_record_receipts_without_replacing_the_final_selector() 
             serde_json::from_slice::<serde_json::Value>(&bytes).unwrap(),
             expected
         );
-        assert_eq!(serde_json::to_vec(&run.findings).unwrap(), findings);
+        assert_eq!(
+            serde_json::to_vec(&run.findings().collect::<Vec<_>>()).unwrap(),
+            findings
+        );
         assert_eq!(run.ledger.len(), 1);
         assert_eq!(run.timings.len(), 1);
         assert_eq!(run.timings[0].phase, "fixture-receipt-candidate");
@@ -150,9 +152,11 @@ fn fatal_diagnostics_drift_and_check_mode_cannot_replace_fixture_records() {
         FindingCategory::ModelingDisciplineViolation,
         Standpoint::Binding,
     );
-    let mut failed = report(RunMode::Update, ledger_for(fatal));
-    // Removing the lossy projection cannot change the authoritative verdict.
-    failed.findings.clear();
+    let failed = report(RunMode::Update, ledger_for(fatal));
+    // Removing a detached exit projection cannot alter the authoritative report.
+    let mut detached: Vec<_> = failed.findings().collect();
+    detached.clear();
+    assert_eq!(failed.findings().count(), 1);
     assert!(!failed.is_clean());
     let mut drift = report(RunMode::Update, DiagLedger::new());
     drift.drifted.push("generated/example.ttl".into());

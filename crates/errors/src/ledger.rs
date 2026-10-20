@@ -50,8 +50,8 @@ fn feed(hasher: &mut purrdf_hash::blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 }
 
 /// Feed the **code-blind source-position identity** — `(path, line, column,
-/// logical, term_role, focus)` in this EXACT order — into `hasher`. The SINGLE
-/// definition of the anchor field-feed, shared by [`DiagFingerprint::compute`]
+/// logical, term_role, focus)` followed by supplied graph/wire coordinates — into
+/// `hasher`. The SINGLE definition of the anchor field-feed, shared by [`DiagFingerprint::compute`]
 /// (after its `code`+`category` prefix) and [`DiagFingerprint::anchor`], so the two
 /// paths are structurally identical and cannot silently drift apart — a drift would
 /// break the cross-node join key the glut meta-rule depends on.
@@ -87,6 +87,25 @@ fn feed_source_ctx(hasher: &mut purrdf_hash::blake3::Hasher, ctx: &SourceContext
             .unwrap_or("")
             .as_bytes(),
     );
+    // An absent graph keeps existing unscoped identities unchanged. A supplied
+    // graph is a separate framed coordinate, never encoded in focus or prose.
+    if let Some(graph) = &ctx.graph {
+        feed(hasher, b"graph", graph.as_str().as_bytes());
+    }
+    for (tag, coordinate) in [
+        (b"gts_term_id".as_slice(), ctx.location.gts_term_id),
+        (b"gts_quad_index".as_slice(), ctx.location.gts_quad_index),
+        (b"gts_reifier_id".as_slice(), ctx.location.gts_reifier_id),
+        (b"gts_frame_index".as_slice(), ctx.location.gts_frame_index),
+        (
+            b"gts_segment_index".as_slice(),
+            ctx.location.gts_segment_index,
+        ),
+    ] {
+        if let Some(coordinate) = coordinate {
+            feed(hasher, tag, &coordinate.to_le_bytes());
+        }
+    }
 }
 
 impl DiagFingerprint {
@@ -104,7 +123,7 @@ impl DiagFingerprint {
     }
 
     /// The **code-blind source anchor** fingerprint: `blake3` over the source
-    /// position `(path, line, column, logical, term_role, focus)` ONLY —
+    /// position, graph, term role, focus and supplied wire coordinates —
     /// deliberately EXCLUDING `code` and `category`. Two findings with DIFFERENT
     /// codes at the SAME source anchor therefore share one anchor fingerprint,
     /// which is the cross-node join key the same-fingerprint merge (which keys on
@@ -179,7 +198,7 @@ impl SerLocation {
 /// One distinct observation carried by a node. Merging preserves every distinct
 /// observation (a multiset) rather than overwriting — no silent data loss when
 /// two findings share an anchor but observed different values (R1).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Observation {
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -218,6 +237,9 @@ pub struct DiagNode {
     /// (`gmeow:findingDerivedFromQuad`). Not part of the identity fingerprint.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub derived_from_quads: Vec<String>,
+    /// IRI-typed evidence citations; payload, never a message-derived identity.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cited_iris: Vec<String>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     /// The DOCUMENTED ontology terms this witness structurally concerns — payload,
@@ -467,7 +489,9 @@ impl DiagLedger {
     /// runs; `check_cycles` additionally runs the O(ancestors) acyclicity walk.
     /// [`replay`](DiagLedger::replay) passes `false` for cached, already-validated
     /// nodes — re-checking them would make replay O(N²).
-    fn insert_inner(&mut self, node: DiagNode, check_cycles: bool) -> DiagRef {
+    fn insert_inner(&mut self, mut node: DiagNode, check_cycles: bool) -> DiagRef {
+        node.observations.sort();
+        node.observations.dedup();
         // F1: a node must be self-consistent — its stored fingerprint must equal
         // the fingerprint recomputed from its identity fields.
         assert!(
@@ -521,6 +545,7 @@ impl DiagLedger {
                 slot.observations.push(obs);
             }
         }
+        slot.observations.sort();
         // Union the content-addressed antecedent edges.
         let mut edges = slot.antecedents.to_vec();
         for fp in incoming.antecedents.into_vec() {
@@ -559,6 +584,9 @@ impl DiagLedger {
                 slot.labels.push(label);
             }
         }
+        slot.cited_iris.extend(incoming.cited_iris);
+        slot.cited_iris.sort();
+        slot.cited_iris.dedup();
         for tag in incoming.tags {
             if !slot.tags.contains(&tag) {
                 slot.tags.push(tag);

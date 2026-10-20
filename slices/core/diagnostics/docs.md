@@ -5,6 +5,25 @@
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/diagnostics` · **tier: core**
 
+## Named source graph context
+
+A diagnostic about a known named graph retains that graph's original absolute IRI
+in its source context. It is an independent identity coordinate beside physical
+location, logical anchor, term role and focus. Findings about different graphs
+therefore remain distinct even when their focus and source coordinates coincide.
+No graph is fabricated when the producer does not know one.
+
+The ledger projects this value to `gmeow:findingSourceGraph`, the JSON
+`source_graph` field, the SARIF `gmeow.sourceGraph` property and human-readable
+text and HTML. This source graph is distinct from the graph containing the
+projected diagnostic. Native absolute-IRI parsing owns validation; replay refuses
+relative or malformed graph identities rather than resolving or normalizing them.
+
+Wire term, quad, reifier, frame and segment coordinates also participate in the
+source anchor. A zero coordinate is a supplied position, distinct from absence.
+SARIF reuses a ledger finding's existing content address rather than hashing its
+rendered wording into a second identity.
+
 The ontological face of GMEOW's first-class diagnostics system. A validation violation, a
 lint warning, a reasoning divergence, an external-tool failure — every diagnostic is modelled as a
 **`gmeow:Finding`**, a specialization of `gmeow:Observation`, the universal claim construct. A
@@ -15,7 +34,8 @@ producing tool is the `gmeow:vantage` (who observed), the offending statement is
 
 ## Projection, not source
 
-The **canonical** diagnostics model is the PyO3-free Rust `gmeow_diagnostics::Report`. It must report
+The **canonical** diagnostics owner is the PyO3-free Rust `gmeow_errors::DiagLedger`,
+with live `Diag` propagation and terminal `Report`/`Finding` views. It must report
 on a graph too broken to parse — a Turtle syntax error cannot be reported through an ontology that
 will not load — so the canonical model deliberately is **not** RDF. This slice is one **projection**
 of that report, a sibling of SARIF 2.1.0, flat JSON, static HTML, and the coloured CLI (Principle 4).
@@ -35,7 +55,7 @@ privileged; a finding is one tool's perspectival claim).
 ### gmeow:Finding
 
 A single diagnostic as a reified `gmeow:Observation`. Project one `gmeow:Finding` per Rust
-`gmeow_diagnostics::Finding`: bind `gmeow:findingSeverity`, `gmeow:findingCode`,
+`gmeow_errors::Finding`: bind `gmeow:findingSeverity`, `gmeow:findingCode`,
 `gmeow:findingMessage`, the producing tool via `gmeow:vantage` (and `gmeow:findingTool` for the flat
 name), and `gmeow:findingLocation` at the reified statement, hanging the GTS wire coordinates on the
 location node. Findings are **regenerated, never authored** — editing one by hand would diverge from
@@ -133,7 +153,7 @@ stays driven solely by the validation result** — per-surface hard gating lives
 | Surface | Stable `code`s | Severity rule |
 |---|---|---|
 | `validate` (SHACL/syntax/lint) | `shacl.*`, `validate.*` | Rust-native; carries GTS wire coords |
-| native `reason` / `verify` | `reason.*`, `verify.*` | folded as `gmeow_diagnostics::Report`s |
+| native `reason` / `verify` | `reason.*`, `verify.*` | folded as `gmeow_errors::Report`s |
 | `alignment` | `alignment.<check>` | maps `AlignmentFinding.severity` (keeps `info`, unlike the legacy gate) |
 | `coverage` | `coverage.gap-class`, `coverage.gap-predicate` | `info` — gaps never fail the gate |
 | `acceptance` | `acceptance.<gate-name>` | failing **hard** gate → `error`; failing **scoreboard** gate → `note` |

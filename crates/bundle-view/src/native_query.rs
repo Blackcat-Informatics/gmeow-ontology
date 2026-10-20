@@ -18,6 +18,7 @@
 
 use std::sync::Arc;
 
+use gmeow_errors::DiagKind;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue, parse_dataset};
 
@@ -79,10 +80,16 @@ pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, gm
                 substitutions: &[],
             },
         )
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: e.to_string(),
-            })
+        .map_err(|error| {
+            let kind = crate::error::Parse {
+                message: error.to_string(),
+            };
+            let mut diag = gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
+                .with_rdf_source(error);
+            if let Some(class) = kind.failure_class() {
+                diag = diag.with_failure_class(class);
+            }
+            diag
         })
 }
 
@@ -118,3 +125,7 @@ pub fn term_str(term: Option<&TermValue>) -> Option<String> {
         _ => None,
     }
 }
+
+#[cfg(test)]
+#[path = "native_query.tests.rs"]
+mod tests;

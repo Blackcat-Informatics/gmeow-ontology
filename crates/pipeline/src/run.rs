@@ -185,10 +185,6 @@ pub struct RunReport {
     pub skipped_writes: usize,
     /// Stale projection-owned files removed while reconciling output trees.
     pub removed: usize,
-    /// Every stage and reconciliation finding projected from the carrier ledger.
-    /// Informational, advisory and coherent findings remain visible on successful
-    /// runs; acceptance uses the ledger's typed gate verdict, never this projection.
-    pub findings: Vec<Finding>,
     /// The carrier-borne diagnostic ledger: the hash-consed witness DAG every
     /// drift/superset finding is interned into (pin-on-attach, stage-attributed,
     /// deterministically ordered). A first-class member of the run's carrier
@@ -227,6 +223,13 @@ pub struct RunReport {
 }
 
 impl RunReport {
+    /// Every stage and reconciliation finding, projected from the current ledger.
+    /// Informational, advisory and coherent findings remain visible on successful
+    /// runs; acceptance uses the ledger's typed gate verdict, never this exit view.
+    pub fn findings(&self) -> impl Iterator<Item = Finding> + '_ {
+        self.ledger.iter_findings("gmeow-pipeline")
+    }
+
     /// Whether every artifact is reconciled and the carrier ledger permits the run.
     /// Collected diagnostics are retained; any fatal witness or drift refuses reuse.
     pub fn is_clean(&self) -> bool {
@@ -1469,9 +1472,6 @@ pub fn run_full_scoped_with_progress(
     // ReasoningResult a consumer reads. Hard-fails if the plan is not certified.
     let certification = certify_build_plan(&spec)?;
 
-    // The wire findings are projected once from the carrier ledger, without an
-    // intermediate Report or a second diagnostic authority.
-    let findings = ledger.findings("gmeow-pipeline");
     let mut report = RunReport {
         mode,
         produced,
@@ -1479,7 +1479,6 @@ pub fn run_full_scoped_with_progress(
         written,
         skipped_writes,
         removed,
-        findings,
         ledger,
         drifted,
         timings,

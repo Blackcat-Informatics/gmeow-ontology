@@ -6,6 +6,86 @@ use std::collections::{BTreeSet, HashSet};
 
 use purrdf::{DatasetView, GraphMatch, parse_dataset};
 
+#[test]
+fn finding_bridge_retains_distinct_native_source_graphs() {
+    let mut ledger = DiagLedger::new();
+    for graph in ["urn:world:a", "urn:world:b"] {
+        let mut finding = Finding::new(Severity::Error, "test.graph.bridge", "same observation");
+        finding.add_location(gmeow_errors::Location {
+            logical: Some("urn:focus".into()),
+            ..Default::default()
+        });
+        finding.source_graph = Some(purrdf::iri::BaseIri::parse(graph).unwrap());
+        intern_finding(&mut ledger, run_stage(), Standpoint::Binding, &finding);
+    }
+    assert_eq!(ledger.len(), 2);
+    let report = ledger.project_report("test");
+    let graphs: BTreeSet<_> = report
+        .findings
+        .iter()
+        .map(|finding| finding.source_graph.as_ref().unwrap().as_str())
+        .collect();
+    assert_eq!(graphs, BTreeSet::from(["urn:world:a", "urn:world:b"]));
+}
+
+#[test]
+fn gufo_rule_branches_and_range_groups_remain_distinct_after_interning() {
+    let source = r#"
+        @prefix g: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix gufo: <http://purl.org/nemo/gufo#> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        g:Mixed a owl:Class, gufo:Role, gufo:Kind ; rdfs:subClassOf g:Ancestor .
+        g:Ancestor a owl:Class, gufo:Role .
+        g:axisA g:coequalFacet true ; rdfs:range g:RangeA .
+        g:axisB g:coequalFacet true ; rdfs:range g:RangeA .
+        g:axisC g:coequalFacet true ; rdfs:range g:RangeB .
+        g:axisD g:coequalFacet true ; rdfs:range g:RangeB .
+    "#;
+    let dataset = parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let cfg = gufo::GufoConfig {
+        namespace: "https://blackcatinformatics.ca/gmeow/".into(),
+    };
+    let mut findings = gufo::anti_rigidity_discipline(&dataset, &cfg);
+    let mixed: Vec<_> = findings
+        .iter()
+        .filter(|finding| {
+            finding
+                .primary_location()
+                .and_then(|location| location.logical.as_deref())
+                == Some("https://blackcatinformatics.ca/gmeow/Mixed")
+        })
+        .collect();
+    assert_eq!(mixed.len(), 2);
+    let ranges = gufo::coequal_facet_orthogonality(&dataset, &cfg);
+    assert_eq!(ranges.len(), 3);
+    findings.extend(ranges);
+    let expected = findings.len();
+    let mut ledger = DiagLedger::new();
+    for finding in &findings {
+        intern_finding(&mut ledger, run_stage(), Standpoint::Binding, finding);
+    }
+    assert_eq!(ledger.len(), expected);
+    let identities: Vec<_> = ledger
+        .emit_sorted()
+        .iter()
+        .map(|node| node.fingerprint)
+        .collect();
+    for mut finding in findings {
+        finding.message = "Different wording, unchanged rule and source".into();
+        intern_finding(&mut ledger, run_stage(), Standpoint::Binding, &finding);
+    }
+    assert_eq!(ledger.len(), expected);
+    assert_eq!(
+        ledger
+            .emit_sorted()
+            .iter()
+            .map(|node| node.fingerprint)
+            .collect::<Vec<_>>(),
+        identities
+    );
+}
+
 /// Write `contents` to `name` inside a fresh RAII temp directory.
 ///
 /// The returned [`tempfile::TempDir`] owns the directory: it is removed on
@@ -868,13 +948,20 @@ fn early_return_path_emits_no_advisory() {
         "gmeow_validate_advisory_early_return_sameas.ttl",
         "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
-             gmeow:Foo owl:sameAs <https://external.example.org/bar> .\n",
+             gmeow:Foo owl:sameAs <https://external.example.org/bar>, <https://external.example.org/baz> .\n",
     );
     let source = banned_ttl_path.to_string_lossy().to_string();
 
     let options = ValidateOptions::default();
-    let run = ValidationRun::run(&[source], "", "", "", &minimal_lint_config(), &options)
-        .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
+    let run = ValidationRun::run(
+        std::slice::from_ref(&source),
+        "",
+        "",
+        "",
+        &minimal_lint_config(),
+        &options,
+    )
+    .expect("valid-but-banned Turtle must reach the Ok short-circuit, not Err");
 
     // The run hard-failed (the sameAs ban is an error), proving we hit the
     // short-circuit early-return path.
@@ -882,6 +969,26 @@ fn early_return_path_emits_no_advisory() {
         !run.errors().is_empty(),
         "expected a sameAs-ban error to drive the short-circuit; got none"
     );
+    let findings: Vec<_> = run
+        .report
+        .findings
+        .iter()
+        .filter(|finding| finding.code == "validate.error")
+        .collect();
+    assert_eq!(
+        findings.len(),
+        2,
+        "each banned identity must retain its own witness"
+    );
+    for finding in findings {
+        let location = finding.primary_location().unwrap();
+        assert_eq!(location.path.as_deref(), Some(source.as_str()));
+        assert_eq!(
+            location.logical.as_deref(),
+            Some("https://blackcatinformatics.ca/gmeow/Foo")
+        );
+        assert!(finding.finding_iri.is_some());
+    }
     // The hard-fail path emits NO advisory claim and NO advisory finding.
     assert!(
         run.advisory_claims.is_empty(),
@@ -894,6 +1001,108 @@ fn early_return_path_emits_no_advisory() {
             .any(|f| f.code.starts_with(crate::codes::ADVICE_FAMILY)),
         "early-return path must emit no advice.* finding"
     );
+}
+
+#[test]
+fn source_phase_identity_excludes_wording_and_fold_uses_the_native_verdict() {
+    let path = Path::new("slices/core/example/module.ttl");
+    let mut phase = DiagLedger::new();
+    for message in ["banned identity", "the same identity is forbidden"] {
+        phase.attach(
+            source_phase_violation(
+                path,
+                Some("urn:subject"),
+                "urn:external",
+                message.to_owned(),
+            ),
+            run_stage(),
+        );
+    }
+    assert_eq!(phase.len(), 1);
+    assert_eq!(phase.messages(Severity::Error).count(), 2);
+    let mut run = DiagLedger::new();
+    assert!(intern_phase(&mut run, phase));
+    assert_eq!(run.len(), 1);
+    let mut advisory = DiagLedger::new();
+    advisory.attach(
+        Diag::new(
+            register_code("validate.error"),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Advisory,
+            ),
+            "advisory-grade observation",
+        ),
+        run_stage(),
+    );
+    let mut collected = DiagLedger::new();
+    assert!(!intern_phase(&mut collected, advisory));
+    assert_eq!(
+        collected.len(),
+        1,
+        "a collected observation must still be visible"
+    );
+}
+
+#[test]
+fn example_coverage_retains_manifest_anchors_and_directory_causes() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("slices");
+    for name in ["first", "second"] {
+        let directory = root.join("core").join(name);
+        std::fs::create_dir_all(&directory).unwrap();
+        std::fs::write(directory.join("manifest.ttl"), "# synthetic manifest\n").unwrap();
+    }
+    let phase = check_example_coverage(root.to_str().unwrap()).unwrap();
+    assert_eq!(phase.len(), 2);
+    let paths: BTreeSet<_> = phase
+        .emit_sorted()
+        .into_iter()
+        .map(|node| node.source_ctx.location.path.clone().unwrap())
+        .collect();
+    assert_eq!(
+        paths,
+        ["first", "second"]
+            .into_iter()
+            .map(|name| root
+                .join("core")
+                .join(name)
+                .join("manifest.ttl")
+                .to_string_lossy()
+                .into_owned())
+            .collect()
+    );
+    std::fs::write(root.join("core/first/examples"), "not a directory").unwrap();
+    let failure = check_example_coverage(root.to_str().unwrap()).unwrap_err();
+    assert!(failure.downcast_ref::<std::io::Error>().is_some());
+    assert_eq!(
+        failure.inner().source_ctx.location.path.as_deref(),
+        root.join("core/first/examples").to_str()
+    );
+}
+
+#[test]
+fn run_propagates_the_original_source_parser_failure() {
+    let (_temp, path) = write_tmp("malformed.ttl", "@prefix broken <\n");
+    let result = ValidationRun::run(
+        &[path.to_string_lossy().into_owned()],
+        "",
+        "",
+        "",
+        &minimal_lint_config(),
+        &ValidateOptions::default(),
+    );
+    let failure = match result {
+        Err(error) => error,
+        Ok(_) => panic!("malformed source must not yield a validation report"),
+    };
+    assert!(failure.downcast_ref::<purrdf::RdfDiagnostic>().is_some());
+    assert_eq!(
+        failure.inner().source_ctx.location.path.as_deref(),
+        path.to_str()
+    );
+    assert!(failure.message().contains("syntax error in"));
 }
 
 // ── Category-assignment tests (H1) ──────────────────────────────────────
@@ -1262,6 +1471,7 @@ fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
         ..Location::default()
     });
     finding.detail = Some("source shape: https://ex/shape".to_owned());
+    finding.cited_iris = vec!["https://ex/evidence".to_owned()];
 
     let mut ledger = DiagLedger::new();
     intern_finding(
@@ -1278,6 +1488,7 @@ fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
         .expect("interned SHACL finding must project back into the report");
 
     // The focus-node primary location survives.
+    assert_eq!(projected.cited_iris, finding.cited_iris);
     assert_eq!(
         projected
             .primary_location()
@@ -1316,6 +1527,7 @@ fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
     // message-variant of the same finding must NOT add a second finding.
     let mut variant = finding.clone();
     variant.message = "a differently-worded violation".to_owned();
+    variant.detail = Some("reworded explanatory context".to_owned());
     intern_finding(
         &mut ledger,
         StageId::new("validate.shacl"),
@@ -1330,8 +1542,39 @@ fn interned_shacl_finding_roundtrips_related_locations_and_detail() {
             .filter(|f| f.code == "shacl.MinCountConstraintComponent")
             .count(),
         1,
-        "a message-only variant must hash-cons-merge, not fork a new finding"
+        "wording and explanatory context must not fork a new witness"
     );
+}
+
+#[test]
+fn structural_finding_keys_frame_roles_and_keep_wire_coordinates() {
+    let unanchored = Finding::new(Severity::Error, "validate.error", "no source position");
+    assert!(finding_identity_key(&unanchored).is_none());
+    let mut ledger = DiagLedger::new();
+    intern_finding(&mut ledger, run_stage(), Standpoint::Binding, &unanchored);
+    assert!(!ledger.findings("validate")[0].anchor_non_trivial);
+    let mut path = Finding::new(Severity::Error, "validate.error", "first");
+    path.add_location(Location::new(
+        Some("urn:ambiguous".to_owned()),
+        None,
+        None,
+        None,
+    ));
+    let mut logical = Finding::new(Severity::Error, "validate.error", "second");
+    logical.add_location(Location::new(
+        None,
+        None,
+        None,
+        Some("urn:ambiguous".to_owned()),
+    ));
+    assert_ne!(finding_identity_key(&path), finding_identity_key(&logical));
+    let mut wire = path.clone();
+    wire.locations[0].gts_quad_index = Some(1);
+    assert_ne!(finding_identity_key(&path), finding_identity_key(&wire));
+    let mut reworded = path.clone();
+    reworded.message = "new wording".to_owned();
+    reworded.detail = Some("new context".to_owned());
+    assert_eq!(finding_identity_key(&path), finding_identity_key(&reworded));
 }
 
 #[test]

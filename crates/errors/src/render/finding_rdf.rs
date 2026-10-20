@@ -170,6 +170,13 @@ fn emit<S: Sink>(report: &Report, graph: &str, sink: &mut S) -> Result<(), S::Er
             )
         });
         sink.iri(&subject, RDF_TYPE, &format!("{GMEOW}Finding"))?;
+        if let Some(source_graph) = &finding.source_graph {
+            sink.iri(
+                &subject,
+                &format!("{GMEOW}findingSourceGraph"),
+                source_graph.as_str(),
+            )?;
+        }
         for (predicate, object) in crate::abox::abox_annotations(
             &subject,
             &finding_label(&finding.code, &finding.message),

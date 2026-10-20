@@ -23,7 +23,7 @@
             "text": "the slice directory carries no resolvable slices/ path prefix — advice coverage cannot be measured (vacuous 1.0)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "8c95bb2c69626299"
+            "gmeowFindingHash/v3": "8c95bb2c69626299"
           },
           "ruleId": "slice-quality.advice-coverage.no-repo-root"
         },
@@ -46,7 +46,7 @@
             "text": "axisAdviceCoverage: Author a central advice carrier in slices/grounding/logic/module.ttl for each of the slice's advisory-prose cells the advisor names. For an avoidWhen cell: a logic:Constraint + logic:Formula whose data-matching guard detects the anti-pattern, at logic:severity \"Info\", with logic:formalizes naming the term, logic:adviceSourceField logic:ProseFieldAvoidWhen, and logic:message set to the term's verbatim avoidWhen prose — so it fires a deonticRecommendation Note when an individual matches. For a useWhen cell: a logic:AdviceGuidance that logic:formalizes the term, with logic:adviceSourceField logic:ProseFieldUseWhen and logic:message the verbatim useWhen prose. The native verify gate holds each message to the term's current prose. The domain slice keeps only its prose; the carrier lives centrally and formalizes the term."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1c2ee159a0375598"
+            "gmeowFindingHash/v3": "1c2ee159a0375598"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -69,7 +69,7 @@
             "text": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "26d932a1f13516f7"
+            "gmeowFindingHash/v3": "26d932a1f13516f7"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -92,7 +92,7 @@
             "text": "axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "75dcacc993c95a98"
+            "gmeowFindingHash/v3": "75dcacc993c95a98"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -115,7 +115,7 @@
             "text": "axisGmn1Coverage: Round-trip each uncovered GMN-0 construct the advisor names: extend the GMN-1 codec's covered fragment (crates/lang-bridge/src/gmn1_codec.rs) so gmn1_write/gmn1_read carry it losslessly, or — if the construct is genuinely out of the codec's current design scope — file it as a named codec-coverage gap against LANG-GMN.md rather than leaving it silently unmeasured. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit made once the measured score has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "6ba433d7e6bc3dcc"
+            "gmeowFindingHash/v3": "6ba433d7e6bc3dcc"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -138,7 +138,7 @@
             "text": "axisGmnGlyphOptimality: Disposition every audited grounding-plane symbol candidate exactly once as an adopted glyph, named key, structured constructor, or semantic rejection; add its cited rationale, candidate rendering, ASCII fallback, spoken label, and decision basis; and make adopted signs executable through a scoped lang:Denotation-backed glyph registry binding whose measured token cost does not lose to the fallback."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "fa9bfc0244f2f6c9"
+            "gmeowFindingHash/v3": "fa9bfc0244f2f6c9"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -161,7 +161,7 @@
             "text": "axisHarvestCoverage: Author the definitional obligation as executable logic: in slices/grounding/logic/module.ttl for each term the advisor names — a logic:Constraint at logic:severity \"Violation\" or \"Warning\" with its logic:Formula guard, or a standalone logic:Formula, carrying logic:formalizes naming the term whose skos:definition it realizes. Harvest the semantics the definition already states; do not mint OWL/RDFS/gUFO axioms while translating (Principle 4/17/19 — those are generated projections, not authoring surfaces). The domain slice keeps only its prose; the axiom lives centrally and formalizes the term."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "17d33dae7670225f"
+            "gmeowFindingHash/v3": "17d33dae7670225f"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -184,7 +184,7 @@
             "text": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "3602792e02f76370"
+            "gmeowFindingHash/v3": "3602792e02f76370"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -207,7 +207,7 @@
             "text": "axisOptimalTesting: Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "3a479365776d3857"
+            "gmeowFindingHash/v3": "3a479365776d3857"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -230,7 +230,7 @@
             "text": "axisTranslationCoverage: Add audited French and Mandarin translations for every localizable literal the slice authors — labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names — recorded (non-empty msgstr) in the slice's i18n/fr.po and i18n/zh.po catalogs."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "2ab7826c9e1830fe"
+            "gmeowFindingHash/v3": "2ab7826c9e1830fe"
           },
           "ruleId": "slice-quality.axis-advice"
         },
@@ -253,7 +253,7 @@
             "text": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured, so it is scored 0.0 (the bottom of the axis). An unmeasurable axis is never a passing one; fix the condition and re-score."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "a557f1c8315c8589"
+            "gmeowFindingHash/v3": "a557f1c8315c8589"
           },
           "ruleId": "slice-quality.doc-maturity.model-unavailable"
         },
@@ -276,7 +276,7 @@
             "text": "the slice ships no docs.md."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "e10f17bfc4beacc8"
+            "gmeowFindingHash/v3": "e10f17bfc4beacc8"
           },
           "ruleId": "slice-quality.documentation.no-docs"
         },
@@ -299,7 +299,7 @@
             "text": "GMN glyph optimality cannot be audited because the slice directory has no resolvable slices/ path prefix; scoring fails closed at 0.0 until the canonical grounding authority is available"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "709523250ac5999e"
+            "gmeowFindingHash/v3": "709523250ac5999e"
           },
           "ruleId": "slice-quality.gmn-glyph-optimality.audit-graph-unavailable"
         },
@@ -322,7 +322,7 @@
             "text": "the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0bbe5df4a42face2"
+            "gmeowFindingHash/v3": "0bbe5df4a42face2"
           },
           "ruleId": "slice-quality.gmn1-coverage.no-repo-root"
         },
@@ -345,7 +345,7 @@
             "text": "the slice directory carries no resolvable slices/ path prefix, so the central logic: axiom authority could not be located — definitional-harvest coverage is UNMEASURED and fails closed at 0.0."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "62d33d0c7f023620"
+            "gmeowFindingHash/v3": "62d33d0c7f023620"
           },
           "ruleId": "slice-quality.harvest-coverage.no-repo-root"
         },
@@ -368,7 +368,7 @@
             "text": "the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "10880bf6a773f90e"
+            "gmeowFindingHash/v3": "10880bf6a773f90e"
           },
           "ruleId": "slice-quality.linkage.no-calculus-eligible-correspondence"
         },
@@ -391,7 +391,7 @@
             "text": "the slice ships no test cells or competency queries (SLICE_QA)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "467343f1f3c771d0"
+            "gmeowFindingHash/v3": "467343f1f3c771d0"
           },
           "ruleId": "slice-quality.testing.no-cells"
         },
@@ -419,7 +419,7 @@
             "text": "fr covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "6c82bb20071b8e6f"
+            "gmeowFindingHash/v3": "6c82bb20071b8e6f"
           },
           "ruleId": "slice-quality.translation.incomplete"
         },
@@ -447,7 +447,7 @@
             "text": "cmn covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "628991457ca5224e"
+            "gmeowFindingHash/v3": "628991457ca5224e"
           },
           "ruleId": "slice-quality.translation.incomplete"
         },
@@ -470,7 +470,7 @@
             "text": "2 localizable literal(s) are notation, not prose — Turtle snippets, bare IRIs, wire values — and are excluded from the translation-coverage denominator: notation carries no translation duty."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "91e24f164b3b5ad8"
+            "gmeowFindingHash/v3": "91e24f164b3b5ad8"
           },
           "ruleId": "slice-quality.translation.notation-excluded"
         },
@@ -498,7 +498,7 @@
             "text": "(https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "f54d0d2de67eb612"
+            "gmeowFindingHash/v3": "f54d0d2de67eb612"
           },
           "ruleId": "slice-quality.translation.notation-excluded"
         },
@@ -526,7 +526,7 @@
             "text": "(https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "d10d9c075c317855"
+            "gmeowFindingHash/v3": "d10d9c075c317855"
           },
           "ruleId": "slice-quality.translation.notation-excluded"
         },
@@ -557,7 +557,7 @@
             "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0a0a0899a6498abe"
+            "gmeowFindingHash/v3": "0a0a0899a6498abe"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -588,7 +588,7 @@
             "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "87e5dcc71f20fbed"
+            "gmeowFindingHash/v3": "87e5dcc71f20fbed"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -619,7 +619,7 @@
             "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "c12e03a38c17000e"
+            "gmeowFindingHash/v3": "c12e03a38c17000e"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -650,7 +650,7 @@
             "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "f71c66a6a079feb5"
+            "gmeowFindingHash/v3": "f71c66a6a079feb5"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -681,7 +681,7 @@
             "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "10f6e4a7cb3911fd"
+            "gmeowFindingHash/v3": "10f6e4a7cb3911fd"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -712,7 +712,7 @@
             "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "09040c92b0bc8067"
+            "gmeowFindingHash/v3": "09040c92b0bc8067"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -743,7 +743,7 @@
             "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "a59b2295b3bddb8d"
+            "gmeowFindingHash/v3": "a59b2295b3bddb8d"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -774,7 +774,7 @@
             "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0889f1367c4810bc"
+            "gmeowFindingHash/v3": "0889f1367c4810bc"
           },
           "ruleId": "slice-quality.translation.uncovered-literal"
         },
@@ -797,7 +797,7 @@
             "text": "axisAdviceCoverage: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1de774260dd82942"
+            "gmeowFindingHash/v3": "1de774260dd82942"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -820,7 +820,7 @@
             "text": "axisDocMaturity: Maximal (score 0.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0070801d4a1750f2"
+            "gmeowFindingHash/v3": "0070801d4a1750f2"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -843,7 +843,7 @@
             "text": "axisDocumentation: Registered (score 0.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "64d2607cba1c0058"
+            "gmeowFindingHash/v3": "64d2607cba1c0058"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -866,7 +866,7 @@
             "text": "axisFlagshipCounterExampleDepth: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "8f70d9cf2da052e1"
+            "gmeowFindingHash/v3": "8f70d9cf2da052e1"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -889,7 +889,7 @@
             "text": "axisGmn1Coverage: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "66c1dad6093d5344"
+            "gmeowFindingHash/v3": "66c1dad6093d5344"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -912,7 +912,7 @@
             "text": "axisGmnGlyphOptimality: Registered (score 0.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "6d9ad1155d8ff77c"
+            "gmeowFindingHash/v3": "6d9ad1155d8ff77c"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -935,7 +935,7 @@
             "text": "axisHarvestCoverage: Maximal (score 0.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "54a8166066ab1788"
+            "gmeowFindingHash/v3": "54a8166066ab1788"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -958,7 +958,7 @@
             "text": "axisMaximalGrounding: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "084330a688f1913f"
+            "gmeowFindingHash/v3": "084330a688f1913f"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -981,7 +981,7 @@
             "text": "axisMaximalInformation: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1eeb955ca05d1796"
+            "gmeowFindingHash/v3": "1eeb955ca05d1796"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1004,7 +1004,7 @@
             "text": "axisMaximalLinkage: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "0f85334783949372"
+            "gmeowFindingHash/v3": "0f85334783949372"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1027,7 +1027,7 @@
             "text": "axisMaximalProjection: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "63aaefd5c489d74a"
+            "gmeowFindingHash/v3": "63aaefd5c489d74a"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1050,7 +1050,7 @@
             "text": "axisOptimalTesting: Registered (score 0.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "8f9c57b120821262"
+            "gmeowFindingHash/v3": "8f9c57b120821262"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1073,7 +1073,7 @@
             "text": "axisProseQuality: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "ead8a3e90ebae288"
+            "gmeowFindingHash/v3": "ead8a3e90ebae288"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1096,7 +1096,7 @@
             "text": "axisProvenanceHonesty: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "7502fee875951b23"
+            "gmeowFindingHash/v3": "7502fee875951b23"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1119,7 +1119,7 @@
             "text": "axisReasonerDerived: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "5b6f0ef7c36da1ff"
+            "gmeowFindingHash/v3": "5b6f0ef7c36da1ff"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1142,7 +1142,7 @@
             "text": "axisShapeMigration: Maximal (score 1.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "e6d9acd7b2b588bf"
+            "gmeowFindingHash/v3": "e6d9acd7b2b588bf"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1165,7 +1165,7 @@
             "text": "axisTranslationCoverage: Registered (score 0.33)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "9990276ea59d2b25"
+            "gmeowFindingHash/v3": "9990276ea59d2b25"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -1188,7 +1188,7 @@
             "text": "roll-up tier: Registered (https://blackcatinformatics.ca/gmeow/slices/sample-slice)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "bcafbd04123ac170"
+            "gmeowFindingHash/v3": "bcafbd04123ac170"
           },
           "ruleId": "slice-quality.rollup"
         }

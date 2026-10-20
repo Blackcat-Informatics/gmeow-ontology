@@ -26,8 +26,26 @@ impl DiagNode {
             .with_tool(tool)
             .with_category(self.grade.category)
             .with_standpoint(self.grade.standpoint);
-        finding.add_location(self.source_ctx.location.clone());
+        let mut location = self.source_ctx.location.clone();
+        let distinct_focus = self.source_ctx.focus.as_ref().filter(|focus| {
+            location
+                .logical
+                .as_deref()
+                .is_some_and(|logical| logical != focus.0)
+        });
+        if location.logical.is_none() {
+            location.logical = self.source_ctx.focus.as_ref().map(|focus| focus.0.clone());
+        }
+        finding.add_location(location);
+        if let Some(focus) = distinct_focus {
+            finding.add_location(Location {
+                logical: Some(focus.0.clone()),
+                ..Location::default()
+            });
+        }
         finding.tags = self.tags.clone();
+        finding.source_graph = self.source_ctx.graph.clone();
+        finding.source_focus = self.source_ctx.focus.as_ref().map(|focus| focus.0.clone());
         finding.attributions = self.attributions.clone();
         // The documented-term attributions (a SHACL violation's constrained property,
         // etc.) ride onto the finding for the docs per-term diagnostics join.
@@ -35,6 +53,7 @@ impl DiagNode {
         // The typed conformance-failure class the violated law declares — the SPECIFIC
         // failure the generic `code` (a shared SHACL component name) cannot name.
         finding.failure_class = self.failure_class.clone();
+        finding.cited_iris = self.cited_iris.clone();
         // The flat text-only suggestion twin (kept so the existing suggestion
         // renderers are unchanged) AND the faithful structured projection that
         // preserves each advice's standpoint + outward help URI (the lossy step
@@ -134,27 +153,44 @@ impl DiagNode {
 }
 
 impl DiagLedger {
+    /// Borrow every observation at a selected severity in deterministic order,
+    /// including observations joined under the same witness identity.
+    pub fn messages(&self, severity: crate::Severity) -> impl Iterator<Item = &str> {
+        self.emit_sorted()
+            .into_iter()
+            .filter(move |node| node.grade.severity == severity)
+            .flat_map(|node| {
+                node.observations
+                    .iter()
+                    .map(|observation| observation.message.as_str())
+            })
+    }
+
     /// Project the whole ledger to a [`Report`], in the ledger's total
     /// deterministic `(stage, fingerprint)` order. Built from the same
-    /// [`findings`](DiagLedger::findings) projection so the two surfaces can never
+    /// [`iter_findings`](DiagLedger::iter_findings) projection so the exit surfaces never
     /// diverge.
     pub fn project_report(&self, tool: &str) -> Report {
         let mut report = Report::new(tool);
-        for finding in self.findings(tool) {
+        for finding in self.iter_findings(tool) {
             report.add_finding(finding);
         }
         report
     }
 
     /// Every finding this ledger projects, in deterministic order — the single
-    /// finding-projection surface, produced directly without building an
-    /// intermediate [`Report`]. [`project_report`](DiagLedger::project_report)
-    /// reuses this.
+    /// owned form of [`iter_findings`](DiagLedger::iter_findings), produced directly
+    /// without building an intermediate [`Report`].
     pub fn findings(&self, tool: &str) -> Vec<Finding> {
+        self.iter_findings(tool).collect()
+    }
+
+    /// Project findings only as an exit consumer requests them. Domain reports can
+    /// borrow this view without retaining a second finding store beside the ledger.
+    pub fn iter_findings<'a>(&'a self, tool: &'a str) -> impl Iterator<Item = Finding> + 'a {
         self.emit_sorted()
-            .iter()
-            .map(|n| n.to_finding(tool))
-            .collect()
+            .into_iter()
+            .map(move |node| node.to_finding(tool))
     }
 }
 

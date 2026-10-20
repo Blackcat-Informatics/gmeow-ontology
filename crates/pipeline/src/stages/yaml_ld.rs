@@ -76,13 +76,6 @@ fn gmeow_statement_metadata_vocab() -> jsonld::StatementMetadataVocab<'static> {
     }
 }
 
-/// Map a JSON-LD/YAML-LD codec diagnostic onto a pipeline decode error.
-fn codec_err(e: purrdf::RdfDiagnostic) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Decode {
-        message: e.to_string(),
-    })
-}
-
 /// The `yaml_ld` export-leaf stage.
 pub struct YamlLdStage {
     consumes: Vec<String>,
@@ -159,7 +152,8 @@ fn to_json_object(map: BTreeMap<String, Value>) -> Value {
 /// Serialize the carrier dataset to a deterministic JSON-LD-star document (thin wrapper
 /// over the first-party rdf codec).
 pub fn serialize_graph(dataset: &RdfDataset) -> Result<String, gmeow_errors::Diag> {
-    jsonld::serialize_dataset_to_jsonld(dataset).map_err(codec_err)
+    jsonld::serialize_dataset_to_jsonld(dataset)
+        .map_err(|error| gmeow_errors::Diag::from_rdf(error).with_context("serialize JSON-LD-star"))
 }
 
 /// Serialize the carrier dataset to deterministic YAML-LD-star bytes (thin wrapper over
@@ -176,7 +170,8 @@ pub fn serialize_graph_yaml(
     // `purrdf.schema.json` header. gmeow's bundled YAML-LD schema is
     // `gmeow.schema.json`, so default `None` to it (the consumer's schema).
     let schema_url = schema_url.or(Some(GMEOW_BUNDLED_SCHEMA));
-    jsonld::serialize_dataset_to_yamlld(dataset, schema_url).map_err(codec_err)
+    jsonld::serialize_dataset_to_yamlld(dataset, schema_url)
+        .map_err(|error| gmeow_errors::Diag::from_rdf(error).with_context("serialize YAML-LD-star"))
 }
 
 /// gmeow's bundled YAML-LD language-server schema reference (resolves inside the
@@ -207,7 +202,8 @@ pub(crate) fn preservation_ledger() -> String {
 /// Parse JSON-LD-star bytes into the native carrier [`RdfDataset`] (thin wrapper over
 /// the first-party rdf codec).
 pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    jsonld::parse_jsonld(json_bytes, None).map_err(codec_err)
+    jsonld::parse_jsonld(json_bytes, None)
+        .map_err(|error| gmeow_errors::Diag::from_rdf(error).with_context("parse JSON-LD-star"))
 }
 
 /// Convert a JSON-LD-star document to GMEOW statement-metadata N-Quads (thin wrapper
@@ -221,13 +217,17 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
         None,
         Some(&gmeow_statement_metadata_vocab()),
     )
-    .map_err(codec_err)
+    .map_err(|error| {
+        gmeow_errors::Diag::from_rdf(error).with_context("project JSON-LD-star statement metadata")
+    })
 }
 
 /// Convert YAML-LD-star bytes to JSON-LD-star JSON (thin wrapper over the first-party
 /// rdf codec), hard-failing on YAML anchors/aliases (extended YAML is out of scope).
 pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, gmeow_errors::Diag> {
-    jsonld::yamlld_to_jsonld(yaml_bytes).map_err(codec_err)
+    jsonld::yamlld_to_jsonld(yaml_bytes).map_err(|error| {
+        gmeow_errors::Diag::from_rdf(error).with_context("convert YAML-LD-star to JSON-LD-star")
+    })
 }
 
 /// Downcast YAML-LD-star bytes to GMEOW statement-metadata N-Quads (thin wrapper over
@@ -240,7 +240,9 @@ pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
         None,
         Some(&gmeow_statement_metadata_vocab()),
     )
-    .map_err(codec_err)
+    .map_err(|error| {
+        gmeow_errors::Diag::from_rdf(error).with_context("project YAML-LD-star statement metadata")
+    })
 }
 
 /// Return an RDFC-1.0 canonical, deterministically sorted quad representation.

@@ -9,6 +9,19 @@ use gmeow_errors::{
 };
 use gmeow_pipeline::run::{RunMode, RunReport};
 
+#[derive(Default)]
+struct CapturedReports(std::sync::Mutex<Vec<gmeow_errors::Report>>);
+
+impl gmeow_cli_core::Reporter for CapturedReports {
+    fn report(&self, report: &gmeow_errors::Report) {
+        self.0.lock().unwrap().push(report.clone());
+    }
+
+    fn stage_start(&self, _stage: &str) {}
+    fn stage_end(&self, _stage: &str, _elapsed: std::time::Duration) {}
+    fn summary(&self, _report: &gmeow_errors::Report) {}
+}
+
 fn native_report(grade: Grade) -> RunReport {
     let mut ledger = DiagLedger::new();
     ledger.attach(
@@ -26,7 +39,6 @@ fn native_report(grade: Grade) -> RunReport {
         written: 0,
         skipped_writes: 0,
         removed: 0,
-        findings: ledger.findings("pipeline"),
         ledger,
         drifted: vec![],
         timings: vec![],
@@ -88,7 +100,7 @@ fn cli_and_feedback_preserve_the_native_verdict_and_every_finding() {
         ),
     ] {
         let run = native_report(grade);
-        let original = serde_json::to_vec(&run.findings).unwrap();
+        let original = serde_json::to_vec(&run.findings().collect::<Vec<_>>()).unwrap();
         assert_eq!(
             crate::dev_sync::accept_pipeline_report(reporter.as_ref(), &run, false).is_ok(),
             expected
@@ -116,12 +128,14 @@ fn cli_and_feedback_preserve_the_native_verdict_and_every_finding() {
 
 #[test]
 fn drift_and_fatal_ledger_cannot_be_hidden_by_the_feedback_projection() {
-    let mut fatal = native_report(Grade::new(
+    let fatal = native_report(Grade::new(
         Severity::Error,
         FindingCategory::ModelingDisciplineViolation,
         Standpoint::Binding,
     ));
-    fatal.findings.clear();
+    let mut detached: Vec<_> = fatal.findings().collect();
+    detached.clear();
+    assert_eq!(fatal.findings().count(), 1);
     assert!(!pipeline_feedback(fatal).1);
     let mut drift = native_report(Grade::new(
         Severity::Info,
@@ -135,6 +149,63 @@ fn drift_and_fatal_ledger_cannot_be_hidden_by_the_feedback_projection() {
     assert_eq!(report.findings[0].code, "generator.drift");
     assert_eq!(report.findings[0].standpoint, Some(Standpoint::Binding));
     assert_eq!(report.findings[1].severity, Severity::Info);
+}
+
+#[test]
+fn late_ledger_findings_reach_both_cli_and_feedback_with_the_native_verdict() {
+    let mut run = native_report(Grade::new(
+        Severity::Info,
+        FindingCategory::Transient,
+        Standpoint::Advisory,
+    ));
+    let earlier: Vec<_> = run.findings().collect();
+    assert_eq!(earlier.len(), 1);
+    assert!(run.is_clean());
+    run.ledger.attach(
+        Diag::new(
+            register_code("pipeline.drift"),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            "late reconciliation failure",
+        )
+        .with_focus("generated/late.ttl"),
+        StageId::new("stage-pipeline-reconcile"),
+    );
+    let reporter = CapturedReports::default();
+    assert!(crate::dev_sync::accept_pipeline_report(&reporter, &run, false).is_err());
+    let emitted = reporter.0.lock().unwrap();
+    assert!(
+        emitted
+            .iter()
+            .flat_map(|report| &report.findings)
+            .any(|finding| {
+                finding.code == "pipeline.drift" && finding.message == "late reconciliation failure"
+            })
+    );
+    assert!(
+        emitted
+            .iter()
+            .flat_map(|report| &report.findings)
+            .any(|finding| {
+                finding.message == "synthetic producer finding"
+                    && finding.severity == Severity::Info
+            })
+    );
+    let (report, accepted) = pipeline_feedback(run);
+    assert!(!accepted);
+    assert_eq!(report.findings.len(), 2);
+    assert!(report.findings.iter().any(|finding| {
+        finding.code == "pipeline.drift"
+            && finding.message == "late reconciliation failure"
+            && finding.severity == Severity::Error
+            && finding.standpoint == Some(Standpoint::Binding)
+    }));
+    assert!(report.findings.iter().any(|finding| {
+        finding.message == "synthetic producer finding" && finding.severity == Severity::Info
+    }));
 }
 
 #[test]

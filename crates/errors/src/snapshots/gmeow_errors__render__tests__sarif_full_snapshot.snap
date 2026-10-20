@@ -57,7 +57,7 @@ expression: value
             "text": "missing property"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1a45975eee1afc5f"
+            "gmeowFindingHash/v3": "1a45975eee1afc5f"
           },
           "ruleId": "shacl.MinCount"
         },
@@ -88,7 +88,7 @@ expression: value
             "text": "missing property"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "5b5b3cf07de70c17"
+            "gmeowFindingHash/v3": "5b5b3cf07de70c17"
           },
           "properties": {
             "gmeow.attributions": [
@@ -124,7 +124,7 @@ expression: value
             "text": "class gmeow:Analogy is missing gmeow:howToUse"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "713f947ffc5ec1e5"
+            "gmeowFindingHash/v3": "713f947ffc5ec1e5"
           },
           "ruleId": "validate.warning"
         }

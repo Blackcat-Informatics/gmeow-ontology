@@ -28,41 +28,80 @@
 use std::collections::BTreeSet;
 
 use gmeow_docs::formats::{Capability, DocFormat, PROJECTION_DAG_EDGES, format_capabilities};
+use gmeow_errors::{
+    Diag, DiagLedger, FindingCategory, GateVerdict, Grade, Location, Severity, StageId, Standpoint,
+    register_code,
+};
 
-/// The outcome of the docs-loss-lattice gate — an empty `errors` is a pass.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+/// The original graded witnesses of the documentation capability checks.
+#[derive(Debug, Clone, Default)]
 pub struct DocsLossLatticeReport {
-    /// One message per violated totality / monotonicity invariant.
-    pub errors: Vec<String>,
+    ledger: DiagLedger,
 }
 
 impl DocsLossLatticeReport {
     /// The gate passes iff no invariant was violated.
     pub fn ok(&self) -> bool {
-        self.errors.is_empty()
+        self.ledger.verdict() == GateVerdict::Collected
+    }
+
+    pub fn ledger(&self) -> &DiagLedger {
+        &self.ledger
+    }
+
+    #[track_caller]
+    fn violation(&mut self, identity: &[&str], message: String) {
+        self.ledger.attach(
+            Diag::new(
+                register_code("docs-loss-lattice-violation"),
+                Grade::new(
+                    Severity::Error,
+                    FindingCategory::ModelingDisciplineViolation,
+                    Standpoint::Binding,
+                ),
+                message,
+            )
+            .with_location(Location::new(
+                Some("crates/docs-model/src/formats.rs".to_owned()),
+                None,
+                None,
+                None,
+            ))
+            .with_focus(serde_json::to_string(identity).expect("capability identities serialize")),
+            StageId::new("docs.loss-lattice"),
+        );
     }
 }
 
 /// Run the docs-loss-lattice gate over [`gmeow_docs::formats`].
 pub fn check_docs_loss_lattice() -> DocsLossLatticeReport {
+    check_capabilities(format_capabilities)
+}
+
+fn check_capabilities(
+    capabilities: impl Fn(DocFormat) -> gmeow_docs::formats::SurfaceCapabilities,
+) -> DocsLossLatticeReport {
     let mut report = DocsLossLatticeReport::default();
 
     // Invariant 1: total, disjoint partition per format.
     for fmt in DocFormat::ALL {
-        let caps = format_capabilities(fmt);
+        let caps = capabilities(fmt);
         let representable: BTreeSet<Capability> = caps.representable.iter().copied().collect();
         let dropped: BTreeSet<Capability> = caps.dropped.iter().copied().collect();
         for cap in Capability::ALL {
             let in_repr = representable.contains(&cap);
             let in_drop = dropped.contains(&cap);
             if in_repr && in_drop {
-                report.errors.push(format!(
-                    "docs format '{}' lists capability '{}' as BOTH representable and dropped",
-                    fmt.slug(),
-                    cap.slug(),
-                ));
+                report.violation(
+                    &["partition-overlap", fmt.slug(), cap.slug()],
+                    format!(
+                        "docs format '{}' lists capability '{}' as BOTH representable and dropped",
+                        fmt.slug(),
+                        cap.slug(),
+                    ),
+                );
             } else if !in_repr && !in_drop {
-                report.errors.push(format!(
+                report.violation(&["partition-missing", fmt.slug(), cap.slug()], format!(
                     "docs format '{}' lists capability '{}' as NEITHER representable nor dropped",
                     fmt.slug(),
                     cap.slug(),
@@ -70,13 +109,16 @@ pub fn check_docs_loss_lattice() -> DocsLossLatticeReport {
             }
         }
         if caps.representable.len() + caps.dropped.len() != Capability::ALL.len() {
-            report.errors.push(format!(
-                "docs format '{}' partition size {} + {} != {} capabilities",
-                fmt.slug(),
-                caps.representable.len(),
-                caps.dropped.len(),
-                Capability::ALL.len(),
-            ));
+            report.violation(
+                &["partition-size", fmt.slug()],
+                format!(
+                    "docs format '{}' partition size {} + {} != {} capabilities",
+                    fmt.slug(),
+                    caps.representable.len(),
+                    caps.dropped.len(),
+                    Capability::ALL.len(),
+                ),
+            );
         }
     }
 
@@ -84,7 +126,7 @@ pub fn check_docs_loss_lattice() -> DocsLossLatticeReport {
     // (NOT a linear `DocFormat::ALL` chain — mdbook and pdf are incomparable siblings).
     // For each declared `src → tgt` refinement edge, the target must drop a superset.
     let dropped_of = |fmt: DocFormat| -> BTreeSet<Capability> {
-        format_capabilities(fmt).dropped.into_iter().collect()
+        capabilities(fmt).dropped.into_iter().collect()
     };
     for &(src, tgt) in PROJECTION_DAG_EDGES {
         let src_dropped = dropped_of(src);
@@ -94,7 +136,7 @@ pub fn check_docs_loss_lattice() -> DocsLossLatticeReport {
                 .difference(&tgt_dropped)
                 .map(|c| c.slug())
                 .collect();
-            report.errors.push(format!(
+            report.violation(&["monotonicity", src.slug(), tgt.slug()], format!(
                 "docs loss DAG is not monotone: refinement target '{}' regains capabilit(y/ies) \
                  [{}] that its source '{}' drops",
                 tgt.slug(),
