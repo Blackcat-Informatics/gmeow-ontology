@@ -116,13 +116,7 @@ fn forget_request_requires_roles_and_named_references_without_granting_permissio
                 && path.min_count == Some(1)
         }));
     }
-    let shape_graph = purrdf::parse_dataset(
-        format!("{SH_HEADER}{}", shape.shacl).as_bytes(),
-        "text/turtle",
-        None,
-    )
-    .unwrap();
-    let shapes = parse_shapes(&shape_graph).unwrap();
+    let shapes = parse_shapes(&format!("{SH_HEADER}{}", shape.shacl), None).unwrap();
     let valid = "ex:request a gmeow:ForgetRequest ;
         gmeow:requestingAgent ex:person ; gmeow:requestedErasureTarget ex:claim ;
         gmeow:requestUnderRight ex:right . ex:person a gmeow:Agent .";
