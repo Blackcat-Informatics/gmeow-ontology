@@ -6483,7 +6483,7 @@ fn slice_brief_live(
 /// ratchet (the guarded registry + the per-(slice, vocabulary) ceilings) straight from
 /// the embedded `gmeow.gts` bundle, dogfooding Principle 17 from the shippable
 /// deliverable. This is the COMMITMENTS view: the resident individuals, not the live
-/// measured residue (which needs a repo checkout to scan — that stays on `gmeow-dev`).
+/// measured residue (which needs authored input; see [`slice_projection_debt`]).
 pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
     let floors = match gmeow_slice_quality::ceilings_from_gts(BUNDLE_GTS) {
         Ok(f) => f,
@@ -6543,6 +6543,28 @@ pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
             reporter,
             "gmeow-cli.slice.projection-ceilings.unknown-format",
             format!("unknown --format {other:?}: expected human or tsv"),
+        ),
+    }
+}
+
+/// Measure explicitly supplied authored sources against the embedded governance.
+pub fn slice_projection_debt(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
+    let result = gmeow_slice_quality::ceilings_from_gts(BUNDLE_GTS)
+        .and_then(|governance| {
+            gmeow_slice_quality::projection_debt::measure_slice_debt(dir, &governance)
+        })
+        .and_then(|rows| {
+            gmeow_slice_quality::projection_debt::render_projection_debt(&rows, format)
+        });
+    match result {
+        Ok(output) => {
+            print!("{output}");
+            0
+        }
+        Err(error) => fail(
+            reporter,
+            "gmeow-cli.slice.projection-debt",
+            error.to_string(),
         ),
     }
 }

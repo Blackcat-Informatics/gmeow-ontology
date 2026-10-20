@@ -12,7 +12,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "axisContextScope is functional"
 msgstr "axisContextScope 具有函数性"
@@ -705,7 +704,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|skos:scopeNote"
 msgid "Scope: it names the axis and nothing beyond it — no score, no tier, no threshold floor, and no recency follow from it, so a grade whose axis was later retired stays readable rather than becoming an untyped number. It is equally NOT an identity key: two passes over the same slice produce two distinct assessments carrying the SAME axis, so per-axis governance must join on the (assessed entity, axis, pass) triple, and deduplicating grades on the axis alone would silently discard a re-score. The subject is what separates it from gmeow:axisDimension: this is asserted on the ASSESSMENT, that one on the AXIS, so a graph carrying only gmeow:axisDimension describes the rubric and records no measurement of anything."
 msgstr "范围：它只指明轴，别无其他——分数、层级、阈值下限与新近程度都不由它推出，因此某个轴日后被撤销的评分仍然可读，而不会退化为无类型的数字。它同样不是身份键：对同一切片的两轮评估会产生两条携带相同轴的不同评估记录，因此按轴治理必须在（被评估实体、轴、评估轮次）三元组上连接，仅按轴去重会悄然丢弃一次重新评分。主语正是它与 gmeow:axisDimension 的分野：它断言在评估之上，而后者断言在轴之上，因此仅携带 gmeow:axisDimension 的图描述的是评价标准，并未记录对任何事物的测量。"
 
-
 # --- Ratchet floors, the recorded corpus, and the readability failure lattice ---
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AxisFloorCommitment|http://www.w3.org/2000/01/rdf-schema#label"
@@ -771,3 +769,7 @@ msgstr "当所记录的质量评估语料无法作为权威记录被读回时所
 msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Freshness and integrity are separate obligations that this one class covers because both make the record unreadable in the same way: the fingerprint asks whether the record describes THIS tree, the content digest asks whether the record is what the scorer wrote, and an input-only witness answers only the first."
 msgstr "新鲜性与完整性是两项各自独立的义务，本单一类之所以同时覆盖，是因为二者以相同方式使记录不可读：指纹追问该记录是否描述这棵树，内容摘要追问该记录是否即评分者所写，而仅覆盖输入的见证只能回答前者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|gmeow:avoidWhen"
+msgid "Avoid hardcoding the guarded registry, empty vocabulary namespaces, or missing grounding owners. The quantitative RDFS budget counts subsumption, not property signatures; this is not permission to author semantic signatures outside logic:. OWL authoring is checked by projection purity, not by a numeric ceiling or reason-verify alone."
+msgstr "避免硬编码受管注册表、空词汇命名空间或缺失基础层所有者。RDFS 定量预算计数涵摄关系，而非属性签名；这不允许在 logic: 之外编写语义签名。OWL 编写由投影纯度检查约束，而非由数值上限或单独的 reason-verify 约束。"
