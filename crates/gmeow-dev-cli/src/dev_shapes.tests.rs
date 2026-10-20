@@ -5,6 +5,10 @@ use gmeow_logic_compile::ir::ConstraintProvenance;
 
 use super::*;
 
+fn sparql_alpha_canonical(select: &str) -> Result<query_identity::QueryKey, gmeow_errors::Diag> {
+    query_identity::query_key(select, false)
+}
+
 #[test]
 fn authored_shapes_with_the_same_target_are_all_retained() {
     let ds = parse_dataset(
