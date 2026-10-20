@@ -138,6 +138,12 @@ impl DiagNode {
         let mut detail_lines: Vec<String> = Vec::new();
         for extra in self.observations.iter().skip(1) {
             detail_lines.push(extra.message.clone());
+            // Additional observations share this witness's anchor. Keep them
+            // on the labelled surface too: RDF does not project detail text.
+            finding.related_labels.push(RelatedLabel {
+                location: primary_location.clone(),
+                message: extra.message.clone(),
+            });
         }
         for frame in &self.frames {
             detail_lines.push(frame.message.clone());

@@ -132,3 +132,59 @@ msgstr "contrainte de cardinalité du témoin d'excès inter-nœuds"
 msgctxt "https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitnessCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world structural integrity constraint: a gmeow:CrossNodeGlutWitness carries EXACTLY two gmeow:glutWitnessOf links (one per conflicting Finding) — the reasoner-minted meta-finding's two-sided coherence-conflict record."
 msgstr "Une contrainte d'intégrité structurelle en monde clos : un gmeow:CrossNodeGlutWitness porte EXACTEMENT deux liens gmeow:glutWitnessOf (un par constat en conflit) — l'enregistrement bilatéral du conflit de cohérence que constitue le méta-constat frappé par le raisonneur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding logical location"
+msgstr "localisation logique du constat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact lexical logical anchor supplied by a diagnostic source location, independent of physical path, line, column and GTS coordinates. Its spelling does not assert an RDF term kind."
+msgstr "L'ancrage logique lexical exact fourni par la localisation source d'un diagnostic, indépendant du chemin physique, de la ligne, de la colonne et des coordonnées GTS. Son écriture n'affirme aucun type de terme RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This source-location token remains a string even when it resembles an IRI, a blank node or a file path."
+msgstr "Ce jeton de localisation source reste une chaîne même s'il ressemble à un IRI, à un nœud anonyme ou à un chemin de fichier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:location1 gmeow:findingLocationLogical \"authored.ttl#constraint\" ."
+msgstr "ex:location1 gmeow:findingLocationLogical \"authored.ttl#constraint\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Project the source location's logical token verbatim onto its diagnostic location node and retain it through rendering and replay."
+msgstr "Projeter à l'identique le jeton logique de la localisation source sur son nœud de localisation diagnostique et le conserver pendant le rendu et la relecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a diagnostic location supplies a logical anchor, with or without physical coordinates."
+msgstr "À utiliser lorsqu'une localisation diagnostique fournit un ancrage logique, avec ou sans coordonnées physiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original anchor with a generated location-node IRI, a display path or a guessed RDF term."
+msgstr "Ne pas remplacer l'ancrage original par un IRI de nœud de localisation généré, un chemin d'affichage ou un terme RDF déduit par supposition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding source focus identity"
+msgstr "identité du foyer source du constat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact lexical identity of a finding's original source focus, independent of its primary logical location and source graph. The source token remains a string; its spelling does not determine the source term's RDF kind."
+msgstr "L'identité lexicale exacte du foyer source original d'un constat, indépendante de sa localisation logique principale et de son graphe source. Le jeton source reste une chaîne ; son écriture ne détermine pas le type RDF du terme source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A source focus can differ from the location's logical name; keep both. Absence means the producer supplied no explicit focus."
+msgstr "Un foyer source peut différer du nom logique de la localisation ; conserver les deux. Son absence signifie que le producteur n'a fourni aucun foyer explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:f1 gmeow:findingSourceFocusIdentity \"urn:constraint:one\" ."
+msgstr "ex:f1 gmeow:findingSourceFocusIdentity \"urn:constraint:one\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Project the source context's focus token verbatim and keep it unchanged through report normalization, native RDF publication and replay."
+msgstr "Projeter à l'identique le jeton du foyer du contexte source et le conserver sans modification pendant la normalisation des rapports, la publication RDF native et la relecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the original source subject or other focus token when a finding also has a distinct logical or physical anchor."
+msgstr "À utiliser pour conserver le sujet source original ou un autre jeton de foyer lorsqu'un constat possède également un ancrage logique ou physique distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute the diagnostics graph, the finding fingerprint, the primary logical location or a term guessed from the token's spelling."
+msgstr "Ne pas leur substituer le graphe des diagnostics, l'empreinte du constat, la localisation logique principale ou un terme déduit par supposition de l'écriture du jeton."

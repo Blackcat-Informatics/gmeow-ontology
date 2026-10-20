@@ -804,7 +804,7 @@ impl ValidateStage {
         // DiagLedger. Project the findings once to pre-lowered DiagNodes, carry them on
         // the product's `diagnostics:nodes` blob (so a cache hit re-serves them), and
         // hand them up as `StageOutput.diags` for the scheduler to fold on a fresh run.
-        let diag_blob = serde_json::to_vec(&nodes).map_err(|e| {
+        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: self.id().to_owned(),
                 message: format!("encode diagnostics nodes blob: {e}"),

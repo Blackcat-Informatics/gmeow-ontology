@@ -128,6 +128,15 @@ pub struct StageProduct {
     handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
 }
 
+/// Encode one producer-owned diagnostic contribution, including an empty one.
+/// Stage identity makes empty contributions distinct without synthetic events.
+pub(crate) fn encode_diag_nodes(
+    stage: &str,
+    nodes: &[gmeow_errors::DiagNode],
+) -> Result<Vec<u8>, serde_json::Error> {
+    serde_json::to_vec(&(stage, nodes))
+}
+
 impl StageProduct {
     /// Construct an artifact-free product with an explicit digest (abstract
     /// stages / tests). Real transform stages use [`Self::from_artifacts`].
@@ -270,13 +279,33 @@ impl StageProduct {
     /// lane the scheduler reads on a CACHE HIT to recover a diagnostics producer's run
     /// ledger contribution WITHOUT re-running the stage — the blob round-trips through
     /// the per-stage cache, so the recovered nodes are byte-identical to the fresh run.
-    /// A present-but-malformed blob is a corrupt product — a HARD FAIL (no-optionality).
+    /// A declared producer must supply its blob, including an explicit empty contribution.
+    /// A malformed or wrong-producer blob is a corrupt product — a HARD FAIL.
     pub fn diag_nodes(&self) -> Vec<gmeow_errors::DiagNode> {
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_DIAG_NODES) {
-            Some(bytes) => serde_json::from_slice(bytes).expect(
-                "diagnostics:nodes blob is our own JSON; a decode failure is a corrupt cache",
-            ),
-            None => Vec::new(),
+            Some(bytes) => {
+                let (stage, nodes): (String, Vec<gmeow_errors::DiagNode>) = serde_json::from_slice(
+                    bytes,
+                )
+                .expect(
+                    "diagnostics:nodes blob is our own JSON; a decode failure is a corrupt cache",
+                );
+                assert_eq!(
+                    stage, self.stage_id,
+                    "diagnostic contribution has the wrong producer"
+                );
+                nodes
+            }
+            None => {
+                assert!(
+                    !crate::stages::attach::blob_reps(&self.stage_id)
+                        .iter()
+                        .any(|rep| rep == crate::stages::carrier::REP_DIAG_NODES),
+                    "stage {} is missing its required diagnostics:nodes contribution",
+                    self.stage_id
+                );
+                Vec::new()
+            }
         }
     }
 

@@ -14,7 +14,7 @@
 //! `gmeow-validate` (the orphan-rule detour is gone now that both the RDF types'
 //! consumer and the diagnostics model live in one leaf crate).
 
-use purrdf_core::{LossLedger, RdfDiagnostic, RdfLocation, RdfSeverity};
+use purrdf_core::{LossEntry, LossLedger, RdfDiagnostic, RdfLocation, RdfSeverity};
 
 use crate::code::register_code;
 use crate::diag::{Diag, StageId};
@@ -62,7 +62,42 @@ impl Location {
     }
 }
 
+/// The original native projection record, retained until ledger lowering.
+#[derive(Debug)]
+struct NativeLoss(LossEntry);
+
+impl std::fmt::Display for NativeLoss {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} → {}: {}", self.0.from, self.0.to, self.0.note)
+    }
+}
+
+impl std::error::Error for NativeLoss {}
+
 impl Diag {
+    /// Carry one original native loss as a non-gating projection witness.
+    /// Its source/target direction remains typed until cause lowering;
+    /// every supplied source coordinate and subject is kept.
+    #[track_caller]
+    pub fn from_rdf_loss(loss: LossEntry) -> Diag {
+        let source = NativeLoss(loss);
+        let mut diag = Diag::new(
+            register_code(&source.0.code),
+            Grade::new(
+                Severity::Note,
+                FindingCategory::ProjectionLoss,
+                Standpoint::Perspectival,
+            ),
+            source.to_string(),
+        );
+        if let Some(location) = &source.0.location {
+            diag = diag.with_location(Location::from_rdf(location));
+            if let Some(subject) = &location.subject {
+                diag = diag.with_focus(subject.clone());
+            }
+        }
+        diag.with_source(source)
+    }
     /// Ingest a native diagnostic, retaining its original typed value as the
     /// live cause and its subject as the focus. The caller attaches the parent;
     /// the original error chain is lowered only at that serialization boundary.
@@ -105,21 +140,7 @@ impl Diag {
         // parent's antecedent handles are already resident.
         let mut antecedents = Vec::with_capacity(losses.entries().len());
         for loss in losses.entries() {
-            let mut child = Diag::new(
-                register_code(&loss.code),
-                Grade::new(
-                    Severity::Note,
-                    FindingCategory::ProjectionLoss,
-                    Standpoint::Perspectival,
-                ),
-                loss.note.to_string(),
-            );
-            if let Some(location) = &loss.location {
-                child = child.with_location(Location::from_rdf(location));
-                if let Some(subject) = &location.subject {
-                    child = child.with_focus(subject.clone());
-                }
-            }
+            let child = Diag::from_rdf_loss(loss.clone());
             antecedents.push(ledger.attach(child, stage.clone()));
         }
 

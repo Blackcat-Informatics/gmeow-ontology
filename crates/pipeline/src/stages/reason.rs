@@ -831,7 +831,7 @@ impl Stage for ReasonStage {
         // pinned to that graph (C7) — dual carriage.
         let dataset = reasoned.dataset;
         let nodes = crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
-        let diag_blob = serde_json::to_vec(&nodes).map_err(|e| {
+        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: self.id().to_owned(),
                 message: format!("encode chase certificate diagnostic nodes: {e}"),

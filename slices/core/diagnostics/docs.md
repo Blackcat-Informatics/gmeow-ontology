@@ -7,6 +7,17 @@
 
 ## Named source graph context
 
+Logical location and source focus are separate coordinates.
+`gmeow:findingLocationLogical` carries the location's original logical token;
+`gmeow:findingSourceFocusIdentity` carries the finding's explicit source focus.
+Both remain lexical strings, including tokens that resemble IRIs or blank nodes.
+Neither is replaced by the generated diagnostic node's identity. Physical and GTS
+coordinates remain alongside them, and an absent focus is not invented.
+
+Projection losses retain their source and target direction in their messages.
+When observations share one witness anchor, additional observations are carried
+as labelled messages so the RDF projection preserves them beside the headline.
+
 A diagnostic about a known named graph retains that graph's original absolute IRI
 in its source context. It is an independent identity coordinate beside physical
 location, logical anchor, term role and focus. Findings about different graphs

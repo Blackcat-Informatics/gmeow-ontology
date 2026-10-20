@@ -45,6 +45,9 @@ trait Sink {
         if let Some(path) = &location.path {
             self.text(subject, "findingLocationPath", path)?;
         }
+        if let Some(logical) = &location.logical {
+            self.text(subject, "findingLocationLogical", logical)?;
+        }
         for (local, value) in [
             ("findingLocationLine", location.line),
             ("findingLocationColumn", location.column.map(u64::from)),
@@ -176,6 +179,9 @@ fn emit<S: Sink>(report: &Report, graph: &str, sink: &mut S) -> Result<(), S::Er
                 &format!("{GMEOW}findingSourceGraph"),
                 source_graph.as_str(),
             )?;
+        }
+        if let Some(focus) = &finding.source_focus {
+            sink.text(&subject, "findingSourceFocusIdentity", focus)?;
         }
         for (predicate, object) in crate::abox::abox_annotations(
             &subject,
