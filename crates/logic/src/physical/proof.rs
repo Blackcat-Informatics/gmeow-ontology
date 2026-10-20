@@ -597,7 +597,7 @@ pub(crate) fn reify(dag: &TermDag, node: NodeId) -> gmeow_errors::Result<String>
 pub(crate) fn structured_reifier(dag: &TermDag, node: NodeId) -> String {
     format!(
         "https://blackcatinformatics.ca/logic/dag/assert/{}",
-        blake3::hash(dag.key(node).as_bytes()).to_hex()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(dag.key(node).as_bytes()).as_bytes())
     )
 }
 

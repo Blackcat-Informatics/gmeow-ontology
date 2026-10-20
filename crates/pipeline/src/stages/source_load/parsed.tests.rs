@@ -8,7 +8,9 @@ fn source(path: &str, kind: OriginKind, text: &str) -> ParsedAuthoredSource {
         path: Path::new("/not-a-repository").join(path),
         relative_path: path.to_owned(),
         content_digest: purrdf::ContentDigest::of(text.as_bytes()).to_hex(),
-        blake3_digest: blake3::hash(text.as_bytes()).to_hex().to_string(),
+        blake3_digest: purrdf_hash::hex::encode(
+            purrdf_hash::blake3::hash(text.as_bytes()).as_bytes(),
+        ),
         kind,
         ingested: PurrdfAdapter
             .ingest(path, "text/turtle", text.as_bytes())

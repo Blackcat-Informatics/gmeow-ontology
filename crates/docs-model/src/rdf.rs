@@ -309,7 +309,8 @@ pub fn to_gmeow_rdf(
                 entry.version,
                 entry.note.as_deref().unwrap_or_default()
             );
-            let identity_digest = blake3::hash(identity.as_bytes()).to_hex();
+            let identity_digest =
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(identity.as_bytes()).as_bytes());
             let entry_iri = format!(
                 "<{GMEOW}documentation/changelog/{}/{}/{}/{}>",
                 term_slug(term),
@@ -1335,7 +1336,12 @@ fn term_evidence(
         if !queries.is_empty() {
             str_props.push((
                 "docCompetencyQueryDigest",
-                format!("blake3:{}", blake3::hash(queries.as_bytes()).to_hex()),
+                format!(
+                    "blake3:{}",
+                    purrdf_hash::hex::encode(
+                        purrdf_hash::blake3::hash(queries.as_bytes()).as_bytes()
+                    )
+                ),
             ));
         }
         out.push(Evidence {

@@ -317,7 +317,7 @@ fn conditional_supports_preserve_dense_identity_without_dense_storage() {
     assert!(matches!(support, AdaptiveDomain::Sparse { .. }));
 
     let digest = |support: &AdaptiveDomain| {
-        let mut hash = blake3::Hasher::new();
+        let mut hash = purrdf_hash::blake3::Hasher::new();
         support.hash_nonzero_words(&mut hash);
         *hash.finalize().as_bytes()
     };

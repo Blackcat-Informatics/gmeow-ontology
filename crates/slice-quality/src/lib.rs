@@ -695,7 +695,7 @@ fn scored_input_fingerprint_with_implementation(
     repo_root: &Path,
     implementation: &str,
 ) -> gmeow_errors::Result<String> {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-scored-input-v2\0");
     hasher.update(implementation.as_bytes());
     let mut inputs = scored_source_files(repo_root);
@@ -718,7 +718,10 @@ fn scored_input_fingerprint_with_implementation(
         hasher.update(&bytes);
         hasher.update(b"\x1e");
     }
-    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+    Ok(format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+    ))
 }
 
 /// A slice's `i18n/*.po` translation catalogs (sorted; empty when the slice ships no
@@ -1265,7 +1268,10 @@ impl BundleStandards {
         })?;
         Self::from_dataset(
             ds,
-            format!("blake3:{}", blake3::hash(bundle_gts).to_hex()),
+            format!(
+                "blake3:{}",
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bundle_gts).as_bytes())
+            ),
             profile_key,
         )
     }

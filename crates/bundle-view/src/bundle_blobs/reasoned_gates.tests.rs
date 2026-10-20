@@ -17,7 +17,10 @@ fn graph(members: &[(&str, &[u8])]) -> Graph {
 
 /// Bind retained archive bytes to their actual digest and reasoning representation.
 fn archive_graph(bytes: Vec<u8>) -> Graph {
-    let digest = format!("blake3:{}", blake3::hash(&bytes).to_hex());
+    let digest = format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&bytes).as_bytes())
+    );
     let mut graph = Graph::default();
     graph.set_blob(digest.clone(), bytes);
     graph.set_blob_meta(

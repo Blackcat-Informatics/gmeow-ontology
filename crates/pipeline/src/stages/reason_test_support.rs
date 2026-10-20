@@ -27,7 +27,7 @@ pub(crate) fn reason_test_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, g
         .collect();
     let bytes = serde_json::to_vec(&(AUTHORITY, DomainProfile::NonemptyObjectDomainV1, &roles))
         .map_err(|error| stage_failure(format!("synthetic domain selection identity: {error}")))?;
-    let selection = *blake3::hash(&bytes).as_bytes();
+    let selection = *purrdf_hash::blake3::hash(&bytes).as_bytes();
     let domains = SelectedDomains::new(
         roles
             .into_iter()

@@ -924,7 +924,7 @@ fn load_theory(paths: &[PathBuf]) -> gmeow_errors::Result<LoadedTheory> {
         })?;
         receipts.push(SourceDocument {
             path: path.display().to_string(),
-            content_digest: blake3::hash(&bytes).to_hex().to_string(),
+            content_digest: purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&bytes).as_bytes()),
             role: "selected-semantic-source".to_owned(),
             base: Some(SourceBase {
                 iri: base,
@@ -1302,7 +1302,7 @@ fn process_diagnostic_failure(
 
 fn empty_stream() -> StreamBytes {
     StreamBytes {
-        digest: blake3::hash(&[]).to_hex().to_string(),
+        digest: purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&[]).as_bytes()),
         total_bytes: 0,
         retained: Vec::new(),
         truncated: false,
@@ -1516,7 +1516,7 @@ fn drain_stream_inner(
     capture: &std::sync::Mutex<StreamBytes>,
     stop: Option<&AtomicBool>,
 ) -> std::io::Result<()> {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     let mut buffer = [0_u8; 16 * 1024];
     loop {
         let read = match stream.read(&mut buffer) {
@@ -1544,7 +1544,7 @@ fn drain_stream_inner(
         bytes
             .retained
             .extend_from_slice(&buffer[..read.min(available)]);
-        bytes.digest = hasher.finalize().to_hex().to_string();
+        bytes.digest = purrdf_hash::hex::encode(hasher.finalize().as_bytes());
         bytes.truncated =
             bytes.total_bytes > u64::try_from(bytes.retained.len()).unwrap_or(u64::MAX);
     }

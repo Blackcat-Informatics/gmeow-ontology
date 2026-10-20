@@ -84,7 +84,7 @@ impl fmt::Display for JournalError {
 impl std::error::Error for JournalError {}
 
 /// A nonempty, contiguous, hash-verified journal in causal order.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct FiniteJournal {
     identity: String,
     enactment: String,
@@ -93,7 +93,26 @@ pub struct FiniteJournal {
     identities: BTreeSet<String>,
     heads: BTreeSet<String>,
     boundary: JournalBoundary,
-    prefix_hasher: blake3::Hasher,
+    prefix_hasher: purrdf_hash::blake3::Hasher,
+}
+
+impl std::fmt::Debug for FiniteJournal {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("FiniteJournal")
+            .field("identity", &self.identity)
+            .field("enactment", &self.enactment)
+            .field("initial_head", &self.initial_head)
+            .field("entries", &self.entries)
+            .field("identities", &self.identities)
+            .field("heads", &self.heads)
+            .field("boundary", &self.boundary)
+            .field(
+                "prefix_digest",
+                &purrdf_hash::hex::Digest32::new(*self.prefix_hasher.finalize().as_bytes()),
+            )
+            .finish()
+    }
 }
 
 fn iri(value: &str, field: &str) -> Result<(), JournalError> {
@@ -138,7 +157,7 @@ fn validate_entry(entry: &ObservedEntry) -> Result<(), JournalError> {
     Ok(())
 }
 
-fn fold_entry(hasher: &mut blake3::Hasher, entry: &ObservedEntry) {
+fn fold_entry(hasher: &mut purrdf_hash::blake3::Hasher, entry: &ObservedEntry) {
     frame(hasher, b"entry", entry.identity.as_bytes());
     frame(hasher, b"head", entry.transition.new_state_hash.as_bytes());
 }
@@ -235,7 +254,7 @@ impl FiniteJournal {
         }
         entries.reverse();
         let identities = entries.iter().map(|entry| entry.identity.clone()).collect();
-        let mut prefix_hasher = blake3::Hasher::new();
+        let mut prefix_hasher = purrdf_hash::blake3::Hasher::new();
         frame(&mut prefix_hasher, b"domain", b"gmeow-finite-journal-v1");
         frame(
             &mut prefix_hasher,
@@ -368,7 +387,7 @@ impl FiniteJournal {
                 JournalBoundary::Finalized => b"finalized",
             },
         );
-        hasher.finalize().to_hex().to_string()
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
     }
 }
 

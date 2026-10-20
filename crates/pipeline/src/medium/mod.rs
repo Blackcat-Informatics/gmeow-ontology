@@ -183,7 +183,10 @@ pub(crate) fn invalid_declaration(message: impl Into<String>) -> Diag {
 /// against the bytes it claims to commit to, so the SHAPE is part of the claim.
 #[must_use]
 pub fn blake3_digest(bytes: &[u8]) -> String {
-    format!("blake3:{}", blake3::hash(bytes).to_hex())
+    format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bytes).as_bytes())
+    )
 }
 
 /// Whether `digest` is written in the canonical `blake3:<64 lowercase hex>` form.

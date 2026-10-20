@@ -106,7 +106,7 @@ fn lattice_relation_local(native: &str, published: &str) -> &'static str {
 /// the diagnostics finding IRIs are minted with), so the folded individual is fold-stable.
 fn comparison_iri(corpus: &str, case: &str, world: &str, native: &str, published: &str) -> String {
     let key = [corpus, case, world, native, published].join(KEY_SEP);
-    let hash = blake3::hash(key.as_bytes()).to_hex();
+    let hash = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(key.as_bytes()).as_bytes());
     format!("{COMPARISON_BASE}{hash}")
 }
 
@@ -202,7 +202,8 @@ pub fn emit_divergence_nq(corpus: &str, comparisons: &[ExternalComparison]) -> S
 /// preserves the per-corpus pass rate as first-class ontological data in the reasoned
 /// bundle (the aggregate twin of the per-case comparison individuals). Deterministic.
 pub fn emit_agreement_tally_nq(tally: &AgreementTally) -> String {
-    let hash = blake3::hash(tally.corpus.as_bytes()).to_hex();
+    let hash =
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(tally.corpus.as_bytes()).as_bytes());
     let iri = format!("{TALLY_BASE}{hash}");
     let subject = format!("<{iri}>");
     let graph = format!("<{CONFORMANCE_GRAPH}>");
@@ -237,7 +238,7 @@ pub fn emit_capability_gap_nq(
     shape: gmeow_logic::entail::CapabilityGapShape,
 ) -> (String, String) {
     let key = [corpus, case, shape.as_token()].join(KEY_SEP);
-    let hash = blake3::hash(key.as_bytes()).to_hex();
+    let hash = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(key.as_bytes()).as_bytes());
     let iri = format!("{CAPABILITY_GAP_BASE}{hash}");
     let subject = format!("<{iri}>");
     let graph = format!("<{CONFORMANCE_GRAPH}>");

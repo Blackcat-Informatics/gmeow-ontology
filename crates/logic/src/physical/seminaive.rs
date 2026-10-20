@@ -2690,13 +2690,13 @@ fn same_budgeted_rows(left: &Budgeted<Vec<DerivedRow>>, right: &Budgeted<Vec<Der
 }
 
 fn derived_rows_hash(rows: &[DerivedRow]) -> [u8; 32] {
-    fn feed(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+    fn feed(hasher: &mut purrdf_hash::blake3::Hasher, value: impl AsRef<[u8]>) {
         let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
     }
 
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-rule-parallel-derived-rows-v2\0");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for row in rows {

@@ -628,13 +628,13 @@ impl RepeatForwardSession {
 }
 
 fn derived_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
-    fn frame(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+    fn frame(hasher: &mut purrdf_hash::blake3::Hasher, value: impl AsRef<[u8]>) {
         let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
     }
 
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, "gmeow-repeat-forward-closure-v2");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for row in rows {
@@ -649,13 +649,13 @@ fn derived_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
 }
 
 fn derived_fact_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
-    fn frame(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+    fn frame(hasher: &mut purrdf_hash::blake3::Hasher, value: impl AsRef<[u8]>) {
         let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
     }
 
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, "gmeow-record-skip-fact-closure-v2");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for row in rows {
@@ -668,13 +668,13 @@ fn derived_fact_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
 }
 
 fn skipped_fact_rows_hash(rows: &[(String, crate::rule_ir::Fact)]) -> [u8; 32] {
-    fn frame(hasher: &mut blake3::Hasher, value: impl AsRef<[u8]>) {
+    fn frame(hasher: &mut purrdf_hash::blake3::Hasher, value: impl AsRef<[u8]>) {
         let value = value.as_ref();
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
     }
 
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, "gmeow-record-skip-fact-closure-v2");
     hasher.update(&(rows.len() as u64).to_le_bytes());
     for (world, fact) in rows {
@@ -936,7 +936,7 @@ impl IncrementalGroundingCostSession {
         let eval_rules = crate::lower::lower_eval_rules(program)?;
         let contract_hash = format!(
             "gmeow-native-incremental-wfs-grounding-v1:{}",
-            blake3::hash(world.as_bytes()).to_hex()
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(world.as_bytes()).as_bytes())
         );
         let keyed_edb = facts
             .iter()
@@ -1109,7 +1109,7 @@ impl IncrementalForwardSession {
         let edb_keys = facts.iter().map(crate::rule_ir::Fact::key).collect();
         let contract_hash = format!(
             "gmeow-native-incremental-forward-v1:{}\0annotation={}",
-            blake3::hash(world.as_bytes()).to_hex(),
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(world.as_bytes()).as_bytes()),
             annotation.canonical_key()
         );
         let inner = crate::physical::IncrementalSession::new(contract_hash, facts, eval_rules)?;

@@ -258,7 +258,7 @@ include!(concat!(env!("OUT_DIR"), "/native_semantic_sources.rs"));
 /// Frame `value` under `tag` into `hasher` with a domain tag and length prefixes, so
 /// no component boundary can collide with another (`("ab","c")` and `("a","bc")` hash
 /// distinctly). Mirrors the framed-BLAKE3 discipline in `dispatch::query_contract_hash`.
-pub(crate) fn frame(hasher: &mut blake3::Hasher, tag: &[u8], value: &[u8]) {
+pub(crate) fn frame(hasher: &mut purrdf_hash::blake3::Hasher, tag: &[u8], value: &[u8]) {
     hasher.update(&(tag.len() as u64).to_le_bytes());
     hasher.update(tag);
     hasher.update(&(value.len() as u64).to_le_bytes());
@@ -267,14 +267,14 @@ pub(crate) fn frame(hasher: &mut blake3::Hasher, tag: &[u8], value: &[u8]) {
 
 /// The content digest over the whole backward-dispatch source surface.
 fn backward_source_hash() -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, b"domain", b"gmeow-logic-backward-source-v2");
     frame(
         &mut hasher,
         b"native-semantic-kernel",
         NATIVE_SOURCE_CONTRACT.as_bytes(),
     );
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// A single supported profile paired with its decidability-class guarantee — the unit
@@ -341,7 +341,7 @@ impl EngineContract {
             })
             .collect();
 
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         frame(&mut hasher, b"domain", b"gmeow-logic-engine-contract-v1");
         frame(&mut hasher, b"engine-name", engine.name.as_bytes());
         frame(&mut hasher, b"engine-version", engine.version.as_bytes());
@@ -363,7 +363,7 @@ impl EngineContract {
                 cap.decidability_class.as_bytes(),
             );
         }
-        let descriptor_hash = hasher.finalize().to_hex().to_string();
+        let descriptor_hash = purrdf_hash::hex::encode(hasher.finalize().as_bytes());
 
         Self {
             engine,

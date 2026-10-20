@@ -127,7 +127,7 @@ impl Domain {
         }
         present
     }
-    fn hash_nonzero_words(&self, hash: &mut blake3::Hasher) {
+    fn hash_nonzero_words(&self, hash: &mut purrdf_hash::blake3::Hasher) {
         hash.update(&(self.0.len() as u64).to_le_bytes());
         hash.update(&(self.0.iter().filter(|word| **word != 0).count() as u64).to_le_bytes());
         for (index, word) in self.0.iter().enumerate().filter(|(_, word)| **word != 0) {
@@ -989,7 +989,7 @@ impl AdaptiveDomain {
         }
     }
 
-    fn hash_nonzero_words(&self, hash: &mut blake3::Hasher) {
+    fn hash_nonzero_words(&self, hash: &mut purrdf_hash::blake3::Hasher) {
         match self {
             Self::Dense(domain) => domain.hash_nonzero_words(hash),
             Self::Sparse { size, values } => {
@@ -1339,7 +1339,7 @@ impl FlowSummary {
     }
 
     pub(crate) fn identity(&self, template: &[u8; 32]) -> [u8; 32] {
-        let mut hash = blake3::Hasher::new();
+        let mut hash = purrdf_hash::blake3::Hasher::new();
         hash.update(b"gmeow-native-input-columns-v3\0");
         hash.update(template);
         hash.update(&(self.relations.len() as u64).to_le_bytes());

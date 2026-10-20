@@ -64,13 +64,13 @@ fn embedded_fonts() -> &'static EmbeddedFonts {
 pub fn embedded_font_digest() -> String {
     let mut files: Vec<&'static [u8]> = embedded_fonts().raw.clone();
     files.sort_unstable();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for data in files {
         // Length-prefix each file so concatenation is unambiguous.
         hasher.update(&(data.len() as u64).to_le_bytes());
         hasher.update(data);
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// The in-memory world exposed to `typst::compile`.

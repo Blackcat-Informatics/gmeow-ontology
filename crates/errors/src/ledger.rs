@@ -42,7 +42,7 @@ pub struct DiagFingerprint([u8; 16]);
 
 /// Length-prefixed, domain-separated field feed — a length prefix before every
 /// field makes cross-field delimiter-injection collisions impossible (R2).
-fn feed(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
+fn feed(hasher: &mut purrdf_hash::blake3::Hasher, tag: &[u8], bytes: &[u8]) {
     hasher.update(&(tag.len() as u64).to_le_bytes());
     hasher.update(tag);
     hasher.update(&(bytes.len() as u64).to_le_bytes());
@@ -55,7 +55,7 @@ fn feed(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 /// (after its `code`+`category` prefix) and [`DiagFingerprint::anchor`], so the two
 /// paths are structurally identical and cannot silently drift apart — a drift would
 /// break the cross-node join key the glut meta-rule depends on.
-fn feed_source_ctx(hasher: &mut blake3::Hasher, ctx: &SourceContext) {
+fn feed_source_ctx(hasher: &mut purrdf_hash::blake3::Hasher, ctx: &SourceContext) {
     feed(
         hasher,
         b"path",
@@ -93,7 +93,7 @@ impl DiagFingerprint {
     /// Compute the fingerprint from the identity fields — `(code, category,
     /// source-context anchor, focus)`. Never keys on message/frames/grade.
     pub fn compute(code: &str, category: FindingCategory, ctx: &SourceContext) -> Self {
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         feed(&mut hasher, b"code", code.as_bytes());
         feed(&mut hasher, b"category", category.as_str().as_bytes());
         feed_source_ctx(&mut hasher, ctx);
@@ -111,7 +111,7 @@ impl DiagFingerprint {
     /// the code) structurally cannot make — the seam the cross-node-glut meta-rule
     /// joins on.
     pub fn anchor(ctx: &SourceContext) -> Self {
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         feed_source_ctx(&mut hasher, ctx);
         let digest = hasher.finalize();
         let mut bytes = [0u8; 16];

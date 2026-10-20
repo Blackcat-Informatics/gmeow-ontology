@@ -934,9 +934,10 @@ maint-refresh-wasm-assets: ## Prepare all browser assets, produce and gate once,
 	@echo "OK: all six browser assets passed the full gate and Node parity."
 
 .PHONY: maint-pin-purrdf
-maint-pin-purrdf: ## Resolve the authored exact PurRDF Git revision in production and fuzz locks; qualification is separate.
+maint-pin-purrdf: ## Resolve the authored exact PurRDF Git revision in all three committed workspace locks; qualification is separate.
 	cargo update -p purrdf
 	cargo update --manifest-path fuzz/Cargo.toml -p purrdf
+	cargo update --manifest-path validations/common-logic-fol/clif2tptp/Cargo.toml -p purrdf
 
 maint-bump-purrdf: ## Select VERSION within the declared PurRDF requirements, update both locks, and gate every wasm engine.
 	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=3.0.0"; exit 1; }

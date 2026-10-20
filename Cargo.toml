@@ -213,10 +213,6 @@ purrdf-hash = { version = "3", git = "https://github.com/Blackcat-Informatics/pu
 # the single dependency authority while individual crates retain dev-only scope.
 gmeow-cost-measure = { path = "crates/cost-measure" }
 
-# `wasm-bindgen` and `blake3` are declared ONCE each in the third-party block below,
-# where this branch's normalization sweep put them — not here. A second declaration in
-# the same table is a TOML duplicate key, and both sides independently reached for one.
-
 # --- Third-party dependencies: ONE declaration site each -----------------------
 # Every member crate inherits these with `<dep>.workspace = true` and never
 # re-states a version. A member may still narrow or widen its own use of a
@@ -225,9 +221,6 @@ gmeow-cost-measure = { path = "crates/cost-measure" }
 # agree silently stop agreeing. The per-dependency rationale (why a crate needs it,
 # what it is allowed to reach) stays in the member manifest beside the use.
 #
-# The BLAKE3 content digest: the project's canonical fingerprint for vendored-asset
-# anti-rot manifests, blob content addressing, and `blake3:<hex>` grounding values.
-blake3 = "1"
 # CBOR value codec: the gts snapshot's per-blob metadata maps and segment payloads
 # are read and written with it, so every reader and writer must share one codec.
 ciborium = "0.2"

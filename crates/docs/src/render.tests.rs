@@ -963,7 +963,10 @@ fn bundle_assets_emitted_only_with_bundle_data() {
     )
     .expect("manifest is utf-8");
     assert!(
-        manifest.contains(&format!("blake3:{}", blake3::hash(&full).to_hex())),
+        manifest.contains(&format!(
+            "blake3:{}",
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&full).as_bytes())
+        )),
         "manifest carries the full bundle's blake3 content address:\n{manifest}"
     );
     assert!(
@@ -1004,7 +1007,10 @@ fn conjecture_playground_ships_page_asset_and_manifest_entry() {
     .expect("manifest is utf-8");
     assert!(
         manifest.contains(CONJECTURES_PATH)
-            && manifest.contains(&format!("blake3:{}", blake3::hash(&conjectures).to_hex())),
+            && manifest.contains(&format!(
+                "blake3:{}",
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&conjectures).as_bytes())
+            )),
         "manifest carries the conjecture library's content address:\n{manifest}"
     );
     // The playground page is emitted with the interactive form + both symmetric legs.

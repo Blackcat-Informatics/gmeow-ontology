@@ -182,7 +182,7 @@ fn run_and_capture_shacl_nq() -> String {
         LogicalGraph::Default,
         DomainProfile::NonemptyObjectDomainV1,
         "gmeow.pipeline.test.substrate-empty-theory.v1".to_owned(),
-        *blake3::hash(
+        *purrdf_hash::blake3::hash(
             b"gmeow.pipeline.test.substrate-empty-theory.v1/default/nonempty-object-domain-v1",
         )
         .as_bytes(),

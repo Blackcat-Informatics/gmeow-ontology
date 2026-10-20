@@ -218,7 +218,7 @@ pub fn run_case(
             ));
         };
         let input_bytes = std::fs::read(&path).map_err(|error| prefix(error.to_string()))?;
-        if observation.input_blake3 != *blake3::hash(&input_bytes).as_bytes() {
+        if observation.input_blake3 != *purrdf_hash::blake3::hash(&input_bytes).as_bytes() {
             return Err(prefix(
                 "source-admission provider returned another input identity".to_owned(),
             ));

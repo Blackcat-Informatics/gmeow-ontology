@@ -158,7 +158,7 @@ impl ProfileAssessment {
             };
             outcomes.insert(axis.clone(), outcome);
         }
-        let mut input = blake3::Hasher::new();
+        let mut input = purrdf_hash::blake3::Hasher::new();
         input.update(EXTERNAL_INPUT_DOMAIN.as_bytes());
         for (path, bytes) in files {
             for field in [path.as_bytes(), bytes.as_slice()] {
@@ -171,9 +171,15 @@ impl ProfileAssessment {
             .map_err(|error| invalid(format!("encode selected profile identity: {error}")))?;
         Ok(Self {
             profile: profile.clone(),
-            profile_identity: format!("blake3:{}", blake3::hash(&profile_bytes).to_hex()),
+            profile_identity: format!(
+                "blake3:{}",
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&profile_bytes).as_bytes())
+            ),
             rubric_identity: rubric_identity.to_owned(),
-            corpus_identity: format!("blake3:{}", input.finalize().to_hex()),
+            corpus_identity: format!(
+                "blake3:{}",
+                purrdf_hash::hex::encode(input.finalize().as_bytes())
+            ),
             declared_imports,
             total_axes: outcomes.len(),
             measured_axes,

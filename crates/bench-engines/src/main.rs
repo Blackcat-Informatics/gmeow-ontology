@@ -295,7 +295,8 @@ fn main() -> gmeow_errors::Result<()> {
         let findings = divergence_findings(&ledger);
         let tally = agreement_tally(corpus, comps);
         let graph = emit_divergence_nq(corpus, comps);
-        let graph_digest = blake3::hash(graph.as_bytes()).to_hex().to_string();
+        let graph_digest =
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(graph.as_bytes()).as_bytes());
 
         // Surface each finding's ledger identity (finding_iri + code + anchor) so the
         // deterministic artifact demonstrates the join keys, sorted by IRI.
@@ -354,7 +355,7 @@ fn main() -> gmeow_errors::Result<()> {
         "budget_parity": parallel.budget_parity,
         "parallel_path_entered": parallel.parallel_path_entered,
         "critical_path_strictly_lower": parallel.critical_path_strictly_lower,
-        "closure_blake3": blake3::Hash::from_bytes(parallel.closure_hash).to_hex().to_string(),
+        "closure_blake3": purrdf_hash::hex::Digest32::new(parallel.closure_hash).to_hex(),
     });
 
     // ── Cost-regression check (L3): compare THIS fresh run's deterministic cost +
@@ -592,14 +593,14 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "cost_vector": cost_tuples(&native.cost.to_sorted_tuples()),
             "plan_cache": {
                 "solver_version": cold.solver_version,
-                "rule_hash": blake3::Hash::from_bytes(cold.rule_hash).to_hex().to_string(),
+                "rule_hash": purrdf_hash::hex::Digest32::new(cold.rule_hash).to_hex(),
                 "cold": {
                     "cache_hit": cold.cache_hit,
                     "plan_builds": cold.plan_builds,
                     "planning_units": cold.planning_units,
                     "consumed_steps": cold.consumed_steps,
                     "peak_live_bytes": cold_sample.peak_live,
-                    "closure_blake3": blake3::Hash::from_bytes(cold.closure_hash).to_hex().to_string(),
+                    "closure_blake3": purrdf_hash::hex::Digest32::new(cold.closure_hash).to_hex(),
                     "cost_vector": cost_tuples(&cold.cost.to_sorted_tuples()),
                 },
                 "warm": {
@@ -608,7 +609,7 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                     "planning_units": warm.planning_units,
                     "consumed_steps": warm.consumed_steps,
                     "peak_live_bytes": warm_sample.peak_live,
-                    "closure_blake3": blake3::Hash::from_bytes(warm.closure_hash).to_hex().to_string(),
+                    "closure_blake3": purrdf_hash::hex::Digest32::new(warm.closure_hash).to_hex(),
                     "cost_vector": cost_tuples(&warm.cost.to_sorted_tuples()),
                 },
                 "same_executable": warm.same_executable_as_first,
@@ -622,7 +623,7 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                     "max_proof_height": record_probe.max_proof_height,
                     "consumed_steps": record_probe.consumed_steps,
                     "fact_count": record_probe.annotation_count,
-                    "fact_closure_blake3": blake3::Hash::from_bytes(record_probe.fact_closure_hash).to_hex().to_string(),
+                    "fact_closure_blake3": purrdf_hash::hex::Digest32::new(record_probe.fact_closure_hash).to_hex(),
                     // Total allocation count remains advisory engine scratch; peak-live is exact.
                     "alloc_count": record_sample.count,
                     "peak_live_bytes": record_sample.peak_live,
@@ -631,7 +632,7 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                     "annotation_count": 0,
                     "consumed_steps": skip.consumed_steps,
                     "fact_count": skip.fact_count,
-                    "fact_closure_blake3": blake3::Hash::from_bytes(skip.fact_closure_hash).to_hex().to_string(),
+                    "fact_closure_blake3": purrdf_hash::hex::Digest32::new(skip.fact_closure_hash).to_hex(),
                     "alloc_count": skip_sample.count,
                     "peak_live_bytes": skip_sample.peak_live,
                 },
@@ -928,16 +929,10 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
                 "scratch WFS row count is below updated EDB count".to_owned(),
             )
         })?;
-    let incremental_fp = blake3::Hash::from_bytes(incremental.rows_fingerprint)
-        .to_hex()
-        .to_string();
-    let scratch_fp = blake3::Hash::from_bytes(scratch.rows_fingerprint)
-        .to_hex()
-        .to_string();
-    let retracted_fp = blake3::Hash::from_bytes(retracted.rows_fingerprint)
-        .to_hex()
-        .to_string();
-    let base_fp = blake3::Hash::from_bytes(base_fp).to_hex().to_string();
+    let incremental_fp = purrdf_hash::hex::Digest32::new(incremental.rows_fingerprint).to_hex();
+    let scratch_fp = purrdf_hash::hex::Digest32::new(scratch.rows_fingerprint).to_hex();
+    let retracted_fp = purrdf_hash::hex::Digest32::new(retracted.rows_fingerprint).to_hex();
+    let base_fp = purrdf_hash::hex::Digest32::new(base_fp).to_hex();
 
     let agree_golden = incremental_derived == golden_rows;
     let agree_insert = incremental_fp == scratch_fp && incremental_derived == scratch_derived;
@@ -2088,9 +2083,8 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
             let updated_edb_count = updated.quads().count() as u64;
             let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
-            let base_fp = blake3::Hash::from_bytes(session.current_rows_fingerprint())
-                .to_hex()
-                .to_string();
+            let base_fp =
+                purrdf_hash::hex::Digest32::new(session.current_rows_fingerprint()).to_hex();
             let inserted = session.insert(delta.as_ref()).map_err(|e| {
                 run_err(case, format!("incremental grounding insertion failed: {e}"))
             })?;
@@ -2103,15 +2097,9 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                     format!("incremental grounding retraction failed: {e}"),
                 )
             })?;
-            let inserted_fp = blake3::Hash::from_bytes(inserted.rows_fingerprint)
-                .to_hex()
-                .to_string();
-            let retracted_fp = blake3::Hash::from_bytes(retracted.rows_fingerprint)
-                .to_hex()
-                .to_string();
-            let scratch_fp = blake3::Hash::from_bytes(scratch.rows_fingerprint)
-                .to_hex()
-                .to_string();
+            let inserted_fp = purrdf_hash::hex::Digest32::new(inserted.rows_fingerprint).to_hex();
+            let retracted_fp = purrdf_hash::hex::Digest32::new(retracted.rows_fingerprint).to_hex();
+            let scratch_fp = purrdf_hash::hex::Digest32::new(scratch.rows_fingerprint).to_hex();
             let incremental_fp = format!("insert={inserted_fp};retract={retracted_fp}");
             let scratch_fp = format!("insert={scratch_fp};retract={base_fp}");
             let native_count = inserted
@@ -2308,7 +2296,7 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
         // order, so the digest is a pure function of the run's comparisons).
         let mut total_dl_gap = 0usize;
         let mut total_corpus_only = 0usize;
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         let mut findings: Vec<Value> = Vec::new();
         for (corpus, comps) in &comps_by_corpus {
             let tally = agreement_tally(corpus, comps);
@@ -2341,7 +2329,7 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
                 }
             }
         }
-        let digest = hasher.finalize().to_hex().to_string();
+        let digest = purrdf_hash::hex::encode(hasher.finalize().as_bytes());
 
         // (a) gap-zero: ANY corpus-only disagreement or dl-gap breaks the soak window.
         if total_dl_gap != 0 || total_corpus_only != 0 {
@@ -2449,7 +2437,7 @@ fn comp(
 /// already in the engine-independent `(predicate, term-display of args)` order, so the
 /// fingerprint is a pure function of the materialized set.
 fn fingerprint_rows(rows: &ForwardRows) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for row in &rows.rows {
         hasher.update(row.predicate.as_bytes());
         hasher.update(b"\x1f");
@@ -2459,12 +2447,12 @@ fn fingerprint_rows(rows: &ForwardRows) -> String {
         }
         hasher.update(b"\n");
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// A stable fingerprint of a lexical signed closure-change batch.
 fn fingerprint_signed_rows(rows: &[SignedForwardRow]) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for change in rows {
         hasher.update(change.weight.to_string().as_bytes());
         hasher.update(b"\x1f");
@@ -2476,14 +2464,14 @@ fn fingerprint_signed_rows(rows: &[SignedForwardRow]) -> String {
         }
         hasher.update(b"\n");
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// A `blake3` fingerprint of a canonically-sorted answer set. [`AnswerSet`] bindings
 /// are sorted (each binding is a `BTreeMap`, and the vector is canonicalized), so the
 /// fingerprint is a pure function of the answer set.
 fn fingerprint_answers(answers: &AnswerSet) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for binding in &answers.bindings {
         for (var, val) in binding {
             hasher.update(var.as_bytes());
@@ -2493,7 +2481,7 @@ fn fingerprint_answers(answers: &AnswerSet) -> String {
         }
         hasher.update(b"\n");
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// Project the sorted cost-vector tuples into a JSON array of `[rule, predicate,

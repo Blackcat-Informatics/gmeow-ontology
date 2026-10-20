@@ -13,7 +13,7 @@ fn stage(source: &str, target: &str, inverse: bool) -> AtomicPropertyLens {
 }
 
 fn hash(value: &str) -> String {
-    blake3::hash(value.as_bytes()).to_hex().to_string()
+    purrdf_hash::hex::encode(purrdf_hash::blake3::hash(value.as_bytes()).as_bytes())
 }
 
 fn scope() -> AtomicOptimizationScope {

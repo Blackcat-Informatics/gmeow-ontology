@@ -511,7 +511,7 @@ impl NativeContextualProgram {
         ))
         .expect("native contextual request contract serializes");
         let mut provenance = crate::result::ResultProvenance::native(
-            blake3::hash(&basis).to_hex().to_string(),
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&basis).as_bytes()),
             &coordinates.world,
         );
         provenance.query.clone_from(&request.formula);

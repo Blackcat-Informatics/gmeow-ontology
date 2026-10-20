@@ -718,7 +718,9 @@ pub(crate) fn lower_reasoning_program(
             // never colliding with an authored sort), made a subsort of every asserted type.
             let synth_iri = format!(
                 "{GMEOW}goal-directed/const-meet-sort/{}",
-                blake3::hash(const_iri.as_bytes()).to_hex()
+                purrdf_hash::hex::encode(
+                    purrdf_hash::blake3::hash(const_iri.as_bytes()).as_bytes()
+                )
             );
             let synth_node = leaf(&mut dag, &synth_iri)?;
             for sort_iri in sort_iris {
@@ -1056,7 +1058,7 @@ fn cross_check_forward_agreement(
 /// and never merge their projected triples. The local name rides only as a readable path
 /// segment (human orientation), never as the identity.
 fn query_iri(eval: &GoalDirectedEvaluation) -> String {
-    let hash = blake3::hash(eval.iri.as_bytes()).to_hex();
+    let hash = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(eval.iri.as_bytes()).as_bytes());
     format!("{GMEOW}goal-directed/{}/{hash}", eval.name)
 }
 
@@ -1083,7 +1085,7 @@ fn answer_iri(eval: &GoalDirectedEvaluation, ans: &GoalDirectedAnswer) -> String
     }
     key.push('\u{0}');
     key.push_str(&ans.derivation_iri);
-    let hash = blake3::hash(key.as_bytes()).to_hex();
+    let hash = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(key.as_bytes()).as_bytes());
     format!("{}/answer/{hash}", query_iri(eval))
 }
 
@@ -1100,7 +1102,7 @@ fn verdict_iri(eval: &GoalDirectedEvaluation, v: &GoalDirectedVerdict) -> String
     key.push_str(&v.atom);
     key.push('\u{0}');
     key.push_str(&v.verdict);
-    let hash = blake3::hash(key.as_bytes()).to_hex();
+    let hash = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(key.as_bytes()).as_bytes());
     format!("{}/verdict/{hash}", query_iri(eval))
 }
 
@@ -1122,7 +1124,7 @@ fn program_iri_for(eval: &GoalDirectedEvaluation) -> String {
         key.push('\u{0}');
         key.push_str(probe);
     }
-    let hash = blake3::hash(key.as_bytes()).to_hex();
+    let hash = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(key.as_bytes()).as_bytes());
     format!("{GMEOW}goal-directed/program/{hash}")
 }
 

@@ -101,7 +101,7 @@ const MAX_RENDERED_BYTES: usize = 1024 * 1024;
 /// Typed framing distinguishes absent fields, strings containing separators and floats.
 #[derive(Default)]
 struct ProgramDigest {
-    hasher: blake3::Hasher,
+    hasher: purrdf_hash::blake3::Hasher,
 }
 
 impl std::io::Write for ProgramDigest {

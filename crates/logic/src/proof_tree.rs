@@ -311,7 +311,9 @@ fn visit(
 /// re-sourced from PurRDF's clause identity — the same fired clause always mints the same IRI,
 /// byte-stable run to run and independent of the clause's authored-order index.
 fn rule_iri_of(proof: &FolProof) -> String {
-    let hash = blake3::hash(proof.rule_identity().as_bytes()).to_hex();
+    let hash = purrdf_hash::hex::encode(
+        purrdf_hash::blake3::hash(proof.rule_identity().as_bytes()).as_bytes(),
+    );
     format!("{}goal-directed/rule/{hash}", crate::goal_directed::GMEOW)
 }
 

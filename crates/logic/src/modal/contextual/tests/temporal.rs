@@ -12,9 +12,9 @@ fn source(boundary: &str, count: usize, operator: &str) -> String {
         "{SOURCE} {}",
         QUERY.replace("queryFormula ex:formula", "queryFormula ex:temporal")
     );
-    let initial = blake3::hash(b"synthetic journal genesis")
-        .to_hex()
-        .to_string();
+    let initial = purrdf_hash::hex::encode(
+        purrdf_hash::blake3::hash(b"synthetic journal genesis").as_bytes(),
+    );
     write!(
         source,
         r#"
@@ -30,7 +30,8 @@ ex:journal a logic:TransitionJournal ; logic:journalBoundary logic:{boundary} ;
     .expect("string write");
     let mut previous = initial;
     for index in 0..count {
-        let delta = blake3::hash(&index.to_le_bytes()).to_hex().to_string();
+        let delta =
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&index.to_le_bytes()).as_bytes());
         let entry = TransitionEntry::advance(&previous, &delta, OutcomeTag::Applied);
         write!(
             source,

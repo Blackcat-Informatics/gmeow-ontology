@@ -850,7 +850,7 @@ pub(crate) fn root_execution_mode(
 
 /// BLAKE3 digest (32 raw bytes) of a string, for content-addressing a hypothetical run.
 fn blake3_32(s: &str) -> [u8; 32] {
-    *blake3::hash(s.as_bytes()).as_bytes()
+    *purrdf_hash::blake3::hash(s.as_bytes()).as_bytes()
 }
 
 /// A canonical, layout-independent serialization of a transaction program — the stable

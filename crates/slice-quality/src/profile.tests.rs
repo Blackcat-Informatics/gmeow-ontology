@@ -48,7 +48,10 @@ fn standards(source: &str, key: &str) -> gmeow_errors::Result<BundleStandards> {
     let dataset = crate::dataset_from_documents(&[("independent-rubric.ttl", source.as_bytes())])?;
     BundleStandards::from_dataset(
         dataset,
-        format!("blake3:{}", blake3::hash(source.as_bytes()).to_hex()),
+        format!(
+            "blake3:{}",
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(source.as_bytes()).as_bytes())
+        ),
         key,
     )
 }

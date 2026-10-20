@@ -157,7 +157,6 @@ rayon = "1"
 sha2.workspace = true
 # blake3 for the eval span verifier's current-content digest (mirrors the
 # Python `_current_digest`); the corpus digests pin the scored source version.
-blake3.workspace = true
 serde.workspace = true
 # Stage products use compact binary encoding in the content-addressed cache; JSON
 # remains the deterministic human-readable cache index and several export formats.

@@ -14,7 +14,7 @@ fn shipped_admission_keeps_native_graph_receipt_and_external_status_without_sema
     let bytes = b"<urn:s> <urn:ordinary> <urn:o> <urn:world> .\n";
     std::fs::write(directory.path().join("input.nq"), bytes).unwrap();
     let observation = SourceAdmissionObservation {
-        input_blake3: *blake3::hash(bytes).as_bytes(),
+        input_blake3: *purrdf_hash::blake3::hash(bytes).as_bytes(),
         admission: ClassAdmissionObservation {
             contract: CLASS_EXPRESSION_SOURCE_ADMISSION_ID.to_owned(),
             selected_worlds: BTreeMap::new(),

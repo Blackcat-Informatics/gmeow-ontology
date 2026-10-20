@@ -24,12 +24,12 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// BLAKE3 discipline and return the 64-hex address. Each field is length-prefixed, so
 /// no field boundary can collide with another.
 pub(crate) fn digest(domain: &[u8], fields: &[&str]) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, b"domain", domain);
     for field in fields {
         frame(&mut hasher, b"field", field.as_bytes());
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// Mint the authorized-EDB data-generation identity by content-hashing the EDB facts.
@@ -106,7 +106,7 @@ pub(crate) fn dataset_content_digest(
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<String> {
     let rows = dataset_rows(edb)?;
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     frame(&mut hasher, b"domain", domain);
     for row in rows {
         for field in row {
@@ -114,7 +114,7 @@ pub(crate) fn dataset_content_digest(
         }
         frame(&mut hasher, b"row-end", b"");
     }
-    Ok(hasher.finalize().to_hex().to_string())
+    Ok(purrdf_hash::hex::encode(hasher.finalize().as_bytes()))
 }
 
 /// The content-addressed binding of the seven identities a maintained session depends

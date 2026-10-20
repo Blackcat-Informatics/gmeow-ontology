@@ -1121,7 +1121,7 @@ pub fn corpus_content_digest<'a>(
         .into_iter()
         .map(|a| (a.slice.as_str(), a))
         .collect();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-slice-quality-record-v1\x1e");
     for (slice, assessment) in by_slice {
         hasher.update(slice.as_bytes());
@@ -1140,7 +1140,10 @@ pub fn corpus_content_digest<'a>(
         hasher.update(assessment.rollup.iri.as_bytes());
         hasher.update(b"\x1e");
     }
-    format!("blake3:{}", hasher.finalize().to_hex())
+    format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+    )
 }
 
 /// Project the corpus-level freshness witness: one `gmeow:versionFingerprint` on the

@@ -47,12 +47,12 @@ impl TransitionEntry {
         let prev_state_hash = prev_state_hash.into();
         let delta_identity = delta_identity.into();
 
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         frame(&mut hasher, b"domain", b"gmeow-logic-transition-v1");
         frame(&mut hasher, b"prev", prev_state_hash.as_bytes());
         frame(&mut hasher, b"delta", delta_identity.as_bytes());
         frame(&mut hasher, b"outcome", &[outcome_tag.wire_byte()]);
-        let new_state_hash = hasher.finalize().to_hex().to_string();
+        let new_state_hash = purrdf_hash::hex::encode(hasher.finalize().as_bytes());
 
         Self {
             prev_state_hash,
