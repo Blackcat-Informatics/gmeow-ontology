@@ -168,6 +168,172 @@ fn pydantic_routed_models_carry_ontology_metadata_and_cross_slice_references() {
 }
 
 #[test]
+fn pydantic_imported_opt_targets_keep_their_source_in_shared_models() {
+    use crate::stages::compile_logic::{
+        OPT_BLOODPRESSURE_BASE, OPT_DATATYPES_BASE, OPT_SOURCE_PATH, OPT_TEST_DATATYPES_PATH,
+    };
+    use gmeow_logic_compile::opt_lift::{
+        OptConstraintIr, OptConstraintKind, OptInterval, lift_opt_to_validation_shape,
+    };
+
+    let (_, mut shapes, model) = synthetic_models();
+    let mut lifted = Vec::new();
+    let mut expected = Vec::new();
+    for (base, source, label) in [
+        (OPT_BLOODPRESSURE_BASE, OPT_SOURCE_PATH, "Blutdruck"),
+        (OPT_DATATYPES_BASE, OPT_TEST_DATATYPES_PATH, "Datatype"),
+    ] {
+        for (name, kind) in [
+            (
+                format!("{label}-Diastolic-cardinality"),
+                OptConstraintKind::Cardinality {
+                    path: "https://blackcatinformatics.ca/gmeow/items".into(),
+                    min: Some(1),
+                    max: Some(2),
+                },
+            ),
+            (
+                format!("{label}-quantity"),
+                OptConstraintKind::Quantity {
+                    magnitude_path: "https://blackcatinformatics.ca/gmeow/magnitude".into(),
+                    interval: OptInterval {
+                        lower: Some(0.0),
+                        upper: Some(100.0),
+                        lower_included: true,
+                        upper_included: true,
+                    },
+                    units_path: "https://blackcatinformatics.ca/gmeow/units".into(),
+                    units: "mm[Hg]".into(),
+                    precision: None,
+                },
+            ),
+        ] {
+            let iri = format!("{base}{name}");
+            lifted.push(
+                lift_opt_to_validation_shape(&OptConstraintIr {
+                    shape_iri: format!("{iri}Shape"),
+                    target_class: iri.clone(),
+                    kind,
+                })
+                .unwrap(),
+            );
+            expected.push((iri, source));
+        }
+    }
+    let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
+        .with_validation_shapes(lifted);
+    let ttl = gmeow_logic_compile::projections::shapes::project_validation_shapes_shacl(&program);
+    let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+    let imported = purrdf::shapes::shapes::from_dataset(&dataset).unwrap();
+    shapes.node_shapes.extend(imported.node_shapes);
+    let ns = gmeow_ns::gmeow_json_schema_namespaces();
+    let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns).unwrap();
+    let config = topology::config(&compiled, &shapes, &model).unwrap();
+    for (iri, source) in expected {
+        let class = &config.topology().unwrap().classes()[&ns.def_key(&iri)];
+        assert_eq!(class.module_path(), "schema_helpers");
+        assert_eq!(
+            class.json_schema_extra()["sourceClass"].as_str(),
+            Some(iri.as_str())
+        );
+        assert_eq!(
+            class.json_schema_extra()["sourceArtifact"].as_str(),
+            Some(source)
+        );
+        assert!(!class.json_schema_extra().contains_key("definitionDigest"));
+    }
+    let package = emit_pydantic(&compiled, &config).unwrap();
+    let helpers =
+        std::str::from_utf8(&package.artifacts["gmeow_models/schema_helpers.py"]).unwrap();
+    assert!(helpers.contains("Blutdruck-Diastolic-cardinality"));
+    assert!(helpers.contains(OPT_SOURCE_PATH) && helpers.contains(OPT_TEST_DATATYPES_PATH));
+    let cats = std::str::from_utf8(&package.artifacts["gmeow_models/tags.py"]).unwrap();
+    assert!(cats.contains("definitionDigest") && cats.contains("gmeow:Cat"));
+    assert_eq!(
+        package.artifacts,
+        emit_pydantic(&compiled, &config).unwrap().artifacts
+    );
+}
+
+#[test]
+fn pydantic_import_scopes_do_not_hide_missing_ontology_documentation() {
+    use purrdf::shapes::shapes::Target;
+    let (compiled, shapes, mut model) = synthetic_models();
+    model
+        .terms
+        .retain(|term| term.iri != "https://blackcatinformatics.ca/gmeow/Cat");
+    for iri in [
+        "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure-shadow/Cat",
+        "https://blackcatinformatics.ca/gmeow/other/Cat",
+        "https://blackcatinformatics.ca/math/imported/Cat",
+    ] {
+        let mut selected = shapes.clone();
+        let shape = selected.node_shapes.iter_mut().find(|shape| {
+            shape.targets.iter().any(|target| matches!(target, Target::Class(class) if class.as_str() == "https://blackcatinformatics.ca/gmeow/Cat"))
+        }).unwrap();
+        let target = &mut shape.targets[0];
+        *target = Target::Class(iri.into());
+        let compiled = purrdf::shapes::json_schema::compile(
+            &selected,
+            &gmeow_ns::gmeow_json_schema_namespaces(),
+        )
+        .unwrap();
+        let error = topology::config(&compiled, &selected, &model)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("no term documentation"), "{iri}: {error}");
+        assert!(
+            error.contains(&gmeow_ns::gmeow_json_schema_namespaces().def_key(iri)),
+            "{iri}: {error}"
+        );
+    }
+    assert!(topology::config(&compiled, &shapes, &model).is_err());
+}
+
+#[test]
+fn pydantic_routing_refuses_target_and_documentation_identity_collisions() {
+    use purrdf::shapes::shapes::Target;
+    let (compiled, mut shapes, model) = synthetic_models();
+    let imported = format!(
+        "{}Cat",
+        crate::stages::compile_logic::OPT_BLOODPRESSURE_BASE
+    );
+    let cat = shapes
+        .node_shapes
+        .iter_mut()
+        .find(|shape| {
+            shape.targets.iter().any(|target| {
+        matches!(target, Target::Class(iri) if iri.as_str() == "https://blackcatinformatics.ca/gmeow/Cat")
+    })
+        })
+        .unwrap();
+    cat.targets.push(Target::Class(imported.as_str().into()));
+    assert!(
+        topology::config(&compiled, &shapes, &model)
+            .unwrap_err()
+            .to_string()
+            .contains("model target identity collision")
+    );
+    let cat = shapes
+        .node_shapes
+        .iter_mut()
+        .find(|shape| {
+            shape
+                .targets
+                .iter()
+                .any(|target| matches!(target, Target::Class(iri) if iri.as_str() == imported))
+        })
+        .unwrap();
+    cat.targets = vec![Target::Class(imported.as_str().into())];
+    assert!(
+        topology::config(&compiled, &shapes, &model)
+            .unwrap_err()
+            .to_string()
+            .contains("model documentation identity mismatch")
+    );
+}
+
+#[test]
 fn pydantic_routing_refuses_conflicting_term_owners() {
     let (compiled, shapes, mut model) = synthetic_models();
     let mut conflicting = model

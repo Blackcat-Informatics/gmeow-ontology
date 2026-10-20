@@ -53,8 +53,8 @@ fn class_docstring(term: &DocTerm) -> String {
     text
 }
 
-/// Route every compiled definition. Shape-target classes require real ontology
-/// documentation; generated envelope, enum and structural helpers have an explicit
+/// Route every compiled definition. Ontology classes require real term documentation;
+/// importer-owned targets, envelopes, enums and structural helpers have an explicit
 /// shared home and never acquire an invented ontology identity.
 pub(super) fn config(
     compiled: &CompiledSchema,
@@ -69,6 +69,7 @@ pub(super) fn config(
         .and_then(Value::as_object)
         .ok_or_else(|| err("compiled model schema has no $defs object"))?;
     let mut required = BTreeSet::new();
+    let mut target_iris = BTreeMap::new();
     for shape in shapes.node_shapes.iter().filter(|shape| !shape.deactivated) {
         for target in &shape.targets {
             let iri = match target {
@@ -77,9 +78,20 @@ pub(super) fn config(
                 Target::ImplicitClass(_) => return Err(err("implicit class target is not an IRI")),
                 _ => None,
             };
-            if let Some(iri) = iri.filter(|iri| gmeow_ns::registered_term_namespace(iri).is_some())
-            {
-                required.insert(ns.def_key(iri));
+            if let Some(iri) = iri {
+                let key = ns.def_key(iri);
+                if let Some(previous) = target_iris.insert(key.clone(), iri)
+                    && previous != iri
+                {
+                    return Err(err(format!(
+                        "model target identity collision for {key}: {previous} and {iri}"
+                    )));
+                }
+                if gmeow_ns::registered_term_namespace(iri).is_some()
+                    && crate::stages::compile_logic::imported_opt_source(iri).is_none()
+                {
+                    required.insert(key);
+                }
             }
         }
     }
@@ -100,6 +112,14 @@ pub(super) fn config(
     let mut classes = Vec::new();
     for (key, _) in defs.iter() {
         let (module, docstring, metadata) = if let Some(term) = terms.get(key) {
+            if let Some(target) = target_iris.get(key)
+                && *target != term.iri
+            {
+                return Err(err(format!(
+                    "model documentation identity mismatch for {key}: target {target}, term {}",
+                    term.iri
+                )));
+            }
             if term.content_digest.is_empty() {
                 return Err(err(format!(
                     "model term {} has no definition digest",
@@ -168,11 +188,20 @@ pub(super) fn config(
                 String::new(),
                 "Shared compiled-schema envelopes, structural definitions and enum helpers. These are projection types, not additional ontology terms.".into(),
             ));
-            (
-                SHARED_MODULE.into(),
-                format!("Compiled schema definition {key}; see the packed JSON Schema $defs."),
-                BTreeMap::new(),
-            )
+            let (docstring, metadata) = target_iris.get(key)
+                .and_then(|iri| crate::stages::compile_logic::imported_opt_source(iri)
+                    .map(|source| (*iri, source)))
+                .map_or_else(
+                    || (format!("Compiled schema definition {key}; see the packed JSON Schema $defs."), BTreeMap::new()),
+                    |(iri, source)| (
+                        format!("Imported validation class {iri}.\nSource template: {source}\nSee the packed JSON Schema $defs."),
+                        BTreeMap::from([
+                            ("sourceClass".into(), Value::from(iri)),
+                            ("sourceArtifact".into(), Value::from(source)),
+                        ]),
+                    ),
+                );
+            (SHARED_MODULE.into(), docstring, metadata)
         };
         classes.push(
             PydanticClassConfig::new(key, module, docstring, metadata)
@@ -204,6 +233,7 @@ pub(super) fn readme(config: &PydanticConfig) -> Result<Vec<u8>, gmeow_errors::D
     for module in topology.modules().keys() {
         let _ = writeln!(text, "| `gmeow_models.{module}` | `{module}.py` |");
     }
+    text.push_str("\nImported template classes in `schema_helpers` retain their source class IRI and template path\nin `sourceClass` and `sourceArtifact`; they do not claim a slice term definition digest.\n");
     text.push_str("\nThese models describe the SHACL-derived structural projection. Open-world/RBox-only\nproperties and logical entailments remain in the RDF ontology; absence from a model\nis not a declaration that an ontology property does not exist.\n");
     Ok(text.into_bytes())
 }
