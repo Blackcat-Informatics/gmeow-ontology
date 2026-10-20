@@ -3879,7 +3879,7 @@ gmeow:qualityApplicabilityReason
     gmeow:avoidWhen "Do not supply an empty reason or blame a missing required capability."@x-gmeow-english ;
     gmeow:howToUse "Write one non-empty plain string that states the corpus boundary or implementation gap."@x-gmeow-english ;
     logic:domain gmeow:QualityAxisApplicability ;
-    logic:range rdfs:Literal ;
+    logic:range rdfs:Literal .
 
 gmeow:qualityProfileFull
     a logic:NamedIndividual, gmeow:QualityMeasurementProfile ;
