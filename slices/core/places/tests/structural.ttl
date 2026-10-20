@@ -1700,3 +1700,16 @@ ASK {
     gmeow:rcc8ntppi rdfs:subPropertyOf gmeow:hasPart .
 }""" ;
     gmeow:saRationale "The place-scoped whole-to-child inverses (rcc8tppi, rcc8ntppi) MUST be rdfs:subPropertyOf gmeow:hasPart." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/places/narrative-gap-tests/> .
+
+ntest:saQualitativePlacementProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { gmeow:besideOf a owl:ObjectProperty ; rdfs:domain gmeow:Entity ; rdfs:range gmeow:Entity . gmeow:onTopOf a owl:ObjectProperty ; rdfs:domain gmeow:Entity ; rdfs:range gmeow:Entity . gmeow:insideOf a owl:ObjectProperty ; rdfs:domain gmeow:Entity ; rdfs:range gmeow:Entity . gmeow:besideOf a owl:SymmetricProperty . }" ;
+    gmeow:saRationale "Qualitative placement relates entities; beside is symmetric in the selected frame." .
+
+ntest:saPlacementNotPartWholeOrTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { { VALUES ?p { gmeow:onTopOf gmeow:insideOf } ?p a owl:TransitiveProperty } UNION { VALUES ?p { gmeow:besideOf gmeow:onTopOf gmeow:insideOf } ?p rdfs:subPropertyOf+ gmeow:partOf } }" ;
+    gmeow:saRationale "Direct support and interior placement must not acquire stronger transitive or mereological semantics." .

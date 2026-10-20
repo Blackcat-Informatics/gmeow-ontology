@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/qualitative-placement/> .
+
+ex:narrator a gmeow:Agent ; rdfs:label "the narrator"@x-gmeow-english .
+ex:cup a gmeow:Entity .
+ex:book a gmeow:Entity .
+ex:table a gmeow:Entity .
+ex:key a gmeow:Entity .
+ex:box a gmeow:Entity .
+ex:lateral a gmeow:Axis ; rdfs:label "lateral direction in the narrated room"@x-gmeow-english .
+ex:depth a gmeow:Axis ; rdfs:label "depth in the narrated room"@x-gmeow-english .
+ex:upright a gmeow:Axis ; rdfs:label "upward orientation in the narrated room"@x-gmeow-english .
+
+ex:storyA a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:hasAxis ex:lateral, ex:depth, ex:upright ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+
+ex:storyB a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:hasAxis ex:lateral, ex:depth, ex:upright ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+
+ex:beside a gmeow:Observation ; gmeow:vantage ex:narrator ;
+    gmeow:observedFeature ex:cup ; gmeow:hasReferenceFrame ex:storyA ;
+    rdf:reifies <<( ex:cup gmeow:besideOf ex:book )>> .
+
+ex:supported a gmeow:Observation ; gmeow:vantage ex:narrator ;
+    gmeow:observedFeature ex:cup ; gmeow:hasReferenceFrame ex:storyA ;
+    rdf:reifies <<( ex:cup gmeow:onTopOf ex:table )>> .
+
+ex:interior a gmeow:Observation ; gmeow:vantage ex:narrator ;
+    gmeow:observedFeature ex:key ; gmeow:hasReferenceFrame ex:storyA ;
+    rdf:reifies <<( ex:key gmeow:insideOf ex:box )>> .
+
+ex:alternative a gmeow:Observation ; gmeow:vantage ex:narrator ;
+    gmeow:observedFeature ex:key ; gmeow:hasReferenceFrame ex:storyB ;
+    rdf:reifies <<( ex:key gmeow:onTopOf ex:box )>> .
+
+# The quoted placements are attributed world claims, not bare global triples.

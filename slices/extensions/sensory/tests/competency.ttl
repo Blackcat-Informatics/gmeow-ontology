@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/sensory/narrative-gap-tests/> .
+@prefix case: <https://example.org/odor-observations/> .
+
+ntest:cqInstrumentOdor a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/odor-observations.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/odor-observations/> SELECT ?value ?dimension ?frame WHERE { ex:instrumentReading gmeow:sensoryProperty gmeow:observablePropertyOdor ; gmeow:sensoryResult ?result ; gmeow:observationMethod ex:relativeScoring ; gmeow:hasReferenceFrame ?frame . ?result math:quantityValue ?value ; math:hasDimension ?dimension . }" ;
+    gmeow:cqRationale "A synthetic instrument score retains its declared method, dimension and scale instead of pretending to measure chemical concentration." ;
+    gmeow:cqResultShape ntest:shapeInstrumentOdor ;
+    gmeow:cqExpectRow ntest:rowInstrumentOdor0 .
+
+ntest:shapeInstrumentOdor a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "frame" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowInstrumentOdor0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.4"^^xsd:decimal ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri math:dimensionless ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "frame" ; gmeow:cellValueIri case:instrumentScale ] .
+
+ntest:cqSubjectiveOlfactoryPerception a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/odor-observations.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/odor-observations/> SELECT ?modality ?result ?frame WHERE { ex:subjectiveScent gmeow:perceptionEnvironment ex:environment ; gmeow:perceptionModality ?modality ; gmeow:observationResult ?result ; gmeow:hasReferenceFrame ?frame . }" ;
+    gmeow:cqRationale "Subjective scent uses the existing olfactory modality and a categorical result in a hosted mental frame." ;
+    gmeow:cqResultShape ntest:shapeSubjectiveOlfactoryPerception ;
+    gmeow:cqExpectRow ntest:rowSubjectiveOlfactoryPerception0 .
+
+ntest:shapeSubjectiveOlfactoryPerception a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "modality" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "frame" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowSubjectiveOlfactoryPerception0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "modality" ; gmeow:cellValueIri gmeow:sensoryModalityOlfactory ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri case:pineScent ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "frame" ; gmeow:cellValueIri case:mentalFrame ] .
+
+ntest:cqNoInventedNumericScent a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/odor-observations.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/odor-observations/> SELECT ?number WHERE { ex:pineScent math:quantityValue ?number . }" ;
+    gmeow:cqRationale "The qualitative scent descriptor is not silently assigned an instrument reading." ;
+    gmeow:cqResultShape ntest:shapeNoInventedNumericScent ;
+    gmeow:cqExpectRowCount 0 .
+
+ntest:shapeNoInventedNumericScent a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "number" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .

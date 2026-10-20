@@ -195,3 +195,29 @@ ex:cqDeclinedIntegrity a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "mappings/declined-bridges.ttl" ;
     gmeow:cqRationale "Moves the DeclinedCorrespondence structural contract — every required field present, target never a URI or the bare acronym EFO — onto the on-gate production surface, so a decline that drops probeVerdict/candidateNamespace/revisitCondition/intendedRelation/contentCarriedBy/rationale or regresses its target reds make check." ;
     gmeow:cqExpectAsk true .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/affect/narrative-gap-tests/> .
+@prefix case: <https://example.org/epistemic-affects/> .
+
+ntest:cqEpistemicAffects a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/epistemic-affects.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/epistemic-affects/> SELECT ?episode ?type WHERE { ?episode a gmeow:Emotion ; gmeow:emotionBearer ex:reader ; gmeow:emotionType ?type . }" ;
+    gmeow:cqRationale "The two feelings remain explicit observations of affect rather than being forced into old labels." ;
+    gmeow:cqResultShape ntest:shapeEpistemicAffects ;
+    gmeow:cqExpectRow ntest:rowEpistemicAffects0, ntest:rowEpistemicAffects1 .
+
+ntest:shapeEpistemicAffects a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "episode" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "type" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowEpistemicAffects0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "episode" ; gmeow:cellValueIri case:doubt ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "type" ; gmeow:cellValueIri gmeow:emotionSelfDoubt ] .
+
+ntest:rowEpistemicAffects1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "episode" ; gmeow:cellValueIri case:catchingOneself ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "type" ; gmeow:cellValueIri gmeow:emotionSelfCorrection ] .

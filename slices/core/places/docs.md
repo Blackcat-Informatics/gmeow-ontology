@@ -155,6 +155,30 @@ ISO 19152 LADM, INSPIRE — projected through profile mappings (SSSOM rows at th
 window). GMEOW's addition is that every frame is first-class and self-describing rather than
 an opaque IRI.
 
+## Qualitative placement in a frame
+
+`besideOf`, `onTopOf` and `insideOf` relate entities in a selected spatial frame:
+
+- `besideOf` is lateral placement and is symmetric within that frame. It requires
+  neither contact nor a shared boundary and does not supply a distance.
+- `onTopOf` is direct upper-surface support, not merely being above another
+  object. The relevant orientation belongs to the frame. No transitivity is declared.
+- `insideOf` is direct interior placement. It does not assert part-whole or set
+  membership, type participants as Locations, or declare transitivity.
+
+These relations do not alias `adjacentTo` between bordering Locations or
+`containedInLocation`, the stronger transitive Location part-whole relation.
+They also do not turn entities into `ImageRegion`s or invent numeric coordinates.
+
+For a narrated or imagined scene, retain the world/frame and attributing vantage
+on an Observation and reify the placement statement with RDF 1.2 `rdf:reifies`.
+The quoted triple does not assert an unscoped real-world fact. Query the reified
+statement together with its frame and vantage; do not discard that scope when
+recalling it. The [worked placements](examples/qualitative-placement.ttl) retain
+all three relations in a narrative frame, with no bare global placement triples.
+Image `SceneGraphEdge` remains a region-to-region interface; world entities and
+their depicted image regions are separate identities.
+
 ## Dependencies
 
 Depends on `kernel`, `coreference`, `documents`, `lifecycle`, `observations`, `rights`, and

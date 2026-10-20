@@ -256,3 +256,20 @@ manifest several coexisting modes). The mode/experience cut is structural: a
 `gmeow:MentalMoment` is an endurant (`logic:Mode`) and can never be an occurrent
 (`logic:Event`), backed by the foundation's `logic:Endurant`/`logic:Perdurant`
 disjointness.
+
+## Self-doubt and felt self-correction
+
+`emotionSelfDoubt` and `emotionSelfCorrection` are members of the existing open
+`EmotionType` vocabulary. A separate epistemic-affect hierarchy is unnecessary:
+readers and traditions can attribute these values beside the existing emotions.
+Self-doubt concerns the experiencer’s own reading or judgment. Self-correction
+names the felt moment of catching oneself; it does not certify that a correction
+occurred, succeeded or made a claim true. Belief, credence and correction
+operations remain distinct.
+
+Use `emotionType` on an Emotion with its `emotionBearer`. For a narrative reading,
+put the value in an attributed `ArcSample.sampleState` with its subject and
+frame-bound position. The [worked affects](examples/epistemic-affects.ttl) and
+[narrative beat readings](../../extensions/narrative/examples/beat-functions.ttl)
+show both patterns. Multiple readings coexist; no numeric confidence or clinical
+diagnosis follows from either emotion value.

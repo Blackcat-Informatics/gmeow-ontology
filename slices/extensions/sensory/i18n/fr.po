@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "odor"
+msgstr "odeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The olfactory character of an observed entity or environment, including odor quality or intensity under a declared method and scale."
+msgstr "Le caractère olfactif d’une entité ou d’un environnement observé, y compris la qualité ou l’intensité d’odeur selon une méthode et une échelle déclarées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:sensoryProperty gmeow:observablePropertyOdor ."
+msgstr "ex:reading gmeow:sensoryProperty gmeow:observablePropertyOdor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An observable-property value, not the olfactory modality, a scent descriptor or a universal unit. The existing sensoryModalityOlfactory names the channel."
+msgstr "Une valeur de propriété observable, non la modalité olfactive, un descripteur de senteur ou une unité universelle. sensoryModalityOlfactory nomme déjà le canal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a numeric scale for a qualitative scent or inferring a measured odor from a narrative description."
+msgstr "Éviter d’inventer une échelle numérique pour une senteur qualitative ou de déduire une odeur mesurée d’une description narrative."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use sensoryProperty on instrument readings with a framed SensoryQuantity; record subjective scent with the existing olfactory SensoryPerception pattern."
+msgstr "Employer sensoryProperty sur les mesures instrumentales avec une SensoryQuantity contextualisée ; enregistrer la senteur subjective par le modèle SensoryPerception olfactif existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a sensing record concerns smell rather than light, sound or another observable property."
+msgstr "À employer lorsqu’un enregistrement sensoriel porte sur l’odeur plutôt que la lumière, le son ou une autre propriété observable."

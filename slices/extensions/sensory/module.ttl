@@ -212,3 +212,15 @@ gmeow:sensoryResult
     skos:definition "The GMEOW Sensory Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+gmeow:observablePropertyOdor
+    a gmeow:ObservableProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "odor"@x-gmeow-english ;
+    skos:definition "The olfactory character of an observed entity or environment, including odor quality or intensity under a declared method and scale."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:sensoryProperty gmeow:observablePropertyOdor ."@x-gmeow-english ;
+    skos:scopeNote "An observable-property value, not the olfactory modality, a scent descriptor or a universal unit. The existing sensoryModalityOlfactory names the channel."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a numeric scale for a qualitative scent or inferring a measured odor from a narrative description."@x-gmeow-english ;
+    gmeow:howToUse "Use sensoryProperty on instrument readings with a framed SensoryQuantity; record subjective scent with the existing olfactory SensoryPerception pattern."@x-gmeow-english ;
+    gmeow:useWhen "Use when a sensing record concerns smell rather than light, sound or another observable property."@x-gmeow-english .

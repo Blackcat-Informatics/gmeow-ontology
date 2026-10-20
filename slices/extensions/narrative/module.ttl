@@ -1445,3 +1445,135 @@ gmeow:storyTimeOfFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:storyTimeOf and nothing else. It is not a definition of gmeow:storyTimeOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:storyTimeOfFunctionality logic:characterizes gmeow:storyTimeOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:BeatFunction
+    a logic:Class, logic:AbstractIndividualType ; logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Beat Function"@x-gmeow-english ;
+    skos:definition "The attributed structural function of a narrative beat at a position, such as a crisis, threshold or resolution."@x-gmeow-english ;
+    skos:example "gmeow:beatFunctionCrisis a gmeow:BeatFunction ."@x-gmeow-english ;
+    skos:scopeNote "An open value vocabulary of individuals; generic functions do not impose a universal story structure, order or duration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a position subclass for every beat function or confusing function with an ordinal."@x-gmeow-english ;
+    gmeow:howToUse "Point beatFunction from a frame-bound NarrativePosition at one or more function values."@x-gmeow-english ;
+    gmeow:useWhen "Use when structural readings must be queryable rather than buried in position labels."@x-gmeow-english .
+
+gmeow:beatFunction
+    a logic:ObjectProperty ; logic:domain gmeow:NarrativePosition ; logic:range gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "beat function"@x-gmeow-english ;
+    skos:definition "Relates a narrative position to an attributed structural function of its beat."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionThreshold ."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional: functions may overlap at one position and competing readers may retain different attributed functions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a beat-function label as a chronological coordinate or forcing one preferred interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Keep positionFrame and the locator on the position; attribute disputed function statements through the statement layer."@x-gmeow-english ;
+    gmeow:useWhen "Use for querying which positions a reading treats as structural turning points or unresolved threads."@x-gmeow-english .
+
+gmeow:beatFunctionIncitingIncident
+    a gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "inciting incident"@x-gmeow-english ;
+    skos:definition "A beat that disturbs the established situation and sets a focal narrative development in motion."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionIncitingIncident ."@x-gmeow-english ;
+    skos:scopeNote "It need not be the first narrated event and may coincide with a threshold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning this function to opening exposition solely because it appears first."@x-gmeow-english ;
+    gmeow:howToUse "Locate the interpreted disturbance and retain the frame and attributing reader."@x-gmeow-english ;
+    gmeow:useWhen "Use for the event a reading identifies as initiating its focal development."@x-gmeow-english .
+
+gmeow:beatFunctionThreshold
+    a gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "threshold"@x-gmeow-english ;
+    skos:definition "A beat marking entry into a changed situation, commitment or domain of action."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionThreshold ."@x-gmeow-english ;
+    skos:scopeNote "A structural crossing, not necessarily a physical doorway or a fixed stage in every story."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid marking every geographic crossing as a narrative threshold."@x-gmeow-english ;
+    gmeow:howToUse "Attach the value where the reading locates the change of commitment or situation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a beat changes what the character is entering or committed to."@x-gmeow-english .
+
+gmeow:beatFunctionMidpoint
+    a gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "midpoint turn"@x-gmeow-english ;
+    skos:definition "A structural turn interpreted as the midpoint of a focal narrative development."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionMidpoint ."@x-gmeow-english ;
+    skos:scopeNote "This function is not an assertion that an ordinal is exactly half the total length."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving midpoint function by dividing the number of positions."@x-gmeow-english ;
+    gmeow:howToUse "Name the interpreted pivot without replacing its explicit position locator."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reorientation that a reading treats as its central structural turn."@x-gmeow-english .
+
+gmeow:beatFunctionCrisis
+    a gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "crisis"@x-gmeow-english ;
+    skos:definition "A beat of acute impasse or pressured choice in a focal narrative development."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionCrisis ."@x-gmeow-english ;
+    skos:scopeNote "A crisis can precede or overlap a climax; the two functions are not equivalent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the function as a clinical diagnosis or as a synonym for any tense scene."@x-gmeow-english ;
+    gmeow:howToUse "Mark the position of the interpreted impasse or consequential choice."@x-gmeow-english ;
+    gmeow:useWhen "Use where a reading identifies a decisive dilemma or inability to continue unchanged."@x-gmeow-english .
+
+gmeow:beatFunctionClimax
+    a gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "climax"@x-gmeow-english ;
+    skos:definition "A culminating confrontation, action or turn that a reading treats as decisive for its focal tension."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionClimax ."@x-gmeow-english ;
+    skos:scopeNote "A structural culmination, not automatically the loudest scene or the strongest measured affect."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid computing this function from emotional intensity alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the position and reader that identify the decisive culmination."@x-gmeow-english ;
+    gmeow:useWhen "Use for the culminating beat of the development being analysed."@x-gmeow-english .
+
+gmeow:beatFunctionResolution
+    a gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "resolution"@x-gmeow-english ;
+    skos:definition "A beat that settles consequences or releases a focal narrative tension."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionResolution ."@x-gmeow-english ;
+    skos:scopeNote "Other threads may remain open; narrative resolution is not a formal goal-verification verdict."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating this function with proof that every goal was achieved."@x-gmeow-english ;
+    gmeow:howToUse "Attach it to the position where the reading finds settlement or consequences."@x-gmeow-english ;
+    gmeow:useWhen "Use for closure of the focal tension, even when another thread survives."@x-gmeow-english .
+
+gmeow:beatFunctionOpenThread
+    a gmeow:BeatFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "open thread"@x-gmeow-english ;
+    skos:definition "A beat that carries an unresolved question, possibility or tension beyond the current focus."@x-gmeow-english ;
+    skos:example "ex:position gmeow:beatFunction gmeow:beatFunctionOpenThread ."@x-gmeow-english ;
+    skos:scopeNote "An intentional narrative reading, not missing source data or an automatic defect."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every omitted fact as an open narrative thread."@x-gmeow-english ;
+    gmeow:howToUse "Record the position and preserve any simultaneous resolution function."@x-gmeow-english ;
+    gmeow:useWhen "Use when a reading keeps a question or possibility alive beyond a beat."@x-gmeow-english .
+
+gmeow:arcTypeMemorial
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "memorial arc"@x-gmeow-english ;
+    skos:definition "An interpreted trajectory organised around remembrance or commemoration, including an identity shaped by being named in memory of another."@x-gmeow-english ;
+    skos:example "ex:arc gmeow:arcType gmeow:arcTypeMemorial ."@x-gmeow-english ;
+    skos:scopeNote "An attributed arc interpretation; it does not by itself assert a death, a naming act or a historical relationship."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the arc type in place of explicit provenance for the remembered person or naming event."@x-gmeow-english ;
+    gmeow:howToUse "Create a CharacterArc with subject and narrative frame, attribute the reading and attach this type."@x-gmeow-english ;
+    gmeow:useWhen "Use when remembrance or commemoration shapes the trajectory being analysed."@x-gmeow-english .
+
+gmeow:arcTypeHomecoming
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "homecoming arc"@x-gmeow-english ;
+    skos:definition "An interpreted trajectory of returning to or establishing a place as home, including a house becoming a home."@x-gmeow-english ;
+    skos:example "ex:arc gmeow:arcType gmeow:arcTypeHomecoming ."@x-gmeow-english ;
+    skos:scopeNote "Belonging is the narrative focus; the value does not assert geographic travel, ownership or a housing tenure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying it to every arrival or using it as evidence of a legal residence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the arc subject and frame explicit, whether the trajectory concerns a character, a household or the house itself."@x-gmeow-english ;
+    gmeow:useWhen "Use when a place becomes home or a return is interpreted as renewed belonging."@x-gmeow-english .

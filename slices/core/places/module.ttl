@@ -6447,3 +6447,39 @@ gmeow:what3wordsFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:what3words and nothing else. It is not a definition of gmeow:what3words (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:what3wordsFunctionality logic:characterizes gmeow:what3words ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:besideOf
+    a logic:ObjectProperty, logic:symmetricProperty ; logic:domain gmeow:Entity ; logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "beside"@x-gmeow-english ;
+    skos:definition "A qualitative lateral placement of one entity beside another within the selected spatial frame."@x-gmeow-english ;
+    skos:example "ex:prop gmeow:besideOf ex:other ."@x-gmeow-english ;
+    skos:scopeNote "Symmetric within the same frame; it does not require contact, a shared boundary, numeric distance or image-region identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting it for adjacentTo between bordering Locations or for a calibrated proximity measurement."@x-gmeow-english ;
+    gmeow:howToUse "Retain the spatial frame and attributing vantage, especially for a diegetic or imagined scene."@x-gmeow-english ;
+    gmeow:useWhen "Use when a description places a prop or character laterally beside another entity."@x-gmeow-english .
+
+gmeow:onTopOf
+    a logic:ObjectProperty ; logic:domain gmeow:Entity ; logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "on top of"@x-gmeow-english ;
+    skos:definition "A direct upper-surface placement in which one entity rests on or is supported by another, relative to the selected frame."@x-gmeow-english ;
+    skos:example "ex:prop gmeow:onTopOf ex:other ."@x-gmeow-english ;
+    skos:scopeNote "Directed and not asserted transitive: a supported object need not directly rest on every object below it. Mere above-position is insufficient."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for floating above, ownership, part-whole or an unscoped image-region relation."@x-gmeow-english ;
+    gmeow:howToUse "State the relevant orientation and frame with the attributed placement claim."@x-gmeow-english ;
+    gmeow:useWhen "Use for a cup on a table or another directly supported upper-surface placement."@x-gmeow-english .
+
+gmeow:insideOf
+    a logic:ObjectProperty ; logic:domain gmeow:Entity ; logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "inside"@x-gmeow-english ;
+    skos:definition "A direct qualitative placement of an entity in the interior of another entity in the selected spatial frame."@x-gmeow-english ;
+    skos:example "ex:prop gmeow:insideOf ex:other ."@x-gmeow-english ;
+    skos:scopeNote "Interior placement does not assert part-whole or set membership, and does not type the participants as Locations or image regions. No transitivity is declared."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for containedInLocation between nested Locations, which has stronger topological and part-whole semantics."@x-gmeow-english ;
+    gmeow:howToUse "Record the container and contained entity under the same attributed spatial frame."@x-gmeow-english ;
+    gmeow:useWhen "Use for a prop in a box or another direct interior placement in an actual or narrated scene."@x-gmeow-english .

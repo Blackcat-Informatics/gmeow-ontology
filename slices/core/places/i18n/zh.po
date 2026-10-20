@@ -1338,3 +1338,87 @@ msgstr "H3 参考系"
 msgctxt "https://blackcatinformatics.ca/gmeow/referenceFrameH3|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The H3 reference frame — Uber's hierarchical hexagonal geospatial indexing system, partitioning the Earth's surface into hexagonal (and pentagonal) cells at sixteen resolutions (0-15), each cell addressed by a single 64-bit index string."
 msgstr "H3 参考系——Uber 的分层六边形地理空间索引系统，将地球表面划分为十六种分辨率（0-15）下的六边形（及五边形）单元，每个单元由单个 64 位索引字符串寻址。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "beside"
+msgstr "在旁侧"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A qualitative lateral placement of one entity beside another within the selected spatial frame."
+msgstr "在所选空间框架内，一个实体位于另一实体旁侧的定性位置关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop gmeow:besideOf ex:other ."
+msgstr "ex:prop gmeow:besideOf ex:other ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Symmetric within the same frame; it does not require contact, a shared boundary, numeric distance or image-region identity."
+msgstr "在同一框架内具有对称性；不要求接触、共同边界、数值距离或图像区域身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting it for adjacentTo between bordering Locations or for a calibrated proximity measurement."
+msgstr "不要用它替代相邻 Location 之间的 adjacentTo，也不要将其视为经校准的邻近度测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the spatial frame and attributing vantage, especially for a diegetic or imagined scene."
+msgstr "保留空间框架和作出归属的视角，尤其是在故事世界或想象场景中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a description places a prop or character laterally beside another entity."
+msgstr "当描述将道具或角色放在另一实体的旁侧时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "on top of"
+msgstr "在上表面之上"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A direct upper-surface placement in which one entity rests on or is supported by another, relative to the selected frame."
+msgstr "相对于所选框架，一个实体直接置于另一实体上表面并由其承托的位置关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop gmeow:onTopOf ex:other ."
+msgstr "ex:prop gmeow:onTopOf ex:other ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Directed and not asserted transitive: a supported object need not directly rest on every object below it. Mere above-position is insufficient."
+msgstr "这是有向关系，且不声明传递性：被承托物不一定直接接触其下方每个物体。仅仅位于上方并不足够。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for floating above, ownership, part-whole or an unscoped image-region relation."
+msgstr "不要将它用于悬浮在上方、所有权、部分整体关系或缺乏作用域的图像区域关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the relevant orientation and frame with the attributed placement claim."
+msgstr "在具有归属的摆放陈述中说明相关朝向和框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a cup on a table or another directly supported upper-surface placement."
+msgstr "用于杯子放在桌上等由上表面直接承托的位置关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inside"
+msgstr "在内部"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A direct qualitative placement of an entity in the interior of another entity in the selected spatial frame."
+msgstr "在所选空间框架内，一个实体直接位于另一实体内部的定性位置关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop gmeow:insideOf ex:other ."
+msgstr "ex:prop gmeow:insideOf ex:other ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Interior placement does not assert part-whole or set membership, and does not type the participants as Locations or image regions. No transitivity is declared."
+msgstr "内部摆放不声明部分整体关系或集合成员关系，也不将参与实体归类为 Location 或图像区域。此处不声明传递性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for containedInLocation between nested Locations, which has stronger topological and part-whole semantics."
+msgstr "不要用它替代嵌套 Location 之间的 containedInLocation，后者具有更强的拓扑及部分整体语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the container and contained entity under the same attributed spatial frame."
+msgstr "在同一个具有归属的空间框架下记录容器和内部实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a prop in a box or another direct interior placement in an actual or narrated scene."
+msgstr "用于实际或叙述场景中道具置于盒内等直接内部摆放关系。"

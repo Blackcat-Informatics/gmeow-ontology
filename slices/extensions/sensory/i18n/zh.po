@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "odor"
+msgstr "气味"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The olfactory character of an observed entity or environment, including odor quality or intensity under a declared method and scale."
+msgstr "被观测实体或环境的嗅觉特征，包括在明确方法和尺度下的气味性质或强度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:sensoryProperty gmeow:observablePropertyOdor ."
+msgstr "ex:reading gmeow:sensoryProperty gmeow:observablePropertyOdor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An observable-property value, not the olfactory modality, a scent descriptor or a universal unit. The existing sensoryModalityOlfactory names the channel."
+msgstr "这是可观测属性值，并非嗅觉模态、气味描述词或通用单位。已有 sensoryModalityOlfactory 用于命名该感知通道。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a numeric scale for a qualitative scent or inferring a measured odor from a narrative description."
+msgstr "不要为定性气味编造数值尺度，也不要从叙事描述推断出测得的气味。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use sensoryProperty on instrument readings with a framed SensoryQuantity; record subjective scent with the existing olfactory SensoryPerception pattern."
+msgstr "在仪器读数上使用 sensoryProperty 并提供有框架的 SensoryQuantity；主观气味应使用已有的嗅觉 SensoryPerception 模式记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observablePropertyOdor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a sensing record concerns smell rather than light, sound or another observable property."
+msgstr "当感测记录涉及气味而非光线、声音或其他可观测属性时使用。"
