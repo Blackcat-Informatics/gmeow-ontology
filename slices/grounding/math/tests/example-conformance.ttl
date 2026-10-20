@@ -2391,6 +2391,17 @@ ex:ecFactorGraphIncomplete a gmeow:ExampleConformance ;
 
 # === Rule: a logic:ExactPreservation claim over a probability model is EARNED === #
 
+ex:ecProjectionExactWithLoss a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/projection-exact-with-loss.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ExactPreservationViolated ;
+    gmeow:conformanceRationale "The projection claims exact preservation while explicitly dropping claim provenance. The native projection-ledger check rejects that internal contradiction independently of any probability-model completeness check." .
+
+ex:ecProjectionExactWithoutLoss a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/projection-exact-without-loss.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "An exact judgment with no declared losses or conflicting polarity is internally consistent. This fixture does not certify an actual external codec round-trip; a producer must establish that separately." .
+
 ex:ecExactPreservationViolated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/exact-preservation-violated.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
