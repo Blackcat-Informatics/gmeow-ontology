@@ -188,19 +188,21 @@ fn normalized_source_path(slice_dir: &Path, file: &str) -> String {
 /// The SINGLE manifest-IRI extraction implementation: both the on-disk resolver
 /// ([`slice_iri_of`]) and the file-map resolver ([`slice_iri_of_files`]) call it, so
 /// the two entry points can never diverge on WHICH `gmeow:Slice` individual is the
-/// slice's identity (`instances_of` is sorted, so "the first" is deterministic).
+/// slice's identity. Ambiguous manifests are rejected rather than choosing a claimant.
 /// `source` names the manifest in the diagnostic — a path for the disk caller, the
 /// map key for the in-memory caller.
 fn slice_iri_from_manifest(manifest_bytes: &[u8], source: &str) -> gmeow_errors::Result<String> {
     let ds = crate::dataset_from_documents(&[(source, manifest_bytes)])?;
-    instances_of(&ds, &graph::g("Slice"))
-        .into_iter()
-        .next()
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Report {
-                detail: format!("{source} declares no gmeow:Slice"),
-            })
-        })
+    let slices = instances_of(&ds, &graph::g("Slice"));
+    if slices.len() != 1 {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Report {
+            detail: format!(
+                "{source} must declare exactly one gmeow:Slice; found {}",
+                slices.len()
+            ),
+        }));
+    }
+    Ok(slices.into_iter().next().expect("one slice was checked"))
 }
 
 /// Discover a slice's ontology IRI from its on-disk `manifest.ttl` (`a gmeow:Slice`).

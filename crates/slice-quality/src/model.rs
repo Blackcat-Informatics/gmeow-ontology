@@ -223,8 +223,8 @@ pub enum CountKind {
     /// PREDICATE IRI is in the vocab's declared `gmeow:vocabularyCountPredicate`
     /// allowlist (e.g. `rdfs:subClassOf`/`subPropertyOf`, the subsumption taxonomy) — the
     /// minimum useful structural set. Pure annotations (`rdfs:label`/`comment`/
-    /// `isDefinedBy`/`seeAlso`) are NOT in the allowlist and never count, and OWL is
-    /// not guarded at all.
+    /// `isDefinedBy`/`seeAlso`) are NOT in the allowlist and never count. OWL is
+    /// outside this quantitative metric; its authoring is checked by projection purity.
     StructuralAxiom,
     /// A non-RDF surface (Datalog, Prolog, N3): structurally 0 in TTL slices. These
     /// registry entries are documentary-only — never enforced, never counted.

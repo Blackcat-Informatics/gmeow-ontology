@@ -1357,9 +1357,9 @@ impl BaseMeasurement {
 
     /// The base authoring-surface fileset for `slice_iri`, inside the materialized
     /// tree — empty when the surface did not exist at base.
-    fn surface_paths(&self, slice_iri: &str) -> Vec<std::path::PathBuf> {
+    fn surface_paths(&self, slice_iri: &str) -> gmeow_errors::Result<Vec<std::path::PathBuf>> {
         let (Some(tree), Some(rel)) = (self.tree.as_ref(), self.dirs.get(slice_iri)) else {
-            return Vec::new();
+            return Ok(Vec::new());
         };
         if slice_iri == gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI {
             gmeow_slice_quality::ratchet_dsl_surface_paths(tree.root())
@@ -1436,7 +1436,7 @@ fn measure_base_residues(
             continue; // the slice directory does not exist at base → base residue 0
         }
         out.dirs.insert((*slice_iri).to_owned(), rel_dir.clone());
-        let paths = gmeow_slice_quality::ratchet_surface_paths(&tree.root().join(rel_dir));
+        let paths = gmeow_slice_quality::ratchet_surface_paths(&tree.root().join(rel_dir))?;
         for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
             &paths,
             slice_iri,
@@ -1455,7 +1455,7 @@ fn measure_base_residues(
             gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
             DSL_MAPPINGS_REL_DIR.to_owned(),
         );
-        let paths = gmeow_slice_quality::ratchet_dsl_surface_paths(tree.root());
+        let paths = gmeow_slice_quality::ratchet_dsl_surface_paths(tree.root())?;
         for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
             &paths,
             gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
@@ -1508,14 +1508,14 @@ fn derive_edge_reasons(
             .map(|(dir, _)| *dir)
     };
     for d in declarations {
-        let source_paths = base.surface_paths(&d.from_slice);
+        let source_paths = base.surface_paths(&d.from_slice)?;
         if source_paths.is_empty() {
             continue; // the source surface did not exist at base — nothing moved out of it
         }
         let Some(dest_dir) = working_dir(&d.to_slice) else {
             continue; // the destination is not a discovered slice — the witness will red
         };
-        let dest_paths = gmeow_slice_quality::ratchet_surface_paths(dest_dir);
+        let dest_paths = gmeow_slice_quality::ratchet_surface_paths(dest_dir)?;
         for vocab in vocabularies {
             if d.vocabulary.as_ref().is_some_and(|dv| dv != &vocab.prefix) {
                 continue;
@@ -2103,8 +2103,8 @@ pub fn slice_quality_seed_ceilings() -> i32 {
 /// ceiling ABox, a live scan result is entailed by no resident individual, so
 /// folding it into the bundle as a projection would be a false loss judgment (the
 /// pipeline's `projection_ceilings` stage folds only the resident ceiling/
-/// vocabulary TSVs, never this scan). REPORT-ONLY: this command always exits 0 —
-/// it never gates `make check` (that is `slice-quality-gate`'s job) — and its
+/// vocabulary TSVs, never this scan). REPORT-ONLY: budget deficits remain report
+/// data; input failures still fail. It never gates `make check` — and its
 /// output is never fed back into a ceiling; a ceiling is lowered only by a
 /// deliberate hand-edit of the committed individual after a genuine measured
 /// migration, never by tuning it toward this report's numbers.
@@ -2138,10 +2138,7 @@ pub fn slice_quality_projection_debt() -> i32 {
         cells.insert((ceiling.slice.clone(), ceiling.vocab_prefix.clone()));
     }
 
-    println!("slice\tvocab\tmeasured\tceiling\theadroom");
-    let mut total_measured: u64 = 0;
-    let mut total_headroom: i64 = 0;
-    let mut at_ceiling: u64 = 0;
+    let mut rows = Vec::with_capacity(cells.len());
     for (slice, vocab_prefix) in &cells {
         let measured_count = measured
             .get(&(slice.clone(), vocab_prefix.clone()))
@@ -2155,21 +2152,18 @@ pub fn slice_quality_projection_debt() -> i32 {
             .iter()
             .find(|c| &c.slice == slice && &c.vocab_prefix == vocab_prefix)
             .map_or(default_ceiling, |c| c.count);
-        let headroom = i64::try_from(ceiling_count).unwrap_or(i64::MAX)
-            - i64::try_from(measured_count).unwrap_or(i64::MAX);
-
-        println!("{slice}\t{vocab_prefix}\t{measured_count}\t{ceiling_count}\t{headroom}");
-
-        total_measured += measured_count;
-        total_headroom += headroom;
-        if headroom == 0 {
-            at_ceiling += 1;
-        }
+        rows.push(gmeow_slice_quality::projection_debt::ProjectionDebtRow {
+            slice: slice.clone(),
+            vocabulary: vocab_prefix.clone(),
+            measured: measured_count,
+            ceiling: ceiling_count,
+        });
     }
-    println!(
-        "# total measured={total_measured} total headroom={total_headroom} at-ceiling={at_ceiling} cells={}",
-        cells.len()
-    );
+    let output = match gmeow_slice_quality::projection_debt::render_projection_debt(&rows, "tsv") {
+        Ok(output) => output,
+        Err(error) => return fail(format!("slice-quality-projection-debt: {error}")),
+    };
+    print!("{output}");
     0
 }
 
@@ -2499,8 +2493,14 @@ pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) 
     }
     let wanted: std::collections::BTreeSet<&str> = terms.iter().map(String::as_str).collect();
 
-    let from_paths = gmeow_slice_quality::ratchet_surface_paths(from_dir);
-    let to_paths = gmeow_slice_quality::ratchet_surface_paths(to_dir);
+    let from_paths = match gmeow_slice_quality::ratchet_surface_paths(from_dir) {
+        Ok(paths) => paths,
+        Err(error) => return fail(format!("slice-quality-relocation-preview: {error}")),
+    };
+    let to_paths = match gmeow_slice_quality::ratchet_surface_paths(to_dir) {
+        Ok(paths) => paths,
+        Err(error) => return fail(format!("slice-quality-relocation-preview: {error}")),
+    };
     let from_residue = match gmeow_slice_quality::measure_surface_residue_constructs(
         &from_paths,
         from_iri,

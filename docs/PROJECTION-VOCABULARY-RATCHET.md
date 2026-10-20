@@ -71,22 +71,38 @@ residue(slice, vocab) = |hand-authored constructs in vocab's namespace(s)|
 | `countKindStructuralAxiom` | RDFS (`rdfs:`) | Distinct triples whose PREDICATE is in the `gmeow:vocabularyCountPredicate` allowlist — the minimum useful structural set `rdfs:subClassOf`/`rdfs:subPropertyOf` (the subsumption taxonomy). Pure annotations (`rdfs:label`/`comment`/`isDefinedBy`/`seeAlso`) and property signatures (`rdfs:domain`/`range`) are NOT counted. |
 | `countKindNonRdfSurface` | Datalog, Prolog, N3 | Structurally **0** always — documentary-only registry entries; their rule/clause syntax is not RDF and cannot be hand-authored as TTL triples. Never an enforceable gate. |
 
-## 3. OWL and RDFS
+## 3. Quantitative scope and authoring purity
 
-The permanent OWL/RDFS derive-source carve-out is **removed** — treating OWL as a
-forever-exception contradicts Principle 17 (OWL is a projection of `logic:`). In its
-place the ratchet guards a **minimal, bounded** slice of it:
+The ratchet measures the specific construct set declared by each registry entry.
+It is not the authoring-purity gate. An uncounted construct is not thereby a
+permitted second semantic source: Principle 17 still makes `logic:` canonical.
 
 - **RDFS** is guarded as `countKindStructuralAxiom` over exactly `rdfs:subClassOf` and
   `rdfs:subPropertyOf` — the subsumption taxonomy, genuine reasoning content that
   should be authored as `logic:` and projected. Annotations (`rdfs:label`/`comment`/
   `isDefinedBy`/`seeAlso`) are never counted (they are metadata, not a second source of
-  reasoning truth), and property signatures (`rdfs:domain`/`range`) are RBox
-  declarations, not migration debt — also uncounted.
-- **OWL is not guarded at all.** `owl:cardinality` (exact/unqualified procedural OWL)
-  is already gated at `reason-verify` per `LOGIC-VALIDATION.md`, and the remaining
-  declarative OWL is left untouched by this ratchet. Guarding it would flood the seed
-  with annotation-like debt for no reasoning benefit.
+  reasoning truth). Property signatures (`rdfs:domain`/`range`) remain outside this
+  numeric unit. They are semantic declarations and belong in canonical
+  `logic:domain`/`logic:range`; their exclusion is not a permanent authoring carve-out.
+  Adding signatures to the same existing commitments would change what those
+  committed counts mean. Do not silently reinterpret the budget, grandfather a
+  larger surface, or manufacture compensating headroom. The current metric remains
+  a comparable subsumption budget, rather than an assertion that it measures every
+  form of semantic authoring debt.
+- **OWL is outside the quantitative registry, but its authoring is checked.**
+  The unified projection-purity implementation in
+  [`repo_static.rs`](../crates/validate/src/repo_static.rs) rejects unbacked OWL
+  predicate assertions and type declarations, including declarative constructs.
+  It admits exact native correspondence assertions through the typed frontend,
+  rather than granting blanket permission to their other subject triples.
+  Required annotation metadata remains distinct. `reason-verify` additionally
+  checks its supported reasoning fragment; it is not a substitute for the
+  authoring-purity gate. A separate numeric OWL count is not introduced.
+
+The [complete remediation inventory](PROJECTION-DEBT-TRIAGE.md) classifies every
+current commitment by its canonical-grounding and ownership route. No nonzero
+cell is accepted as permanent ungrounded authoring, and no ceiling or axis floor
+is raised by this decision.
 
 Each guarded vocabulary carries a `gmeow:vocabularyOwner` — the one grounding slice
 (`logic:`, `math:`, or `lang:`) at whose mapping boundary its external terms may be
@@ -357,6 +373,22 @@ exercise each invariant directly against inline fixtures.
   counter the gate uses and joins it against the resident `ceilingCount`, showing
   per-`(slice, vocab)` measured/ceiling/headroom — the migration dashboard for
   finding where grounding effort pays off. Never tuned; report-only.
+- **The installed consumer report:**
+  `gmeow slice projection-debt /path/to/slice --format tsv` measures the explicitly
+  supplied authored slice against the registry and commitments embedded in the
+  installed bundle. No checkout, generated tree, producer or fixture is required.
+  The directory supplies one `manifest.ttl` identity and a `module.ttl`; optional
+  `shapes.ttl` and recursively nested `mappings/*.ttl` are authoring inputs.
+  Examples and tests are not authoring inputs. Missing mandatory inputs,
+  malformed or unreadable selected files, ambiguous identities and mapping cycles
+  fail instead of appearing clean. Readable file links remain usable; dangling
+  selected sources fail. Documentary non-RDF registry entries are not reported
+  as measured RDF debt. Output supports `human` and `tsv`.
+  Each measurable vocabulary has measured/ceiling/headroom fields, including
+  explicit zero/default cells and negative deficits. Source-local ceiling
+  declarations cannot raise the embedded authority. Both CLI surfaces use the
+  exact signed headroom and wide checked totals; neither saturates at the
+  signed-64-bit boundary. A deficit is report data and does not edit a commitment.
 - **Generated projections:**
   `generated/governance/slice-quality-projection-ceilings.tsv`
   (`<slice-iri>\t<vocab-prefix>\t<count>`) and
@@ -368,7 +400,11 @@ exercise each invariant directly against inline fixtures.
   lowered by editing the commitment individual in
   `slices/core/slice-quality-rubric/module.ttl`, not the TSV. Measured/headroom
   are never projected here — they are empirical scan results entailed by no
-  resident individual, computed only on the live CLI/gate path.
+  resident individual, computed only on the source-backed CLI/gate path. An
+  installed immutable bundle cannot observe later edits to an author's source
+  directory. Supply those sources explicitly for the consumer report; whole-repo
+  discovery, shared DSL mapping surfaces and ceiling maintenance remain developer
+  operations.
 - **Competency query:**
   [`slices/core/slice-quality-rubric/queries/qc/projection-ceilings.rq`](../slices/core/slice-quality-rubric/queries/qc/projection-ceilings.rq)
   — registered as `ex:cqProjectionCeilingsHold` in

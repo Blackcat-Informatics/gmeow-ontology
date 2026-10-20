@@ -26,6 +26,7 @@ pub mod lint;
 pub mod model;
 pub mod prioritize;
 pub mod profile;
+pub mod projection_debt;
 pub mod read;
 pub mod reasoner;
 pub mod report;
@@ -941,17 +942,50 @@ pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
 /// gate: the merge-base measurement materializes the base tree with one `git archive`
 /// and then runs this exact scanner over it, so there is no base-only path
 /// reconstruction that could drift from the working-tree one.
-#[must_use]
-pub fn ratchet_surface_paths(slice_dir: &Path) -> Vec<PathBuf> {
-    let mut paths = vec![slice_dir.join("module.ttl"), slice_dir.join("shapes.ttl")];
+///
+/// # Errors
+/// Rejects unreadable selected inputs and invalid mapping trees. Manifest-only
+/// profiles have no module authoring surface and remain valid repository inputs.
+pub fn ratchet_surface_paths(slice_dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let module = slice_dir.join("module.ttl");
+    let mut paths = Vec::new();
+    match std::fs::symlink_metadata(&module) {
+        Ok(_) => {
+            if !std::fs::metadata(&module)
+                .map_err(|error| source_inventory_error(&module, error))?
+                .is_file()
+            {
+                return Err(source_inventory_error(
+                    &module,
+                    "expected a Turtle module file",
+                ));
+            }
+            paths.push(module);
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(source_inventory_error(&module, error)),
+    }
+    let shapes = slice_dir.join("shapes.ttl");
+    match std::fs::symlink_metadata(&shapes) {
+        Ok(_) => {
+            if !std::fs::metadata(&shapes)
+                .map_err(|error| source_inventory_error(&shapes, error))?
+                .is_file()
+            {
+                return Err(source_inventory_error(&shapes, "expected a Turtle file"));
+            }
+            paths.push(shapes);
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(source_inventory_error(&shapes, error)),
+    }
     // RECURSIVE over the whole mappings/ subtree, not just its immediate children — a
     // nested mapping file is authoring surface exactly as an immediate child is, and
     // the base side runs this same walk over the materialized base tree.
-    collect_ttls_recursive(&slice_dir.join("mappings"), &mut paths);
-    paths.retain(|p| p.is_file());
+    collect_ttls_recursive(&slice_dir.join("mappings"), &mut paths)?;
     paths.sort();
     paths.dedup();
-    paths
+    Ok(paths)
 }
 
 /// The repo-level DSL mapping surface IRI a `dsl/mappings/` residue is attributed to
@@ -961,30 +995,64 @@ pub const DSL_MAPPING_SURFACE_IRI: &str = "https://blackcatinformatics.ca/gmeow/
 /// The repo-level `dsl/mappings/` authoring surface — every `.ttl` under it, sorted.
 /// Scanned once (attributed to [`DSL_MAPPING_SURFACE_IRI`]), because it is a real
 /// authoring surface outside any slice mapping directory that would otherwise be missed.
-#[must_use]
-pub fn ratchet_dsl_surface_paths(repo_root: &Path) -> Vec<PathBuf> {
+///
+/// # Errors
+/// Rejects unreadable or invalid selected DSL mapping trees. An absent optional
+/// DSL directory contributes no source paths.
+pub fn ratchet_dsl_surface_paths(repo_root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
-    collect_ttls_recursive(&repo_root.join("dsl").join("mappings"), &mut paths);
-    paths.retain(|p| p.is_file());
+    collect_ttls_recursive(&repo_root.join("dsl").join("mappings"), &mut paths)?;
     paths.sort();
     paths.dedup();
-    paths
+    Ok(paths)
+}
+
+fn source_inventory_error(path: &Path, error: impl std::fmt::Display) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Io {
+        detail: format!("{}: {error}", path.display()),
+    })
 }
 
 /// Recursively collect every `.ttl` file under `dir` into `out` (no-op if `dir` does
 /// not exist).
-fn collect_ttls_recursive(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(rd) = std::fs::read_dir(dir) else {
-        return;
-    };
-    for entry in rd.flatten() {
+fn collect_ttls_recursive(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
+    collect_mapping_ttls(dir, out, &mut std::collections::BTreeSet::new())
+}
+
+fn collect_mapping_ttls(
+    dir: &Path,
+    out: &mut Vec<PathBuf>,
+    active: &mut std::collections::BTreeSet<PathBuf>,
+) -> gmeow_errors::Result<()> {
+    match std::fs::symlink_metadata(dir) {
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(source_inventory_error(dir, error)),
+    }
+    let identity =
+        std::fs::canonicalize(dir).map_err(|error| source_inventory_error(dir, error))?;
+    if !active.insert(identity.clone()) {
+        return Err(source_inventory_error(
+            dir,
+            "cyclic mapping source directory",
+        ));
+    }
+    let rd = std::fs::read_dir(dir).map_err(|error| source_inventory_error(dir, error))?;
+    for entry in rd {
+        let entry = entry.map_err(|error| source_inventory_error(dir, error))?;
         let p = entry.path();
-        if p.is_dir() {
-            collect_ttls_recursive(&p, out);
+        let metadata = std::fs::metadata(&p).map_err(|error| source_inventory_error(&p, error))?;
+        if metadata.is_dir() {
+            collect_mapping_ttls(&p, out, active)?;
         } else if p.extension().is_some_and(|x| x == "ttl") {
+            if !metadata.is_file() {
+                return Err(source_inventory_error(&p, "expected a Turtle mapping file"));
+            }
             out.push(p);
         }
     }
+    active.remove(&identity);
+    Ok(())
 }
 
 /// Measure the ungrounded [`counting::residue`] of every guarded `vocab` for every
@@ -1030,7 +1098,7 @@ pub fn measure_repo_residue_constructs(
     let mut out = std::collections::BTreeMap::new();
     for dir in discover_slice_dirs(&repo_root.join("slices")) {
         let slice_iri = report::slice_iri_of(&dir)?;
-        let paths = ratchet_surface_paths(&dir);
+        let paths = ratchet_surface_paths(&dir)?;
         for (prefix, constructs) in
             measure_surface_residue_constructs(&paths, &slice_iri, vocabularies)?
         {
@@ -1040,7 +1108,7 @@ pub fn measure_repo_residue_constructs(
     // The shared repo-level dsl/mappings/ source surface is not
     // under any slice — measure it once, attributed to the DSL surface IRI, so it is
     // guarded rather than silently missed.
-    let dsl_paths = ratchet_dsl_surface_paths(repo_root);
+    let dsl_paths = ratchet_dsl_surface_paths(repo_root)?;
     for (prefix, constructs) in
         measure_surface_residue_constructs(&dsl_paths, DSL_MAPPING_SURFACE_IRI, vocabularies)?
     {

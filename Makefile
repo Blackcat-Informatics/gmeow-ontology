@@ -609,6 +609,10 @@ coverage: ## Gate vendored entity-slice class and predicate coverage.
 slice-quality: ## Score one slice against the slice-quality rubric (advisory). Usage: make slice-quality SLICE=slices/core/tags
 	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all)
 
+.PHONY: slice-quality-projection-debt
+slice-quality-projection-debt: ## Report live repository projection residue and exact budget headroom.
+	$(GMEOW_DEV) slice-quality-projection-debt
+
 # NOT a producer, and deliberately NOT poisoned like `regen`. The 84-slice SCORING
 # sweep this gate used to repeat now happens exactly once, inside the pipeline
 # (`stage-source-load` -> `gmeow_slice_quality::assessment_artifacts_with_catalog`,

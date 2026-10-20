@@ -12,7 +12,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityTier|rdfs:label"
 msgid "Quality Tier"
 msgstr "Palier de qualité"
@@ -1933,7 +1932,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|skos:scopeNote"
 msgid "Scope: it names the axis and nothing beyond it — no score, no tier, no threshold floor, and no recency follow from it, so a grade whose axis was later retired stays readable rather than becoming an untyped number. It is equally NOT an identity key: two passes over the same slice produce two distinct assessments carrying the SAME axis, so per-axis governance must join on the (assessed entity, axis, pass) triple, and deduplicating grades on the axis alone would silently discard a re-score. The subject is what separates it from gmeow:axisDimension: this is asserted on the ASSESSMENT, that one on the AXIS, so a graph carrying only gmeow:axisDimension describes the rubric and records no measurement of anything."
 msgstr "Portée : elle nomme l'axe et rien au-delà — aucun score, aucun palier, aucun plancher de seuil ni aucune fraîcheur n'en découlent, de sorte qu'un grade dont l'axe a été retiré par la suite reste lisible plutôt que de devenir un nombre sans type. Elle n'est pas davantage une clé d'identité : deux passes sur la même slice produisent deux évaluations distinctes portant le MÊME axe, si bien que la gouvernance par axe doit joindre sur le triplet (entité évaluée, axe, passe), et dédupliquer les grades sur le seul axe écarterait silencieusement une réévaluation. Le sujet est ce qui la sépare de gmeow:axisDimension : elle s'affirme sur l'ÉVALUATION, l'autre sur l'AXE, de sorte qu'un graphe ne portant que gmeow:axisDimension décrit la rubrique et n'enregistre la mesure de quoi que ce soit."
 
-
 # --- Ratchet floors, the recorded corpus, and the readability failure lattice ---
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AxisFloorCommitment|http://www.w3.org/2000/01/rdf-schema#label"
@@ -2181,3 +2179,7 @@ msgstr "Choisir full et fournir chaque dictionnaire et catalogue requis."
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Select external-sacred; provide the foreign module, manifest, documentation and declared imports."
 msgstr "Choisir external-sacred et fournir le module externe, son manifeste, sa documentation et ses imports déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid hardcoding the guarded registry. Require each guarded projection vocabulary to have at least one gmeow:vocabularyNamespace and exactly one gmeow:vocabularyOwner from a grounding slice. The quantitative RDFS budget counts subsumption, not property signatures; this is not permission to author semantic signatures outside logic:. OWL authoring is checked by projection purity, not by a numeric ceiling or reason-verify alone."
+msgstr "Éviter de coder le registre protégé en dur. Chaque vocabulaire de projection protégé doit avoir au moins un gmeow:vocabularyNamespace et exactement un gmeow:vocabularyOwner appartenant à une tranche de fondation. Le budget quantitatif RDFS compte la subsomption, pas les signatures de propriétés ; cela ne permet pas d’écrire des signatures sémantiques hors de logic:. La rédaction OWL est contrôlée par la pureté des projections, et non par un plafond numérique ou par reason-verify seul."

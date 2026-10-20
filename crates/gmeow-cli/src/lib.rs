@@ -729,9 +729,18 @@ pub enum SliceCommands {
     },
     /// Show the committed projection-vocabulary ratchet — the guarded registry and the
     /// per-(slice, vocabulary) ceilings — straight from the embedded gmeow.gts bundle
-    /// (the commitments view; live measured residue needs a repo checkout).
+    /// (the commitments view; projection-debt measures an explicitly supplied slice).
     ProjectionCeilings {
         /// Output serialization: `human` (default) or `tsv`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
+    /// Measure an external slice's authored projection debt against the embedded
+    /// registry and ceilings, without a checkout or corpus production.
+    ProjectionDebt {
+        /// Authored slice directory containing manifest.ttl and module.ttl.
+        dir: PathBuf,
+        /// Output serialization: human (default) or tsv.
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
     },
@@ -1993,6 +2002,9 @@ pub fn run() -> i32 {
             ),
             SliceCommands::ProjectionCeilings { format } => {
                 commands::slice_projection_ceilings(reporter, &format)
+            }
+            SliceCommands::ProjectionDebt { dir, format } => {
+                commands::slice_projection_debt(reporter, &dir, &format)
             }
         },
         Commands::Docs { cmd } => match cmd {
