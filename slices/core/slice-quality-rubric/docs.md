@@ -112,3 +112,13 @@ counts. Moving an unchanged corpus directory does not change its input identity;
 changing any supplied file does. Shared axes retain their measurements when a
 profile changes applicability elsewhere. Human, JSON and SARIF projections retain
 axis dispositions and reasons.
+
+## Literal language and direction
+
+The natural-language fields `gmeow:qualityApplicabilityReason` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

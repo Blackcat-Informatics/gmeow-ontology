@@ -1,3 +1,4 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -108,7 +109,7 @@ gmeow:forQuery
     rdfs:domain gmeow:RetrievalEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "for query"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The query text this retrieval served, recorded verbatim."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -329,3 +330,6 @@ gmeow:summarizesCommunityFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:summarizesCommunity and nothing else. It is not a definition of gmeow:summarizesCommunity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:summarizesCommunityFunctionality logic:characterizes gmeow:summarizesCommunity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:RetrievalEvent logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:forQuery ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

@@ -3708,8 +3708,8 @@ gmeow:glossarySource
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary source"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."@x-gmeow-english ;
+    logic:range rdfs:Literal ;
+    skos:definition "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid an entry with no gmeow:glossarySource — the source is the term being rendered."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -3722,8 +3722,8 @@ gmeow:glossaryTranslation
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary translation"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."@x-gmeow-english ;
+    logic:range rdfs:Literal ;
+    skos:definition "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid an entry with no gmeow:glossaryTranslation — an entry with no rendering carries no terminology — and avoid two entries of one concept rendering it two different ways (the gated inconsistency case)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -12762,3 +12762,7 @@ gmeow:gmnSecurityRingFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gmnSecurityRing and nothing else. It is not a definition of gmeow:gmnSecurityRing (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:gmnSecurityRingFunctionality logic:characterizes gmeow:gmnSecurityRing ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:GlossaryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:glossarySource ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:GlossaryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:glossaryTranslation ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

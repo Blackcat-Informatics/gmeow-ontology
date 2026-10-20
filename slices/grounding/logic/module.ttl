@@ -7094,10 +7094,10 @@ logic:conjectureLifecycleState
 logic:withdrawalReason
     a logic:DatatypeProperty ;
     rdfs:domain logic:Conjecture ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "withdrawal reason"@x-gmeow-english ;
-    skos:definition "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range xsd:string."@x-gmeow-english ;
+    skos:definition "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range rdfs:Literal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:ContradictionWitness
@@ -15812,7 +15812,7 @@ logic:severity
 logic:message
     a logic:DatatypeProperty ;
     rdfs:domain logic:Constraint ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "message"@x-gmeow-english ;
     skos:definition "The advisory human-readable message a logic:Constraint violation attaches (projected to sh:message). Presentation-only and load-bearing-false: it carries no identity, so two constraints differing only in their message are the same constraint. Absent means no message."@x-gmeow-english ;
@@ -17443,7 +17443,7 @@ logic:fragmentBoundaryReason
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "fragment boundary reason"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     skos:definition "The technical reason a retained-withhold record lies outside the certified-complete refutation fragment: the construct the kernel deliberately does not decide and why, free of any process reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -24067,3 +24067,8 @@ logic:parameterRequired
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     logic:domain logic:CallParameter ;
     logic:range xsd:boolean .
+
+# Natural-language values retain language and direction; plain text declares no language.
+logic:Conjecture logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:withdrawalReason ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+logic:Constraint logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:message ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/logic/fragmentBoundaryReason" ; logic:closureValue logic:ClosedWorldClosure ] .

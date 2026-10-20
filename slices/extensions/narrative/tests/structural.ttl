@@ -379,3 +379,11 @@ ntest:saNarrativeValuesNotClasses a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { VALUES ?value { gmeow:beatFunctionIncitingIncident gmeow:beatFunctionThreshold gmeow:beatFunctionMidpoint gmeow:beatFunctionCrisis gmeow:beatFunctionClimax gmeow:beatFunctionResolution gmeow:beatFunctionOpenThread gmeow:arcTypeMemorial gmeow:arcTypeHomecoming } ?value a owl:Class . }" ;
     gmeow:saRationale "Beat and arc classifications remain values instead of multiplying position or arc subclasses." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix wordtest: <https://example.org/natural-language-values/tests/> .
+
+wordtest:sanarrativeWords a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:positionLabel (logic:range|rdfs:range) rdfs:Literal . gmeow:NarrativePosition (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:positionLabel ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
+    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .

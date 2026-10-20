@@ -219,3 +219,11 @@ ASK {
 }""" ;
     gmeow:saFailWitness "tests/counter-examples/notation-system-with-duplicate-profiles.ttl" ;
     gmeow:saRationale "A notation system has exactly one projection profile, so competing profile identities cannot silently supply different loss manifests for the same system." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix wordtest: <https://example.org/natural-language-values/tests/> .
+
+wordtest:samusicWords a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:decisionSequence (logic:range|rdfs:range) rdfs:Literal . gmeow:PerformanceDecision (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:decisionSequence ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
+    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .

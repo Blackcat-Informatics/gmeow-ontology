@@ -298,3 +298,13 @@ from the doxastic, alethic, and temporal accessibility relations of the other
 context types. The specialization is declared on the `gmeow:` side, never minted
 as an axiom in this module, so the `logic:` foundation stays standalone
 (Principle 17).
+
+## Literal language and direction
+
+The natural-language fields `logic:withdrawalReason`, `logic:message`, `logic:fragmentBoundaryReason` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

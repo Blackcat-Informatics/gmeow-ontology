@@ -1,3 +1,4 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -575,7 +576,7 @@ gmeow:modelProvider
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "model provider"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The organization providing the model, as named on the card."@x-gmeow-english ;
     skos:example "ex:opusCard gmeow:modelProvider \"Anthropic\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it where the provider must be a first-class linkable gmeow:Organization (model that as an agent and attribute it); this is the card's flat as-named string."@x-gmeow-english ;
@@ -1233,3 +1234,6 @@ gmeow:answerText
     gmeow:avoidWhen "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."@x-gmeow-english ;
     gmeow:howToUse "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."@x-gmeow-english ;
     gmeow:useWhen "Use when preserving what was asked and answered without treating generated words as established facts."@x-gmeow-english .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:ModelCard logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:modelProvider ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

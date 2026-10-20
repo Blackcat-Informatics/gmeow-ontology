@@ -148,6 +148,49 @@ fn language_literal_projection_and_calendar_precision_use_generated_ranges() {
     }
 }
 
+/// Word restrictions admit explicit and unspecified language while preserving
+/// open-world subject typing and rejecting values outside the text contract.
+#[test]
+fn word_values_admit_language_without_closing_subject_domains() {
+    let prefixes = "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix g: <https://blackcatinformatics.ca/gmeow/> .\n\
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
+    let source = format!(
+        "{prefixes}g:conditionText a logic:DatatypeProperty ; logic:domain g:Condition ;\n\
+            logic:range rdfs:Literal .\n\
+         g:Condition a logic:Class ; logic:subClassOf [ a logic:Restriction ;\n\
+            logic:onProperty g:conditionText ; logic:allValuesFrom [\n\
+                logic:unionOf (xsd:string rdf:langString rdf:dirLangString) ] ] ."
+    );
+    let source = parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(&source).unwrap();
+    assert_eq!(shapes.len(), 1);
+    let mut wire = String::from("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
+    for shape in &shapes {
+        wire.push_str(
+            &gmeow_logic_compile::projections::shapes::project_validation_shape_shacl(shape),
+        );
+    }
+    assert!(!wire.contains("sh:targetSubjectsOf"));
+    for (value, expected) in [
+        ("\"the condition\"@en", true),
+        ("\"la condition\"@fr", true),
+        ("\"source words\"@x-gmeow-english", true),
+        ("\"الشرط\"@ar--rtl", true),
+        ("\"unspecified language\"", true),
+        ("42", false),
+        ("true", false),
+        ("<urn:identifier>", false),
+    ] {
+        let data = format!("{prefixes}<urn:record> a g:Condition ; g:conditionText {value} .");
+        assert_eq!(shacl_conforms(&wire, &data), expected, "{value}");
+    }
+    let untyped = format!("{prefixes}<urn:record> g:conditionText \"the condition\"@en .");
+    assert!(shacl_conforms(&wire, &untyped));
+}
+
 /// The gmeow namespace table used by both the schema compiler and the JSON-LD
 /// projector — identical to the corpus sweep's, so CURIE compaction matches
 /// production exactly.

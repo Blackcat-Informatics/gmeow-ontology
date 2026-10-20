@@ -3,6 +3,45 @@
 
 use super::*;
 
+/// A tiny authored translation pair retains both actual languages through the
+/// production glossary emitter; this never builds the repository corpus.
+#[test]
+fn glossary_words_preserve_source_and_translation_languages() {
+    let entries = [Entry {
+        glossary_iri: "urn:synthetic:glossary".into(),
+        slice_iri: "urn:synthetic:slice".into(),
+        lang: "fr".into(),
+        entry_iri: "urn:synthetic:entry".into(),
+        term: "urn:synthetic:term".into(),
+        predicate: "http://www.w3.org/2000/01/rdf-schema#label".into(),
+        source: "a source word".into(),
+        translation: "bonjour".into(),
+        concept_iri: "urn:synthetic:concept".into(),
+        sense_iri: "urn:synthetic:sense".into(),
+        unit_iri: "urn:synthetic:unit".into(),
+    }];
+    let wire = emit_ntriples(&entries);
+    let dataset = purrdf::parse_dataset(&wire, "application/n-triples", None).unwrap();
+    let mut observed = std::collections::BTreeMap::new();
+    for quad in dataset.quads() {
+        if let (purrdf::TermRef::Iri(predicate), purrdf::TermRef::Literal { language, .. }) =
+            (dataset.resolve(quad.p), dataset.resolve(quad.o))
+            && matches!(predicate, p if p == iri(GMEOW_NS, "glossarySource") || p == iri(GMEOW_NS, "glossaryTranslation"))
+        {
+            observed.insert(predicate.to_owned(), language.map(str::to_owned));
+        }
+    }
+    assert_eq!(observed.len(), 2);
+    assert_eq!(
+        observed[&iri(GMEOW_NS, "glossarySource")].as_deref(),
+        Some("x-gmeow-english")
+    );
+    assert_eq!(
+        observed[&iri(GMEOW_NS, "glossaryTranslation")].as_deref(),
+        Some("fr")
+    );
+}
+
 #[test]
 fn glossary_table_cells_escape_structural_characters() {
     assert_eq!(cell("a | b"), "a \\| b");

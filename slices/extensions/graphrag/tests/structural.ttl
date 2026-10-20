@@ -115,3 +115,11 @@ ex:saRetrievalScoreIsAnnotationProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:retrievalScore a owl:AnnotationProperty . }""" ;
     gmeow:saRationale "gmeow:retrievalScore MUST be an owl:AnnotationProperty — per-result relevance scores are statement-level annotations so competing scores coexist and the OWL downcast stays DL-clean (Principle 3, Principle 9)." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix wordtest: <https://example.org/natural-language-values/tests/> .
+
+wordtest:sagraphragWords a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:forQuery (logic:range|rdfs:range) rdfs:Literal . gmeow:RetrievalEvent (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:forQuery ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
+    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .

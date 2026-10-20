@@ -1286,7 +1286,7 @@ gmeow:decisionSequence
     rdfs:domain gmeow:PerformanceDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "decision sequence"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "A human-readable record of the chosen fragment traversal order for one performance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -7250,7 +7250,7 @@ gmeow:TraversalConstraint rdfs:subClassOf
 gmeow:PerformanceDecision rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:decisionPerformance ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:decisionConstraint ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:decisionSequence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:decisionSequence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 
 gmeow:GenerativeProcess rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:processKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
@@ -7309,7 +7309,7 @@ gmeow:MusicAnalysisClaim logic:subClassOf
 <https://blackcatinformatics.ca/gmeow/TraversalConstraint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/constraintAppliesTo> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionPerformance> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionConstraint> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/PerformanceDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 <https://blackcatinformatics.ca/gmeow/GenerativeProcess> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/processKind> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/OrnamentProfile> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceParticipation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participationEvent> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
@@ -7730,7 +7730,7 @@ gmeow:OrnamentProfileApplicationConstraint
 <https://blackcatinformatics.ca/gmeow/OrnamentProfile> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> ; logic:someValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionConstraint> ; logic:someValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionPerformance> ; logic:someValuesFrom logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/PerformanceDecision> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionSequence> ; logic:someValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 <https://blackcatinformatics.ca/gmeow/PitchAnchor> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorDegree> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/gmeow/PitchAnchor> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorFrequency> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
 <https://blackcatinformatics.ca/gmeow/PitchCollection> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/collectionKind> ; logic:someValuesFrom logic:Thing ] .
@@ -9581,3 +9581,6 @@ gmeow:fnOutputEvaluatedPitchValue a logic:AnnotationProperty ;
     logic:range gmeow:PitchValue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:PerformanceDecision logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:decisionSequence ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

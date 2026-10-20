@@ -272,3 +272,13 @@ requested alias, actual model, original answer, three cited sources and redactio
 count together, with a separate explicit-zero example. Content-addressing and exact
 byte provenance use the existing source machinery; these text properties do not
 replace an original byte digest or specify a new digest algorithm.
+
+## Literal language and direction
+
+The natural-language fields `gmeow:modelProvider` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

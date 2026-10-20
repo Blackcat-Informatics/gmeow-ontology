@@ -457,7 +457,7 @@ gmeow:conditionText
     rdfs:domain gmeow:Condition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "condition text"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The natural-language statement of the condition — the canonical form, always present (SHACL). Formalizations approximate the prose, not the other way around."@x-gmeow-english ;
     skos:example "ex:c1 gmeow:conditionText \"the data subject has requested erasure\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it (it is mandatory by SHACL) and avoid treating a machine formalization as the canonical form — that is a gmeow:ConditionExpression, a claim about this prose."@x-gmeow-english ;
@@ -1893,7 +1893,7 @@ gmeow:DutyModalityConstraint
 <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedNorm> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/complianceVerdict> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/Condition> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/Condition> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 <https://blackcatinformatics.ca/gmeow/ConditionExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/expressionLanguage> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupMember> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; logic:allValuesFrom logic:Thing ] .

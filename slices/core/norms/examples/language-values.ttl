@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/language-values/> .
+
+ex:english a gmeow:Condition ; gmeow:conditionText "The requester consented."@en .
+ex:arabic a gmeow:Condition ; gmeow:conditionText "وافق صاحب الطلب."@ar--rtl .
+ex:unspecified a gmeow:Condition ; gmeow:conditionText "Source words without a declared language." .

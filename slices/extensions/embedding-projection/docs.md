@@ -162,3 +162,13 @@ mapping from container to meaning is specified in
 [`design/PURREMB-PROFILE.md`](design/PURREMB-PROFILE.md); the whole scene is
 authored end to end in
 [`examples/purremb-bookshelf.ttl`](examples/purremb-bookshelf.ttl).
+
+## Literal language and direction
+
+The natural-language fields `gmeow:externalRole`, `gmeow:indexLossContract`, `gmeow:queryContext` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

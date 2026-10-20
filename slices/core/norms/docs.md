@@ -313,3 +313,13 @@ invariant queryable rather than a shape (divergence is legal).
 `styleGuideFor` names what it voices (a `Persona` and/or `Register`). `voiceExemplifiedBy` attaches
 byte-perfect content-digested `Document`s that carry `aboutnessEnacts` — the document does not
 describe the voice, it is the voice; an undigested exemplar is a SHACL violation.
+
+## Literal language and direction
+
+The natural-language fields `gmeow:conditionText` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

@@ -3879,7 +3879,7 @@ gmeow:qualityApplicabilityReason
     gmeow:avoidWhen "Do not supply an empty reason or blame a missing required capability."@x-gmeow-english ;
     gmeow:howToUse "Write one non-empty plain string that states the corpus boundary or implementation gap."@x-gmeow-english ;
     logic:domain gmeow:QualityAxisApplicability ;
-    logic:range xsd:string .
+    logic:range rdfs:Literal ;
 
 gmeow:qualityProfileFull
     a logic:NamedIndividual, gmeow:QualityMeasurementProfile ;
@@ -3917,3 +3917,6 @@ gmeow:qualityProfileExternalSacred
         gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ;
         gmeow:qualityApplicabilityReason "This corpus does not adopt the GMEOW glyph inventory or its optimization objective."
     ] .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:QualityAxisApplicability logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:qualityApplicabilityReason ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

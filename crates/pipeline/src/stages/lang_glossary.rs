@@ -280,15 +280,17 @@ fn emit_ntriples(entries: &[Entry]) -> Vec<u8> {
             &iri(GMEOW_NS, "glossaryPredicate"),
             &e.predicate,
         ));
-        lines.push(triple_lit(
+        lines.push(triple_langlit(
             &e.entry_iri,
             &iri(GMEOW_NS, "glossarySource"),
             &e.source,
+            "x-gmeow-english",
         ));
-        lines.push(triple_lit(
+        lines.push(triple_langlit(
             &e.entry_iri,
             &iri(GMEOW_NS, "glossaryTranslation"),
             &e.translation,
+            &e.lang,
         ));
         lines.push(triple(
             &e.entry_iri,
