@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/.stage/term-literal-typing-language-on-words/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/.stage/term-literal-typing-language-on-words/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/.stage/term-literal-typing-language-on-words/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/.stage/term-literal-typing-language-on-words/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/.stage/term-literal-typing-language-on-words/brief.json  (+ requirements.json, references.json)
+
+  - issue #1807 + 4 comment(s) via github
+  - link crawl: 3 issue(s) within 2 hop(s) of `#N` references
+  - forge search on ['[term]', 'Literal', 'typing:']: 14 other item(s)
+  - GhpRsq-Defect-Class trailers: 3 distinct class(es) in the last 200 commits
+  - prior attempts: 0 commit(s) citing #1807 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1807: 3
+  - requirement candidates: 13 line(s); 2 comment(s) matched no rule
+  - referenced artifacts: 6 path(s) (0 on disk), 11 identifier(s), 0 workspace package(s), 1 URL(s)

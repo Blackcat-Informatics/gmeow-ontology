@@ -1,0 +1,133 @@
+{
+  "issue": 1807,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "[term] Literal typing: language on words, types for machinery, time at its stated precision (consumers: memetics, katamari)",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "164": "Canonical private-use language tags with public BCP 47 projection",
+    "1808": "[term] Generic record metadata: record time, modified time, ordinal, labelled facets (consumer: memetics)",
+    "1807": "[term] Literal typing: language on words, types for machinery, time at its stated precision (consumers: memetics, katamari)"
+  },
+  "link_relations": {
+    "164": "mentions",
+    "1808": "mentions",
+    "1807": "part of"
+  },
+  "related": [
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1638,
+      "title": "[term] Durable work orchestration, plan refinement, decision support, and external-effect saga vocabulary",
+      "state": "OPEN"
+    },
+    {
+      "number": 1327,
+      "title": "EDOAL projection silently mistypes object properties as edoal:Property (repo-wide)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 735,
+      "title": "H1 \u2014 Harvest mechanism + whole-ontology coherence gate + over-typing flag",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1682,
+      "title": "Retire owl: as an authoring vocabulary in slices; logic: is canonical",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1031,
+      "title": "feat(rust): port the MCP server consumer (mcp_server_consumer.py) wholesale to Rust",
+      "state": "CLOSED"
+    },
+    {
+      "number": 843,
+      "title": "P9 \u2014 purrdf: rdflib compat shim (gmeow_rdf.compat.rdflib), LSP-critical",
+      "state": "CLOSED"
+    },
+    {
+      "number": 834,
+      "title": "P0 \u2014 purrdf: self-host, kill the internal rdflib dependency",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1194,
+      "title": "V4 \u2014 Equivalence-before-deletion: retire hand-authored shapes.ttl + structural ShEx",
+      "state": "CLOSED"
+    },
+    {
+      "number": 859,
+      "title": "Add docs test suite to the Rust harness (crates/docs) \u2014 deferred from #853",
+      "state": "CLOSED"
+    },
+    {
+      "number": 762,
+      "title": "D3 \u2014 advisory-rule harvest machinery + advice-coverage axis (per-slice prose harvest \u2192 background uplift lane)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1666,
+      "title": "Cut the reasoning substrate over to PurRDF (datalog/entail/xsd)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1355,
+      "title": "Model the SIOC correspondence in the logic layer: discharge mnemomorphism as executed LawClaims + reasoned superclass recovery",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1404,
+      "title": "docs max-info enrichment: diagnostics/loss/entailments/fixtures/competency/notation/pipeline-DAG panels",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 40,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1880,
+        "title": "Preserve language and direction on natural-language properties",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1880",
+        "this_stage": true
+      },
+      {
+        "number": 1873,
+        "title": "Document question wording, media metadata and memory roles",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1873",
+        "this_stage": false
+      },
+      {
+        "number": 1879,
+        "title": "Fix language datatypes and closed range projection",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1879",
+        "this_stage": true
+      }
+    ],
+    "own_branch": "paudley/1807-term-literal-typing-language-on-words"
+  },
+  "coverage": [
+    "issue #1807 + 4 comment(s) via github",
+    "link crawl: 3 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['[term]', 'Literal', 'typing:']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 3 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1807 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1807: 3",
+    "requirement candidates: 13 line(s); 2 comment(s) matched no rule",
+    "referenced artifacts: 6 path(s) (0 on disk), 11 identifier(s), 0 workspace package(s), 1 URL(s)"
+  ]
+}

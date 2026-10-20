@@ -1,0 +1,12 @@
+Inspected 49 recently changed Turtle files for top-level subject prefixes and typed xsd values.
+Remaining candidates: [('slices/core/places/module.ttl', ['_']), ('slices/core/places/tests/structural.ttl', ['xsd']), ('slices/extensions/music/tests/structural.ttl', ['xsd']), ('slices/grounding/lang/module.ttl', ['_']), ('slices/grounding/logic/module.ttl', ['_'])]
+This is a textual source audit, not a native Turtle parser run.
+
+Candidate adjudication: the underscore subjects in places/lang/logic are legal
+blank-node labels, not undeclared prefixes. The xsd occurrences in the places
+and music structural files are inside SPARQL pattern literals that declare
+their own xsd prefix. No changes are warranted for those candidates.
+
+The actual missing ot bindings were in the agentic and observations competency
+files; both now declare the same existing observation-record-tests namespace.
+The agentic file also now declares xsd for its outer Turtle typed expected cells.

@@ -1,0 +1,21 @@
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	﻿2026-10-20T15:41:30.2888782Z ##[group]Run make produce-producer-independent-test-fixtures FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2889398Z ^[[36;1mmake produce-producer-independent-test-fixtures FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json^[[0m
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2931094Z shell: /usr/bin/bash -e {0}
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2931261Z env:
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2931591Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2931992Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2932223Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2932421Z   CARGO_ENV_CFLAGS_FORCE: true
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2932596Z   CARGO_ENV_CXXFLAGS_FORCE: true
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2932751Z   GMEOW_DEV: ./dist/bin/gmeow-dev
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2932911Z   CARGO_HOME: /home/runner/.cargo
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2933087Z   CARGO_INCREMENTAL: 0
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2933225Z   CARGO_TERM_COLOR: always
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2933428Z   GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.2933632Z ##[endgroup]
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:30.4564119Z ./dist/bin/gmeow-dev test-fixtures produce --scope producer-independent --timings-json dist/nextest/fixture-timings-producer-independent.json
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:32.9525544Z pipeline fixture warm admission: miss reason=candidate-not-found
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:32.9526190Z test fixture producer: phase=pipeline-stages state=started targets=31 jobs=4
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:35.0496211Z error gmeow-dev.cli.fail: test fixtures: produce authenticated stage DAG: RDF parse error: RDF parse error: syntax error in /home/runner/work/gmeow-ontology/gmeow-ontology/slices/core/slice-quality-rubric/module.ttl: error native-codec-parse: unexpected token Some(Word("a")) in Turtle/TriG term at <unknown>:3885:5
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:35.0606638Z make: *** [Makefile:670: produce-producer-independent-test-fixtures] Error 1
+fixture-prefix	Produce optimized corpus fixtures before any test runner starts	2026-10-20T15:41:35.0624210Z ##[error]Process completed with exit code 2.

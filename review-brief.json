@@ -1,0 +1,23 @@
+{
+  "issue": 1807,
+  "branch": "paudley/1807-term-literal-typing-language-on-words",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "54a0351c263b27b731c5982f59aae62c87036f67",
+      "subject": "fix: declare namespaces in observation competency sources",
+      "date": "2026-10-20"
+    },
+    {
+      "oid": "cbbe2125638e8b64e6c6aacf9e61cc33c0aa4044",
+      "subject": "fix: terminate the quality applicability range declaration",
+      "date": "2026-10-20"
+    }
+  ],
+  "files": [
+    "slices/core/agentic/tests/competency.ttl",
+    "slices/core/observations/tests/competency.ttl",
+    "slices/core/slice-quality-rubric/module.ttl"
+  ],
+  "adrs_touched": []
+}

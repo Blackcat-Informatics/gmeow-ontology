@@ -1,0 +1,4 @@
+Compared 30 migrated property range terminators.
+Original migration mismatches: [('slices/core/slice-quality-rubric/module.ttl', '.', ';')]
+Current repair restores the final period on qualityApplicabilityReason.
+This is a source-diff audit, not a native parser execution.

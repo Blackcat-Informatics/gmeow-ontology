@@ -1,0 +1,43 @@
+generation (a)	Cold-materialize the generated product	﻿2026-10-20T15:40:42.3224883Z ##[group]Run mkdir -p dist/sync
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3225224Z ^[[36;1mmkdir -p dist/sync^[[0m
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3225632Z ^[[36;1mmake check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update^[[0m
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3287492Z shell: /usr/bin/bash -e {0}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3287764Z env:
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3288397Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3289180Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3289601Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3289959Z   CARGO_ENV_CFLAGS_FORCE: true
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3290226Z   CARGO_ENV_CXXFLAGS_FORCE: true
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3290599Z   GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3290977Z   SYNC_VERBOSE: 1
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3291237Z   SYNC_TIMINGS_JSON: dist/sync/update-timings.json
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3291555Z ##[endgroup]
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:42.3754171Z ./dist/bin/gmeow-dev sync --mode update --outputs generated --verbose --timings-json dist/sync/update-timings.json
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.3424284Z {"event":"stage_start","stage":"sync:hash-inputs"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8242173Z {"event":"stage_end","stage":"sync:hash-inputs","elapsed_ms":481}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8242962Z {"event":"stage_start","stage":"sync:validate-manifest"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8245485Z {"event":"stage_end","stage":"sync:validate-manifest","elapsed_ms":0}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8246392Z {"event":"stage_start","stage":"pipeline:canonical-abstract"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8247322Z {"event":"stage_end","stage":"pipeline:canonical-abstract","elapsed_ms":0}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8312069Z {"event":"stage_start","stage":"pipeline:dag"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8317816Z {"event":"stage_start","stage":"stage-export-apache"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8318809Z {"event":"stage_start","stage":"stage-export-bench"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8319786Z {"event":"stage_start","stage":"stage-export-catalog"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8320610Z {"event":"stage_start","stage":"stage-export-constraint-shapes"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8327252Z {"event":"stage_end","stage":"stage-export-bench","elapsed_ms":0}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8335506Z {"event":"stage_end","stage":"stage-export-apache","elapsed_ms":1}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8367402Z {"event":"stage_start","stage":"stage-export-cost-ledger"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8378533Z {"event":"stage_end","stage":"stage-export-cost-ledger","elapsed_ms":0}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8394269Z {"event":"stage_start","stage":"stage-export-evals"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8438145Z {"event":"stage_start","stage":"stage-export-frame-shapes"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8453361Z {"event":"stage_end","stage":"stage-export-evals","elapsed_ms":3}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8488527Z {"event":"stage_start","stage":"stage-export-glossary"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8494191Z {"event":"stage_end","stage":"stage-export-catalog","elapsed_ms":9}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8553858Z {"event":"stage_start","stage":"stage-export-governance-floors"}
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8846633Z ^[[2m2026-10-20T15:40:46.882920Z^[[0m ^[[32m INFO^[[0m ^[[1mproducer_phase^[[0m^[[1m{^[[0m^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"build-entries"^[[1m}^[[0m^[[2m:^[[0m ^[[2mpipeline_phase^[[0m^[[2m:^[[0m producer phase boundary ^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"build-entries" ^[[3mevent^[[0m^[[2m=^[[0m"start"
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.8851903Z ^[[2m2026-10-20T15:40:46.882944Z^[[0m ^[[32m INFO^[[0m ^[[1mproducer_phase^[[0m^[[1m{^[[0m^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"build-entries"^[[1m}^[[0m^[[2m:^[[0m^[[1mproducer_phase^[[0m^[[1m{^[[0m^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"discover-slice-catalog"^[[1m}^[[0m^[[2m:^[[0m ^[[2mpipeline_phase^[[0m^[[2m:^[[0m producer phase boundary ^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"discover-slice-catalog" ^[[3mevent^[[0m^[[2m=^[[0m"start"
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.9302266Z ^[[2m2026-10-20T15:40:46.929711Z^[[0m ^[[32m INFO^[[0m ^[[1mproducer_phase^[[0m^[[1m{^[[0m^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"build-entries"^[[1m}^[[0m^[[2m:^[[0m^[[1mproducer_phase^[[0m^[[1m{^[[0m^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"discover-slice-catalog"^[[1m}^[[0m^[[2m:^[[0m ^[[2mpipeline_phase^[[0m^[[2m:^[[0m producer phase boundary ^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"discover-slice-catalog" ^[[3mevent^[[0m^[[2m=^[[0m"end" ^[[3melapsed_ms^[[0m^[[2m=^[[0m46
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:46.9308535Z ^[[2m2026-10-20T15:40:46.929758Z^[[0m ^[[32m INFO^[[0m ^[[1mproducer_phase^[[0m^[[1m{^[[0m^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"build-entries"^[[1m}^[[0m^[[2m:^[[0m ^[[2mpipeline_phase^[[0m^[[2m:^[[0m producer phase boundary ^[[3mstage^[[0m^[[2m=^[[0m"stage-export-glossary" ^[[3mphase^[[0m^[[2m=^[[0m"build-entries" ^[[3mevent^[[0m^[[2m=^[[0m"end" ^[[3melapsed_ms^[[0m^[[2m=^[[0m46
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:47.0432138Z error gmeow-dev.cli.fail: sync pipeline failed: /home/runner/work/gmeow-ontology/gmeow-ontology/slices/core/slice-quality-rubric/module.ttl: error native-codec-parse: unexpected token Some(Word("a")) in Turtle/TriG term at <unknown>:3885:5
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:47.0544365Z make: *** [Makefile:443: check-sync] Error 1
+generation (a)	Cold-materialize the generated product	2026-10-20T15:40:47.0561772Z ##[error]Process completed with exit code 2.
