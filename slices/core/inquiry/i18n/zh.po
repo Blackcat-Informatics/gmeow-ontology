@@ -12,6 +12,90 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "question text"
+msgstr "问题文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The literal wording of a question, carrying its language tag and any RDF 1.2 base direction. Distinct from a naming label and from the answerhood condition that individuates the Question. Non-functional: several co-equal wordings or languages may describe the same question."
+msgstr "问题的字面措辞，保留语言标签以及任何 RDF 1.2 基础方向。它不同于命名标签，也不同于确定 Question 身份的答案条件。非单值：同一问题可以有多种地位平等的措辞或语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:keys gmeow:questionText 'Where are the keys?'@en ."
+msgstr "ex:keys gmeow:questionText '钥匙在哪里？'@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every supplied wording must be a language-tagged literal; ordinary and directional language strings are both admitted. No wording is preferred, and a question need not have a recorded wording to exist."
+msgstr "每个提供的措辞都必须是带语言标签的字面量；普通语言字符串和带方向的语言字符串都被接受。没有首选措辞，问题的存在也不要求已经记录措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a naming label as the sole content slot, treating wording equality as question identity, or replacing several wordings with a preferred one."
+msgstr "避免将命名标签作为唯一的内容字段、将措辞相等视为问题身份相同，或用某个首选措辞替换多种措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach each original wording with its language and direction intact. Use rdfs:label separately for a short name; retain attribution and scope on the wording assertion when they matter."
+msgstr "附加每个原始措辞并完整保留其语言和方向。另用 rdfs:label 提供简短名称；需要时在措辞断言上保留归属和作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a consumer records what an agent actually asks or holds open, independently of the name used to find that question."
+msgstr "用于消费者记录代理实际提出或持续关注的未决问题，而不依赖用来查找该问题的名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Question Text Language Violation"
+msgstr "问题文本语言违规"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a questionText value is not a literal with a language tag. The failure concerns the recorded wording, not whether the question has an answer or whether an agent remembers it."
+msgstr "当 questionText 值不是带语言标签的字面量时产生的失败。该失败涉及记录的措辞，而不是问题是否有答案，或代理是否记得它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2004/02/skos/core#example"
+msgid "An untagged questionText value causes its subject to be marked with QuestionTextLanguageViolation."
+msgstr "不带语言标签的 questionText 值会使其主语被标记为 QuestionTextLanguageViolation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Plain strings, other typed literals and non-literal values fail; RDF 1.2 language strings with base direction remain valid."
+msgstr "普通字符串、其他类型的字面量以及非字面量值都不通过；带基础方向的 RDF 1.2 语言字符串仍然有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting this marker merely because a question is unanswered or has several co-equal wordings."
+msgstr "避免仅因问题尚无答案或具有多种地位平等的措辞而断言此标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the original wording value and the violated law, then supply the language actually observed without guessing a language or dropping base direction."
+msgstr "检查原始措辞值和被违反的定律，再提供实际观察到的语言；不得猜测语言或丢弃基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify a wording record rejected by the native or projected language-presence law."
+msgstr "用于识别被原生或投影语言标签存在性定律拒绝的措辞记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Question text language constraint"
+msgstr "问题文本语言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every value carried by questionText must satisfy the native language-tag presence relation. This law preserves ordinary and directional language strings without requiring one global wording."
+msgstr "questionText 承载的每个值都必须满足原生语言标签存在关系。此定律保留普通和带方向的语言字符串，不要求全局唯一措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A tagged English wording passes; the same untagged lexical value is rejected."
+msgstr "带语言标签的英语措辞通过；相同但不带标签的词法值被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law applies to each supplied questionText value. It does not require a wording, identify questions by text or choose a preferred language."
+msgstr "该定律适用于每个提供的 questionText 值。它不要求必须有措辞，不按文本确定问题身份，也不选择首选语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the language test with a string datatype check, which excludes language-tagged strings or admits untagged words."
+msgstr "避免将语言测试替换为字符串数据类型检查，因为后者会排除带语言标签的字符串，或接受不带标签的文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Execute the canonical integrity formula or its generated validation projection and retain the offending subject, original value and law identity."
+msgstr "执行规范完整性公式或其生成的验证投影，并保留违规主语、原始值和定律身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when validating consumer question records before exposing their wording as language-bearing content."
+msgstr "用于在将问题措辞作为带语言的内容提供之前，验证消费者的问题记录。"
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "tenureInquirer is functional"

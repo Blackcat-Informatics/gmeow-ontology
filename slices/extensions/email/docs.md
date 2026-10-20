@@ -159,6 +159,28 @@ JMAP (RFC 8620 / RFC 8621) exposes `blobId`, `partId`, and `bodyStructure` as me
 
 **Decoded content as object.** A `gmeow:BodyValue` is a decoded content object linked to its source `BodyPart` by the existing `wasDerivedFrom` provenance property. It is not a literal on the part, and it is not a separate competing tree.
 
+## Decoded content in chat and other transports
+
+`gmeow:BodyValue` names the decoded content object. Its definition is not limited
+to email, although decoding a MIME `gmeow:BodyPart` is its usual example. A chat
+part can use it for an actual decoded information object; the message part,
+transport representation and decoded result retain separate identities. Link
+the result to the actual source part with `gmeow:wasDerivedFrom` when recording
+that decoding provenance. An image, audio, or video file attachment remains a
+`gmeow:MediaObject` at its manifestation layer. Other file attachments are not
+necessarily `gmeow:MediaObject`.
+
+Do not type a literal or a part-tree node as `BodyValue` merely because it carries
+words. `BodyValue` does not declare a universal body-text property: the decoded
+format supplies its content representation. Linguistic text can use the
+[language surface-form model](../../grounding/lang/docs.md), including its
+language, script, encoding and analysis-status contract. An unanalyzed surface
+must say `lang:UnanalyzedProse` and `lang:rawLevel`; it does not claim a parsed
+linguistic structure or a certified rendering.
+
+For identifiers outside creative works, use the generic structured identifier
+record described in [documents](../../core/documents/docs.md#identifiers-extent-and-decoded-content).
+
 ## Threading
 
 `References` / `In-Reply-To` headers → `gmeow:references` / `gmeow:inReplyTo`

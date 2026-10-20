@@ -10,6 +10,26 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inquiry/tests/> .
 
+ex:cqQuestionWordings a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/question-wording.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?wording WHERE { <https://example.org/inquiry-wording/keys> gmeow:questionText ?wording . }" ;
+    gmeow:cqRationale "Both co-equal wordings survive retrieval, including the original language tag and base direction." ;
+    gmeow:cqResultShape ex:cqQuestionWordingsShape ;
+    gmeow:cqExpectRow ex:cqQuestionWordsPlain, ex:cqQuestionWordsDirectional .
+
+ex:cqQuestionWordingsShape a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "wording" ;
+        logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqQuestionWordsPlain a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "wording" ;
+        gmeow:cellValueLiteral "Where are the keys?"@x-gmeow-english ] .
+
+ex:cqQuestionWordsDirectional a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "wording" ;
+        gmeow:cellValueLiteral "In which place are the keys?"@x-gmeow-english--ltr ] .
+
 ex:cqResearchInquiries a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/research-inquiries.rq" ;
     gmeow:cqRationale "Over the asserted TBox there are no open research-inquiry instances, so the open-inquiries query returns the empty set." ;

@@ -43,6 +43,39 @@ it with `gmeow:questionType`, link its presuppositions with `gmeow:presupposes` 
 answers with `gmeow:answers`, and let several agents hold the one question open and answer it
 differently from different vantages (Principle 9).
 
+### gmeow:questionText
+
+Use `gmeow:questionText` for the wording and `rdfs:label` for a short name.
+A label may happen to repeat the wording, but it is not the wording slot.
+Question identity still comes from its answerhood condition, not string equality.
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <https://example.org/> .
+
+ex:keys a gmeow:Question ;
+    rdfs:label "Keys question"@en ;
+    gmeow:questionType gmeow:typeWh ;
+    gmeow:questionText "Where are the keys?"@en,
+                       "In which place are the keys?"@en--ltr .
+```
+
+Wordings are co-equal and non-functional: retain their language tags, RDF 1.2
+base directions and statement-level attribution.
+
+### gmeow:QuestionTextLanguageConstraint · gmeow:QuestionTextLanguageViolation
+
+The native language-presence law and its generated validation projection reject untagged strings, other
+typed literals and non-literals. Public consumer tags and the private canonical
+tags are both valid language-bearing values. A question may exist without a
+recorded wording; the law checks every value that is supplied. It does not prove
+that two wordings are translations or have the same answerhood condition.
+
+For structured linguistic analysis, use the [language form model](../../grounding/lang/docs.md).
+A `lang:Rendering` is a stronger record requiring a convention and an explicit
+preservation judgment; retaining raw wording does not require asserting one.
+
 ## Question types
 
 `gmeow:QuestionType` is a closed value vocabulary (`gufo:AbstractIndividualType ⊑ gufo:QualityValue`),

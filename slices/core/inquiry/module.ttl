@@ -6,6 +6,65 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+gmeow:questionText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Question ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "question text"@x-gmeow-english ;
+    skos:definition "The literal wording of a question, carrying its language tag and any RDF 1.2 base direction. Distinct from a naming label and from the answerhood condition that individuates the Question. Non-functional: several co-equal wordings or languages may describe the same question."@x-gmeow-english ;
+    skos:example "ex:keys gmeow:questionText 'Where are the keys?'@en ."@x-gmeow-english ;
+    skos:scopeNote "Every supplied wording must be a language-tagged literal; ordinary and directional language strings are both admitted. No wording is preferred, and a question need not have a recorded wording to exist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a naming label as the sole content slot, treating wording equality as question identity, or replacing several wordings with a preferred one."@x-gmeow-english ;
+    gmeow:howToUse "Attach each original wording with its language and direction intact. Use rdfs:label separately for a short name; retain attribution and scope on the wording assertion when they matter."@x-gmeow-english ;
+    gmeow:useWhen "Use when a consumer records what an agent actually asks or holds open, independently of the name used to find that question."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:QuestionTextLanguageViolation
+    a logic:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "Question Text Language Violation"@x-gmeow-english ;
+    skos:definition "The failure raised when a questionText value is not a literal with a language tag. The failure concerns the recorded wording, not whether the question has an answer or whether an agent remembers it."@x-gmeow-english ;
+    skos:example "An untagged questionText value causes its subject to be marked with QuestionTextLanguageViolation."@x-gmeow-english ;
+    skos:scopeNote "Plain strings, other typed literals and non-literal values fail; RDF 1.2 language strings with base direction remain valid."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this marker merely because a question is unanswered or has several co-equal wordings."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the original wording value and the violated law, then supply the language actually observed without guessing a language or dropping base direction."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify a wording record rejected by the native or projected language-presence law."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:QuestionTextLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "Question text language constraint"@x-gmeow-english ;
+    skos:definition "Every value carried by questionText must satisfy the native language-tag presence relation. This law preserves ordinary and directional language strings without requiring one global wording."@x-gmeow-english ;
+    skos:example "A tagged English wording passes; the same untagged lexical value is rejected."@x-gmeow-english ;
+    skos:scopeNote "The law applies to each supplied questionText value. It does not require a wording, identify questions by text or choose a preferred language."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the language test with a string datatype check, which excludes language-tagged strings or admits untagged words."@x-gmeow-english ;
+    gmeow:howToUse "Execute the canonical integrity formula or its generated validation projection and retain the offending subject, original value and law identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating consumer question records before exposing their wording as language-bearing content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:questionText ;
+    gmeow:enforcesFailureClass gmeow:QuestionTextLanguageViolation ;
+    logic:message "Question wording must carry a language tag; preserve any RDF 1.2 base direction." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                 [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [
+            a logic:Formula ;
+            logic:antecedent [
+                a logic:Formula ; logic:relation gmeow:questionText ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                               [ logic:termIndex 1 ; logic:termVariable "value" ]
+            ] ;
+            logic:consequent [
+                a logic:Formula ; logic:relation logic:termHasLang ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ]
+            ]
+        ]
+    ] .
+
 gmeow:InquiryKind
     a logic:AbstractIndividualType ,
         logic:Class ;

@@ -111,6 +111,20 @@ attention/interest is an attentional pull, **not** a `teleology` goal; objectual
 `gmeow:memoryOf` as prose, so cognition adds **no** dependency on `ai`. Forgetting
 is suppression (`gmeow:displayable false`), never deletion (Principle 10).
 
+### Remembered subjects and remembered claims
+
+`ex:agent gmeow:remembers ex:subject` records objectual memory of that subject.
+`ex:claim gmeow:memoryOf ex:agent` instead records who holds an existing claim
+in the `gmeow:MemoryItem` role; its object is the remembering agent, not the
+remembered subject. The claim may concern that subject through an explicit
+`gmeow:observedFeature` binding and carry its RDF 1.2 statement content.
+
+Keep both assertions when both are warranted. A memory item is not automatically
+the object of `remembers`, and merely mentioning an entity in a remembered claim
+does not prove objectual memory of it. No bridging axiom is added. The
+[worked claim/object join](../ai/docs.md#joining-claim-memory-and-objectual-remembering)
+shows how a consumer retrieves the two explicit records in one admitted context.
+
 ## Terms
 
 The four ordinal properties of the knowledge spectrum, chained so each deeper

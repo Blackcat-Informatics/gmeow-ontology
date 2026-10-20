@@ -70,6 +70,54 @@ clocks. Recall is a retrieval (this slice's `RetrievalEvent`, §"Terms" below).
 This is the substrate under the `gmeow` client and the MCP store/recall/revise
 triad.
 
+### Joining claim memory and objectual remembering
+
+`MemoryItem` is a role on an existing observation or claim, not a second copy of
+its content. `memoryOf` names the remembering agent. In contrast,
+[`remembers`](../cognition/docs.md#remembered-subjects-and-remembered-claims)
+links an agent to a remembered subject. Record each assertion explicitly rather
+than deriving one from the other:
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <https://example.org/> .
+
+ex:alex a gmeow:Agent ;
+    gmeow:remembers ex:conference .
+
+ex:visitClaim a gmeow:MemoryItem ;
+    gmeow:memoryOf ex:alex ;
+    gmeow:memoryKind gmeow:memoryKindEpisodic ;
+    gmeow:vantage ex:alex ;
+    gmeow:observedFeature ex:conference ;
+    rdf:reifies <<( ex:alex ex:attended ex:conference )>> .
+```
+
+The record has an explicit feature of interest and preserves the original claim.
+This audit query joins existing assertions; it does not infer remembering from
+syntactic mention:
+
+```sparql
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?agent ?subject ?memory ?s ?p ?o WHERE {
+    ?agent gmeow:remembers ?subject .
+    ?memory a gmeow:MemoryItem ;
+        gmeow:memoryOf ?agent ;
+        gmeow:observedFeature ?subject ;
+        rdf:reifies <<( ?s ?p ?o )>> .
+}
+```
+
+The example assumes one admitted context. Apply the consumer's graph,
+standpoint, time and display policy before this join; it is not a complete
+recall policy. Suppression with `gmeow:displayable false` retains historical
+claims and does not itself erase triples or make every unrestricted query hide
+them. Neither a remembered claim nor a `remembers` edge asserts that the claim
+is true, that every mentioned entity is remembered, or that the remembered
+subject is a memory-record object.
+
 ## 7. Teleology
 
 Agents have `gmeow:hasGoal`; an `gmeow:Intention` `gmeow:motivates` a

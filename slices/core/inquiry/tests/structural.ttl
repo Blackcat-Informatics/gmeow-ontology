@@ -24,6 +24,37 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inquiry/tests/> .
 
+ex:saQuestionTextDeclaration a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:questionText a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Question ; rdfs:range rdfs:Literal . }
+""" ;
+    gmeow:saRationale "Question wording has its own literal property; the language guard admits both ordinary and directional language strings." .
+
+ex:saQuestionTextNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:questionText a owl:FunctionalProperty . }
+""" ;
+    gmeow:saRationale "Co-equal wordings must not be collapsed into one preferred value." .
+
+ex:saQuestionTextLanguageLaw a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { gmeow:QuestionTextLanguageConstraint a logic:Constraint ;
+    logic:formalizes gmeow:questionText ;
+    gmeow:enforcesFailureClass gmeow:QuestionTextLanguageViolation ;
+    logic:integrity / logic:forall [
+        logic:antecedent [ logic:relation gmeow:questionText ] ;
+        logic:consequent [ logic:relation logic:termHasLang ] ] . }
+""" ;
+    gmeow:saRationale "The wording obligation is an executable canonical formula, with a named failure, rather than a separately authored shape." .
+
 # --- 1. Question is a SocialObject Kind (MUST hold) ---------------------------
 ex:saQuestionIsSocialObjectKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
