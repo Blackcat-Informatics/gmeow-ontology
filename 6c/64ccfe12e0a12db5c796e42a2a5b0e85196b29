@@ -1,0 +1,21 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 7619709b81235099c8c8cbccd9548671f088fb40
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1851
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1851
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: a7139d72ea7220a9535b24b00b3fb369b217b922
+GhpRsq-Head-Ref: paudley/1201-generalize-the-projection-purity-gate
+GhpRsq-Head-OID: 7619709b81235099c8c8cbccd9548671f088fb40
+GhpRsq-Result-Tree: d1fd01b65cf4dfd98baf7705823b64c8d08a249d
+GhpRsq-Result-Commit: 6c64ccfe12e0a12db5c796e42a2a5b0e85196b29
+GhpRsq-Parent-Hashes: 7619709b81235099c8c8cbccd9548671f088fb40
+GhpRsq-Squash-Notes-SHA256: 0a2af9ed81e6683e0506bca4978c0a8575e203f956be583d46fd66f6f4aaa58e
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Tree: 005b907e44e70f4e008ec7dccd46d05c742b5183
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1851/stage
+GhpRsq-Stage-Files: 2
