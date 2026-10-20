@@ -589,6 +589,13 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-result-shapes",
             ],
         );
+        if impl_key == "pydantic" {
+            schema_stage.consumes.extend([
+                "stage-constraint-catalog".into(),
+                "stage-term-manifest".into(),
+            ]);
+            schema_stage.consumes.sort();
+        }
         if impl_key == "json_schema" {
             schema_stage.dataflow_entities = crate::node::Stage::consumed_entities(
                 &crate::stages::json_schema::JsonSchemaStage::new(),

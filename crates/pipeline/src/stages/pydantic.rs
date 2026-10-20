@@ -13,29 +13,25 @@
 //! surface compiles through the SAME enriched `$defs`, a class's Pydantic
 //! `model_json_schema()` agrees with the packed JSON Schema by construction.
 //!
-//! # Package layout (purrdf-owned; a flat single-module package)
+//! # Package layout
 //!
 //! * `gmeow_models/_base.py` — the shared `PurrdfBaseModel` config.
-//! * `gmeow_models/models.py` — every model + StrEnum, ONE flat module.
+//! * `gmeow_models/<slice>.py` — models routed to their owning slices.
+//! * `gmeow_models/schema_helpers.py` — shared schema envelopes and helpers.
+//! * `gmeow_models/README.md` — navigation over the admitted topology.
 //! * `gmeow_models/__init__.py` — re-exports every model, resolving deferred
 //!   forward references via a `model_rebuild()` sweep.
 //! * `gmeow_models/py.typed` — the PEP 561 marker.
 //! * `gmeow_models/__about__.py` — the gmeow-orchestrated wheel-version stamp
 //!   (NOT part of purrdf's emitted package — see below).
 //!
-//! This REPLACES gmeow's former hand-rolled slice-routed renderer, which
-//! emitted one module per owning slice, per-class docs-digest linkage
-//! (`gmeow:definitionDigest`), and a generated `README.md`. PurRDF now supports
-//! caller-owned routed topology and class metadata, but this GMEOW stage still
-//! selects its flat compatibility configuration and supplies neither. The
-//! missing per-slice and ontology-linkage surface is live, durably tracked
-//! developer-surface work, not an authorized regression; `.deficiencies`
-//! cannot approve or defer it.
+//! GMEOW supplies routing, term prose, definition digests and documentation links
+//! from the current run's term manifest and documentation sources. PurRDF owns
+//! all target-language rendering and cross-module reference resolution.
 //!
 //! # Wheel version stamping (kept as gmeow orchestration)
 //!
-//! `purrdf::shapes::pydantic::emit_pydantic` carries no notion of a package
-//! version. gmeow stamps its own `gmeow_models/__about__.py` (the ontology's
+//! GMEOW stamps its own `gmeow_models/__about__.py` (the ontology's
 //! `owl:versionInfo`, PEP 440-validated) alongside purrdf's artifacts;
 //! `packages/python/pyproject.toml`'s `[tool.hatch.version]` reads it.
 //!
@@ -51,7 +47,9 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use purrdf::shapes::pydantic::{PydanticConfig, emit_pydantic};
+use purrdf::shapes::pydantic::emit_pydantic;
+
+mod topology;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -67,7 +65,7 @@ const ABOUT_MODULE: &str = "__about__";
 pub const PACKAGE_DISK_PREFIX: &str = "packages/python/";
 
 /// The dotted Python package name `emit_pydantic` renders under — a single
-/// non-keyword ASCII identifier (no dots), so the flat package lands at
+/// non-keyword ASCII identifier (no dots), so the package lands at
 /// `gmeow_models/`.
 const PACKAGE_NAME: &str = "gmeow_models";
 /// The `PydanticConfig` package docstring — gmeow-owned identity, never
@@ -295,13 +293,6 @@ fn render_about(version: &str) -> Vec<u8> {
 
 // ── Public entry point ───────────────────────────────────────────────────────
 
-/// The gmeow-owned `PydanticConfig` — package identity + docstrings `purrdf`
-/// never fabricates.
-fn pydantic_config() -> Result<PydanticConfig, gmeow_errors::Diag> {
-    PydanticConfig::new(PACKAGE_NAME, PACKAGE_DOCSTRING, MODELS_DOCSTRING)
-        .map_err(|e| err(format!("build PydanticConfig: {e}")))
-}
-
 /// Aggregate `emit_pydantic`'s [`purrdf::LossLedger`] into a single `tracing`
 /// event per `(code, note)` pair — mirrors
 /// [`crate::stages::json_schema::report_losses`] / [`crate::stages::schemas`]'s
@@ -354,15 +345,17 @@ fn report_losses(losses: &purrdf::LossLedger) {
 fn render_pydantic_package(
     root: &Path,
     shapes: &purrdf::shapes::shapes::Shapes,
+    model: &gmeow_docs::DocsModel,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let compiled = crate::stages::schema_compile::enriched_compiled_schema(root, shapes)?;
-    let config = pydantic_config()?;
+    let config = topology::config(&compiled, shapes, model)?;
     let package =
         emit_pydantic(&compiled, &config).map_err(|e| err(format!("emit_pydantic: {e}")))?;
     report_losses(&package.losses);
 
     let version = ontology_version_info(root)?;
     let mut artifacts = package.artifacts;
+    artifacts.insert(format!("{PKG}/README.md"), topology::readme(&config)?);
     artifacts.insert(format!("{PKG}/{ABOUT_MODULE}.py"), render_about(&version));
     Ok(artifacts)
 }
@@ -378,7 +371,9 @@ pub fn render_models_python_package(
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(root)
         .map_err(|m| err(format!("load shape union: {m}")))?;
-    render_pydantic_package(root, &shapes)
+    let model = gmeow_docs::DocsModel::discover(root)
+        .map_err(|e| err(format!("read model documentation: {e}")))?;
+    render_pydantic_package(root, &shapes, &model)
 }
 
 // ── Pipeline stage ───────────────────────────────────────────────────────────
@@ -400,9 +395,13 @@ impl PydanticStage {
     /// and consumes the four generated-shape producers so the compiled union folds
     /// THIS run's fresh `generated/shapes/*.ttl` bytes.
     pub fn new() -> Self {
-        Self {
-            consumes: crate::stages::shape_union_fresh::producer_consumes(),
-        }
+        let mut consumes = crate::stages::shape_union_fresh::producer_consumes();
+        consumes.extend([
+            "stage-constraint-catalog".into(),
+            "stage-term-manifest".into(),
+        ]);
+        consumes.sort();
+        Self { consumes }
     }
 }
 
@@ -420,12 +419,7 @@ impl Stage for PydanticStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v2-fresh-shape-union: the union's generated/shapes/*.ttl members are
-        // product-sourced from the consumed producer stages instead of read off
-        // disk. -purrdf: cut over from the hand-rolled slice-routed renderer to
-        // purrdf::shapes::pydantic::emit_pydantic (a flat single-module package) —
-        // bumped to invalidate every previously-cached slice-routed byte.
-        "pydantic.v2-fresh-shape-union-purrdf"
+        "pydantic.v3-routed-ontology-documentation"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union (`shapes/*.ttl` minus lints +
@@ -439,7 +433,13 @@ impl Stage for PydanticStage {
         // The ontology header (`ontology/gmeow.ttl`) sources the `__about__.py`
         // version stamp, so it busts the cache too.
         let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
+        files.extend(crate::stages::docs_render::docs_source_files(root)?);
         files.extend(crate::stages::value_vocab::ontology_module_files(root));
+        for module in crate::stages::source_load::module_files(root)? {
+            if let Some(dir) = module.parent() {
+                files.push(dir.join("manifest.ttl"));
+            }
+        }
         files.push(root.join("ontology").join("gmeow.ttl"));
         files.sort();
         files.dedup();
@@ -452,7 +452,30 @@ impl Stage for PydanticStage {
         )?;
         let (_store, shapes) =
             crate::stages::shape_union_fresh::load_shapes_fresh(input.root, &fresh)?;
-        let rendered = render_pydantic_package(input.root, &shapes)?;
+        let artifact = |stage: &str, path: &str| {
+            input
+                .upstream
+                .get(stage)
+                .and_then(|product| product.artifact(path))
+                .ok_or_else(|| {
+                    err(format!(
+                        "missing fresh {stage} artifact {path} for model documentation"
+                    ))
+                })
+        };
+        let manifest = artifact(
+            "stage-term-manifest",
+            crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH,
+        )?;
+        let catalog = artifact(
+            "stage-constraint-catalog",
+            crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
+        )?;
+        let model = gmeow_docs::DocsModel::discover_with_manifest_and_catalog(
+            input.root, manifest, catalog,
+        )
+        .map_err(|e| err(format!("read fresh model documentation: {e}")))?;
+        let rendered = render_pydantic_package(input.root, &shapes, &model)?;
         // Key every member at its on-disk package path (the wheel source tree); the
         // carrier strips the prefix back to the package-relative blob member key.
         let artifacts: BTreeMap<String, Vec<u8>> = rendered
