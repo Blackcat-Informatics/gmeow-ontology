@@ -16528,7 +16528,11 @@ math:IncompleteHolonomy a logic:Situation .
 # Explicit consumer projection selection; the resulting judgment is a ProjectionRecord.
 math:ProjectionRequest
     a logic:Class , logic:AbstractIndividualType ;
-    logic:subClassOf math:MathematicalObject ;
+    logic:subClassOf math:MathematicalObject ,
+        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:allValuesFrom math:MathematicalObject ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:maxQualifiedCardinality 1 ; logic:onClass math:MathematicalObject ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionTargetName ; logic:allValuesFrom xsd:string ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionTargetName ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Projection Request"@x-gmeow-english ;
     skos:definition "An explicit selection of one canonical mathematical source and one external consumer codec. The request names its source through math:projectionSource and its target through math:projectionTargetName. Execution must produce the selected artifact together with its computed math:ProjectionRecord or fail; the request is not a preservation claim and never stands in for the resulting loss judgment."@x-gmeow-english ;
@@ -16538,3 +16542,6 @@ math:ProjectionRequest
     skos:scopeNote "The request selects work; the separate ProjectionRecord judges the actual result. Unknown or unsupported selected targets fail explicitly."@x-gmeow-english ;
     skos:example "ex:request a math:ProjectionRequest ; math:projectionSource ex:rendering ; math:projectionTargetName \"mathml\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+[ a logic:ClosureEntry ; logic:onClass math:ProjectionRequest ; logic:closureKey "https://blackcatinformatics.ca/math/projectionSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass math:ProjectionRequest ; logic:closureKey "https://blackcatinformatics.ca/math/projectionTargetName" ; logic:closureValue logic:ClosedWorldClosure ] .

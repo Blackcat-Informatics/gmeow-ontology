@@ -491,7 +491,14 @@ fn method(input: &mut Source, root: &RdfTerm, source: &str) -> gmeow_errors::Res
         .chain([RdfTerm::iri(math(class))])
     {
         mappings.extend(input.values(&class, SKOS_EXACT));
-        mappings.extend(input.values(&class, "http://www.w3.org/2004/02/skos/core#closeMatch"));
+        let close = input.values(&class, "http://www.w3.org/2004/02/skos/core#closeMatch");
+        if close.iter().any(|term| matches!(term, RdfTerm::Iri(iri) if iri.starts_with("http://purl.obolibrary.org/obo/STATO_"))) {
+            if let RdfTerm::Iri(iri) = &class {
+                input.boundaries.insert(iri.clone());
+            }
+            input.boundaries.insert("http://www.w3.org/2004/02/skos/core#closeMatch".to_owned());
+        }
+        mappings.extend(close);
     }
     let targets: BTreeSet<_> = mappings
         .iter()
@@ -547,12 +554,7 @@ fn observation(input: &mut Source, root: &RdfTerm, source: &str) -> gmeow_errors
         let denominator = input.literal(&rational, &math("denominator"))?;
         expression::integer_literal(&numerator)?;
         expression::integer_literal(&denominator)?;
-        if denominator
-            .lexical_form
-            .trim_start_matches(['+', '-'])
-            .bytes()
-            .all(|byte| byte == b'0')
-        {
+        if expression::canonical_integer(&denominator.lexical_form)? == "0" {
             return Err(invalid("matrix rational denominator cannot be zero"));
         }
         if cells

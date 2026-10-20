@@ -9,7 +9,10 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
-ex:integer a math:NumberLiteral ; math:literalValue "7"^^xsd:integer .
+ex:integer a math:NumberLiteral ; math:literalValue ex:seven .
+ex:seven a math:Number, math:Integer, math:RationalValue ;
+    math:inNumberSystem math:integers ; math:isExact true ;
+    math:numerator "7"^^xsd:integer ; math:denominator 1 .
 ex:rendering a math:ExpressionRendering ;
     lang:renderedContent ex:integer ;
     lang:renderingKind lang:renderingNotation ;

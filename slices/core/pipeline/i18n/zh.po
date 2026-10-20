@@ -242,5 +242,5 @@ msgid "This extraction reconstructs an emitted target artifact; it does not stre
 msgstr "此导出重建已生成的目标产物，不会提升其保留性判断。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#example"
-msgid "Extract generated/projections/math/loss-ledger.ttl together with generated/projections/math/loss-ledger.ttl."
-msgstr "将 generated/projections/math/loss-ledger.ttl 与 generated/projections/math/loss-ledger.ttl 一同导出。"
+msgid "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."
+msgstr "将 generated/projections/math/loss-ledger.ttl 与它所记录损失的目标产物一同导出。"

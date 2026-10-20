@@ -213,78 +213,112 @@ fn variable(input: &mut Source, node: &RdfTerm, target: Target) -> gmeow_errors:
 
 fn number(input: &mut Source, node: &RdfTerm, target: Target) -> gmeow_errors::Result<String> {
     let value = input.one(node, &math("literalValue"))?;
-    let value = match value {
-        RdfTerm::Literal(value) => value,
-        number @ RdfTerm::Iri(_) => {
-            input.typed(&number, &math("RationalValue"))?;
-            let numerator = input.literal(&number, &math("numerator"))?;
-            let denominator = input.literal(&number, &math("denominator"))?;
-            integer_literal(&numerator)?;
-            integer_literal(&denominator)?;
-            let numerator = canonical_integer(&numerator.lexical_form)?;
-            let denominator = canonical_integer(&denominator.lexical_form)?;
-            if denominator == "0" {
-                return Err(invalid("exact rational denominator cannot be zero"));
-            }
-            return Ok(if target == Target::MathMl {
-                format!("<cn type=\"rational\">{numerator}<sep/>{denominator}</cn>")
-            } else {
-                format!(
-                    "<OMA><OMS cd=\"nums1\" name=\"rational\"/><OMI>{numerator}</OMI><OMI>{denominator}</OMI></OMA>"
-                )
-            });
-        }
-        _ => {
-            return Err(invalid(
-                "numeric expression requires a typed literal or an explicit rational value",
-            ));
-        }
-    };
-    if value.language.is_some() || value.direction.is_some() {
-        return Err(invalid("numeric literal cannot have language or direction"));
-    }
-    super::numeric(&value)?;
-    let lexical = value.lexical_form.trim_matches([' ', '\t', '\r', '\n']);
-    let datatype = value.datatype_iri();
-    if datatype == format!("{XSD}integer") {
-        let lexical = canonical_integer(lexical)?;
-        return Ok(if target == Target::MathMl {
-            format!("<cn type=\"integer\">{}</cn>", xml(&lexical))
-        } else {
-            format!("<OMI>{}</OMI>", xml(&lexical))
-        });
-    }
-    if datatype == format!("{XSD}decimal") {
-        let unsigned = lexical.strip_prefix(['+', '-']).unwrap_or(lexical);
-        let mut parts = unsigned.split('.');
-        let integral = parts.next().unwrap_or_default();
-        let fraction = parts.next().unwrap_or_default();
-        if parts.next().is_some()
-            || (integral.is_empty() && fraction.is_empty())
-            || !integral
-                .bytes()
-                .chain(fraction.bytes())
-                .all(|byte| byte.is_ascii_digit())
-        {
-            return Err(invalid("invalid xsd:decimal lexical value"));
-        }
-        if target == Target::MathMl {
-            return Ok(format!("<cn type=\"real\">{}</cn>", xml(lexical)));
-        }
-        let numerator = format!(
-            "{}{}{}",
-            if lexical.starts_with('-') { "-" } else { "" },
-            integral,
-            fraction
-        );
-        let denominator = format!("1{}", "0".repeat(fraction.len()));
-        return Ok(format!(
-            "<OMA><OMS cd=\"nums1\" name=\"rational\"/><OMI>{numerator}</OMI><OMI>{denominator}</OMI></OMA>"
+    if matches!(value, RdfTerm::Literal(_)) {
+        return Err(invalid(
+            "math:literalValue must reference a math:Number object, never a bare RDF literal",
         ));
     }
-    Err(invalid(format!(
-        "numeric datatype {datatype} has no admitted exact content encoding"
-    )))
+    let system = number_system(input, &value)?;
+    input.boundaries.insert(math("inNumberSystem"));
+    input.boundaries.insert(system);
+    let types = input.values(&value, RDF_TYPE);
+    if !types.contains(&RdfTerm::iri(math("RationalValue"))) {
+        // A named exact number can be represented by its declared identity. A label
+        // never supplies its magnitude or invents a content-dictionary alignment.
+        if target == Target::OpenMath
+            && let RdfTerm::Iri(iri) = &value
+        {
+            input.boundaries.insert(iri.clone());
+        }
+        return symbol_xml(input, &value, target);
+    }
+    let numerator = input.literal(&value, &math("numerator"))?;
+    let denominator = input.literal(&value, &math("denominator"))?;
+    integer_literal(&numerator)?;
+    integer_literal(&denominator)?;
+    let numerator = canonical_integer(&numerator.lexical_form)?;
+    let denominator = canonical_integer(&denominator.lexical_form)?;
+    if denominator == "0" {
+        return Err(invalid("exact rational denominator cannot be zero"));
+    }
+    if let RdfTerm::Iri(iri) = &value {
+        input.boundaries.insert(iri.clone());
+    }
+    if denominator == "1" {
+        return Ok(if target == Target::MathMl {
+            format!("<cn type=\"integer\">{numerator}</cn>")
+        } else {
+            format!("<OMI>{numerator}</OMI>")
+        });
+    }
+    Ok(if target == Target::MathMl {
+        format!("<cn type=\"rational\">{numerator}<sep/>{denominator}</cn>")
+    } else {
+        format!(
+            "<OMA><OMS cd=\"nums1\" name=\"rational\"/><OMI>{numerator}</OMI><OMI>{denominator}</OMI></OMA>"
+        )
+    })
+}
+
+pub(super) fn is_number_type(types: &[RdfTerm]) -> bool {
+    [
+        "Number",
+        "NaturalNumber",
+        "Integer",
+        "RationalNumber",
+        "RealNumber",
+        "ComplexNumber",
+        "AlgebraicNumber",
+        "TranscendentalNumber",
+        "MathematicalConstant",
+    ]
+    .iter()
+    .any(|kind| types.contains(&RdfTerm::iri(math(kind))))
+}
+
+pub(super) fn number_system(input: &mut Source, value: &RdfTerm) -> gmeow_errors::Result<String> {
+    let types = input.values(value, RDF_TYPE);
+    if !is_number_type(&types) || types.contains(&RdfTerm::iri(math("ApproximateValue"))) {
+        return Err(invalid(
+            "numeric literal needs a declared math:Number, distinct from an ApproximateValue",
+        ));
+    }
+    let system = input.iri(value, &math("inNumberSystem"))?;
+    let exact = input.literal(value, &math("isExact"))?;
+    if exact.datatype_iri() != format!("{XSD}boolean")
+        || exact.language.is_some()
+        || exact.direction.is_some()
+    {
+        return Err(invalid("number exactness requires an xsd:boolean"));
+    }
+    let exact = purrdf::xsd::parse_by_iri(
+        exact.lexical_form.trim_matches([' ', '\t', '\r', '\n']),
+        exact.datatype_iri(),
+    )
+    .map_err(|error| invalid_source(format!("invalid number exactness: {error}"), error))?;
+    if !matches!(exact, Some(purrdf::xsd::XsdValue::Boolean(true))) {
+        return Err(invalid("selected content profile requires an exact number"));
+    }
+    Ok(system)
+}
+
+pub(super) fn decimal_ratio(text: &str) -> gmeow_errors::Result<(String, String)> {
+    let value = purrdf::xsd::parse_by_iri(
+        text.trim_matches([' ', '\t', '\r', '\n']),
+        &format!("{XSD}decimal"),
+    )
+    .map_err(|error| invalid_source(format!("invalid decimal literal: {error}"), error))?
+    .ok_or_else(|| invalid("decimal datatype is not admitted"))?;
+    let lexical = value.canonical_lexical();
+    let unsigned = lexical.strip_prefix('-').unwrap_or(&lexical);
+    let (integral, fraction) = unsigned.split_once('.').unwrap_or((unsigned, ""));
+    let numerator = canonical_integer(&format!(
+        "{}{}{}",
+        if lexical.starts_with('-') { "-" } else { "" },
+        integral,
+        fraction
+    ))?;
+    Ok((numerator, format!("1{}", "0".repeat(fraction.len()))))
 }
 
 fn integer(value: &str) -> gmeow_errors::Result<()> {

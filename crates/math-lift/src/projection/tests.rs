@@ -14,7 +14,7 @@ const PREFIX: &str = "@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix ex: <urn:projection:test:> .";
-const LEAF: &str = "ex:n a math:NumberLiteral ; math:literalValue \"123456789012345678901234567890\"^^xsd:integer .
+const LEAF: &str = "ex:n a math:NumberLiteral ; math:literalValue ex:largeNumber . ex:largeNumber a math:Number, math:Integer, math:RationalValue ; math:inNumberSystem math:integers ; math:isExact true ; math:numerator \"123456789012345678901234567890\"^^xsd:integer ; math:denominator 1 .
 ex:r a math:ExpressionRendering ; lang:renderedContent ex:n ; lang:renderingKind lang:renderingNotation ; lang:renderingConvention <http://www.w3.org/1998/Math/MathML> ; lang:renderingPreservation logic:ExactPreservation .";
 
 fn data(source: &str) -> Arc<RdfDataset> {
@@ -33,7 +33,9 @@ fn empty() -> Arc<RdfDataset> {
 
 #[test]
 fn math_projection_emits_real_content_xml_and_mandatory_loss_records() {
-    let signed = data("ex:n a math:NumberLiteral ; math:literalValue \"+007\"^^xsd:integer .");
+    let signed = data(
+        "ex:n a math:NumberLiteral ; math:literalValue ex:seven . ex:seven a math:Number, math:Integer, math:RationalValue ; math:inNumberSystem math:integers ; math:isExact true ; math:numerator \"+007\"^^xsd:integer ; math:denominator 1 .",
+    );
     let emitted = project(&signed, "urn:projection:test:n", Target::OpenMath, &empty()).unwrap();
     assert!(String::from_utf8_lossy(&emitted.bytes).contains("<OMI>7</OMI>"));
     let source = data(LEAF);
@@ -110,8 +112,8 @@ fn math_projection_keeps_argument_order_and_resolves_real_dictionary_symbols() {
         .is_ok()
     );
     let source = data(&format!(
-        "{LEAF}\nex:m a math:NumberLiteral ; math:literalValue 2 .
-ex:add skos:exactMatch <http://www.openmath.org/cd/arith1#plus> .
+        "{LEAF}\nex:m a math:NumberLiteral ; math:literalValue ex:two . ex:two a math:Number, math:Integer, math:RationalValue ; math:inNumberSystem math:integers ; math:isExact true ; math:numerator 2 ; math:denominator 1 .
+ex:add a math:ArithmeticOperation ; skos:exactMatch <http://www.openmath.org/cd/arith1#plus> .
 ex:app a math:ApplicationExpression ; math:operator ex:add ; math:argumentSlot ex:b, ex:a .
 ex:a a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:n .
 ex:b a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:m ."
@@ -237,10 +239,22 @@ fn math_projection_qudt_checks_classification_dimensions_and_typed_values() {
 
 #[test]
 fn math_projection_cube_preserves_exact_rational_cells_without_decimal_rounding() {
-    let source = data(
-        "ex:matrix a math:DatasetMatrix ; math:hasEntry ex:entry .
+    let source_text = "ex:matrix a math:DatasetMatrix ; math:hasEntry ex:entry .
 ex:entry a math:MatrixEntry ; math:atRow 0 ; math:atColumn 3 ; math:entryValue ex:value .
-ex:value a math:RationalValue ; math:numerator 1 ; math:denominator 3 .",
+ex:value a math:RationalValue ; math:numerator 1 ; math:denominator 3 .";
+    let source = data(source_text);
+    let zero = data(&source_text.replace(
+        "math:denominator 3",
+        "math:denominator \" -0 \"^^xsd:integer",
+    ));
+    assert!(
+        project(
+            &zero,
+            "urn:projection:test:matrix",
+            Target::DataCube,
+            &empty()
+        )
+        .is_err()
     );
     let emitted = project(
         &source,
@@ -294,6 +308,15 @@ ex:formula a math:ModelFormula . math:StatisticalModel skos:closeMatch <http://p
     )
     .unwrap();
     assert!(String::from_utf8_lossy(&emitted.bytes).contains("STATO_0000107"));
+    let mut ledger = Source::new(&data(&emitted.ledger));
+    let losses = ledger.values(
+        &RdfTerm::iri(&emitted.record),
+        &format!("{LOGIC}unsupportedConstruct"),
+    );
+    assert!(losses.contains(&RdfTerm::iri(
+        "http://www.w3.org/2004/02/skos/core#closeMatch"
+    )));
+    assert!(losses.contains(&RdfTerm::iri(math("StatisticalModel"))));
     assert!(
         lift(
             &emitted.bytes,
@@ -365,6 +388,44 @@ fn math_projection_presentation_lift_records_notation_without_a_fabricated_ast()
 }
 
 #[test]
+fn math_projection_symbol_lifts_keep_native_ownership_and_variable_identity() {
+    let reference = data(
+        "ex:add a math:ArithmeticOperation ; skos:exactMatch <http://www.openmath.org/cd/arith1#plus> .",
+    );
+    let input = b"<math xmlns='http://www.w3.org/1998/Math/MathML'><apply><csymbol definitionURL='urn:projection:test:add'>+</csymbol><ci>x</ci><ci> x </ci></apply></math>";
+    let lifted = lift(input, Target::MathMl, "", &reference, "urn:lift:/").unwrap();
+    let mut index = Source::new(&data(&lifted.turtle));
+    let subjects: Vec<_> = index.rows.keys().cloned().collect();
+    let declarations = subjects
+        .iter()
+        .filter(|subject| {
+            index
+                .values(subject, RDF_TYPE)
+                .contains(&RdfTerm::iri(math("FreeVariableDeclaration")))
+        })
+        .count();
+    assert_eq!(
+        declarations, 1,
+        "token whitespace must not split one free variable"
+    );
+    let external =
+        b"<OMOBJ xmlns='http://www.openmath.org/OpenMath'><OMS cd='arith1' name='plus'/></OMOBJ>";
+    let reversed = data("<http://www.openmath.org/cd/arith1#plus> skos:exactMatch ex:add .");
+    assert!(lift(external, Target::OpenMath, "", &reversed, "urn:lift:/").is_err());
+    let close = data(
+        "ex:add a math:ArithmeticOperation ; skos:closeMatch <http://www.openmath.org/cd/arith1#plus> .",
+    );
+    assert!(
+        lift(external, Target::OpenMath, "", &close, "urn:lift:/").is_err(),
+        "approximate output alignment must not authorize exact symbol reconstruction"
+    );
+    assert!(
+        lift(input, Target::MathMl, "", &close, "urn:lift:/").is_ok(),
+        "an explicitly typed native identity needs no reverse external inference"
+    );
+}
+
+#[test]
 fn math_projection_requests_are_explicit_atomic_and_source_bound() {
     let source = data(&format!(
         "{LEAF}\nex:request a math:ProjectionRequest ; math:projectionSource ex:r ; math:projectionTargetName \"mathml\" ."
@@ -425,7 +486,7 @@ fn math_projection_competencies_inspect_actual_correspondences_and_sensitive_los
 
 #[test]
 fn math_projection_distinguishes_cycles_from_shared_expression_subtrees() {
-    let prefix = "ex:add skos:exactMatch <http://www.openmath.org/cd/arith1#plus> . ex:app a math:ApplicationExpression ; math:operator ex:add ; math:argumentSlot ex:a, ex:b . ex:a a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:n . ex:b a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:n .";
+    let prefix = "ex:add a math:ArithmeticOperation ; skos:exactMatch <http://www.openmath.org/cd/arith1#plus> . ex:app a math:ApplicationExpression ; math:operator ex:add ; math:argumentSlot ex:a, ex:b . ex:a a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:n . ex:b a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:n .";
     let shared = data(&format!("{LEAF}\n{prefix}"));
     let canonical_index = data(&format!(
         "{LEAF}\n{}",
@@ -492,13 +553,13 @@ fn math_projection_stato_preserves_the_selected_statistical_profile() {
         (
             "Statistic",
             "definingExpression",
-            "ex:anchor a math:NumberLiteral ; math:literalValue 1 .",
+            "ex:anchor a math:NumberLiteral ; math:literalValue ex:one . ex:one a math:Number, math:Integer, math:RationalValue ; math:inNumberSystem math:integers ; math:isExact true ; math:numerator 1 ; math:denominator 1 .",
             "STATO_0000039",
         ),
         (
             "HypothesisTest",
             "testStatistic",
-            "ex:anchor a math:Statistic ; math:definingExpression ex:body . ex:body a math:NumberLiteral ; math:literalValue 1 .",
+            "ex:anchor a math:Statistic ; math:definingExpression ex:body . ex:body a math:NumberLiteral ; math:literalValue ex:one . ex:one a math:Number, math:Integer, math:RationalValue ; math:inNumberSystem math:integers ; math:isExact true ; math:numerator 1 ; math:denominator 1 .",
             "STATO_0000038",
         ),
     ] {
@@ -553,11 +614,125 @@ fn math_projection_rational_tokens_refuse_hidden_markup_and_qualifiers() {
     let index = Source::new(&data(&lifted.turtle));
     assert!(
         index.rows.values().any(
-            |row| row.get(&math("literalValue")).is_some_and(|values| values
+            |row| row.get(&math("numerator")).is_some_and(|values| values
                 == &vec![RdfTerm::literal(RdfLiteral::typed(
                     "12",
                     "http://www.w3.org/2001/XMLSchema#integer"
                 ))])
         )
+    );
+}
+
+#[test]
+fn math_projection_uses_situated_number_objects_without_guessing_from_labels() {
+    let source = data(
+        "ex:n a math:NumberLiteral ; math:literalValue ex:pi . ex:pi a math:RealNumber ; math:inNumberSystem math:realNumbers ; math:isExact true ; <http://www.w3.org/2000/01/rdf-schema#label> \"3.14\" . ex:r a math:ExpressionRendering ; lang:renderedContent ex:n ; lang:renderingKind lang:renderingNotation ; lang:renderingConvention <http://www.w3.org/1998/Math/MathML> ; lang:renderingPreservation logic:ExactPreservation .",
+    );
+    let emitted = project(&source, "urn:projection:test:r", Target::MathMl, &empty()).unwrap();
+    let xml = std::str::from_utf8(&emitted.bytes).unwrap();
+    assert!(xml.contains("definitionURL=\"urn:projection:test:pi\""));
+    assert!(!xml.contains("3.14"));
+    assert!(project(&source, "urn:projection:test:n", Target::OpenMath, &empty()).is_err());
+    let lifted = lift(&emitted.bytes, Target::MathMl, "", &source, "urn:lift:/").unwrap();
+    let index = Source::new(&data(&lifted.turtle));
+    assert!(index.rows.values().any(|row| {
+        row.get(&math("literalValue"))
+            .is_some_and(|values| values == &vec![RdfTerm::iri("urn:projection:test:pi")])
+    }));
+    for mutation in [
+        LEAF.replace("math:isExact true", "math:isExact false"),
+        LEAF.replace("math:inNumberSystem math:integers ;", ""),
+        LEAF.replace("math:denominator 1", "math:denominator 0"),
+        LEAF.replace("math:RationalValue", "math:ApproximateValue"),
+    ] {
+        assert!(
+            project(
+                &data(&mutation),
+                "urn:projection:test:n",
+                Target::OpenMath,
+                &empty()
+            )
+            .is_err()
+        );
+    }
+    let lifted = lift(
+        b"<math xmlns='http://www.w3.org/1998/Math/MathML'><cn type='real'>-12.50</cn></math>",
+        Target::MathMl,
+        "",
+        &empty(),
+        "urn:lift:/",
+    )
+    .unwrap();
+    let mut index = Source::new(&data(&lifted.turtle));
+    let number = index
+        .rows
+        .iter()
+        .find_map(|(subject, row)| {
+            row.get(RDF_TYPE)
+                .is_some_and(|types| types.contains(&RdfTerm::iri(math("Number"))))
+                .then_some(subject.clone())
+        })
+        .unwrap();
+    assert_eq!(
+        index.iri(&number, &math("inNumberSystem")).unwrap(),
+        math("realNumbers")
+    );
+    assert_eq!(
+        index
+            .literal(&number, &math("isExact"))
+            .unwrap()
+            .lexical_form,
+        "true"
+    );
+    let numerator = index
+        .literal(&number, &math("numerator"))
+        .unwrap()
+        .lexical_form
+        .parse::<i64>()
+        .unwrap();
+    let denominator = index
+        .literal(&number, &math("denominator"))
+        .unwrap()
+        .lexical_form
+        .parse::<i64>()
+        .unwrap();
+    assert_eq!(numerator * 2, denominator * -25);
+    assert!(
+        index
+            .rows
+            .values()
+            .filter_map(|row| row.get(&math("literalValue")))
+            .flatten()
+            .all(|value| !matches!(value, RdfTerm::Literal(_)))
+    );
+}
+
+#[test]
+fn math_projection_lift_requires_native_symbol_ownership_and_normalizes_variables() {
+    let xml =
+        b"<OMOBJ xmlns='http://www.openmath.org/OpenMath'><OMS cd='arith1' name='plus'/></OMOBJ>";
+    let reversed = data("<http://www.openmath.org/cd/arith1#plus> skos:exactMatch ex:add .");
+    assert!(lift(xml, Target::OpenMath, "", &reversed, "urn:lift:/").is_err());
+    let close = data(
+        "ex:add a math:ArithmeticOperation ; skos:closeMatch <http://www.openmath.org/cd/arith1#plus> .",
+    );
+    assert!(lift(xml, Target::OpenMath, "", &close, "urn:lift:/").is_err());
+    let exact = data(
+        "ex:add a math:ArithmeticOperation ; skos:exactMatch <http://www.openmath.org/cd/arith1#plus> .",
+    );
+    assert!(lift(xml, Target::OpenMath, "", &exact, "urn:lift:/").is_ok());
+    let lifted = lift(b"<math xmlns='http://www.w3.org/1998/Math/MathML'><apply><csymbol definitionURL='urn:projection:test:add'/><ci>x</ci><ci> x </ci></apply></math>", Target::MathMl, "", &exact, "urn:lift:/").unwrap();
+    let index = Source::new(&data(&lifted.turtle));
+    assert_eq!(
+        index
+            .rows
+            .values()
+            .filter(|row| {
+                row.get(RDF_TYPE).is_some_and(|types| {
+                    types.contains(&RdfTerm::iri(math("FreeVariableDeclaration")))
+                })
+            })
+            .count(),
+        1
     );
 }

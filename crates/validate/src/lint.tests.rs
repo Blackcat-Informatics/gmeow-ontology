@@ -2395,7 +2395,7 @@ fn ungrounded_result_claim_fires_under_a_non_default_namespace() {
 fn generated_math_projection_ledger_passes_the_six_native_projection_checks() {
     // gmeow-test-input: synthetic-only
     let source = dataset_from(
-        "@prefix math: <https://blackcatinformatics.ca/math/> . <urn:math:leaf> a math:NumberLiteral ; math:literalValue 7 .",
+        "@prefix math: <https://blackcatinformatics.ca/math/> . <urn:math:leaf> a math:NumberLiteral ; math:literalValue <urn:math:seven> . <urn:math:seven> a math:Number, math:Integer, math:RationalValue ; math:inNumberSystem math:integers ; math:isExact true ; math:numerator 7 ; math:denominator 1 .",
     );
     let reference = dataset_from("");
     let emission = gmeow_math::projection::project(

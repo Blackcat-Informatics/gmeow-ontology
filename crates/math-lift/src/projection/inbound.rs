@@ -318,24 +318,25 @@ fn emit_expression(
             } else {
                 node.attribute("type").unwrap_or("real")
             };
-            let datatype = match kind {
-                "integer" => format!("{XSD}integer"),
-                "real" => format!("{XSD}decimal"),
-                _ => return Err(invalid("unsupported content numeric kind")),
-            };
             let text = if name == "OMI" {
                 openmath_integer(node)?
             } else {
                 token_text(node)?
             };
-            let literal = RdfLiteral::typed(text.trim(), datatype);
-            if kind == "integer" {
-                super::expression::integer_literal(&literal)?;
-            } else {
-                super::numeric(&literal)?;
-            }
-            sink.typed(&iri, &math("NumberLiteral"))?;
-            sink.lit(&iri, &math("literalValue"), literal)?;
+            let (numerator, denominator, class, system) = match kind {
+                "integer" => (
+                    super::expression::canonical_integer(&text)?,
+                    "1".to_owned(),
+                    "Integer",
+                    "integers",
+                ),
+                "real" => {
+                    let (numerator, denominator) = super::expression::decimal_ratio(&text)?;
+                    (numerator, denominator, "RealNumber", "realNumbers")
+                }
+                _ => return Err(invalid("unsupported content numeric kind")),
+            };
+            number(&numerator, &denominator, (class, system), &iri, frame, sink)?;
         }
         (Target::MathMl, "ci") | (Target::OpenMath, "OMV") => {
             if target == Target::OpenMath
@@ -350,7 +351,8 @@ fn emit_expression(
             } else {
                 node.attribute("name")
             }
-            .filter(|name| !name.trim().is_empty())
+            .map(|name| name.trim_matches([' ', '\t', '\r', '\n']))
+            .filter(|name| !name.is_empty())
             .ok_or_else(|| invalid("empty content variable identity"))?;
             if target == Target::OpenMath && !purrdf_lex::terminals::is_ncname(name) {
                 return Err(invalid("OpenMath variable name must be an XML NCName"));
@@ -369,8 +371,15 @@ fn emit_expression(
         (Target::MathMl, "csymbol") | (Target::OpenMath, "OMS") => {
             let external = external_symbol(node, target)?;
             let local = resolve_symbol(reference, &external)?;
-            sink.typed(&iri, &math("SymbolReference"))?;
-            sink.iri(&iri, &math("hasMathematicalSymbol"), &local)?;
+            if super::expression::is_number_type(&reference.values(&RdfTerm::iri(&local), RDF_TYPE))
+            {
+                super::expression::number_system(reference, &RdfTerm::iri(&local))?;
+                sink.typed(&iri, &math("NumberLiteral"))?;
+                sink.iri(&iri, &math("literalValue"), &local)?;
+            } else {
+                sink.typed(&iri, &math("SymbolReference"))?;
+                sink.iri(&iri, &math("hasMathematicalSymbol"), &local)?;
+            }
         }
         (Target::MathMl, "apply") | (Target::OpenMath, "OMA") => {
             let children = elements(node)?;
@@ -416,6 +425,12 @@ fn emit_expression(
                 );
             }
             let local = resolve_symbol(reference, &external)?;
+            if super::expression::is_number_type(&reference.values(&RdfTerm::iri(&local), RDF_TYPE))
+            {
+                return Err(invalid(
+                    "a number reference cannot serve as an application operator",
+                ));
+            }
             sink.typed(&iri, &math("ApplicationExpression"))?;
             sink.iri(&iri, &math("operator"), &local)?;
             for (index, operand) in operands.iter().enumerate() {
@@ -526,13 +541,9 @@ fn external_symbol(node: Node<'_, '_>, target: Target) -> gmeow_errors::Result<S
 fn resolve_symbol(reference: &mut Source, external: &str) -> gmeow_errors::Result<String> {
     let native = RdfTerm::iri(external);
     if reference.rows.get(&native).is_some_and(|fields| {
-        fields.contains_key(SKOS_EXACT)
-            || fields.contains_key("http://www.w3.org/2004/02/skos/core#closeMatch")
-            || fields.get(RDF_TYPE).is_some_and(|types| {
-                ["Operation", "ArithmeticOperation", "MathematicalSymbol"]
-                    .iter()
-                    .any(|kind| types.contains(&RdfTerm::iri(math(kind))))
-            })
+        fields
+            .get(RDF_TYPE)
+            .is_some_and(|types| native_symbol(types))
     }) {
         return Ok(external.to_owned());
     }
@@ -543,6 +554,9 @@ fn resolve_symbol(reference: &mut Source, external: &str) -> gmeow_errors::Resul
             if predicates
                 .get(SKOS_EXACT)
                 .is_some_and(|values| values.contains(&RdfTerm::iri(external)))
+                && predicates
+                    .get(RDF_TYPE)
+                    .is_some_and(|types| native_symbol(types))
             {
                 match subject {
                     RdfTerm::Iri(iri) => Some(iri.clone()),
@@ -559,6 +573,13 @@ fn resolve_symbol(reference: &mut Source, external: &str) -> gmeow_errors::Resul
         )));
     };
     Ok(local.clone())
+}
+
+fn native_symbol(types: &[RdfTerm]) -> bool {
+    super::expression::is_number_type(types)
+        || ["Operation", "ArithmeticOperation", "MathematicalSymbol"]
+            .iter()
+            .any(|kind| types.contains(&RdfTerm::iri(math(kind))))
 }
 
 fn lift_quantity(
@@ -684,12 +705,7 @@ fn lift_cube(
         let denominator = input.literal(&observation, &math("denominator"))?;
         super::expression::integer_literal(&numerator)?;
         super::expression::integer_literal(&denominator)?;
-        if denominator
-            .lexical_form
-            .trim_start_matches(['+', '-'])
-            .bytes()
-            .all(|byte| byte == b'0')
-        {
+        if super::expression::canonical_integer(&denominator.lexical_form)? == "0" {
             return Err(invalid("cube rational denominator is zero"));
         }
         let entry = frame.node("entry", &format!("{}:{}", position.0, position.1));
@@ -717,14 +733,41 @@ fn rational(
     frame: &RunFrame,
     sink: &mut Sink,
 ) -> gmeow_errors::Result<String> {
+    number(
+        numerator,
+        denominator,
+        ("RationalNumber", "rationalNumbers"),
+        expression,
+        frame,
+        sink,
+    )
+}
+
+fn number(
+    numerator: &str,
+    denominator: &str,
+    profile: (&str, &str),
+    expression: &str,
+    frame: &RunFrame,
+    sink: &mut Sink,
+) -> gmeow_errors::Result<String> {
+    let (class, system) = profile;
     let numerator = super::expression::canonical_integer(numerator)?;
     let denominator = super::expression::canonical_integer(denominator)?;
     if denominator == "0" {
         return Err(invalid("rational denominator cannot be zero"));
     }
-    let value = frame.node("rational", &format!("{numerator}/{denominator}"));
+    let value = frame.node("number", &format!("{system}:{numerator}/{denominator}"));
     sink.typed(expression, &math("NumberLiteral"))?;
     sink.typed(&value, &math("RationalValue"))?;
+    sink.typed(&value, &math("Number"))?;
+    sink.typed(&value, &math(class))?;
+    sink.iri(&value, &math("inNumberSystem"), &math(system))?;
+    sink.lit(
+        &value,
+        &math("isExact"),
+        RdfLiteral::typed("true", format!("{XSD}boolean")),
+    )?;
     sink.iri(expression, &math("literalValue"), &value)?;
     sink.lit(
         &value,

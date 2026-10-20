@@ -3080,7 +3080,7 @@ gmeow:fanout-math-loss-ledger a gmeow:FanoutExtraction ;
     gmeow:avoidWhen "Do not use an external target projection as the canonical mathematical theory."@x-gmeow-english ;
     gmeow:howToUse "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."@x-gmeow-english ;
     skos:scopeNote "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."@x-gmeow-english ;
-    skos:example "Extract generated/projections/math/loss-ledger.ttl together with generated/projections/math/loss-ledger.ttl."@x-gmeow-english ;
+    skos:example "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/math/loss-ledger.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .

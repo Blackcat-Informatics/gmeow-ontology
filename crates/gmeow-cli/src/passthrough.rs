@@ -599,6 +599,86 @@ impl StagedBundle {
     }
 }
 
+fn math_diag_at(diag: gmeow_errors::Diag, path: &Path, leaf: &str) -> gmeow_errors::Diag {
+    let mut location = diag.inner().source_ctx.location.clone();
+    location.path = Some(path.display().to_string());
+    diag.with_location(location)
+        .with_context(format!("gmeow math {leaf}"))
+}
+
+fn math_reference(
+    path: &Path,
+    leaf: &str,
+) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
+    let bytes = std::fs::read(path).map_err(|error| math_diag_at(error.into(), path, leaf))?;
+    purrdf::parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|error| math_diag_at(error.into(), path, leaf))
+}
+
+/// Resolve existing parents and final symlinks, including a dangling link to a new output.
+fn math_output_path(path: &Path) -> std::io::Result<PathBuf> {
+    let mut selected = std::path::absolute(path)?;
+    let mut seen = std::collections::HashSet::new();
+    loop {
+        let name = selected.file_name().ok_or_else(|| {
+            std::io::Error::new(std::io::ErrorKind::InvalidInput, "output needs a file name")
+        })?;
+        let parent = selected.parent().ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "output needs a parent directory",
+            )
+        })?;
+        let parent = std::fs::canonicalize(parent)?;
+        let candidate = parent.join(name);
+        if !seen.insert(candidate.clone()) {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "cyclic output symlink",
+            ));
+        }
+        match std::fs::symlink_metadata(&candidate) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                let target = std::fs::read_link(&candidate)?;
+                selected = if target.is_absolute() {
+                    target
+                } else {
+                    parent.join(target)
+                };
+            }
+            Ok(_) => return std::fs::canonicalize(candidate),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(candidate),
+            Err(error) => return Err(error),
+        }
+    }
+}
+
+fn write_math_bytes(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()> {
+    use std::io::Write;
+    let parent = path.parent().ok_or_else(|| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "output needs a parent directory",
+        )
+    })?;
+    let mut file = tempfile::NamedTempFile::new_in(parent)?;
+    file.write_all(bytes)?;
+    file.flush()?;
+    file.persist(path)?;
+    Ok(())
+}
+
+fn require_distinct_math_outputs(out: &Path, ledger: &Path) -> gmeow_errors::Result<()> {
+    if out == ledger {
+        return Err(gmeow_errors::Diag::of_kind(
+            gmeow_math_lift::error::ProjectionInput {
+                detail: "artifact and ledger paths must differ".to_owned(),
+            },
+        ));
+    }
+    Ok(())
+}
+
 /// Installed interchange entry point: all inputs are explicit user artifacts.
 fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
     use gmeow_math_lift::projection::{self, Target};
@@ -612,21 +692,44 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                 out,
                 ledger,
             } => {
-                if out == ledger {
-                    return Err(gmeow_errors::Diag::of_kind(
-                        gmeow_math_lift::error::ProjectionInput {
-                            detail: "artifact and ledger paths must differ".to_owned(),
-                        },
+                let output = math_output_path(out)
+                    .map_err(|error| math_diag_at(error.into(), out, "project"))?;
+                let ledger_output = math_output_path(ledger)
+                    .map_err(|error| math_diag_at(error.into(), ledger, "project"))?;
+                require_distinct_math_outputs(&output, &ledger_output)
+                    .map_err(|diag| math_diag_at(diag, out, "project"))?;
+                let bytes = read_source_bytes(source)
+                    .map_err(|error| math_diag_at(error.into(), source, "project"))?;
+                let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
+                    .map_err(|error| math_diag_at(error.into(), source, "project"))?;
+                let reference = math_reference(reference, "project")?;
+                let emission =
+                    projection::project(&dataset, subject, Target::parse(to)?, &reference)
+                        .map_err(|diag| math_diag_at(diag, source, "project"))?;
+                write_math_bytes(&ledger_output, emission.ledger.as_bytes())
+                    .map_err(|diag| math_diag_at(diag, ledger, "project"))?;
+                // Publishing the ledger can expose a previously absent case-insensitive alias.
+                let output = math_output_path(&output)
+                    .map_err(|error| math_diag_at(error.into(), out, "project"))?;
+                let ledger_output = math_output_path(&ledger_output)
+                    .map_err(|error| math_diag_at(error.into(), ledger, "project"))?;
+                require_distinct_math_outputs(&output, &ledger_output)
+                    .map_err(|diag| math_diag_at(diag, out, "project"))?;
+                write_math_bytes(&output, &emission.bytes)
+                    .map_err(|diag| math_diag_at(diag, out, "project"))?;
+                let published_ledger = std::fs::read(&ledger_output)
+                    .map_err(|error| math_diag_at(error.into(), ledger, "project"))?;
+                if published_ledger.as_slice() != emission.ledger.as_bytes() {
+                    return Err(math_diag_at(
+                        gmeow_errors::Diag::of_kind(gmeow_math_lift::error::ProjectionInput {
+                            detail:
+                                "artifact publication did not preserve the mandatory loss ledger"
+                                    .to_owned(),
+                        }),
+                        ledger,
+                        "project",
                     ));
                 }
-                let bytes = read_source_bytes(source)?;
-                let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)?;
-                let reference =
-                    purrdf::parse_dataset(&std::fs::read(reference)?, "text/turtle", None)?;
-                let emission =
-                    projection::project(&dataset, subject, Target::parse(to)?, &reference)?;
-                std::fs::write(out, emission.bytes)?;
-                std::fs::write(ledger, emission.ledger)?;
             }
             MathCommands::Lift {
                 source,
@@ -635,17 +738,19 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                 reference,
                 out,
             } => {
-                let bytes = read_source_bytes(source)?;
-                let reference =
-                    purrdf::parse_dataset(&std::fs::read(reference)?, "text/turtle", None)?;
+                let bytes = read_source_bytes(source)
+                    .map_err(|error| math_diag_at(error.into(), source, "lift"))?;
+                let reference = math_reference(reference, "lift")?;
                 let lifted = projection::lift(
                     &bytes,
                     Target::parse(from)?,
                     subject,
                     &reference,
                     MATH_LIFT_MINT_BASE,
-                )?;
-                std::fs::write(out, lifted.turtle)?;
+                )
+                .map_err(|diag| math_diag_at(diag, source, "lift"))?;
+                std::fs::write(out, lifted.turtle)
+                    .map_err(|error| math_diag_at(error.into(), out, "lift"))?;
             }
             _ => unreachable!("only interchange commands reach this entry point"),
         }

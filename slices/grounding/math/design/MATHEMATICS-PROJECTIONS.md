@@ -228,6 +228,10 @@ gmeow math lift expression.mml --from mathml --subject urn:example:document \
 ```
 
 These commands use no checkout, generated file, fixture selector or producer.
+Project outputs require writable parent directories. The mandatory ledger is
+published before the target, conflicting destinations fail, and the command
+checks that publishing the artifact preserved the ledger. Input diagnostics name
+the failing file and the invoked operation.
 References explicitly supply canonical symbol correspondences and classified
 unit metadata. The producer's small QUDT reference input is a codec input; it is
 not an imported QUDT TBox and does not enter canonical reasoning. Native dimension
@@ -236,11 +240,16 @@ must bind both; a conflicting quantity dimension is refused. An inbound quantity
 also needs its reference frame explicitly supplied in the reference context.
 No frame is inferred from a unit name.
 
-The content-expression profile carries typed numeric leaves, resolved symbols,
-explicit free-variable declarations and contiguous indexed applications. Number
-objects without a supported numeric representation, binders and unresolved
-operators are explicit refusals. Decimal values are encoded as exact rational
-content in OpenMath rather than floating approximations. MathML emission reads
+The content-expression profile carries numeric leaves pointing to `math:Number`
+objects, resolved symbols, explicit free-variable declarations and contiguous
+indexed applications. Each number declares its number system and exactness; a
+bare RDF literal is not a `math:literalValue`. A number additionally classified
+as `math:RationalValue` supplies its exact integer numerator and denominator.
+Other named exact numbers project by identity, requiring an explicit content
+dictionary correspondence for OpenMath. Labels never supply a magnitude.
+Inbound numeric tokens create these situated number objects; decimals use exact
+rational pairs rather than floating approximations. Inexact numbers, binders
+and unresolved operators are explicit refusals. MathML emission reads
 the `ExpressionRendering` seam; a presentation-only inbound artifact records a
 rendering of its retained source without claiming an expression AST.
 
