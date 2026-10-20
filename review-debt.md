@@ -1,0 +1,7 @@
+# Review dispositions
+
+Primary-agent assessment, not an independent completion audit. No independent dispatcher is exposed. Complete review/thread retrieval returned no submitted reviews or inline findings, with no additional pages. The automated walkthrough is processing and has no actionable finding; its optional test generation and automation controls are not acceptance requirements. Automatic review is pending, not approved. CI is pending and ignored under the standing sequential-merge instruction.
+
+The change uses the native ownership report already supplied to DocsModel. Only a validated canonical owner can remove a foreign reference from the owning documentation inventory. Unvalidated and conflicting entries remain visible, and the Pydantic identity-collision guard is unchanged. Tests cover both discovery orders, correct owner/prose retention, conflict visibility, unowned visibility, actual native routed rendering and continued missing-metadata/collision refusal. Eight focused cases, strict producer-independent Clippy, source hygiene, static producer-recipe admission and normal signed hooks passed.
+
+The completed hosted run exposed the production Agent collision; it is not a post-repair acceptance run. No local producer, corpus, full gate, generated package refresh or live Python import ran. Parent issues stay open until their actual acceptance requirements are met. No requirement is closed administratively or silently moved to another issue.

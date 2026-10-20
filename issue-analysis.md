@@ -1,0 +1,3 @@
+# Primary-agent analysis
+
+Self-analysis, not an independent review. The full parent issue and seven comments cover routed ontology-linked exports, schema scope and actual Python import acceptance. Routed Rust emitter work is already merged; Python test infrastructure remains explicitly authorization-gated. The observed production collision prevents the real generated package and corpus fixtures from materializing. It must be repaired without closing the parent or claiming import acceptance. Both generation and fixture-prefix report the same Agent collision, so one root ownership repair serves all three production lanes.

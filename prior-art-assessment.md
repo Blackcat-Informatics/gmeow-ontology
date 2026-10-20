@@ -1,0 +1,3 @@
+# Primary-agent prior-art assessment
+
+Self-analysis, not an independent review. The collected prior-art report and current implementation show routed metadata is live but rejects duplicate term identities. Agent is authored by kernel and only redeclared as logic:Class in software. DocsModel collects both typed subjects and stamps each physical module as owner, despite receiving the native validated ownership report. The root fix belongs in documentation discovery, benefiting every consumer and leaving the exporter guard strict. No upstream change, second compiler, dependency change, fallback engine or ontology deletion is needed. Full producer and live import acceptance remain outside this focused qualification and are not claimed.

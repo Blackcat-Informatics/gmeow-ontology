@@ -1,0 +1,167 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 37,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Decide per capability: recover in-repo, wait on the upstream issue, or ratify the loss in `docs/schema-projections.md`.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 38,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Restore some form of term-to-model linkage (`definitionDigest` and a docs back-link are the minimum that makes the wheel navigable).",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 39,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Re-establish a live import + `model_json_schema()` agreement check somewhere \u2014 off-gate is fine, absent is not.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 40,
+      "rules": [
+        "checkbox",
+        "scope-out",
+        "modal"
+      ],
+      "text": "- [ ] Decide whether OWL-only/RBox properties should be surfaced in the developer schemas or documented as deliberately out of scope.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 44,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- A consumer of the wheel can get from a model class back to its ontology term.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 45,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- The generated package is proven to import, in some lane.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 18,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan",
+      "source": "comment 1",
+      "author": "coderabbitai",
+      "date": "2026-07-27T00:16:37Z"
+    },
+    {
+      "id": "C3.1",
+      "line": 21,
+      "rules": [
+        "modal"
+      ],
+      "text": "The fourth item \u2014 whether OWL-only / RBox properties like `gmeow:resentDate` should appear in the developer schemas at all \u2014 is unaffected by any of this and remains a real open question on a non-Python surface.",
+      "source": "comment 3",
+      "author": "paudley",
+      "date": "2026-09-05T07:34:11Z"
+    },
+    {
+      "id": "C3.2",
+      "line": 23,
+      "rules": [
+        "modal"
+      ],
+      "text": "*Correcting the record rather than leaving a recommendation that would have sent the next reader into authorization-required work.*",
+      "source": "comment 3",
+      "author": "paudley",
+      "date": "2026-09-05T07:34:11Z"
+    },
+    {
+      "id": "C4.1",
+      "line": 19,
+      "rules": [
+        "modal"
+      ],
+      "text": "The gap it addresses is still real \u2014 *\"a package that structurally agrees yet fails to import passes every gate\"* \u2014 but the remedy is a decision, not a task to pick up. Worth noting an alternative that stays Rust-side: the emitter could assert its own output parses as valid Python via a Rust-side syntax check, which catches the \"fails to import\" class of defect without a Python interpreter in the loop. That is weaker than a real import, and the difference should be stated rather than glossed.",
+      "source": "comment 4",
+      "author": "paudley",
+      "date": "2026-09-05T07:34:52Z"
+    },
+    {
+      "id": "C5.1",
+      "line": 27,
+      "rules": [
+        "modal"
+      ],
+      "text": "1. **The topology must be a total partition.** `PydanticPackageTopology::new` rejects unknown routes, unused modules, and prefix collisions, so *every* definition must be routed \u2014 including the synthesized `\u2026Enum` / `_\u2026EnumValue` helpers and shared types like `Annotation`, which have no single owning slice and need a declared home.",
+      "source": "comment 5",
+      "author": "paudley",
+      "date": "2026-09-06T15:30:33Z"
+    },
+    {
+      "id": "C5.2",
+      "line": 28,
+      "rules": [
+        "modal"
+      ],
+      "text": "2. **The wheel layout changes.** `gmeow_models.models` stops being the import surface. Per #1654 no real publish has ever run, so there are no existing consumers to break \u2014 but the packaging assertions in `pypi-publish-gmeow.yml` (`__init__.py`, `py.typed`) and `emitted_models_agree_with_packed_schema_defs` both need to hold against a routed tree.",
+      "source": "comment 5",
+      "author": "paudley",
+      "date": "2026-09-06T15:30:33Z"
+    },
+    {
+      "id": "C6.1",
+      "line": 40,
+      "rules": [
+        "modal"
+      ],
+      "text": "So they should not be deleted as dead weight until the restoration lands \u2014 they are the oracle to restore against, and then they become live goldens again.",
+      "source": "comment 6",
+      "author": "paudley",
+      "date": "2026-09-06T15:32:39Z"
+    },
+    {
+      "id": "C7.1",
+      "line": 18,
+      "rules": [
+        "modal"
+      ],
+      "text": "must fail. Emit the package README from the same selected topology.",
+      "source": "comment 7",
+      "author": "paudley",
+      "date": "2026-10-20T09:06:20Z"
+    }
+  ],
+  "silent_comments": [
+    {
+      "comment": 2,
+      "author": "paudley",
+      "date": "2026-09-05T03:06:28Z"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "assignees": [
+    {
+      "id": "MDQ6VXNlcjUyNzU1NQ==",
+      "login": "paudley",
+      "name": "Patrick Audley",
+      "databaseId": 527555
+    }
+  ],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Drained from the local `.deficiencies` ledger (recorded 2026-07-12 and 2026-07-17). Re-verified against current `main`.\n\n## Problem\n\nCutting the schema emitters over to purrdf's `CompiledSchema` basis unified the derive-source (good, and intended) but dropped a set of shipped developer-surface capabilities that were never re-homed. Recorded at the time as a user-approved capability regression; nothing tracks recovering it.\n\n### Pydantic: a flat module with no ontology linkage\n\n`packages/python/gmeow_models/` is now `__about__.py`, `__init__.py`, `_base.py`, `models.py` (2.6 MB), `py.typed`. Verified on the shipped package:\n\n- `grep -c definitionDigest packages/python/gmeow_models/models.py` -> **0**\n- `grep -c json_schema_extra packages/python/gmeow_models/models.py` -> **0**\n\nSo the following are gone, not re-homed (`crates/pipeline/src/stages/pydantic.rs:19-35` documents each):\n\n- **Per-slice modules.** Each class used to route into its owning slice's module (`gmeow_models/<slice>.py`, ~40 modules) so a slice's models were independently importable, with the slice's tier/DOI header in the module docstring. Everything is now one flat `models.py`.\n- **Docs-digest linkage.** `json_schema_extra` carried the term's `gmeow:definitionDigest`, and the class docstring carried definition / when-to-use / avoid / how-to-use, worked examples, a runnable usage doctest, and a docs back-link URL. A model class now carries only its compiled-schema identity \u2014 no term-prose linkage at all.\n- **Generated package `README.md`.**\n\nUpstream feature request: `Blackcat-Informatics/purrdf` issue 130 (per-slice module routing, per-class docs/definition-digest linkage, caller-supplied version stamping).\n\n### Developer schemas now cover exactly the SHACL shape union\n\nLinkML / TypeScript / GraphQL moved from a hand-rolled OWL to LinkML projection onto the SHACL-derived basis. Consequence: OWL-only / RBox properties with no derived SHACL property shape are no longer in these surfaces. Concretely `gmeow:resentDate` and `gmeow:resentMessageId` (email slice, `gmeow:graphBoxRole gmeow:boxRBox`, non-functional DatatypeProperties) are absent from `generated/schemas/gmeow.linkml.yaml`, `gmeow.schema.json`, and `models.py`. They remain canonical in the OWL/RDF layer, enforced by the slice's structural assertion \u2014 but a developer reading the schemas cannot see them. Upstream: purrdf issue 134.\n\n### Two further accepted format changes\n\n- JSON-LD serialization emits an empty `@context` (examples/goldens now carry full IRIs). Upstream: purrdf issue 135.\n- `gmeow export` CSVW is purrdf's generic lossless RDF-1.2-in-CSV carrier (large), replacing the retired curated class/property/individual term-dictionary tables. Upstream: purrdf issue 136.\n\n### There is now no live-Python conformance at all\n\nThe ledger recorded that live-Python conformance was off the merge-blocking gate, running only in `make maint-pydantic-conformance`. Both are now gone: no `maint-pydantic-conformance` target exists in the Makefile, and `packages/python/tests/` does not exist (`test_conformance.py` was deleted as asserting a layout that no longer exists). The only remaining check is the Rust structural agreement gate `emitted_models_agree_with_packed_schema_defs` \u2014 which proves the emitted `.py` agrees with the compiled `$defs` but never runs a Python interpreter. A package that structurally agrees yet fails to import passes every gate in the repo.\n\n## Work\n\n- [ ] Decide per capability: recover in-repo, wait on the upstream issue, or ratify the loss in `docs/schema-projections.md`.\n- [ ] Restore some form of term-to-model linkage (`definitionDigest` and a docs back-link are the minimum that makes the wheel navigable).\n- [ ] Re-establish a live import + `model_json_schema()` agreement check somewhere \u2014 off-gate is fine, absent is not.\n- [ ] Decide whether OWL-only/RBox properties should be surfaced in the developer schemas or documented as deliberately out of scope.\n\n## Acceptance\n\n- A consumer of the wheel can get from a model class back to its ontology term.\n- The generated package is proven to import, in some lane.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABLyeuJA",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "<!-- This is an auto-generated issue plan by CodeRabbit -->\n<details>\n<summary>\ud83d\udd17 Related PRs</summary>\n\nBlackcat-Informatics/gmeow-ontology#608 - feat(shacl): Python seam swap to gmeow_shacl behind a dual-run cross-check (`#578`) [closed]\nBlackcat-Informatics/gmeow-ontology#989 - fix: port schema emission to Rust [merged]\nBlackcat-Informatics/gmeow-ontology#1480 - feat(docs): max-info content enrichment \u2014 diagnostics/loss/entailments/fixtures/competency/notation/pipeline-DAG panels (`#1404`) [merged]\nBlackcat-Informatics/gmeow-ontology#1507 - feat(pipeline): Pydantic v2 functional documentation surface (gmeow_models) packed in gmeow.gts [merged]\nBlackcat-Informatics/gmeow-ontology#1573 - feat(logic): execute genuine correspondence recovery [merged]\n</details>\n\n---\n<details>\n<summary>\ud83d\udcdd Issue Planner</summary>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</details>\n\n\n---\n<details>\n<summary> \ud83e\uddea Issue enrichment is currently in open beta.</summary>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</details>\n\n\ud83d\udcac Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-07-27T00:16:37Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646#issuecomment-5086096932",
+      "viewerDidAuthor": false
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABSr4Mag",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Re-verified against `main` @ c2b03aba6 \u2014 every claim still holds\n\nChecked while inventorying open issues. Nothing here has been resolved by drift:\n\n| claim | verified |\n|---|---|\n| flat module, no per-slice routing | 4 tracked `.py` files under `packages/python/gmeow_models/` (`__about__`, `__init__`, `_base`, `models`) |\n| `definitionDigest` linkage gone | `grep -c definitionDigest models.py` \u2192 **0** |\n| `json_schema_extra` gone | `grep -c json_schema_extra models.py` \u2192 **0** |\n| no `maint-pydantic-conformance` | 0 matches in `Makefile` |\n| no live-Python conformance | `packages/python/tests/` \u2014 0 tracked files |\n\nThe last row is the one worth surfacing: as this issue puts it, *\"A package that structurally agrees yet fails to import passes every gate in the repo.\"* That is still true, and it is the cheapest of the four work items to fix \u2014 an off-gate import + `model_json_schema()` agreement check would close the \"absent is not fine\" gap without waiting on any upstream purrdf issue.\n\n*Method: tracked-file and content greps against `origin/main`.*",
+      "createdAt": "2026-09-05T03:06:28Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646#issuecomment-5548936298",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABStMlLA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Correction \u2014 my previous comment recommended the wrong direction\n\nI wrote that restoring a live Python import + `model_json_schema()` agreement check was \"the cheapest of the four work items to fix\". That recommendation was wrong and I am retracting it.\n\n**Adding it would add Python surface**, which `CLAUDE.md` puts behind explicit authorization:\n\n> **RUST-FIRST, Python-surface** \u2014 core work is Rust. **Adding ANY Python (code, tests, fixtures, orchestration) requires explicit authorization; if you think you may be writing Python, you are probably doing the wrong thing.**\n\nI read the \"absent is not fine\" line in this issue as a gap to close without asking what the surface is *for*.\n\n**What the tree actually contains.** The entire Python footprint is a generated projection \u2014 four files under `packages/python/gmeow_models/` (`__about__`, `__init__`, `_base`, `models`), plus `packages/python/pyproject.toml` and `.python-version`. Nothing hand-authored. `models.py` is emitted from the compiled schema.\n\n**This reframes all four work items.** Three of them \u2014 per-slice module routing, per-class docs/`definitionDigest` linkage, a live import check \u2014 would each *deepen* a Python surface rather than keep it thin. They are recovery of capability in a direction the repo is deliberately moving away from.\n\nThat leaves this issue's own third option as the live one:\n\n> Decide per capability: recover in-repo, wait on the upstream issue, or **ratify the loss** in `docs/schema-projections.md`.\n\nRecommend re-scoping around ratification, and adding the prior question the issue does not currently ask: **who consumes the Pydantic wheel?** If the answer is nobody, the honest outcome is retiring the projection rather than documenting a regression in a surface with no consumer \u2014 and the LinkML / TypeScript / GraphQL developer schemas, which are not Python, are where the developer-surface question actually lives.\n\nThe fourth item \u2014 whether OWL-only / RBox properties like `gmeow:resentDate` should appear in the developer schemas at all \u2014 is unaffected by any of this and remains a real open question on a non-Python surface.\n\n*Correcting the record rather than leaving a recommendation that would have sent the next reader into authorization-required work.*",
+      "createdAt": "2026-09-05T07:34:11Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646#issuecomment-5550318892",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABStMxwQ",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Refinement \u2014 the distinction that matters is emitter-side vs Python-side\n\nMy previous comment overcorrected. `packages/python/gmeow_models/` is a **Pydantic export of the ontology** \u2014 a generated projection peer to the LinkML, TypeScript, GraphQL and JSON Schema surfaces, not hand-authored Python. Framing it as a surface to retire was wrong; it is a projection like any other, and the regressions this issue records are real losses in it.\n\nWhat actually splits the four work items is **where the fix lives**, not whether Python is involved:\n\n**Emitter-side \u2014 Rust, no authorization question.** These are changes to `crates/pipeline/src/stages/pydantic.rs` that make it emit a richer export. The output happens to be Python; the work is not.\n\n- Per-slice module routing (`gmeow_models/<slice>.py`) with the slice's tier/DOI header.\n- Per-class `definitionDigest` in `json_schema_extra`, plus the prose coat and docs back-link in the class docstring.\n- The generated package `README.md`.\n\nAn ontology export that cannot be navigated back to the term it projects is a weaker export, and fixing that is ordinary emitter work.\n\n**Python-side \u2014 authorization-gated.** Only one item is:\n\n- A live import + `model_json_schema()` agreement check. That needs Python test infrastructure in the repo (`packages/python/tests/` was deleted), which `CLAUDE.md` puts behind explicit authorization.\n\nThe gap it addresses is still real \u2014 *\"a package that structurally agrees yet fails to import passes every gate\"* \u2014 but the remedy is a decision, not a task to pick up. Worth noting an alternative that stays Rust-side: the emitter could assert its own output parses as valid Python via a Rust-side syntax check, which catches the \"fails to import\" class of defect without a Python interpreter in the loop. That is weaker than a real import, and the difference should be stated rather than glossed.\n\n**Neither** \u2014 the OWL-only / RBox question (`gmeow:resentDate`, `gmeow:resentMessageId` absent from the developer schemas) is about the SHACL-union basis, and applies equally to LinkML, TypeScript and GraphQL. Nothing to do with Python.\n\nSo: three items are ordinary Rust emitter work on an export surface, one needs a decision, one is a modelling question on a different surface. My earlier \"recommend re-scoping around ratification\" applies only to the second.",
+      "createdAt": "2026-09-05T07:34:52Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646#issuecomment-5550322113",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABS2qpIA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## The Pydantic half is no longer upstream-blocked \u2014 purrdf 1.1.0 already ships the API\n\nThis issue records the per-slice modules and docs-digest linkage as waiting on **purrdf issue 130** (*\"per-slice module routing, per-class docs/definition-digest linkage, caller-supplied version stamping\"*). Re-checked against the pinned substrate: **that request has been implemented.** The capability is now recoverable in this repository, with no upstream dependency left.\n\n`purrdf-shapes 1.1.0` exposes exactly the three things that were lost:\n\n| lost capability | purrdf 1.1.0 API |\n| --- | --- |\n| per-slice module routing | `PydanticConfig::with_topology(PydanticPackageTopology)`; `PydanticModuleConfig::{path, docstring}` |\n| per-class docs + digest linkage | `PydanticClassConfig::{docstring, json_schema_extra}` |\n| caller-supplied version stamping | `PydanticConfig::with_version_stamp(PydanticVersionStamp)` |\n\nThe repo already knows this, and says so \u2014 `crates/pipeline/src/stages/pydantic.rs:29-33`:\n\n> PurRDF **now supports** caller-owned routed topology and class metadata, but this GMEOW stage still selects its flat compatibility configuration and supplies neither. The missing per-slice and ontology-linkage surface is live, durably tracked developer-surface work, not an authorized regression.\n\nSo the remaining work is entirely in `pydantic_config()`, which today calls `PydanticConfig::new(...)` and stops. Verified against the shipped wheel: **1,328 classes in one flat `models.py`**, and `grep definitionDigest` / `json_schema_extra` still return **0**.\n\n### One structural consequence worth knowing before starting\n\nClass metadata and module routing are **not separable**. `docstring` and `json_schema_extra` live on `PydanticClassConfig`, which only exists inside a `PydanticPackageTopology`, and `emit_pydantic` switches to routed rendering the moment a topology is present (`let routed = config.topology().is_some();`). There is no way to attach the digest linkage while keeping the flat single-module layout.\n\nThat makes this one change, not two: recovering the linkage necessarily restores per-slice modules at the same time, and replaces the single 2.6 MB `models.py` with roughly one module per owning slice.\n\nTwo constraints that fall out:\n\n1. **The topology must be a total partition.** `PydanticPackageTopology::new` rejects unknown routes, unused modules, and prefix collisions, so *every* definition must be routed \u2014 including the synthesized `\u2026Enum` / `_\u2026EnumValue` helpers and shared types like `Annotation`, which have no single owning slice and need a declared home.\n2. **The wheel layout changes.** `gmeow_models.models` stops being the import surface. Per #1654 no real publish has ever run, so there are no existing consumers to break \u2014 but the packaging assertions in `pypi-publish-gmeow.yml` (`__init__.py`, `py.typed`) and `emitted_models_agree_with_packed_schema_defs` both need to hold against a routed tree.\n\n### What this does not change\n\nThe other three upstream items are still genuinely upstream: OWL-only/RBox properties absent from the SHACL-derived surfaces (purrdf 134), the empty JSON-LD `@context` (135), and the CSVW carrier swap (136). And the live-import check remains authorization-gated \u2014 it is the one item here that would add Python to the repo.\n\nI have not started the implementation; recording the unblock first so the issue stops describing a blocker that no longer exists.",
+      "createdAt": "2026-09-06T15:30:33Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646#issuecomment-5560248608",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABS2rW7w",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "### Addendum: the removed renderer left three orphaned snapshots \u2014 and they are the exact spec\n\n`crates/pipeline/src/stages/snapshots/` still holds three insta goldens from the deleted slice-routed renderer:\n\n```\ngmeow_pipeline__stages__pydantic__tests__models_python_init.snap\ngmeow_pipeline__stages__pydantic__tests__models_python_synthetic_demo.snap\ngmeow_pipeline__stages__pydantic__tests__models_python_tags_module.snap\n```\n\n**No test references any of them** (`grep assert_snapshot crates/pipeline/src/stages/pydantic.rs` \u2192 nothing), and nothing in the repo runs insta with `--unreferenced=reject`, so they sit there silently describing output the pipeline no longer produces. On their own that is a small cleanup.\n\nThey are far more useful than that, though: `models_python_tags_module.snap` is a **complete specification of what has to be rebuilt**, down to the byte. It records the module docstring shape:\n\n```\n\"\"\"GMEOW models \u2014 slice GMEOW Tags Module.\n\nSlice IRI:  https://blackcatinformatics.ca/gmeow/slices/tags\nTier:       core\nDOI:        \u2014\n```\n\nand the exact class metadata this issue asks to recover:\n\n```python\njson_schema_extra={\"$id\": \"https://blackcatinformatics.ca/gmeow/Tagging\",\n                   \"curie\": \"gmeow:Tagging\",\n                   \"definitionDigest\": \"blake3:8fc46ba35cc4081583b665506bd8bab417b05223285c67f41fdc1a37c219b38b\",\n                   \"iri\": \"https://blackcatinformatics.ca/gmeow/Tagging\"}\n```\n\nplus the class docstring carrying definition / when-to-use / when-to-avoid / how-to-use / examples, and a **runnable doctest** that is itself the acceptance criterion in miniature:\n\n```python\n>>> from gmeow_models.tags import Tagging\n>>> Tagging.model_config[\"json_schema_extra\"][\"curie\"]\n'gmeow:Tagging'\n```\n\nSo they should not be deleted as dead weight until the restoration lands \u2014 they are the oracle to restore against, and then they become live goldens again.\n\n### Notes for the implementation\n\n- `gmeow:definitionDigest` is produced by `stage-term-manifest` (`crates/pipeline/src/stages/term_manifest.rs`), so `stage-export-pydantic` needs a new dependency edge on it \u2014 which in this repo means editing three places together (`Stage::consumes()`, `full_spec()`, and `gmeow:dataflowConsumes`), or the mismatch only reds at regeneration rather than at `cargo test`.\n- The compiled `$defs` carry **no** `$id`: keys are bare local names (`AccessibilityAssertion`), with synthesized `\u2026Enum` / `_\u2026EnumValue` siblings. The IRI has to come from the shape union's `sh:targetClass` (or be derived as `gmeow:<Key>` and *verified* against the ontology store, which `enriched_compiled_schema` already loads).\n- `PydanticPackageTopology::new` demands a total partition, so the synthesized enum helpers and shared types (`Annotation`) need a declared home module rather than being left unrouted.",
+      "createdAt": "2026-09-06T15:32:39Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646#issuecomment-5560260335",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABdsMhVw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Restore ontology-linked model exports\n\nPrinciples 4, 7 and 17: keep the shared compiled schema as the only structural\nsource and use PurRDF's routed renderer, with GMEOW-owned slice and term metadata.\nThe existing flat emitter drops navigation already supported upstream. Recover\nslice modules, class definition digests, documentation coats and links, package\nREADME, and total routing of synthesized/shared schema definitions. Remove stale\nflat-layout assumptions and obsolete renderer snapshots within this scope.\n\n## Task 1: Source and render the metadata\n\nUse the existing documentation discovery path with this run's term manifest and\nconstraint catalog products, never stale generated files. Declare both edges in\nthe stage, executable spec and ontology DAG. Include documentation source inputs\nand bump the stage implementation version. Route actual ontology classes via the\nshared schema namespace codec; assign generated schema helpers an explicit shared\nmodule without fabricating ontology identities. Missing class ownership or digest\nmust fail. Emit the package README from the same selected topology.\n\n## Task 2: Verify the actual renderer and consumers\n\nRun synthetic renderer controls for multiple slices, shared/helper definitions,\nmetadata, documentation, cross-module references and missing metadata refusal.\nUpdate authenticated package-consumer assertions for routed output. Remove the\nthree orphan snapshots from the retired renderer once their contract is covered\nby live tests. Run focused Make validation and normal signed hooks. Do not run\nlocal optimized producer, fixture production, sync or full gate.\n\n## Task 3: Publish, integrate and clean\n\nPublish and merge sequentially through ghprsq under the standing CI waiver.\nPreserve the parent issue: actual generated corpus acceptance and the live Python\nimport/schema lane are not established by Rust structural checks. The issue's\ncomments explicitly reserve new Python test/orchestration surface for separate\nauthorization. Do not create that surface or misrepresent parsing as import.\nDocument the current SHACL-derived developer-schema boundary rather than silently\ninventing closed-world constraints for OWL/RBox-only properties. Preserve the\nexisting JSON-LD/CSVW contracts; no unrelated upstream emitter reimplementation.\n\nNo independent reviewer tool is exposed; no independent review is claimed.\n",
+      "createdAt": "2026-10-20T09:06:20Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646#issuecomment-6287466839",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-07-27T00:15:33Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvT1A",
+      "name": "module-enhancement",
+      "description": "Enhancement to an existing module",
+      "color": "c5def5"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO7qg",
+      "name": "complexity-medium",
+      "description": "A real feature/refactor; moderate scope, one slice/crate",
+      "color": "fbca04"
+    }
+  ],
+  "milestone": null,
+  "number": 1646,
+  "state": "OPEN",
+  "title": "schemas: recover the developer-surface capability lost in the purrdf emitter cutover",
+  "updatedAt": "2026-10-20T09:06:20Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1646"
+}
