@@ -20,8 +20,8 @@ use crate::result::ReasoningResult;
 use super::{
     DISCHARGE_FINITE, DISCHARGE_SYNTACTIC, LOGIC_NS, Obligation, ProgramReachability,
     ReachabilityEvidence, attribute_to_candidates, candidates_by_obligation,
-    check_discharge_conditions, check_finite_closure, check_reachability, obligation_diag,
-    obligation_err, parse_obligations,
+    check_discharge_conditions, check_finite_closure, check_reachability, governance_node,
+    obligation_diag, obligation_err, parse_obligations,
 };
 
 /// The actual sufficient proof, uncertainty, or positive counterexample.
@@ -46,6 +46,9 @@ pub struct ObligationOutcome {
     pub world: String,
     /// Native resource identity, including deterministic document-scoped blank lowering.
     pub obligation: String,
+    /// The declaration has asserted native support in this world, independently
+    /// of any other declaration derived for the same or a different identity.
+    pub authored: bool,
     /// Exact forbidden predicate named by the admitted declaration.
     pub forbidden_predicate: String,
     /// Actual selected proof or unresolved/error disposition.
@@ -102,7 +105,9 @@ pub(crate) fn governance_statement(predicate: &str, object: &TermValue) -> bool 
     }
 }
 
-fn governance_view(ledger: &NativeFamilyLedger) -> gmeow_errors::Result<(Arc<RdfDataset>, usize)> {
+fn governance_view(
+    ledger: &NativeFamilyLedger,
+) -> gmeow_errors::Result<(Arc<RdfDataset>, BTreeSet<String>)> {
     let mut store = MutableDataset::new(purrdf::RdfDatasetBuilder::new().freeze()?);
     let mut authored = BTreeSet::new();
     for proof in &ledger.proofs {
@@ -150,10 +155,19 @@ fn governance_view(ledger: &NativeFamilyLedger) -> gmeow_errors::Result<(Arc<Rdf
             }
         }
     }
-    store
-        .freeze()
-        .map(|store| (store, authored.len()))
-        .ctx("native governance view failed")
+    let store = store.freeze().ctx("native governance view failed")?;
+    let authored = authored
+        .into_iter()
+        .map(|subject| {
+            let node = store.term_id_by_value(subject).ok_or_else(|| {
+                obligation_err(
+                    "authored obligation is missing from its native governance view".to_owned(),
+                )
+            })?;
+            governance_node(&store, node)
+        })
+        .collect::<gmeow_errors::Result<BTreeSet<_>>>()?;
+    Ok((store, authored))
 }
 
 fn source_complete(
@@ -227,7 +241,7 @@ fn assess_world(
                     NativeFamilyCompletion::Complete | NativeFamilyCompletion::NotEngaged
                 )
         });
-    let mut discharged = 0;
+    let mut discharged = BTreeSet::new();
     for obligation in &obligations {
         let conditions = check_discharge_conditions(&source_graph, obligation);
         let conditions_valid = conditions.is_empty();
@@ -266,12 +280,15 @@ fn assess_world(
                 assessment.record(diag);
             }
             ObligationDisposition::SyntacticallyDischarged
-            | ObligationDisposition::FiniteClosureDischarged => discharged += 1,
+            | ObligationDisposition::FiniteClosureDischarged => {
+                discharged.insert(obligation.iri.clone());
+            }
             ObligationDisposition::InvalidDischarge => {}
         }
         assessment.outcomes.push(ObligationOutcome {
             world: world.to_owned(),
             obligation: obligation.iri.clone(),
+            authored: authored.contains(&obligation.iri),
             forbidden_predicate: obligation.forbidden_predicate.clone(),
             disposition: status,
         });
@@ -279,7 +296,7 @@ fn assess_world(
     // A descriptive governance note, neither transient chatter nor a proof of discharge.
     let inventory = Diag::new(register_code("verify.non-entailment.inventory"),
         Grade::new(Severity::Note, FindingCategory::PolicyWarning, Standpoint::Binding), format!(
-            "discovered and checked {} distinct non-entailment obligation(s) in world <{world}>; authored={authored}, admitted={}, discharged={discharged}", obligations.len(), obligations.len(),
+            "discovered and checked {} distinct non-entailment obligation(s) in world <{world}>; authored={}, admitted={}, discharged={}", obligations.len(), authored.len(), obligations.len(), discharged.len(),
         ))
         .with_location(Location { logical: Some(world.to_owned()), ..Location::default() })
         .with_focus("obligation-inventory")
@@ -289,7 +306,11 @@ fn assess_world(
         .filter(|obligation| !obligation.iri.starts_with("_:"))
         .map(|obligation| obligation.iri.clone())
         )
-        .with_context(analysis.inventory_detail(world)?);
+        .with_context(format!(
+            "{}; authored obligations: {authored:?}; discovered/admitted obligations: {:?}; discharged obligations: {discharged:?}",
+            analysis.inventory_detail(world)?,
+            obligations.iter().map(|obligation| obligation.iri.as_str()).collect::<Vec<_>>(),
+        ));
     assessment.record(inventory);
     Ok(())
 }
