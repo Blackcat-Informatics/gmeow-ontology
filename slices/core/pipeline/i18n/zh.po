@@ -12,7 +12,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "stageImpl is functional"
 msgstr "stageImpl 具有函数性"
@@ -128,3 +127,120 @@ msgstr "此边界不证明当前规范源的完整性。"
 msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#example"
 msgid "A report-writing failure prevents successful consumer completion."
 msgstr "报告写入失败时，使用方不得宣告成功完成。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Run the ten deterministic native mathematical producers and execute explicit mathematical projection requests from the declared source product. Read symbol and class correspondences from the existing mappings product and unit classification from the declared codec reference input. Attach the computed mathematical graphs and publish the selected MathML, OpenMath, Data Cube, STATO and QUDT artifacts with their computed loss records. The codec reference does not enter the canonical reasoning theory. Missing inputs, unsupported selected operations and failed producer parity are hard failures; no generated file is read as pipeline transport."
+msgstr "运行十个确定性的原生数学生产器，并执行已声明源产物中的显式数学投影请求。从现有映射产物读取符号和类的对应关系，从编解码器的显式参考输入读取单位分类。附加计算所得的数学图，并发布所选 MathML、OpenMath、Data Cube、STATO 和 QUDT 产物及其计算所得的损失记录。编解码器参考输入不进入规范推理理论。输入缺失、所选操作不受支持或生产器等价性检查失败均必须明确失败；流水线不得读取生成文件来传递中间结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical data-cube projection fanout"
+msgstr "数学 data-cube 投影导出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/data-cube.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "从分发包中的具名 RDF 投影重建 generated/projections/math/data-cube.ttl。损失记录由同一选定数学编解码操作生成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "用于从分发包提取选定的数学 RDF 投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "不得将外部目标投影用作规范数学理论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "将声明的具名图导出为 Turtle，并检查随附的保留性和损失记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "此导出重建已生成的目标产物，不会提升其保留性判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/data-cube.ttl together with generated/projections/math/loss-ledger.ttl."
+msgstr "将 generated/projections/math/data-cube.ttl 与 generated/projections/math/loss-ledger.ttl 一同导出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical stato projection fanout"
+msgstr "数学 stato 投影导出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/stato.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "从分发包中的具名 RDF 投影重建 generated/projections/math/stato.ttl。损失记录由同一选定数学编解码操作生成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "用于从分发包提取选定的数学 RDF 投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "不得将外部目标投影用作规范数学理论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "将声明的具名图导出为 Turtle，并检查随附的保留性和损失记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "此导出重建已生成的目标产物，不会提升其保留性判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/stato.ttl together with generated/projections/math/loss-ledger.ttl."
+msgstr "将 generated/projections/math/stato.ttl 与 generated/projections/math/loss-ledger.ttl 一同导出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical qudt projection fanout"
+msgstr "数学 qudt 投影导出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/qudt.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "从分发包中的具名 RDF 投影重建 generated/projections/math/qudt.ttl。损失记录由同一选定数学编解码操作生成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "用于从分发包提取选定的数学 RDF 投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "不得将外部目标投影用作规范数学理论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "将声明的具名图导出为 Turtle，并检查随附的保留性和损失记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "此导出重建已生成的目标产物，不会提升其保留性判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/qudt.ttl together with generated/projections/math/loss-ledger.ttl."
+msgstr "将 generated/projections/math/qudt.ttl 与 generated/projections/math/loss-ledger.ttl 一同导出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical loss-ledger projection fanout"
+msgstr "数学 loss-ledger 投影导出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/loss-ledger.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "从分发包中的具名 RDF 投影重建 generated/projections/math/loss-ledger.ttl。损失记录由同一选定数学编解码操作生成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "用于从分发包提取选定的数学 RDF 投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "不得将外部目标投影用作规范数学理论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "将声明的具名图导出为 Turtle，并检查随附的保留性和损失记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "此导出重建已生成的目标产物，不会提升其保留性判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."
+msgstr "将 generated/projections/math/loss-ledger.ttl 与它所记录损失的目标产物一同导出。"

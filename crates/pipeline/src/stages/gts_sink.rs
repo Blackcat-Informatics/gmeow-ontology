@@ -77,6 +77,7 @@ impl GtsSinkStage {
                 "stage-source-load".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
+                "stage-math-producers".to_string(),
                 "stage-reason".to_string(),
                 // NOT `stage-statements`. The terminal used to staple the statement
                 // layer's two byte-decorated projections into the generated-opaque
@@ -195,7 +196,7 @@ impl Stage for GtsSinkStage {
         // v14: report the production sink's allocation phases, structural counts, and
         // RSS observations while retaining the keyed pass-one receipt. Telemetry is
         // report-only and does not enter artifact identity.
-        "gts_sink.v17-native-term-entailments"
+        "gts_sink.v18-math-target-artifacts"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier

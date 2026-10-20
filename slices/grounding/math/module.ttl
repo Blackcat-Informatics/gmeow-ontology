@@ -12623,14 +12623,14 @@ math:projectionSource
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "projection source"@x-gmeow-english ;
-    skos:definition "Relates a math:ProjectionRecord to the math: object it projects into an external target — a math:Distribution, a math:ProbabilityValue, or another math: object. Domain math:ProjectionRecord, range a math: object (stated in prose). The projection's honesty is judged against what this source carries: a parameterization on a source math:Distribution that the target cannot hold must be enumerated as dropped through logic:unsupportedConstruct."@x-gmeow-english ;
+    skos:definition "Relates a ProjectionRecord or ProjectionRequest to its named canonical mathematical source. A request selects the source to lower; the resulting record judges what that lowering preserved. A source distribution's parameterization and an expression's structure remain explicit: an omitted construct belongs in the computed loss record, never in an unrecorded simplification."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:projectionTargetName
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "projection target name"@x-gmeow-english ;
-    skos:definition "Names the external target a math:ProjectionRecord lowers to — the OWL annotation surface, the SciPy/Stan parameter form, and the like. Domain math:ProjectionRecord, range xsd:string (stated in prose). The target is the addressee of the loss judgment: what preservation kind and unsupported constructs mean is fixed relative to it."@x-gmeow-english ;
+    skos:definition "Names the external target of a mathematical projection record or request. Records identify the addressee of the preservation judgment. Requests select exactly one supported codec name: mathml, openmath, data-cube, stato or qudt; an unknown selected codec fails rather than producing a substitute artifact."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:projectsConfidenceAsProbability
@@ -16524,3 +16524,24 @@ math:PersistenceModuleLifetimeConflation a logic:Situation .
 math:IncompleteConnection a logic:Situation .
 math:IncompleteParallelTransport a logic:Situation .
 math:IncompleteHolonomy a logic:Situation .
+
+# Explicit consumer projection selection; the resulting judgment is a ProjectionRecord.
+math:ProjectionRequest
+    a logic:Class , logic:AbstractIndividualType ;
+    logic:subClassOf math:MathematicalObject ,
+        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:allValuesFrom logic:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionTargetName ; logic:allValuesFrom xsd:string ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionTargetName ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Projection Request"@x-gmeow-english ;
+    skos:definition "An explicit selection of one canonical mathematical source and one external consumer codec. The request names its source through math:projectionSource and its target through math:projectionTargetName. Execution must produce the selected artifact together with its computed math:ProjectionRecord or fail; the request is not a preservation claim and never stands in for the resulting loss judgment."@x-gmeow-english ;
+    gmeow:useWhen "Use to select a mathematical artifact that must be emitted for an external consumer."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an unexecuted request as evidence that a projection exists or that its preservation claim was checked."@x-gmeow-english ;
+    gmeow:howToUse "Name exactly one source and one target codec: mathml, openmath, data-cube, stato or qudt. Inspect the emitted artifact and its computed loss record."@x-gmeow-english ;
+    skos:scopeNote "The request selects work; the separate ProjectionRecord judges the actual result. Unknown or unsupported selected targets fail explicitly."@x-gmeow-english ;
+    skos:example "ex:request a math:ProjectionRequest ; math:projectionSource ex:rendering ; math:projectionTargetName \"mathml\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+[ a logic:ClosureEntry ; logic:onClass math:ProjectionRequest ; logic:closureKey "https://blackcatinformatics.ca/math/projectionSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass math:ProjectionRequest ; logic:closureKey "https://blackcatinformatics.ca/math/projectionTargetName" ; logic:closureValue logic:ClosedWorldClosure ] .

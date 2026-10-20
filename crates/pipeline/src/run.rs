@@ -286,13 +286,17 @@ pub fn full_spec() -> PipelineSpec {
             "compile_logic",
             &["stage-parse-sources"],
         ),
-        // Leaf compute: RUN the ten math producers (five flagship producers — the rBridge
+        // Compute: RUN the ten math producers (five flagship producers — the rBridge
         // one being the executable r_lift — plus the probability-model seam, p-value
         // tri-slice, Clifford, and the ONNX / proof lift producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
-        // stage-snapshot). It reads nothing off disk: every slice's examples/*.ttl
-        // positive-demonstrator ABox is loaded by stage-source-load into graph/examples.
-        st("stage-math-producers", "math_producers", &[]),
+        // stage-snapshot). Projection requests consume the declared source and mapping
+        // products; every slice's examples/*.ttl ABox is loaded by stage-source-load.
+        st(
+            "stage-math-producers",
+            "math_producers",
+            &["stage-mappings", "stage-source-load"],
+        ),
         // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter,
         // enforcing its training-corpus and provenance contracts. A productive functor
         // over the glyph signature, it consumes
@@ -645,6 +649,7 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-pydantic",
             "stage-export-result-shapes",
             "stage-mappings",
+            "stage-math-producers",
             "stage-statements",
         ],
     ));
@@ -720,6 +725,7 @@ pub fn full_spec() -> PipelineSpec {
             // now reads its product instead of re-deriving from the in-memory carrier.
             "stage-export-schemas",
             "stage-mappings",
+            "stage-math-producers",
             // THIS run's trained dictionaries + their gmeow:CompressionDictionaryRealization
             // records. The terminal pins the dictionaries in the pack's in-band "dct" map
             // and seals one gmeow:MediumEnvelope per frame it authors; without this edge the

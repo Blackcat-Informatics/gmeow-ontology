@@ -1280,6 +1280,11 @@ fn rdf_fanout_members(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    for (path, bytes) in producer_artifacts("stage-math-producers", upstream)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
     // profiles — `owl:Ontology` import closures, canonical Turtle. Read off the
     // stage-export-profiles product (rendered once, in that leaf; keyed by full path).
     for (path, bytes) in producer_artifacts("stage-export-profiles", upstream)? {
@@ -2385,6 +2390,10 @@ fn collect_fanout_opaque_members(
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-math-producers", upstream)?,
+    );
     // carrier-reading leaves (project from THIS run's carrier dataset — §8 permits a
     // side format produced from the in-memory carrier, never from disk).
     take_opaque(
@@ -3272,7 +3281,7 @@ impl Stage for SnapshotStage {
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        "snapshot.v38-contextual-application"
+        "snapshot.v39-math-target-projections"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

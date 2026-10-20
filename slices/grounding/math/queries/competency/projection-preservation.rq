@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Which correspondence carries the preservation judgment of the actual emission?
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+SELECT DISTINCT ?source ?target ?correspondence ?preservation WHERE {
+  ?correspondence a math:ProjectionRecord , logic:Correspondence ;
+    math:projectionSource ?source ; math:projectionTargetName ?target ;
+    logic:preservationKind ?preservation .
+} ORDER BY ?source ?target ?correspondence

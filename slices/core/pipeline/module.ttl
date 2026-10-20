@@ -759,11 +759,12 @@ gmeow:stage-math-producers
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "math-producers"@x-gmeow-english ;
-    skos:definition "Run the ten native math: producers (gmeow_math::producers — five flagship producers, one of which is the executable R lift, plus the probability-model seam, the p-value tri-slice, the exact Clifford extension, and the ONNX / proof lifts) and fold each producer's deterministic RDF graph into the carrier as its own bundle-internal named graph, so the native producer output ships in gmeow.gts (the shippable deliverable) rather than living only behind a test-side equality gate. A leaf compute stage: it consumes no upstream product and reads nothing off disk — the producers compute from pinned in-code exact-arithmetic constants and compile-time-embedded artifact bytes. The authored examples/*.ttl demonstrator corpus is not its concern; stage-source-load loads every slice's."@x-gmeow-english ;
+    skos:definition "Run the ten deterministic native mathematical producers and execute explicit mathematical projection requests from the declared source product. Read symbol and class correspondences from the existing mappings product and unit classification from the declared codec reference input. Attach the computed mathematical graphs and publish the selected MathML, OpenMath, Data Cube, STATO and QUDT artifacts with their computed loss records. The codec reference does not enter the canonical reasoning theory. Missing inputs, unsupported selected operations and failed producer parity are hard failures; no generated file is read as pipeline transport."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "math_producers" .
+    gmeow:stageImpl "math_producers" ;
+    gmeow:dataflowConsumes gmeow:stage-mappings, gmeow:stage-source-load .
 
 gmeow:stage-gmn-training-corpus
     a gmeow:PipelineStage ;
@@ -1305,6 +1306,7 @@ gmeow:stage-archive-blobs
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-result-shapes ,
         gmeow:stage-mappings ,
+        gmeow:stage-math-producers ,
         gmeow:stage-statements .
 
 # ── The medium axis: the shipped zstd dictionaries ──
@@ -1362,6 +1364,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-projection-ceilings ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
+        gmeow:stage-math-producers ,
         gmeow:stage-reason ,
         gmeow:stage-validate ,
         gmeow:stage-verify-attestation ,
@@ -1570,6 +1573,10 @@ gmeow:stage-snapshot
 # =========================================================================== #
 
 gmeow:pipeline-build gmeow:fanoutExtracts
+    gmeow:fanout-math-data-cube ,
+    gmeow:fanout-math-stato ,
+    gmeow:fanout-math-qudt ,
+    gmeow:fanout-math-loss-ledger ,
     gmeow:fanout-briefs-authoring-packets ,
     gmeow:fanout-catalog-constraint-catalog ,
     gmeow:fanout-catalog-term-content-manifest ,
@@ -3016,3 +3023,76 @@ gmeow:RecordedConsumerBoundary
     skos:scopeNote "The boundary does not certify current canonical source completeness."@x-gmeow-english ;
     skos:example "A report-writing failure prevents successful consumer completion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:fanout-math-data-cube a gmeow:FanoutExtraction ;
+    rdfs:label "Mathematical data-cube projection fanout"@x-gmeow-english ;
+    skos:definition "Reconstruct generated/projections/math/data-cube.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:useWhen "Use when extracting the selected mathematical RDF projection from the shipped bundle."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an external target projection as the canonical mathematical theory."@x-gmeow-english ;
+    gmeow:howToUse "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."@x-gmeow-english ;
+    skos:scopeNote "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."@x-gmeow-english ;
+    skos:example "Extract generated/projections/math/data-cube.ttl together with generated/projections/math/loss-ledger.ttl."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/math/data-cube.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:stage-snapshot gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/math/data-cube.ttl> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/projections/math/data-cube.ttl" .
+
+gmeow:fanout-math-stato a gmeow:FanoutExtraction ;
+    rdfs:label "Mathematical stato projection fanout"@x-gmeow-english ;
+    skos:definition "Reconstruct generated/projections/math/stato.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:useWhen "Use when extracting the selected mathematical RDF projection from the shipped bundle."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an external target projection as the canonical mathematical theory."@x-gmeow-english ;
+    gmeow:howToUse "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."@x-gmeow-english ;
+    skos:scopeNote "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."@x-gmeow-english ;
+    skos:example "Extract generated/projections/math/stato.ttl together with generated/projections/math/loss-ledger.ttl."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/math/stato.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:stage-snapshot gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/math/stato.ttl> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/projections/math/stato.ttl" .
+
+gmeow:fanout-math-qudt a gmeow:FanoutExtraction ;
+    rdfs:label "Mathematical qudt projection fanout"@x-gmeow-english ;
+    skos:definition "Reconstruct generated/projections/math/qudt.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:useWhen "Use when extracting the selected mathematical RDF projection from the shipped bundle."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an external target projection as the canonical mathematical theory."@x-gmeow-english ;
+    gmeow:howToUse "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."@x-gmeow-english ;
+    skos:scopeNote "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."@x-gmeow-english ;
+    skos:example "Extract generated/projections/math/qudt.ttl together with generated/projections/math/loss-ledger.ttl."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/math/qudt.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:stage-snapshot gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/math/qudt.ttl> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/projections/math/qudt.ttl" .
+
+gmeow:fanout-math-loss-ledger a gmeow:FanoutExtraction ;
+    rdfs:label "Mathematical loss-ledger projection fanout"@x-gmeow-english ;
+    skos:definition "Reconstruct generated/projections/math/loss-ledger.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:useWhen "Use when extracting the selected mathematical RDF projection from the shipped bundle."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an external target projection as the canonical mathematical theory."@x-gmeow-english ;
+    gmeow:howToUse "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."@x-gmeow-english ;
+    skos:scopeNote "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."@x-gmeow-english ;
+    skos:example "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/math/loss-ledger.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:stage-snapshot gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/math/loss-ledger.ttl> .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/projections/math/loss-ledger.ttl" .
+
+# Mathematical consumer competencies travel in the existing queries archive.
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/queries/math-projection-losses.rq" .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/queries/math-projection-expression-losses.rq" .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/queries/math-projection-preservation.rq" .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/queries/math-projection-sensitive-losses.rq" .
+
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/projections/math/mathml-de8939b2eeedfa5c3c9cdce35c4ac4d00a2434ac883d3558b1f980f36baa02cc.mml" .
+gmeow:pipeline-build gmeow:expectsGeneratedOutput "generated/projections/math/openmath-afe42ee45d1234475e655935b18b8841ac0ba751b09d5b66f2544c7a35e733d9.omobj" .

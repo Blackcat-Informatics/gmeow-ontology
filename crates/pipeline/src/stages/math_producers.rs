@@ -39,14 +39,13 @@
 //! they mint is a content digest of those bytes.
 //! A producer/parse failure is a HARD FAIL — propagated, never swallowed (no-optionality).
 //!
-//! Every attached graph here is COMPUTED: this stage reads no corpus off disk, so its inputs
-//! are the workspace sources its producers compile from and nothing else. The authored
+//! The ten attached producer graphs are computed. Target projections additionally consume
+//! explicit requests from the source product, mappings, and a declared unit reference. The authored
 //! `examples/*.ttl` ABox of every slice — the math slice's included — is loaded by
 //! `stage-source-load` into [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`], where an
 //! authored corpus belongs: with the loader that reads the slices, for every slice at once,
 //! rather than as one grounding slice's special case bolted onto a producer stage.
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -190,19 +189,17 @@ fn enforce_producer_fixture_parity(
     Ok(())
 }
 
-/// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream STAGE
-/// product (the producers are self-contained native functions) and attaches the ten producer
-/// graphs to its carrier dataset.
+/// Compute the ten producer graphs and the explicitly requested target projections.
+/// Projection inputs come from declared source and mapping products.
 pub struct MathProducersStage {
     consumes: Vec<String>,
 }
 
 impl MathProducersStage {
-    /// Construct the stage. It consumes no upstream product: the producers compute from
-    /// pinned in-code constants and compile-time-embedded artifact bytes.
+    /// Construct the stage with its source and correspondence dependencies.
     pub fn new() -> Self {
         Self {
-            consumes: Vec::new(),
+            consumes: vec!["stage-mappings".to_owned(), "stage-source-load".to_owned()],
         }
     }
 }
@@ -257,25 +254,75 @@ impl Stage for MathProducersStage {
         // v9: retain ONNX/proof lift drift coverage at the same explicit boundary after
         // deleting the last producer-running test. Seven fixture laws now share the one
         // already-required producer execution.
-        "math_producers.v9-producers-with-fixture-parity"
+        "math_producers.v10-target-projections"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The ten producers are self-contained native functions whose bytes ride the
         // workspace-source BUILD_FINGERPRINT (any code change to `crates/math` yields fresh
         // cache keys), including the three lifts' `include_str!` / `include_bytes!`
-        // compile-time embeddings. This stage reads nothing off disk, so it declares no
-        // input file for their computation. The seven committed producer fixtures are
+        // compile-time embeddings. They need no additional input file. The seven committed producer fixtures are
         // explicit comparison witnesses, so they enter the stage action key directly.
-        Ok(PRODUCER_PARITY_FIXTURES
+        let mut paths: Vec<PathBuf> = PRODUCER_PARITY_FIXTURES
             .iter()
             .map(|(_, _, relative_path)| root.join(relative_path))
-            .collect())
+            .collect();
+        paths.push(root.join("slices/grounding/math/projections/unit-reference.ttl"));
+        paths.extend(
+            gmeow_math::projection::COMPETENCY_QUERIES
+                .iter()
+                .map(|(name, _)| {
+                    root.join("slices/grounding/math/queries/competency")
+                        .join(name)
+                }),
+        );
+        Ok(paths)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Parse each producer's deterministic Turtle into its own named carrier graph and
         // fold them into one frozen dataset the snapshot presenter folds into the bundle. A
         // producer/parse failure is a HARD FAIL — propagated, never swallowed
         // (no-optionality).
+        let source = input.upstream.get("stage-source-load").ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: "missing declared source product for math projection requests".to_owned(),
+            })
+        })?;
+        let reference = purrdf::parse_dataset(
+            &std::fs::read(
+                input
+                    .root
+                    .join("slices/grounding/math/projections/unit-reference.ttl"),
+            )?,
+            "text/turtle",
+            None,
+        )?;
+        let mappings = input.upstream.get("stage-mappings").ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: "missing declared correspondence product for mathematical projections"
+                    .to_owned(),
+            })
+        })?;
+        let alignments = mappings
+            .dataset()
+            .project_graph(Some(&purrdf::RdfTerm::iri(
+                crate::stages::carrier::GRAPH_ALIGNMENTS,
+            )))?;
+        let mut artifacts =
+            gmeow_math::projection::project_requests(source.dataset(), &reference, &alignments)?;
+        if artifacts.is_empty() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: "no authored mathematical projection request was selected".to_owned(),
+            }));
+        }
+        for (name, query) in gmeow_math::projection::COMPETENCY_QUERIES {
+            artifacts.insert(
+                format!("generated/queries/math-{name}"),
+                query.as_bytes().to_vec(),
+            );
+        }
         let turtles = producer_turtles();
         enforce_producer_fixture_parity(input.root, &turtles)?;
         let mut graphs: Vec<Arc<RdfDataset>> = Vec::with_capacity(turtles.len());
@@ -291,7 +338,7 @@ impl Stage for MathProducersStage {
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
             dataset,
-            BTreeMap::new(),
+            artifacts,
         )))
     }
 }

@@ -209,3 +209,90 @@ The projection layer is accepted only when it can answer these structurally:
    `logic:Correspondence` is it carried?
 4. Which projections, if any, dropped distribution parameterization or converted confidence to
    probability — and are those drops recorded in the loss ledger?
+
+## Executable selection and codec profiles
+
+`math:ProjectionRequest` selects one source and one codec through
+`math:projectionSource` and `math:projectionTargetName`. The mathematical producer
+reads these requests from its declared source product. A request is not a loss
+record: execution creates a separate content-bound `math:ProjectionRecord` for
+its actual result. Failed requests return no partial artifact map.
+
+The installed consumer takes explicit files:
+
+```bash
+gmeow math project source.ttl --subject urn:example:rendering --to mathml \
+  --reference references.ttl --out expression.mml --ledger expression-loss.ttl
+gmeow math lift expression.mml --from mathml --subject urn:example:document \
+  --reference references.ttl --out expression-draft.ttl
+```
+
+These commands use no checkout, generated file, fixture selector or producer.
+Project outputs require writable parent directories. The mandatory ledger is
+published before the target, conflicting destinations fail, and the command
+checks that publishing the artifact preserved the ledger. Input diagnostics name
+the failing file and the invoked operation.
+References explicitly supply canonical symbol correspondences and classified
+unit metadata. The producer's small QUDT reference input is a codec input; it is
+not an imported QUDT TBox and does not enter canonical reasoning. Native dimension
+identity and QUDT dimension-vector identity remain separate. A unit's classification
+must bind both; a conflicting quantity dimension is refused. An inbound quantity
+also needs its reference frame explicitly supplied in the reference context.
+No frame is inferred from a unit name.
+
+The content-expression profile carries numeric leaves pointing to `math:Number`
+objects, resolved symbols, explicit free-variable declarations and contiguous
+indexed applications. Each number declares its number system and exactness; a
+bare RDF literal is not a `math:literalValue`. A number additionally classified
+as `math:RationalValue` supplies its exact integer numerator and denominator.
+Other named exact numbers project by identity, requiring an explicit content
+dictionary correspondence for OpenMath. Labels never supply a magnitude.
+Inbound numeric tokens create these situated number objects; decimals use exact
+rational pairs rather than floating approximations. Inexact numbers, binders
+and unresolved operators are explicit refusals. MathML emission reads
+the `ExpressionRendering` seam; a presentation-only inbound artifact records a
+rendering of its retained source without claiming an expression AST.
+
+The QUDT profile retains the complete numeric RDF literal and unit/vector links.
+The Data Cube matrix profile emits a dataset, structure definition and indexed
+observations with separate exact numerator and denominator measures. It never
+rounds a rational cell into a decimal. STATO projection requires an existing
+canonical statistical expression anchor and an explicit class correspondence;
+its external class view does not reconstruct assumptions, probability or proof.
+The selected statistical profile remains explicit: a model uses `modelFormula`,
+a statistic uses `definingExpression`, and a hypothesis test uses `testStatistic`
+whose statistic has a defining expression. A target class never licenses an
+unrelated native profile.
+
+OpenMath output can use an explicitly declared close symbol correspondence,
+recording that boundary as a loss. Inbound external dictionary symbols require
+an unambiguous exact correspondence; close output alignment alone does not
+license reconstruction of native identity.
+OpenMath integers use canonical decimal output. The inbound decimal-integer
+profile ignores XML whitespace between digits and rejects a leading plus sign;
+hexadecimal integer notation is outside this selected profile and fails explicitly.
+Free declaration IRIs use reversible byte encoding as legal OpenMath variable
+names, with the native identity named in the loss ledger. Content dictionary,
+symbol and variable names are checked by the shared native XML name validator.
+
+Every output carries a `ValidationOnly` projection judgment and named omitted
+source constructs. This is distinct from the structural rendering contract and
+never claims a whole-source logical section. Inbound artifacts retain their
+original bytes through the existing ingestion witness and enumerate missing
+source context. A confidence value is never silently read as probability, and
+model parameterization is never manufactured.
+Each emitted projection record is also the `logic:Correspondence` carrying its
+preservation judgment and source/target endpoints. The four registered queries
+in `queries/competency/projection-*.rq` inspect actual loss ledgers for omitted
+constructs, expression losses, preservation carriers and sensitive losses.
+Their exact authored bytes ship in the existing consumer query archive as
+`math-projection-*.rq`.
+
+RDF targets and the combined loss ledger travel as named RDF fanout graphs under
+`generated/projections/math/`. XML artifacts travel through the existing opaque
+artifact channel. Both are reconstructed from the shipped bundle; neither is
+hand-edited or used as pipeline transport.
+
+The XML codec profiles follow [MathML content markup](https://www.w3.org/TR/MathML/chapter4-d.html)
+and the [OpenMath 2 standard](https://openmath.org/standard/om20-2019-07-01/omstd20.html).
+The small unit reference records the [QUDT metre classification](http://qudt.org/vocab/unit/M).
