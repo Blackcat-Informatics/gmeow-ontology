@@ -213,3 +213,28 @@ mention offsets and a chunk that also serves as a narrative segment.
 Depends on `kernel`, `entities`, `events`, `names`, `places`, and `temporal`. Consumed by
 every slice that measures, claims, or senses anything — which is to say, by every slice;
 the AI claim layer (GraphRAG provenance design) is its flagship consumer.
+
+## Encounters and simulated-world witnessing
+
+`Encounter` specializes `Observation`. Its `observedFeature` is the meeting Event,
+whose participants, `eventTime` and `eventLocation` answer who met whom, when and
+where. The observation retains its own `vantage`. `encounteredIn` identifies the
+conversation or message node, separately from the event. For first-meeting recall,
+filter events by the encountered participant and order their explicit event times;
+this finds the first recorded meeting, not proof that no earlier meeting occurred.
+
+`witnessedLocus` specializes `locatedAt` for an Observation and ranges over Location.
+It records where witnessing happened; an observed event can occur elsewhere.
+A simulated place is still a Location. Bind `hasReferenceFrame` on both the
+observation and its place to the same virtual-world frame rather than treating the
+place as geographic. `witnessedAtHead` is the immutable `xsd:token` state identifier
+within that environment frame. The frame and token together select the witnessed
+state; equal token spellings in different worlds do not identify one state. This
+is not a generic digest or a mutable latest alias. A standalone environment-state
+class is unnecessary for this consumer pattern; richer state entities can be
+recorded as the observed feature without changing the head token contract.
+
+See [encounters and worlds](examples/encounters-and-worlds.ttl) for two meetings
+and two virtual worlds sharing a head spelling. Generic observation queries still
+follow vantage and observedFeature; the spatial specialization does not replace
+the event's participants or location.

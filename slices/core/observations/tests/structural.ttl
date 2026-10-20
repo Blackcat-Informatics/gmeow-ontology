@@ -422,3 +422,23 @@ ASK { { VALUES ?p { gmeow:refinementOutcome gmeow:refinementCandidate }
     UNION { gmeow:Refinement rdfs:subClassOf+ gmeow:InferenceCommitment } }
 """ ;
     gmeow:saRationale "Unselected candidates are not chosen outputs, ordinary readings are not inference commitments, and coequal attributions are not collapsed." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saEncounter a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:Encounter a logic:SubKind ; (logic:subClassOf|rdfs:subClassOf) gmeow:Observation . gmeow:encounteredIn (logic:domain|rdfs:domain) gmeow:Encounter ; (logic:range|rdfs:range) logic:Thing . }" ;
+    gmeow:saRationale "An encounter is an observation of a separate meeting, with an open conversation or message target." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saWitnessCoordinates a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:witnessedLocus a owl:ObjectProperty ; (logic:domain|rdfs:domain) gmeow:Observation ; (logic:range|rdfs:range) gmeow:Location ; (logic:subPropertyOf|rdfs:subPropertyOf) gmeow:locatedAt . gmeow:witnessedAtHead a owl:DatatypeProperty ; (logic:range|rdfs:range) <http://www.w3.org/2001/XMLSchema#token> . }" ;
+    gmeow:saRationale "Witness places stay Locations, while the head remains a frame-scoped identifier." .

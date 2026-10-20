@@ -1387,3 +1387,51 @@ gmeow:refinementUnresolved
     gmeow:avoidWhen "Avoid inventing a result node merely to fill an unresolved record."@x-gmeow-english ;
     gmeow:howToUse "Retain source and versioned vantage, record this outcome and omit a selected result."@x-gmeow-english ;
     gmeow:useWhen "Use when a completed reading attempt found no interpretation."@x-gmeow-english .
+
+gmeow:Encounter
+    a logic:Class, logic:SubKind ; logic:subClassOf gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Encounter"@x-gmeow-english ;
+    skos:definition "An observation that its vantage met another agent, with the meeting event as its observed feature."@x-gmeow-english ;
+    skos:example "ex:encounter a gmeow:Encounter ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:meeting ."@x-gmeow-english ;
+    skos:scopeNote "The observation and the meeting are distinct nodes; participants, time and place belong to the event."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace a meeting event with its observation or infer friendship from an encounter."@x-gmeow-english ;
+    gmeow:howToUse "Bind vantage and observedFeature; query the event participants and eventTime for first-meeting recall."@x-gmeow-english ;
+    gmeow:useWhen "Use when recall must identify an observed meeting with someone."@x-gmeow-english .
+
+gmeow:encounteredIn
+    a logic:ObjectProperty ; logic:domain gmeow:Encounter ; logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "encountered in"@x-gmeow-english ;
+    skos:definition "Relates an encounter observation to the conversation or message in which the meeting occurred."@x-gmeow-english ;
+    skos:example "ex:encounter gmeow:encounteredIn ex:conversation ."@x-gmeow-english ;
+    skos:scopeNote "The target is a referenced record or interaction, not a verbatim external identifier or a spatial location."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this relation instead of observedFeature for the meeting event."@x-gmeow-english ;
+    gmeow:howToUse "Point to the conversation or message node and retain the separate observed meeting event."@x-gmeow-english ;
+    gmeow:useWhen "Use when an encounter happened through a recorded conversation."@x-gmeow-english .
+
+gmeow:witnessedLocus
+    a logic:ObjectProperty ; logic:domain gmeow:Observation ; logic:range gmeow:Location ; logic:subPropertyOf gmeow:locatedAt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "witnessed locus"@x-gmeow-english ;
+    skos:definition "The location at which an observation was witnessed, including a place in a simulated world."@x-gmeow-english ;
+    skos:example "ex:observation gmeow:witnessedLocus ex:virtualRoom ."@x-gmeow-english ;
+    skos:scopeNote "Specializes locatedAt for the observing record; the observed event may carry a separate event location."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a geographic place or conflate the witness location with the location of every observed object."@x-gmeow-english ;
+    gmeow:howToUse "Link a Location and retain hasReferenceFrame on the observation and the simulated place."@x-gmeow-english ;
+    gmeow:useWhen "Use when the place of witnessing is part of an observation receipt."@x-gmeow-english .
+
+gmeow:witnessedAtHead
+    a logic:DatatypeProperty ; logic:domain gmeow:Observation ; logic:range xsd:token ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "witnessed at head"@x-gmeow-english ;
+    skos:definition "The immutable state-head identifier witnessed by an observation within its selected environment frame."@x-gmeow-english ;
+    skos:example "ex:observation gmeow:witnessedAtHead \"state-42\"^^xsd:token ."@x-gmeow-english ;
+    skos:scopeNote "An opaque token scoped by the environment frame, not a universal digest, time or mutable latest alias."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not compare head tokens across different environments without their frame identities."@x-gmeow-english ;
+    gmeow:howToUse "Record the exact stable token together with hasReferenceFrame and witnessedLocus."@x-gmeow-english ;
+    gmeow:useWhen "Use when replay needs the environment state that was actually witnessed."@x-gmeow-english .

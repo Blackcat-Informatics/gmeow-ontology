@@ -245,3 +245,30 @@ index queried (`againstIndex`, functional), and the chunks returned
 too (§6 above). `extensions/embedding-projection`'s `gmeow:DerivedVectorIndex`
 specializes `VectorIndex` directly as a non-authoritative, rebuildable
 accelerator.
+
+## Keeping a model consultation in its own words
+
+`promptText` retains the words of a concrete Prompt, including supplied language
+and direction. Its `rdfs:Literal` range admits both RDF 1.2 language literal forms;
+it does not restrict text to xsd:string or to nondirectional language strings.
+`modelAlias` is the requested `xsd:token` provider name, while `usedModel` continues
+to identify the actual SoftwareAgent. Preserve both when an alias is resolved.
+`externalRedactionCount` records the reported number of redacted answer items as
+`xsd:nonNegativeInteger`. Explicit zero means none reported redacted; an absent
+count means the record does not supply that information. Do not invent the hidden
+content or treat this count as a character count.
+
+An answer is an InformationObject with `answerText`, `wasGeneratedBy` pointing
+back to ModelInvocation, `wasAttributedTo` naming the model, and `wasDerivedFrom`
+for the cited sources actually used. An Observation of the consultation reaches
+that answer through the existing individual-valued `observationResult`; raw answer
+text is never placed on that object property. The observer's receipt and the
+model's answer attribution stay distinct. The words are preserved content, not
+asserted truth: any claim extracted from them needs its own attributed observation
+and evidence. `answerText` also admits supplied language and direction.
+
+The [consultation record](examples/consultation-record.ttl) keeps the question,
+requested alias, actual model, original answer, three cited sources and redaction
+count together, with a separate explicit-zero example. Content-addressing and exact
+byte provenance use the existing source machinery; these text properties do not
+replace an original byte digest or specify a new digest algorithm.

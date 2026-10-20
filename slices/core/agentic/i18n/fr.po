@@ -172,3 +172,367 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."
 msgstr "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Request"
+msgstr "Demande d’attention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded request to attend to something, including one raised by a dream report."
+msgstr "Une demande enregistrée de porter attention à quelque chose, notamment issue d’un récit de rêve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:request a gmeow:AttentionRequest ."
+msgstr "ex:request a gmeow:AttentionRequest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The request is an information object; acknowledgement and resolution are separate events."
+msgstr "La demande est un objet informationnel ; accusé de réception et résolution sont des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Acknowledgement"
+msgstr "Accusé de réception d’attention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An event in which an agent acknowledges an attention request without necessarily resolving it."
+msgstr "Un événement où un agent accuse réception d’une demande d’attention sans nécessairement la résoudre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ."
+msgstr "ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Acknowledgement records receipt, not agreement, completion or resolution."
+msgstr "L’accusé de réception constate la réception, non l’accord, l’achèvement ou la résolution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Resolution"
+msgstr "Résolution d’une demande d’attention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An event recording how an agent disposed of an attention request, with rationale and supporting evidence."
+msgstr "Un événement enregistrant la suite donnée par un agent à une demande d’attention, avec justification et éléments probants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution a gmeow:AttentionResolution ; gmeow:resolves ex:request ."
+msgstr "ex:resolution a gmeow:AttentionResolution ; gmeow:resolves ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Addressed, deferred and dismissed are explicit outcomes; none implies deletion of the request."
+msgstr "Traitée, différée et écartée sont des issues explicites ; aucune n’implique la suppression de la demande."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acknowledges"
+msgstr "accuse réception de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention acknowledgement event to the request it acknowledges."
+msgstr "Relie un événement d’accusé de réception à la demande d’attention reçue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ack gmeow:acknowledges ex:request ."
+msgstr "ex:ack gmeow:acknowledges ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple acknowledgements may coexist with their own actors and times."
+msgstr "Plusieurs accusés de réception peuvent coexister avec leurs acteurs et temps propres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolves"
+msgstr "statue sur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention resolution event to the request whose disposition it records."
+msgstr "Relie un événement de résolution à la demande dont il enregistre le sort."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolves ex:request ."
+msgstr "ex:resolution gmeow:resolves ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Resolution does not imply that the requested work succeeded; inspect resolutionOutcome."
+msgstr "La résolution n’implique pas la réussite du travail demandé ; consulter resolutionOutcome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Resolution Outcome"
+msgstr "Issue de résolution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed disposition value for an attention resolution event."
+msgstr "Une valeur de disposition attribuée à un événement de résolution d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:resolutionAddressed a gmeow:ResolutionOutcome ."
+msgstr "gmeow:resolutionAddressed a gmeow:ResolutionOutcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An open value vocabulary, distinct from a logical evaluation verdict or task execution status."
+msgstr "Un vocabulaire ouvert de valeurs, distinct d’un verdict logique ou d’un état d’exécution de tâche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "Employer la valeur avec resolutionOutcome sur un événement AttentionResolution attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addressed"
+msgstr "traitée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent records that the requested attention was given."
+msgstr "L’agent consigne que l’attention demandée a été accordée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionAddressed ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionAddressed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the agent’s disposition, not proof that every underlying problem was solved."
+msgstr "C’est la disposition de l’agent, non la preuve que tout problème sous-jacent est résolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "Employer la valeur avec resolutionOutcome sur un événement AttentionResolution attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deferred"
+msgstr "différée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent deliberately postpones the requested attention."
+msgstr "L’agent reporte délibérément l’attention demandée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An explicit postponement differs from an unacknowledged or missing record."
+msgstr "Un report explicite diffère d’un enregistrement absent ou sans accusé de réception."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "Employer la valeur avec resolutionOutcome sur un événement AttentionResolution attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dismissed"
+msgstr "écartée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent deliberately declines the requested attention."
+msgstr "L’agent refuse délibérément l’attention demandée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDismissed ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDismissed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain the rationale and request; dismissal is not erasure or an inference from silence."
+msgstr "Conserver justification et demande ; l’écartement n’est ni un effacement ni une déduction du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "Employer la valeur avec resolutionOutcome sur un événement AttentionResolution attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution outcome"
+msgstr "issue de résolution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention resolution event to its recorded disposition."
+msgstr "Relie un événement de résolution d’attention à sa disposition enregistrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The outcome belongs to the event; later decisions are new events, not overwritten request states."
+msgstr "L’issue appartient à l’événement ; les décisions ultérieures sont de nouveaux événements, non des états écrasés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution rationale"
+msgstr "justification de résolution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent’s stated reason for an attention request disposition."
+msgstr "La raison déclarée par l’agent pour la disposition d’une demande d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
+msgstr "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."
+msgstr "Le texte avec langue et direction peut être conservé ; la justification n’est pas un fait vérifié indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution evidence"
+msgstr "élément probant de résolution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention resolution to a record or entity offered as evidence for its disposition."
+msgstr "Relie une résolution d’attention à un enregistrement ou une entité proposé comme élément probant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionEvidence ex:receipt ."
+msgstr "ex:resolution gmeow:resolutionEvidence ex:receipt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Evidence is offered by the resolving actor and does not become automatically authoritative."
+msgstr "L’élément probant est proposé par l’acteur et ne devient pas automatiquement une autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attention requested at"
+msgstr "attention demandée à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly known instant at which an attention request was raised."
+msgstr "L’instant explicitement connu auquel une demande d’attention a été formulée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:request gmeow:attentionRequestedAt \"2026-10-10T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:request gmeow:attentionRequestedAt \"2026-10-10T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the request time, not the dream’s occurrence time or an acknowledgement or resolution time."
+msgstr "C’est le temps de la demande, non celui du rêve, de l’accusé de réception ou de la résolution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "Ne pas confondre accusé de réception, report, écartement et attention accordée dans un indicateur mutable de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs, temps, justification et preuves des événements distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."

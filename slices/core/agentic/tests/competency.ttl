@@ -68,3 +68,91 @@ ext:cqActionPolicyShape a logic:ResultShape ;
 ext:cqActionPolicyRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "policy" ;
         gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/mcpActionPolicy> ] .
+
+@prefix case: <https://example.org/attention-lifecycle/> .
+
+ot:cqRaisedRequest a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/attention-lifecycle/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?source ?actor ?when ?message WHERE { ex:request a gmeow:AttentionRequest ; gmeow:wasDerivedFrom ?source ; gmeow:wasAttributedTo ?actor ; gmeow:attentionRequestedAt ?when ; gmeow:description ?message . }" ;
+    gmeow:cqRationale "The request retains its raising report, author, creation instant and original words." ;
+    gmeow:cqResultShape ot:shapeRaisedRequest ;
+    gmeow:cqExpectRow ot:rowRaisedRequest0 .
+
+ot:shapeRaisedRequest a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "actor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "when" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "message" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowRaisedRequest0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri case:dreamReport ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "actor" ; gmeow:cellValueIri case:self ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T09:00:00Z"^^xsd:dateTime ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "message" ; gmeow:cellValueLiteral "Revisit the dream’s unanswered question."@en ] .
+
+@prefix case: <https://example.org/attention-lifecycle/> .
+
+ot:cqAcknowledgement a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/attention-lifecycle/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?actor ?when WHERE { ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ; gmeow:wasAssociatedWith ?actor ; gmeow:eventTime ?when . }" ;
+    gmeow:cqRationale "Acknowledgement records a separate actor and time without implying resolution." ;
+    gmeow:cqResultShape ot:shapeAcknowledgement ;
+    gmeow:cqExpectRow ot:rowAcknowledgement0 .
+
+ot:shapeAcknowledgement a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "actor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "when" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowAcknowledgement0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "actor" ; gmeow:cellValueIri case:self ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T09:01:00Z"^^xsd:dateTime ] .
+
+@prefix case: <https://example.org/attention-lifecycle/> .
+
+ot:cqResolutionHistory a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/attention-lifecycle/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?event ?request ?outcome ?when WHERE { ?event a gmeow:AttentionResolution ; gmeow:resolves ?request ; gmeow:resolutionOutcome ?outcome ; gmeow:resolutionRationale ?reason ; gmeow:resolutionEvidence ex:receipt ; gmeow:wasAssociatedWith ex:self ; gmeow:eventTime ?when . }" ;
+    gmeow:cqRationale "All three outcomes retain actor, time, rationale and evidence; later attention does not erase deferral." ;
+    gmeow:cqResultShape ot:shapeResolutionHistory ;
+    gmeow:cqExpectRow ot:rowResolutionHistory0, ot:rowResolutionHistory1, ot:rowResolutionHistory2 .
+
+ot:shapeResolutionHistory a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "request" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "outcome" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "when" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowResolutionHistory0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri case:deferred ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "request" ; gmeow:cellValueIri case:request ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:resolutionDeferred ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T09:02:00Z"^^xsd:dateTime ] .
+
+ot:rowResolutionHistory1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri case:addressed ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "request" ; gmeow:cellValueIri case:request ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:resolutionAddressed ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T10:00:00Z"^^xsd:dateTime ] .
+
+ot:rowResolutionHistory2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri case:dismissed ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "request" ; gmeow:cellValueIri case:otherRequest ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:resolutionDismissed ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T11:01:00Z"^^xsd:dateTime ] .
+
+@prefix case: <https://example.org/attention-lifecycle/> .
+
+ot:cqNoResolutionByAcknowledgement a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/attention-lifecycle/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?outcome WHERE { ex:ack gmeow:resolutionOutcome ?outcome . }" ;
+    gmeow:cqRationale "Receipt alone never assigns a resolution outcome." ;
+    gmeow:cqResultShape ot:shapeNoResolutionByAcknowledgement ;
+    gmeow:cqExpectRowCount 0 .
+
+ot:shapeNoResolutionByAcknowledgement a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "outcome" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .

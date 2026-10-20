@@ -17,8 +17,9 @@ producer ships in this repo: the gmeow memory MCP triad records its own `store_c
 and `revise_belief` calls as ToolCall provenance, so the P14 memory flagship's actions
 are themselves grounded memory.
 
-Deliberately thin: five terms. Trajectory aggregates (runs, episodes, plans) wait for a
-consumer that needs them; growth requires a new consumer, not modeling pleasure.
+The core surface covers tool-call provenance and the attention-request lifecycle used by
+memetics. Both retain their original records and actors rather than collapsing events
+into a mutable status.
 
 ## The call event
 
@@ -121,3 +122,27 @@ asserted-quad projection. The companion Rust evaluator
 (`crates/logic/src/teleology.rs`, `gate_action`) exercises the same `store_claim`
 pattern: **admit** when the precondition holds and the memory-write capability is
 available, **deny** (carrying `revise_belief` as the rollback) when either is missing.
+
+## Attention requests and their event history
+
+Memetics records a request raised by a dream report as `AttentionRequest`, an
+InformationObject, rather than a special waking-only class. Its words use
+`description`, its raising record uses `wasDerivedFrom`, its author uses
+`wasAttributedTo`, and its known request instant uses `attentionRequestedAt`.
+Do not pad an unknown/coarse time into this instant property. Dream occurrence,
+request creation, acknowledgement and resolution are different times.
+
+`AttentionAcknowledgement` and `AttentionResolution` are Activity events, with
+`wasAssociatedWith` for their actors and `eventTime` for known instants. They link
+back through `acknowledges` and `resolves`. Acknowledgement is receipt, not completion.
+A resolution carries `resolutionOutcome`, `resolutionRationale` and links to offered
+records through `resolutionEvidence`. All three open outcome values are provided:
+`resolutionAddressed`, `resolutionDeferred` and `resolutionDismissed`. Deferral and
+dismissal are explicit dispositions, never inferred from missing replies.
+
+The [lifecycle example](examples/attention-lifecycle.ttl) preserves a deferred event
+and a later addressed event for the same request, plus a separately dismissed
+request. There is no mutable winning status, forced last-write choice, logical
+EvaluationStatus alias or new general ticket framework. The rationale and evidence
+remain attributable to the resolving actor; recording a disposition does not
+certify that the underlying concern was solved or erase the original request.

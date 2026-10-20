@@ -136,3 +136,43 @@ ASK {
         logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:sessionStoreSegment MUST be an owl:DatatypeProperty on gmeow:ToolCall ranging over rdfs:Literal, and its one-per-call character MUST ride on a logic:PropertyCharacteristicAssertion, exactly as gmeow:toolArguments and gmeow:toolResult do. A call whose audit bytes were appended once names one segment; a second value would make the record locatable in two places at once and leave an append-only trajectory ambiguous under replay." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saAttentionRecords a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:AttentionRequest (logic:subClassOf|rdfs:subClassOf) gmeow:InformationObject . gmeow:AttentionAcknowledgement a logic:Event ; (logic:subClassOf|rdfs:subClassOf) gmeow:Activity . gmeow:AttentionResolution a logic:Event ; (logic:subClassOf|rdfs:subClassOf) gmeow:Activity . }" ;
+    gmeow:saRationale "Request content is separate from acknowledgement and resolution events." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saAttentionRelations a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:acknowledges (logic:domain|rdfs:domain) gmeow:AttentionAcknowledgement ; (logic:range|rdfs:range) gmeow:AttentionRequest . gmeow:resolves (logic:domain|rdfs:domain) gmeow:AttentionResolution ; (logic:range|rdfs:range) gmeow:AttentionRequest . gmeow:resolutionOutcome (logic:domain|rdfs:domain) gmeow:AttentionResolution ; (logic:range|rdfs:range) gmeow:ResolutionOutcome . }" ;
+    gmeow:saRationale "Lifecycle events point at the same retained request and keep the event-specific outcome." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saResolutionVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:ResolutionOutcome a logic:AbstractIndividualType ; (logic:subClassOf|rdfs:subClassOf) logic:QualityValue . gmeow:resolutionAddressed a gmeow:ResolutionOutcome . gmeow:resolutionDeferred a gmeow:ResolutionOutcome . gmeow:resolutionDismissed a gmeow:ResolutionOutcome . }" ;
+    gmeow:saRationale "All three requested dispositions are values rather than task or logical verdicts." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saResolutionDetail a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:resolutionRationale (logic:domain|rdfs:domain) gmeow:AttentionResolution ; (logic:range|rdfs:range) rdfs:Literal . gmeow:resolutionEvidence (logic:domain|rdfs:domain) gmeow:AttentionResolution ; (logic:range|rdfs:range) gmeow:Entity . gmeow:attentionRequestedAt (logic:domain|rdfs:domain) gmeow:AttentionRequest ; (logic:range|rdfs:range) <http://www.w3.org/2001/XMLSchema#dateTime> . }" ;
+    gmeow:saRationale "Rationale, offered evidence and request time have their own typed roles." .

@@ -592,3 +592,115 @@ msgstr "支撑跨度完备性约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/GroundingSpanConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: every span reached via gmeow:groundedIn from a claim (a grounding span) must be pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart, gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity) — evidence without recoverable, offset-located, polarity-classified bytes is a vibe, not grounding."
 msgstr "闭世界完整性约束：凡从主张经 gmeow:groundedIn 到达的跨度（即支撑跨度）都必须锚定到某个分块（gmeow:spanOfChunk）、以偏移量定位（gmeow:spanStart、gmeow:spanEnd）并按极性归类（gmeow:supportPolarity）——字节若不可还原、不以偏移定位、未按极性归类，那便只是感觉，而非支撑。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "external redaction count"
+msgstr "外部删节数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The number of answer items reported redacted for a model invocation."
+msgstr "模型调用中报告被删节的回答项目数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:call gmeow:externalRedactionCount \"0\"^^xsd:nonNegativeInteger ."
+msgstr "ex:call gmeow:externalRedactionCount \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A count of items, not characters or hidden content; explicit zero differs from missing information."
+msgstr "这是项目数，不是字符数或隐藏内容；明确的零不同于信息缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "不要将原始提示、请求别名、实际模型和有归属的回答替换为一个无结构的调用字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "保留 hasPrompt、usedModel 以及输出的 wasGeneratedBy/wasAttributedTo 来源；通过 observationResult 获取回答内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "用于保留所问与所答，同时不将生成文字视为已确立事实时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prompt text"
+msgstr "提示文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original words of a concrete prompt presented to a model."
+msgstr "提交给模型的具体提示的原始文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:question gmeow:promptText \"What did you observe?\"@en ."
+msgstr "ex:question gmeow:promptText \"What did you observe?\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain language and direction where supplied; a text rendering does not replace the exact-byte content digest."
+msgstr "如有提供，应保留语言与方向；文本呈现不能替代精确字节的内容摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "不要将原始提示、请求别名、实际模型和有归属的回答替换为一个无结构的调用字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "保留 hasPrompt、usedModel 以及输出的 wasGeneratedBy/wasAttributedTo 来源；通过 observationResult 获取回答内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "用于保留所问与所答，同时不将生成文字视为已确立事实时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requested model alias"
+msgstr "所请求的模型别名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider model name or alias requested for a model invocation before resolution to the actual model."
+msgstr "模型调用在解析到实际模型之前向提供方请求的模型名称或别名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:call gmeow:modelAlias \"provider/latest\"^^xsd:token ."
+msgstr "ex:call gmeow:modelAlias \"provider/latest\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The requested token is provenance; usedModel still names the actual model agent."
+msgstr "请求词元属于来源信息；usedModel 仍指向实际使用的模型行动者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "不要将原始提示、请求别名、实际模型和有归属的回答替换为一个无结构的调用字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "保留 hasPrompt、usedModel 以及输出的 wasGeneratedBy/wasAttributedTo 来源；通过 observationResult 获取回答内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "用于保留所问与所答，同时不将生成文字视为已确立事实时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "answer text"
+msgstr "回答文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original words of an answer retained as an information object."
+msgstr "作为信息对象保留的回答原始文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
+msgstr "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Text is attributed content, not an asserted triple or proof of what it says; preserve language and direction."
+msgstr "文本是有归属的内容，不是断言的三元组，也不证明其所述内容；应保留语言与方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "不要将原始提示、请求别名、实际模型和有归属的回答替换为一个无结构的调用字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "保留 hasPrompt、usedModel 以及输出的 wasGeneratedBy/wasAttributedTo 来源；通过 observationResult 获取回答内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "用于保留所问与所答，同时不将生成文字视为已确立事实时。"

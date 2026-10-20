@@ -692,3 +692,115 @@ msgstr "保留来源和有版本的视角，记录该结果，并不填写选定
 msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a completed reading attempt found no interpretation."
 msgstr "当一次已完成的解读尝试未找到解释时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Encounter"
+msgstr "相遇观察"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation that its vantage met another agent, with the meeting event as its observed feature."
+msgstr "观察者与另一行动者相遇的观察，以会面事件为所观察的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:encounter a gmeow:Encounter ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:meeting ."
+msgstr "ex:encounter a gmeow:Encounter ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:meeting ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The observation and the meeting are distinct nodes; participants, time and place belong to the event."
+msgstr "观察与会面是不同节点；参与者、时间和地点属于事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a meeting event with its observation or infer friendship from an encounter."
+msgstr "不要以观察替代会面事件，也不要从相遇推断友谊。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind vantage and observedFeature; query the event participants and eventTime for first-meeting recall."
+msgstr "绑定 vantage 和 observedFeature；查询事件参与者与 eventTime 以检索首次会面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recall must identify an observed meeting with someone."
+msgstr "用于需要检索与某人相遇的观察记录时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "encountered in"
+msgstr "相遇于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an encounter observation to the conversation or message in which the meeting occurred."
+msgstr "将相遇观察关联到会面发生于其中的对话或消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:encounter gmeow:encounteredIn ex:conversation ."
+msgstr "ex:encounter gmeow:encounteredIn ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is a referenced record or interaction, not a verbatim external identifier or a spatial location."
+msgstr "目标是被引用的记录或交互，不是外部标识符字面量或空间地点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this relation instead of observedFeature for the meeting event."
+msgstr "不要用此关系替代指向会面事件的 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point to the conversation or message node and retain the separate observed meeting event."
+msgstr "指向对话或消息节点，并保留独立的会面事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an encounter happened through a recorded conversation."
+msgstr "用于相遇发生在有记录的对话中时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "witnessed locus"
+msgstr "见证地点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The location at which an observation was witnessed, including a place in a simulated world."
+msgstr "观察被见证时所在的地点，包括模拟世界中的地点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:observation gmeow:witnessedLocus ex:virtualRoom ."
+msgstr "ex:observation gmeow:witnessedLocus ex:virtualRoom ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Specializes locatedAt for the observing record; the observed event may carry a separate event location."
+msgstr "这是观察记录的 locatedAt 特化；被观察的事件可具有另一个事件地点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a geographic place or conflate the witness location with the location of every observed object."
+msgstr "不要推断为地理地点，也不要将见证地点与每个被观察对象的位置混同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link a Location and retain hasReferenceFrame on the observation and the simulated place."
+msgstr "关联 Location，并在观察和模拟地点上保留 hasReferenceFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the place of witnessing is part of an observation receipt."
+msgstr "用于观察凭据需要保留见证地点时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "witnessed at head"
+msgstr "见证状态头"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The immutable state-head identifier witnessed by an observation within its selected environment frame."
+msgstr "观察在所选环境参考框架内见证的不可变状态头标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:observation gmeow:witnessedAtHead \"state-42\"^^xsd:token ."
+msgstr "ex:observation gmeow:witnessedAtHead \"state-42\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An opaque token scoped by the environment frame, not a universal digest, time or mutable latest alias."
+msgstr "这是以环境框架为作用域的不透明词元，不是通用摘要、时间或可变的 latest 别名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not compare head tokens across different environments without their frame identities."
+msgstr "不要在缺少框架身份时跨环境比较状态头词元。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the exact stable token together with hasReferenceFrame and witnessedLocus."
+msgstr "同时记录精确稳定词元、hasReferenceFrame 与 witnessedLocus。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when replay needs the environment state that was actually witnessed."
+msgstr "用于重放需要实际见证的环境状态时。"

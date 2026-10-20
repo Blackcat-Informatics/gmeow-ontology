@@ -692,3 +692,115 @@ msgstr "Conserver la source et le point de vue versionné, enregistrer cette iss
 msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a completed reading attempt found no interpretation."
 msgstr "À employer lorsqu’une tentative de lecture achevée n’a trouvé aucune interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Encounter"
+msgstr "Rencontre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation that its vantage met another agent, with the meeting event as its observed feature."
+msgstr "Une observation selon laquelle son point de vue a rencontré un autre agent, avec la rencontre comme événement observé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:encounter a gmeow:Encounter ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:meeting ."
+msgstr "ex:encounter a gmeow:Encounter ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:meeting ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The observation and the meeting are distinct nodes; participants, time and place belong to the event."
+msgstr "L’observation et la rencontre sont des nœuds distincts ; participants, temps et lieu appartiennent à l’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace a meeting event with its observation or infer friendship from an encounter."
+msgstr "Ne pas remplacer l’événement par son observation ni déduire une amitié d’une rencontre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind vantage and observedFeature; query the event participants and eventTime for first-meeting recall."
+msgstr "Lier vantage et observedFeature ; interroger les participants et eventTime pour retrouver la première rencontre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Encounter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recall must identify an observed meeting with someone."
+msgstr "À employer pour retrouver une rencontre observée avec quelqu’un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "encountered in"
+msgstr "rencontré dans"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an encounter observation to the conversation or message in which the meeting occurred."
+msgstr "Relie une observation de rencontre à la conversation ou au message dans lequel la rencontre a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:encounter gmeow:encounteredIn ex:conversation ."
+msgstr "ex:encounter gmeow:encounteredIn ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is a referenced record or interaction, not a verbatim external identifier or a spatial location."
+msgstr "La cible est un enregistrement ou une interaction référencée, non un identifiant externe textuel ni un lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this relation instead of observedFeature for the meeting event."
+msgstr "Ne pas remplacer observedFeature, qui désigne l’événement de rencontre, par cette relation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point to the conversation or message node and retain the separate observed meeting event."
+msgstr "Pointer vers le nœud de conversation ou de message et conserver l’événement observé distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encounteredIn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an encounter happened through a recorded conversation."
+msgstr "À employer lorsqu’une rencontre a eu lieu dans une conversation enregistrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "witnessed locus"
+msgstr "lieu du témoignage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The location at which an observation was witnessed, including a place in a simulated world."
+msgstr "Le lieu où une observation a été faite, y compris dans un monde simulé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:observation gmeow:witnessedLocus ex:virtualRoom ."
+msgstr "ex:observation gmeow:witnessedLocus ex:virtualRoom ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Specializes locatedAt for the observing record; the observed event may carry a separate event location."
+msgstr "Spécialise locatedAt pour l’observation ; l’événement observé peut avoir son propre lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a geographic place or conflate the witness location with the location of every observed object."
+msgstr "Ne pas déduire un lieu géographique ni confondre le lieu du témoin avec celui de chaque objet observé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link a Location and retain hasReferenceFrame on the observation and the simulated place."
+msgstr "Lier une Location et conserver hasReferenceFrame sur l’observation et le lieu simulé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedLocus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the place of witnessing is part of an observation receipt."
+msgstr "À employer lorsque le lieu du témoignage fait partie du relevé d’observation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "witnessed at head"
+msgstr "observé à la tête d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The immutable state-head identifier witnessed by an observation within its selected environment frame."
+msgstr "L’identifiant immuable de tête d’état observé dans le cadre d’environnement sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:observation gmeow:witnessedAtHead \"state-42\"^^xsd:token ."
+msgstr "ex:observation gmeow:witnessedAtHead \"state-42\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An opaque token scoped by the environment frame, not a universal digest, time or mutable latest alias."
+msgstr "Un jeton opaque limité au cadre d’environnement, non une empreinte universelle, un temps ou un alias latest mutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not compare head tokens across different environments without their frame identities."
+msgstr "Ne pas comparer les jetons de tête de différents environnements sans leurs identités de cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the exact stable token together with hasReferenceFrame and witnessedLocus."
+msgstr "Enregistrer le jeton stable exact avec hasReferenceFrame et witnessedLocus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when replay needs the environment state that was actually witnessed."
+msgstr "À employer lorsque la relecture exige l’état d’environnement effectivement observé."

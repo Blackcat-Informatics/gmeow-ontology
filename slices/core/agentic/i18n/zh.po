@@ -172,3 +172,367 @@ msgstr "范围：该记录仅承载关于 gmeow:sessionStoreSegment 的一项完
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."
 msgstr "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Request"
+msgstr "注意请求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded request to attend to something, including one raised by a dream report."
+msgstr "请求关注某事的记录，也包括由梦境报告提出的请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:request a gmeow:AttentionRequest ."
+msgstr "ex:request a gmeow:AttentionRequest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The request is an information object; acknowledgement and resolution are separate events."
+msgstr "请求是信息对象；确认和处理结论是独立事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionRequest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Acknowledgement"
+msgstr "注意请求确认"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An event in which an agent acknowledges an attention request without necessarily resolving it."
+msgstr "行动者确认收到注意请求的事件，并不必然意味着已经处理该请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ."
+msgstr "ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Acknowledgement records receipt, not agreement, completion or resolution."
+msgstr "确认仅记录收到请求，不表示同意、完成或作出处理结论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionAcknowledgement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Resolution"
+msgstr "注意请求处理结论"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An event recording how an agent disposed of an attention request, with rationale and supporting evidence."
+msgstr "记录行动者如何处理注意请求的事件，附带理由和支持证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution a gmeow:AttentionResolution ; gmeow:resolves ex:request ."
+msgstr "ex:resolution a gmeow:AttentionResolution ; gmeow:resolves ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Addressed, deferred and dismissed are explicit outcomes; none implies deletion of the request."
+msgstr "已处理、已延期和已驳回是明确的结论；均不意味着删除请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionResolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acknowledges"
+msgstr "确认收到"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention acknowledgement event to the request it acknowledges."
+msgstr "将注意请求确认事件关联到其确认收到的请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ack gmeow:acknowledges ex:request ."
+msgstr "ex:ack gmeow:acknowledges ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple acknowledgements may coexist with their own actors and times."
+msgstr "可并存多次确认，各自具有行动者和时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acknowledges|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolves"
+msgstr "作出处理结论"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention resolution event to the request whose disposition it records."
+msgstr "将注意请求处理结论事件关联到其记录处理结果的请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolves ex:request ."
+msgstr "ex:resolution gmeow:resolves ex:request ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Resolution does not imply that the requested work succeeded; inspect resolutionOutcome."
+msgstr "作出结论不表示请求的工作已成功；应检查 resolutionOutcome。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolves|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Resolution Outcome"
+msgstr "处理结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed disposition value for an attention resolution event."
+msgstr "赋予注意请求处理结论事件的结果值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:resolutionAddressed a gmeow:ResolutionOutcome ."
+msgstr "gmeow:resolutionAddressed a gmeow:ResolutionOutcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An open value vocabulary, distinct from a logical evaluation verdict or task execution status."
+msgstr "这是开放的值词汇表，区别于逻辑求值裁决或任务执行状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "通过 resolutionOutcome 在具有行动者归属的 AttentionResolution 事件上使用该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addressed"
+msgstr "已处理"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent records that the requested attention was given."
+msgstr "作出结论的行动者记录所请求的关注已经给予。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionAddressed ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionAddressed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the agent’s disposition, not proof that every underlying problem was solved."
+msgstr "这是行动者的处理结论，不证明所有潜在问题都已解决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "通过 resolutionOutcome 在具有行动者归属的 AttentionResolution 事件上使用该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionAddressed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deferred"
+msgstr "已延期"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent deliberately postpones the requested attention."
+msgstr "作出结论的行动者有意推迟所请求的关注。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An explicit postponement differs from an unacknowledged or missing record."
+msgstr "明确延期不同于没有确认或缺失记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "通过 resolutionOutcome 在具有行动者归属的 AttentionResolution 事件上使用该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDeferred|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dismissed"
+msgstr "已驳回"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent deliberately declines the requested attention."
+msgstr "作出结论的行动者有意拒绝所请求的关注。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDismissed ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDismissed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain the rationale and request; dismissal is not erasure or an inference from silence."
+msgstr "应保留理由和请求；驳回不是删除，也不能由沉默推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the value with resolutionOutcome on an attributed AttentionResolution event."
+msgstr "通过 resolutionOutcome 在具有行动者归属的 AttentionResolution 事件上使用该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionDismissed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution outcome"
+msgstr "处理结果关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention resolution event to its recorded disposition."
+msgstr "将注意请求处理结论事件关联到记录的处理结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+msgstr "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The outcome belongs to the event; later decisions are new events, not overwritten request states."
+msgstr "结果属于该事件；之后的决定应记录为新事件，而不是覆盖请求状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution rationale"
+msgstr "处理理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolving agent’s stated reason for an attention request disposition."
+msgstr "行动者就注意请求处理结果陈述的理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
+msgstr "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."
+msgstr "可保留带语言标签和方向的文本；理由本身不是经独立验证的事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution evidence"
+msgstr "处理证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an attention resolution to a record or entity offered as evidence for its disposition."
+msgstr "将注意请求处理结论关联到作为该结果证据提出的记录或实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution gmeow:resolutionEvidence ex:receipt ."
+msgstr "ex:resolution gmeow:resolutionEvidence ex:receipt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Evidence is offered by the resolving actor and does not become automatically authoritative."
+msgstr "证据由作出结论的行动者提出，并不自动具有权威性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attention requested at"
+msgstr "注意请求时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly known instant at which an attention request was raised."
+msgstr "明确已知的注意请求提出时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:request gmeow:attentionRequestedAt \"2026-10-10T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:request gmeow:attentionRequestedAt \"2026-10-10T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the request time, not the dream’s occurrence time or an acknowledgement or resolution time."
+msgstr "这是请求时间，不是梦境发生时间、确认时间或处理结论时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
+msgstr "不要将确认、延期、驳回和完成关注合并成一个可变的成功标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."
+msgstr "保留请求、其描述与来源，以及独立事件的行动者、时间、理由和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
+msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"

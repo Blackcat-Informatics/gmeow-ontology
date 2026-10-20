@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/attention-lifecycle/> .
+
+ex:self a gmeow:Agent .
+ex:dreamReport a gmeow:InformationObject .
+ex:receipt a gmeow:InformationObject .
+ex:request a gmeow:AttentionRequest ; gmeow:description "Revisit the dream’s unanswered question."@en ;
+    gmeow:wasDerivedFrom ex:dreamReport ; gmeow:wasAttributedTo ex:self ;
+    gmeow:attentionRequestedAt "2026-10-10T09:00:00Z"^^xsd:dateTime .
+ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ;
+    gmeow:wasAssociatedWith ex:self ; gmeow:eventTime "2026-10-10T09:01:00Z"^^xsd:dateTime .
+ex:deferred a gmeow:AttentionResolution ; gmeow:resolves ex:request ;
+    gmeow:resolutionOutcome gmeow:resolutionDeferred ;
+    gmeow:resolutionRationale "Return after the visit."@en ; gmeow:resolutionEvidence ex:receipt ;
+    gmeow:wasAssociatedWith ex:self ; gmeow:eventTime "2026-10-10T09:02:00Z"^^xsd:dateTime .
+ex:addressed a gmeow:AttentionResolution ; gmeow:resolves ex:request ;
+    gmeow:resolutionOutcome gmeow:resolutionAddressed ;
+    gmeow:resolutionRationale "The question was discussed."@en ; gmeow:resolutionEvidence ex:receipt ;
+    gmeow:wasAssociatedWith ex:self ; gmeow:eventTime "2026-10-10T10:00:00Z"^^xsd:dateTime .
+ex:otherRequest a gmeow:AttentionRequest ; gmeow:description "Attend to another possibility."@en ;
+    gmeow:wasDerivedFrom ex:dreamReport ; gmeow:wasAttributedTo ex:self ;
+    gmeow:attentionRequestedAt "2026-10-10T11:00:00Z"^^xsd:dateTime .
+ex:dismissed a gmeow:AttentionResolution ; gmeow:resolves ex:otherRequest ;
+    gmeow:resolutionOutcome gmeow:resolutionDismissed ;
+    gmeow:resolutionRationale "No attention will be given, for the recorded reason."@en ;
+    gmeow:resolutionEvidence ex:receipt ; gmeow:wasAssociatedWith ex:self ;
+    gmeow:eventTime "2026-10-10T11:01:00Z"^^xsd:dateTime .
