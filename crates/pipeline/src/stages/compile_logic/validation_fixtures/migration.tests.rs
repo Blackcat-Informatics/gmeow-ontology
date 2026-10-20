@@ -27,8 +27,9 @@ fn projected() -> String {
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall <urn:implication> .
 <urn:implication> a logic:Formula ; logic:antecedent <urn:guard> ; logic:consequent <urn:requiredValue> .
-<urn:guard> a logic:Formula ; logic:relation <urn:C> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] .
+<urn:guard> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+        [ logic:termIndex 1 ; logic:termIri <urn:C> ] .
 <urn:requiredValue> a logic:Formula ; logic:relation <urn:p> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
         [ logic:termIndex 1 ; logic:termIri <urn:required> ] .
