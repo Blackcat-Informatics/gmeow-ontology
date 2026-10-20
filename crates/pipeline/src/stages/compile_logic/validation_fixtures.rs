@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
 
+mod migration;
 mod selection;
 
 const CHANNEL: &str = "pipeline/module-validation-fixtures.json";
@@ -30,6 +31,7 @@ const SH_HEADER: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n";
 struct ValidationFixtures {
     modules: BTreeMap<String, Result<ModuleProduct, gmeow_errors::RecordedDiag>>,
     cases: Vec<CaseObservation>,
+    diagnostics_migration: Result<migration::Agreement, gmeow_errors::RecordedDiag>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,7 +55,10 @@ struct CaseObservation {
 }
 
 pub(super) fn input_files(root: &Path) -> impl Iterator<Item = PathBuf> + '_ {
-    selection::CASES.iter().map(|(_, input)| root.join(input))
+    selection::CASES
+        .iter()
+        .map(|(_, input)| root.join(input))
+        .chain(std::iter::once(root.join(migration::LEGACY_PATH)))
 }
 
 pub(super) fn record(
@@ -106,7 +111,20 @@ pub(super) fn record(
             findings,
         });
     }
-    let fixtures = ValidationFixtures { modules, cases };
+    let diagnostics_migration = modules
+        .get(migration::MODULE)
+        .ok_or_else(|| {
+            super::record_failure(super::stage_err(
+                "diagnostics migration module is not selected",
+            ))
+        })
+        .and_then(|product| product.as_ref().map_err(Clone::clone))
+        .and_then(|product| migration::record(root, product).map_err(super::record_failure));
+    let fixtures = ValidationFixtures {
+        modules,
+        cases,
+        diagnostics_migration,
+    };
     artifacts.insert(
         CHANNEL.to_owned(),
         serde_json::to_vec(&fixtures)
