@@ -64,3 +64,51 @@ This slice is the exemplar of the standard it defines. It must itself score
 and rationales that state the ontological reason an axiom holds and name no test
 artifact. The check of the rubric against its own rubric is the standing
 regression test that keeps the instrument honest.
+
+## Explicit consumer measurement profiles
+
+`gmeow slice quality ./principia --profile external-sacred --format json` selects
+an ontology-authored measurement contract before the consumer admits required
+capabilities. The default `full` profile selects every rubric axis. The
+`external-sacred` profile excludes GMEOW GMN dictionary coverage and glyph
+optimization with explicit reasons; it continues to measure foreign documentation,
+manifest/module hygiene, competency coverage and box-role discipline. Documentation
+maturity uses the foreign slice's own files rather than requiring a GMEOW checkout.
+A profile never waives repository quality floors or changes axis thresholds.
+
+`gmeow:QualityMeasurementProfile` binds the unique `gmeow:qualityProfileKey`, a
+known `gmeow:qualityProfileTargetTier`, and the explicit measured-by-default rule
+`gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured`. Each
+`gmeow:qualityProfileApplicability` decision is a typed
+`gmeow:QualityAxisApplicability` naming exactly one known axis through
+`gmeow:qualityApplicabilityAxis`, its `gmeow:qualityApplicabilityStatus`, and a
+non-empty `gmeow:qualityApplicabilityReason`. Unknown profiles, ambiguous scalar
+fields, unknown axes and conflicting decisions fail admission.
+
+`gmeow:QualityApplicability` distinguishes required measurement
+(`gmeow:qualityMeasured`), deliberately excluded measurements
+(`gmeow:qualityNotApplicable`), and known unsupported measurements
+(`gmeow:qualityUnsupported`). A measured axis is reported as passed or failed
+against the selected target tier. Not-applicable axes retain their reasons and
+are visibly excluded from the measured denominator. Unsupported axes remain
+visible and make the operation incomplete; they cannot become a complete passing
+roll-up. The numeric roll-up remains the existing unweighted meet of measured
+axis grades. A profile selecting no measurements fails rather than earning a
+vacuous top tier. The quality command exits `0` for a complete assessment and
+`3` for an incomplete assessment with unsupported measurements. A complete
+assessment may contain failed grades; tier enforcement belongs to slice lint.
+
+The consumer resolves declared `logic:imports`, `owl:imports` and
+`gmeow:sliceDependsOn` owners from the embedded bundle or supplied `imports/*.ttl`
+documents. It includes their transitive declarations, owned terms, named formula and rule structure, RDF lists, structural
+blank nodes and native statement metadata. A reference to an unrelated named
+term does not import its surrounding ontology. Missing selected imports or
+capabilities fail; no network fetch or checkout discovery substitutes for them.
+
+The report's `quality_profile` metadata binds the selected profile and its
+identity, the rubric bundle identity, the exact foreign file-map identity, the
+admitted imports, every axis outcome and the measured/excluded/unsupported
+counts. Moving an unchanged corpus directory does not change its input identity;
+changing any supplied file does. Shared axes retain their measurements when a
+profile changes applicability elsewhere. Human, JSON and SARIF projections retain
+axis dispositions and reasons.

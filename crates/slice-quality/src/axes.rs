@@ -1614,6 +1614,9 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
         // validated at bundle-construction time (a corrupt wheel hard-failed there), so
         // this arm has no tolerant no-dictionary advisory — it always has a valid dict.
         ScoringEnv::Bundle(dict) => dict.as_ref(),
+        ScoringEnv::External => panic!(
+            "GMN-1 measurement requires an admitted dictionary; score through the validated report entry point"
+        ),
     };
 
     let docs = gmn1_coverage_source_documents(ctx);
@@ -1718,7 +1721,7 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
             repo_graph = graph;
             repo_graph.as_ref()
         }
-        ScoringEnv::Bundle(_) => ctx.graph,
+        ScoringEnv::Bundle(_) | ScoringEnv::External => ctx.graph,
     };
     let candidates = instances_of(ds, &g("GmnSymbolCandidate"));
     let target_p = id(ds, &g("gmnCandidateTarget"));
@@ -2194,7 +2197,7 @@ fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
             };
             (advisory_constraint_terms(&ds), advice_guidance_terms(&ds))
         }
-        ScoringEnv::Bundle(_) => (
+        ScoringEnv::Bundle(_) | ScoringEnv::External => (
             advisory_constraint_terms(ctx.graph),
             advice_guidance_terms(ctx.graph),
         ),
@@ -2453,7 +2456,7 @@ fn harvest_coverage_axis(ctx: &ScoreContext) -> AxisScore {
                 deliberate_definition_non_assertions(&ds),
             )
         }
-        ScoringEnv::Bundle(_) => (
+        ScoringEnv::Bundle(_) | ScoringEnv::External => (
             semantic_realization_terms(ctx.graph),
             deliberate_definition_non_assertions(ctx.graph),
         ),

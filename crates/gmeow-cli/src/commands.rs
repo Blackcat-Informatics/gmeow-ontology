@@ -6153,8 +6153,10 @@ pub fn explain(reporter: &dyn Reporter, target_iri: String, file: Option<PathBuf
 /// `gmeow.gts` bundle's rubric (no repo checkout, no generator inputs, no
 /// network): the wheel-shippable consumer runtime entry point for
 /// [`gmeow_slice_quality::score_external_slice_bytes`].
-pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
-    let report = match gmeow_slice_quality::score_external_slice_bytes(BUNDLE_GTS, dir) {
+pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str, profile: &str) -> i32 {
+    let report = match gmeow_slice_quality::score_external_slice_bytes_with_profile(
+        BUNDLE_GTS, dir, profile,
+    ) {
         Ok(r) => r,
         Err(e) => {
             return fail(
@@ -6164,6 +6166,10 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
             );
         }
     };
+    let incomplete = report
+        .profile
+        .as_ref()
+        .is_some_and(|profile| !profile.complete);
     let rendered = match format {
         "human" => Ok(report.render_text()),
         "json" => gmeow_errors::render::to_json(&report.to_report()),
@@ -6179,7 +6185,7 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
     match rendered {
         Ok(text) => {
             print!("{text}");
-            0
+            if incomplete { 3 } else { 0 }
         }
         Err(e) => fail(
             reporter,

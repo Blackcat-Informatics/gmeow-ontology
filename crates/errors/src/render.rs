@@ -47,6 +47,9 @@ pub fn to_sarif(report: &Report) -> Result<String, serde_json::Error> {
     if let Some(category) = sarif_category(&normalized) {
         run["automationDetails"] = json!({ "id": category });
     }
+    if !normalized.metadata.is_empty() {
+        run["properties"] = json!(normalized.metadata);
+    }
     let payload = json!({
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
         "version": "2.1.0",
