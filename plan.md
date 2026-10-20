@@ -1,0 +1,24 @@
+# Finish the authoring-factory composition
+
+The seven original child issues are closed, but the parent records unfinished packet-closure-as-KB composition. Preserve every existing child requirement and complete that composition before claiming the tracking epic done. Principles 4, 7, 9, 15, 17 and 18 govern this work. Do not reopen delivered child implementations or ratify missing behavior as an accepted loss.
+
+1. Retain a native packet knowledge base from the same source dataset and exact term selection used by the canonical packet assembler. Reuse assembly and partitioning; do not reconstruct a theory from the lossy guidance model, erase blank subjects/scopes, flatten graphs or lose RDF 1.2 terms. Keep the selected closure deterministic and preserve the explicit source scope.
+2. Add the repository-bound MCP composition under the existing developer extension. Assemble the packet with the existing exemplar authority, derive its KB, bind actual packet/slice provenance, and delegate to the existing candidate-submission operation. Reuse the same native verdict, policy gate and append-only store. Propagate the selected KB format explicitly; do not add another evaluator or write path.
+3. Verify small synthetic closure/selection/RDF controls, strict argument and schema behavior, and delegation through the actual shared operation. Corpus-backed policy/consumer checks must consume an authenticated producer-selected fixture and remain required hosted qualification. No test may produce a corpus. No local producer, sync, optimized producer or full gate is authorized.
+4. Use normal signed commits and hooks. Publish one coherent implementation, obtain hosted qualification and review, resolve findings and merge only through ghprsq. Close the parent only after its complete tracking and composition requirements are met; then clean up this worktree/branch. Keep only this active plan and setup, without copied issue/review/log archives.
+
+The consumer snapshot brief remains an explicit sparse-index view; the new composition reads the bound checkout through the developer surface. Do not claim that index alone contains the omitted theory. Preserve unrelated worktrees and source, and do not probe the host or apply resource caps.
+
+## Current qualification
+
+The implementation is committed and pushed normally, with every configured hook passing. PR https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1854 is open. All 23 selected checks pass, including the existing packet translation/exemplar/partition/determinism controls and the new native theory/argument/registration controls. Strict producer-independent Clippy, helper hygiene, source corpus-producer scanner and formatting pass. Required modules now refuse absence rather than becoming an empty theory. The actual governed packet-submission control remains a hosted authenticated-fixture requirement and has not run locally; no producer or full gate was invoked. All seven original children were verified closed.
+
+Stage PR creation returned an output-parsing error after successfully creating PR 1854; live PR lookup verified the exact branch and open PR, and no duplicate creation was attempted. CodeRabbit review and hosted qualification remain required. Close the parent only after qualified ghprsq integration, then remove this completed checkout and branch.
+
+Both initial CodeRabbit findings are fixed, pushed, replied to and resolved. Candidate-only required sources preserve valid module-free selection packets and exemplar tiering, verified alongside candidate refusal in the same fixture. The authenticated integration fixture creates its checkout-local parent explicitly. All 23 selected controls, strict Clippy, helper hygiene, formatting and normal hooks pass on the review repair. The required authenticated integration control remains hosted-only; fresh hosted qualification follows the source push.
+
+Drain preparation: read-only production-path inspection confirmed source-scoped native description and explicit N-Quads flow through the existing registered submit_candidate handler, preserving its policy gate and store. The required authenticated integration test calls the actual developer tool with a tiny authored slice and asserts corroboration plus bound provenance; it remains unrun locally. GitHub confirms all seven original children are closed. The parent checklist now reflects those closed children and explicitly lists the remaining composition/qualification requirement; the parent stays open. No source change or fresh semantic qualification is claimed.
+
+## Authorized integration
+
+User authorization: "merge them one by one, ignoring CI." Hosted CI is waived, not passing. All PR review threads are resolved. The candidate with the landed producer and purity repairs merges cleanly; shared corpus production remains unverified.
