@@ -661,9 +661,21 @@ fn write_math_bytes(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()> {
             "output needs a parent directory",
         )
     })?;
-    let mut file = tempfile::NamedTempFile::new_in(parent)?;
+    let mut builder = tempfile::Builder::new();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        // Creation applies the caller's umask, just as an ordinary output write does.
+        builder.permissions(std::fs::Permissions::from_mode(0o666));
+    }
+    let mut file = builder.tempfile_in(parent)?;
     file.write_all(bytes)?;
     file.flush()?;
+    match std::fs::metadata(path) {
+        Ok(metadata) => file.as_file().set_permissions(metadata.permissions())?,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error.into()),
+    }
     file.persist(path)?;
     Ok(())
 }

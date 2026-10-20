@@ -2407,6 +2407,11 @@ fn generated_math_projection_ledger_passes_the_six_native_projection_checks() {
     .unwrap();
     let ledger = dataset_from(&emission.ledger);
     let combined = purrdf::RdfDataset::union(&[source.as_ref(), ledger.as_ref()]).unwrap();
+    assert!(
+        ds_subjects_of_type(&combined, &math_iri("ProjectionRecord")).contains(&emission.record),
+        "generated record must be visible to the native projection lint: {}",
+        emission.ledger
+    );
     let report = structural_lint_dataset(&combined, &cfg());
     let failures = [
         "MissingPreservationKind",

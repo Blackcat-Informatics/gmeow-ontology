@@ -87,6 +87,47 @@ fn math_projection_cli_rejects_a_dangling_alias_between_outputs() {
     assert!(!dir.path().join("same.out").exists());
 }
 
+#[cfg(unix)]
+#[test]
+fn math_projection_cli_preserves_output_permissions() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    inputs(dir.path());
+    let expected = dir.path().join("ordinary.out");
+    std::fs::write(&expected, "ordinary output").unwrap();
+    let output = project(dir.path(), "out.omobj", "loss.ttl");
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let created_mode = std::fs::metadata(expected).unwrap().permissions().mode() & 0o777;
+    for name in ["out.omobj", "loss.ttl"] {
+        let path = dir.path().join(name);
+        assert_eq!(
+            std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            created_mode
+        );
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o640)).unwrap();
+    }
+    let output = project(dir.path(), "out.omobj", "loss.ttl");
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    for name in ["out.omobj", "loss.ttl"] {
+        assert_eq!(
+            std::fs::metadata(dir.path().join(name))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o640
+        );
+    }
+}
+
 #[test]
 fn math_projection_cli_names_the_failing_input_and_operation() {
     let dir = tempfile::tempdir().unwrap();

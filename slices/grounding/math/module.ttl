@@ -16529,8 +16529,8 @@ math:IncompleteHolonomy a logic:Situation .
 math:ProjectionRequest
     a logic:Class , logic:AbstractIndividualType ;
     logic:subClassOf math:MathematicalObject ,
-        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:allValuesFrom math:MathematicalObject ] ,
-        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:maxQualifiedCardinality 1 ; logic:onClass math:MathematicalObject ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:allValuesFrom logic:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty math:projectionSource ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
         [ a logic:Restriction ; logic:onProperty math:projectionTargetName ; logic:allValuesFrom xsd:string ] ,
         [ a logic:Restriction ; logic:onProperty math:projectionTargetName ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;

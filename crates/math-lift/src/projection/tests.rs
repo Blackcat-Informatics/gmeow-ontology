@@ -423,6 +423,10 @@ fn math_projection_symbol_lifts_keep_native_ownership_and_variable_identity() {
         lift(input, Target::MathMl, "", &close, "urn:lift:/").is_ok(),
         "an explicitly typed native identity needs no reverse external inference"
     );
+    assert!(
+        lift(external, Target::OpenMath, "", &reference, "urn:lift:/").is_ok(),
+        "an exact native mapping authorizes symbol reconstruction"
+    );
 }
 
 #[test]
@@ -704,35 +708,5 @@ fn math_projection_uses_situated_number_objects_without_guessing_from_labels() {
             .filter_map(|row| row.get(&math("literalValue")))
             .flatten()
             .all(|value| !matches!(value, RdfTerm::Literal(_)))
-    );
-}
-
-#[test]
-fn math_projection_lift_requires_native_symbol_ownership_and_normalizes_variables() {
-    let xml =
-        b"<OMOBJ xmlns='http://www.openmath.org/OpenMath'><OMS cd='arith1' name='plus'/></OMOBJ>";
-    let reversed = data("<http://www.openmath.org/cd/arith1#plus> skos:exactMatch ex:add .");
-    assert!(lift(xml, Target::OpenMath, "", &reversed, "urn:lift:/").is_err());
-    let close = data(
-        "ex:add a math:ArithmeticOperation ; skos:closeMatch <http://www.openmath.org/cd/arith1#plus> .",
-    );
-    assert!(lift(xml, Target::OpenMath, "", &close, "urn:lift:/").is_err());
-    let exact = data(
-        "ex:add a math:ArithmeticOperation ; skos:exactMatch <http://www.openmath.org/cd/arith1#plus> .",
-    );
-    assert!(lift(xml, Target::OpenMath, "", &exact, "urn:lift:/").is_ok());
-    let lifted = lift(b"<math xmlns='http://www.w3.org/1998/Math/MathML'><apply><csymbol definitionURL='urn:projection:test:add'/><ci>x</ci><ci> x </ci></apply></math>", Target::MathMl, "", &exact, "urn:lift:/").unwrap();
-    let index = Source::new(&data(&lifted.turtle));
-    assert_eq!(
-        index
-            .rows
-            .values()
-            .filter(|row| {
-                row.get(RDF_TYPE).is_some_and(|types| {
-                    types.contains(&RdfTerm::iri(math("FreeVariableDeclaration")))
-                })
-            })
-            .count(),
-        1
     );
 }
