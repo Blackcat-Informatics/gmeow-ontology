@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex: <http://example.org/math/> .
+
+ex:textSlot math:extendedRealValue "not a number" .

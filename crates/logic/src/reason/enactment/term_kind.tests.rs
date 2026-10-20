@@ -61,6 +61,47 @@ fn bad_record() -> Vec<(String, String, String)> {
 }
 
 #[test]
+fn finite_numeric_intrinsic_runs_through_the_native_integrity_gate() {
+    let law = r#"
+        ex:KindLaw a logic:Constraint ; logic:integrity ex:all ;
+            logic:formalizes ex:Projection ; gmeow:enforcesFailureClass ex:BadMetadata .
+        ex:all a logic:Formula ;
+            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                     [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+            logic:forall ex:implies .
+        ex:implies a logic:Formula ; logic:antecedent ex:path ; logic:consequent ex:finite .
+        ex:path a logic:Formula ; logic:relation ex:metadata ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                           [ logic:termIndex 1 ; logic:termVariable "value" ] .
+        ex:finite a logic:Formula ; logic:relation logic:termIsFiniteNumeric ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+    "#;
+    for value in [
+        "0",
+        "-7",
+        "2.5",
+        "\"1.5\"^^<http://www.w3.org/2001/XMLSchema#double>",
+    ] {
+        assert!(authored_findings(law, &format!("ex:good ex:metadata {value} ."), 1).is_empty());
+    }
+    for value in [
+        "\"text\"",
+        "\"2.5\"",
+        "\"oops\"^^<http://www.w3.org/2001/XMLSchema#double>",
+        "ex:pole",
+        "_:blank",
+        "\"NaN\"^^<http://www.w3.org/2001/XMLSchema#double>",
+        "\"INF\"^^<http://www.w3.org/2001/XMLSchema#double>",
+    ] {
+        assert_eq!(
+            authored_findings(law, &format!("ex:bad ex:metadata {value} ."), 1),
+            bad_record(),
+            "{value}"
+        );
+    }
+}
+
+#[test]
 fn iri_kind_enforces_native_values_and_exact_law_identity() {
     assert_eq!(
         findings(

@@ -16060,6 +16060,18 @@ logic:termLangMatches
     skos:definition "A language-tag introspection relation the procedural-constraint SPARQL fragment lowers to a case-insensitive FILTER ( REGEX(LANG(x), 'pattern', 'i') ) over a bound term (rather than a triple pattern). It mirrors logic:termRegex but matches against the value's LANGUAGE TAG rather than its lexical form; it binds nothing, only tests the tag against a literal pattern."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:termIsFiniteNumeric
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term is finite numeric"@x-gmeow-english ;
+    skos:definition "An intrinsic unary relation that holds exactly for a well-formed finite RDF numeric literal. Native evaluation uses the shared numeric value-space admission; validation projection tests the same finite value contract. Text, language-tagged literals, NaN, floating infinities and non-literals do not satisfy it. It binds no term and is not an asserted RDF membership fact."@x-gmeow-english ;
+    skos:example "A formula testing a measured value uses logic:relation logic:termIsFiniteNumeric and one argument carrier naming that value."@x-gmeow-english ;
+    skos:scopeNote "Finiteness is a value-space test; lexical form and numeric datatype remain part of RDF identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when a bound measurement or coordinate must be a finite number."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for qualitative literals or named infinity poles."@x-gmeow-english ;
+    gmeow:howToUse "Supply one bound term as the sole ordered argument of a logic:Formula atom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:termHasLang
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

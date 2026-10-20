@@ -14425,17 +14425,36 @@ math:DimensionExponentDenominatorNonZeroConstraint
 
 # A math:MeasureEvaluation's math:measureResult must be non-negative: a measure
 # assigns non-negative extended-real mass, so μ(A) is a finite non-negative number
-# or math:PositiveInfinity, NEVER the negative pole math:NegativeInfinity (a forbidden
-# pinned-value pattern — the focus must not carry math:measureResult math:NegativeInfinity,
-# the individual the logic:forbiddenValue sugar pins because it is an IRI value).
+# or math:PositiveInfinity. Every supplied result is checked, including finite negatives,
+# nonnumeric literals and floating-point nonfinite values.
 math:MeasureResultNonNegativeConstraint
-    a logic:ForbiddenPatternConstraint ;
-    logic:onClass math:MeasureEvaluation ;
-    logic:forbiddenPredicate math:measureResult ;
-    logic:forbiddenValue math:NegativeInfinity ;
+    a logic:Constraint ;
+    rdfs:label "Measure result non-negativity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    skos:definition "Every result of a measure evaluation is a finite non-negative RDF numeric literal or the named positive-infinity pole. Negative numbers, nonnumeric literals, NaN, floating infinities and every other non-literal value are rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes math:MeasureEvaluation ;
     gmeow:enforcesFailureClass math:UnderspecifiedMeasureEvaluation ;
-    logic:message "A math:MeasureEvaluation's math:measureResult must be a finite non-negative number or math:PositiveInfinity; a measure is non-negative, so the negative pole math:NegativeInfinity is not a mass (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)." .
+    logic:message "A math:MeasureEvaluation's math:measureResult must be a finite non-negative number or math:PositiveInfinity (math:UnderspecifiedMeasureEvaluation)." ;
+    logic:integrity math:mrForall .
+math:mrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+    logic:forall math:mrImpl .
+math:mrImpl a logic:Formula ; logic:antecedent math:mrGuard ; logic:consequent math:mrAllowed .
+math:mrGuard a logic:Formula ; logic:and math:mrClass , math:mrValue .
+math:mrClass a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MeasureEvaluation ] .
+math:mrValue a logic:Formula ; logic:relation math:measureResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] .
+math:mrAllowed a logic:Formula ; logic:or math:mrPole , math:mrFiniteNonNegative .
+math:mrPole a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] .
+math:mrFiniteNonNegative a logic:Formula ; logic:and math:mrFinite , math:mrNonNegative .
+math:mrFinite a logic:Formula ; logic:relation logic:termIsFiniteNumeric ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+math:mrNonNegative a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termLiteral "0"^^xsd:integer ] .
 
 # A math:RationalValue's math:denominator must be non-zero: p/0 is undefined
 # (math:ZeroDenominator). The exact twin of the dimension-exponent record above,
@@ -14823,12 +14842,9 @@ math:uanPres a logic:Formula ; logic:relation logic:preservationKind ;
 
 # A signed-extended-real slot (math:extendedRealValue) holds a value on the extended real
 # line ℝ̄ = ℝ ∪ {−∞, +∞}: a finite numeric literal of either sign, or one of the two poles
-# math:PositiveInfinity / math:NegativeInfinity. The strongest cleanly-expressible logic:
-# form is "the object is a LITERAL (its finite-numeric branch) OR is one of the two poles":
-# a literal-nodekind allowance (logic:termIsLiteral) joined by logic:or to a two-member
-# value-set membership (logic:termIn) over the poles. This catches a non-literal object (an
-# IRI or blank node) that is neither pole — the math:MalformedExtendedReal case. No single
-# sugar fits the literal-OR-one-of-two-individuals disjunction, so it is a raw formula, and
+# math:PositiveInfinity / math:NegativeInfinity. A finite numeric value-space test
+# (logic:termIsFiniteNumeric) is joined by logic:or to membership in the two poles.
+# No single sugar fits the numeric-OR-two-individuals disjunction, so it is a raw formula, and
 # the guard math:extendedRealValue(?s, this) puts the slot value (this) in object position
 # so the projected twin targets sh:targetObjectsOf math:extendedRealValue.
 math:ExtendedRealValueConstraint
@@ -14836,7 +14852,7 @@ math:ExtendedRealValueConstraint
     rdfs:label "Signed extended-real value constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: the object of math:extendedRealValue — a value on the extended real line ℝ̄ = ℝ ∪ {−∞, +∞} — is a literal (its finite numeric branch) or one of the two poles math:PositiveInfinity / math:NegativeInfinity; a non-literal object that is neither pole is not a point of ℝ̄."@x-gmeow-english ;
+    skos:definition "The object of math:extendedRealValue is a finite RDF numeric literal or one of the two named poles math:PositiveInfinity and math:NegativeInfinity. Text, NaN, floating infinities and every other RDF value are not points of this signed extended-real representation."@x-gmeow-english ;
     gmeow:enforcesFailureClass math:MalformedExtendedReal ;
     logic:formalizes math:extendedRealValue ;
     logic:message "The object of math:extendedRealValue must be a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; a non-literal value (an IRI or blank node) that is neither pole is not a point of the extended real line ℝ̄ (math:MalformedExtendedReal)." ;
@@ -14849,7 +14865,7 @@ math:erImpl a logic:Formula ; logic:antecedent math:erGuard ; logic:consequent m
 math:erGuard a logic:Formula ; logic:relation math:extendedRealValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 math:erDisj a logic:Formula ; logic:or math:erLiteral , math:erPole .
-math:erLiteral a logic:Formula ; logic:relation logic:termIsLiteral ;
+math:erLiteral a logic:Formula ; logic:relation logic:termIsFiniteNumeric ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] .
 math:erPole a logic:Formula ; logic:relation logic:termIn ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,

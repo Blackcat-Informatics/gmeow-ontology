@@ -12,6 +12,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Measure result non-negativity constraint"
+msgstr "测度结果非负约束"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every result of a measure evaluation is a finite non-negative RDF numeric literal or the named positive-infinity pole. Negative numbers, nonnumeric literals, NaN, floating infinities and every other non-literal value are rejected."
+msgstr "测度求值的每个结果必须是有限的非负 RDF 数值字面量或命名的正无穷极点。负数、非数值字面量、NaN、浮点无穷值及所有其他非字面量值均被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Signed extended-real value constraint"
+msgstr "带符号扩展实数值约束"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The object of math:extendedRealValue is a finite RDF numeric literal or one of the two named poles math:PositiveInfinity and math:NegativeInfinity. Text, NaN, floating infinities and every other RDF value are not points of this signed extended-real representation."
+msgstr "math:extendedRealValue 的对象必须是有限的 RDF 数值字面量，或两个命名极点 math:PositiveInfinity 和 math:NegativeInfinity 之一。文本、NaN、浮点无穷值及所有其他 RDF 值都不是这种带符号扩展实数表示中的点。"
+
 msgctxt "https://blackcatinformatics.ca/math/AlternativeHypothesis|rdfs:label"
 msgid "Alternative Hypothesis"
 msgstr "备择假设"

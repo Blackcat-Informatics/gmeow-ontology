@@ -359,7 +359,7 @@ ex:ecMeasureMissingMass a gmeow:ExampleConformance ;
 ex:ecMeasureEvaluationFramed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/measure-evaluation-framed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "Two math:MeasureEvaluation objects of one measure over two different measurable subsets, each naming all three roles — math:evaluatedMeasure, math:measuredSubset (a math:MeasurableSet), and a finite non-negative math:measureResult — satisfy math:MeasureEvaluationShape (and the non-negativity gate math:MeasureResultNonNegativeConstraint) and validate with no findings; μ(regionA) = 2 and μ(regionB) = 5 are comparable, distinct from the whole-space math:totalMass +∞." .
+    gmeow:conformanceRationale "Fully framed evaluations over two measurable subsets admit positive finite results, zero and the named positive-infinity pole without a finding." .
 
 ex:ecMeasureEvaluationMissingSubset a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/measure-evaluation-missing-subset.ttl" ;
@@ -375,7 +375,7 @@ ex:ecMeasureEvaluationMissingSubset a gmeow:ExampleConformance ;
 ex:ecExtendedRealSigned a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/extended-real-signed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "Two signed-extended-real slots — one holding the pole math:NegativeInfinity, one a finite negative xsd:double — are objects of math:extendedRealValue that satisfy the logic: gate math:ExtendedRealValueConstraint (a literal, or one of the two poles) and validate with no findings." .
+    gmeow:conformanceRationale "Both named infinity poles and finite numeric values of either sign, including zero, satisfy the signed extended-real value contract and validate with no findings." .
 
 ex:ecExtendedRealMalformed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/extended-real-malformed.ttl" ;
@@ -385,6 +385,51 @@ ex:ecExtendedRealMalformed a gmeow:ExampleConformance ;
     gmeow:expectedSourceShape math:ExtendedRealValueConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example puts a non-literal IRI that is neither pole in a math:extendedRealValue slot, so the object is neither a literal nor one of the two poles the logic: gate math:ExtendedRealValueConstraint allows; validation MUST emit shacl.SPARQLConstraintComponent (the projected sh:SPARQLConstraint) and NO other finding (math:MalformedExtendedReal)." .
+
+ex:ecExtendedRealNonnumeric a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/extended-real-nonnumeric.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedExtendedReal ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:ExtendedRealValueConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "Text in an extended-real slot is neither a finite numeric literal nor a named infinity pole." .
+
+ex:ecExtendedRealNaN a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/extended-real-nan.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedExtendedReal ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:ExtendedRealValueConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "NaN is a numeric floating-point literal but is not a finite value or either named infinity pole." .
+
+ex:ecMeasureResultNegativePole a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/measure-result-negative-pole.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnderspecifiedMeasureEvaluation ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:MeasureResultNonNegativeConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The negative-infinity pole remains forbidden for a fully framed measure evaluation." .
+
+ex:ecMeasureResultNegative a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/measure-result-negative.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnderspecifiedMeasureEvaluation ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:MeasureResultNonNegativeConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A fully framed measure evaluation with finite result -0.25 violates non-negativity alone." .
+
+ex:ecMeasureResultNonnumeric a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/measure-result-nonnumeric.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnderspecifiedMeasureEvaluation ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:MeasureResultNonNegativeConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A fully framed measure evaluation with text as its result violates the finite non-negative numeric or positive-pole value contract." .
 
 # === Rule 16: a probability measure has total mass one ====================== #
 
@@ -1483,7 +1528,7 @@ ex:ecDependencyModelApproximateLossy a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A reasoning-facing math:FactorGraph whose math:probabilityModelLowering into logic:DependencyModel carries a NON-exact logic:preservationKind (logic:SoundUnderApproximation) with its dropped constructs enumerated through logic:unsupportedConstruct exercises the lossy branch of the lowering seam; it carries no SHACL target shape and validates with no findings, dogfooding the loss ledger on the non-exact polarity." .
 
-# === The two co-equal flagship signed-radial-field scenes conform ============ #
+# === The two co-equal worked signed-radial-field scenes conform ============ #
 
 ex:ecRadialFieldQualitative a gmeow:ExampleConformance ;
     gmeow:exampleFile "examples/signed-radial-field-qualitative.ttl" ;

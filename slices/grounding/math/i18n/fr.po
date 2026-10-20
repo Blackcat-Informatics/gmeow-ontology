@@ -12,6 +12,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Measure result non-negativity constraint"
+msgstr "Contrainte de non-négativité du résultat de mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every result of a measure evaluation is a finite non-negative RDF numeric literal or the named positive-infinity pole. Negative numbers, nonnumeric literals, NaN, floating infinities and every other non-literal value are rejected."
+msgstr "Chaque résultat d'une évaluation de mesure est un littéral numérique RDF fini et non négatif ou le pôle nommé d'infini positif. Les nombres négatifs, les littéraux non numériques, NaN, les infinis flottants et toute autre valeur non littérale sont rejetés."
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Signed extended-real value constraint"
+msgstr "Contrainte de valeur réelle étendue signée"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The object of math:extendedRealValue is a finite RDF numeric literal or one of the two named poles math:PositiveInfinity and math:NegativeInfinity. Text, NaN, floating infinities and every other RDF value are not points of this signed extended-real representation."
+msgstr "L'objet de math:extendedRealValue est un littéral numérique RDF fini ou l'un des deux pôles nommés math:PositiveInfinity et math:NegativeInfinity. Le texte, NaN, les infinis flottants et toute autre valeur RDF ne sont pas des points de cette représentation des réels étendus signés."
+
 msgctxt "https://blackcatinformatics.ca/math/AlternativeHypothesis|rdfs:label"
 msgid "Alternative Hypothesis"
 msgstr "Hypothèse alternative"

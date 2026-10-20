@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex: <http://example.org/math/> .
+
+ex:evaluation a math:MeasureEvaluation ; math:evaluatedMeasure ex:measure ;
+    math:measuredSubset ex:subset ; math:measureResult math:NegativeInfinity .
+ex:measure a math:Measure ; math:measureOn ex:space ; math:totalMass math:PositiveInfinity .
+ex:space a math:MeasurableSpace .
+ex:subset a math:MeasurableSet .

@@ -1101,6 +1101,17 @@ fn string_test_func(pred: &str) -> Option<(&'static str, &'static str, Option<&'
 /// The SPARQL node-kind test a unary node-kind relation lowers to over the bound term `x`, paired
 /// with its logical NEGATION. `None` for a relation that is not a node-kind test.
 fn unary_nodekind_exprs(pred: &str, x: &str) -> Option<(String, String)> {
+    if pred == "https://blackcatinformatics.ca/logic/termIsFiniteNumeric" {
+        // Only float/double have nonfinite values. Keep arbitrary-precision
+        // integers/decimals out of floating-point promotion when testing finiteness.
+        let float = "<http://www.w3.org/2001/XMLSchema#float>";
+        let double = "<http://www.w3.org/2001/XMLSchema#double>";
+        let finite = format!(
+            "COALESCE((isNumeric({x}) && (!(DATATYPE({x}) IN ({float}, {double})) || \
+             ({x} = {x} && {x} != \"INF\"^^{double} && {x} != \"-INF\"^^{double}))), false)"
+        );
+        return Some((finite.clone(), format!("!({finite})")));
+    }
     match pred {
         LOGIC_TERM_IS_IRI => Some((format!("isIRI({x})"), format!("!isIRI({x})"))),
         LOGIC_TERM_IS_LITERAL => Some((format!("isLiteral({x})"), format!("!isLiteral({x})"))),

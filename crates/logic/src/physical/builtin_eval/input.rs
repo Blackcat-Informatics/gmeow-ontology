@@ -68,19 +68,7 @@ pub(super) fn resolve_term_kind<'a>(
     predicate: TermKindPredicate,
     lookup: &impl Fn(&str) -> Option<Binding<'a>>,
 ) -> Option<bool> {
-    match term {
-        AtomicTerm::Var(name) => match lookup(name)? {
-            Binding::Native(value) => Some(predicate.holds(value)),
-            Binding::Surface(_) => None,
-        },
-        constant => Some(match predicate {
-            TermKindPredicate::Iri => matches!(constant, AtomicTerm::Iri(_)),
-            TermKindPredicate::Literal => matches!(constant, AtomicTerm::Literal(_)),
-            TermKindPredicate::BlankOrIri => {
-                matches!(constant, AtomicTerm::Blank(_) | AtomicTerm::Iri(_))
-            }
-        }),
-    }
+    resolve_native_term(term, lookup).map(|value| predicate.holds(value.as_ref()))
 }
 
 /// Resolve numeric binding mode without conflating absent and nonnumeric values.
