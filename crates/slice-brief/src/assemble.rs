@@ -102,16 +102,37 @@ pub struct BriefInputs<'a> {
 /// request is out of range. A missing translation / external mapping is NOT an
 /// error — it is recorded as an explicit "absent" grounding cell.
 pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPacket> {
-    let slice_dir = inputs.slice_dir;
-
     // The slice authoring dataset (module + examples + tests + mappings) and the
     // slice identity — loaded through the SHARED helpers so `exemplar_tiers`
     // and this assembly read byte-identical inputs.
-    let ds = load_slice_dataset(slice_dir)?;
-    let slice_iri = slice_identity(slice_dir)?;
+    let ds = load_slice_dataset(inputs.slice_dir, &[])?;
+    let slice_iri = slice_identity(inputs.slice_dir)?;
+    assemble_packet_from_source(inputs, &ds, slice_iri)
+}
+
+/// Assemble a packet and retain its native, source-scoped candidate theory.
+///
+/// # Errors
+/// Rejects the same invalid sources and selectors as [`assemble_packet`], or an
+/// invalid native theory. No corpus or generated artifact is built.
+pub fn assemble_candidate_packet(
+    inputs: &BriefInputs,
+) -> gmeow_errors::Result<crate::knowledge_base::CandidatePacket> {
+    let ds = load_slice_dataset(inputs.slice_dir, &[inputs.slice_dir.join("module.ttl")])?;
+    let slice_iri = slice_identity(inputs.slice_dir)?;
+    let packet = assemble_packet_from_source(inputs, &ds, slice_iri)?;
+    crate::knowledge_base::CandidatePacket::from_source(packet, &ds)
+}
+
+fn assemble_packet_from_source(
+    inputs: &BriefInputs,
+    ds: &RdfDataset,
+    slice_iri: String,
+) -> gmeow_errors::Result<AuthoringPacket> {
+    let slice_dir = inputs.slice_dir;
 
     // 1. PARTITION.
-    let terms_all = defined_terms(&ds, &slice_iri);
+    let terms_all = defined_terms(ds, &slice_iri);
     let filtered: Vec<String> = match inputs.axis {
         Some(ax) => terms_all
             .iter()
@@ -146,7 +167,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
     // 2. PER-TERM CONTENT.
     let terms: Vec<CoveredTerm> = covered_iris
         .iter()
-        .map(|iri| build_covered_term(&ds, iri))
+        .map(|iri| build_covered_term(ds, iri))
         .collect();
 
     // 3. EXEMPLARS (injected tiers; no scoring authority in the library).
@@ -170,7 +191,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
     let exemplar_shortfall = inputs.exemplar_target.saturating_sub(found);
 
     // Alignment linkage (external + relations for the disagreement check).
-    let view = DslView::new(&ds);
+    let view = DslView::new(ds);
     let cells = equivalence_cells(&view)?;
     let mut ext_by_subject: BTreeMap<String, Vec<ExtCell>> = BTreeMap::new();
     let mut by_ext_target: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -437,8 +458,14 @@ fn ordered_pair(a: &str, b: &str) -> (String, String) {
 ///
 /// # Errors
 /// Hard-fails if any of the slice's Turtle sources cannot be read or parsed.
-fn load_slice_dataset(slice_dir: &Path) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+fn load_slice_dataset(
+    slice_dir: &Path,
+    required_sources: &[PathBuf],
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
+    // Candidate submission declares its module mandatory. Selection profiles may
+    // legitimately mint no terms and carry no module.
+    paths.extend_from_slice(required_sources);
     collect_ttl(&slice_dir.join("mappings"), &mut paths)?;
     paths.sort();
     paths.dedup();
@@ -552,7 +579,7 @@ pub fn exemplar_tiers(
     slice_dir: &Path,
     shapes: &ShapeUnion,
 ) -> gmeow_errors::Result<BTreeMap<String, i64>> {
-    let ds = load_slice_dataset(slice_dir)?;
+    let ds = load_slice_dataset(slice_dir, &[])?;
     let slice_iri = slice_identity(slice_dir)?;
     let terms = defined_terms(&ds, &slice_iri);
 

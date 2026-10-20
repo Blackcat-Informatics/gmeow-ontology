@@ -146,6 +146,7 @@ repo-maintenance server:
 
 | Tool | What it does |
 |---|---|
+| `submit_packet_candidate(slice_dir, formula, standpoint, axis?, batch?, dry_run?, max_steps?, max_answers?, math_conjecture?)` | Assemble a source packet and submit its native theory through the governed candidate operation |
 | `validate()` | Run the native validation/check surface |
 | `sync()` | Update or strictly check generated artifacts |
 | `reason()` | Run native reasoning over the bundled snapshot |
@@ -155,6 +156,26 @@ repo-maintenance server:
 | `llms_full(lang?)` | Return the complete inlined bundled vocabulary index |
 | `doc_card(term, lang?)` | Return a prompt-ready Markdown card for one term |
 | `okf_index(lang?)` | Return the OKF manifest JSON envelope |
+
+`submit_packet_candidate` selects a slice inside the server's bound checkout.
+The canonical packet assembler applies the same axis and batch selection as the
+brief tools. Exemplar eligibility uses the loaded snapshot's validation shapes.
+The candidate KB describes the covered terms and their declared definitional
+dependencies from the authored source, retaining blank-node structure, named
+graphs and RDF 1.2 statement metadata. It is passed as explicit
+`application/n-quads` to the existing `submit_candidate` operation.
+
+The server binds the actual packet and slice provenance; callers cannot override
+the KB, its format, or that provenance. The response retains the candidate verdict
+and transaction fields and adds `packet_context` with the selected packet, slice,
+digest, axis, batch and KB format. The existing verdict and policy gates govern
+admission; `dry_run=true` writes nothing. Invalid selectors, paths outside the
+checkout, or missing required snapshot capabilities fail the call.
+
+For an independently prepared theory, the consumer `submit_candidate` tool
+accepts an explicit `kb_format` media type and defaults to `text/turtle` when
+omitted. Its packet/slice arguments record provenance; the bundle's sparse brief
+index alone does not reconstruct the source theory.
 
 Resources: `gmeow://ontology/llms.txt`, `gmeow://ontology/llms-full.txt`,
 `gmeow://ontology/okf-index`, and `gmeow://ontology/constitution`.

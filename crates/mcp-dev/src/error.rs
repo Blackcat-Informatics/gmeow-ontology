@@ -3,7 +3,7 @@
 
 //! Developer-MCP diagnostic kinds.
 //!
-//! The four repo-reading tools fail hard, never softly: a reasoner that will not
+//! The repo-reading tools fail hard, never softly: a reasoner that will not
 //! run, a Constitution that will not read. Each is a
 //! [`DiagKind`](gmeow_errors::DiagKind) under the `mcp-dev.*` code namespace, kept
 //! DISTINCT from `gmeow-mcp`'s `mcp.*` catalog so a failure of a repo-anchored tool
