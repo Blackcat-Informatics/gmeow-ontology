@@ -478,9 +478,9 @@ impl Stage for CompileLogicStage {
         // program would violate no-optionality.
         CachePolicy::Persistent
     }
-    /// Invalidate prior products that lack original complete-source admission evidence.
+    /// Require producer-owned diagnostics shape-migration parity in validation fixtures.
     fn impl_version(&self) -> &str {
-        "compile-logic.v43-contextual-application"
+        "compile-logic.v44-diagnostics-migration-parity"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
