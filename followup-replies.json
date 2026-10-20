@@ -1,0 +1,6 @@
+[
+ {"id":4331437321,"body":"Addressed. Atomic publication preserves existing destination permissions; metadata errors other than absence fail explicitly. New outputs use Builder permissions of 0666, so the operating system applies the caller's umask just as for an ordinary write, without reading or changing it. The CLI regression covers creation and replacement modes; installed-binary execution remains unrun locally. Principle 7."},
+ {"id":4331437350,"body":"Addressed. The positive exact OpenMath reconstruction assertion now lives in the original ownership/variable test, and the duplicate test is removed. Principle 4."},
+ {"id":4331437353,"body":"Addressed with a graph-level assertion: before linting, ds_subjects_of_type using the lint's math_iri helper must find emission.record as a ProjectionRecord. This checks the actual selector rather than a textual substring. Principle 7."},
+ {"id":4331437363,"body":"Addressed. The source restriction and separately qualified single-source maximum use logic:Thing, following the module's existing generic object-cardinality pattern. This admits MathematicalExpression and ExpressionRendering without forcing them into MathematicalObject. The production codec still validates the selected source profile. No shape is hand-authored. Principles 4 and 17."}
+]

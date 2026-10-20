@@ -1,0 +1,1 @@
+{"body": "Addressed with a graph-level assertion: before linting, ds_subjects_of_type using the lint's math_iri helper must find emission.record as a ProjectionRecord. This checks the actual selector rather than a textual substring. Principle 7."}

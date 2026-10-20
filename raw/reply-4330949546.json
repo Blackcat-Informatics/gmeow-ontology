@@ -1,0 +1,1 @@
+{"body": "Declined the optional cache optimization. The declared complete mappings-product dependency is correct; the consumer selects GRAPH_ALIGNMENTS for its semantic input. Narrowing authenticated dataflow invalidation would change the cache contract without a measured benefit and is unnecessary for this correctness change. Principle 4."}

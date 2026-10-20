@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer/brief.json  (+ requirements.json, references.json)
+
+  - issue #1438 + 3 comment(s) via github
+  - link crawl: 19 issue(s) within 2 hop(s) of `#N` references
+  - forge search on ['math:', 'realize', 'projections']: 14 other item(s)
+  - GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits
+  - prior attempts: 1 commit(s) citing #1438 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1438: 1
+  - requirement candidates: 2 line(s); 1 comment(s) matched no rule
+  - referenced artifacts: 4 path(s) (2 on disk), 3 identifier(s), 2 workspace package(s), 1 URL(s)

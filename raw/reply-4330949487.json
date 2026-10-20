@@ -1,0 +1,1 @@
+{"body": "Addressed. Both outbound matrix and inbound cube denominators now use canonical integer parsing before the zero comparison. This catches signed, padded and whitespace-bearing zero while retaining the invalid-denominator failure. Principle 7."}

@@ -1,0 +1,30 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/logic)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/math-lift)
+    Checking gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/math)
+    Checking gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/affect-ingest)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/reason-wasm)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/bench-engines)
+    Checking gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-model)
+    Checking gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slicetest)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/bundle-view)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs)
+    Checking gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-catalog)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp)
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slice-brief)
+    Checking docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-print)
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/pipeline)
+    Checking gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-wasm)
+    Checking gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-core-wasm)
+    Checking gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-dev)
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/gmeow-dev-cli)
+    Finished `dev` profile [optimized] target(s) in 10m 39s

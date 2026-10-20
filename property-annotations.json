@@ -1,0 +1,12 @@
+{
+  "projectionSource": [
+    "Relates a ProjectionRecord or ProjectionRequest to its named canonical mathematical source. A request selects the source to lower; the resulting record judges what that lowering preserved. A source distribution's parameterization and an expression's structure remain explicit: an omitted construct belongs in the computed loss record, never in an unrecorded simplification.",
+    "Relie un ProjectionRecord ou un ProjectionRequest à sa source mathématique canonique nommée. Une demande sélectionne la source à traduire ; le relevé résultant juge ce que cette traduction a préservé. La paramétrisation d’une distribution source et la structure d’une expression restent explicites : tout élément omis appartient au relevé de perte calculé, jamais à une simplification non consignée.",
+    "将 ProjectionRecord 或 ProjectionRequest 关联到其具名规范数学源。请求选择要投影的源；生成的记录判断投影保留了什么。源分布的参数化和表达式结构必须保持显式；省略的构造必须列入计算得到的损失记录，不能隐含于未记录的简化中。"
+  ],
+  "projectionTargetName": [
+    "Names the external target of a mathematical projection record or request. Records identify the addressee of the preservation judgment. Requests select exactly one supported codec name: mathml, openmath, data-cube, stato or qudt; an unknown selected codec fails rather than producing a substitute artifact.",
+    "Nomme la cible externe d’un relevé ou d’une demande de projection mathématique. Les relevés identifient le destinataire du jugement de préservation. Les demandes choisissent exactement un codec pris en charge : mathml, openmath, data-cube, stato ou qudt ; un codec sélectionné inconnu provoque un échec plutôt qu’un artefact de remplacement.",
+    "指定数学投影记录或请求的外部目标。记录标识保留性判断所针对的使用者。请求恰好选择一个受支持的编解码器名称：mathml、openmath、data-cube、stato 或 qudt；选择未知编解码器必须失败，不能生成替代产物。"
+  ]
+}

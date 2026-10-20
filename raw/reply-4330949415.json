@@ -1,0 +1,1 @@
+{"body": "Addressed. Output paths resolve existing parents and final symlinks, including dangling links, before the distinct-path check. The mandatory ledger is published first and both files use atomic replacement, separating existing hard links. CLI regression cases cover these paths; their installed-binary execution is not claimed locally. Principles 4 and 7."}

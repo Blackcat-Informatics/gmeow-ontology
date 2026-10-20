@@ -1,0 +1,1 @@
+{"body": "Addressed using the canonical validation model: allValuesFrom plus maxQualifiedCardinality and explicit closed-world ClosureEntry records require one source and one target name. I did not use the suggested unqualified cardinality because repository law forbids it. No shape surface is hand-authored. Principles 4 and 17."}

@@ -1,0 +1,43 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/logic)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/math-lift)
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> crates/math-lift/src/projection/inbound.rs:406:58
+    |
+406 |                 sink.iri(&slot, &math("slotExpression"), &child)?;
+    |                                                          ^^^^^^ help: change this to: `child`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#needless_borrow
+    = note: `-D clippy::needless-borrow` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrow)]`
+
+error: this `if` statement can be collapsed
+   --> crates/math-lift/src/projection.rs:207:21
+    |
+207 | /                     if omitted {
+208 | |                         if let RdfTerm::Iri(iri) = object {
+209 | |                             losses.insert(iri.clone());
+210 | |                         }
+211 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+207 ~                     if omitted
+208 ~                         && let RdfTerm::Iri(iri) = object {
+209 |                             losses.insert(iri.clone());
+210 ~                         }
+    |
+
+error: could not compile `gmeow-math-lift` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-math-lift` (lib test) due to 2 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

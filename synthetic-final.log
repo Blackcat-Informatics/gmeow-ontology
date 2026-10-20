@@ -1,0 +1,129 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(math_projection_) | test(generated_math_projection_) | (package(gmeow-math-lift) & test(error::tests::))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/logic)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/math-lift)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/affect-ingest)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 11m 40s
+────────────
+ Nextest run ID f21f77fa-4692-42eb-a8d9-29cab37382e4 with nextest profile: ci
+    Starting 18 tests across 225 binaries (7728 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.010s] ( 1/18) gmeow-math-lift error::tests::every_math_lift_code_interns_with_no_collision
+        PASS [   0.013s] ( 2/18) gmeow-math-lift projection::tests::math_projection_qudt_lift_never_invents_a_reference_frame
+        PASS [   0.013s] ( 3/18) gmeow-math-lift projection::tests::math_projection_requires_the_actual_rendering_contract
+        PASS [   0.013s] ( 4/18) gmeow-math-lift projection::tests::math_projection_stato_requires_an_existing_model_expression_anchor
+        PASS [   0.014s] ( 5/18) gmeow-math-lift projection::tests::math_projection_distinguishes_cycles_from_shared_expression_subtrees
+        PASS [   0.014s] ( 6/18) gmeow-math-lift projection::tests::math_projection_presentation_lift_records_notation_without_a_fabricated_ast
+        PASS [   0.014s] ( 7/18) gmeow-math-lift projection::tests::math_projection_emits_real_content_xml_and_mandatory_loss_records
+        PASS [   0.014s] ( 8/18) gmeow-math-lift projection::tests::math_projection_qudt_checks_classification_dimensions_and_typed_values
+        PASS [   0.014s] ( 9/18) gmeow-math-lift projection::tests::math_projection_requests_are_explicit_atomic_and_source_bound
+        PASS [   0.015s] (10/18) gmeow-math-lift projection::tests::math_projection_keeps_argument_order_and_resolves_real_dictionary_symbols
+        PASS [   0.016s] (11/18) gmeow-math-lift projection::tests::math_projection_cube_preserves_exact_rational_cells_without_decimal_rounding
+        PASS [   0.015s] (12/18) gmeow-math-lift projection::tests::math_projection_stato_preserves_the_selected_statistical_profile
+        PASS [   0.026s] (13/18) gmeow-validate lint::tests::generated_math_projection_ledger_passes_the_six_native_projection_checks
+        PASS [   0.027s] (14/18) gmeow-validate lint::tests::math_projection_exact_and_explicit_loss_judgments_remain_admissible
+        PASS [   0.029s] (15/18) gmeow-math-lift projection::tests::math_projection_competencies_inspect_actual_correspondences_and_sensitive_losses
+        FAIL [   0.014s] (16/18) gmeow-math-lift projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs
+  stdout ───
+
+    running 1 test
+    test projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs ... FAILED
+
+    failures:
+
+    failures:
+        projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 314 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs' (2315274) panicked at crates/errors/src/diag.rs:550:9:
+    diagnostic source must not replace an existing causal chain
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.014s] (17/18) gmeow-math-lift projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions
+  stdout ───
+
+    running 1 test
+    test projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions ... FAILED
+
+    failures:
+
+    failures:
+        projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 314 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions' (2315261) panicked at crates/errors/src/diag.rs:550:9:
+    diagnostic source must not replace an existing causal chain
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.159s] (18/18) gmeow-math-lift error::tests::every_code_is_namespaced_under_math_lift
+────────────
+     Summary [   0.432s] 18 tests run: 16 passed, 2 failed, 7728 skipped
+        FAIL [   0.014s] (16/18) gmeow-math-lift projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs
+  stdout ───
+
+    running 1 test
+    test projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs ... FAILED
+
+    failures:
+
+    failures:
+        projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 314 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs' (2315274) panicked at crates/errors/src/diag.rs:550:9:
+    diagnostic source must not replace an existing causal chain
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.014s] (17/18) gmeow-math-lift projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions
+  stdout ───
+
+    running 1 test
+    test projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions ... FAILED
+
+    failures:
+
+    failures:
+        projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 314 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions' (2315261) panicked at crates/errors/src/diag.rs:550:9:
+    diagnostic source must not replace an existing causal chain
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:717: nextest-synthetic] Error 100

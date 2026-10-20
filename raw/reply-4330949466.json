@@ -1,0 +1,1 @@
+{"body": "Addressed. Project and lift now attach the actual source or reference path and matching operation context to read and parse diagnostics, retaining the original cause and location fields. CLI regression cases cover missing and malformed input/reference files. Installed-binary execution remains unrun locally. Principle 7."}

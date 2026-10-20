@@ -1,0 +1,9 @@
+{
+  "label": ["Mathematical {name} projection fanout", "Extraction de la projection mathématique {name}", "数学 {name} 投影导出"],
+  "definition": ["Reconstruct generated/projections/math/{name}.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation.", "Reconstruire generated/projections/math/{name}.ttl depuis sa projection RDF nommée dans le paquet distribué. Le relevé de perte est émis par la même opération de codec mathématique sélectionnée.", "从分发包中的具名 RDF 投影重建 generated/projections/math/{name}.ttl。损失记录由同一选定数学编解码操作生成。"],
+  "useWhen": ["Use when extracting the selected mathematical RDF projection from the shipped bundle.", "À utiliser pour extraire la projection RDF mathématique sélectionnée du paquet distribué.", "用于从分发包提取选定的数学 RDF 投影。"],
+  "avoidWhen": ["Do not use an external target projection as the canonical mathematical theory.", "Ne pas utiliser une projection cible externe comme théorie mathématique canonique.", "不得将外部目标投影用作规范数学理论。"],
+  "howToUse": ["Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records.", "Extraire le graphe nommé déclaré en Turtle et examiner les relevés de préservation et de perte associés.", "将声明的具名图导出为 Turtle，并检查随附的保留性和损失记录。"],
+  "scopeNote": ["This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment.", "Cette extraction reconstitue un artefact cible émis ; elle ne renforce pas son jugement de préservation.", "此导出重建已生成的目标产物，不会提升其保留性判断。"],
+  "example": ["Extract generated/projections/math/{name}.ttl together with generated/projections/math/loss-ledger.ttl.", "Extraire generated/projections/math/{name}.ttl avec generated/projections/math/loss-ledger.ttl.", "将 generated/projections/math/{name}.ttl 与 generated/projections/math/loss-ledger.ttl 一同导出。"]
+}

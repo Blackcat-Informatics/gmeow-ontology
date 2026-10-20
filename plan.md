@@ -1,0 +1,21 @@
+# Executable mathematical projection boundaries
+
+Complete the full math projection contract: MathML, OpenMath, RDF Data Cube, STATO and QUDT outbound codecs, mandatory per-emission preservation/loss records, the six existing failure identities, conservative inbound lifts/refusals, registered projection competencies and bundle-to-generated fanout. Principles 4, 7, 12, 13, 17 and 19 apply. The existing exactness repair is already merged and must not be duplicated. Pipeline integration is present; mapping catalogs are not emitters.
+
+## Task 1: Native projection engine and evidence
+
+Extend the existing engine-free math-lift boundary with a projection module over explicitly selected canonical source records. Use existing native RDF and XML codecs, the authored expression grammar and declared target symbol mappings. A target selection is explicit, deterministic and required. Reject malformed cardinalities, unresolved symbols, unsupported binders/operators and unclassified or dimension-incompatible units; never guess identity or drop required semantics. MathML expression rendering reads the existing lang:renderedContent, renderingConvention and renderingPreservation seam. Outbound supported expressions preserve operator/ordered-argument structure; unsupported structure is refused rather than mislabeled as a successful expression rendering.
+
+Each emission retains its named source, target, actual preservation and every dropped source construct in the existing math:ProjectionRecord/logic:preservationKind/unsupportedConstruct vocabulary. Reuse existing failure definitions and native record invariants. Exact claims with drops fail. No confidence-to-probability or implicit distribution parameterization conversion is allowed. Named source selection and external alignments remain references, never imported target axioms.
+
+## Task 2: Conservative inbound contracts and consumer command
+
+Expose installed consumer math project and lift boundaries using the same pure native functions. Parse real MathML presentation/content, OpenMath, Data Cube, STATO and QUDT artifacts. Presentation-only math becomes ExpressionRendering without an invented AST; unsupported content operators/binders, unresolved OpenMath symbols, insufficient STATO expression anchors and unclassified/incompatible QUDT units fail with typed diagnostics. Data Cube lifts a dataset draft and explicitly records unavailable model/provenance. Keep parseSource and declared loss; never fabricate absent semantic structure. No repo path or generated tree is required by installed commands.
+
+## Task 3: Registered pipeline production and bundle fanout
+
+Register a deterministic math projection stage consuming declared source/carrier products. Author representative requests and their data in the math slice. Emit at least MathML and QUDT plus all supported selected targets under generated/projections/math, with loss rows carried as canonical RDF in the bundle. Attach rendered XML bytes once through the existing opaque artifact mechanism; RDF products use normal named-graph fanout. Add source-backed projection competency queries and typed counterexamples for all six failure classes. No generated file is hand edited.
+
+## Task 4: Qualification and integration
+
+Use tiny independently authored datasets/XML/RDF artifacts to execute the real codec entry points, successful round trips and required refusals. Cover deterministic outputs, preserved numeric/datatype identity, ordered arguments, symbol resolution, malformed/multiple values, XML namespace and unsupported-element controls, exact/loss contradictions, confidence and parameterization. Tests never build corpus. Run make help before selecting focused make nextest-synthetic, formatting, strict clippy-prebuild and normal signed hooks after settled changes. No local optimized producer, corpus/fixture production, sync or full gate is authorized; current hosted bundle/fanout/installed acceptance must be reported distinctly. No independent reviewer dispatcher is available, so label self-assessment honestly. Publish complete implementation through the Stage PR workflow, merge sequentially with ghprsq ignoring CI under standing authorization, verify archive and clean this owned branch/worktree. Keep the full issue open if its real acceptance is unproven; do not close it from library tests alone.

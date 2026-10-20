@@ -1,0 +1,1 @@
+{"body": "Addressed. XML whitespace is trimmed before variable-name validation and declaration minting. The regression verifies that plain and surrounding-whitespace spellings share one free declaration. Principle 7."}

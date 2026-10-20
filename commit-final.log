@@ -1,0 +1,31 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...............................................................Passed
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1438-math-realize-the-projections-layer 3e2a0e559] Implement mathematical target codecs and preservation ledgers
+ 35 files changed, 3298 insertions(+), 42 deletions(-)
+ create mode 100644 crates/math-lift/src/projection.rs
+ create mode 100644 crates/math-lift/src/projection/expression.rs
+ create mode 100644 crates/math-lift/src/projection/inbound.rs
+ create mode 100644 crates/math-lift/src/projection/tests.rs
+ create mode 100644 slices/grounding/math/examples/projection-requests.ttl
+ create mode 100644 slices/grounding/math/projections/unit-reference.ttl
+ create mode 100644 slices/grounding/math/queries/competency/projection-expression-losses.rq
+ create mode 100644 slices/grounding/math/queries/competency/projection-losses.rq
+ create mode 100644 slices/grounding/math/queries/competency/projection-preservation.rq
+ create mode 100644 slices/grounding/math/queries/competency/projection-sensitive-losses.rq

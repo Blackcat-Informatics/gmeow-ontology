@@ -1,0 +1,38 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(math_projection_symbol_lifts_keep_native_ownership_and_variable_identity) | test(generated_math_projection_ledger_passes_the_six_native_projection_checks)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/logic)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/math-lift)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 6m 35s
+────────────
+ Nextest run ID 9b5e99a7-2b12-42da-83e0-62adc6552ab9 with nextest profile: ci
+    Starting 2 tests across 225 binaries (7747 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.026s] (1/2) gmeow-math-lift projection::tests::math_projection_symbol_lifts_keep_native_ownership_and_variable_identity
+        PASS [   0.040s] (2/2) gmeow-validate lint::tests::generated_math_projection_ledger_passes_the_six_native_projection_checks
+────────────
+     Summary [   0.149s] 2 tests run: 2 passed, 7747 skipped

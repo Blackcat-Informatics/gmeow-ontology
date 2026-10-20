@@ -1,0 +1,98 @@
+{
+  "assignees": [
+    {
+      "id": "MDQ6VXNlcjUyNzU1NQ==",
+      "login": "paudley",
+      "name": "Patrick Audley",
+      "databaseId": 527555
+    }
+  ],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Child of #1433. MATHEMATICS-PROJECTIONS.md is design + loss-ledger reuse only: no emitter exists for any target (MathML, OpenMath, RDF Data Cube, STATO, QUDT), all 6 projection failure classes (MissingPreservationKind, UnrecordedProjectionLoss, ExactPreservationViolated, \u2026) are missing, and the inbound refusal contracts are unimplemented. Blocked by the pipeline-integration issue (the emitters need a registered math generator stage to live in).\n\n## Work\n\nPer the charter: outbound lossy lowerings with a loss-ledger row per emission (reusing `logic:preservationKind` verbatim per the grounding contract), the projection failure classes with counter-examples, and the inbound refusal contracts (an inbound artifact that cannot lift hard-fails with a typed diagnostic \u2014 the same lift-fully-or-hard-fail rule as the bridges). Expression rendering rides the registered rendering seam (`math:ExpressionRendering \u2291 lang:Rendering`): MathML/LaTeX read `lang:renderedContent`/`renderingConvention`/`renderingPreservation` off the math record, as the module already promises.\n\n## Acceptance\n\nAt least MathML + QUDT emitters registered and producing `generated/projections/math/` artifacts from gmeow.gts content; all 6 projection failure classes enforced with fixtures; projection CQs registered; loss rows visible in the ledger.",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABJLtkSg",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "<!-- This is an auto-generated issue plan by CodeRabbit -->\n<details>\n<summary>\ud83d\udd17 Related PRs</summary>\n\nBlackcat-Informatics/gmeow-ontology#563 - feat: notation projection layer (fixes `#318`) [closed]\nBlackcat-Informatics/gmeow-ontology#1189 - feat(1093): F6 OpenEHR blood-pressure section/retraction \u2014 in-band complement round-trip + half-open ADL fidelity + empirical validator PASS [merged]\nBlackcat-Informatics/gmeow-ontology#1321 - feat(math): analysis, topology & geometry \u2014 binder core + named-complement gate (ANALYSIS-AND-GEOMETRY) [merged]\nBlackcat-Informatics/gmeow-ontology#1339 - feat(math): ingestion bridges \u2014 R, ONNX, proof-as-process (BRIDGES) [merged]\nBlackcat-Informatics/gmeow-ontology#1390 - feat(diagnostics): Phase 4 producer sweep + loss unification + tri-grounding (closes `#1349`) [merged]\n</details>\n\n---\n<details>\n<summary>\ud83d\udcdd Issue Planner</summary>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</details>\n\n\n---\n<details>\n<summary> \ud83e\uddea Issue enrichment is currently in open beta.</summary>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</details>\n\n\ud83d\udcac Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-07-08T03:56:00Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1438#issuecomment-4911227978",
+      "viewerDidAuthor": false
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABSr4aXA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## The \"projections layer is absent\" framing may no longer be accurate \u2014 needs a closer read than I gave it\n\nChecked against `main` @ c2b03aba6 while inventorying open issues. A shallow scan finds each named target vocabulary already referenced in `crates/`:\n\n| surface | files referencing it |\n|---|---|\n| QUDT | 29 |\n| OpenMath | 4 |\n| STATO | 3 |\n| MathML | 2 |\n\nI did **not** establish whether these are realized emitters with the projection failure classes this issue specifies, or incidental references (vocabulary constants, grounding declarations, test fixtures). The QUDT spread in particular suggests real integration; MathML at 2 files suggests little.\n\nFlagging rather than concluding: whoever picks this up should first re-baseline which of the five projections genuinely exist, because the issue is currently scoped as if none do. That re-baseline may shrink this from complexity-hard to something much smaller.\n\nRelated: #1437 (math into the carrier) is now largely landed \u2014 `gmeow-math` is linked into the pipeline and `crates/pipeline/src/stages/math_producers.rs` exists \u2014 so the emitter home this issue depends on is in place.\n\n*Method: case-insensitive file-count grep only. Deliberately not a verdict.*",
+      "createdAt": "2026-09-05T03:07:12Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1438#issuecomment-5548939868",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABdswNHQ",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Reject contradictory exact math projection records\n\nPrinciples 4, 7, 17 and 19. Current-source audit of the older math projection\nissue finds all six failure identities, five native projection-ledger checks and\nprobability-specific exactness checks already present. The five target emitters\nand conservative inbound artifact contracts are not implemented. Mapping catalogs\nand hand-authored demonstrators are not executable emitters. Preserve that full\nparent scope; do not close it on this unit.\n\n## Task 1: Repair the existing exactness admission\n\nThe native math ProjectionRecord checks currently accept ExactPreservation with\nunsupportedConstruct entries, because every lossy check skips the exact branch.\nReject that internal contradiction with the existing ExactPreservationViolated\nidentity. Also reject an exact claim combined with another preservation kind.\nRetain the existing probability completeness checks and explicitly lossy records.\nUpdate the canonical failure definition, paired French/Mandarin translations and\nconformance doctrine. Add a registered positive/negative canonical fixture pair.\n\n## Task 2: Qualify and integrate\n\nExercise the production structural_lint_dataset entry on tiny authored datasets:\nexact with literal/IRI drops, contradictory polarity, exact with no drops, and\nlossy with recorded drops. Test named-graph records as well. Tests consume authored\ninputs and never produce a repository corpus. Run focused Make checks, strict\nproducer-independent Clippy, source recipe admission and normal signed hooks.\nNo local optimized producer, corpus construction, sync or full gate. Publish and\nmerge sequentially through ghprsq under the standing CI waiver; clean this unit's\nbranch/worktree, preserve unfinished siblings and update the shared queue.\n\nNo independent reviewer tool is exposed; no independent audit is claimed. Full\ncanonical conformance and real outbound/inbound projection acceptance remain open.\n",
+      "createdAt": "2026-10-20T09:40:04Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1438#issuecomment-6288051485",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-07-08T03:55:40Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1438,
+  "state": "OPEN",
+  "title": "math: realize the projections layer \u2014 MathML/OpenMath/Data-Cube/STATO/QUDT emitters + projection failure classes",
+  "updatedAt": "2026-10-20T09:40:05Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1438"
+}

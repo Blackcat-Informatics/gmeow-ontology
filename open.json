@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1438,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer",
+  "branch": "paudley/1438-math-realize-the-projections-layer",
+  "slug": "math-realize-the-projections-layer",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "cbdc01f330d74ff6ffc2959ec39aab08bb0d9b1a",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer",
+    "branch:paudley/1438-math-realize-the-projections-layer",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1438-math-realize-the-projections-layer/.stage/math-realize-the-projections-layer/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T14:33:30-0600"
+}

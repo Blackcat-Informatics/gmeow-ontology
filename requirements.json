@@ -1,0 +1,33 @@
+{
+  "rows": [
+    {
+      "id": "C1.1",
+      "line": 18,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan",
+      "source": "comment 1",
+      "author": "coderabbitai",
+      "date": "2026-07-08T03:56:00Z"
+    },
+    {
+      "id": "C2.1",
+      "line": 14,
+      "rules": [
+        "modal"
+      ],
+      "text": "Flagging rather than concluding: whoever picks this up should first re-baseline which of the five projections genuinely exist, because the issue is currently scoped as if none do. That re-baseline may shrink this from complexity-hard to something much smaller.",
+      "source": "comment 2",
+      "author": "paudley",
+      "date": "2026-09-05T03:07:12Z"
+    }
+  ],
+  "silent_comments": [
+    {
+      "comment": 3,
+      "author": "paudley",
+      "date": "2026-10-20T09:40:04Z"
+    }
+  ]
+}

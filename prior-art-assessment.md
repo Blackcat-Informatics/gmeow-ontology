@@ -1,0 +1,3 @@
+# Reuse assessment
+
+Reuse math-lift's native RDF sink and consumer structure, PurRDF XML parser and RDF codecs, existing math expression predicates and external mapping targets, existing projection-record failure vocabulary, pipeline StageProduct/carrier/opaque fanout and generator registry. Do not invent another AST identity, parser backend, preservation enum, alignment property or generated-file transport. W3C MathML Content Markup, the OpenMath standard and QUDT's own schema are the primary format references. Known recurrence is present in the issue discussion; no numerical recurrence count is claimed. The existing exactness repair is delivered, not pending work.

@@ -1,0 +1,155 @@
+{
+  "issue": 1438,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "math: realize the projections layer \u2014 MathML/OpenMath/Data-Cube/STATO/QUDT emitters + projection failure classes",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1433": "EPIC: Grounding coherence & unity \u2014 tri-slice alignment program (logic:/lang:/math:)",
+    "318": "Music \u00b7 Notation projection layer & maximal alignment (declared losses, SSSOM/EDOAL/FnO)",
+    "1349": "META-EPIC #1336 Phase 4: producer sweep, loss unification + diagnostics-slice logic:/lang:/math: grounding",
+    "1437": "pipeline/math: integrate the math grounding layer into the carrier \u2014 generator stage, projection registry, gmeow-math link",
+    "1427": "logic: shared content-addressed structured-term arena for logic:/lang:/math: (hash-consed term DAG, binder-aware)",
+    "1346": "math: runnable math-parse front-ends \u2014 executable R/ONNX/proof \u2192 math: lifters (RUNTIME, successor to BRIDGES)",
+    "1377": "pipeline/rust: GMN-1 projection via the lang PROJECTIONS registry \u2014 graph-derived writer/parser, round-trip gate, token metrics, training-corpus emitter (part of #1371)",
+    "1405": "FULL/MAXIMAL slice documentation standard: documentation slice, DocMaturity, coverage\u2192RDF, grounding-slice lift",
+    "1385": "feat(affect): nearest-prototype emotion classification on the math: geometry layer (competency Q9)",
+    "306": "EPIC: Music \u2014 frame-relative musical content; every notation a lossy projection",
+    "309": "Music \u00b7 Pitch collections & spelling (scales, maqamat, ragas, co-equal enharmonics)",
+    "311": "Music \u00b7 Structure graph (segments, voices, trajectories, transformations)",
+    "315": "Music \u00b7 Genre & analysis standpoints (theory frames, AI claims, statement cells)",
+    "308": "Music \u00b7 Pitch frames & tuning systems (EDO-n, JI lattices, hosted & spectral tunings)",
+    "310": "Music \u00b7 Musical time (time frames, tempo maps, meter, polymeter vs polyrhythm, groove)",
+    "312": "Music \u00b7 Form, process & indeterminacy (degrees of freedom, mobile form, generative processes)",
+    "287": "refactor(repo): re-layout \u2014 make the canonical/generated/ephemeral boundary the filesystem boundary (single generated/ root, dsl/ grouping, .build/ staging, src/ subpackages)",
+    "1336": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+    "1089": "F2 \u2014 Lowering/legalization engine + loss ledger (SSSOM/EDOAL/FnO/SPARQL/up-lift as lowerings)"
+  },
+  "link_relations": {
+    "1433": "mentions",
+    "318": "mentions",
+    "1349": "mentions",
+    "1437": "mentions",
+    "1427": "2-hop",
+    "1346": "2-hop",
+    "1377": "2-hop",
+    "1405": "2-hop",
+    "1385": "2-hop",
+    "306": "2-hop",
+    "309": "2-hop",
+    "311": "2-hop",
+    "315": "2-hop",
+    "308": "2-hop",
+    "310": "2-hop",
+    "312": "2-hop",
+    "287": "2-hop",
+    "1336": "2-hop",
+    "1089": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1436,
+      "title": "math: complete the statistics inference apparatus \u2014 p-values, intervals, hypotheses, estimators, diagnostics, sampling",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1525,
+      "title": "extension: contextual preference observations and proof-carrying learning receipts",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1435,
+      "title": "math: realize the probability layer \u2014 Kolmogorov spine, parameterized distributions, the logic:probabilityModel seam",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1405,
+      "title": "FULL/MAXIMAL slice documentation standard: documentation slice, DocMaturity, coverage\u2192RDF, grounding-slice lift",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1260,
+      "title": "math: linear algebra & learning \u2014 PCA, embeddings, AI self-structure (LINEAR-ALGEBRA-AND-LEARNING)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1527,
+      "title": "EPIC math/semantic-topology: complexes, cellular sheaves, Hodge, holonomy, and multi-filtration semantics",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1544,
+      "title": "Complete math grounding for signed compactified radial fields",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1379,
+      "title": "feat(affect): compute derived affect-intensity norm (fnAffectiveIntensity) \u2014 Rust evaluable, not just an ontology handle",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1261,
+      "title": "math: ingestion bridges \u2014 R\u2192math, ONNX\u2192math, proof-as-process (BRIDGES)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1193,
+      "title": "V3 \u2014 Shape-half purity gate + carrier/gts wiring + conformance/validation/ category",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1551,
+      "title": "Migrate math slice (and repo) to logic:-only grounding; retire sh:/owl: authoring + scope slicetest shapes per-slice",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1346,
+      "title": "math: runnable math-parse front-ends \u2014 executable R/ONNX/proof \u2192 math: lifters (RUNTIME, successor to BRIDGES)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1349,
+      "title": "META-EPIC #1336 Phase 4: producer sweep, loss unification + diagnostics-slice logic:/lang:/math: grounding",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 43,
+    "model-ownership": 1,
+    "unsupported-consequent": 1,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [
+      "f8824d0e9 fix: reject contradictory exact math projection judgments"
+    ],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1870,
+        "title": "Reject contradictory exact math projection judgments",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1870",
+        "this_stage": true
+      }
+    ],
+    "own_branch": "paudley/1438-math-realize-the-projections-layer"
+  },
+  "coverage": [
+    "issue #1438 + 3 comment(s) via github",
+    "link crawl: 19 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['math:', 'realize', 'projections']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 1 commit(s) citing #1438 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1438: 1",
+    "requirement candidates: 2 line(s); 1 comment(s) matched no rule",
+    "referenced artifacts: 4 path(s) (2 on disk), 3 identifier(s), 2 workspace package(s), 1 URL(s)"
+  ]
+}
