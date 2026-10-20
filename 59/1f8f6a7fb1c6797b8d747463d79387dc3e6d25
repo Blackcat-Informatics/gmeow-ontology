@@ -1,0 +1,21 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: c290ab573d1b07de0164af5e0155409b8909ea05
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1884
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1884
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: d0b345574c7f8117af2e1860ad4cecc511e36148
+GhpRsq-Head-Ref: paudley/1657-math-tighten-the-signed-radial-field
+GhpRsq-Head-OID: c290ab573d1b07de0164af5e0155409b8909ea05
+GhpRsq-Result-Tree: 88e0fcf6cda97176f8b4b2e73114e3bc1f5d5a73
+GhpRsq-Result-Commit: 591f8f6a7fb1c6797b8d747463d79387dc3e6d25
+GhpRsq-Parent-Hashes: c290ab573d1b07de0164af5e0155409b8909ea05
+GhpRsq-Squash-Notes-SHA256: efa24f8f311940fecebedbacd55fea2ee99e77e70d8812c2869bac422296967c
+GhpRsq-Defect-Class: unsupported-consequent
+GhpRsq-Stage-Tree: 4ea12f8dd22deefe6104c44e545bf505f82a10d9
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1884/stage
+GhpRsq-Stage-Files: 41
