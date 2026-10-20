@@ -743,8 +743,8 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     let mut findings = Vec::new();
 
     // Principle-17 migration debt (advisory): a hand-authored `shapes.ttl` is a SECOND source of
-    // truth. Validation must be authored in `logic:` (a `logic:Constraint` or the OWL/RDFS axioms
-    // the declarative shapes derive from) and PROJECTED to `generated/shapes/*`, never carried as a
+    // truth. Validation must be authored as a `logic:Constraint` or EL-safe `logic:` axioms
+    // with explicit closure where required, and PROJECTED to `generated/shapes/*`, never carried as a
     // parallel hand-authored SHACL surface. A slice still shipping a hand-authored `shapes.ttl`
     // carries per-slice migration debt for a future quality pass to discharge. This is advisory —
     // the shapes stay live/enforced until the slice's constraints are migrated (equivalence before
@@ -753,16 +753,17 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
         findings.push(advisory(
             "slice-quality.projection.hand-authored-shapes",
             "this slice ships a hand-authored shapes.ttl (a second source of truth): migrate its \
-             constraints to logic: (a logic:Constraint or the backing OWL/RDFS axioms in \
-             module.ttl) so they PROJECT to generated/shapes/* (Principle 17), then retire the \
-             hand-authored file. See docs/MIGRATING-SHAPES-TO-LOGIC.md."
+             constraints to logic: (a logic:Constraint or EL-safe logic: axioms with explicit \
+             closure where required in module.ttl), prove equivalent generated/shapes/* \
+             projections (Principle 17), then retire the hand-authored file. OWL/RDFS are \
+             generated views, not authoring surfaces. See docs/MIGRATING-SHAPES-TO-LOGIC.md."
                 .to_owned(),
         ));
     }
 
-    // A slice with owl:Restriction / disjointness carries structural constraints. Under Principle
+    // A slice with logic:Restriction / disjointness carries structural constraints. Under Principle
     // 17 its validation is "maximally projected" only when those constraints live SOLELY as the
-    // OWL/RDFS axioms in module.ttl (which derive generated/shapes/* via `derive_validation_shapes`)
+    // logic: axioms in module.ttl (which derive generated/shapes/* via `derive_validation_shapes`)
     // with NO parallel hand-authored shapes.ttl. So this projectable-source obligation is MET only
     // once the hand-authored SHACL is retired: a constraint-bearing slice still shipping a
     // shapes.ttl has not projected its validation and scores a shortfall here (the debt finding
@@ -813,18 +814,17 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
 
 /// Shape migration: the fraction of a slice's hand-authored `shapes.ttl`
 /// `sh:NodeShape` / `sh:PropertyShape` blocks that are GROUNDED — carry a
-/// `logic:formalizes` back-reference (the same criterion the blanket
-/// projection-purity gate enforces).
+/// `logic:formalizes` back-reference. This historical advisory measure does not
+/// itself prove projection equivalence or authorize deletion.
 ///
 /// A hand-authored validation shape without `logic:formalizes` is a second source of truth: the
 /// SHACL / ShEx surfaces are generated lossy projections of the `logic:` canon (Principle 17),
 /// not a place to hand-author constraints. Each un-backed shape is named as a migration target —
-/// author its cardinality / class / datatype obligation in the owning `module.ttl` (reasoner-safe:
-/// `owl:FunctionalProperty` for at-most-one, `owl:someValuesFrom` for existence, NEVER
-/// `owl:cardinality`, which reds `reason-verify`) so the projector reproduces it and the block is
-/// deleted; a genuine ValidationOnly residue (exactly-N cardinality, node-level `sh:or`, a
-/// cross-node `sh:sparql`) instead carries `logic:formalizes` naming its canonical `logic:` source
-/// (`docs/SLICE_GUIDE.md` §grounding a shape).
+/// author its obligation as EL-safe `logic:` axioms or a `logic:Constraint` in the owning
+/// `module.ttl`, with explicit closure entries for closed-world required paths. Prove the
+/// generated projection reproduces the legacy check before deleting the authored block.
+/// ValidationOnly conditions also belong in the canonical `logic:` source; a back-reference
+/// alone does not prove equivalence (`docs/MIGRATING-SHAPES-TO-LOGIC.md`).
 ///
 /// This reads through the shared [`crate::counting`] enumerator at
 /// [`crate::counting::CountMode::Historical`] — the SAME primitive the projection-vocabulary
@@ -862,10 +862,12 @@ fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
             findings.push(advisory(
                 "slice-quality.projection.ungrounded-shape",
                 format!(
-                    "hand-authored validation shape <{iri}> carries no logic:formalizes: migrate \
-                     its obligation into module.ttl (owl:FunctionalProperty / owl:someValuesFrom — \
-                     never owl:cardinality) so the projector reproduces it and the block is deleted, \
-                     or back a genuine ValidationOnly residue with logic:formalizes (SLICE_GUIDE.md)."
+                    "hand-authored validation shape <{iri}> carries no logic:formalizes: author \
+                     its obligation as EL-safe logic: axioms or a logic:Constraint in module.ttl, \
+                     with explicit closure for required paths; prove the generated projection \
+                     reproduces the check, then delete the authored block. OWL/RDFS are generated \
+                     views; a back-reference alone does not prove equivalence. See \
+                     docs/MIGRATING-SHAPES-TO-LOGIC.md."
                 ),
             ));
         }
