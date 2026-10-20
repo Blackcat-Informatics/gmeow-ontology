@@ -60,7 +60,7 @@ fn shared_view_read_failure_preserves_original_cause_in_every_constructor() {
         })
         .collect();
     drop(source);
-    for result in results {
+    for (mode, result) in results.into_iter().enumerate() {
         let diagnostic = result.unwrap_err();
         let failure = diagnostic
             .downcast_ref::<crate::error::DlService>()
@@ -70,8 +70,12 @@ fn shared_view_read_failure_preserves_original_cause_in_every_constructor() {
             .cause
             .downcast_ref::<EntailError<Arc<std::io::Error>>>()
             .unwrap();
-        let EntailError::SourceRead(original) = native else {
-            panic!("the source read failure must remain native and typed");
+        let original = match (mode, native) {
+            (0 | 2, EntailError::SourceRead(original))
+            | (1 | 3, EntailError::Canonicalization(purrdf::CanonError::Read(original))) => {
+                original
+            }
+            _ => panic!("each constructor must retain its exact native source-read path"),
         };
         assert!(Arc::ptr_eq(original, &cause));
         assert!(std::error::Error::source(native).is_some());
