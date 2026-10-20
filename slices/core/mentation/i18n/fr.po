@@ -40,3 +40,31 @@ msgstr "gmeow:experiencerFunctionality logic:characterizes gmeow:experiencer ."
 msgctxt "https://blackcatinformatics.ca/gmeow/experiencerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:experiencer and nothing else. It is not a definition of gmeow:experiencer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:experiencer, et rien d'autre. Ce n'est pas une définition de gmeow:experiencer (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recollects"
+msgstr "se remémore"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a recollection episode or its recorded artifact to the experience it recalls. A specialization of derivation, not a claim that the recalled content is accurate."
+msgstr "Relie un épisode de remémoration ou son artefact enregistré à l’expérience rappelée. Une spécialisation de la dérivation, sans affirmer l’exactitude du contenu rappelé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:recollects ex:dream ."
+msgstr "ex:report gmeow:recollects ex:dream ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Domain deliberately open: both a recollection Experience and an information artifact can recall an Experience. Nonfunctional; several recalled experiences and competing reports may coexist. The link does not assert the dream content as waking fact."
+msgstr "Domaine délibérément ouvert : une Experience de remémoration comme un artefact informationnel peut rappeler une Experience. Non fonctionnelle ; plusieurs expériences rappelées et récits concurrents peuvent coexister. Le lien ne pose pas le contenu du rêve comme un fait éveillé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a merely topical description or for the agent who remembers; use the existing aboutness construct or remembers relation for those distinct roles."
+msgstr "À éviter pour une description simplement thématique ou pour l’agent qui se souvient ; employer la construction de sujet ou la relation remembers pour ces rôles distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the recollection episode or written artifact at the original Experience; keep the artifact distinct from the act of recalling and retain the claim standpoint and provenance."
+msgstr "Relier l’épisode de remémoration ou l’artefact écrit à l’Experience initiale ; distinguer l’artefact de l’acte de se rappeler et conserver le point de vue et la provenance de l’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recall must trace a report, diary entry or recollection episode back to the experience it recalls."
+msgstr "À employer lorsque le rappel doit relier un récit, une entrée de journal ou un épisode de remémoration à l’expérience rappelée."

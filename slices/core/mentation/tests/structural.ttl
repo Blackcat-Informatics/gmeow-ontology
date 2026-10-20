@@ -205,3 +205,24 @@ ASK {
     gmeow:updatesMentalTenure   rdf:type ?t3 .
 }""" ;
     gmeow:saRationale "All three bridge properties (realizesMentalMoment, producesMentalMoment, updatesMentalTenure) MUST be declared with at least one rdf:type triple — their existence in the module is required." .
+
+ex:saRecollectsDeclaration a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:recollects a owl:ObjectProperty ;
+    rdfs:range gmeow:Experience ; rdfs:subPropertyOf gmeow:wasDerivedFrom . }
+""" ;
+    gmeow:saRationale "Recollection retains the original Experience and its derivation relationship." .
+
+ex:saRecollectsOpenSubjectAndMultiplicity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { { gmeow:recollects rdfs:domain ?domain }
+    UNION { gmeow:recollects a owl:FunctionalProperty }
+    UNION { gmeow:recollects a owl:InverseFunctionalProperty } }
+""" ;
+    gmeow:saRationale "An artifact is not inferred to be a recollection event or DreamReport, and coequal reports and multiple recalled experiences remain admissible." .

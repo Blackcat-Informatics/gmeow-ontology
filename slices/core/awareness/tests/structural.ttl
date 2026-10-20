@@ -239,3 +239,22 @@ ASK {
     { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
 }""" ;
     gmeow:saRationale "By-reference discipline (Principle 4 / Principle 5): the subject is carried by gmeow:awarenessSubject, so the module MUST assert NO gufo:inheresIn and NO gmeow:inheresIn triple in any position (the gUFO inherence alignment target is left untouched)." .
+
+ex:saImmersiveDreamingValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:modeImmersiveDreaming a gmeow:AwarenessMode . }
+""" ;
+    gmeow:saRationale "Immersive non-lucid dreaming is an awareness value, usable without a new dream subclass." .
+
+ex:saImmersiveNotClassOrLucidAlias a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { { gmeow:modeImmersiveDreaming a owl:Class }
+    UNION { gmeow:modeImmersiveDreaming rdfs:subClassOf ?class }
+    UNION { gmeow:modeImmersiveDreaming (owl:sameAs|^owl:sameAs) gmeow:modeLucidDreaming }
+    UNION { gmeow:modeWildDreaming ?p ?o } }
+""" ;
+    gmeow:saRationale "The new mode is neither a class nor an alias for lucid dreaming; the ambiguous wild spelling is not introduced." .

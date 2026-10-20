@@ -50,6 +50,7 @@ ex:mayaFlyingDream gmeow:dreamElement ex:flyingSequence , ex:childhoodHouse .
 
 # --- The morning report: a low-reliability recollection of the dream.
 ex:mayaMorningReport a gmeow:DreamReport ;
+    gmeow:recollects ex:mayaFlyingDream ;
     rdfs:label "Maya's morning dream report"@x-gmeow-english ;
     rdfs:comment "A low-reliability recollection of the flying dream, reported after waking."@x-gmeow-english ;
     gmeow:experiencer ex:dreamerMaya ;

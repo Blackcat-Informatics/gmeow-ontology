@@ -1,0 +1,87 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix test: <https://blackcatinformatics.ca/gmeow/examples/dreaming/tests/> .
+@prefix ex: <https://example.org/dream-records/> .
+
+test:cqRecollections a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/recollection-and-phases.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/dream-records/> SELECT ?report WHERE { ?report gmeow:recollects ex:dream . }" ;
+    gmeow:cqRationale "Distinct recollection episodes and coequal written artifacts retain the same original dream." ;
+    gmeow:cqResultShape test:shapeRecollections ;
+    gmeow:cqExpectRow test:rowRecollections0, test:rowRecollections1, test:rowRecollections2 .
+
+test:shapeRecollections a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "report" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRecollections0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "report" ; gmeow:cellValueIri ex:recollection ] .
+
+test:rowRecollections1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "report" ; gmeow:cellValueIri ex:writtenReport ] .
+
+test:rowRecollections2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "report" ; gmeow:cellValueIri ex:laterReport ] .
+
+test:cqPhaseCall a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/recollection-and-phases.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/dream-records/> SELECT ?call ?kind WHERE { ?call a gmeow:ToolCall ; gmeow:subEventOf ?phase . ?phase a gmeow:Event ; gmeow:eventType ?kind ; gmeow:subEventOf ex:dream . }" ;
+    gmeow:cqRationale "A recorded tool call belongs to an identified phase occurrence of the dream; the kind is attached to that phase, not the call." ;
+    gmeow:cqResultShape test:shapePhaseCall ;
+    gmeow:cqExpectRow test:rowPhaseCall0 .
+
+test:shapePhaseCall a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "call" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowPhaseCall0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "call" ; gmeow:cellValueIri ex:readMemory ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri ex:immersion ] .
+
+test:cqWholeText a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/recollection-and-phases.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/dream-records/> SELECT ?text WHERE { ex:wholeReport a gmeow:InformationObject ; gmeow:recollects ex:olderDream ; gmeow:description ?text . FILTER NOT EXISTS { ?phase gmeow:subEventOf ex:olderDream ; gmeow:eventType ?kind } }" ;
+    gmeow:cqRationale "Whole-dream prose is retrievable when the record contains no phase decomposition; this asserts nothing about unrecorded real phases." ;
+    gmeow:cqResultShape test:shapeWholeText ;
+    gmeow:cqExpectRow test:rowWholeText0 .
+
+test:shapeWholeText a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "text" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowWholeText0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "text" ; gmeow:cellValueLiteral "I walked beside a river until morning."@x-gmeow-english ] .
+
+test:cqImmersiveMode a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/recollection-and-phases.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/dream-records/> SELECT ?mode WHERE { ex:dream gmeow:awarenessMode ?mode . }" ;
+    gmeow:cqRationale "The dream records the non-lucid immersive mode rather than silently relabelling it lucid." ;
+    gmeow:cqResultShape test:shapeImmersiveMode ;
+    gmeow:cqExpectRow test:rowImmersiveMode0 .
+
+test:shapeImmersiveMode a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "mode" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowImmersiveMode0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming> ] .
+
+test:cqNonDreamRecollection a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/recollection-and-phases.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/dream-records/> SELECT ?entry ?experience WHERE { ?entry a gmeow:InformationObject ; gmeow:recollects ?experience . ?experience gmeow:mentalProcessType gmeow:processPerception . }" ;
+    gmeow:cqRationale "A general written recollection can refer to a non-dream experience without typing the artifact as a DreamReport." ;
+    gmeow:cqResultShape test:shapeNonDreamRecollection ;
+    gmeow:cqExpectRow test:rowNonDreamRecollection0 .
+
+test:shapeNonDreamRecollection a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "entry" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "experience" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowNonDreamRecollection0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "entry" ; gmeow:cellValueIri ex:diaryEntry ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "experience" ; gmeow:cellValueIri ex:walk ] .

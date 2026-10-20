@@ -51,6 +51,20 @@ minted as individuals, never as subclasses of `gmeow:MentalProcess` (Principle 9
 
 ## Properties
 
+### gmeow:recollects
+
+Links a recollection episode or a written recollection artifact to the
+`gmeow:Experience` it recalls. It specializes `gmeow:wasDerivedFrom`, with no
+subject domain: a diary entry does not thereby become a mental process or a
+`gmeow:DreamReport`. Several reports can recall one experience, and a report can
+recall several experiences. The relation is nonfunctional.
+
+Keep the original experience, the later act of recalling, and any written artifact
+distinct. The link records claimed recollection provenance; it does not certify
+accuracy, assert imagined content as waking fact, or identify the agent who
+remembers (the separate `gmeow:remembers` role). Retain the reporting standpoint
+and any competing accounts. See the [dreaming patterns](../../extensions/dreaming/docs.md#reports-whole-text-and-recorded-phases).
+
 ### gmeow:experiencer
 
 The agent whose mental process this is — the one undergoing the perceiving, reasoning, or dreaming.
