@@ -13,6 +13,66 @@ fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> Validation
 }
 
 #[test]
+fn conjunctive_node_kinds_emit_loadable_shapes_and_preserve_optional_absence() {
+    use std::collections::BTreeSet;
+
+    for (second, iri_allowed) in [
+        (ShaclNodeKind::BlankNodeOrIri, true),
+        (ShaclNodeKind::Literal, false),
+    ] {
+        let ir = shape(
+            "https://ex/Shape",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/value",
+                vec![
+                    ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri),
+                    ConstraintComponent::NodeKindShacl(second),
+                ],
+            )],
+        );
+        let ttl = format!(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n{}",
+            project_validation_shape_shacl(&ir)
+        );
+        let shapes = purrdf::shapes::engine::parse_shapes(&ttl, None).unwrap();
+        let data = purrdf::parse_dataset(
+            br#"
+                @prefix ex: <https://ex/> .
+                ex:absent a ex:C .
+                ex:iri a ex:C ; ex:value ex:id .
+                ex:blank a ex:C ; ex:value [] .
+                ex:literal a ex:C ; ex:value "value" .
+            "#,
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        let report = purrdf::shapes::engine::validate_dataset(&data, &shapes).unwrap();
+        let observed: BTreeSet<_> = report
+            .results
+            .iter()
+            .map(|finding| finding.focus_node.to_string())
+            .collect();
+        let mut expected = BTreeSet::from([
+            "<https://ex/blank>".to_owned(),
+            "<https://ex/literal>".to_owned(),
+        ]);
+        if !iri_allowed {
+            expected.insert("<https://ex/iri>".to_owned());
+        }
+        assert_eq!(observed, expected);
+        let shex = project_validation_shape_shex(&ir);
+        if iri_allowed {
+            assert!(shex.contains("IRI"), "{shex}");
+            assert!(!shex.contains("NONLITERAL"), "{shex}");
+        } else {
+            assert!(shex.contains("[]"), "{shex}");
+        }
+    }
+}
+
+#[test]
 fn validation_shape_projects_failure_class_metadata() {
     let s = shape("https://ex/Shape", "https://ex/C", vec![])
         .with_failure_class("https://ex/Failure")

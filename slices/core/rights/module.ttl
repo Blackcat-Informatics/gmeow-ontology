@@ -2726,3 +2726,107 @@ gmeow:trademarkStatusFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:trademarkStatus and nothing else. It is not a definition of gmeow:trademarkStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:trademarkStatusFunctionality logic:characterizes gmeow:trademarkStatus ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ForgetRequest
+    a logic:Event, logic:Class ;
+    logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "Forget Request"@x-gmeow-english ;
+    skos:definition "An in-flight request by an agent to erase explicitly named objects under a stated right. A request is not authorization and does not itself delete anything."@x-gmeow-english ;
+    skos:scopeNote "On authorized fulfillment, erase the selected targets and the request record itself. Retain no deletion receipt, removed-identifier list or tombstone in the governed store. Unselected references may dangle and answer gone; erasure never implies a cascade. Historical repair receipts remain source evidence outside migrated stores."@x-gmeow-english ;
+    gmeow:useWhen "Use for a pending governed request to forget named objects."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for ordinary revision, automatic expiry, a deletion receipt or a grant of permission."@x-gmeow-english ;
+    gmeow:howToUse "Name at least one requestingAgent, requestedErasureTarget and requestUnderRight. Select the request itself explicitly in the authorized purge; denied or pending requests do not trigger erasure."@x-gmeow-english ;
+    skos:example "ex:request a gmeow:ForgetRequest ; gmeow:requestingAgent ex:person ; gmeow:requestedErasureTarget ex:claim ; gmeow:requestUnderRight ex:erasureRight ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:requestingAgent
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ForgetRequest ;
+    logic:range gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "requesting agent"@x-gmeow-english ;
+    skos:definition "The agent making a forget request; not necessarily its data subject or authorizing authority."@x-gmeow-english ;
+    gmeow:howToUse "Name each requesting agent; joint requests are permitted."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer erasure authority from being the requester."@x-gmeow-english ;
+    gmeow:useWhen "The agent making a forget request; not necessarily its data subject or authorizing authority."@x-gmeow-english ;
+    skos:scopeNote "Applies to an in-flight request, not a persistent deletion receipt."@x-gmeow-english ;
+    skos:example "ex:request gmeow:requestingAgent ex:person ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:requestedErasureTarget
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ForgetRequest ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "requested erasure target"@x-gmeow-english ;
+    skos:definition "A named object whose erasure is requested. It selects exactly that object, not objects referring to it or referred to by it."@x-gmeow-english ;
+    gmeow:howToUse "Name each target by IRI. Include the request record itself in the authorized fulfillment selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a literal selector or infer a transitive deletion closure."@x-gmeow-english ;
+    gmeow:useWhen "A named object whose erasure is requested. It selects exactly that object, not objects referring to it or referred to by it."@x-gmeow-english ;
+    skos:scopeNote "Applies to an in-flight request, not a persistent deletion receipt."@x-gmeow-english ;
+    skos:example "ex:request gmeow:requestedErasureTarget ex:claim ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:requestUnderRight
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ForgetRequest ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "request under right"@x-gmeow-english ;
+    skos:definition "The named right or governing policy invoked by a forget request; citing it does not establish that the request is authorized."@x-gmeow-english ;
+    gmeow:howToUse "Reference the right or policy by IRI; assess authorization separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat an invoked right as an automatically granted permission."@x-gmeow-english ;
+    gmeow:useWhen "The named right or governing policy invoked by a forget request; citing it does not establish that the request is authorized."@x-gmeow-english ;
+    skos:scopeNote "Applies to an in-flight request, not a persistent deletion receipt."@x-gmeow-english ;
+    skos:example "ex:request gmeow:requestUnderRight ex:erasureRight ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ForgetRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:requestingAgent ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ForgetRequest ; logic:closureKey "https://blackcatinformatics.ca/gmeow/requestingAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ForgetRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:requestedErasureTarget ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ForgetRequest ; logic:closureKey "https://blackcatinformatics.ca/gmeow/requestedErasureTarget" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ForgetRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:requestUnderRight ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ForgetRequest ; logic:closureKey "https://blackcatinformatics.ca/gmeow/requestUnderRight" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ForgetRequestRequestedErasureTargetKind
+    a logic:PathNodeKindConstraint ;
+    logic:onClass gmeow:ForgetRequest ;
+    logic:valuePath gmeow:requestedErasureTarget ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:ForgetRequest ;
+    logic:message "A forget request must identify requestedErasureTarget by a named IRI." .
+
+gmeow:ForgetRequestRequestUnderRightKind
+    a logic:PathNodeKindConstraint ;
+    logic:onClass gmeow:ForgetRequest ;
+    logic:valuePath gmeow:requestUnderRight ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:ForgetRequest ;
+    logic:message "A forget request must identify requestUnderRight by a named IRI." .
+
+gmeow:ForgetRequestRequestedErasureTargetKind
+    a logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "Forget request requestedErasureTarget kind constraint"@x-gmeow-english ;
+    skos:definition "Requires the requestedErasureTarget of a forget request to be a named IRI."@x-gmeow-english ;
+    skos:example "ex:request gmeow:requestedErasureTarget ex:target ."@x-gmeow-english ;
+    skos:scopeNote "Canonical validation condition, projected to validation surfaces; it does not authorize deletion."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject unnamed request references."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as an erasure operation."@x-gmeow-english ;
+    gmeow:howToUse "Validate the selected request graph through the derived constraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ForgetRequestRequestUnderRightKind
+    a logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "Forget request requestUnderRight kind constraint"@x-gmeow-english ;
+    skos:definition "Requires the requestUnderRight of a forget request to be a named IRI."@x-gmeow-english ;
+    skos:example "ex:request gmeow:requestUnderRight ex:target ."@x-gmeow-english ;
+    skos:scopeNote "Canonical validation condition, projected to validation surfaces; it does not authorize deletion."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject unnamed request references."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as an erasure operation."@x-gmeow-english ;
+    gmeow:howToUse "Validate the selected request graph through the derived constraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

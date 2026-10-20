@@ -12,14 +12,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimAssertoricForce is functional"
 msgstr "claimAssertoricForce 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimAssertoricForce is functional: a standpoint claim carries one speech-act force — assert, conjecture, assume, or retract — so the relator takes a single force (absent reading as assert) and a retracted assertion is closed as a retained act rather than gaining a rival force."
-msgstr "在规范载体上断言 gmeow:claimAssertoricForce 是函数式的：一个立场主张携带一种言语行为效力——断言、推测、假定或撤回——因此关系体取唯一一种效力（缺省即读作 assert），被撤回的断言被封闭为一个被保留的行为，而不会获得一个相竞争的效力。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimCredence is functional"
@@ -41,17 +36,9 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http:
 msgid "claimModalForce is functional"
 msgstr "claimModalForce 具有函数性"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimModalForce is functional: a standpoint claim carries one alethic modal force in the □/◊ register, so the relator takes a single force (absent reading as necessary), kept orthogonal to credence and confidence rather than stacking rival modal values."
-msgstr "在规范载体上断言 gmeow:claimModalForce 是函数式的：一个立场主张在 □/◊ 记法体系中携带一种真势模态力，因此关系体取唯一一种效力（缺省即读作 necessary），与可信度和置信度保持正交，而不是叠加相互竞争的模态值。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimModality is functional"
 msgstr "claimModality 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimModality is functional: a standpoint claim carries one five-value belief modality — unequivocal, probable, conceivable, refuted, or bullshit — the lossless projection of the six canonical axes, so this convenience twin resolves to a single frame-relative value (absent reading as unequivocal) rather than several modalities on one claim."
-msgstr "在规范载体上断言 gmeow:claimModality 是函数式的：一个立场主张携带一个五值信念模态——unequivocal、probable、conceivable、refuted 或 bullshit——即六条规范轴的无损投影，因此这个便利化的孪生值解析为唯一一个相对于框架的值（缺省即读作 unequivocal），而不是在同一主张上存在多个模态。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimPolarity is functional"
@@ -165,10 +152,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|ht
 msgid "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
 msgstr "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:claimModalForce names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:claimModalForce 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
 msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
@@ -180,10 +163,6 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:c
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
 msgstr "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:claimModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:claimModality 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -328,3 +307,155 @@ msgstr "ClaimCredence 声明式取值范围约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/ClaimCredenceRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A validation-only integrity constraint: a StandpointClaim's gmeow:claimCredence is an xsd:decimal in [0.0, 1.0]."
 msgstr "仅用于验证的完整性约束：StandpointClaim 的 gmeow:claimCredence 是位于 [0.0, 1.0] 区间内的 xsd:decimal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|rdfs:label"
+msgid "succeeds claim"
+msgstr "接续声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:definition"
+msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "当所声明状态发生变化时，将后继声明承载实体关联到前驱。根据所述立场，前驱在其较早的事实时间区间内仍有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:howToUse"
+msgid "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."
+msgstr "以 accordingTo 和 validFrom 标注关系的立场及生效时间；在声明或名称使用上保留独立的事实时间区间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:useWhen"
+msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "当所声明状态发生变化时，将后继声明承载实体关联到前驱。根据所述立场，前驱在其较早的事实时间区间内仍有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "不要推断全局真值、删除、首选声明或另一立场中的变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:example"
+msgid "ex:janet gmeow:succeedsClaim ex:bob ."
+msgstr "ex:janet gmeow:succeedsClaim ex:bob ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|rdfs:label"
+msgid "corrects claim"
+msgstr "纠正声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:definition"
+msgid "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."
+msgstr "将纠正声明承载实体关联到被纠正立场判为错误的前驱，包括其声称的早期有效性。这不会使前驱在其他立场下全局为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:howToUse"
+msgid "Annotate the relation with accordingTo and validFrom for when the correction took effect. Suppress the erroneous predecessor in that standpoint without erasing its retained record."
+msgstr "以 accordingTo 和 validFrom 标注纠正的立场及生效时间。在该立场下抑制错误前驱的显示，但不删除其保留记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:useWhen"
+msgid "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."
+msgstr "将纠正声明承载实体关联到被纠正立场判为错误的前驱，包括其声称的早期有效性。这不会使前驱在其他立场下全局为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "不要推断全局真值、删除、首选声明或另一立场中的变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:example"
+msgid "ex:correction gmeow:correctsClaim ex:mistakenName ."
+msgstr "ex:correction gmeow:correctsClaim ex:mistakenName ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|rdfs:label"
+msgid "retracts claim"
+msgstr "撤回声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:definition"
+msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "将撤回活动关联到其在所述立场下撤回的声明承载实体。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:howToUse"
+msgid "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."
+msgstr "将主语定型为 Activity，以 wasAssociatedWith 指定行为者，并以 accordingTo 和 validFrom 标注关系。普通修订中的撤回抑制历史显示并保留记录；删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:useWhen"
+msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "将撤回活动关联到其在所述立场下撤回的声明承载实体。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "不要推断全局真值、删除、首选声明或另一立场中的变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:example"
+msgid "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."
+msgstr "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModalForce|gmeow:howToUse"
+msgid "Reference a modal-force individual via claimModalForce on a StandpointClaim or standpointModalForce on an annotated statement. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "在 StandpointClaim 上通过 claimModalForce，或在带注释语句上通过 standpointModalForce 引用模态力度个体。模态力度缺省表示未指定，而非必然或现实。若意指必然性，应明确给出 gmeow:modalForceNecessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modalForceNecessary|skos:definition"
+msgid "The proposition holds in every precisification admitted by the standpoint. This explicit necessary force participates in the seeded unequivocal and refuted decompositions; it is never inferred from absence."
+msgstr "命题在该立场允许的每种精确化中成立。此明确的必然力度参与预设的 unequivocal 和 refuted 分解；绝不从缺省推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointModalForce|skos:definition"
+msgid "The alethic modal force of an annotated proposition, orthogonal to credence and confidence. It is the flattened-statement twin of claimModalForce. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "带注释命题的真势模态力度，与信念程度及置信度正交。它是 claimModalForce 的扁平语句对应项。模态力度缺省表示未指定，而非必然或现实。若意指必然性，应明确给出 gmeow:modalForceNecessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForce|gmeow:howToUse"
+msgid "Name one ModalForce individual when specified; flatten it to standpointModalForce without supplying a value for absence. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "指定时引用一个 ModalForce 个体；扁平化为 standpointModalForce 时不得为缺省补值。模态力度缺省表示未指定，而非必然或现实。若意指必然性，应明确给出 gmeow:modalForceNecessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit claimModalForce per claim. Absence remains unspecified; functionality does not require a value or supply necessary."
+msgstr "规范函数属性约束允许每个声明至多一个明确的 claimModalForce。缺省仍为未指定；函数性不要求存在值，也不补入 necessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|gmeow:useWhen"
+msgid "Use to reject multiple explicit modal-force values without requiring a missing value."
+msgstr "用于拒绝多个明确模态力度值，而不要求补齐缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertoricRetract|skos:definition"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "retract 言语行为力度描述撤回话语。它不撤回承载它的声明，也不改变生命周期状态。生命周期撤回应使用带有 retractsClaim 的 Activity；普通修订保留受抑制历史，受治理删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertoricForce|skos:definition"
+msgid "The speech-act force axis: assert puts a proposition forward, conjecture offers it tentatively, assume supposes it for argument, retract describes a withdrawal utterance. Speech-act classification alone has no lifecycle effect."
+msgstr "言语行为力度轴：assert 提出命题，conjecture 暂时提出猜想，assume 为论证而假设，retract 描述撤回话语。仅作言语行为分类不影响生命周期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertoricForce|gmeow:avoidWhen"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "retract 言语行为力度描述撤回话语。它不撤回承载它的声明，也不改变生命周期状态。生命周期撤回应使用带有 retractsClaim 的 Activity；普通修订保留受抑制历史，受治理删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForce|gmeow:avoidWhen"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "retract 言语行为力度描述撤回话语。它不撤回承载它的声明，也不改变生命周期状态。生命周期撤回应使用带有 retractsClaim 的 Activity；普通修订保留受抑制历史，受治理删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit claimAssertoricForce per claim. The retract value classifies speech only; lifecycle withdrawal is represented by Activity/retractsClaim."
+msgstr "规范函数属性约束允许每个声明至多一个明确的 claimAssertoricForce。retract 值仅分类言语；生命周期撤回以 Activity/retractsClaim 表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointModality|gmeow:howToUse"
+msgid "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."
+msgstr "仅在明确指定时引用预设旧式模态。缺省为未指定，不补入模态力度；只有明确值才携带其声明的分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModality|gmeow:howToUse"
+msgid "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."
+msgstr "仅在明确指定时引用预设旧式模态。缺省为未指定，不补入模态力度；只有明确值才携带其声明的分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unequivocal|skos:definition"
+msgid "Explicit settled or necessary truth according to a standpoint: the proposition holds in every admitted precisification. Its declared decomposition includes necessary. An absent modality never implies this value."
+msgstr "某立场下明确的确定或必然真：命题在所有允许的精确化中成立。其声明分解包含 necessary。模态缺省绝不隐含此值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/standpoint|skos:scopeNote"
+msgid "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."
+msgstr "普通修订通过显示抑制保留被替代记录。独立授权的受治理删除只移除选定命名对象，包括遗忘请求本身，不保留删除回执，也不沿引用级联删除。未选中引用可以悬空并返回“已不存在”。接续保留早期事实时间有效性；纠正仅在纠正立场下拒绝早先声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit legacy claimModality per claim. Absence is unspecified, supplies no unequivocal value and licenses no necessary-force decomposition."
+msgstr "规范函数属性约束允许每个声明至多一个明确的旧式 claimModality。缺省为未指定，不补入 unequivocal 值，也不允许必然力度分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|gmeow:useWhen"
+msgid "Use to reject multiple explicit legacy modality values without requiring a missing value."
+msgstr "用于拒绝多个明确的旧式模态值，而不要求补齐缺失值。"

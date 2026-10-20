@@ -1352,3 +1352,171 @@ msgstr "范围：该记录仅承载关于 gmeow:trademarkMark 的一项完整性
 msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:trademarkStatus and nothing else. It is not a definition of gmeow:trademarkStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:trademarkStatus 的一项完整性义务，别无其他。它不是 gmeow:trademarkStatus 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|rdfs:label"
+msgid "Forget Request"
+msgstr "遗忘请求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|skos:definition"
+msgid "An in-flight request by an agent to erase explicitly named objects under a stated right. A request is not authorization and does not itself delete anything."
+msgstr "代理方依据所述权利提出的、针对明确命名对象的待处理删除请求。请求不构成授权，本身不删除任何内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|skos:scopeNote"
+msgid "On authorized fulfillment, erase the selected targets and the request record itself. Retain no deletion receipt, removed-identifier list or tombstone in the governed store. Unselected references may dangle and answer gone; erasure never implies a cascade. Historical repair receipts remain source evidence outside migrated stores."
+msgstr "经授权执行时，删除选定目标及请求记录本身。受治理存储中不得保留删除回执、已删除标识符列表或墓碑记录。未选中的引用可以悬空并返回“已不存在”；删除不隐含级联操作。历史修复回执作为来源证据留在迁移后的存储之外。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|gmeow:useWhen"
+msgid "Use for a pending governed request to forget named objects."
+msgstr "用于针对命名对象的待处理受治理遗忘请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|gmeow:avoidWhen"
+msgid "Do not use for ordinary revision, automatic expiry, a deletion receipt or a grant of permission."
+msgstr "不要用于普通修订、自动到期、删除回执或授予许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|gmeow:howToUse"
+msgid "Name at least one requestingAgent, requestedErasureTarget and requestUnderRight. Select the request itself explicitly in the authorized purge; denied or pending requests do not trigger erasure."
+msgstr "至少指定一个 requestingAgent、requestedErasureTarget 和 requestUnderRight。在授权清除中明确选中请求本身；被拒绝或待处理的请求不触发删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|skos:example"
+msgid "ex:request a gmeow:ForgetRequest ; gmeow:requestingAgent ex:person ; gmeow:requestedErasureTarget ex:claim ; gmeow:requestUnderRight ex:erasureRight ."
+msgstr "ex:request a gmeow:ForgetRequest ; gmeow:requestingAgent ex:person ; gmeow:requestedErasureTarget ex:claim ; gmeow:requestUnderRight ex:erasureRight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|rdfs:label"
+msgid "requesting agent"
+msgstr "请求代理方"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|skos:definition"
+msgid "The agent making a forget request; not necessarily its data subject or authorizing authority."
+msgstr "提出遗忘请求的代理方；不一定是数据主体或授权机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|gmeow:howToUse"
+msgid "Name each requesting agent; joint requests are permitted."
+msgstr "列出每个请求代理方；允许共同请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|gmeow:avoidWhen"
+msgid "Do not infer erasure authority from being the requester."
+msgstr "不要因请求者身份推断删除权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|gmeow:useWhen"
+msgid "The agent making a forget request; not necessarily its data subject or authorizing authority."
+msgstr "提出遗忘请求的代理方；不一定是数据主体或授权机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|skos:scopeNote"
+msgid "Applies to an in-flight request, not a persistent deletion receipt."
+msgstr "适用于待处理请求，而非持久删除回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|skos:example"
+msgid "ex:request gmeow:requestingAgent ex:person ."
+msgstr "ex:request gmeow:requestingAgent ex:person ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|rdfs:label"
+msgid "requested erasure target"
+msgstr "请求删除目标"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|skos:definition"
+msgid "A named object whose erasure is requested. It selects exactly that object, not objects referring to it or referred to by it."
+msgstr "被请求删除的命名对象。只选中该对象，不包括引用它或被它引用的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|gmeow:howToUse"
+msgid "Name each target by IRI. Include the request record itself in the authorized fulfillment selection."
+msgstr "以 IRI 指定每个目标。授权执行的选择中应包含请求记录本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|gmeow:avoidWhen"
+msgid "Do not use a literal selector or infer a transitive deletion closure."
+msgstr "不要使用字面量选择器或推断传递删除闭包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|gmeow:useWhen"
+msgid "A named object whose erasure is requested. It selects exactly that object, not objects referring to it or referred to by it."
+msgstr "被请求删除的命名对象。只选中该对象，不包括引用它或被它引用的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|skos:scopeNote"
+msgid "Applies to an in-flight request, not a persistent deletion receipt."
+msgstr "适用于待处理请求，而非持久删除回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|skos:example"
+msgid "ex:request gmeow:requestedErasureTarget ex:claim ."
+msgstr "ex:request gmeow:requestedErasureTarget ex:claim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|rdfs:label"
+msgid "request under right"
+msgstr "请求所依据权利"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|skos:definition"
+msgid "The named right or governing policy invoked by a forget request; citing it does not establish that the request is authorized."
+msgstr "遗忘请求援引的命名权利或治理政策；援引并不证明请求已获授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|gmeow:howToUse"
+msgid "Reference the right or policy by IRI; assess authorization separately."
+msgstr "以 IRI 引用权利或政策；另行评估授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|gmeow:avoidWhen"
+msgid "Do not treat an invoked right as an automatically granted permission."
+msgstr "不要将援引的权利视为自动授予的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|gmeow:useWhen"
+msgid "The named right or governing policy invoked by a forget request; citing it does not establish that the request is authorized."
+msgstr "遗忘请求援引的命名权利或治理政策；援引并不证明请求已获授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|skos:scopeNote"
+msgid "Applies to an in-flight request, not a persistent deletion receipt."
+msgstr "适用于待处理请求，而非持久删除回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|skos:example"
+msgid "ex:request gmeow:requestUnderRight ex:erasureRight ."
+msgstr "ex:request gmeow:requestUnderRight ex:erasureRight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|rdfs:label"
+msgid "Forget request requestedErasureTarget kind constraint"
+msgstr "requestedErasureTarget 类型约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|skos:definition"
+msgid "Requires the requestedErasureTarget of a forget request to be a named IRI."
+msgstr "要求遗忘请求的 requestedErasureTarget 为命名 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|skos:example"
+msgid "ex:request gmeow:requestedErasureTarget ex:target ."
+msgstr "ex:request gmeow:requestedErasureTarget ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|skos:scopeNote"
+msgid "Canonical validation condition, projected to validation surfaces; it does not authorize deletion."
+msgstr "投影到验证表面的规范验证条件；不授权删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|gmeow:useWhen"
+msgid "Use to reject unnamed request references."
+msgstr "用于拒绝未命名请求引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|gmeow:avoidWhen"
+msgid "Do not use as an erasure operation."
+msgstr "不要用作删除操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|gmeow:howToUse"
+msgid "Validate the selected request graph through the derived constraint."
+msgstr "通过派生约束验证选定请求图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|rdfs:label"
+msgid "Forget request requestUnderRight kind constraint"
+msgstr "requestUnderRight 类型约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|skos:definition"
+msgid "Requires the requestUnderRight of a forget request to be a named IRI."
+msgstr "要求遗忘请求的 requestUnderRight 为命名 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|skos:example"
+msgid "ex:request gmeow:requestUnderRight ex:target ."
+msgstr "ex:request gmeow:requestUnderRight ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|skos:scopeNote"
+msgid "Canonical validation condition, projected to validation surfaces; it does not authorize deletion."
+msgstr "投影到验证表面的规范验证条件；不授权删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|gmeow:useWhen"
+msgid "Use to reject unnamed request references."
+msgstr "用于拒绝未命名请求引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|gmeow:avoidWhen"
+msgid "Do not use as an erasure operation."
+msgstr "不要用作删除操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|gmeow:howToUse"
+msgid "Validate the selected request graph through the derived constraint."
+msgstr "通过派生约束验证选定请求图。"

@@ -38,9 +38,9 @@ distinct, individually self-asserted axes:
    `gmeow:GenderIdentity` facets). There is deliberately **no** preferred/primary
    gender term — display *selection* is the consumer's, only display *suppression*
    is modelled.
-5. **No erasure.** A superseded label (a former gender, like a deadname) is kept
+5. **Suppression for revision.** A superseded label (a former gender, like a deadname) is kept
    with `gmeow:displayable false`, **never deleted** — recorded for history,
-   suppressed from display. `gmeow:displayable` is the single, shared display
+   suppressed from display. Separately authorized [governed erasure](./claim-lifecycle.md) removes selected named objects and the request itself, without retained tombstones or cascades. `gmeow:displayable` is the single, shared display
    control across naming and identity.
 6. **Split attraction.** Sexual and romantic orientation are **separate axes**, so
    *asexual yet biromantic* (and every other combination) is directly expressible.

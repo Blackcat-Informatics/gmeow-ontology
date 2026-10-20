@@ -4,6 +4,99 @@
 use super::*;
 
 #[test]
+fn conjunctive_node_kind_facets_preserve_every_pair_and_supply_order() {
+    use std::collections::BTreeSet;
+
+    let kinds: [(ShaclNodeKind, &[&str]); 6] = [
+        (ShaclNodeKind::Iri, &["iri"]),
+        (ShaclNodeKind::Literal, &["literal"]),
+        (ShaclNodeKind::BlankNode, &["blank"]),
+        (ShaclNodeKind::IriOrLiteral, &["iri", "literal"]),
+        (ShaclNodeKind::BlankNodeOrIri, &["blank", "iri"]),
+        (ShaclNodeKind::BlankNodeOrLiteral, &["blank", "literal"]),
+    ];
+    let make = |left, right| {
+        PropertyConstraintIr::new(
+            "https://example.org/value",
+            None,
+            None,
+            None,
+            vec![
+                ConstraintComponent::NodeKindShacl(left),
+                ConstraintComponent::NodeKindShacl(right),
+            ],
+        )
+        .unwrap()
+    };
+    for (left, left_values) in kinds {
+        for (right, right_values) in kinds {
+            let expected: BTreeSet<_> = left_values
+                .iter()
+                .copied()
+                .filter(|value| right_values.contains(value))
+                .collect();
+            let property = make(left, right);
+            assert_eq!(property, make(right, left));
+            assert_eq!(property.components.len(), 1);
+            match &property.components[0] {
+                ConstraintComponent::NodeKindShacl(kind) => {
+                    let (_, values) = kinds.iter().find(|(value, _)| value == kind).unwrap();
+                    assert_eq!(values.iter().copied().collect::<BTreeSet<_>>(), expected);
+                }
+                ConstraintComponent::In(values) => {
+                    assert!(expected.is_empty());
+                    assert!(values.is_empty());
+                    assert_eq!(property.min_count, None);
+                }
+                other => panic!("unexpected node-kind intersection: {other:?}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn disjoint_node_kinds_dominate_value_sets_inside_qualified_shapes() {
+    let property = PropertyConstraintIr::new(
+        "https://example.org/value",
+        None,
+        None,
+        None,
+        vec![ConstraintComponent::QualifiedValueShape {
+            shape: vec![
+                ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri),
+                ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal),
+                ConstraintComponent::In(vec![ShapeValue::Iri("https://example.org/id".into())]),
+            ],
+            min: Some(1),
+            max: None,
+        }],
+    )
+    .unwrap();
+    let ConstraintComponent::QualifiedValueShape { shape, min, .. } = &property.components[0]
+    else {
+        panic!("qualified shape must remain qualified");
+    };
+    assert_eq!(shape, &vec![ConstraintComponent::In(vec![])]);
+    assert_eq!(*min, Some(1));
+    let node = ValidationShapeIr::new(
+        "https://example.org/shape",
+        ShapeTarget::Class("https://example.org/Class".into()),
+        vec![],
+        None,
+    )
+    .unwrap()
+    .with_node_components(vec![
+        ConstraintComponent::NodeKindShacl(ShaclNodeKind::BlankNodeOrIri),
+        ConstraintComponent::NodeKindShacl(ShaclNodeKind::IriOrLiteral),
+    ])
+    .unwrap();
+    assert_eq!(
+        node.node_components,
+        vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)]
+    );
+}
+
+#[test]
 fn failure_class_is_unique_annotation_metadata() {
     let bare = ValidationShapeIr::new(
         "https://ex/Shape",

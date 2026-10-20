@@ -12,14 +12,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimAssertoricForce is functional"
 msgstr "claimAssertoricForce est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimAssertoricForce is functional: a standpoint claim carries one speech-act force — assert, conjecture, assume, or retract — so the relator takes a single force (absent reading as assert) and a retracted assertion is closed as a retained act rather than gaining a rival force."
-msgstr "Affirme sur le porteur canonique que gmeow:claimAssertoricForce est fonctionnelle : une revendication de point de vue porte une force d'acte de langage — assert, conjecture, assume ou retract — de sorte que le relateur prend une force unique (l'absence se lisant comme `assert`), et une assertion rétractée est close comme un acte conservé plutôt que de se voir attribuer une force rivale."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimCredence is functional"
@@ -41,17 +36,9 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http:
 msgid "claimModalForce is functional"
 msgstr "claimModalForce est fonctionnelle"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimModalForce is functional: a standpoint claim carries one alethic modal force in the □/◊ register, so the relator takes a single force (absent reading as necessary), kept orthogonal to credence and confidence rather than stacking rival modal values."
-msgstr "Affirme sur le porteur canonique que gmeow:claimModalForce est fonctionnelle : une revendication de point de vue porte une force modale aléthique unique dans le registre □/◊, de sorte que le relateur prend une force unique (l'absence se lisant comme necessary), maintenue orthogonale à la crédence et à la confiance plutôt que d'empiler des valeurs modales rivales."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimModality is functional"
 msgstr "claimModality est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimModality is functional: a standpoint claim carries one five-value belief modality — unequivocal, probable, conceivable, refuted, or bullshit — the lossless projection of the six canonical axes, so this convenience twin resolves to a single frame-relative value (absent reading as unequivocal) rather than several modalities on one claim."
-msgstr "Affirme sur le porteur canonique que gmeow:claimModality est fonctionnelle : une revendication de point de vue porte une modalité de croyance à cinq valeurs — unequivocal, probable, conceivable, refuted ou bullshit — la projection sans perte des six axes canoniques, de sorte que ce jumeau de commodité se résout en une seule valeur relative au cadre (l'absence se lisant comme unequivocal), plutôt qu'en plusieurs modalités sur une même revendication."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimPolarity is functional"
@@ -165,10 +152,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|ht
 msgid "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
 msgstr "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:claimModalForce names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimModalForce nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
 msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
@@ -180,10 +163,6 @@ msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes g
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
 msgstr "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:claimModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimModality nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -328,3 +307,155 @@ msgstr "contrainte déclarative de plage de claimCredence"
 msgctxt "https://blackcatinformatics.ca/gmeow/ClaimCredenceRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A validation-only integrity constraint: a StandpointClaim's gmeow:claimCredence is an xsd:decimal in [0.0, 1.0]."
 msgstr "Une contrainte d'intégrité réservée à la validation : la gmeow:claimCredence d'un StandpointClaim est un xsd:decimal compris dans [0.0, 1.0]."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|rdfs:label"
+msgid "succeeds claim"
+msgstr "succède à une assertion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:definition"
+msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "Relie une entité porteuse d’assertion à sa précédente lorsque l’état revendiqué change. La précédente reste valide pendant son intervalle factuel antérieur selon le point de vue indiqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:howToUse"
+msgid "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."
+msgstr "Annoter la relation avec accordingTo et validFrom pour sa date d’effet ; conserver des intervalles factuels distincts sur les assertions ou usages de nom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:useWhen"
+msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "Relie une entité porteuse d’assertion à sa précédente lorsque l’état revendiqué change. La précédente reste valide pendant son intervalle factuel antérieur selon le point de vue indiqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "Ne pas déduire une vérité globale, une suppression, une assertion préférée ou un changement dans un autre point de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Le masquage est une politique de projection et non un jugement de vérité globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:example"
+msgid "ex:janet gmeow:succeedsClaim ex:bob ."
+msgstr "ex:janet gmeow:succeedsClaim ex:bob ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|rdfs:label"
+msgid "corrects claim"
+msgstr "corrige une assertion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:definition"
+msgid "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."
+msgstr "Relie une entité porteuse d’assertion corrective à une précédente rejetée comme erronée par le point de vue correcteur, y compris sa validité antérieure alléguée. Elle ne rend pas la précédente globalement fausse pour les autres points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:howToUse"
+msgid "Annotate the relation with accordingTo and validFrom for when the correction took effect. Suppress the erroneous predecessor in that standpoint without erasing its retained record."
+msgstr "Annoter la relation avec accordingTo et validFrom pour dater la prise d’effet de la correction. Masquer la précédente erronée dans ce point de vue sans effacer son enregistrement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:useWhen"
+msgid "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."
+msgstr "Relie une entité porteuse d’assertion corrective à une précédente rejetée comme erronée par le point de vue correcteur, y compris sa validité antérieure alléguée. Elle ne rend pas la précédente globalement fausse pour les autres points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "Ne pas déduire une vérité globale, une suppression, une assertion préférée ou un changement dans un autre point de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Le masquage est une politique de projection et non un jugement de vérité globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:example"
+msgid "ex:correction gmeow:correctsClaim ex:mistakenName ."
+msgstr "ex:correction gmeow:correctsClaim ex:mistakenName ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|rdfs:label"
+msgid "retracts claim"
+msgstr "retire une assertion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:definition"
+msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "Relie une activité de retrait à l’entité porteuse d’assertion qu’elle retire dans un point de vue indiqué. Cette relation est l’encodage canonique du cycle de vie ; une force d’acte de parole seule n’effectue aucun retrait."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:howToUse"
+msgid "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."
+msgstr "Typer le sujet Activity, nommer son acteur avec wasAssociatedWith et annoter la relation avec accordingTo et validFrom. Le retrait masque l’historique conservé lors d’une révision ordinaire ; l’effacement exige une autorisation distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:useWhen"
+msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "Relie une activité de retrait à l’entité porteuse d’assertion qu’elle retire dans un point de vue indiqué. Cette relation est l’encodage canonique du cycle de vie ; une force d’acte de parole seule n’effectue aucun retrait."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "Ne pas déduire une vérité globale, une suppression, une assertion préférée ou un changement dans un autre point de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Le masquage est une politique de projection et non un jugement de vérité globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:example"
+msgid "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."
+msgstr "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModalForce|gmeow:howToUse"
+msgid "Reference a modal-force individual via claimModalForce on a StandpointClaim or standpointModalForce on an annotated statement. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "Référencer un individu de force modale via claimModalForce sur une StandpointClaim ou standpointModalForce sur un énoncé annoté. Une force modale absente est non spécifiée, ni nécessaire ni actuelle. Indiquer explicitement gmeow:modalForceNecessary pour exprimer la nécessité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modalForceNecessary|skos:definition"
+msgid "The proposition holds in every precisification admitted by the standpoint. This explicit necessary force participates in the seeded unequivocal and refuted decompositions; it is never inferred from absence."
+msgstr "La proposition tient dans chaque précision admise par le point de vue. Cette force nécessaire explicite participe aux décompositions prédéfinies unequivocal et refuted ; elle ne se déduit jamais d’une absence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointModalForce|skos:definition"
+msgid "The alethic modal force of an annotated proposition, orthogonal to credence and confidence. It is the flattened-statement twin of claimModalForce. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "Force modale aléthique d’une proposition annotée, orthogonale à la croyance graduée et à la confiance. C’est le pendant de claimModalForce sur l’énoncé aplati. Une force modale absente est non spécifiée, ni nécessaire ni actuelle. Indiquer explicitement gmeow:modalForceNecessary pour exprimer la nécessité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForce|gmeow:howToUse"
+msgid "Name one ModalForce individual when specified; flatten it to standpointModalForce without supplying a value for absence. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "Nommer un individu ModalForce lorsque la force est spécifiée ; le reporter dans standpointModalForce sans fournir de valeur pour une absence. Une force modale absente est non spécifiée, ni nécessaire ni actuelle. Indiquer explicitement gmeow:modalForceNecessary pour exprimer la nécessité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit claimModalForce per claim. Absence remains unspecified; functionality does not require a value or supply necessary."
+msgstr "L’obligation canonique de fonctionnalité permet au plus une claimModalForce explicite par assertion. L’absence reste non spécifiée ; la fonctionnalité n’exige aucune valeur et ne fournit pas necessary."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|gmeow:useWhen"
+msgid "Use to reject multiple explicit modal-force values without requiring a missing value."
+msgstr "Utiliser pour rejeter plusieurs forces modales explicites sans exiger une valeur manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertoricRetract|skos:definition"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "La force de parole retract décrit un énoncé de retrait. Elle ne retire pas l’assertion qui la porte et ne change pas son cycle de vie. Utiliser une Activity avec retractsClaim pour le retrait effectif ; une révision ordinaire conserve l’historique masqué et un effacement gouverné exige une autorisation distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertoricForce|skos:definition"
+msgid "The speech-act force axis: assert puts a proposition forward, conjecture offers it tentatively, assume supposes it for argument, retract describes a withdrawal utterance. Speech-act classification alone has no lifecycle effect."
+msgstr "Axe de force d’acte de parole : assert avance une proposition, conjecture la propose provisoirement, assume la suppose pour l’argumentation, retract décrit un énoncé de retrait. La classification seule ne modifie aucun cycle de vie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertoricForce|gmeow:avoidWhen"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "La force de parole retract décrit un énoncé de retrait. Elle ne retire pas l’assertion qui la porte et ne change pas son cycle de vie. Utiliser une Activity avec retractsClaim pour le retrait effectif ; une révision ordinaire conserve l’historique masqué et un effacement gouverné exige une autorisation distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForce|gmeow:avoidWhen"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "La force de parole retract décrit un énoncé de retrait. Elle ne retire pas l’assertion qui la porte et ne change pas son cycle de vie. Utiliser une Activity avec retractsClaim pour le retrait effectif ; une révision ordinaire conserve l’historique masqué et un effacement gouverné exige une autorisation distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit claimAssertoricForce per claim. The retract value classifies speech only; lifecycle withdrawal is represented by Activity/retractsClaim."
+msgstr "L’obligation canonique de fonctionnalité permet au plus une claimAssertoricForce explicite par assertion. La valeur retract classe uniquement la parole ; le retrait effectif est représenté par Activity/retractsClaim."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointModality|gmeow:howToUse"
+msgid "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."
+msgstr "Référencer une modalité héritée prédéfinie uniquement lorsqu’elle est explicite. L’absence est non spécifiée et ne fournit aucune force modale ; seules les valeurs explicites portent leur décomposition déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModality|gmeow:howToUse"
+msgid "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."
+msgstr "Référencer une modalité héritée prédéfinie uniquement lorsqu’elle est explicite. L’absence est non spécifiée et ne fournit aucune force modale ; seules les valeurs explicites portent leur décomposition déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unequivocal|skos:definition"
+msgid "Explicit settled or necessary truth according to a standpoint: the proposition holds in every admitted precisification. Its declared decomposition includes necessary. An absent modality never implies this value."
+msgstr "Vérité explicite établie ou nécessaire selon un point de vue : la proposition tient dans chaque précision admise. Sa décomposition déclarée comprend necessary. Une modalité absente n’implique jamais cette valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/standpoint|skos:scopeNote"
+msgid "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."
+msgstr "Le masquage conserve les enregistrements remplacés pendant une révision ordinaire. Un effacement gouverné autorisé séparément supprime exactement les objets nommés sélectionnés, y compris sa demande d’effacement, sans reçu de suppression conservé ni cascade de références. Les références non sélectionnées peuvent rester pendantes et répondre « disparu ». La succession conserve la validité factuelle antérieure ; la correction rejette l’assertion précédente uniquement dans le point de vue correcteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit legacy claimModality per claim. Absence is unspecified, supplies no unequivocal value and licenses no necessary-force decomposition."
+msgstr "L’obligation canonique de fonctionnalité permet au plus une claimModality héritée explicite par assertion. L’absence est non spécifiée, ne fournit aucune valeur unequivocal et ne permet aucune décomposition de force nécessaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|gmeow:useWhen"
+msgid "Use to reject multiple explicit legacy modality values without requiring a missing value."
+msgstr "Utiliser pour rejeter plusieurs modalités héritées explicites sans exiger une valeur manquante."

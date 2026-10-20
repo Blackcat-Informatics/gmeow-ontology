@@ -130,14 +130,16 @@ ISO lineage without adding a single axiom to the reasoned core. This is the fina
 reasoning-depth epic. Full rationale, the mapping table, the recorded gaps, and the maintenance /
 extension guide (incl. how to add DOLCE/SUMO): [`docs/foundational-bridging.md`](./foundational-bridging.md).
 
-## Suppression, never erasure (Principle 10)
+## Suppression for revision; governed erasure (Principle 10)
 
 The display contract is **validated, not merely conventional**. There is exactly one display
 control in GMEOW — `gmeow:displayable` — and no `preferred`/`primary` marker anywhere (display
 selection is locale-relative and symmetric; only *suppression* is modelled). A superseded name
-(deadname) or superseded identity facet is **kept** with `gmeow:displayable false`, never
+(deadname) or superseded identity facet is **kept during ordinary revision** with `gmeow:displayable false`, never
 deleted. SHACL `gmeow:DeadnameSuppressionShape` and `gmeow:SupersededFacetSuppressionShape`
 enforce that contract on data; consumers MUST honour `false` and never surface the string.
+
+Separately authorized erasure is governed by the [claim lifecycle contract](./claim-lifecycle.md); it is distinct from revision and disclosure control.
 
 ## Running it
 
@@ -159,4 +161,4 @@ uv run pytest   # SHACL data-shape tests + native verify tests
 - Grüninger & Fox, *competency questions* (IJCAI-95); Bezerra et al., *Verifying DL Ontologies
   based on Competency Questions and Unit Testing* (CEUR Vol-1908)
 - CONSTITUTION Principles **7** (verified by construction), **8** (reasoning-centric & FAIR),
-  **9** (orthogonality / anti-overtyping), **10** (suppression, never erasure)
+  **9** (orthogonality / anti-overtyping), **10** (suppression for revision; governed erasure)

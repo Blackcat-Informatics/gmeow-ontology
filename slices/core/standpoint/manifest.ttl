@@ -21,5 +21,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
-        <https://blackcatinformatics.ca/gmeow/slices/names> ;
+        <https://blackcatinformatics.ca/gmeow/slices/names> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
     gmeow:sliceConsumer "Every contested fact and every model disagreement (P9); the statement layer; the deception slice."@x-gmeow-english .

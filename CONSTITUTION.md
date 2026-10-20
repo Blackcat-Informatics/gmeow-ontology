@@ -189,21 +189,30 @@ recorded explicitly rather than assumed away — distinct from *how sure we are*
 several coequal standpoint-indexed claims). *Tested by:* the 7-axis orthogonality matrix tests;
 `tests/test_standpoint.py` (coexistence + no-preferred-claim guards).
 
-## 10. Suppression, never erasure
+## 10. Suppression for revision; governed erasure
 
 > **A superseded label — a deadname, a former gender — is recorded with `gmeow:displayable
-> false`: never displayed, never deleted.**
+> false`: retained for ordinary revision, never displayed. Governed erasure is a
+> separately authorized operation on explicitly selected named objects.**
 
 Self-determination requires both honouring the current self-assertion *and* preserving an
 honest, auditable record. Suppression is a display contract enforced through projection
 (Principle 4): the data is retained, the leak is prevented.
 
 **Disclosure control by projection (the general mechanism).** Suppression is one case of a single
-mechanism: **withhold or coarsen a value through the projection layer under a trigger, never by
-deletion**. The trigger may be supersession (a deadname, a former gender, a withdrawn standpoint, an
+mechanism: **withhold or coarsen a value through the projection layer under a revision or
+disclosure trigger**. The trigger may be supersession (a deadname, a former gender, a withdrawn standpoint, an
 expired right), or **access/consent** (privacy: a sensitive value — a person's precise location,
 health — is redacted by *generalisation*, e.g. publishing a coarser region rather than exact
-coordinates). Erasure is never the tool; the projection is.
+coordinates). Revision and disclosure control use projection; they do not erase history.
+
+**Governed erasure is separate from revision.** An authorized purge removes exactly
+the selected named objects, including the fulfilled forget request itself. It does not
+cascade through references. Unselected references may dangle and answer “gone”. No
+deletion receipt, removed-identifier list or tombstone survives in the governed store.
+A forget request states its requester, targets and invoked right; it is not itself
+authorization. Historical repair receipts remain source evidence outside migrated
+stores. See [claim lifecycle](./docs/claim-lifecycle.md).
 
 *Embodied in:* `gmeow:displayable`, `fnSelectDisplayName` (withhold); `gmeow:coarsenTo` +
 the `gmeow:GranularityLevel` axis, `fnCoarsenToGranularity` (coarsen — aligned to
@@ -282,7 +291,8 @@ schema round-trip tests.
 
 > **An LLM output is a claim, not a truth — stored with provenance, evidence, confidence, and
 > standpoint; recalled with filters; revised by suppression, never deletion. An agent's memory
-> is a portable, signed, append-only package of such claims. This is the product.**
+> is a portable, signed, append-only package of such claims. Separately authorized
+> governed erasure follows Principle 10. This is the product.**
 
 This operationalises the unified observation stance (Principle 9) and suppression (Principle 10)
 for the ecosystem that needs them most and has them least. Today's agent memory is an

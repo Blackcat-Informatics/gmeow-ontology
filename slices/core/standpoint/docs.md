@@ -37,14 +37,14 @@ topped by `universalStandpoint`.
 The belief value a standpoint assigns a proposition — the closed vocabulary
 spanning Standpoint-Logic □/◊ and the CRMinf values plus the Frankfurt bullshit
 modality (`unequivocal`, `probable`, `conceivable`, `refuted`, `bullshit`);
-absence reads as unequivocal. `claimModality` carries it on a `StandpointClaim`
+absence is unspecified and supplies no modal force. Explicit legacy values retain their declared decompositions. `claimModality` carries it on a `StandpointClaim`
 and flattens to `standpointModality` on an annotated statement.
 
 ### gmeow:StandpointTenure · gmeow:tenureStandpoint · gmeow:tenurePosition · gmeow:standpointClaim
 
 The reified, time-scoped fact that a standpoint held a position over an interval —
 recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure,
-never a deletion (Principle 10). `tenureStandpoint` is the holding standpoint,
+retained during ordinary revision (Principle 10). Separately authorized erasure follows the [claim lifecycle contract](../../../docs/claim-lifecycle.md). `tenureStandpoint` is the holding standpoint,
 `tenurePosition` the standpoint-indexed claim it held, and `standpointClaim`
 (functional) the one observation the tenure generates — the tenure being the
 time-scoped fact, the claim its observation.

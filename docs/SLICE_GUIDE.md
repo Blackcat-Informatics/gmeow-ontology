@@ -412,8 +412,9 @@ adjudicated by rank. For the slice author this means:
 - **Disagreement is data.** Two agents assert conflicting things → two coexisting claims
   with vantages, both queryable. Design your relators so this is representable *before*
   someone needs it.
-- **Suppression, never erasure** (Principle 10): retraction is `gmeow:displayable false`
-  on the claim, enforced through projection; deleting is destroying the audit.
+- **Suppression for revision; governed erasure** (Principle 10): a withdrawal activity
+  uses `gmeow:retractsClaim`; ordinary revision suppresses retained claims through
+  projection. A separately authorized purge follows the [claim lifecycle contract](./claim-lifecycle.md).
 - **Ambiguity is co-resident readings** (`LANG-MEANING.md`): silently picking a winner
   fabricates certainty, and a projection that flattens the multiplicity must record the
   loss.
