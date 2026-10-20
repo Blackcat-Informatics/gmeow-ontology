@@ -386,8 +386,9 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | No projection silently converts confidence to probability | Rust validator (`check_math_projection_confidence_as_probability`) | `math:ProjectionConfidenceAsProbability` |
 | No projection silently drops distribution parameterization | Rust validator (`check_math_projection_dropped_parameterization`) | `math:ProjectionDroppedParameterization` |
 | No projection flattens an expression AST to a string without recording loss | Rust validator (`check_math_unrecorded_projection_loss`) | `math:UnrecordedProjectionLoss` |
+| A projection record cannot claim exactness while declaring dropped constructs or a conflicting preservation kind | Rust validator (`check_math_exact_projection_overclaim`, over `math:ProjectionRecord` individuals) | `math:ExactPreservationViolated` |
 
-> **Why these five name the native validator and not a projection producer.** No production
+> **Why these rows name the native validator and not a projection producer.** No production
 > `math:` pipeline stage COMPUTES `math:ProjectionRecord` individuals today — the three lowerings
 > above (the OWL-annotation flattening, the SciPy/Stan role mapping, and the confidence
 > calibration) are hand-authored, positive demonstrators in `examples/projection-loss-ledger.ttl`

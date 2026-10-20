@@ -12,6 +12,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Exact Preservation Violated"
+msgstr "Préservation exacte violée"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a mathematical projection or probability-model lowering claims logic:ExactPreservation while its own evidence contradicts exactness. A math:ProjectionRecord cannot claim exactness while declaring logic:unsupportedConstruct or a conflicting preservation kind. Probability-model lowerings require their completeness gates: exhaustive outcome mass summing to one, total Markov kernels, complete Bayesian-network conditionals and finite normalized factor graphs. This reports a false preservation claim, distinct from math:IncompleteDependencyModel (structural incompleteness regardless of the claim) and math:MissingProbabilityModelLowering (an absent lowering)."
+msgstr "Échec signalé lorsqu'une projection mathématique ou une traduction de modèle probabiliste revendique logic:ExactPreservation alors que ses propres éléments probants contredisent l'exactitude. Un math:ProjectionRecord ne peut revendiquer l'exactitude tout en déclarant logic:unsupportedConstruct ou une catégorie de préservation contradictoire. Les traductions de modèles probabilistes doivent satisfaire leurs critères de complétude : masse exhaustive des issues de somme égale à un, noyaux de Markov totaux, distributions conditionnelles complètes des réseaux bayésiens et graphes de facteurs finis normalisés. Ce diagnostic signale une fausse revendication de préservation, distincte de math:IncompleteDependencyModel (incomplétude structurelle indépendamment de la revendication) et de math:MissingProbabilityModelLowering (traduction absente)."
+
 msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measure result non-negativity constraint"
 msgstr "Contrainte de non-négativité du résultat de mesure"
