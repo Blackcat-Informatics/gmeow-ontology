@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface/brief.json  (+ requirements.json, references.json)
+
+  - issue #1646 + 9 comment(s) via github
+  - link crawl: 14 issue(s) within 2 hop(s) of `#N` references
+  - forge search on ['schemas:', 'recover', 'developer-surface']: 14 other item(s)
+  - GhpRsq-Defect-Class trailers: 4 distinct class(es) in the last 200 commits
+  - prior attempts: 2 commit(s) citing #1646 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1646: 4
+  - requirement candidates: 15 line(s); 2 comment(s) matched no rule
+  - referenced artifacts: 25 path(s) (11 on disk), 21 identifier(s), 1 workspace package(s), 3 URL(s)

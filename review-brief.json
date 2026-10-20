@@ -1,0 +1,20 @@
+{
+  "issue": 1646,
+  "branch": "paudley/1646-schemas-recover-the-developer-surface",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "5bbb43a03be1cf16bf882589c6fdfa7392882138",
+      "subject": "fix: route imported template model types",
+      "date": "2026-10-20"
+    }
+  ],
+  "files": [
+    "crates/pipeline/src/stages/compile_logic.rs",
+    "crates/pipeline/src/stages/pydantic.rs",
+    "crates/pipeline/src/stages/pydantic.tests.rs",
+    "crates/pipeline/src/stages/pydantic/topology.rs",
+    "docs/schema-projections.md"
+  ],
+  "adrs_touched": []
+}

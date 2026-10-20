@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1646,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface",
+  "branch": "paudley/1646-schemas-recover-the-developer-surface",
+  "slug": "schemas-recover-the-developer-surface",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "591f8f6a7fb1c6797b8d747463d79387dc3e6d25",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface",
+    "branch:paudley/1646-schemas-recover-the-developer-surface",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1646-schemas-recover-the-developer-surface/.stage/schemas-recover-the-developer-surface/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T11:19:06-0600"
+}

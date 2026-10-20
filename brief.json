@@ -1,0 +1,166 @@
+{
+  "issue": 1646,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "schemas: recover the developer-surface capability lost in the purrdf emitter cutover",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "578": "feat(shacl): Python seam swap (pyoxigraph ingestion) behind a dual-run cross-check (#575)",
+    "1404": "docs max-info enrichment: diagnostics/loss/entailments/fixtures/competency/notation/pipeline-DAG panels",
+    "1654": "release/CI: exercise the PyPI publish leg and confirm the check-receipt reuse bootstrap",
+    "1646": "schemas: recover the developer-surface capability lost in the purrdf emitter cutover",
+    "1757": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+    "575": "EPIC \u2014 Replace pySHACL with a Rust + oxigraph SHACL validator (gmeow_shacl), mated with pyoxigraph",
+    "576": "feat(shacl): crate skeleton + core SHACL components + conformance harness (#575)",
+    "577": "feat(shacl): SHACL-AF \u2014 sh:sparql + sh:SPARQLTarget over the oxigraph engine (#575)",
+    "283": "feat(shapes): Principle 11 by annotation \u2014 generate frame-relativity SHACL from gmeow:requiresFrame declarations",
+    "1740": "perf(logic): integrate the authenticated native pipeline and calculus",
+    "1704": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+    "1748": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+    "317": "Music \u00b7 Timbre & the sensory bridge (MIR observations, embeddings by reference)",
+    "1760": "perf(logic): restore certified batch slice probes"
+  },
+  "link_relations": {
+    "578": "mentions",
+    "1404": "mentions",
+    "1654": "mentions",
+    "1646": "mentions",
+    "1757": "mentions",
+    "575": "2-hop",
+    "576": "2-hop",
+    "577": "2-hop",
+    "283": "2-hop",
+    "1740": "2-hop",
+    "1704": "2-hop",
+    "1748": "2-hop",
+    "317": "2-hop",
+    "1760": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1741,
+      "title": "logic: complete typed correspondence execution and law-bearing source recovery",
+      "state": "OPEN"
+    },
+    {
+      "number": 1336,
+      "title": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+      "state": "OPEN"
+    },
+    {
+      "number": 1380,
+      "title": "feat(affect): Rust classifier-ingestion adapter \u2014 HF model output \u2192 attributed AffectClassifierOutput/AffectiveClaim",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1700,
+      "title": "perf(test): 2x required-lane optimization with DAG caching",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1732,
+      "title": "perf: persist completed producer fixtures across CI runs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 700,
+      "title": "feat: SHACL-derived closed-world JSON Schema (retire the LinkML JSON Schema)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1404,
+      "title": "docs max-info enrichment: diagnostics/loss/entailments/fixtures/competency/notation/pipeline-DAG panels",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1397,
+      "title": "feat(affect): first-class single-label/exclusive trait for the classifier-ingestion producer",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1195,
+      "title": "Full ADL2/OPT \u2192 logic:/SHACL constraint lowering (openEHR constraints axis)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1383,
+      "title": "logic: Section/Retraction correspondence discharge is tautological \u2014 make the Mnemomorphism gate genuinely recover the source",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1055,
+      "title": "W1 \u2014 Canonical process superset: logic:Plan + action theory + transaction-path execution (subsumes ME10/ME11)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1312,
+      "title": "mcp: consumer explain + verify_graph tools; budget-safe conjecture tool suite for agentic use",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1261,
+      "title": "math: ingestion bridges \u2014 R\u2192math, ONNX\u2192math, proof-as-process (BRIDGES)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1527,
+      "title": "EPIC math/semantic-topology: complexes, cellular sheaves, Hodge, holonomy, and multi-filtration semantics",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "unsupported-consequent": 1,
+    "none": 41,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [
+      "83e0f7e87 feat: restore ontology-linked Pydantic module exports",
+      "4ee5359b4 fix(policy): close deficiency-gate gaps (Principles 4 and 7)"
+    ],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1876,
+        "title": "Use validated ownership for model export documentation",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1876",
+        "this_stage": true
+      },
+      {
+        "number": 1869,
+        "title": "Restore ontology-linked Pydantic module exports",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1869",
+        "this_stage": true
+      },
+      {
+        "number": 1696,
+        "title": "chore(policy): make deficiency failures impossible to authorize",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1696",
+        "this_stage": false
+      },
+      {
+        "number": 1660,
+        "title": "chore(deficiencies): drain the ledger into tracked GitHub work",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1660",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1646-schemas-recover-the-developer-surface"
+  },
+  "coverage": [
+    "issue #1646 + 9 comment(s) via github",
+    "link crawl: 14 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['schemas:', 'recover', 'developer-surface']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 4 distinct class(es) in the last 200 commits",
+    "prior attempts: 2 commit(s) citing #1646 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1646: 4",
+    "requirement candidates: 15 line(s); 2 comment(s) matched no rule",
+    "referenced artifacts: 25 path(s) (11 on disk), 21 identifier(s), 1 workspace package(s), 3 URL(s)"
+  ]
+}

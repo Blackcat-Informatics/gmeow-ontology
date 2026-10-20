@@ -1,0 +1,11 @@
+# Scope and gap self-review
+
+Self-review; no independent dispatcher is exposed. Compared the complete parent and comments, plan.md, native OPT naming/lifting, shared schema namespace codec, actual Pydantic routing/renderer and changed source.
+
+The failure is caused by treating every class beneath the registered namespace prefix as a documented slice term. Both OPT sources intentionally allocate nested, source-specific class namespaces. The patch shares those existing declarations with routing and carries the imported class IRI and actual source path into model metadata. It does not classify by missing documentation or by a class-name suffix, reparse an OPT in the exporter, fabricate an ontology digest, change shape semantics or replace the native renderer.
+
+Strict identity checks precede documentation attachment. Different target IRIs cannot collapse silently to one key, and a documented term cannot lend its prose to a different target. Ordinary registered ontology targets, including nested namespaces adjacent to the imported source scopes, still require documentation. Existing digest, owner, ownership-conflict and module-collision controls remain unchanged.
+
+New tests use independently authored cardinality/quantity records under both actual import namespaces, the production OPT lift and SHACL projection, native schema compilation and actual routed emission. The negative missing-doc control retains the other slice's real documentation and pins the error to the selected key, avoiding a vacuous failure from another missing term. No actual repository source corpus is built by these tests.
+
+Formatting and lint passed. tests-fixed.log records 21 passing selected tests, including the real emitted imported models and every new refusal control; the first test-only named-node build error is retained separately in tests.log. Strict producer-independent Clippy passed on the unchanged normal retry; signed commit and normal push completed with applicable hooks passed. No generated package, full corpus gate or Python import/schema execution is claimed. The parent explicitly reserves new Python infrastructure for separate authorization, and this patch adds none. The broader 1646/1757 requirements remain in place and will not be closed or replaced by a new follow-up ticket.

@@ -1,0 +1,467 @@
+{
+  "paths": [
+    {
+      "ref": "packages/python/gmeow_models/",
+      "path": "/home/paudley/Active/gmeow-ontology/packages/python/gmeow_models",
+      "where": "repo",
+      "exists": true,
+      "kind": "dir",
+      "lines": null,
+      "licence": "",
+      "commits": [
+        "057d833c0 fix(slice-quality): declare the harvest axis environment-divergent, like its sibling",
+        "b10a1de8a feat(1682): complete owl:->logic: slice-authoring migration closeout",
+        "d0f9fb5b1 chore(projection): refresh pipeline cache model",
+        "cbcaa45a0 test(1211): re-bless the docs goldens against merged main, and record the coverage delta",
+        "8c377a19f fix(1211): stereotype the new failure classes, and translate the vocabulary this branch added",
+        "e042c2c87 fix(1672): pay attestation slice-quality debt, ground SubKind, robustify render test",
+        "5a47f95e5 fix(1211): a CSS colour is not an issue reference",
+        "0ad817cb2 fix(1376): pin the claim reps to the baseline profile positively, and lower the test-reach ratchet",
+        "d12382f69 fix(1376): derive the head-id pattern from its logic: constraint, and discharge the seven orphan math classes",
+        "ed4597e27 fix(1376): retire the claims dictionary's fanout row and committed path"
+      ]
+    },
+    {
+      "ref": "__about__.py",
+      "path": "/home/paudley/Active/gmeow-ontology/__about__.py",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "__init__.py",
+      "path": "/home/paudley/Active/gmeow-ontology/__init__.py",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "_base.py",
+      "path": "/home/paudley/Active/gmeow-ontology/_base.py",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "models.py",
+      "path": "/home/paudley/Active/gmeow-ontology/models.py",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "crates/pipeline/src/stages/pydantic.rs:19-35",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/pipeline/src/stages/pydantic.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 494,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "f1b72ae6a Use validated term ownership in documentation exports (Principles 4, 7)",
+        "83e0f7e87 feat: restore ontology-linked Pydantic module exports",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "4ee5359b4 fix(policy): close deficiency-gate gaps (Principles 4 and 7)",
+        "74c60199b feat(1682): teach every canonical-store reader the logic: authoring spelling",
+        "a76168cc6 build(gate): one producer, one run \u2014 remove make regen as an entry point",
+        "92e42bea0 docs(1402): sweep all `make sync` references to `make regen`/`make check-sync`",
+        "9120cd022 feat(1571): cut pydantic package over to purrdf emit_pydantic",
+        "24b763209 fix(logic): complete oracle-only orphan removal + fix workspace rustdoc links (#1572)"
+      ]
+    },
+    {
+      "ref": "README.md",
+      "path": "/home/paudley/Active/gmeow-ontology/README.md",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 901,
+      "licence": "",
+      "commits": [
+        "d51b04c14 docs: align callable authoring guidance with canonical slice ownership",
+        "4f3411112 fix(1768): ship one-file prover consumer",
+        "108d350d2 docs(1668): rename gmeow-rdf references to purrdf in documentation",
+        "7fa96d0ac docs: correct the claims that name crates and tools this repo does not have",
+        "247e3d81a fix(1211): close the pre-merge audit's five blocking findings",
+        "1a14ea0d2 docs: add the gate and pipeline doctrine, grounded in this branch's defects",
+        "311ca56fe refactor(logic): author the workflow groundings in the kernel, not a domain slice",
+        "a76168cc6 build(gate): one producer, one run \u2014 remove make regen as an entry point",
+        "6bb22778d build(gate): schedule check on accurate dependencies, and move breadth lanes to CI",
+        "ce9c69840 docs(1211): document the console, and gate the documents against rot"
+      ]
+    },
+    {
+      "ref": "Blackcat-Informatics/purrdf",
+      "path": "/home/paudley/Active/gmeow-ontology/Blackcat-Informatics/purrdf",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "generated/schemas/gmeow.linkml.yaml",
+      "path": "/home/paudley/Active/gmeow-ontology/generated/schemas/gmeow.linkml.yaml",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "gmeow.schema.json",
+      "path": "/home/paudley/Active/gmeow-ontology/gmeow.schema.json",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "packages/python/tests/",
+      "path": "/home/paudley/Active/gmeow-ontology/packages/python/tests",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "test_conformance.py",
+      "path": "/home/paudley/Active/gmeow-ontology/test_conformance.py",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": ".py",
+      "path": "/home/paudley/Active/gmeow-ontology/.py",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "docs/schema-projections.md",
+      "path": "/home/paudley/Active/gmeow-ontology/docs/schema-projections.md",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 277,
+      "licence": "SPDX: CC-BY-4.0",
+      "commits": [
+        "83e0f7e87 feat: restore ontology-linked Pydantic module exports",
+        "6b93fc910 build: authenticate the O3 full-LTO pipeline producer",
+        "4ee5359b4 fix(policy): close deficiency-gate gaps (Principles 4 and 7)",
+        "f6a780c98 feat(1667): purrdf 0.12.0 and own the docs playground engine",
+        "042c866d9 docs(1571): retire pydantic-conformance lane + correct schema-projections doc",
+        "79573bbee perf(sync): complete unified projection DAG (Principles 4, 11)",
+        "90d37700b feat(pipeline): SHACL-derived Pydantic v2 package emitter (gmeow_models); retire flat gmeow.py",
+        "de2191df5 docs: repoint CLI references from the retired Python surface to the Rust bins",
+        "dfcd5f08f refactor(slices): move core/logic \u2192 grounding/logic + path sweep",
+        "41a933fee feat(769): factor claim modality into six orthogonal axes + lossless projection (ME3 of #766) (#1070)"
+      ]
+    },
+    {
+      "ref": ".coderabbit.yaml",
+      "path": "/home/paudley/Active/gmeow-ontology/.coderabbit.yaml",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "origin/main",
+      "path": "/home/paudley/Active/gmeow-ontology/origin/main",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "CLAUDE.md",
+      "path": "/home/paudley/Active/gmeow-ontology/CLAUDE.md",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 95,
+      "licence": "",
+      "commits": [
+        "fae3d17e2 docs: distinguish logic semantics from generic execution",
+        "01848ca4b fix(ci): repair producer receipt portability",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "7514b578e chore(policy): make deficiency failures impossible to authorize",
+        "d6513324b docs(1682): align derive-source doctrine to logic: (owl:/RDFS is a generated projection)",
+        "1a14ea0d2 docs: add the gate and pipeline doctrine, grounded in this branch's defects",
+        "a76168cc6 build(gate): one producer, one run \u2014 remove make regen as an entry point",
+        "92e42bea0 docs(1402): sweep all `make sync` references to `make regen`/`make check-sync`",
+        "abb442471 docs(1600): rewrite committed-artifact/merge=ours wording to the ignored-projection model",
+        "0251c4aef chore: purge process-narration from .deficiencies; document it is code-only"
+      ]
+    },
+    {
+      "ref": "packages/python/pyproject.toml",
+      "path": "/home/paudley/Active/gmeow-ontology/packages/python/pyproject.toml",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 38,
+      "licence": "",
+      "commits": [
+        "a76168cc6 build(gate): one producer, one run \u2014 remove make regen as an entry point",
+        "92e42bea0 docs(1402): sweep all `make sync` references to `make regen`/`make check-sync`",
+        "042c866d9 docs(1571): retire pydantic-conformance lane + correct schema-projections doc",
+        "9120cd022 feat(1571): cut pydantic package over to purrdf emit_pydantic",
+        "79573bbee perf(sync): complete unified projection DAG (Principles 4, 11)",
+        "fad0131a0 feat(pipeline,packaging): derive the wheel version from the ontology owl:versionInfo",
+        "6f832f3c2 feat(packaging): packages/python gmeow-ontology wheel + re-created publish workflow"
+      ]
+    },
+    {
+      "ref": "crates/pipeline/src/stages/pydantic.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/pipeline/src/stages/pydantic.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 494,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "f1b72ae6a Use validated term ownership in documentation exports (Principles 4, 7)",
+        "83e0f7e87 feat: restore ontology-linked Pydantic module exports",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "4ee5359b4 fix(policy): close deficiency-gate gaps (Principles 4 and 7)",
+        "74c60199b feat(1682): teach every canonical-store reader the logic: authoring spelling",
+        "a76168cc6 build(gate): one producer, one run \u2014 remove make regen as an entry point",
+        "92e42bea0 docs(1402): sweep all `make sync` references to `make regen`/`make check-sync`",
+        "9120cd022 feat(1571): cut pydantic package over to purrdf emit_pydantic",
+        "24b763209 fix(logic): complete oracle-only orphan removal + fix workspace rustdoc links (#1572)"
+      ]
+    },
+    {
+      "ref": "crates/pipeline/src/stages/pydantic.rs:29-33",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/pipeline/src/stages/pydantic.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 494,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "f1b72ae6a Use validated term ownership in documentation exports (Principles 4, 7)",
+        "83e0f7e87 feat: restore ontology-linked Pydantic module exports",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "4ee5359b4 fix(policy): close deficiency-gate gaps (Principles 4 and 7)",
+        "74c60199b feat(1682): teach every canonical-store reader the logic: authoring spelling",
+        "a76168cc6 build(gate): one producer, one run \u2014 remove make regen as an entry point",
+        "92e42bea0 docs(1402): sweep all `make sync` references to `make regen`/`make check-sync`",
+        "9120cd022 feat(1571): cut pydantic package over to purrdf emit_pydantic",
+        "24b763209 fix(logic): complete oracle-only orphan removal + fix workspace rustdoc links (#1572)"
+      ]
+    },
+    {
+      "ref": "pypi-publish-gmeow.yml",
+      "path": "/home/paudley/Active/gmeow-ontology/pypi-publish-gmeow.yml",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "crates/pipeline/src/stages/snapshots/",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/pipeline/src/stages/snapshots",
+      "where": "repo",
+      "exists": true,
+      "kind": "dir",
+      "lines": null,
+      "licence": "",
+      "commits": [
+        "83e0f7e87 feat: restore ontology-linked Pydantic module exports",
+        "b3bc3c8e4 test: align carrier goldens with typed result and loss contracts",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "820383b89 feat(1638): retire the process-model slice in favour of the canonical logic: spine",
+        "b672bf11a feat(1410): route provenance generator through the A-Box annotation contract",
+        "ede04129a test(1600): re-bless goldens after 0.2.0 bump + origin/main glossary integration",
+        "5c5dea554 chore(1600): bump workspace version to 0.2.0 (breaking untrack-generated change)",
+        "5cdd1492b fix(1527): resolve make-check gate failures \u2014 frame, examples, gufo grounding, baselines (#1527)",
+        "070098802 test(snapshots): rebaseline goldens for the authored reasoning-program vocabulary",
+        "9fde49ad6 test(snapshots): re-bless coverage-ratchet + pydantic-tags after grounding"
+      ]
+    },
+    {
+      "ref": "crates/pipeline/src/stages/term_manifest.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/pipeline/src/stages/term_manifest.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 690,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "83e0f7e87 feat: restore ontology-linked Pydantic module exports",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "22842c8c8 fix: close optimized producer admission gaps",
+        "f01e5fc7c feat(deps): repin purrdf to the 1.1.0 crates.io release (#1645)",
+        "a319905e6 fix(pipeline): stabilize release history and GTS sink (#1699)",
+        "184a4257d perf(test): cache authenticated suite intermediates (Principles 4, 7)",
+        "fea7e1b54 feat(errors): forward diagnostics fold + DiagNode cache lane (advances #1336)",
+        "036673f9b feat(errors): dissolve pipeline error enums into Diag substrate DiagKinds (advances #1336)",
+        "d095bd1af build(deps): adopt purrdf 0.3.0 + migrate workspace to Rust edition 2024",
+        "aeaf3e5e5 feat(validate): on-gate guard banning generated/ disk reads in pipeline stages (#1278)"
+      ]
+    },
+    {
+      "ref": "packages/python/gmeow_models/models.py",
+      "path": "/home/paudley/Active/gmeow-ontology/packages/python/gmeow_models/models.py",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 25833,
+      "licence": "",
+      "commits": [
+        "057d833c0 fix(slice-quality): declare the harvest axis environment-divergent, like its sibling",
+        "b10a1de8a feat(1682): complete owl:->logic: slice-authoring migration closeout",
+        "d0f9fb5b1 chore(projection): refresh pipeline cache model",
+        "cbcaa45a0 test(1211): re-bless the docs goldens against merged main, and record the coverage delta",
+        "e042c2c87 fix(1672): pay attestation slice-quality debt, ground SubKind, robustify render test",
+        "0ad817cb2 fix(1376): pin the claim reps to the baseline profile positively, and lower the test-reach ratchet",
+        "d12382f69 fix(1376): derive the head-id pattern from its logic: constraint, and discharge the seven orphan math classes",
+        "ed4597e27 fix(1376): retire the claims dictionary's fanout row and committed path",
+        "242693255 fix(1373): close the merge's integration gaps \u2014 fragment, seam, dependency, catalogs, pins",
+        "7a0d5ea15 chore(docs): regenerate goldens + pydantic models for Stage-2 vocab/annotation changes (PR #1683)"
+      ]
+    },
+    {
+      "ref": ".stage/schemas-recover-the-developer-surface/plan.md",
+      "path": "/home/paudley/Active/gmeow-ontology/.stage/schemas-recover-the-developer-surface/plan.md",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2090
+    },
+    {
+      "name": "CompiledSchema",
+      "files": 9
+    },
+    {
+      "name": "py.typed",
+      "files": 6
+    },
+    {
+      "name": "json_schema_extra",
+      "files": 4
+    },
+    {
+      "name": "emitted_models_agree_with_packed_schema_defs",
+      "files": 0
+    },
+    {
+      "name": "definitionDigest",
+      "files": 24
+    },
+    {
+      "name": "__about__",
+      "files": 5
+    },
+    {
+      "name": "__init__",
+      "files": 8
+    },
+    {
+      "name": "_base",
+      "files": 150
+    },
+    {
+      "name": "models",
+      "files": 265
+    },
+    {
+      "name": "Makefile",
+      "files": 54
+    },
+    {
+      "name": "docstring",
+      "files": 13
+    },
+    {
+      "name": "PydanticClassConfig",
+      "files": 1
+    },
+    {
+      "name": "PydanticPackageTopology",
+      "files": 1
+    },
+    {
+      "name": "emit_pydantic",
+      "files": 6
+    },
+    {
+      "name": "PydanticPackageTopology::new",
+      "files": 1
+    },
+    {
+      "name": "Annotation",
+      "files": 323
+    },
+    {
+      "name": "gmeow_models.models",
+      "files": 0
+    },
+    {
+      "name": "models_python_tags_module.snap",
+      "files": 0
+    },
+    {
+      "name": "AccessibilityAssertion",
+      "files": 29
+    },
+    {
+      "name": "enriched_compiled_schema",
+      "files": 6
+    }
+  ],
+  "packages": [
+    "gmeow-ontology"
+  ],
+  "urls": [
+    "https://discord.gg/coderabbit",
+    "https://blackcatinformatics.ca/gmeow/slices/tags",
+    "https://blackcatinformatics.ca/gmeow/Tagging"
+  ],
+  "truncated": []
+}
