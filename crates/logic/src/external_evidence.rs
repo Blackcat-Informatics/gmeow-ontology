@@ -617,7 +617,9 @@ fn scan_artifact_channel(
                         ),
                     ));
                 }
-                let digest = blake3::hash(active.text.as_bytes()).to_hex().to_string();
+                let digest = purrdf_hash::hex::encode(
+                    purrdf_hash::blake3::hash(active.text.as_bytes()).as_bytes(),
+                );
                 output.push(SzsArtifact {
                     kind: active.marker.kind,
                     problem: active.marker.problem.or(marker.problem),

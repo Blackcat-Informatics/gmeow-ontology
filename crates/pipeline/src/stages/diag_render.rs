@@ -10,8 +10,7 @@
 
 use std::collections::BTreeMap;
 
-use gmeow_errors::{Diag, DiagLedger, DiagNode, Report, Severity, StageId, model::Location};
-use purrdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
+use gmeow_errors::{Diag, DiagLedger, DiagNode, Grade, Report, StageId, register_code};
 
 /// The four committed logical paths a diagnostics report renders to.
 pub struct DiagnosticsPaths<'a> {
@@ -25,48 +24,13 @@ pub struct DiagnosticsPaths<'a> {
     pub rdf: &'a str,
 }
 
-/// Map the canonical [`Severity`] to the purrdf ingestion boundary's [`RdfSeverity`]
-/// (the inverse of `gmeow_errors::severity_from_rdf`).
-fn rdf_severity(severity: Severity) -> RdfSeverity {
-    match severity {
-        Severity::Error => RdfSeverity::Error,
-        Severity::Warning => RdfSeverity::Warning,
-        Severity::Note => RdfSeverity::Note,
-        Severity::Info => RdfSeverity::Info,
-    }
-}
-
-/// Project a finding [`Location`] into the LOSSY [`RdfLocation`] the diagnostics RDF
-/// carries — path + GTS wire coordinates ONLY. The committed `gmeow:Finding` N-Quads
-/// projection (`gmeow_errors::render::to_gmeow_rdf`) emits only these coordinates (no
-/// `line`/`column`/`logical`), so the FORWARD `Finding → DiagNode` fold must reproduce
-/// exactly the same `RdfLocation` the BACKWARD (render → parse → ingest) path did,
-/// making the two ledgers byte-identical (zero golden churn).
-fn rdf_location_lossy(location: &Location) -> RdfLocation {
-    RdfLocation {
-        path: location.path.clone(),
-        line: None,
-        column: None,
-        logical: None,
-        gts_term_id: location.gts_term_id,
-        gts_quad_index: location.gts_quad_index,
-        gts_reifier_id: location.gts_reifier_id,
-        gts_frame_index: location.gts_frame_index,
-        gts_segment_index: location.gts_segment_index,
-        subject: None,
-    }
-}
-
 /// The FORWARD projection of a producer's `gmeow_errors::Report` findings into the
 /// pre-lowered [`DiagNode`]s the run-level `DiagLedger` folds — the SINGLE source of
 /// the run ledger (the backward RDF→ledger read is gone).
 ///
-/// Each `Finding` becomes an [`RdfDiagnostic`] carrying its severity / code / message
-/// and (lossily, via [`rdf_location_lossy`]) its primary location, then goes through
-/// the EXACT `Diag::from_rdf` mapping the retired backward path used, attached to a
-/// LOCAL ledger attributed to `stage`. The returned nodes are byte-identical to what
-/// the backward `graph/diagnostics` ingest produced for the same report, so no shipped
-/// artifact or golden changes.
+/// GMEOW findings enter directly, with their source coordinates and explicit
+/// grades. They are never reconstructed as native errors: that would manufacture
+/// an upstream cause that did not occur.
 ///
 /// The report is normalized first (the RDF renderer normalizes too), so the fold is a
 /// pure function of the report content, independent of finding insertion order.
@@ -76,18 +40,42 @@ pub fn finding_nodes(report: &Report, stage: &str) -> Vec<DiagNode> {
     let mut ledger = DiagLedger::new();
     let stage_id = StageId::new(stage);
     for finding in &normalized.findings {
-        let mut rdf_diag = RdfDiagnostic::new(
-            rdf_severity(finding.severity),
-            finding.code.clone(),
+        let defaults = Grade::for_external_severity(finding.severity);
+        let mut parent = Diag::new(
+            register_code(&finding.code),
+            Grade::new(
+                finding.severity,
+                finding.category.unwrap_or(defaults.category),
+                finding.standpoint.unwrap_or(defaults.standpoint),
+            ),
             finding.message.clone(),
         );
         if let Some(location) = finding.primary_location() {
-            let rdf_location = rdf_location_lossy(location);
-            if !rdf_location.is_empty() {
-                rdf_diag = rdf_diag.with_location(rdf_location);
-            }
+            parent = parent.with_location(location.clone());
         }
-        let parent = Diag::from_rdf(&rdf_diag, &mut ledger, stage_id.clone());
+        if let Some(focus) = &finding.source_focus {
+            parent = parent.with_focus(focus.clone());
+        }
+        for location in finding
+            .locations
+            .iter()
+            .skip(1)
+            .chain(&finding.related_locations)
+        {
+            parent = parent.with_label(gmeow_errors::Label {
+                location: location.clone(),
+                text: String::new(),
+            });
+        }
+        for label in &finding.related_labels {
+            parent = parent.with_label(gmeow_errors::Label {
+                location: label.location.clone(),
+                text: label.message.clone(),
+            });
+        }
+        if let Some(graph) = &finding.source_graph {
+            parent = parent.with_graph(graph.clone());
+        }
         ledger.attach(parent, stage_id.clone());
     }
     let nodes: Vec<DiagNode> = ledger.emit_sorted().into_iter().cloned().collect();
@@ -148,12 +136,15 @@ pub fn record_digest(report: &Report, key: &str) -> Result<String, gmeow_errors:
             message: format!("digesting the recorded {} verdict: {e}", canonical.tool),
         })
     })?;
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-diagnostics-record-v1\x1e");
     hasher.update(key.as_bytes());
     hasher.update(b"\x1e");
     hasher.update(&bytes);
-    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+    Ok(format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+    ))
 }
 
 /// Admit `recorded` only if it carries a `key` metadata entry AND its content folds to

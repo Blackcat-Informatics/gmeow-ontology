@@ -1081,10 +1081,10 @@ fn digest_cost(digest: &mut StableDigest, label: &str, cost: &AtomicPlanCost) {
 }
 
 fn digest<'a>(domain: &'a str, values: impl IntoIterator<Item = &'a str>) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     for value in std::iter::once(domain).chain(values) {
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value.as_bytes());
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }

@@ -13,6 +13,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term is finite numeric"
+msgstr "terme numérique fini"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intrinsic unary relation that holds exactly for a well-formed finite RDF numeric literal. Native evaluation uses the shared numeric value-space admission; validation projection tests the same finite value contract. Text, language-tagged literals, NaN, floating infinities and non-literals do not satisfy it. It binds no term and is not an asserted RDF membership fact."
+msgstr "Une relation unaire intrinsèque vraie exactement pour un littéral numérique RDF fini et bien formé. L'évaluation native utilise l'admission partagée de l'espace des valeurs numériques ; la projection de validation vérifie le même contrat de valeur finie. Le texte, les littéraux munis d'une étiquette de langue, NaN, les infinis flottants et les valeurs non littérales ne la satisfont pas. Elle ne lie aucun terme et ne constitue pas un fait d'appartenance RDF affirmé."
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2004/02/skos/core#example"
+msgid "A formula testing a measured value uses logic:relation logic:termIsFiniteNumeric and one argument carrier naming that value."
+msgstr "Une formule vérifiant une valeur mesurée utilise logic:relation logic:termIsFiniteNumeric et un porteur d'argument nommant cette valeur."
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Finiteness is a value-space test; lexical form and numeric datatype remain part of RDF identity."
+msgstr "La finitude est un test de l'espace des valeurs ; la forme lexicale et le type numérique restent dans l'identité RDF."
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bound measurement or coordinate must be a finite number."
+msgstr "À utiliser lorsqu'une mesure ou une coordonnée liée doit être un nombre fini."
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for qualitative literals or named infinity poles."
+msgstr "Ne pas utiliser pour les littéraux qualitatifs ou les pôles infinis nommés."
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one bound term as the sole ordered argument of a logic:Formula atom."
+msgstr "Fournir un terme lié comme seul argument ordonné d'un atome logic:Formula."
+
 
 msgctxt "https://blackcatinformatics.ca/logic/GroundingCorrespondence|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Grounding Correspondence"

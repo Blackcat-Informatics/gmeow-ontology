@@ -14,6 +14,8 @@ pub enum TermKindPredicate {
     Literal,
     /// An RDF blank node or IRI; a triple term is neither.
     BlankOrIri,
+    /// A well-formed finite literal in the native RDF numeric value space.
+    FiniteNumeric,
 }
 
 impl TermKindPredicate {
@@ -35,6 +37,7 @@ impl TermKindPredicate {
             Self::Iri => "termIsIri",
             Self::Literal => "termIsLiteral",
             Self::BlankOrIri => "termIsBlankOrIri",
+            Self::FiniteNumeric => "termIsFiniteNumeric",
         }
     }
 
@@ -45,6 +48,7 @@ impl TermKindPredicate {
             "termIsIri" => Some(Self::Iri),
             "termIsLiteral" => Some(Self::Literal),
             "termIsBlankOrIri" => Some(Self::BlankOrIri),
+            "termIsFiniteNumeric" => Some(Self::FiniteNumeric),
             _ => None,
         }
     }
@@ -56,6 +60,7 @@ impl TermKindPredicate {
             Self::Iri => value.is_iri(),
             Self::Literal => value.is_literal(),
             Self::BlankOrIri => value.is_blank() || value.is_iri(),
+            Self::FiniteNumeric => super::FiniteNumericLiteral::try_from(value.clone()).is_ok(),
         }
     }
 }

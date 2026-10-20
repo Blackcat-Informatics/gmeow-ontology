@@ -328,7 +328,10 @@ fn canonical(quads: &[RdfQuad]) -> String {
 }
 
 fn blake3(bytes: &[u8]) -> String {
-    format!("blake3:{}", blake3::hash(bytes).to_hex())
+    format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bytes).as_bytes())
+    )
 }
 
 #[test]

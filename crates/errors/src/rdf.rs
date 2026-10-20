@@ -14,7 +14,7 @@
 //! `gmeow-validate` (the orphan-rule detour is gone now that both the RDF types'
 //! consumer and the diagnostics model live in one leaf crate).
 
-use purrdf_core::{LossLedger, RdfDiagnostic, RdfLocation, RdfSeverity};
+use purrdf_core::{LossEntry, LossLedger, RdfDiagnostic, RdfLocation, RdfSeverity};
 
 use crate::code::register_code;
 use crate::diag::{Diag, StageId};
@@ -29,25 +29,6 @@ pub fn severity_from_rdf(severity: RdfSeverity) -> Severity {
         RdfSeverity::Warning => Severity::Warning,
         RdfSeverity::Note => Severity::Note,
         RdfSeverity::Info => Severity::Info,
-    }
-}
-
-/// The default category for an ingested RDF diagnostic of a given severity. An
-/// error is a blocking structural defect; anything softer is a non-gating policy
-/// note. A producer with more context can override the grade after ingestion.
-fn default_category(severity: Severity) -> FindingCategory {
-    match severity {
-        Severity::Error => FindingCategory::ModelingDisciplineViolation,
-        _ => FindingCategory::PolicyWarning,
-    }
-}
-
-/// The default standpoint for an ingested RDF diagnostic of a given severity.
-fn default_standpoint(severity: Severity) -> Standpoint {
-    match severity {
-        Severity::Error => Standpoint::Binding,
-        Severity::Warning => Standpoint::Perspectival,
-        Severity::Note | Severity::Info => Standpoint::Advisory,
     }
 }
 
@@ -81,19 +62,76 @@ impl Location {
     }
 }
 
+/// The original native projection record, retained until ledger lowering.
+#[derive(Debug)]
+struct NativeLoss(LossEntry);
+
+impl std::fmt::Display for NativeLoss {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} → {}: {}", self.0.from, self.0.to, self.0.note)
+    }
+}
+
+impl std::error::Error for NativeLoss {}
+
 impl Diag {
-    /// Project a purrdf [`RdfDiagnostic`] without conversion losses into a [`Diag`].
-    /// The parent itself is returned unattached — the caller attaches it.
-    pub fn from_rdf(diagnostic: &RdfDiagnostic, ledger: &mut DiagLedger, stage: StageId) -> Diag {
-        Self::from_rdf_with_losses(diagnostic, &LossLedger::new(), ledger, stage)
+    /// Carry one original native loss as a non-gating projection witness.
+    /// Its source/target direction remains typed until cause lowering;
+    /// every supplied source coordinate and subject is kept.
+    #[track_caller]
+    pub fn from_rdf_loss(loss: LossEntry) -> Diag {
+        let source = NativeLoss(loss);
+        let mut diag = Diag::new(
+            register_code(&source.0.code),
+            Grade::new(
+                Severity::Note,
+                FindingCategory::ProjectionLoss,
+                Standpoint::Perspectival,
+            ),
+            source.to_string(),
+        );
+        if let Some(location) = &source.0.location {
+            diag = diag.with_location(Location::from_rdf(location));
+            if let Some(subject) = &location.subject {
+                diag = diag.with_focus(subject.clone());
+            }
+        }
+        diag.with_source(source)
+    }
+    /// Ingest a native diagnostic, retaining its original typed value as the
+    /// live cause and its subject as the focus. The caller attaches the parent;
+    /// the original error chain is lowered only at that serialization boundary.
+    #[track_caller]
+    pub fn from_rdf(diagnostic: RdfDiagnostic) -> Diag {
+        Diag::new(
+            register_code(&diagnostic.code),
+            Grade::for_external_severity(severity_from_rdf(diagnostic.severity)),
+            diagnostic.message.clone(),
+        )
+        .with_rdf_source(diagnostic)
+    }
+
+    /// Attach an original native cause and its source anchor to a diagnostic
+    /// with an explicit GMEOW code, grade and observation. Native location and
+    /// subject replace the corresponding anchors when supplied; callers can
+    /// then add more specific physical context. Existing causes cannot be replaced.
+    pub fn with_rdf_source(mut self, diagnostic: RdfDiagnostic) -> Diag {
+        if let Some(location) = &diagnostic.location {
+            self = self.with_location(Location::from_rdf(location));
+            if let Some(subject) = &location.subject {
+                self = self.with_focus(subject.clone());
+            }
+        }
+        self.with_source(diagnostic)
     }
 
     /// Project a purrdf [`RdfDiagnostic`] and its unified [`LossLedger`] into a
     /// [`Diag`]. Each loss is attached to `ledger` as a non-gating
     /// `ProjectionLoss` child witness, and the returned parent carries those
     /// children as DAG antecedents.
+    #[track_caller]
     pub fn from_rdf_with_losses(
-        diagnostic: &RdfDiagnostic,
+        diagnostic: RdfDiagnostic,
         losses: &LossLedger,
         ledger: &mut DiagLedger,
         stage: StageId,
@@ -102,36 +140,11 @@ impl Diag {
         // parent's antecedent handles are already resident.
         let mut antecedents = Vec::with_capacity(losses.entries().len());
         for loss in losses.entries() {
-            let mut child = Diag::new(
-                register_code(&loss.code),
-                Grade::new(
-                    Severity::Note,
-                    FindingCategory::ProjectionLoss,
-                    Standpoint::Perspectival,
-                ),
-                loss.note.to_string(),
-            );
-            if let Some(location) = &loss.location {
-                child = child.with_location(Location::from_rdf(location));
-            }
+            let child = Diag::from_rdf_loss(loss.clone());
             antecedents.push(ledger.attach(child, stage.clone()));
         }
 
-        let severity = severity_from_rdf(diagnostic.severity);
-        let mut parent = Diag::new(
-            register_code(&diagnostic.code),
-            Grade::new(
-                severity,
-                default_category(severity),
-                default_standpoint(severity),
-            ),
-            diagnostic.message.clone(),
-        )
-        .with_antecedents(antecedents);
-        if let Some(location) = &diagnostic.location {
-            parent = parent.with_location(Location::from_rdf(location));
-        }
-        parent
+        Self::from_rdf(diagnostic).with_antecedents(antecedents)
     }
 }
 

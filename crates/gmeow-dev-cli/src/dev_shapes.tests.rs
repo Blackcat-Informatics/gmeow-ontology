@@ -5,6 +5,10 @@ use gmeow_logic_compile::ir::ConstraintProvenance;
 
 use super::*;
 
+fn sparql_alpha_canonical(select: &str) -> Result<query_identity::QueryKey, gmeow_errors::Diag> {
+    query_identity::query_key(select, false)
+}
+
 #[test]
 fn authored_shapes_with_the_same_target_are_all_retained() {
     let ds = parse_dataset(
@@ -848,7 +852,7 @@ const JOIN_RECORD_TTL: &str = "\
         <https://ex/OpenValueConstraintShape> a sh:NodeShape ;\n\
         \x20\x20logic:formalizes <https://ex/OpenValueShape> ;\n\
         \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE { ?p2 <https://ex/openValue> ?oc . ?this a ?oc . }\"\"\" ] ;\n\
-        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:severity sh:Violation ; sh:message \"m\" ;\n\
+        \x20\x20sh:sparql [ a sh:SPARQLConstraint ; sh:severity sh:Warning ; sh:message \"m\" ;\n\
         \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE { ?p2 <https://ex/openValue> ?oc . $this a ?oc . FILTER NOT EXISTS { ?p2 <https://ex/descriptor> ?d . ?subj ?d $this . } }\"\"\" ] .\n";
 
 /// A DIVERGENT record: same target, but the constraint body checks a different predicate.
@@ -906,13 +910,122 @@ fn raw_sparql_target_identity_clearance_matrix() {
 fn sparql_alpha_canonical_equates_renamings_and_distinguishes_predicates() {
     let a = "SELECT $this WHERE { ?x <https://ex/p> ?y . [] ?y $this . }";
     let b = "SELECT ?this WHERE {\n  ?profile <https://ex/p> ?d .\n  ?subj ?d ?this . }";
-    assert_eq!(sparql_alpha_canonical(a), sparql_alpha_canonical(b));
+    assert_eq!(
+        sparql_alpha_canonical(a).expect("valid query"),
+        sparql_alpha_canonical(b).expect("valid query")
+    );
     let c = "SELECT $this WHERE { ?x <https://ex/OTHER> ?y . [] ?y $this . }";
-    assert_ne!(sparql_alpha_canonical(a), sparql_alpha_canonical(c));
+    assert_ne!(
+        sparql_alpha_canonical(a).expect("valid query"),
+        sparql_alpha_canonical(c).expect("valid query")
+    );
     // Two `[]` occurrences are DISTINCT fresh variables, never unified.
     let d = "SELECT ?this WHERE { [] <https://ex/p> ?this . [] <https://ex/q> ?this . }";
     let e = "SELECT ?this WHERE { ?s <https://ex/p> ?this . ?s <https://ex/q> ?this . }";
-    assert_ne!(sparql_alpha_canonical(d), sparql_alpha_canonical(e));
+    assert_ne!(
+        sparql_alpha_canonical(d).expect("valid query"),
+        sparql_alpha_canonical(e).expect("valid query")
+    );
+}
+
+#[test]
+fn sparql_alpha_canonical_preserves_literal_and_query_contracts() {
+    for (left, right) in [
+        ("'a b'", "'a  b'"),
+        ("'a hello b'", "'a HELLO b'"),
+        ("'a . b'", "'a b'"),
+        ("'x'@en", "'x'@fr"),
+        ("1", "'1'"),
+        ("<https://ex/A>", "<https://ex/a>"),
+    ] {
+        let query = |value| format!("SELECT ?this WHERE {{ ?this <https://ex/p> {value} }}");
+        assert_ne!(
+            sparql_alpha_canonical(&query(left)).expect("valid query"),
+            sparql_alpha_canonical(&query(right)).expect("valid query"),
+            "{left} versus {right}"
+        );
+    }
+    assert!(
+        sparql_alpha_canonical("SELECT ?this WHERE { ?this <https://ex/p> 'unterminated }")
+            .is_err()
+    );
+    assert!(sparql_alpha_canonical("ASK { ?s ?p ?o }").is_err());
+    assert_ne!(
+        sparql_alpha_canonical("SELECT ?this FROM <https://ex/a> WHERE { ?this ?p ?o }")
+            .expect("valid query"),
+        sparql_alpha_canonical("SELECT ?this FROM <https://ex/b> WHERE { ?this ?p ?o }")
+            .expect("valid query")
+    );
+    assert_ne!(
+        sparql_alpha_canonical("SELECT ?this ?value WHERE { ?this ?p ?value }")
+            .expect("valid query"),
+        sparql_alpha_canonical("SELECT ?this ?other WHERE { ?this ?p ?other }")
+            .expect("valid query")
+    );
+    assert_ne!(
+        sparql_alpha_canonical("SELECT * WHERE { ?this <https://ex/p> ?left } LIMIT 1")
+            .expect("valid query"),
+        sparql_alpha_canonical("SELECT * WHERE { ?this <https://ex/p> ?right } LIMIT 1")
+            .expect("valid query")
+    );
+}
+
+#[test]
+fn raw_sparql_target_identity_rejects_changed_reports_and_literals() {
+    let legacy = parse_ttl(JOIN_LEGACY_TTL);
+    let read = read_shacl_shape(&legacy, "https://ex/OpenValueShape").expect("legacy reads");
+    for record in [
+        JOIN_RECORD_TTL.replace("sh:Warning", "sh:Violation"),
+        JOIN_RECORD_TTL.replace("sh:message \"m\"", "sh:message \"different\""),
+        JOIN_RECORD_TTL.replace("a sh:NodeShape ;", "a sh:NodeShape ; sh:deactivated true ;"),
+    ] {
+        let context = ctx_from("", &[&record]);
+        assert!(matches!(
+            context.verdict_all("https://ex/OpenValueShape", &read, &legacy),
+            Verdict::EquivResidue(_)
+        ));
+    }
+    let legacy_ttl = JOIN_LEGACY_TTL.replace(
+        "[] ?descriptor $this .",
+        "[] ?descriptor $this . FILTER(?descriptor = 'a hello b')",
+    );
+    let legacy = parse_ttl(&legacy_ttl);
+    let read = read_shacl_shape(&legacy, "https://ex/OpenValueShape").expect("legacy reads");
+    for literal in ["a HELLO b", "a  hello b"] {
+        let record = JOIN_RECORD_TTL.replace(
+            "?subj ?d $this .",
+            &format!("?subj ?d $this . FILTER(?d = '{literal}')"),
+        );
+        let context = ctx_from("", &[&record]);
+        assert!(matches!(
+            context.verdict_all("https://ex/OpenValueShape", &read, &legacy),
+            Verdict::EquivResidue(_)
+        ));
+    }
+}
+
+#[test]
+fn raw_sparql_target_identity_preserves_native_statement_metadata() {
+    for legacy_ttl in [
+        JOIN_LEGACY_TTL.replace("sh:message \"m\"", "sh:message \"m\"@en--ltr"),
+        JOIN_LEGACY_TTL.replace(
+            "\"\"\" ] .",
+            "\"\"\" ] {| sh:severity sh:Info |} .",
+        ),
+        JOIN_LEGACY_TTL.replace(
+            "a sh:SPARQLConstraint ;",
+            "a sh:SPARQLConstraint ; sh:resultAnnotation [ sh:annotationProperty <https://ex/note> ; sh:annotationValue \"extra\" ] ;",
+        ),
+    ] {
+        assert_ne!(legacy_ttl, JOIN_LEGACY_TTL, "fixture must change its contract");
+        let legacy = parse_ttl(&legacy_ttl);
+        let key = raw_sparql_block_key(&legacy, "https://ex/OpenValueShape")
+            .expect("valid native shape").expect("supported block");
+        let projected = parse_ttl(JOIN_RECORD_TTL);
+        let projected_key = raw_sparql_block_key(&projected, "https://ex/OpenValueConstraintShape")
+            .expect("valid native shape").expect("supported block");
+        assert_ne!(key, projected_key, "native report metadata must survive extraction");
+    }
 }
 
 #[test]

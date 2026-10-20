@@ -47,6 +47,9 @@ pub fn to_sarif(report: &Report) -> Result<String, serde_json::Error> {
     if let Some(category) = sarif_category(&normalized) {
         run["automationDetails"] = json!({ "id": category });
     }
+    if !normalized.metadata.is_empty() {
+        run["properties"] = json!(normalized.metadata);
+    }
     let payload = json!({
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
         "version": "2.1.0",
@@ -144,21 +147,24 @@ fn sarif_artifacts(report: &Report) -> Vec<Value> {
         .collect()
 }
 
-/// A stable, dependency-free `blake3` fingerprint (first 8 bytes, hex-encoded).
+/// The canonical ledger identity, or a `blake3` fingerprint for a wire-only finding.
 /// Used for SARIF `partialFingerprints` so GitHub code-scanning can dedupe a
 /// finding across runs even as line numbers shift, and as the fallback subject IRI
-/// for a NON-ledger finding that carries no `finding_iri`. Deterministic across
-/// platforms; the SINGLE hash the diagnostics surface uses now that the FNV-1a
-/// scheme is retired — ledger witnesses and this fallback both hash with `blake3`.
+/// for a NON-ledger finding that carries no `finding_iri`. Ledger identities are
+/// reused verbatim; the fallback uses the first eight digest bytes as lowercase hex.
 ///
-/// **v2**: incorporates canonical attribution roles + slice IRIs so that two
-/// otherwise-identical findings (same severity/code/location/message) produce
-/// different fingerprints when their structured attribution differs. Attributions
-/// are sorted by `(role, slice_iri)` for order-independence. Separator bytes keep
-/// `"ab|c"` distinct from `"a|bc"`.
+/// **v3** reuses canonical ledger addresses and retains named source graphs in
+/// the wire-only fallback. Canonical attribution roles and slice IRIs remain in
+/// the fallback, sorted by `(role, slice_iri)` for order-independence. Separator
+/// bytes keep `"ab|c"` distinct from `"a|bc"`.
 fn stable_fingerprint(finding: &Finding) -> String {
+    // Ledger witnesses already have a content address. Rehashing their message
+    // would give code scanning a second, wording-dependent identity.
+    if let Some(iri) = &finding.finding_iri {
+        return iri.clone();
+    }
     let (severity, code, location, message) = finding.sort_key();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
 
     // The primary finding fields, each followed by a field separator.
     for part in [severity.as_str(), code, location.as_str(), message] {
@@ -183,6 +189,10 @@ fn stable_fingerprint(finding: &Finding) -> String {
         }
         // Attribution entry separator.
         hasher.update(&[0x1d]);
+    }
+    if let Some(graph) = &finding.source_graph {
+        hasher.update(&[0x1c]);
+        hasher.update(graph.as_str().as_bytes());
     }
 
     purrdf_hash::hex::encode(&hasher.finalize().as_bytes()[..8])
@@ -378,6 +388,9 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
         line.push(')');
     }
     out.push(line);
+    if let Some(graph) = &finding.source_graph {
+        out.push(format!("  ↳ source graph: {}", graph.as_str()));
+    }
     // The TYPED conformance-failure class the violated law declares. The headline
     // line can only carry the generic component `code` (every cardinality gate in the
     // ontology shares `shacl.MinCountConstraintComponent`), so without this line the
@@ -668,6 +681,12 @@ pub fn to_html(report: &Report) -> String {
 
         // Message cell: message text, optional suggestions list, optional help link.
         let mut msg_cell = escape_html(&finding.message);
+        if let Some(graph) = &finding.source_graph {
+            msg_cell.push_str(&format!(
+                "<p class=\"source-graph\">source graph: {}</p>",
+                escape_html(graph.as_str())
+            ));
+        }
         // The TYPED conformance-failure class the violated law declares — the code
         // column above can only carry the generic component name every gate of that
         // shape shares.
@@ -865,7 +884,7 @@ fn sarif_result(finding: &Finding) -> Value {
         "level": finding.severity.sarif_level(),
         "message": { "text": finding.message },
         "partialFingerprints": {
-            "gmeowFindingHash/v2": stable_fingerprint(finding),
+            "gmeowFindingHash/v3": stable_fingerprint(finding),
         },
     });
 
@@ -943,6 +962,9 @@ fn sarif_result(finding: &Finding) -> Value {
     // slice attributions (§9 / S5). Uses a single json!() call so both fields
     // land in the same "properties" object.
     let mut props = serde_json::Map::new();
+    if let Some(graph) = &finding.source_graph {
+        props.insert("gmeow.sourceGraph".to_owned(), json!(graph.as_str()));
+    }
     if let Some(detail) = &finding.detail {
         props.insert("detail".to_owned(), json!(detail));
     }

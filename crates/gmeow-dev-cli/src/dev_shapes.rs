@@ -52,8 +52,6 @@ const SH_OR: &str = "http://www.w3.org/ns/shacl#or";
 /// construct, focus-flag agreement required on the projected constraint surface).
 const SH_NODE: &str = "http://www.w3.org/ns/shacl#node";
 const SH_XONE: &str = "http://www.w3.org/ns/shacl#xone";
-const SH_TARGET: &str = "http://www.w3.org/ns/shacl#target";
-const SH_SELECT: &str = "http://www.w3.org/ns/shacl#select";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The projected validation-shape surface, relative to the repo root.
 const PROJECTED_REL: &str = "generated/shapes/validation-shapes.ttl";
@@ -225,214 +223,8 @@ fn collect_formalized_failure_classes(
     out
 }
 
-/// α-canonicalize one SPARQL `sh:select` body for the raw-target identity clearance: tokenize
-/// (IRIs whole; `{ } ( ) [ ] , ;` and a standalone `.` as single-char tokens), fix the focus
-/// variable (`$this` ≡ `?this`), rename every other variable to `?vN` in first-occurrence order,
-/// read each anonymous `[]` node as a FRESH variable (SPARQL bnode-in-query semantics), and
-/// uppercase bare keyword tokens. Two selects with equal canonical forms select/flag exactly the
-/// same focus nodes over every graph — variable names, whitespace, and keyword case are the only
-/// degrees of freedom this normalization removes, so equality is a SOUND (never over-claiming)
-/// witness of semantic identity.
-fn sparql_alpha_canonical(select: &str) -> String {
-    // Tokenize.
-    let mut toks: Vec<String> = Vec::new();
-    let mut chars = select.chars().peekable();
-    while let Some(&c) = chars.peek() {
-        if c.is_whitespace() {
-            chars.next();
-        } else if c == '<' {
-            let mut t = String::new();
-            for ch in chars.by_ref() {
-                t.push(ch);
-                if ch == '>' {
-                    break;
-                }
-            }
-            toks.push(t);
-        } else if matches!(c, '{' | '}' | '(' | ')' | '[' | ']' | ',' | ';' | '.') {
-            toks.push(c.to_string());
-            chars.next();
-        } else {
-            let mut t = String::new();
-            while let Some(&ch) = chars.peek() {
-                if ch.is_whitespace() || matches!(ch, '{' | '}' | '(' | ')' | '[' | ']' | ',' | ';')
-                {
-                    break;
-                }
-                t.push(ch);
-                chars.next();
-            }
-            // A trailing statement-terminating '.' is its own token (IRIs are consumed whole
-            // above, and the corpus selects carry no decimal literals).
-            while t.ends_with('.') {
-                t.pop();
-                if !t.is_empty() {
-                    toks.push(std::mem::take(&mut t));
-                }
-                toks.push(".".to_owned());
-            }
-            if !t.is_empty() {
-                toks.push(t);
-            }
-        }
-    }
-    // α-rename.
-    let mut rename: BTreeMap<String, String> = BTreeMap::new();
-    let mut fresh = 0usize;
-    let mut out: Vec<String> = Vec::new();
-    let mut i = 0usize;
-    while i < toks.len() {
-        let t = &toks[i];
-        if t == "." {
-            // A statement-terminating '.' is pure SPARQL syntax (an optional separator between
-            // triple patterns); two selects that differ only in trailing terminators are
-            // α-equivalent, so it never contributes to the identity key.
-            i += 1;
-            continue;
-        }
-        if t == "$this" || t == "?this" {
-            out.push("?this".to_owned());
-        } else if t == "[" && toks.get(i + 1).map(String::as_str) == Some("]") {
-            out.push(format!("?v{fresh}"));
-            fresh += 1;
-            i += 2;
-            continue;
-        } else if let Some(rest) = t.strip_prefix('?').or_else(|| t.strip_prefix('$')) {
-            let key = rest.to_owned();
-            let name = rename.entry(key).or_insert_with(|| {
-                let n = format!("?v{fresh}");
-                fresh += 1;
-                n
-            });
-            out.push(name.clone());
-        } else if t.chars().all(|ch| ch.is_ascii_alphabetic()) {
-            out.push(t.to_ascii_uppercase());
-        } else if (t.starts_with('\'') && t.ends_with('\'') && t.len() >= 2)
-            || (t.starts_with('"') && t.ends_with('"') && t.len() >= 2)
-        {
-            // A SPARQL string literal: the quote CHARACTER carries no semantics ('x' ≡ "x"), so
-            // canonicalize to double quotes. Two selects differing only in quote style flag the
-            // same nodes, so this stays a SOUND identity.
-            out.push(format!("\"{}\"", &t[1..t.len() - 1]));
-        } else {
-            out.push(t.clone());
-        }
-        i += 1;
-    }
-    strip_redundant_grouping_parens(&mut out);
-    out.join(" ")
-}
-
-/// Remove SOUND-to-drop grouping parentheses from an α-canonical token stream: a `( … )` pair
-/// whose opening paren is a GROUPING paren (its preceding token is not a function/keyword
-/// identifier — so it is not an argument list) and whose enclosed span carries no depth-0 infix
-/// operator (`||` / `&&` / comparison / arithmetic) is a redundant parenthesization of a single
-/// primary expression, so dropping it never changes the parse. This canonicalizes the projector's
-/// defensively-parenthesized `( ( A ) || ( B ) )` and a hand-authored `( A || B )` to one form.
-fn strip_redundant_grouping_parens(toks: &mut Vec<String>) {
-    let is_ident = |t: &str| t.chars().next().is_some_and(|c| c.is_ascii_alphanumeric());
-    let is_infix = |t: &str| {
-        matches!(
-            t,
-            "||" | "&&" | "|" | "&" | "=" | "!=" | "<" | ">" | "<=" | ">=" | "+" | "-" | "*" | "/"
-        )
-    };
-    loop {
-        let mut removed = false;
-        let mut i = 0usize;
-        while i < toks.len() {
-            if toks[i] == "(" {
-                let grouping = i == 0 || !is_ident(&toks[i - 1]);
-                if grouping {
-                    // Find the matching close paren and test for a depth-0 infix operator.
-                    let mut depth = 1i32;
-                    let mut j = i + 1;
-                    let mut top_level_op = false;
-                    while j < toks.len() && depth > 0 {
-                        match toks[j].as_str() {
-                            "(" => depth += 1,
-                            ")" => depth -= 1,
-                            t if depth == 1 && (is_infix(t) || t == ",") => top_level_op = true,
-                            _ => {}
-                        }
-                        if depth == 0 {
-                            break;
-                        }
-                        j += 1;
-                    }
-                    if j < toks.len() && depth == 0 && !top_level_op {
-                        toks.remove(j);
-                        toks.remove(i);
-                        removed = true;
-                        continue;
-                    }
-                }
-            }
-            i += 1;
-        }
-        if !removed {
-            break;
-        }
-    }
-}
-
-/// The `sh:select` bodies of every `sh:sparql` constraint on `subject`, sorted for set
-/// comparison.
-fn sparql_constraint_selects(ds: &RdfDataset, subject: &str) -> Vec<String> {
-    let mut out = Vec::new();
-    let (Some(sid), Some(sparql), Some(select)) = (
-        ds.term_id_by_value(&TermValue::iri(subject)),
-        ds.term_id_by_value(&TermValue::iri(SH_SPARQL)),
-        ds.term_id_by_value(&TermValue::iri(SH_SELECT)),
-    ) else {
-        return out;
-    };
-    for q in ds.quads_for_pattern(Some(sid), Some(sparql), None, GraphMatch::Any) {
-        for sel in ds.quads_for_pattern(Some(q.o), Some(select), None, GraphMatch::Any) {
-            if let TermRef::Literal { lexical, .. } = ds.resolve(sel.o) {
-                out.push(lexical.to_owned());
-            }
-        }
-    }
-    out.sort();
-    out
-}
-
-/// The raw `sh:target [ … sh:select "…" ]` body on `subject`, when it carries exactly one.
-fn raw_target_select(ds: &RdfDataset, subject: &str) -> Option<String> {
-    let (sid, target, select) = (
-        ds.term_id_by_value(&TermValue::iri(subject))?,
-        ds.term_id_by_value(&TermValue::iri(SH_TARGET))?,
-        ds.term_id_by_value(&TermValue::iri(SH_SELECT))?,
-    );
-    let mut found: Option<String> = None;
-    for q in ds.quads_for_pattern(Some(sid), Some(target), None, GraphMatch::Any) {
-        for sel in ds.quads_for_pattern(Some(q.o), Some(select), None, GraphMatch::Any) {
-            if let TermRef::Literal { lexical, .. } = ds.resolve(sel.o) {
-                if found.is_some() {
-                    return None; // ambiguous — never ground on a multi-target guess
-                }
-                found = Some(lexical.to_owned());
-            }
-        }
-    }
-    found
-}
-
-/// The canonical enforcement key of a raw-SPARQL-target block: the α-canonical target select
-/// plus the sorted α-canonical `sh:sparql` select set.
-fn raw_sparql_block_key(target_select: &str, constraint_selects: &[String]) -> String {
-    let mut selects: Vec<String> = constraint_selects
-        .iter()
-        .map(|s| sparql_alpha_canonical(s))
-        .collect();
-    selects.sort();
-    format!(
-        "target={} constraints={}",
-        sparql_alpha_canonical(target_select),
-        selects.join(" | ")
-    )
-}
+mod query_identity;
+use query_identity::raw_sparql_block_key;
 
 /// Parse a Turtle file into a dataset, mapping a read/parse failure to the dev exit code.
 fn parse_ttl_file(path: &Path) -> Result<std::sync::Arc<RdfDataset>, i32> {
@@ -806,40 +598,38 @@ impl OracleCtx {
     }
 
     /// Whether an exact `logic:formalizes <iri>` record on a projected constraint surface
-    /// REPLICATES a raw-SPARQL-target legacy block verbatim: the record's own raw `sh:target`
-    /// select and its full `sh:sparql` select set are α-equivalent (variable renaming,
-    /// whitespace, keyword case — nothing else) to the legacy block's. α-equivalent selects
-    /// choose the same focus set and flag the same nodes over every graph, so this is a
-    /// VERIFIED reproduction — strictly stronger evidence than the `sh:sparql` trust anchor,
-    /// available where the witness synthesizer cannot model the target's join skeleton.
+    /// reproduces a raw-SPARQL-target block through native query identity and effective
+    /// report metadata. Local variables may be renamed, while output bindings, literal
+    /// contents, prologues, severity, messages, annotations and deactivation are preserved.
+    /// This path is available where the witness synthesizer cannot model a join target.
     fn record_replicates_raw_sparql_block(
         &self,
         iri: &str,
         target: &ShapeTarget,
         legacy_ds: &RdfDataset,
     ) -> bool {
-        let ShapeTarget::Sparql(legacy_target_select) = target else {
+        if !matches!(target, ShapeTarget::Sparql(_)) {
             return false;
-        };
-        let legacy_selects = sparql_constraint_selects(legacy_ds, iri);
-        if legacy_selects.is_empty() {
-            return false; // nothing to replicate — not this clearance's shape
         }
-        let legacy_key = raw_sparql_block_key(legacy_target_select, &legacy_selects);
+        let legacy_key = match raw_sparql_block_key(legacy_ds, iri) {
+            Ok(Some(key)) => key,
+            Ok(None) => return false,
+            Err(error) => {
+                eprintln!("raw-SPARQL identity refused for {iri}: {error}");
+                return false;
+            }
+        };
         for ds in &self.constraint_surfaces {
             for (record, formalized) in gmeow_validate::shape_grounding::formalizes_records(ds) {
                 if !formalized.contains(iri) {
                     continue;
                 }
-                let Some(record_target) = raw_target_select(ds, &record) else {
-                    continue;
-                };
-                let record_selects = sparql_constraint_selects(ds, &record);
-                if record_selects.is_empty() {
-                    continue;
-                }
-                if raw_sparql_block_key(&record_target, &record_selects) == legacy_key {
-                    return true;
+                match raw_sparql_block_key(ds, &record) {
+                    Ok(Some(key)) if key == legacy_key => return true,
+                    Ok(_) => {}
+                    Err(error) => {
+                        eprintln!("raw-SPARQL identity refused for {record}: {error}");
+                    }
                 }
             }
         }

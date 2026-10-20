@@ -1467,6 +1467,87 @@ const MATH_PROJECTION_LOSS_PREFIXES: &str = "@prefix math: <https://blackcatinfo
          @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
          @prefix ex: <http://example.org/math/> .\n";
 
+#[test]
+fn math_exact_projection_records_reject_named_and_literal_loss() {
+    for drop in ["\"provenance\"", "ex:bindingMetadata", "[]"] {
+        let source = format!(
+            "{MATH_PROJECTION_LOSS_PREFIXES} ex:projection a math:ProjectionRecord ; \
+             logic:preservationKind logic:ExactPreservation ; logic:unsupportedConstruct {drop} ."
+        );
+        let report = structural_lint_dataset(&dataset_from(&source), &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|error| error.contains("math:ExactPreservationViolated")),
+            "accepted {drop}: {:?}",
+            report.errors()
+        );
+    }
+}
+
+#[test]
+fn math_exact_projection_records_do_not_hide_anonymous_or_malformed_claims() {
+    for declaration in [
+        "logic:preservationKind logic:ExactPreservation ; logic:unsupportedConstruct \"provenance\"",
+        "logic:preservationKind logic:ExactPreservation, \"sound\"",
+        "logic:preservationKind logic:ExactPreservation, []",
+    ] {
+        let source =
+            format!("{MATH_PROJECTION_LOSS_PREFIXES} [] a math:ProjectionRecord ; {declaration} .");
+        let report = structural_lint_dataset(&dataset_from(&source), &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|error| error.contains("math:ExactPreservationViolated")),
+            "accepted {declaration}: {:?}",
+            report.errors()
+        );
+    }
+}
+
+#[test]
+fn math_exact_projection_records_reject_conflicting_polarity_in_named_graphs() {
+    let source = format!(
+        "{MATH_PROJECTION_LOSS_PREFIXES} ex:world {{ ex:projection a math:ProjectionRecord ; \
+         logic:preservationKind logic:ExactPreservation, logic:SoundUnderApproximation . }}"
+    );
+    let dataset = parse_dataset(source.as_bytes(), "application/trig", None).unwrap();
+    let report = structural_lint_dataset(&dataset, &cfg());
+    assert!(
+        report
+            .errors()
+            .iter()
+            .any(|error| error.contains("math:ExactPreservationViolated")),
+        "{:?}",
+        report.errors()
+    );
+}
+
+#[test]
+fn math_projection_exact_and_explicit_loss_judgments_remain_admissible() {
+    for declaration in [
+        "logic:preservationKind logic:ExactPreservation",
+        "logic:preservationKind logic:SoundUnderApproximation ; logic:unsupportedConstruct \"provenance\"",
+        "logic:preservationKind logic:CompleteOverApproximation ; logic:unsupportedConstruct ex:bindingMetadata",
+        "logic:preservationKind logic:Unsupported ; logic:unsupportedConstruct \"expression AST\"",
+    ] {
+        let source = format!(
+            "{MATH_PROJECTION_LOSS_PREFIXES} ex:projection a math:ProjectionRecord ; {declaration} ."
+        );
+        let report = structural_lint_dataset(&dataset_from(&source), &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|error| error.contains("math:ExactPreservationViolated")),
+            "rejected {declaration}: {:?}",
+            report.errors()
+        );
+    }
+}
+
 /// A lossy `math:ProjectionRecord` whose `math:projectionSource` is a
 /// `math:MathematicalExpression`, with `unsupported_literal` as its ONLY
 /// `logic:unsupportedConstruct` entry.

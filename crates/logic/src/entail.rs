@@ -403,13 +403,13 @@ impl Minter {
 
     /// The fresh complement class for `class` (disjoint, content-addressed).
     fn complement(&self, class: &str) -> String {
-        let h = blake3::hash(class.as_bytes()).to_hex();
+        let h = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(class.as_bytes()).as_bytes());
         format!("{ENTAIL_RESERVED_NS}complement-{}", &h[..16])
     }
 
     /// The fresh witness individual for refuting a subsumption whose antecedent is `class`.
     fn witness(&self, class: &str) -> String {
-        let h = blake3::hash(class.as_bytes()).to_hex();
+        let h = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(class.as_bytes()).as_bytes());
         format!("{ENTAIL_RESERVED_NS}witness-{}", &h[..16])
     }
 }
@@ -699,7 +699,7 @@ fn reason_refutation(
         LogicalGraph::Named(purrdf::TermValue::iri(ENTAIL_WORLD)),
         DomainProfile::NonemptyObjectDomainV1,
         AUTHORITY.to_owned(),
-        *blake3::hash(&selection).as_bytes(),
+        *purrdf_hash::blake3::hash(&selection).as_bytes(),
     )?])?;
     crate::reason::reason_all(input, &domains)
 }

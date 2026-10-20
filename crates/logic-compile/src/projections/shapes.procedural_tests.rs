@@ -1477,6 +1477,140 @@ fn flagged_over(shapes_ttl: &str, data: &str) -> Vec<String> {
 }
 
 #[test]
+fn finite_numeric_projection_preserves_exact_values_and_refuses_nonfinite_terms() {
+    let finite = Formula::atom(
+        tiri("https://blackcatinformatics.ca/logic/termIsFiniteNumeric"),
+        vec![tvar("value")],
+    )
+    .unwrap();
+    let law = guarded(
+        "https://ex/finite",
+        forall(
+            "value",
+            Formula::Implies(
+                Box::new(atom("https://ex/value", tvar("this"), tvar("value"))),
+                Box::new(finite),
+            ),
+        ),
+    );
+    let program = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![law]);
+    let shapes = project_procedural_constraints(&program);
+    for (value, valid) in [
+        ("0", true),
+        ("-7", true),
+        ("2.5", true),
+        (
+            "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+            true,
+        ),
+        ("\"1.5\"^^<http://www.w3.org/2001/XMLSchema#double>", true),
+        ("\"INF\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+        ("\"-INF\"^^<http://www.w3.org/2001/XMLSchema#float>", false),
+        ("\"NaN\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+        ("\"hello\"", false),
+        ("\"2.5\"", false),
+        ("\"oops\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+        ("\"2\"@en", false),
+        ("<https://ex/pole>", false),
+        ("_:blank", false),
+    ] {
+        let data =
+            format!("<https://ex/focus> <{RDF_TYPE}> <{WIDGET}> ; <https://ex/value> {value} .");
+        assert_eq!(
+            flagged_over_turtle(&shapes, &data).is_empty(),
+            valid,
+            "{value}"
+        );
+    }
+}
+
+#[test]
+fn finite_numeric_measure_and_signed_pole_branches_validate_independently() {
+    let finite = Formula::atom(
+        tiri("https://blackcatinformatics.ca/logic/termIsFiniteNumeric"),
+        vec![tvar("value")],
+    )
+    .unwrap();
+    let membership = |poles: &[&str]| {
+        Formula::atom(
+            tiri("https://blackcatinformatics.ca/logic/termIn"),
+            std::iter::once(tvar("value"))
+                .chain(poles.iter().map(|pole| tiri(pole)))
+                .collect(),
+        )
+        .unwrap()
+    };
+    let nonnegative = atom(
+        "https://blackcatinformatics.ca/logic/termGreaterEqual",
+        tvar("value"),
+        Term::literal("0", Some("http://www.w3.org/2001/XMLSchema#integer".into())).unwrap(),
+    );
+    let positive = "https://ex/PositiveInfinity";
+    let negative = "https://ex/NegativeInfinity";
+    for (measure, allowed) in [
+        (
+            false,
+            Formula::Or(vec![finite.clone(), membership(&[positive, negative])]),
+        ),
+        (
+            true,
+            Formula::Or(vec![
+                Formula::And(vec![finite.clone(), nonnegative]),
+                membership(&[positive]),
+            ]),
+        ),
+    ] {
+        let law = guarded(
+            "https://ex/valueLaw",
+            forall(
+                "value",
+                Formula::Implies(
+                    Box::new(atom("https://ex/value", tvar("this"), tvar("value"))),
+                    Box::new(allowed),
+                ),
+            ),
+        );
+        let shapes = project_procedural_constraints(
+            &LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![law]),
+        );
+        for (value, valid) in [
+            ("0", true),
+            ("2.5", true),
+            ("-0.25", !measure),
+            ("<https://ex/PositiveInfinity>", true),
+            ("<https://ex/NegativeInfinity>", !measure),
+            ("\"text\"", false),
+            ("_:blank", false),
+            ("<https://ex/other>", false),
+            ("\"INF\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+            ("\"NaN\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+        ] {
+            let data = format!(
+                "<https://ex/focus> <{RDF_TYPE}> <{WIDGET}> ; <https://ex/value> {value} ."
+            );
+            assert_eq!(
+                flagged_over_turtle(&shapes, &data).is_empty(),
+                valid,
+                "measure={measure}, value={value}"
+            );
+        }
+    }
+}
+
+/// Convert authored synthetic Turtle into the validation API's N-Triples input.
+fn flagged_over_turtle(shapes: &str, data: &str) -> Vec<String> {
+    let dataset =
+        purrdf::parse_dataset(data.as_bytes(), "text/turtle", None).expect("synthetic RDF parses");
+    let bytes = purrdf::serialize_dataset(
+        &*dataset,
+        "application/n-triples",
+        purrdf::SerializeGraph::Dataset,
+    )
+    .expect("synthetic RDF serializes");
+    flagged_over(shapes, std::str::from_utf8(&bytes).expect("RDF is UTF-8"))
+}
+
+#[test]
 fn arithmetic_sum_bind_lowers_and_flags_a_dimension_mismatch() {
     // ∀this:Widget. ¬∃(p,q,d,s). sigPos(this,p) ∧ sigNeg(this,q) ∧ dim(this,d) ∧
     //   termSum(s,p,q) ∧ termDistinct(s,d)  — the p+q ≠ dimensionCount invariant.

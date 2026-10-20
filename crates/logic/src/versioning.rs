@@ -35,14 +35,9 @@
 ///
 /// Encoding: 8-byte LE length followed by the raw bytes. This prevents component-boundary
 /// collisions that would arise from naive concatenation.
-fn feed(hasher: &mut blake3::Hasher, data: &[u8]) {
+fn feed(hasher: &mut purrdf_hash::blake3::Hasher, data: &[u8]) {
     hasher.update(&(data.len() as u64).to_le_bytes());
     hasher.update(data);
-}
-
-/// Return the lowercase hex string of a BLAKE3 digest.
-fn to_hex(digest: blake3::Hash) -> String {
-    digest.to_hex().to_string()
 }
 
 // ── Budget parameters ─────────────────────────────────────────────────────────────────────────────
@@ -129,14 +124,14 @@ pub struct MaterializedKeyInputs {
 ///
 /// Lowercase hex string of the 32-byte BLAKE3 digest.
 pub fn materialized_world_key(inputs: &MaterializedKeyInputs) -> String {
-    let mut h = blake3::Hasher::new();
+    let mut h = purrdf_hash::blake3::Hasher::new();
     feed(&mut h, b"materialized-world-key\0");
     feed(&mut h, &inputs.source_graph_hash);
     feed(&mut h, &inputs.rule_set_hash);
     feed(&mut h, inputs.profile_id.as_bytes());
     feed(&mut h, inputs.solver_version.as_bytes());
     feed(&mut h, &inputs.budget_params.to_bytes());
-    to_hex(h.finalize())
+    purrdf_hash::hex::encode(h.finalize().as_bytes())
 }
 
 // ── Counterfactual world key ──────────────────────────────────────────────────────────────────────
@@ -187,7 +182,7 @@ pub struct CounterfactualKeyInputs {
 ///
 /// Lowercase hex string of the 32-byte BLAKE3 digest.
 pub fn counterfactual_world_key(inputs: &CounterfactualKeyInputs) -> String {
-    let mut h = blake3::Hasher::new();
+    let mut h = purrdf_hash::blake3::Hasher::new();
     feed(&mut h, b"counterfactual-world-key\0");
     feed(&mut h, &inputs.base_world_hash);
     feed(&mut h, &inputs.antecedent_hash);
@@ -195,7 +190,7 @@ pub fn counterfactual_world_key(inputs: &CounterfactualKeyInputs) -> String {
     feed(&mut h, &inputs.entrenchment_hash);
     feed(&mut h, inputs.profile.as_bytes());
     feed(&mut h, inputs.solver_version.as_bytes());
-    to_hex(h.finalize())
+    purrdf_hash::hex::encode(h.finalize().as_bytes())
 }
 
 // ── Hypothetical run key ──────────────────────────────────────────────────────────────────────────
@@ -247,13 +242,13 @@ pub struct HypotheticalRunKeyInputs {
 ///
 /// Lowercase hex string of the 32-byte BLAKE3 digest.
 pub fn hypothetical_run_key(inputs: &HypotheticalRunKeyInputs) -> String {
-    let mut h = blake3::Hasher::new();
+    let mut h = purrdf_hash::blake3::Hasher::new();
     feed(&mut h, b"hypothetical-run-key\0");
     feed(&mut h, &inputs.start_state_hash);
     feed(&mut h, &inputs.program_hash);
     feed(&mut h, inputs.world.as_bytes());
     feed(&mut h, inputs.solver_version.as_bytes());
-    to_hex(h.finalize())
+    purrdf_hash::hex::encode(h.finalize().as_bytes())
 }
 
 // ── Unit tests — AC#3: cache-invalidation ────────────────────────────────────────────────────────

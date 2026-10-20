@@ -749,6 +749,7 @@ fn resolve_source_selection(
                 manifest,
                 source,
                 target: string(&unit["target"], "name")?.to_owned(),
+                edition: string(&unit["target"], "edition")?.to_owned(),
                 kinds: strings(&unit["target"]["kind"])?,
                 cfg,
                 dependency_names,

@@ -82,7 +82,7 @@ fn explicit_theory_selection_does_not_mint_support_graph_domains() {
         LogicalGraph::Named(purrdf::TermValue::iri("urn:selected-theory")),
         DomainProfile::NonemptyObjectDomainV1,
         "gmeow.pipeline.test.selected-theory.v1".to_owned(),
-        *blake3::hash(
+        *purrdf_hash::blake3::hash(
             b"gmeow.pipeline.test.selected-theory.v1/urn:selected-theory/nonempty-object-domain-v1",
         )
         .as_bytes(),

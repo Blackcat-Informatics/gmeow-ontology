@@ -125,8 +125,10 @@ BANNED_ANY_EDGE: dict[str, str] = {
     "signature": "purrdf_ed25519 (sign/verify are inherent methods)",
     "fiat-crypto": "purrdf_ed25519 (no second field arithmetic)",
     "hex": "purrdf_hash::hex",
+    "blake3": "purrdf_hash::blake3",
     "sha1": "purrdf_hash::sha1::Sha1",
     "serde_yml": "purrdf_lex::yaml",
+    "jsonschema": "purrdf_jsonschema::{Registry, Schema}",
 }
 
 # Removed as a direct dependency of every workspace member, while a direct

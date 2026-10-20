@@ -11,6 +11,97 @@ use purrdf::{
 use std::path::PathBuf;
 use std::sync::Arc;
 
+#[test]
+fn codec_failures_retain_native_codes_and_typed_causes() {
+    let json = b"{invalid JSON";
+    let yaml = b"@context: [unterminated";
+    for (label, failure, native) in [
+        (
+            "parse JSON-LD-star",
+            parse_jsonld_star(json).unwrap_err(),
+            jsonld::parse_jsonld(json, None).unwrap_err(),
+        ),
+        (
+            "project JSON-LD-star statement metadata",
+            jsonld_star_to_gmeow_statement_metadata_nquads(json).unwrap_err(),
+            jsonld::jsonld_to_statement_metadata_nquads(
+                json,
+                None,
+                Some(&gmeow_statement_metadata_vocab()),
+            )
+            .unwrap_err(),
+        ),
+        (
+            "convert YAML-LD-star to JSON-LD-star",
+            yaml_ld_star_to_json(yaml).unwrap_err(),
+            jsonld::yamlld_to_jsonld(yaml).unwrap_err(),
+        ),
+        (
+            "project YAML-LD-star statement metadata",
+            yaml_ld_star_to_gmeow_statement_metadata_nquads(yaml).unwrap_err(),
+            jsonld::yamlld_to_statement_metadata_nquads(
+                yaml,
+                None,
+                Some(&gmeow_statement_metadata_vocab()),
+            )
+            .unwrap_err(),
+        ),
+    ] {
+        assert_eq!(
+            failure.downcast_ref::<purrdf::RdfDiagnostic>(),
+            Some(&native),
+            "{label}"
+        );
+        assert_eq!(
+            failure.code(),
+            gmeow_errors::register_code(&native.code),
+            "{label}"
+        );
+        assert_ne!(
+            failure.code(),
+            crate::error::Decode::register(),
+            "{label}: a codec error is not a cache decode error"
+        );
+        assert_eq!(failure.inner().message, native.message, "{label}");
+        assert_eq!(failure.inner().context.last().unwrap().label, label);
+        assert!(
+            failure
+                .emitted_at()
+                .file()
+                .ends_with("crates/pipeline/src/stages/yaml_ld.rs"),
+            "{label}: codec caller owns the emission site"
+        );
+        assert!(
+            failure
+                .inner()
+                .context
+                .last()
+                .unwrap()
+                .at
+                .file()
+                .ends_with("crates/pipeline/src/stages/yaml_ld.rs"),
+            "{label}: operation context belongs to the codec caller"
+        );
+        if let Some(location) = &native.location {
+            assert_eq!(
+                failure.inner().source_ctx.location,
+                gmeow_errors::Location::from_rdf(location),
+                "{label}"
+            );
+            assert_eq!(
+                failure
+                    .inner()
+                    .source_ctx
+                    .focus
+                    .as_ref()
+                    .map(|focus| focus.0.as_str()),
+                location.subject.as_deref(),
+                "{label}"
+            );
+        }
+    }
+}
+
 // Literal datatype sentinels for the synthetic-fixture → dataset bridge.
 const RDF_DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
@@ -1104,6 +1195,18 @@ fn annotation_fragment_validates_against_json_schema() {
         crate::stages::json_schema::JSON_SCHEMA_PATH,
     )
     .expect("load the producer-selected JSON Schema read-only");
+    // Exercise the exact complete producer artifact before changing its root to
+    // Annotation. Parser depth and schema admission must accept these bytes.
+    let root_errors = gmeow_validate::instance::validate_instance(
+        b"null",
+        gmeow_validate::instance::InstanceFormat::Json,
+        &schema_bytes,
+    )
+    .expect("the complete producer-selected schema parses and compiles");
+    assert!(
+        !root_errors.is_empty(),
+        "the complete GMEOW document schema must reject a null document"
+    );
     let mut schema: Value = serde_json::from_slice(&schema_bytes).expect("schema is valid JSON");
 
     // Validate a sample annotation object (the value inside `@annotation`) by
@@ -1117,11 +1220,6 @@ fn annotation_fragment_validates_against_json_schema() {
     schema.as_object_mut().unwrap().remove("properties");
     schema.as_object_mut().unwrap().remove("type");
 
-    let validator = jsonschema::options()
-        .with_draft(jsonschema::Draft::Draft202012)
-        .build(&schema)
-        .expect("annotation subschema compiles");
-
     // Sample fragment mirroring the annotation objects the serializer emits:
     // typed-literal value objects (string `@value` + `@type`) and IRI objects.
     let fragment = serde_json::json!({
@@ -1130,10 +1228,12 @@ fn annotation_fragment_validates_against_json_schema() {
         "gmeow:assertedAt": {"@value": "2026-06-05T00:00:00Z", "@type": "xsd:dateTime"}
     });
 
-    let errors: Vec<String> = validator
-        .iter_errors(&fragment)
-        .map(|e| e.to_string())
-        .collect();
+    let errors = gmeow_validate::instance::validate_instance(
+        &serde_json::to_vec(&fragment).expect("serialize annotation fragment"),
+        gmeow_validate::instance::InstanceFormat::Json,
+        &serde_json::to_vec(&schema).expect("serialize annotation schema"),
+    )
+    .expect("annotation subschema compiles and evaluates");
     assert!(
         errors.is_empty(),
         "sample @annotation fragment must validate against the $defs/Annotation schema: {errors:?}"
@@ -1151,10 +1251,12 @@ fn yaml_ld_star_ingest_rejects_anchors() {
     let anchored = "anchor: &a {x: 1}\nalias: *a\n";
     let err =
         yaml_ld_star_to_json(anchored.as_bytes()).expect_err("YAML anchors/aliases must hard-fail");
-    assert!(
-        err.is::<crate::error::Decode>(),
-        "expected a Decode error, got {err:?}"
-    );
+    let native = err
+        .downcast_ref::<purrdf::RdfDiagnostic>()
+        .expect("original native codec refusal");
+    assert_eq!(err.code(), gmeow_errors::register_code(&native.code));
+    assert_ne!(err.code(), crate::error::Decode::register());
+    assert!(native.message.contains("anchors") && native.message.contains("aliases"));
 }
 
 #[test]

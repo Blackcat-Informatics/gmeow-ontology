@@ -127,7 +127,7 @@ impl SelectedLogicalWorld {
             // applications with no RDF premises in different world/contracts.
             rule_iri: format!(
                 "urn:gmeow:rule:nonempty-object-domain:v1:{}",
-                blake3::Hash::from(self.identity()).to_hex()
+                purrdf_hash::hex::Digest32::new(self.identity()).to_hex()
             ),
             body: Vec::new(),
             head: vec![EvalAtom::positive(

@@ -658,10 +658,10 @@ fn content_id_canonical(class_local: &str, payload: &CoherencePayload) -> String
 /// collision of the former FNV-1a that hashed only four fields.
 fn content_id(class_local: &str, payload: &CoherencePayload) -> String {
     let canonical = content_id_canonical(class_local, payload);
-    let digest = blake3::hash(canonical.as_bytes());
+    let digest = purrdf_hash::blake3::hash(canonical.as_bytes());
     // 32 hex chars (first 16 bytes of the 32-byte blake3 output) — compact but
     // still far beyond collision probability for any realistic certificate volume.
-    digest.to_hex()[..32].to_owned()
+    purrdf_hash::hex::encode(&digest.as_bytes()[..16])
 }
 
 /// A deterministic content-addressed local id for the minted `logic:ReasoningResult`
@@ -682,8 +682,8 @@ fn result_content_id(payload: &CoherencePayload) -> String {
     .unwrap();
     writeln!(buf, "engine_name={}", payload.engine.name).unwrap();
     writeln!(buf, "engine_version={}", payload.engine.version).unwrap();
-    let digest = blake3::hash(buf.as_bytes());
-    digest.to_hex()[..32].to_owned()
+    let digest = purrdf_hash::blake3::hash(buf.as_bytes());
+    purrdf_hash::hex::encode(&digest.as_bytes()[..16])
 }
 
 /// Compute a stable, deterministic digest per axiom-bearing named graph of a

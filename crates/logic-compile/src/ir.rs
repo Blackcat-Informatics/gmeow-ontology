@@ -1101,14 +1101,14 @@ impl ReasoningContract {
     /// determinism-pinned order.
     #[must_use]
     pub fn content_digest(&self) -> String {
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         let key = self.content_key();
         let tag: &[u8] = b"gmeow-logic-reasoning-contract-v1";
         hasher.update(&(tag.len() as u64).to_le_bytes());
         hasher.update(tag);
         hasher.update(&(key.len() as u64).to_le_bytes());
         hasher.update(key.as_bytes());
-        hasher.finalize().to_hex().to_string()
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
     }
 }
 

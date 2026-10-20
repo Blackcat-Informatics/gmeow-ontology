@@ -318,7 +318,7 @@ impl Entrenchment {
     /// BLAKE3 digest of [`Self::canonical_bytes`] — the `entrenchment_hash`
     /// component of [`crate::versioning::CounterfactualKeyInputs`].
     pub fn hash(&self) -> [u8; 32] {
-        *blake3::hash(&self.canonical_bytes()).as_bytes()
+        *purrdf_hash::blake3::hash(&self.canonical_bytes()).as_bytes()
     }
 
     /// The set of IRIs participating in the ordering (test/inspection aid).

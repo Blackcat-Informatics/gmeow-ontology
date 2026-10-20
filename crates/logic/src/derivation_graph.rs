@@ -431,7 +431,7 @@ impl DerivationGraph {
     /// Used by the incremental==rebuild equivalence test.
     #[must_use]
     pub fn content_digest(&self) -> String {
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         for (fact, proofs) in &self.justifications {
             hasher.update(b"F\n");
             hasher.update(fact.as_str().as_bytes());
@@ -453,7 +453,7 @@ impl DerivationGraph {
                 }
             }
         }
-        hasher.finalize().to_hex().to_string()
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
     }
 }
 

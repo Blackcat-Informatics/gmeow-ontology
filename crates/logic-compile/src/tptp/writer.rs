@@ -839,8 +839,8 @@ fn missing(kind: &str, index: usize) -> (String, String) {
 }
 
 fn digest_bytes(domain: &[u8], value: &[u8]) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(domain);
     hasher.update(value);
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }

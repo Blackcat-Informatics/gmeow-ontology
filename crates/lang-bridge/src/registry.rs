@@ -1757,7 +1757,9 @@ fn grammar_iri_for(canonical_text: &str) -> String {
 /// over the grammar's own formalism — the fixpoint discipline, not a raw-byte compare.
 fn grammar_round_trip(text: &str, canon: &Grammar) -> GrammarReparse {
     GrammarReparse {
-        emitted_digest: blake3::hash(text.as_bytes()).to_hex().to_string(),
+        emitted_digest: purrdf_hash::hex::encode(
+            purrdf_hash::blake3::hash(text.as_bytes()).as_bytes(),
+        ),
         grammar: parse_grammar(text.as_bytes(), canon.formalism)
             .map(|grammar| grammar.canonicalize()),
     }

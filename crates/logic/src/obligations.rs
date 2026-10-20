@@ -42,7 +42,9 @@ use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermId, TermRef, TermValue};
 use sha2::{Digest, Sha256};
 
-use gmeow_errors::{Finding, Severity};
+use gmeow_errors::{
+    Diag, Finding, FindingCategory, Grade, Label, Location, Severity, Standpoint, register_code,
+};
 
 #[cfg(test)]
 use crate::foundation;
@@ -53,13 +55,30 @@ mod assessment;
 pub(crate) use assessment::governance_statement;
 pub use assessment::{
     ObligationAssessment, ObligationDisposition, ObligationOutcome,
-    assess_non_entailment_obligations, check_non_entailment_obligations,
+    assess_non_entailment_obligations,
 };
 
 /// Wrap a governance-obligation condition message as a typed diagnostic on the
 /// shared substrate, preserving the authored text verbatim.
 fn obligation_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Obligation { detail })
+}
+
+#[track_caller]
+fn obligation_source_error(
+    detail: String,
+    source: impl std::error::Error + Send + Sync + 'static,
+) -> Diag {
+    Diag::new(
+        crate::error::Obligation::register(),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        detail,
+    )
+    .with_source(source)
 }
 
 /// The `logic:` namespace prefix (every governance term is `logic:`-namespaced).
@@ -75,7 +94,10 @@ const SOURCE_LANG: &str = "x-gmeow-english";
 /// is a hard error rather than a silent `logic:ObligationUnknown` — an unwired
 /// discharge path must never be mistaken for a pass (LOGIC-FOUNDATION.md, §Typed
 /// formalization governance).
-const WIRED_DISCHARGE: &[&str] = &["DischargeSyntacticReachability", "DischargeFiniteClosure"];
+const DISCHARGE_SYNTACTIC: &str =
+    "https://blackcatinformatics.ca/logic/DischargeSyntacticReachability";
+const DISCHARGE_FINITE: &str = "https://blackcatinformatics.ca/logic/DischargeFiniteClosure";
+const WIRED_DISCHARGE: &[&str] = &[DISCHARGE_SYNTACTIC, DISCHARGE_FINITE];
 
 /// A `logic:NonEntailmentObligation` lifted from the reasoned graph.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -84,8 +106,7 @@ struct Obligation {
     iri: String,
     /// The forbidden predicate IRI (the value of `logic:obligationForbiddenPredicate`).
     forbidden_predicate: String,
-    /// The declared discharge conditions, as `logic:`-local names (e.g.
-    /// `DischargeSyntacticReachability`), sorted.
+    /// Complete declared discharge-condition IRIs, sorted without namespace loss.
     discharge_conditions: BTreeSet<String>,
 }
 
@@ -111,7 +132,9 @@ fn select(
                 substitutions: &[],
             },
         )
-        .map_err(|e| obligation_err(format!("governance query evaluation error: {e}")))?;
+        .map_err(|error| {
+            obligation_source_error("governance query evaluation failed".to_owned(), error)
+        })?;
     let (variables, result_rows) = match result {
         SparqlResult::Solutions {
             variables, rows, ..
@@ -234,9 +257,14 @@ fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obliga
             }
         };
         let predicate = purrdf::iri::parse(&forbidden_predicate).map_err(|error| {
-            obligation_err(format!(
-                "non-entailment obligation {iri} has an invalid forbidden predicate: {error}"
-            ))
+            obligation_source_error(
+                format!("non-entailment obligation {iri} has an invalid forbidden predicate"),
+                error,
+            )
+            .with_location(Location {
+                logical: Some(iri.clone()),
+                ..Location::default()
+            })
         })?;
         if !predicate.has_scheme() {
             return Err(obligation_err(format!(
@@ -250,7 +278,7 @@ fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obliga
                     "non-entailment obligation {iri} has a non-IRI discharge condition"
                 )));
             };
-            discharge_conditions.insert(logic_local(condition).to_owned());
+            discharge_conditions.insert(condition.to_owned());
         }
         obligations.push(Obligation {
             iri,
@@ -273,29 +301,81 @@ fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obliga
 /// -firing violation back to its declaring candidate(s), so a real candidate population
 /// makes the finding text/tags depend on the edge without changing pass/fail.
 fn attribute_to_candidates(
-    mut finding: Finding,
+    mut diag: Diag,
     obligation_iri: &str,
     candidates_by_obligation: &BTreeMap<String, BTreeSet<String>>,
-) -> Finding {
+) -> Diag {
     let Some(candidates) = candidates_by_obligation.get(obligation_iri) else {
-        return finding;
+        return diag;
     };
     if candidates.is_empty() {
-        return finding;
+        return diag;
     }
     let joined = candidates
         .iter()
-        .map(|c| format!("<{c}>"))
+        .map(|candidate| format!("<{candidate}>"))
         .collect::<Vec<_>>()
         .join(", ");
-    finding.message.push_str(&format!(
-        " — declared by formalization candidate(s) {joined} (over-typing surfaced through \
-         the typed candidate lifecycle)"
+    diag.inner_mut().message.push_str(&format!(
+        " — declared by formalization candidate(s) {joined} (over-typing surfaced through the typed candidate lifecycle)"
     ));
-    finding
-        .tags
-        .extend(candidates.iter().map(|c| format!("candidate:{c}")));
-    finding
+    for candidate in candidates {
+        diag = diag
+            .with_tag(format!("candidate:{candidate}"))
+            .with_label(Label {
+                location: Location {
+                    logical: Some(candidate.clone()),
+                    ..Location::default()
+                },
+                text: "declaring candidate".to_owned(),
+            });
+        if !candidate.starts_with("_:") {
+            diag = diag.with_cited_iris([candidate]);
+        }
+    }
+    diag
+}
+
+#[track_caller]
+fn obligation_diag(
+    world: &purrdf::iri::BaseIri,
+    obligation: &Obligation,
+    field: &str,
+    code: &str,
+    message: String,
+) -> Diag {
+    let mut diag = Diag::new(
+        register_code(code),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    )
+    .with_location(Location {
+        logical: Some(obligation.iri.clone()),
+        ..Location::default()
+    })
+    .with_focus(
+        serde_json::to_string(&(&obligation.forbidden_predicate, field))
+            .expect("native obligation coordinates serialize"),
+    )
+    .with_graph(world.clone())
+    .with_tag("formalization-governance")
+    .with_tag("non-entailment")
+    .with_label(Label {
+        location: Location {
+            logical: Some(obligation.forbidden_predicate.clone()),
+            ..Location::default()
+        },
+        text: "forbidden predicate".to_owned(),
+    })
+    .with_cited_iris([&obligation.forbidden_predicate]);
+    if !obligation.iri.starts_with("_:") {
+        diag = diag.with_cited_iris([&obligation.iri]);
+    }
+    diag
 }
 
 /// Build the `obligation IRI -> sorted set of declaring candidate IRIs` attribution map
@@ -324,106 +404,68 @@ fn candidates_by_obligation(
 /// Arm A — syntactic reachability. A matching head prevents syntactic discharge;
 /// whether its body is satisfied requires evaluation and cannot be inferred here.
 fn check_reachability(
+    world: &purrdf::iri::BaseIri,
     obligation: &Obligation,
     may_write: bool,
-    candidates_by_obligation: &BTreeMap<String, BTreeSet<String>>,
-) -> Option<Finding> {
+    candidates: &BTreeMap<String, BTreeSet<String>>,
+) -> Option<Diag> {
     if !obligation
         .discharge_conditions
-        .contains("DischargeSyntacticReachability")
+        .contains(DISCHARGE_SYNTACTIC)
+        || !may_write
     {
         return None;
     }
-    if may_write {
-        let mut finding = Finding::new(
-            Severity::Error,
+    Some(attribute_to_candidates(
+        obligation_diag(
+            world,
+            obligation,
+            DISCHARGE_SYNTACTIC,
             "verify.non-entailment.not-discharged",
             format!(
-                "non-entailment obligation <{}> is NOT SYNTACTICALLY DISCHARGED: forbidden \
-                 predicate <{}> matches a rule head; this is possibility, not a witnessed \
-                 derivation (logic:ObligationUnknown)",
-                obligation.iri, obligation.forbidden_predicate
+                "non-entailment obligation <{}> is NOT SYNTACTICALLY DISCHARGED: forbidden predicate <{}> matches a rule head; this is possibility, not a witnessed derivation (logic:ObligationUnknown)",
+                obligation.iri, obligation.forbidden_predicate,
             ),
-        )
-        .with_tool("verify");
-        finding.tags = vec![
-            "formalization-governance".to_owned(),
-            "non-entailment".to_owned(),
-        ];
-        finding = attribute_to_candidates(finding, &obligation.iri, candidates_by_obligation);
-        return Some(finding);
-    }
-    None
+        ),
+        &obligation.iri,
+        candidates,
+    ))
 }
 
-/// Positive counterexample shared by both arms: returns a violation finding iff
-/// the forbidden predicate appears among the DERIVED
-/// (non-EDB) edges of the materialized closure. Asserted edges are excluded by
-/// construction, so an attributed, hand-asserted fact never trips this — only an
-/// entailed one does.
+/// Positive evidence is independent of the selected negative-proof arm.
 fn check_finite_closure(
+    world: &purrdf::iri::BaseIri,
     obligation: &Obligation,
     derived_predicates: &BTreeSet<String>,
-    candidates_by_obligation: &BTreeMap<String, BTreeSet<String>>,
-) -> Option<Finding> {
-    if derived_predicates.contains(&obligation.forbidden_predicate) {
-        let mut finding = Finding::new(
-            Severity::Error,
-            "verify.non-entailment.derived",
-            format!(
-                "non-entailment obligation <{}> VIOLATED: forbidden predicate <{}> appears as a \
-                 DERIVED edge in the materialized closure (logic:ObligationViolated)",
-                obligation.iri, obligation.forbidden_predicate
-            ),
-        )
-        .with_tool("verify");
-        finding.tags = vec![
-            "formalization-governance".to_owned(),
-            "non-entailment".to_owned(),
-        ];
-        finding = attribute_to_candidates(finding, &obligation.iri, candidates_by_obligation);
-        return Some(finding);
-    }
-    None
+    candidates: &BTreeMap<String, BTreeSet<String>>,
+) -> Option<Diag> {
+    derived_predicates.contains(&obligation.forbidden_predicate).then(|| {
+        attribute_to_candidates(obligation_diag(world, obligation, "derived",
+            "verify.non-entailment.derived", format!(
+                "non-entailment obligation <{}> VIOLATED: forbidden predicate <{}> appears as a DERIVED edge in the materialized closure (logic:ObligationViolated)",
+                obligation.iri, obligation.forbidden_predicate,
+            )), &obligation.iri, candidates)
+    })
 }
 
-/// The hard-error check for an obligation declaring a discharge condition the engine
-/// does not wire. Empty conditions are also an error (an obligation must declare how
-/// it is discharged).
-fn check_discharge_conditions(obligation: &Obligation) -> Vec<Finding> {
-    let mut findings = Vec::new();
+/// Each unsupported declared condition retains its own native-IRI anchor.
+fn check_discharge_conditions(world: &purrdf::iri::BaseIri, obligation: &Obligation) -> Vec<Diag> {
+    let mut diagnostics = Vec::new();
     if obligation.discharge_conditions.is_empty() {
-        findings.push(
-            Finding::new(
-                Severity::Error,
-                "verify.non-entailment.no-discharge",
-                format!(
-                    "non-entailment obligation <{}> declares no logic:obligationDischargeCondition; \
-                     it has no executable discharge path",
-                    obligation.iri
-                ),
-            )
-            .with_tool("verify"),
-        );
+        diagnostics.push(obligation_diag(world, obligation, "discharge-condition",
+            "verify.non-entailment.no-discharge", format!(
+                "non-entailment obligation <{}> declares no logic:obligationDischargeCondition; it has no executable discharge path", obligation.iri,
+            )));
     }
-    for cond in &obligation.discharge_conditions {
-        if !WIRED_DISCHARGE.contains(&cond.as_str()) {
-            findings.push(
-                Finding::new(
-                    Severity::Error,
-                    "verify.non-entailment.unwired-discharge",
-                    format!(
-                        "non-entailment obligation <{}> declares discharge condition logic:{cond}, \
-                         which the engine does not wire (only syntactic-reachability and \
-                         finite-closure are executable); no executable discharge path",
-                        obligation.iri
-                    ),
-                )
-                .with_tool("verify"),
-            );
+    for condition in &obligation.discharge_conditions {
+        if !WIRED_DISCHARGE.contains(&condition.as_str()) {
+            diagnostics.push(obligation_diag(world, obligation, condition,
+                "verify.non-entailment.unwired-discharge", format!(
+                    "non-entailment obligation <{}> declares discharge condition <{condition}>, which the engine does not wire (only syntactic-reachability and finite-closure are executable); no executable discharge path", obligation.iri,
+                )).with_cited_iris([condition]));
         }
     }
-    findings
+    diagnostics
 }
 
 /// The eleven closed `logic:FormalizationCategory` local names, in lifecycle-narrative

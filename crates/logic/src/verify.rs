@@ -626,7 +626,8 @@ fn verify_prepared(
     let mut report = Report::new("verify");
     // Governance consumes exact native scope even when an unrelated lane is
     // incomplete. Positive counterexamples must survive the query gate's refusal.
-    for finding in crate::obligations::check_non_entailment_obligations(result)? {
+    let obligations = crate::obligations::assess_non_entailment_obligations(result)?;
+    for finding in obligations.findings() {
         report.add_finding(finding);
     }
     let ReasonedGraph {

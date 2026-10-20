@@ -2707,6 +2707,18 @@ impl McpView {
         Ok(self.tier1_shapes.get_or_init(|| built))
     }
 
+    /// Borrow the parsed data-graph shapes owned by this exact snapshot.
+    ///
+    /// Repository-bound extensions use the same admitted authority as consumer
+    /// validation rather than reading a potentially stale generated directory.
+    ///
+    /// # Errors
+    /// Returns the native admission or shape-decoding failure.
+    #[cfg(feature = "core")]
+    pub fn validation_shapes(&self) -> gmeow_errors::Result<&purrdf::shapes::shapes::Shapes> {
+        Ok(self.tier1_shapes()?.parsed_shapes())
+    }
+
     /// Hydrate the producer's complete native dictionary once for this immutable snapshot.
     #[cfg(feature = "core")]
     fn gmn_dictionary(&self) -> gmeow_errors::Result<&GmnDictionary> {
@@ -3434,27 +3446,7 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                 ("batch", "integer"),
             ],
         ),
-        tool(
-            "submit_candidate",
-            "Propose/verify seam: test a candidate logic: formula against a KB and — ONLY if \
-                 the isolated-world verdict CORROBORATES it (admissible) — append it to the \
-                 append-only candidate library. A refuted or open candidate is never admitted and \
-                 stages nothing. `formula`/`kb`/`standpoint` are as conjecture_test; optional \
-                 `for_slice`/`for_packet` record target provenance; optional `max_steps`/\
-                 `max_answers` bound the isolated-world reasoning budget (as conjecture_test); \
-                 `dry_run=true` returns the verdict but writes nothing.",
-            &[
-                ("formula", "string"),
-                ("kb", "string"),
-                ("standpoint", "string"),
-                ("math_conjecture", "string"),
-                ("for_slice", "string"),
-                ("for_packet", "string"),
-                ("dry_run", "boolean"),
-                ("max_steps", "integer"),
-                ("max_answers", "integer"),
-            ],
-        ),
+        candidate_submission_descriptor(),
         tool(
             "withdraw_candidate",
             "The P10 compensating withdrawal of a persisted candidate: append a 'withdrawn' \
@@ -3854,6 +3846,16 @@ fn builtin_resource_handlers(segments: SegmentSet) -> Vec<(&'static str, Resourc
 }
 
 impl McpServer {
+    /// Submit through the registered candidate handler while retaining its native
+    /// diagnostic. Host extensions use this operation for governed composition.
+    ///
+    /// # Errors
+    /// Returns the same capability, argument, policy and execution failures as the
+    /// MCP wire operation, before its terminal JSON error projection.
+    pub fn submit_candidate(&self, args: &Value) -> gmeow_errors::Result<String> {
+        self.surface.dispatch_tool(self, "submit_candidate", args)
+    }
+
     pub fn call_tool_result(&self, name: &str, args: &Value) -> Value {
         if let Some(err) = args.get("__parse_error").and_then(Value::as_str) {
             return tool_text(json!({"ok": false, "error": err}).to_string(), true);
@@ -5461,10 +5463,11 @@ impl McpServer {
     fn tool_submit_candidate(&self, args: &Value) -> gmeow_errors::Result<String> {
         let formula_src = required_str(args, "formula")?;
         let kb_src = required_str(args, "kb")?;
+        let kb_format = optional_str_checked(args, "kb_format")?.unwrap_or("text/turtle");
         let standpoint = required_str(args, "standpoint")?;
-        let math_conjecture = optional_str(args, "math_conjecture");
-        let for_slice = optional_str(args, "for_slice");
-        let for_packet = optional_str(args, "for_packet");
+        let math_conjecture = optional_str_checked(args, "math_conjecture")?;
+        let for_slice = optional_str_checked(args, "for_slice")?;
+        let for_packet = optional_str_checked(args, "for_packet")?;
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
         let max_steps = optional_step_count(args, "max_steps")?;
         let max_answers = optional_limit(args, "max_answers")?;
@@ -5474,6 +5477,7 @@ impl McpServer {
             &CandidateSubmitInput {
                 formula_ttl: formula_src,
                 kb_ttl: kb_src,
+                kb_format,
                 standpoint,
                 math_conjecture,
                 for_slice,
@@ -5807,6 +5811,7 @@ struct ConjectureEvaluation {
 fn evaluate_conjecture(
     formula_ttl: &str,
     kb_ttl: &str,
+    kb_format: &str,
     standpoint: &str,
     math_conjecture: Option<&str>,
     max_steps: Option<u64>,
@@ -5819,18 +5824,14 @@ fn evaluate_conjecture(
         &gmeow_logic::conjecture_eval::ConjectureEvalInput {
             formula_ttl,
             kb_ttl,
-            kb_format: "text/turtle",
+            kb_format,
             standpoint,
             math_conjecture,
             max_steps,
             max_answers,
         },
     )
-    .map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("conjecture evaluation failed: {}", e.message()),
-        })
-    })?;
+    .map_err(|error| error.with_context("conjecture evaluation failed"))?;
 
     let witness = projection.witness.map(|w| ConjectureRunWitness {
         individual: w.individual,
@@ -5874,6 +5875,7 @@ pub fn run_conjecture_test_pure(
     let eval = evaluate_conjecture(
         formula_ttl,
         kb_ttl,
+        "text/turtle",
         standpoint,
         math_conjecture,
         max_steps,
@@ -5934,6 +5936,7 @@ pub fn run_conjecture_test(
     } = evaluate_conjecture(
         formula_ttl,
         kb_ttl,
+        "text/turtle",
         standpoint,
         math_conjecture,
         max_steps,
@@ -6018,8 +6021,10 @@ pub fn run_conjecture_test(
 pub struct CandidateSubmitInput<'a> {
     /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
     pub formula_ttl: &'a str,
-    /// The KB the candidate is tested against, as Turtle.
+    /// The KB the candidate is tested against in its explicitly selected format.
     pub kb_ttl: &'a str,
+    /// The media type of the selected KB (including graph-preserving formats).
+    pub kb_format: &'a str,
     /// The required reified standpoint scope IRI (Principle 9).
     pub standpoint: &'a str,
     /// Optionally, the `math:Conjecture` twin IRI (as `conjecture_test`).
@@ -6119,6 +6124,7 @@ pub fn run_submit_candidate(
     let CandidateSubmitInput {
         formula_ttl,
         kb_ttl,
+        kb_format,
         standpoint,
         math_conjecture,
         for_slice,
@@ -6141,6 +6147,7 @@ pub fn run_submit_candidate(
     } = evaluate_conjecture(
         formula_ttl,
         kb_ttl,
+        kb_format,
         standpoint,
         math_conjecture,
         max_steps,
@@ -6547,6 +6554,32 @@ fn lang_from_query(query: &str) -> Option<&str> {
         let (key, value) = pair.split_once('=')?;
         (key == "lang").then_some(value)
     })
+}
+
+/// The shared candidate-submission schema, including the explicit KB format.
+/// Repository extensions bind KB and provenance instead of redefining the operation.
+#[must_use]
+pub fn candidate_submission_descriptor() -> Value {
+    tool(
+        "submit_candidate",
+        "Test a candidate formula against the selected KB and append it only when the \
+         isolated-world verdict corroborates it. Refuted or open candidates stage nothing. \
+         kb_format selects the KB codec (default text/turtle); for_slice and for_packet \
+         record target provenance. max_steps and max_answers select reasoning limits. \
+         dry_run returns the verdict without writing.",
+        &[
+            ("formula", "string"),
+            ("kb", "string"),
+            ("kb_format", "string"),
+            ("standpoint", "string"),
+            ("math_conjecture", "string"),
+            ("for_slice", "string"),
+            ("for_packet", "string"),
+            ("dry_run", "boolean"),
+            ("max_steps", "integer"),
+            ("max_answers", "integer"),
+        ],
+    )
 }
 
 pub fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
@@ -7452,12 +7485,33 @@ fn base64_decode(what: &str, text: &str) -> gmeow_errors::Result<Vec<u8>> {
     Ok(out)
 }
 
-fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
+/// Read a required string using the same argument contract as built-in MCP tools.
+///
+/// # Errors
+/// Rejects a missing or non-string value with the native MCP diagnostic.
+pub fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
     optional_str(args, key).ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::Mcp {
             message: format!("{key} is required"),
         })
     })
+}
+
+/// Read a selected string argument without treating an invalid value as absence.
+///
+/// # Errors
+/// Rejects an explicitly supplied non-string value.
+pub fn optional_str_checked<'a>(
+    args: &'a Value,
+    key: &str,
+) -> gmeow_errors::Result<Option<&'a str>> {
+    match args.get(key) {
+        None => Ok(None),
+        Some(Value::String(value)) => Ok(Some(value.as_str())),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("{key} must be a string when supplied"),
+        })),
+    }
 }
 
 /// Read a REQUIRED JSON-object argument as an in-memory file map: each key is a
@@ -8876,3 +8930,6 @@ pub fn compact_store(
 /// runs. Nothing here touches a filesystem, an environment variable, or a clock.
 #[cfg(test)]
 mod browser_storage_tests;
+
+#[cfg(test)]
+mod packet_submission_tests;

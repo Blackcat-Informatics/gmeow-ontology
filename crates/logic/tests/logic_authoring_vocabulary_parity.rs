@@ -84,8 +84,9 @@ fn closure_result(turtle: &str) -> (BTreeSet<(String, String, String)>, Reasonin
     // Both spellings select the same default logical domain. Bind that admission
     // to the complete fixture pair so its intrinsic witness keeps one identity;
     // the prepared input independently authenticates each spelling's source.
-    let domain_selection =
-        blake3::hash(format!("{PREFIXES_OWL}{BODY_OWL}\0{PREFIXES_LOGIC}{BODY_LOGIC}").as_bytes());
+    let domain_selection = purrdf_hash::blake3::hash(
+        format!("{PREFIXES_OWL}{BODY_OWL}\0{PREFIXES_LOGIC}{BODY_LOGIC}").as_bytes(),
+    );
     let domains = SelectedDomains::new([SelectedLogicalWorld::new(
         LogicalGraph::Default,
         DomainProfile::NonemptyObjectDomainV1,

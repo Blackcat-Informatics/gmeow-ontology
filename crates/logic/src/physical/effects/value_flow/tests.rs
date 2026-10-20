@@ -85,21 +85,38 @@ fn column_fixed_point_covers_every_concrete_positive_derivation() {
                 source.insert(fact.clone());
             }
         }
-        let input = analysis.summarize(source.facts().iter());
-        let refined = analysis.refine(&effects, &input);
         let concrete = least_model_of_reduct(&source, &rules, &FactStore::new()).unwrap();
-        for row in concrete.derivations {
-            let rule = rules
-                .iter()
-                .position(|rule| rule.rule_iri == row.rule_iri)
-                .unwrap();
-            let range = refined[rule].writes[0]
-                .ranges
-                .as_ref()
-                .expect("reachable producer");
-            assert!(range[0].contains(analysis.universe.value(&row.subject)));
-            assert!(range[1].contains(analysis.universe.iri(&row.predicate)));
-            assert!(range[2].contains(analysis.universe.value(&row.object)));
+        // Column storage must not affect coverage, including the empty and
+        // recursive cases. Compare both layouts with concrete native execution.
+        for dense_columns in [false, true] {
+            let mut input = analysis.summarize(source.facts().iter());
+            for relation in input.relations.values_mut() {
+                for column in &mut relation.columns {
+                    let domain = column.to_domain();
+                    *column = if dense_columns {
+                        AdaptiveDomain::Dense(domain)
+                    } else {
+                        AdaptiveDomain::Sparse {
+                            size: analysis.universe.size(),
+                            values: domain.indices().collect(),
+                        }
+                    };
+                }
+            }
+            let refined = analysis.refine(&effects, &input);
+            for row in &concrete.derivations {
+                let rule = rules
+                    .iter()
+                    .position(|rule| rule.rule_iri == row.rule_iri)
+                    .unwrap();
+                let range = refined[rule].writes[0]
+                    .ranges
+                    .as_ref()
+                    .expect("reachable producer");
+                assert!(range[0].contains(analysis.universe.value(&row.subject)));
+                assert!(range[1].contains(analysis.universe.iri(&row.predicate)));
+                assert!(range[2].contains(analysis.universe.value(&row.object)));
+            }
         }
     }
 }
@@ -142,13 +159,87 @@ fn seeded_refinement_reuses_unseeded_fixed_point_without_changing_result() {
     let state = analysis.summarize(facts.iter());
     let lowered = &analysis.rules[0];
     let upper = analysis.bindings(lowered, &state).unwrap();
-    let subject = *lowered.names.get("?s").unwrap();
+    for (name, &variable) in &lowered.names {
+        for value in 0..analysis.universe.size() {
+            let from_universe = analysis.bindings_seeded(lowered, &state, &[(variable, value)]);
+            let from_upper =
+                analysis.bindings_seeded_from(lowered, &state, &upper, &[(variable, value)]);
+            assert_eq!(from_upper, from_universe, "seed {name} cell {value}");
+        }
+    }
+}
 
-    for value in 0..analysis.universe.size() {
-        let from_universe = analysis.bindings_seeded(lowered, &state, &[(subject, value)]);
-        let from_upper =
-            analysis.bindings_seeded_from(lowered, &state, &upper, &[(subject, value)]);
-        assert_eq!(from_upper, from_universe, "seed cell {value}");
+#[test]
+fn domain_subject_seeds_keep_exact_class_support_across_wide_metadata() {
+    let (rules, effects) = schema_flow();
+    let index = effects
+        .iter()
+        .position(|effect| effect.name == "dl:domain")
+        .unwrap();
+    let mut facts = Vec::new();
+    for index in 0..1024 {
+        let property = format!("urn:domain-property:{index}");
+        facts.push(Fact {
+            subject: TermValue::iri(&property),
+            predicate: "http://www.w3.org/2000/01/rdf-schema#domain".to_owned(),
+            object: TermValue::iri(format!("urn:domain-class:{index}")),
+        });
+        facts.push(Fact {
+            subject: TermValue::iri(format!("urn:domain-subject:{index}")),
+            predicate: property,
+            object: TermValue::iri("urn:object"),
+        });
+    }
+    let mut observed: Vec<_> = facts
+        .iter()
+        .map(|fact| {
+            StatementPattern::statement(&[
+                EvalTerm::ConstLit(fact.subject.clone()),
+                EvalTerm::named(&fact.predicate),
+                EvalTerm::ConstLit(fact.object.clone()),
+            ])
+        })
+        .collect();
+    let outputs: Vec<_> = (0..1024)
+        .map(|index| {
+            StatementPattern::relation(Some(&format!("urn:unrelated-output:{index}")), None)
+        })
+        .collect();
+    observed.extend(outputs.iter().cloned());
+    let analysis = ValueFlow::with_observations(
+        &rules[index..=index],
+        &effects[index..=index],
+        SemanticVocabulary::GroundedLogicV1,
+        &observed,
+    );
+    let mut state = analysis.summarize(facts.iter());
+    analysis.seed_patterns(&mut state, outputs.iter());
+    let rule = &analysis.rules[0];
+    let head = &rule.heads[0];
+    let Slot::Variable(subject) = head[0] else {
+        panic!("domain head subject")
+    };
+    let upper = analysis.bindings(rule, &state).unwrap();
+    for index in 0..1024 {
+        let subject_value = analysis
+            .universe
+            .value(&TermValue::iri(format!("urn:domain-subject:{index}")));
+        let class_value = analysis
+            .universe
+            .value(&TermValue::iri(format!("urn:domain-class:{index}")));
+        let seeded = analysis
+            .bindings_seeded_from(rule, &state, &upper, &[(subject, subject_value)])
+            .unwrap();
+        assert_eq!(
+            analysis.universe.domains(head, &seeded, false)[2],
+            Domain::one(analysis.universe.size(), class_value),
+            "domain subject {index} must keep its own class support"
+        );
+        assert_eq!(
+            Some(seeded),
+            analysis.bindings_seeded(rule, &state, &[(subject, subject_value)]),
+            "seeded reuse must agree with fresh constraint propagation"
+        );
     }
 }
 
@@ -226,7 +317,7 @@ fn conditional_supports_preserve_dense_identity_without_dense_storage() {
     assert!(matches!(support, AdaptiveDomain::Sparse { .. }));
 
     let digest = |support: &AdaptiveDomain| {
-        let mut hash = blake3::Hasher::new();
+        let mut hash = purrdf_hash::blake3::Hasher::new();
         support.hash_nonzero_words(&mut hash);
         *hash.finalize().as_bytes()
     };
@@ -807,16 +898,18 @@ fn large_operator_universe_keeps_unreachable_protected_target_excluded() {
 }
 
 #[test]
-fn dynamic_predicate_join_ignores_unrelated_relations_without_losing_reachability() {
+fn dynamic_predicate_join_keeps_matching_rectangle_and_ignores_unrelated_relations() {
     let (rule, effect) = subproperty_flow();
     let mut facts = Vec::new();
     for index in 0..4096 {
         let property = format!("urn:property:{index}");
-        facts.push(Fact {
-            subject: TermValue::iri(&property),
-            predicate: property.clone(),
-            object: TermValue::iri(format!("urn:object:{index}")),
-        });
+        if index != 0 {
+            facts.push(Fact {
+                subject: TermValue::iri(&property),
+                predicate: property.clone(),
+                object: TermValue::iri(format!("urn:object:{index}")),
+            });
+        }
         facts.push(Fact {
             subject: TermValue::iri(&property),
             predicate: SUBPROPERTY.to_owned(),
@@ -827,17 +920,25 @@ fn dynamic_predicate_join_ignores_unrelated_relations_without_losing_reachabilit
             }),
         });
     }
+    // The selected relation is reachable only through this possible output.
+    let output = StatementPattern::statement(&[
+        EvalTerm::named("urn:property:0"),
+        EvalTerm::named("urn:property:0"),
+        EvalTerm::named("urn:object:0"),
+    ]);
     let analysis = ValueFlow::with_observations(
         &[rule],
         std::slice::from_ref(&effect),
         SemanticVocabulary::GroundedLogicV1,
-        &[StatementPattern::relation(Some(PROTECTED_BODY), None)],
+        &[
+            StatementPattern::relation(Some(PROTECTED_BODY), None),
+            output.clone(),
+        ],
     )
     .with_source_operators(facts.iter());
-    let refined = analysis.refine(
-        std::slice::from_ref(&effect),
-        &analysis.summarize(facts.iter()),
-    );
+    let mut summary = analysis.summarize(facts.iter());
+    analysis.seed_patterns(&mut summary, std::iter::once(&output));
+    let refined = analysis.refine(std::slice::from_ref(&effect), &summary);
     assert_eq!(
         analysis.overlapping_writer(
             &StatementPattern::relation(Some(PROTECTED_BODY), None),
@@ -1801,6 +1902,34 @@ fn support_content_identifies_equal_sets_across_representations() {
     let words: Vec<_> = sparse.nonzero_words().collect();
     assert_eq!(words, dense.nonzero_words().collect::<Vec<_>>());
     assert_eq!(words.len(), 4, "members share words 0, 1, 2 and 4");
+}
+
+#[test]
+fn footprint_counts_shared_and_equivalent_support_contents_once() {
+    let size = 65_536;
+    let analysis = ValueFlow::new(&[], &[], SemanticVocabulary::Exact);
+    let mut summary = analysis.summarize(std::iter::empty());
+    let shared = Row::new(AdaptiveDomain::Dense(Domain::all(size)));
+    let mut relation = RelationSummary::empty(size);
+    for value in 0..32_768 {
+        relation.by_subject.insert(value, Row::clone(&shared));
+    }
+    // Equal content under a separate pointer and representation still counts once.
+    relation.by_object.insert(
+        0,
+        Row::new(AdaptiveDomain::Sparse {
+            size,
+            values: (0..size).collect(),
+        }),
+    );
+    let mut second = RelationSummary::empty(size);
+    second.by_subject.insert(0, Row::clone(&shared));
+    second
+        .by_object
+        .insert(1, Row::new(AdaptiveDomain::Dense(Domain::one(size, 7))));
+    summary.relations.insert(0, relation);
+    summary.relations.insert(1, second);
+    assert_eq!(summary.distinct_support_rows(), 2);
 }
 
 #[test]

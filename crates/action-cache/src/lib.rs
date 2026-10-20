@@ -265,17 +265,19 @@ pub struct StoreLimits {
     pub max_total_bytes: u64,
 }
 
-/// Shared per-action product bound. The complete typed compile-logic publication is
-/// 369,597,157 bytes; retaining it avoids projection reparsing and repeated lowering.
-/// Keep one authority because every producer and conformance sub-DAG opens the same
-/// content-addressed store and must admit the same receipts.
-pub const DEFAULT_MAX_ENTRY_BYTES: u64 = 512 * 1024 * 1024;
+/// Shared storage budget for the worktree-local action namespace.
+pub const DEFAULT_MAX_TOTAL_BYTES: u64 = 8 * 1024 * 1024 * 1024;
+
+/// A single complete action may use the store's byte budget. A separate bound
+/// based on a historical product size must not reject a valid growing compiler
+/// publication that fits the selected store. Producers and read-only consumers
+/// use the same admission contract.
+pub const DEFAULT_MAX_ENTRY_BYTES: u64 = DEFAULT_MAX_TOTAL_BYTES;
 
 /// Shared receipt bound for the one action-store namespace. Pipeline receipts retain
 /// the exact path and digest of every declared raw input; the conformance producer's
 /// broad corpus census can exceed 4 MiB without carrying product bytes. Sixteen MiB
-/// keeps that complete action identity bounded and remains small beside the independent
-/// 512 MiB product ceiling.
+/// keeps that complete action identity bounded independently of product bytes.
 pub const DEFAULT_MAX_RECEIPT_BYTES: u64 = 16 * 1024 * 1024;
 
 impl Default for StoreLimits {
@@ -288,7 +290,7 @@ impl Default for StoreLimits {
             // generations under the unchanged byte ceiling so a one-slice edit does
             // not evict the rest of the corpus-wide warm frontier.
             max_entries: 4_096,
-            max_total_bytes: 8 * 1024 * 1024 * 1024,
+            max_total_bytes: DEFAULT_MAX_TOTAL_BYTES,
         }
     }
 }
@@ -791,11 +793,7 @@ impl ActionStore {
                 "action blob declares bytes above its bound",
             ));
         }
-        let bytes = read_bounded(
-            &self.blob_path(&blob.digest),
-            self.limits.max_entry_bytes,
-            "action blob",
-        )?;
+        let bytes = read_bounded(&self.blob_path(&blob.digest), blob.bytes, "action blob")?;
         let actual = BlobRef {
             digest: bytes_digest(&bytes),
             bytes: u64::try_from(bytes.len()).unwrap_or(u64::MAX),
@@ -814,11 +812,8 @@ impl ActionStore {
                 "action blob declares bytes above its bound",
             ));
         }
-        let (digest, bytes) = digest_bounded(
-            &self.blob_path(&blob.digest),
-            self.limits.max_entry_bytes,
-            "action blob",
-        )?;
+        let (digest, bytes) =
+            digest_bounded(&self.blob_path(&blob.digest), blob.bytes, "action blob")?;
         if digest != blob.digest || bytes != blob.bytes {
             return Err(ActionCacheError::message(format!(
                 "action blob mismatch: expected {}:{}, actual {digest}:{bytes}",
@@ -841,7 +836,10 @@ impl ActionStore {
     }
 
     fn quota_exceeded(&self) -> Result<bool, ActionCacheError> {
-        let _store = self.lock_store(false)?;
+        // Publishers rename and remove temporary paths under a shared lock.
+        // Enumeration and metadata reads require one stable inventory, so a
+        // publisher cannot remove an entry between those two operations.
+        let _store = self.lock_store(true)?;
         let mut entries = 0_usize;
         let mut bytes = 0_u64;
         for (lane, count_receipts) in [("receipts", true), ("blobs", false)] {

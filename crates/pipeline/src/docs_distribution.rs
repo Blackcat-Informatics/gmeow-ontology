@@ -146,7 +146,10 @@ pub fn distribution_blake3(tree: &BTreeMap<String, Vec<u8>>) -> Result<String, D
             "tar a distribution tree for content-addressing: {e}"
         ))
     })?;
-    Ok(format!("blake3:{}", blake3::hash(&archive).to_hex()))
+    Ok(format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&archive).as_bytes())
+    ))
 }
 
 /// `blake3:<hex>` of a bare byte slice — the same content-addressing idiom
@@ -154,7 +157,10 @@ pub fn distribution_blake3(tree: &BTreeMap<String, Vec<u8>>) -> Result<String, D
 /// that need to digest one already-materialized file (e.g. the release-time DCAT
 /// manifest sidecar) rather than a whole tree.
 pub fn blake3_of(bytes: &[u8]) -> String {
-    format!("blake3:{}", blake3::hash(bytes).to_hex())
+    format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bytes).as_bytes())
+    )
 }
 
 // ── release publication packaging ───────────────────────────────────────────────────

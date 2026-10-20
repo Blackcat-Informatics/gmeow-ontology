@@ -20,7 +20,7 @@ use crate::model::{
 
 /// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
 /// preserving the authored text verbatim.
-fn rubric_err(detail: impl Into<String>) -> gmeow_errors::Diag {
+pub(crate) fn rubric_err(detail: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Rubric {
         detail: detail.into(),
     })

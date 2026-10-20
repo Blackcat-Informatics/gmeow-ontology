@@ -117,6 +117,7 @@ fn worker_receipt_follows_only_the_exact_executable_bytes() {
                 manifest: Some("Cargo.toml".into()),
                 source: Some("lib.rs".into()),
                 target: "fixture".into(),
+                edition: "2024".into(),
                 kinds: vec!["lib".into()],
                 cfg: CfgContext::from_rustc("unix", &[], true).unwrap(),
                 dependencies: vec![],

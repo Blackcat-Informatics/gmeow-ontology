@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <http://example.org/math/> .
+
+ex:overclaimedProjection a math:ProjectionRecord ;
+    math:projectionSource ex:quantity ;
+    math:projectionTargetName "QUDT quantity view" ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:unsupportedConstruct "claim provenance" .

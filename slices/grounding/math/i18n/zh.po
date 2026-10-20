@@ -12,6 +12,30 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Exact Preservation Violated"
+msgstr "违反精确保留"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a mathematical projection or probability-model lowering claims logic:ExactPreservation while its own evidence contradicts exactness. A math:ProjectionRecord cannot claim exactness while declaring logic:unsupportedConstruct or a conflicting preservation kind. Probability-model lowerings require their completeness gates: exhaustive outcome mass summing to one, total Markov kernels, complete Bayesian-network conditionals and finite normalized factor graphs. This reports a false preservation claim, distinct from math:IncompleteDependencyModel (structural incompleteness regardless of the claim) and math:MissingProbabilityModelLowering (an absent lowering)."
+msgstr "数学投影或概率模型降级声称 logic:ExactPreservation，但其自身证据与精确性相矛盾时报告的失败。math:ProjectionRecord 不能在声明 logic:unsupportedConstruct 或相冲突的保留类别的同时声称精确。概率模型降级必须满足各自的完备性条件：穷尽结果的概率质量之和为一、全定义的马尔可夫核、完整的贝叶斯网络条件分布，以及有限且归一化的因子图。该诊断报告的是虚假的保留声明，区别于 math:IncompleteDependencyModel（无论声明如何都存在的结构不完整）和 math:MissingProbabilityModelLowering（缺少降级）。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Measure result non-negativity constraint"
+msgstr "测度结果非负约束"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every result of a measure evaluation is a finite non-negative RDF numeric literal or the named positive-infinity pole. Negative numbers, nonnumeric literals, NaN, floating infinities and every other non-literal value are rejected."
+msgstr "测度求值的每个结果必须是有限的非负 RDF 数值字面量或命名的正无穷极点。负数、非数值字面量、NaN、浮点无穷值及所有其他非字面量值均被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Signed extended-real value constraint"
+msgstr "带符号扩展实数值约束"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The object of math:extendedRealValue is a finite RDF numeric literal or one of the two named poles math:PositiveInfinity and math:NegativeInfinity. Text, NaN, floating infinities and every other RDF value are not points of this signed extended-real representation."
+msgstr "math:extendedRealValue 的对象必须是有限的 RDF 数值字面量，或两个命名极点 math:PositiveInfinity 和 math:NegativeInfinity 之一。文本、NaN、浮点无穷值及所有其他 RDF 值都不是这种带符号扩展实数表示中的点。"
+
 msgctxt "https://blackcatinformatics.ca/math/AlternativeHypothesis|rdfs:label"
 msgid "Alternative Hypothesis"
 msgstr "备择假设"

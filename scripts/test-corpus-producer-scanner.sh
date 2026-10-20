@@ -75,6 +75,25 @@ RUST
 done
 rm "$fixture/crates/ignored/tests/attempt.rs"
 
+for producer in claim_audit produce_claim_audit_observation; do
+    cat > "$fixture/crates/ignored/tests/attempt.rs" <<RUST
+#[test]
+fn attempt() {
+    // gmeow-test-input: synthetic-only
+    gmeow_pipeline::scoreboards::$producer(root, inputs);
+}
+RUST
+    reject 'crates/ignored/tests/attempt.rs'
+done
+rm "$fixture/crates/ignored/tests/attempt.rs"
+
+cat > "$fixture/crates/ignored/tests/attempt.rs" <<'RUST'
+#[test]
+fn attempt() { command.args(["audit", "held-out.ttl"]); }
+RUST
+reject 'crates/ignored/tests/attempt.rs'
+rm "$fixture/crates/ignored/tests/attempt.rs"
+
 # Admission callbacks are producer execution even when the artifact usually hits.
 cat > "$fixture/crates/ignored/tests/attempt.rs" <<'RUST'
 #[test]

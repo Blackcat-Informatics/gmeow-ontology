@@ -5,7 +5,7 @@
 //! content-address of every documented vocabulary term, generated (never
 //! hand-authored) from the authored ontology.
 //!
-//! For each term (a `gmeow:`/`logic:`-namespaced class, property, or named
+//! For each term (a registered-namespace class, property, or named
 //! individual) the manifest records `gmeow:definitionDigest` — the RDFC-1.0
 //! canonical blake3 digest of the term's concise bounded description with the
 //! per-term provenance predicates excluded, so recording provenance never
@@ -49,8 +49,6 @@ const TERM_RELEASE_AUTHORITY_SCHEMA: &str = "gmeow.term-content-authority.v1";
 pub const TERM_MANIFEST_GRAPH_IRI: &str =
     "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq";
 
-const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 /// The ontology IRI (the `gmeow:` namespace without its trailing slash) — the
 /// subject carrying `owl:versionInfo`.
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
@@ -145,7 +143,7 @@ fn release_version(dataset: &Dataset) -> Result<String, gmeow_errors::Diag> {
         })
 }
 
-/// Every documented-term IRI: a `gmeow:`/`logic:`-namespaced subject typed as one
+/// Every documented-term IRI: a registered-namespace subject typed as one
 /// of [`TERM_TYPE_IRIS`], sorted + deduped.
 fn documented_terms(dataset: &Dataset) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
     let mut terms: BTreeSet<String> = BTreeSet::new();
@@ -155,7 +153,7 @@ fn documented_terms(dataset: &Dataset) -> Result<BTreeSet<String>, gmeow_errors:
                 message: e.to_string(),
             })
         })? {
-            if subject.starts_with(GMEOW) || subject.starts_with(LOGIC) {
+            if gmeow_ns::registered_term_namespace(&subject).is_some() {
                 terms.insert(subject);
             }
         }
@@ -263,7 +261,7 @@ fn validate_release_authority(authority: &ReleaseAuthority) -> Result<(), gmeow_
         )));
     }
     for (term, record) in &authority.terms {
-        if !(term.starts_with(GMEOW) || term.starts_with(LOGIC)) {
+        if gmeow_ns::registered_term_namespace(term).is_none() {
             return Err(manifest_error(format!(
                 "{} carries out-of-scope term IRI {term:?}",
                 TERM_RELEASE_AUTHORITY_PATH
@@ -656,7 +654,7 @@ impl Stage for TermManifestStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "term_manifest.v3-explicit-release-authority"
+        "term_manifest.v4-registered-term-namespaces"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The digests are computed over the authored default graph (root ontology +

@@ -191,7 +191,7 @@ impl Template {
         let mut retained = 0usize;
         let mut per_predicate: BTreeMap<&str, usize> = BTreeMap::new();
         let mut bytes = 0usize;
-        let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
+        let mut digest = MetadataDigest(purrdf_hash::blake3::Hasher::new(), 0);
         digest.0.update(b"gmeow-native-selector-bindings-v3\0");
         write!(digest, "{predicates:?}:{possible:?}:{external:?}").expect("digest-only formatter");
         for (world, rows) in facts {
@@ -205,7 +205,7 @@ impl Template {
                 if !selectors.contains(predicate) {
                     continue;
                 }
-                let mut size = MetadataDigest(blake3::Hasher::new(), 0);
+                let mut size = MetadataDigest(purrdf_hash::blake3::Hasher::new(), 0);
                 write!(size, "{world:?}:{fact:?}").expect("digest-only formatter");
                 // Every selector row sharpens the source-constant enrichment, under
                 // its own bound; past it the enrichment reads the immutable rows only,
@@ -725,7 +725,7 @@ fn push_analysis(
         return false;
     }
     let specialized = specialize(rule, solution, analysis.len(), discharged);
-    let mut digest = MetadataDigest(blake3::Hasher::new(), 0);
+    let mut digest = MetadataDigest(purrdf_hash::blake3::Hasher::new(), 0);
     write!(
         digest,
         "{:?}:{:?}:{:?}",

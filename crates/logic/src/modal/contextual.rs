@@ -242,7 +242,7 @@ fn prepare_request<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized
     ))
     .expect("finite query contract serializes");
     let mut provenance = ResultProvenance::native(
-        blake3::hash(&basis).to_hex().to_string(),
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&basis).as_bytes()),
         &coordinates.world,
     );
     provenance.query.clone_from(&formula);
@@ -799,13 +799,13 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame
                 .expect("admitted successor inventory serializes"),
             );
         }
-        let mut hash = blake3::Hasher::new();
+        let mut hash = purrdf_hash::blake3::Hasher::new();
         hash.update(b"gmeow-finite-attributed-modal-basis-v1\0");
         for record in records {
             hash.update(&(record.len() as u64).to_le_bytes());
             hash.update(&record);
         }
-        hash.finalize().to_hex().to_string()
+        purrdf_hash::hex::encode(hash.finalize().as_bytes())
     }
 
     fn load_in_graph(

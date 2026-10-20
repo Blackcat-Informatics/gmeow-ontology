@@ -6,7 +6,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use gmeow_errors::{Finding, Severity};
+use gmeow_errors::{
+    Diag, DiagLedger, Finding, FindingCategory, Grade, Location, ResultExt, Severity, StageId,
+    Standpoint, register_code,
+};
 use purrdf::{DatasetMut, MutableDataset, QuadValues, RdfDataset, TermValue};
 
 use crate::reason::InferredAxiom;
@@ -15,8 +18,9 @@ use crate::reason::refute::native::{NativeClosureStatus, NativeFamilyLedger, Nat
 use crate::result::ReasoningResult;
 
 use super::{
-    LOGIC_NS, Obligation, ProgramReachability, ReachabilityEvidence, attribute_to_candidates,
-    candidates_by_obligation, check_discharge_conditions, check_finite_closure, check_reachability,
+    DISCHARGE_FINITE, DISCHARGE_SYNTACTIC, LOGIC_NS, Obligation, ProgramReachability,
+    ReachabilityEvidence, attribute_to_candidates, candidates_by_obligation,
+    check_discharge_conditions, check_finite_closure, check_reachability, obligation_diag,
     obligation_err, parse_obligations,
 };
 
@@ -55,8 +59,24 @@ pub struct ObligationAssessment {
     pub analysis: [u8; 32],
     /// Every discovered and admitted obligation, including unknowns and hard errors.
     pub outcomes: Vec<ObligationOutcome>,
-    /// Sorted diagnostics and per-world declaration/producer inventories.
-    pub findings: Vec<Finding>,
+    /// Sole diagnostic owner; semantic outcomes remain native assessment data.
+    ledger: DiagLedger,
+}
+
+impl ObligationAssessment {
+    /// Borrow the native diagnostic owner without changing semantic outcomes.
+    pub fn ledger(&self) -> &DiagLedger {
+        &self.ledger
+    }
+
+    /// Project current diagnostics at the verifier's wire boundary.
+    pub fn findings(&self) -> impl Iterator<Item = Finding> + '_ {
+        self.ledger.iter_findings("verify")
+    }
+
+    fn record(&mut self, diag: Diag) {
+        self.ledger.attach(diag, StageId::new("verify.obligations"));
+    }
 }
 
 /// Retain only governance declaration/field statements in a native typed view.
@@ -126,16 +146,14 @@ fn governance_view(ledger: &NativeFamilyLedger) -> gmeow_errors::Result<(Arc<Rdf
                         o: object.clone(),
                         g: None,
                     })
-                    .map_err(|error| {
-                        obligation_err(format!("native governance projection failed: {error}"))
-                    })?;
+                    .ctx("native governance projection failed")?;
             }
         }
     }
     store
         .freeze()
         .map(|store| (store, authored.len()))
-        .map_err(|error| obligation_err(format!("native governance view failed: {error}")))
+        .ctx("native governance view failed")
 }
 
 fn source_complete(
@@ -176,15 +194,11 @@ fn disposition(
         && !may_write
         && obligation
             .discharge_conditions
-            .contains("DischargeSyntacticReachability")
+            .contains(DISCHARGE_SYNTACTIC)
     {
         return ObligationDisposition::SyntacticallyDischarged;
     }
-    if finite_complete
-        && obligation
-            .discharge_conditions
-            .contains("DischargeFiniteClosure")
-    {
+    if finite_complete && obligation.discharge_conditions.contains(DISCHARGE_FINITE) {
         return ObligationDisposition::FiniteClosureDischarged;
     }
     ObligationDisposition::Unknown
@@ -198,7 +212,7 @@ fn assess_world(
     assessment: &mut ObligationAssessment,
 ) -> gmeow_errors::Result<()> {
     let world = ledger.world.as_str();
-    let first_finding = assessment.findings.len();
+    let source_graph = purrdf::iri::BaseIri::parse(world)?;
     let (store, authored) = governance_view(ledger)?;
     let obligations = parse_obligations(&store)?;
     let candidates = candidates_by_obligation(&store)?;
@@ -215,9 +229,11 @@ fn assess_world(
         });
     let mut discharged = 0;
     for obligation in &obligations {
-        let conditions = check_discharge_conditions(obligation);
+        let conditions = check_discharge_conditions(&source_graph, obligation);
         let conditions_valid = conditions.is_empty();
-        assessment.findings.extend(conditions);
+        for diag in conditions {
+            assessment.record(attribute_to_candidates(diag, &obligation.iri, &candidates));
+        }
         let counterexample = derived
             .get(world)
             .and_then(|rows| rows.get(obligation.forbidden_predicate.as_str()))
@@ -234,20 +250,20 @@ fn assess_world(
         match &status {
             ObligationDisposition::Violated(_) => {
                 let predicates = BTreeSet::from([obligation.forbidden_predicate.clone()]);
-                assessment.findings.extend(check_finite_closure(
-                    obligation,
-                    &predicates,
-                    &candidates,
-                ));
+                if let Some(diag) =
+                    check_finite_closure(&source_graph, obligation, &predicates, &candidates)
+                {
+                    assessment.record(diag);
+                }
             }
             ObligationDisposition::Unknown => {
-                let finding = check_reachability(obligation, may_write, &candidates).unwrap_or_else(|| {
-                        attribute_to_candidates(Finding::new(Severity::Error,
+                let diag = check_reachability(&source_graph, obligation, may_write, &candidates).unwrap_or_else(|| {
+                        attribute_to_candidates(obligation_diag(&source_graph, obligation, "absence-proof",
                             "verify.non-entailment.not-discharged",
                             format!("non-entailment obligation <{}> has no certified selected absence proof (logic:ObligationUnknown); source_complete={source_complete}, finite_complete={finite_complete}", obligation.iri),
-                        ).with_tool("verify"), &obligation.iri, &candidates)
+                        ), &obligation.iri, &candidates)
                     });
-                assessment.findings.push(finding);
+                assessment.record(diag);
             }
             ObligationDisposition::SyntacticallyDischarged
             | ObligationDisposition::FiniteClosureDischarged => discharged += 1,
@@ -260,19 +276,21 @@ fn assess_world(
             disposition: status,
         });
     }
-    let mut inventory = Finding::new(Severity::Note, "verify.non-entailment.inventory", format!(
+    // A descriptive governance note, neither transient chatter nor a proof of discharge.
+    let inventory = Diag::new(register_code("verify.non-entailment.inventory"),
+        Grade::new(Severity::Note, FindingCategory::PolicyWarning, Standpoint::Binding), format!(
             "discovered and checked {} distinct non-entailment obligation(s) in world <{world}>; authored={authored}, admitted={}, discharged={discharged}", obligations.len(), obligations.len(),
-        )).with_tool("verify");
-    inventory.cited_iris = obligations
+        ))
+        .with_location(Location { logical: Some(world.to_owned()), ..Location::default() })
+        .with_focus("obligation-inventory")
+        .with_graph(source_graph)
+        .with_cited_iris(obligations
         .iter()
         .filter(|obligation| !obligation.iri.starts_with("_:"))
         .map(|obligation| obligation.iri.clone())
-        .collect();
-    inventory.detail = Some(analysis.inventory_detail(world)?);
-    assessment.findings.push(inventory);
-    for finding in &mut assessment.findings[first_finding..] {
-        finding.tags.push(format!("world:{world}"));
-    }
+        )
+        .with_context(analysis.inventory_detail(world)?);
+    assessment.record(inventory);
     Ok(())
 }
 
@@ -303,7 +321,7 @@ pub fn assess_non_entailment_obligations(
     let mut assessment = ObligationAssessment {
         analysis: analysis.identity(),
         outcomes: Vec::new(),
-        findings: Vec::new(),
+        ledger: DiagLedger::new(),
     };
     let mut derived = BTreeMap::<&str, BTreeMap<&str, &InferredAxiom>>::new();
     for row in result.inferred().iter().filter(|row| !row.is_edb) {
@@ -317,21 +335,7 @@ pub fn assess_non_entailment_obligations(
         assess_world(analysis, execution, ledger, &derived, &mut assessment)?;
     }
     assessment
-        .findings
-        .sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
-    assessment
         .outcomes
         .sort_by(|a, b| (&a.world, &a.obligation).cmp(&(&b.world, &b.obligation)));
     Ok(assessment)
-}
-
-/// Project the typed native obligation assessment onto verifier diagnostics.
-///
-/// # Errors
-/// Refuses invalid native evidence and malformed governance using the same admission
-/// as [`assess_non_entailment_obligations`]. No weaker graph-only overload exists.
-pub fn check_non_entailment_obligations(
-    result: &ReasoningResult,
-) -> gmeow_errors::Result<Vec<Finding>> {
-    Ok(assess_non_entailment_obligations(result)?.findings)
 }

@@ -671,7 +671,7 @@ gmeow:adviceHowToUse
 #
 # gmeow:findingAntecedent is a provenance edge up the witness DAG (this finding
 # derives FROM that one); gmeow:findingAnchor is the cross-code join key: a
-# content hash over (location, term role, focus) EXCLUDING code and category, so
+# content hash over (location, source graph, term role, focus) EXCLUDING code and category, so
 # two DIFFERENT-code findings at the SAME source anchor share it — the join the
 # same-fingerprint merge (which keys on code) structurally cannot make.
 # ════════════════════════════════════════════════════════════════════════════
@@ -772,16 +772,55 @@ gmeow:findingAntecedent
     gmeow:howToUse "Point a downstream witness finding at each finding it derives from; a reasoner root-cause rule follows the edge transitively up to the childless root antecedent and joins findings that share it."@x-gmeow-english ;
     gmeow:useWhen "Use to record the derivation lineage between findings — the provenance-DAG edge that enables reasoner root-cause joins over the witness DAG."@x-gmeow-english .
 
+gmeow:findingLocationLogical
+    a logic:DatatypeProperty ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding logical location"@x-gmeow-english ;
+    skos:definition "The exact lexical logical anchor supplied by a diagnostic source location, independent of physical path, line, column and GTS coordinates. Its spelling does not assert an RDF term kind."@x-gmeow-english ;
+    skos:scopeNote "This source-location token remains a string even when it resembles an IRI, a blank node or a file path."@x-gmeow-english ;
+    skos:example "ex:location1 gmeow:findingLocationLogical \"authored.ttl#constraint\" ."@x-gmeow-english ;
+    gmeow:howToUse "Project the source location's logical token verbatim onto its diagnostic location node and retain it through rendering and replay."@x-gmeow-english ;
+    gmeow:useWhen "Use when a diagnostic location supplies a logical anchor, with or without physical coordinates."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace the original anchor with a generated location-node IRI, a display path or a guessed RDF term."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:findingSourceFocusIdentity
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Finding ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding source focus identity"@x-gmeow-english ;
+    skos:definition "The exact lexical identity of a finding's original source focus, independent of its primary logical location and source graph. The source token remains a string; its spelling does not determine the source term's RDF kind."@x-gmeow-english ;
+    skos:scopeNote "A source focus can differ from the location's logical name; keep both. Absence means the producer supplied no explicit focus."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingSourceFocusIdentity \"urn:constraint:one\" ."@x-gmeow-english ;
+    gmeow:howToUse "Project the source context's focus token verbatim and keep it unchanged through report normalization, native RDF publication and replay."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the original source subject or other focus token when a finding also has a distinct logical or physical anchor."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute the diagnostics graph, the finding fingerprint, the primary logical location or a term guessed from the token's spelling."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:findingSourceGraph
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding source graph"@x-gmeow-english ;
+    skos:definition "The named source graph that a diagnostic concerns, preserved as its original absolute IRI. Distinct graphs remain distinct diagnostic anchors even when their focus and physical source position coincide. This is not the graph containing the projected Finding; absence means no named source graph is known."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingSourceGraph <https://example.org/world> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the diagnostics projection graph, a focus node, or an invented default graph for the actual source graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project the diagnostic source context's native absolute graph IRI directly and retain it through ledger replay and diagnostic renderers."@x-gmeow-english ;
+    gmeow:useWhen "Use when a finding concerns a known named graph, especially when the same focus occurs in several reasoning worlds."@x-gmeow-english .
+
 gmeow:findingAnchor
     a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding anchor"@x-gmeow-english ;
-    skos:definition "The source anchor of a finding — an IRI that is a content hash over (location, term role, focus) EXCLUDING the finding's code and category, so two findings with DIFFERENT codes at the SAME source position share one anchor. It is the join key for cross-node glut detection: the same-fingerprint merge keys on the code and therefore CANNOT see across codes, but the anchor deliberately drops the code, so a reasoner can join two different-code findings at one place and detect an opposing-polarity conflict the merge misses. The range is left open (like gmeow:findingLocation): the value is the anchor IRI, an opaque content hash, not a reified statement."@x-gmeow-english ;
+    skos:definition "The source anchor of a finding — an IRI that is a content hash over (location, source graph, term role, focus) EXCLUDING the finding's code and category, so two findings with DIFFERENT codes at the SAME source position share one anchor. It is the join key for cross-node glut detection: the same-fingerprint merge keys on the code and therefore CANNOT see across codes, but the anchor deliberately drops the code, so a reasoner can join two different-code findings at one place and detect an opposing-polarity conflict the merge misses. The range is left open (like gmeow:findingLocation): the value is the anchor IRI, an opaque content hash, not a reified statement."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingAnchor <https://blackcatinformatics.ca/gmeow/anchor/9f2c> ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding the code or category into the anchor (that would make it a per-code fingerprint, defeating the cross-code join) and avoid conflating it with gmeow:findingLocation (the reified statement) — the anchor is the code-blind content hash two different-code findings at one place share."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Compute the anchor as a content hash over (location, term role, focus) with the code and category EXCLUDED, and point each finding at it; a cross-node-glut rule joins findings on shared gmeow:findingAnchor and compares their gmeow:findingCategory polarities."@x-gmeow-english ;
+    gmeow:howToUse "Compute the anchor as a content hash over (location, source graph, term role, focus) with the code and category EXCLUDED, and point each finding at it; a cross-node-glut rule joins findings on shared gmeow:findingAnchor and compares their gmeow:findingCategory polarities."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the code-blind source anchor of a finding — the join key that lets cross-node glut detection see two different-code findings at the same place the same-fingerprint merge cannot."@x-gmeow-english .
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -1025,7 +1064,7 @@ gmeow:NonTrivialAnchor
         logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Non-Trivial Anchor"@x-gmeow-english ;
-    skos:definition "The marker class of a gmeow:findingAnchor that carries a genuine source position — a path or focus — as opposed to the shared default anchor that locationless findings collapse onto. Set by the diagnostics PROJECTION on exactly the anchors computed from a real (location, term role, focus), never on the empty/default anchor. It is the guard the cross-node-glut meta-rule joins on: without it, every locationless finding would share one constant anchor and the glut rule would false-join unrelated opposing-polarity findings. The projection asserts it, the rule requires it, so the glut join fires only at anchors that name a real place."@x-gmeow-english ;
+    skos:definition "The marker class of a gmeow:findingAnchor that carries a genuine source position — a path or focus — as opposed to the shared default anchor that locationless findings collapse onto. Set by the diagnostics PROJECTION on exactly the anchors computed from a real (location, source graph, term role, focus), never on the empty/default anchor. It is the guard the cross-node-glut meta-rule joins on: without it, every locationless finding would share one constant anchor and the glut rule would false-join unrelated opposing-polarity findings. The projection asserts it, the rule requires it, so the glut join fires only at anchors that name a real place."@x-gmeow-english ;
     skos:example "<https://blackcatinformatics.ca/gmeow/anchor/9f2c> a gmeow:NonTrivialAnchor ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it on the empty/default anchor (that would re-open the false-join the guard exists to close) and avoid reading it as a property of the finding; it types the ANCHOR node, marking that the anchor names a real source position."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;

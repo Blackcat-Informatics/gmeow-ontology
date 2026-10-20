@@ -107,7 +107,7 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | An exact-numeric builtin never silently exceeds its exact carrier — a checked integer `+ - *` or `//` past the `i64` range, or an exact rational normalization past it, faults instead of wrapping, because a wrapped value is a WRONG answer presented as a right one | Rust cross-check (`crates/conformance/tests/numeric_builtin_oracle_gold.rs`, the frozen engine-independent oracle corpus, against `BuiltinError::Overflow` in `crates/logic/src/physical/builtin_eval.rs` anchored through `BuiltinError::math_class`) | `math:Overflow` |
 | A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
-| A signed-extended-real slot holds a finite number (either sign), `math:PositiveInfinity`, or `math:NegativeInfinity` | SHACL-SPARQL (`math:ExtendedRealValueConstraint`, a literal-or-one-of-two-poles disjunction) | `math:MalformedExtendedReal` |
+| A signed-extended-real slot holds a finite number (either sign), `math:PositiveInfinity`, or `math:NegativeInfinity` | SHACL-SPARQL (`math:ExtendedRealValueConstraint`, a finite-numeric-or-one-of-two-poles disjunction) | `math:MalformedExtendedReal` |
 | An intensional set's member condition denotes a `logic:` formula, not a string | SHACL-SPARQL (`math:SetBuilderMemberConditionNodeKindConstraint`, the `logic:` node-kind gate) | `math:StringOnlyMemberCondition` |
 | A complement names its ambient space and its complement-semantics | SHACL Core | `math:UnqualifiedComplement` |
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
@@ -150,7 +150,7 @@ Lean mathlib (structural, by reference).
 | A `math:Measure` declares its measurable space and total mass (a non-negative number or `math:PositiveInfinity`) | SHACL Core | `math:IncompleteMeasure` |
 | A `math:ProbabilityMeasure` has total mass one | SHACL Core | `math:ProbabilityMeasureMassViolation` |
 | A `math:MeasureEvaluation` names all three of its evaluated measure, measured subset, and result (so μ(A) is comparable, not a display string) | SHACL Core (paired `owl:maxQualifiedCardinality`/`owl:minQualifiedCardinality` exact-one restrictions on all three roles in `module.ttl`) | `math:UnderspecifiedMeasureEvaluation` |
-| A `math:MeasureEvaluation`'s `math:measureResult` is non-negative — a finite non-negative number or `math:PositiveInfinity`, never `math:NegativeInfinity` (a measure is non-negative) | SHACL-SPARQL (`math:MeasureResultNonNegativeConstraint`, the `logic:` forbidden-value gate) | `math:UnderspecifiedMeasureEvaluation` |
+| A `math:MeasureEvaluation`'s `math:measureResult` is non-negative — a finite non-negative number or `math:PositiveInfinity`, never `math:NegativeInfinity` (a measure is non-negative) | SHACL-SPARQL (`math:MeasureResultNonNegativeConstraint`, the `logic:` finite-numeric and non-negativity formula) | `math:UnderspecifiedMeasureEvaluation` |
 | A `math:Integral` names its integrand, domain, and the measure it integrates against | SHACL Core | `math:IncompleteIntegral` |
 | Every `math:Quantity` carries a `math:Dimension` | SHACL Core | `math:UndimensionedQuantity` |
 | A `math:DerivedDimension` declares a non-empty exponent structure, each cell raising a `math:BaseDimension` to an exact-rational power, and a `math:DimensionalExpression` combines at least two operands | SHACL Core | `math:MalformedDimension` |
@@ -386,8 +386,9 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | No projection silently converts confidence to probability | Rust validator (`check_math_projection_confidence_as_probability`) | `math:ProjectionConfidenceAsProbability` |
 | No projection silently drops distribution parameterization | Rust validator (`check_math_projection_dropped_parameterization`) | `math:ProjectionDroppedParameterization` |
 | No projection flattens an expression AST to a string without recording loss | Rust validator (`check_math_unrecorded_projection_loss`) | `math:UnrecordedProjectionLoss` |
+| A projection record cannot claim exactness while declaring dropped constructs or a conflicting preservation kind | Rust validator (`check_math_exact_projection_overclaim`, over `math:ProjectionRecord` individuals) | `math:ExactPreservationViolated` |
 
-> **Why these five name the native validator and not a projection producer.** No production
+> **Why these rows name the native validator and not a projection producer.** No production
 > `math:` pipeline stage COMPUTES `math:ProjectionRecord` individuals today — the three lowerings
 > above (the OWL-annotation flattening, the SciPy/Stan role mapping, and the confidence
 > calibration) are hand-authored, positive demonstrators in `examples/projection-loss-ledger.ttl`

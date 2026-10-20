@@ -116,7 +116,7 @@ pub fn audit_file(path: &Path) -> Vec<AuditFinding> {
         let TermRef::Iri(pred) = dataset.as_ref().resolve(quad.p) else {
             continue;
         };
-        let subject = store::subject_display(dataset.as_ref().resolve(quad.s));
+        let subject = store::subject_display(&dataset, quad.s);
 
         // Invalid or misused Wikidata IRIs.
         if obj.starts_with(WD_NS)

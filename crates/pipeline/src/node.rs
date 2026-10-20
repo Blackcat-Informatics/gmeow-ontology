@@ -28,6 +28,21 @@ use crate::bundle::{
 /// The GMEOW namespace prefix that every pipeline term lives under.
 pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
+/// Observe a producer phase without putting clock values in its product or key.
+/// The work's return value, including an original typed refusal, is unchanged.
+pub(crate) fn measure_stage_phase<T>(stage: &str, phase: &str, work: impl FnOnce() -> T) -> T {
+    let span = ::tracing::info_span!(target: "pipeline_phase", "producer_phase", stage, phase);
+    let _entered = span.enter();
+    let started = std::time::Instant::now();
+    tracing::info!(target: "pipeline_phase", stage, phase, event = "start", "producer phase boundary");
+    let value = work();
+    tracing::info!(
+        target: "pipeline_phase", stage, phase, event = "end",
+        elapsed_ms = %started.elapsed().as_millis(), "producer phase boundary"
+    );
+    value
+}
+
 /// The `gmeow:engineResource` IRI: the process-wide reasoning engine, declared as
 /// an exclusive [`Stage::resources`] requirement by the sole `Reason` stage. The
 /// scheduler serializes any two stages requiring the same resource (the
@@ -111,6 +126,15 @@ pub struct StageProduct {
     pub carrier_released: bool,
     /// Published typed identities survive payload release and avoid repeated lowering.
     handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
+}
+
+/// Encode one producer-owned diagnostic contribution, including an empty one.
+/// Stage identity makes empty contributions distinct without synthetic events.
+pub(crate) fn encode_diag_nodes(
+    stage: &str,
+    nodes: &[gmeow_errors::DiagNode],
+) -> Result<Vec<u8>, serde_json::Error> {
+    serde_json::to_vec(&(stage, nodes))
 }
 
 impl StageProduct {
@@ -255,13 +279,33 @@ impl StageProduct {
     /// lane the scheduler reads on a CACHE HIT to recover a diagnostics producer's run
     /// ledger contribution WITHOUT re-running the stage — the blob round-trips through
     /// the per-stage cache, so the recovered nodes are byte-identical to the fresh run.
-    /// A present-but-malformed blob is a corrupt product — a HARD FAIL (no-optionality).
+    /// A declared producer must supply its blob, including an explicit empty contribution.
+    /// A malformed or wrong-producer blob is a corrupt product — a HARD FAIL.
     pub fn diag_nodes(&self) -> Vec<gmeow_errors::DiagNode> {
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_DIAG_NODES) {
-            Some(bytes) => serde_json::from_slice(bytes).expect(
-                "diagnostics:nodes blob is our own JSON; a decode failure is a corrupt cache",
-            ),
-            None => Vec::new(),
+            Some(bytes) => {
+                let (stage, nodes): (String, Vec<gmeow_errors::DiagNode>) = serde_json::from_slice(
+                    bytes,
+                )
+                .expect(
+                    "diagnostics:nodes blob is our own JSON; a decode failure is a corrupt cache",
+                );
+                assert_eq!(
+                    stage, self.stage_id,
+                    "diagnostic contribution has the wrong producer"
+                );
+                nodes
+            }
+            None => {
+                assert!(
+                    !crate::stages::attach::blob_reps(&self.stage_id)
+                        .iter()
+                        .any(|rep| rep == crate::stages::carrier::REP_DIAG_NODES),
+                    "stage {} is missing its required diagnostics:nodes contribution",
+                    self.stage_id
+                );
+                Vec::new()
+            }
         }
     }
 

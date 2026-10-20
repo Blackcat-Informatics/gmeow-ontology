@@ -13420,3 +13420,153 @@ repo:README.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/a117b8d20f1abd95> a gmeow:Selector ;
     gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-AGENTIC-MODALITY.md" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-schema> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/schema.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/schema> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/schema.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-schema> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-schema> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/schema.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/core> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/core"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/core" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-core> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/core.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/core> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/core.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-core> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-core> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/core.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/applicator> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/applicator"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/applicator" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-applicator> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/applicator.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/applicator> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/applicator.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-applicator> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-applicator> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/applicator.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/unevaluated> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/unevaluated"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/unevaluated" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-unevaluated> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/unevaluated.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/unevaluated> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/unevaluated.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-unevaluated> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-unevaluated> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/unevaluated.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/validation> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/validation"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/validation" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-validation> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/validation.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/validation> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/validation.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-validation> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-validation> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/validation.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/meta-data> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/meta-data"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/meta-data" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-meta-data> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/meta-data.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/meta-data> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/meta-data.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-meta-data> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-meta-data> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/meta-data.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/format-annotation> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/format-annotation"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/format-annotation" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-format-annotation> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/format-annotation.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/format-annotation> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/format-annotation.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-format-annotation> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-format-annotation> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/format-annotation.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/format-assertion> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/format-assertion"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/format-assertion" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-format-assertion> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/format-assertion.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/format-assertion> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/format-assertion.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-format-assertion> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-format-assertion> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/format-assertion.json:1" .
+
+<https://json-schema.org/draft/2020-12/meta/content> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema draft 2020-12 meta/content"@en ;
+    gmeow:sourceLocation "https://json-schema.org/draft/2020-12/meta/content" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-2020-12-meta-content> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/meta/content.json"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://json-schema.org/draft/2020-12/meta/content> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/meta/content.json> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-content> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-2020-12-meta-content> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/meta/content.json:1" .
+
+<https://github.com/json-schema-org/json-schema-spec/blob/main/LICENSE> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema specification license"@en ;
+    gmeow:sourceLocation "https://github.com/json-schema-org/json-schema-spec/blob/main/LICENSE" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-license> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/README.md"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://github.com/json-schema-org/json-schema-spec/blob/main/LICENSE> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/README.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-license> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-license> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/README.md:15" .
+
+<https://github.com/json-schema-org/json-schema-spec#license> a gmeow:CreativeWork ;
+    rdfs:label "JSON Schema specification licensing statement"@en ;
+    gmeow:sourceLocation "https://github.com/json-schema-org/json-schema-spec#license" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/json-schema-license-choice> a gmeow:CitationAct ;
+    rdfs:label "crates/validate/vendor/json-schema-2020-12/README.md"@en ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity <https://github.com/json-schema-org/json-schema-spec#license> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/vendor/json-schema-2020-12/README.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-license-choice> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/json-schema-license-choice> a gmeow:Selector ;
+    gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/README.md:17" .

@@ -1,0 +1,133 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+# Canonical callable signatures: named, ordered inputs and outputs.
+# Signatures declare interfaces; an executable implementation is a separate contract.
+# The correspondence lowering derives the single generated FnO catalog from these records.
+
+# --- Transliteration (script → script; reversible by design) ---------------- #
+
+gmeow:fnRomanizeHepburn
+    a logic:CallableSignature ;
+    rdfs:label "Hepburn romanization (Japanese kana/kanji → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Japanese (kana, with kanji readings) to the Latin script per the Hepburn system (山田太郎 → \"Yamada Tarō\"). Realises gmeow:schemeHepburn. Reversible for kana; lossy for kanji (requires readings)."@x-gmeow-english ;
+    skos:definition "Transliterates Japanese (kana, with kanji readings) to the Latin script per the Hepburn system (山田太郎 → \"Yamada Tarō\"). Realises gmeow:schemeHepburn. Reversible for kana; lossy for kanji (requires readings)."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeHepburn ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+gmeow:fnRomanizeKunrei
+    a logic:CallableSignature ;
+    rdfs:label "Kunrei-shiki romanization (Japanese → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Japanese kana to Latin per the ISO 3602 Kunrei-shiki system (a systematic alternative to Hepburn). Realises gmeow:schemeKunreiShiki. Reversible."@x-gmeow-english ;
+    skos:definition "Transliterates Japanese kana to Latin per the ISO 3602 Kunrei-shiki system (a systematic alternative to Hepburn). Realises gmeow:schemeKunreiShiki. Reversible."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeKunreiShiki ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+gmeow:fnRomanizePinyin
+    a logic:CallableSignature ;
+    rdfs:label "Hanyu Pinyin romanization (Mandarin → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Mandarin Chinese to the Latin script with tone marks per Hanyu Pinyin (北京 → \"Běijīng\"). Realises gmeow:schemePinyin. Lossy without readings; tone-mark variants exist."@x-gmeow-english ;
+    skos:definition "Transliterates Mandarin Chinese to the Latin script with tone marks per Hanyu Pinyin (北京 → \"Běijīng\"). Realises gmeow:schemePinyin. Lossy without readings; tone-mark variants exist."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemePinyin ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+gmeow:fnRomanizeWadeGiles
+    a logic:CallableSignature ;
+    rdfs:label "Wade-Giles romanization (Mandarin → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Mandarin to Latin per the older Wade-Giles system (北京 → \"Pei-ching\"). Realises gmeow:schemeWadeGiles."@x-gmeow-english ;
+    skos:definition "Transliterates Mandarin to Latin per the older Wade-Giles system (北京 → \"Pei-ching\"). Realises gmeow:schemeWadeGiles."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeWadeGiles ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+gmeow:fnRomanizeRevisedRomanization
+    a logic:CallableSignature ;
+    rdfs:label "Revised Romanization (Korean → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Korean Hangul to Latin per the Revised Romanization of Korean (서울 → \"Seoul\"). Realises gmeow:schemeRevisedRomanization."@x-gmeow-english ;
+    skos:definition "Transliterates Korean Hangul to Latin per the Revised Romanization of Korean (서울 → \"Seoul\"). Realises gmeow:schemeRevisedRomanization."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeRevisedRomanization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+gmeow:fnTransliterateISO233
+    a logic:CallableSignature ;
+    rdfs:label "ISO 233 transliteration (Arabic → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Arabic script to Latin per ISO 233. Realises gmeow:schemeISO233. Reversible (character-level)."@x-gmeow-english ;
+    skos:definition "Transliterates Arabic script to Latin per ISO 233. Realises gmeow:schemeISO233. Reversible (character-level)."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeISO233 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+gmeow:fnTransliterateISO15919
+    a logic:CallableSignature ;
+    rdfs:label "ISO 15919 transliteration (Indic → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Brahmic/Indic scripts to Latin per ISO 15919. Realises gmeow:schemeISO15919. Reversible."@x-gmeow-english ;
+    skos:definition "Transliterates Brahmic/Indic scripts to Latin per ISO 15919. Realises gmeow:schemeISO15919. Reversible."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeISO15919 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+# --- Transcription (→ phonetic representation; not reversible) --------------- #
+
+gmeow:fnTranscribeIPA
+    a logic:CallableSignature ;
+    rdfs:label "IPA phonetic transcription"@x-gmeow-english ;
+    dcterms:description "Transcribes spoken/written language to the International Phonetic Alphabet — a phonetic representation, not a script transliteration (\"Yamada\" → /jamada/). Realises gmeow:schemeIPA. NOT reversible (phonetic, language-specific)."@x-gmeow-english ;
+    skos:definition "Transcribes spoken/written language to the International Phonetic Alphabet — a phonetic representation, not a script transliteration (\"Yamada\" → /jamada/). Realises gmeow:schemeIPA. NOT reversible (phonetic, language-specific)."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText ) ;
+    logic:outputParameters ( gmeow:oTranscribed ) ;
+    rdfs:seeAlso gmeow:schemeIPA ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+# --- Translation (language → language; meaning-preserving, lossy) ------------ #
+
+gmeow:fnTranslate
+    a logic:CallableSignature ;
+    rdfs:label "translate (language → language)"@x-gmeow-english ;
+    dcterms:description "Translates an expression from a source language to a target language, preserving meaning rather than form. A translation relates two CO-EQUAL expressions (neither subordinate); it is not a transliteration and never a name-of-a-person operation. Lossy and context-dependent; the source and target languages are gmeow:Language inputs."@x-gmeow-english ;
+    skos:definition "Translates an expression from a source language to a target language, preserving meaning rather than form. A translation relates two CO-EQUAL expressions (neither subordinate); it is not a transliteration and never a name-of-a-person operation. Lossy and context-dependent; the source and target languages are gmeow:Language inputs."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSourceText gmeow:pTargetLanguage ) ;
+    logic:outputParameters ( gmeow:oTranslated ) ;
+    rdfs:seeAlso <https://www.wikidata.org/entity/Q7553> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+
+# --- Shared parameters / outputs (declarative; no bound executor) ----------- #
+
+gmeow:pSourceText      a logic:CallParameter ; logic:parameterPredicate gmeow:fullName ; logic:parameterValueType rdfs:Literal ; logic:parameterRequired true ;
+    rdfs:label "source text"@x-gmeow-english ;
+    skos:definition "The input literal to a language transformation — the text to transliterate, transcribe, or translate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+gmeow:pTargetLanguage  a logic:CallParameter ; logic:parameterPredicate gmeow:targetLanguage ; logic:parameterValueType gmeow:Language ; logic:parameterRequired true ;
+    rdfs:label "target language"@x-gmeow-english ;
+    skos:definition "The first-class gmeow:Language the transformation targets."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+gmeow:oTransliterated  a logic:CallResult ; logic:parameterPredicate gmeow:romanization ; logic:parameterValueType rdfs:Literal ;
+    rdfs:label "transliterated output"@x-gmeow-english ;
+    skos:definition "The transliterated literal produced by a romanization/transliteration function; recorded as a gmeow:romanization."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+gmeow:oTranscribed     a logic:CallResult ; logic:parameterPredicate gmeow:projectedTranscription ; logic:parameterValueType rdfs:Literal ;
+    rdfs:label "transcribed output"@x-gmeow-english ;
+    skos:definition "The phonetic transcription literal produced by a transcription function (e.g. IPA)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
+gmeow:oTranslated      a logic:CallResult ; logic:parameterPredicate gmeow:projectedTranslation ; logic:parameterValueType rdfs:Literal ;
+    rdfs:label "translated output"@x-gmeow-english ;
+    skos:definition "The translated literal produced by a translation function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .

@@ -78,6 +78,24 @@ fn codebook_digest_is_deterministic_and_well_formed() {
 }
 
 #[test]
+fn persisted_gmn_identity_vectors() {
+    let ds = codebook_fixture("add", "g1");
+    let (codebook, dict) = load(&ds);
+    let model = gmeow_model(&["objectA", "objectB"]);
+    let actual = [
+        codebook_digest(&codebook, &dict),
+        content_digest(&model).unwrap(),
+    ];
+    assert_eq!(
+        actual,
+        [
+            "blake3:ceb768b44b42a96fa1732b24d5197343c7e9b98676af2a1638d9c31fd141a086",
+            "blake3:f466568327a4ef181ee5ce0ccd8f246777824c8381e4ae01dfae7db7aed33b08",
+        ]
+    );
+}
+
+#[test]
 fn codebook_digest_is_sensitive_to_each_perturbed_part() {
     let base_ds = codebook_fixture("add", "g1");
     let (base_cb, base_dict) = load(&base_ds);

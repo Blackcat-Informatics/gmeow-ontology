@@ -95,6 +95,57 @@ fn staged_fixture() -> (tempfile::TempDir, PathBuf) {
     (tmp, slice_dir)
 }
 
+/// Execute the installed artifact outside the checkout with identical foreign
+/// inputs under both canonical profiles. Neither scoring path may produce corpus.
+fn installed_quality_profiles_run_without_a_checkout_and_keep_shared_scores(std: &BundleStandards) {
+    let (root, slice_dir) = staged_fixture();
+    let bin = root.path().join("installed-gmeow");
+    fs::copy(env!("CARGO_BIN_EXE_gmeow"), &bin).expect("install the built consumer artifact");
+    let run = |profile: &str| {
+        std::process::Command::new(&bin)
+            .current_dir(root.path())
+            .args(["slice", "quality"])
+            .arg(&slice_dir)
+            .args(["--profile", profile, "--format", "json"])
+            .output()
+            .expect("execute installed consumer")
+    };
+    let full = score_external_slice(std, &slice_dir)
+        .expect("score default profile with the shared bundle decode")
+        .to_report();
+    let external = run("external-sacred");
+    assert!(
+        external.status.success(),
+        "{}",
+        String::from_utf8_lossy(&external.stderr)
+    );
+    let full = serde_json::to_value(full).unwrap();
+    let external: serde_json::Value = serde_json::from_slice(&external.stdout).unwrap();
+    let full = &full["metadata"]["quality_profile"];
+    let external = &external["metadata"]["quality_profile"];
+    assert_eq!(external["profile"]["key"], "external-sacred");
+    assert_eq!(external["not_applicable_axes"], 2);
+    assert_eq!(external["complete"], true);
+    assert_eq!(full["corpus_identity"], external["corpus_identity"]);
+    assert_eq!(full["rubric_identity"], external["rubric_identity"]);
+    assert_ne!(full["profile_identity"], external["profile_identity"]);
+    for (axis, outcome) in external["outcomes"].as_object().unwrap() {
+        if outcome["status"] == "passed" || outcome["status"] == "failed" {
+            assert_eq!(
+                &full["outcomes"][axis], outcome,
+                "shared measurement changed: {axis}"
+            );
+        }
+    }
+    assert!(
+        std.select_profile("not-a-profile")
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("unknown quality profile")
+    );
+}
+
 /// The grade for `axis_iri` in `report`, or panic (a rubric axis must always grade).
 fn grade_for<'a>(report: &'a SliceReport, axis_iri: &str) -> &'a gmeow_slice_quality::AxisGrade {
     report
@@ -464,7 +515,7 @@ fn external_slice_bundle_contracts_share_one_bundle_decode() {
     type BundleContract = (&'static str, fn(&BundleStandards));
 
     let std = BundleStandards::from_gts(gmeow_cli::BUNDLE_GTS).expect("load bundle standards");
-    let cases: [BundleContract; 3] = [
+    let cases: [BundleContract; 4] = [
         (
             "ac1_scores_external_slice_against_embedded_bundle",
             ac1_scores_external_slice_against_embedded_bundle,
@@ -476,6 +527,10 @@ fn external_slice_bundle_contracts_share_one_bundle_decode() {
         (
             "ac6_corrupt_bundle_and_malformed_manifest_hard_fail",
             ac6_corrupt_bundle_and_malformed_manifest_hard_fail,
+        ),
+        (
+            "installed_quality_profiles_run_without_a_checkout_and_keep_shared_scores",
+            installed_quality_profiles_run_without_a_checkout_and_keep_shared_scores,
         ),
     ];
     let mut failures = Vec::new();

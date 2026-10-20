@@ -106,7 +106,7 @@ fn modal_product(dataset: &RdfDataset) -> Result<ModalProduct, gmeow_errors::Dia
         )),
         DomainProfile::NonemptyObjectDomainV1,
         AUTHORITY.to_owned(),
-        *blake3::hash(&selection).as_bytes(),
+        *purrdf_hash::blake3::hash(&selection).as_bytes(),
     )?])?;
     let product = crate::stages::reason::reason_product_over_dataset(&rooted, &domains)?;
     let handle = product

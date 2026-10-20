@@ -218,15 +218,20 @@ termination classes**, never by weakening the refusal discipline.
   its witness producers have had their round. The schedule mints a subset of the witnesses an
   interleaved schedule would, and stays deterministic. It is also the precondition for the
   restricted-chase certificates below, whose blocking arguments assume Datalog-first order.
-- Termination certificates form a **ladder of strictly increasing power**: weak acyclicity ⊊
-  joint acyclicity ⊊ super-weak acyclicity ⊊ model-summarizing acyclicity ⊊ model-faithful
-  acyclicity, with the restricted-chase-specific refinements beyond that. The first such
-  refinement is **restricted joint acyclicity** (Carral, Dragoste & Krötzsch 2017): it drops a
+- The implemented termination certificates form a **partial order**:
+  weak acyclicity is below joint acyclicity and super-weak acyclicity;
+  joint acyclicity is below restricted joint acyclicity and model-summarizing
+  acyclicity; super-weak acyclicity is below model-summarizing acyclicity.
+  Joint and super-weak certificates are incomparable, as are restricted joint
+  and super-weak or model-summarizing certificates. Combining certificates uses
+  their greatest lower bound, not their check order, and never certifies a union
+  of programs without analyzing that union. **Restricted joint acyclicity**
+  (Carral, Dragoste & Krötzsch 2017) drops a
   joint-acyclicity edge when the Datalog closure of the producer's and consumer's bodies already
   satisfies the consumer's head, so an inverse back-edge no longer forms a cycle. It is sound
   only for the Datalog-first restricted chase above, extends joint acyclicity but not super-weak
   or model-summarizing acyclicity, and runs as the last rung so every program the skolem-chase
-  rungs certify keeps its class. The certifier reports the strongest class it can establish;
+  rungs certify keeps its class. The certifier reports the first established class in its check order;
   anything uncertified refuses or runs under budget, exactly as today.
 - The polynomial classes (joint and super-weak acyclicity) are checked structurally.
   **Model-summarizing acyclicity is decided by the engine itself**: the check is Datalog

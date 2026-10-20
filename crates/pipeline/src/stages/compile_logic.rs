@@ -478,9 +478,9 @@ impl Stage for CompileLogicStage {
         // program would violate no-optionality.
         CachePolicy::Persistent
     }
-    /// Invalidate prior products that lack original complete-source admission evidence.
+    /// Require producer-owned diagnostics shape-migration parity in validation fixtures.
     fn impl_version(&self) -> &str {
-        "compile-logic.v43-contextual-application"
+        "compile-logic.v44-diagnostics-migration-parity"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
@@ -961,7 +961,7 @@ impl Stage for CompileLogicStage {
         // the run-level DiagLedger. Project them once to pre-lowered DiagNodes, carry
         // them on the product's `diagnostics:nodes` blob (so a cache hit re-serves them),
         // and hand them up as `StageOutput.diags` for the scheduler to fold on a fresh run.
-        let diag_blob = serde_json::to_vec(&nodes)
+        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes)
             .map_err(|e| stage_err(format!("encode diagnostics nodes blob: {e}")))?;
         let bundle = crate::bundle::attach_rep_blob(
             bundle,

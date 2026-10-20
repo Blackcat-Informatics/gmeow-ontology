@@ -385,6 +385,28 @@ impl GradeMerge {
 }
 
 impl Grade {
+    /// Base grade for an external diagnostic that supplies severity but no
+    /// GMEOW category or standpoint. Explicit producer grades take precedence.
+    pub const fn for_external_severity(severity: Severity) -> Self {
+        match severity {
+            Severity::Error => Self::new(
+                severity,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            Severity::Warning => Self::new(
+                severity,
+                FindingCategory::PolicyWarning,
+                Standpoint::Perspectival,
+            ),
+            Severity::Note | Severity::Info => Self::new(
+                severity,
+                FindingCategory::PolicyWarning,
+                Standpoint::Advisory,
+            ),
+        }
+    }
+
     pub const fn new(
         severity: Severity,
         category: FindingCategory,

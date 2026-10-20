@@ -62,6 +62,28 @@ fn cold_publish_and_warm_read_share_one_receipt() {
 }
 
 #[test]
+fn blob_growth_is_refused_at_its_receipt_size_before_read_or_verification() {
+    let temp = tempfile::tempdir().unwrap();
+    let cache = store(temp.path());
+    let context = context("grown-blob", vec![]);
+    let receipt = cache
+        .publish(&context, "semantic", 7_u32, b"payload")
+        .unwrap();
+    std::fs::OpenOptions::new()
+        .write(true)
+        .open(cache.blob_path(&receipt.product_blob.digest))
+        .unwrap()
+        .set_len(receipt.product_blob.bytes + 1)
+        .unwrap();
+    for error in [
+        cache.get::<u32>(&context).unwrap_err(),
+        cache.verify_blob(&receipt.product_blob).unwrap_err(),
+    ] {
+        assert!(error.to_string().contains("within 7 bytes"), "{error}");
+    }
+}
+
+#[test]
 fn existing_open_modes_separate_read_only_consumers_from_writable_workers() {
     let absent_parent = tempfile::tempdir().unwrap();
     let absent = absent_parent.path().join("absent");
@@ -280,6 +302,42 @@ fn symlinked_blob_hard_fails_even_when_target_bytes_match() {
     fs::remove_file(&blob).unwrap();
     symlink(&external, &blob).unwrap();
     assert!(cache.get::<u32>(&context).is_err());
+}
+
+#[test]
+fn store_inventory_waits_for_atomic_publication_before_scanning_temporary_paths() {
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    let temp = tempfile::tempdir().unwrap();
+    let cache = store(temp.path()); // gmeow-test-input: synthetic-only
+    let publisher = cache.lock_store(false).unwrap();
+    let temporary = cache.root().join("blobs/.action-blob-publishing.tmp");
+    fs::write(&temporary, b"not yet published").unwrap();
+    std::thread::scope(|scope| {
+        let (started_tx, started_rx) = mpsc::channel();
+        let (result_tx, result_rx) = mpsc::channel();
+        let cache = &cache;
+        let inspector = scope.spawn(move || {
+            started_tx.send(()).unwrap();
+            result_tx.send(cache.quota_exceeded()).unwrap();
+        });
+        started_rx.recv().unwrap();
+        let before_publication = result_rx.recv_timeout(Duration::from_millis(100));
+        fs::remove_file(&temporary).unwrap();
+        drop(publisher);
+        let after_publication = if before_publication.is_err() {
+            Some(result_rx.recv_timeout(Duration::from_secs(10)).unwrap())
+        } else {
+            None
+        };
+        inspector.join().unwrap();
+        assert!(
+            matches!(before_publication, Err(mpsc::RecvTimeoutError::Timeout)),
+            "the inventory inspected a publisher's transient paths instead of waiting for a stable store"
+        );
+        assert!(!after_publication.unwrap().unwrap());
+    });
 }
 
 #[test]

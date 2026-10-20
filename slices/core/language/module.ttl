@@ -27,11 +27,11 @@ gmeow:TransliterationScheme
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Transliteration Scheme"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl)."@x-gmeow-english ;
+    skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/functions.fno.ttl)."@x-gmeow-english ;
     skos:example "ex:schemeHepburn a gmeow:TransliterationScheme ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-scheme subclasses (schemes are individuals) and avoid using it for the romanized string or the script itself (lang:Script); a scheme is a transform, not a script."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Reference a seeded scheme individual from a romanization via gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in projections/transforms.fno.ttl, so a consumer can resolve the individual to its executable transform."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded scheme individual from a romanization via gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in projections/functions.fno.ttl, so a consumer can resolve the individual to its declared callable interface."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for the transliteration axis — the named systems (Hepburn, Pinyin, ISO 233, IPA, …) a romanization can declare it was produced by via gmeow:transliterationScheme."@x-gmeow-english .
 
 gmeow:languageCode

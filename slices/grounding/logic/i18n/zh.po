@@ -13,6 +13,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term is finite numeric"
+msgstr "项是有限数值"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intrinsic unary relation that holds exactly for a well-formed finite RDF numeric literal. Native evaluation uses the shared numeric value-space admission; validation projection tests the same finite value contract. Text, language-tagged literals, NaN, floating infinities and non-literals do not satisfy it. It binds no term and is not an asserted RDF membership fact."
+msgstr "一种内在的一元关系，当且仅当项是格式正确的有限 RDF 数值字面量时成立。原生求值使用共享的数值空间准入机制；验证投影检查相同的有限值契约。文本、带语言标签的字面量、NaN、浮点无穷值及非字面量均不满足该关系。它不绑定任何项，也不是断言的 RDF 成员事实。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2004/02/skos/core#example"
+msgid "A formula testing a measured value uses logic:relation logic:termIsFiniteNumeric and one argument carrier naming that value."
+msgstr "检验测量值的公式使用 logic:relation logic:termIsFiniteNumeric，并以一个参数载体命名该值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Finiteness is a value-space test; lexical form and numeric datatype remain part of RDF identity."
+msgstr "有限性是在值空间中进行的检验；词法形式与数值数据类型仍属于 RDF 身份。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bound measurement or coordinate must be a finite number."
+msgstr "当已绑定的测量值或坐标必须为有限数时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for qualitative literals or named infinity poles."
+msgstr "不要用于定性字面量或命名的无穷极点。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termIsFiniteNumeric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one bound term as the sole ordered argument of a logic:Formula atom."
+msgstr "将一个已绑定的项作为 logic:Formula 原子的唯一有序参数。"
+
 
 msgctxt "https://blackcatinformatics.ca/logic/GroundingCorrespondence|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Grounding Correspondence"

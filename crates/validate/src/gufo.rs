@@ -8,7 +8,7 @@
 //! `frame_declaration_completeness`) run over a native [`purrdf::RdfDataset`]
 //! built from the merged ontology sources, querying through the indexed
 //! [`purrdf::DatasetView::quads_for_pattern`]. The aggregator
-//! [`reasoning_invariants`] runs the five PRODUCTION checks and flattens their errors.
+//! [`reasoning_findings`] runs the five production checks and retains their typed findings.
 //! `relator_mediation` (RelComp) is now enforced natively over the whole ontology by the
 //! foundation lowering and is retained here only as the regression oracle that native
 //! enforcement is validated against — it is not in the production aggregate.
@@ -39,6 +39,18 @@ use gmeow_errors::model::{Finding, Location, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use crate::model::{logic, owl, rdf, rdfs};
+
+/// Stable rule-branch and participant coordinates, independent of diagnostic prose.
+fn constraint_source(role: &str, participants: impl IntoIterator<Item = String>) -> Location {
+    let participants: BTreeSet<_> = participants.into_iter().collect();
+    Location {
+        logical: Some(
+            serde_json::to_string(&(role, participants))
+                .expect("gUFO source coordinates serialize"),
+        ),
+        ..Location::default()
+    }
+}
 
 /// Resolve an IRI value to its dataset-local [`TermId`], if interned.
 #[inline]
@@ -459,6 +471,8 @@ pub fn anti_rigidity_discipline(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Findin
                 logical: Some(cls.clone()),
                 ..Location::default()
             });
+            f.related_locations
+                .push(constraint_source("free-role", [cls.clone()]));
             problems.push(f);
         }
 
@@ -496,6 +510,8 @@ pub fn anti_rigidity_discipline(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Findin
                     logical: Some(cls.clone()),
                     ..Location::default()
                 });
+                f.related_locations
+                    .push(constraint_source("mixed-rigidity", [cls.clone()]));
                 problems.push(f);
             }
         }
@@ -774,6 +790,8 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
                 logical: Some(axis.clone()),
                 ..Location::default()
             });
+            f.related_locations
+                .push(constraint_source("range-cardinality", [axis.clone()]));
             problems.push(f);
             continue;
         }
@@ -793,6 +811,8 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
                 logical: Some(axis.clone()),
                 ..Location::default()
             });
+            f.related_locations
+                .push(constraint_source("functional-axis", [axis.clone()]));
             problems.push(f);
         }
     }
@@ -816,12 +836,20 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
                 names,
                 local(rng, cfg)
             );
-            // No single focus node — multiple axes involved; emit without location.
-            problems.push(Finding::new(
+            let mut finding = Finding::new(
                 Severity::Error,
                 crate::codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
                 message,
+            );
+            finding.add_location(Location {
+                logical: Some(rng.clone()),
+                ..Location::default()
+            });
+            finding.related_locations.push(constraint_source(
+                "shared-range",
+                owners.iter().cloned().chain([rng.clone()]),
             ));
+            problems.push(finding);
         }
     }
 
@@ -846,6 +874,8 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
             logical: Some(a.clone()),
             ..Location::default()
         });
+        f.related_locations
+            .push(constraint_source("bridged-axes", [a, b]));
         problems.push(f);
     }
 
@@ -861,12 +891,13 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
              visible to the OWL 2 DL reasoner",
             names.join(", ")
         );
-        // No single focus node — the axiom is missing; emit without location.
-        problems.push(Finding::new(
+        let mut finding = Finding::new(
             Severity::Error,
             crate::codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
             message,
-        ));
+        );
+        finding.add_location(constraint_source("joint-disjointness", range_set));
+        problems.push(finding);
     }
     problems
 }
@@ -1040,19 +1071,6 @@ pub fn reasoning_findings(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     out.extend(coequal_facet_orthogonality(ds, cfg));
     out.extend(frame_declaration_completeness(ds, cfg));
     out
-}
-
-/// Run every UFO anti-pattern check; an empty list means the graph is clean
-/// (mirrors `reasoning_invariants`). The six checks run in the same order, their
-/// errors flattened.
-///
-/// This is a pure projection of [`reasoning_findings`] to preserve the string
-/// interface for all existing callers (Python bindings, reasoning-parity tests).
-pub fn reasoning_invariants(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
-    reasoning_findings(ds, cfg)
-        .into_iter()
-        .map(|f| f.message)
-        .collect()
 }
 
 #[path = "gufo.tests.rs"]

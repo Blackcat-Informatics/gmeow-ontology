@@ -18,7 +18,7 @@
 > Update: `make check-sync SYNC_MODE=update`.
 > CI gate: `make check-sync SYNC_MODE=check`, using the authenticated producer.
 
-GMEOW is an **OWL 2 DL** ontology with a parallel layer of **SHACL** shapes, itself
+GMEOW's canonical **logic:** ontology projects an OWL 2 DL view and **SHACL** shapes
 *derived* from the EL-safe cardinality/class/datatype/node-kind/value-set axioms
 authored in each slice's `module.ttl` (never hand-authored — see
 [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./MIGRATING-SHAPES-TO-LOGIC.md)). SHACL is a
@@ -198,8 +198,19 @@ no-optionality forbids silently discarding a produced artifact.
 `model_json_schema()` hook onto the SAME compiled `$defs` — so `model_json_schema(by_alias=True)`
 reconstructs the originating JSON Schema definition. JSON Schema assertions with no
 exact Pydantic runtime-annotation equivalent are recorded on the package's loss
-ledger the same way. See [§4](#4-generator-specific-caveats) for the package-layout
-change (a flat single-module package) this cutover also made.
+ledger the same way. GMEOW supplies PurRDF's routed topology: ontology models live
+in their owning slice modules; generated envelopes, enums and structural helpers
+have an explicit `schema_helpers` module. Each ontology model's
+`model_config["json_schema_extra"]` carries its IRI, CURIE, `definitionDigest` and
+documentation URL. The class docstring carries its definition and usage coat;
+the module identifies the slice, tier and DOI, and the package README indexes the
+same topology. Definition digests come from the current pipeline run's term
+manifest, including all four registered ontology namespaces. Missing documentation,
+ownership or a required digest fails the export rather than inventing a link.
+
+The Rust checks exercise emitted routing, metadata and reference wiring. They do
+not execute Python imports or prove Pydantic runtime schema agreement. A live
+Python import/schema lane remains a separate acceptance requirement.
 
 ---
 
@@ -233,7 +244,7 @@ not open-world-vs-closed-world gaps.
 | **LinkML** | Single file | A compacted-CURIE property whose local part is not a valid NCName is renamed for this surface only (§2.1); the rename is logged. |
 | **TypeScript** | Single `.d.ts` | Assertions with no structural type-system equivalent (`pattern`, numeric bounds, `format`) are recorded on the loss ledger, not enforced by the type. |
 | **GraphQL** | SDL + `name-map.json` | Identifier-illegal source names (e.g. `signatureSchemeBLS12-381`) are renamed for the SDL; the shipped `name-map.json` carries the canonical original ↔ GraphQL-identifier mapping. |
-| **Pydantic** | `gmeow_models/` — a FLAT single-module package (`_base.py`, `models.py`, `__init__.py`, `py.typed`, `__about__.py`) | The current GMEOW call selects PurRDF's flat compatibility configuration even though PurRDF now supports caller-owned routed topology and class metadata. The resulting absence of per-slice modules, per-class docs-digest linkage, and a generated `README.md` is live, durably tracked developer-surface work, not an authorized capability regression or a `.deficiencies` descope. `gmeow_models/__about__.py` (the wheel version, from the ontology's `owl:versionInfo`) remains gmeow-orchestrated, stamped alongside PurRDF's artifacts. |
+| **Pydantic** | `gmeow_models/` — slice modules, `schema_helpers.py`, `_base.py`, `__init__.py`, `py.typed`, `__about__.py`, `README.md` | Ontology metadata and documentation are joined to the shared compiled schema. Generated schema helpers carry no invented ontology identity. The ontology's version stamps `__about__.py`. Rust structural checks do not establish live Python import or runtime conformance. |
 
 ---
 
@@ -260,7 +271,7 @@ Output files:
 * `gmeow_models/` — Pydantic v2 package (closed-world, native from SHACL)
 
 These are **build artifacts** (`dist/` is git-ignored). Do not edit them by hand.
-If a term is wrong, fix the OWL/RDFS axioms in the slice's `module.ttl` — the
+If a term is wrong, fix the canonical `logic:` axioms in the slice's `module.ttl` — the
 pipeline derives the SHACL shapes those axioms compile into, and every schema
 surface above compiles from that SAME shape union — then re-run
 `make check-sync SYNC_MODE=update`.

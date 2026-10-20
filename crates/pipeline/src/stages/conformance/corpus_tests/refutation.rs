@@ -99,7 +99,8 @@ fn corpus_soundness_sweep_no_supported_class_conflict_contradicts_w3c() {
                 assert!(observed.admission.outside_selection(), "{key}");
                 assert_eq!(
                     observed.input_blake3,
-                    *blake3::hash(&std::fs::read(case.join("input.nq")).unwrap()).as_bytes(),
+                    *purrdf_hash::blake3::hash(&std::fs::read(case.join("input.nq")).unwrap())
+                        .as_bytes(),
                     "{key}"
                 );
                 assert_eq!(

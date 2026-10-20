@@ -5,6 +5,7 @@
 
 pub(super) const MODULES: &[&str] = &[
     "slices/core/attestation/module.ttl",
+    super::migration::MODULE,
     "slices/core/gender/module.ttl",
     "slices/core/gts/module.ttl",
     "slices/core/norms/module.ttl",

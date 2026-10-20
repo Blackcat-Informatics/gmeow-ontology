@@ -119,7 +119,7 @@ pub(super) fn record(
             gmeow_logic::reason::LogicalGraph::Default,
             gmeow_logic::reason::DomainProfile::NonemptyObjectDomainV1,
             "gmeow.pipeline.reasoned-verify-scenes.v1".to_owned(),
-            *blake3::hash(
+            *purrdf_hash::blake3::hash(
                 b"gmeow.pipeline.reasoned-verify-scenes.v1/default/nonempty-object-domain-v1",
             )
             .as_bytes(),

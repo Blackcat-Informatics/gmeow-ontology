@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-mcp-dev"
-description = "The repo-reading GMEOW MCP developer tools (validate / sync / reason / constitution), registered into the consumer engine through its extension seam"
+description = "The repo-reading GMEOW MCP developer tools and packet candidate composition, registered into the consumer engine through its extension seam"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -21,7 +21,7 @@ path = "src/lib.rs"
 
 [dependencies]
 # The consumer MCP engine: the server, the bundle view, and the `Extension` seam the
-# four dev tools register through. Every consumer tool is inherited unchanged.
+# dev tools register through. Every consumer tool is inherited unchanged.
 gmeow-mcp = { path = "../mcp" }
 # The build executor: `run::run_full` + `run::RunMode` are what the `validate` and
 # `sync` tools ARE. This single edge is why the dev tools were split out of
@@ -33,8 +33,11 @@ gmeow-logic = { path = "../logic" }
 # The diagnostic substrate: the dev tools raise typed `DiagKind`s as `Diag`s, on the
 # same content-bound catalog as every other crate.
 gmeow-errors = { path = "../errors" }
+# The existing packet assembler, shared with the pipeline and CLI.
+gmeow-slice-brief = { path = "../slice-brief" }
 # JSON is the MCP wire format: the tool descriptors and every result envelope.
 serde_json.workspace = true
 
 [dev-dependencies]
 gmeow-bundle-import = { path = "../bundle-import" }
+tempfile.workspace = true

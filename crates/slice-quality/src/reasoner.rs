@@ -44,8 +44,10 @@ fn slice_theory_domains() -> gmeow_errors::Result<SelectedDomains> {
         LogicalGraph::Default,
         DomainProfile::NonemptyObjectDomainV1,
         "gmeow.slice-quality.module-theory.v1".to_owned(),
-        *blake3::hash(b"gmeow.slice-quality.module-theory.v1/default/nonempty-object-domain-v1")
-            .as_bytes(),
+        *purrdf_hash::blake3::hash(
+            b"gmeow.slice-quality.module-theory.v1/default/nonempty-object-domain-v1",
+        )
+        .as_bytes(),
     )?])
 }
 

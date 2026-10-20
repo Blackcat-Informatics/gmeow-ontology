@@ -350,7 +350,7 @@ impl SourceAdmission {
     }
 
     fn evidence_digest(&self) -> [u8; 32] {
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         hasher.update(b"gmeow-live-source-admission-v1\0");
         // Stream all serialized fields into the digest sink. The private compiler
         // commitment is skipped by serde; no second admission-sized buffer or
@@ -1407,7 +1407,7 @@ fn atomic_term(
 
 fn source_digest(theory: &CompiledTheory) -> String {
     let dataset = theory.source().dataset();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-prepared-source-v3\0");
     let mut graphs: Vec<_> = dataset
         .named_graphs()
@@ -1459,7 +1459,7 @@ fn source_digest(theory: &CompiledTheory) -> String {
         hasher.update(&(receipt.len() as u64).to_be_bytes());
         hasher.update(&receipt);
     }
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 fn quad_anchor(dataset: &RdfDataset, quad: QuadIds) -> String {
@@ -1535,10 +1535,10 @@ fn frame(tag: &str, fields: impl IntoIterator<Item = String>) -> String {
 }
 
 fn digest_bytes(domain: &[u8], value: &[u8]) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(domain);
     hasher.update(value);
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 fn blocked(code: impl Into<String>, reason: impl Into<String>) -> SemanticUnitDisposition {

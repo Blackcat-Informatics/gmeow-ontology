@@ -361,8 +361,8 @@ pub fn check_artifact_invariance(
                 "{path} ({} B primed vs {} B baseline, blake3 {} vs {})",
                 a.len(),
                 b.len(),
-                blake3::hash(a).to_hex(),
-                blake3::hash(b).to_hex()
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(a).as_bytes()),
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(b).as_bytes())
             ));
         }
     }

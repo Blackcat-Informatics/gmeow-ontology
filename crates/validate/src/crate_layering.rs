@@ -20,7 +20,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use gmeow_errors::{Finding, Report, Severity};
+use gmeow_errors::{
+    Diag, DiagLedger, FindingCategory, GateVerdict, Grade, Location, Report, Severity, StageId,
+    Standpoint, register_code,
+};
 use toml::Value;
 
 /// The generic RDF 1.2 kernel. Slice/domain/adapter semantics layer above it.
@@ -37,17 +40,77 @@ const DEP_TABLE_KEYS: &[&str] = &["dependencies", "build-dependencies", "dev-dep
 const TOOL: &str = "crate-layering";
 
 /// Outcome of the crate-layering gate.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default)]
 pub struct CrateLayeringReport {
-    pub errors: Vec<String>,
-    pub warnings: Vec<String>,
+    ledger: DiagLedger,
     pub edges: BTreeMap<String, BTreeSet<String>>,
 }
 
 impl CrateLayeringReport {
     pub fn ok(&self) -> bool {
-        self.errors.is_empty()
+        self.ledger.verdict() == GateVerdict::Collected
     }
+
+    pub fn ledger(&self) -> &DiagLedger {
+        &self.ledger
+    }
+
+    pub fn errors(&self) -> Vec<String> {
+        self.ledger
+            .messages(Severity::Error)
+            .map(str::to_owned)
+            .collect()
+    }
+}
+
+#[track_caller]
+fn violation(path: &str, focus: &str, message: impl Into<String>) -> Diag {
+    Diag::new(
+        register_code(crate::codes::CRATE_LAYERING_VIOLATION),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    )
+    .with_location(Location::new(Some(path.to_owned()), None, None, None))
+    .with_focus(focus)
+}
+
+fn source_path(crates_dir: &Path, path: &Path) -> gmeow_errors::Result<String> {
+    let root = crates_dir.parent().unwrap_or(crates_dir);
+    let relative = path.strip_prefix(root).map_err(|error| {
+        let identity = serde_json::to_string(&(
+            root.as_os_str().as_encoded_bytes(),
+            path.as_os_str().as_encoded_bytes(),
+        ))
+        .expect("native source-root coordinates serialize");
+        violation(
+            "",
+            &identity,
+            format!("source {path:?} is outside the selected crate root"),
+        )
+        .with_location(Location::default())
+        .with_source(error)
+    })?;
+    String::from_utf8(relative.as_os_str().as_encoded_bytes().to_vec())
+        .map(|path| path.replace(std::path::MAIN_SEPARATOR, "/"))
+        .map_err(|error| {
+            let identity =
+                serde_json::to_string(error.as_bytes()).expect("native path bytes serialize");
+            violation(
+                "",
+                &identity,
+                format!("crate-layering source path {relative:?} is not valid UTF-8"),
+            )
+            .with_location(Location::default())
+            .with_source(error)
+        })
+}
+
+fn layering_stage() -> StageId {
+    StageId::new("validate.crate-layering")
 }
 
 fn crate_name(manifest: &Value) -> Option<&str> {
@@ -98,23 +161,30 @@ fn first_party_deps(manifest: &Value) -> BTreeSet<String> {
 }
 
 fn manifest_paths(crates_dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let source = source_path(crates_dir, crates_dir)?;
     let entries = fs::read_dir(crates_dir).map_err(|err| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!(
+        violation(
+            &source,
+            "directory",
+            format!(
                 "cannot read crates directory {}: {err}",
                 crates_dir.display()
             ),
-        })
+        )
+        .with_source(err)
     })?;
     let mut manifests = Vec::new();
     for entry in entries {
         let entry = entry.map_err(|err| {
-            gmeow_errors::Diag::of_kind(crate::error::Io {
-                detail: format!(
+            violation(
+                &source,
+                "directory",
+                format!(
                     "cannot read crates directory {}: {err}",
                     crates_dir.display()
                 ),
-            })
+            )
+            .with_source(err)
         })?;
         let path = entry.path().join("Cargo.toml");
         if path.is_file() {
@@ -185,65 +255,113 @@ fn sorted_deps(edges: &BTreeMap<String, BTreeSet<String>>, node: &str) -> Vec<St
 /// Run the crate-layering gate over every `crates/*/Cargo.toml`.
 pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
     let mut report = CrateLayeringReport::default();
+    let directory = match source_path(crates_dir, crates_dir) {
+        Ok(directory) => directory,
+        Err(diag) => {
+            report.ledger.attach(diag, layering_stage());
+            return report;
+        }
+    };
 
     if !crates_dir.is_dir() {
-        report.errors.push(format!(
-            "crates directory not found: {}",
-            crates_dir.display()
-        ));
+        report.ledger.attach(
+            violation(
+                &directory,
+                "directory",
+                format!("crates directory not found: {}", crates_dir.display()),
+            ),
+            layering_stage(),
+        );
         return report;
     }
 
     let manifests = match manifest_paths(crates_dir) {
         Ok(paths) => paths,
         Err(diag) => {
-            report.errors.push(diag.message().to_owned());
+            report.ledger.attach(diag, layering_stage());
             return report;
         }
     };
     if manifests.is_empty() {
-        report.errors.push(format!(
-            "no crates/*/Cargo.toml under {}",
-            crates_dir.display()
-        ));
+        report.ledger.attach(
+            violation(
+                &directory,
+                "directory",
+                format!("no crates/*/Cargo.toml under {}", crates_dir.display()),
+            ),
+            layering_stage(),
+        );
         return report;
     }
 
-    let mut names_seen = BTreeSet::new();
+    let mut manifest_sources = BTreeMap::new();
     for manifest_path in manifests {
+        let source = match source_path(crates_dir, &manifest_path) {
+            Ok(source) => source,
+            Err(diag) => {
+                report.ledger.attach(diag, layering_stage());
+                continue;
+            }
+        };
         let text = match fs::read_to_string(&manifest_path) {
             Ok(text) => text,
             Err(err) => {
-                report.errors.push(format!(
-                    "{}: cannot read Cargo.toml: {err}",
-                    manifest_path.display()
-                ));
+                report.ledger.attach(
+                    violation(
+                        &source,
+                        "manifest",
+                        format!("{}: cannot read Cargo.toml: {err}", manifest_path.display()),
+                    )
+                    .with_source(err),
+                    layering_stage(),
+                );
                 continue;
             }
         };
         let manifest = match text.parse::<Value>() {
             Ok(manifest) => manifest,
             Err(err) => {
-                report.errors.push(format!(
-                    "{}: cannot parse Cargo.toml: {err}",
-                    manifest_path.display()
-                ));
+                report.ledger.attach(
+                    violation(
+                        &source,
+                        "manifest",
+                        format!(
+                            "{}: cannot parse Cargo.toml: {err}",
+                            manifest_path.display()
+                        ),
+                    )
+                    .with_source(err),
+                    layering_stage(),
+                );
                 continue;
             }
         };
         let Some(name) = crate_name(&manifest) else {
-            report
-                .errors
-                .push(format!("{}: no [package] name", manifest_path.display()));
+            report.ledger.attach(
+                violation(
+                    &source,
+                    "package.name",
+                    format!("{}: no [package] name", manifest_path.display()),
+                ),
+                layering_stage(),
+            );
             continue;
         };
-        if !names_seen.insert(name.to_owned()) {
-            report.errors.push(format!(
-                "duplicate crate name {name:?} in {}",
-                manifest_path.display()
-            ));
+        if manifest_sources.contains_key(name) {
+            report.ledger.attach(
+                violation(
+                    &source,
+                    name,
+                    format!(
+                        "duplicate crate name {name:?} in {}",
+                        manifest_path.display()
+                    ),
+                ),
+                layering_stage(),
+            );
             continue;
         }
+        manifest_sources.insert(name.to_owned(), source);
         report
             .edges
             .insert(name.to_owned(), first_party_deps(&manifest));
@@ -260,18 +378,27 @@ pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
     for (krate, deps) in &report.edges {
         for dep in deps {
             if !report.edges.contains_key(dep) {
-                report.errors.push(format!(
-                    "{krate}: first-party dependency {dep:?} is not a crates/* member"
-                ));
+                report.ledger.attach(
+                    violation(
+                        &manifest_sources[krate],
+                        dep,
+                        format!("{krate}: first-party dependency {dep:?} is not a crates/* member"),
+                    ),
+                    layering_stage(),
+                );
             }
         }
     }
 
     if let Some(cycle) = find_cycle(&report.edges) {
-        report.errors.push(format!(
-            "first-party crate dependency cycle: {}",
-            cycle.join(" -> ")
-        ));
+        report.ledger.attach(
+            violation(
+                &directory,
+                &cycle.join(" -> "),
+                format!("first-party crate dependency cycle: {}", cycle.join(" -> ")),
+            ),
+            layering_stage(),
+        );
     }
 
     report
@@ -279,28 +406,7 @@ pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
 
 /// Project a crate-layering report into the canonical diagnostics model.
 pub fn to_diagnostics_report(report: &CrateLayeringReport) -> Report {
-    let mut out = Report::new(TOOL);
-    for message in &report.errors {
-        out.add_finding(
-            Finding::new(
-                Severity::Error,
-                crate::codes::CRATE_LAYERING_VIOLATION,
-                message.clone(),
-            )
-            .with_tool(TOOL),
-        );
-    }
-    for message in &report.warnings {
-        out.add_finding(
-            Finding::new(
-                Severity::Warning,
-                crate::codes::CRATE_LAYERING_OBSERVATION,
-                message.clone(),
-            )
-            .with_tool(TOOL),
-        );
-    }
-    out
+    report.ledger.project_report(TOOL)
 }
 
 #[path = "crate_layering.tests.rs"]

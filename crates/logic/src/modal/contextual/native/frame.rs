@@ -369,7 +369,7 @@ impl NativeFrame<'_> {
             .collect::<Vec<_>>();
         let bytes = serde_json::to_vec(&(&self.prepared.base_basis, records))
             .expect("native contextual basis serializes");
-        blake3::hash(&bytes).to_hex().to_string()
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&bytes).as_bytes())
     }
 }
 impl AssessmentEvidence for NativeFrame<'_> {

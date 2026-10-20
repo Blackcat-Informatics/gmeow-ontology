@@ -14,7 +14,8 @@
 //! already-native backend (`gmeow_docs`, `gmeow_validate`, `gmeow_pipeline`,
 //! `gmeow_music`, `purrdf`). The console convention is the shared one from
 //! [`gmeow_cli_core`]: product results → stdout, errors/diagnostics → stderr,
-//! exit `0` on success, `1` on a handled failure, `2` for clap usage errors, and
+//! exit `0` on success, `1` on a handled failure, `2` for clap usage errors,
+//! `3` for an undecided or unsupported operation, and
 //! a passthrough child's own exit code for `gts` / `music`.
 
 mod commands;
@@ -681,6 +682,9 @@ pub enum SliceCommands {
         /// Output serialization: `human` (default), `json`, or `sarif`.
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
+        /// Canonical corpus measurement profile; never inferred from missing inputs.
+        #[arg(long = "profile", default_value = "full")]
+        profile: String,
     },
     /// Lint an external slice directory against the embedded gmeow.gts bundle (no
     /// repo checkout): PASS if the roll-up tier meets the slice's own declared
@@ -1963,9 +1967,11 @@ pub fn run() -> i32 {
             }
         },
         Commands::Slice { command } => match command {
-            SliceCommands::Quality { dir, format } => {
-                commands::slice_quality(reporter, &dir, &format)
-            }
+            SliceCommands::Quality {
+                dir,
+                format,
+                profile,
+            } => commands::slice_quality(reporter, &dir, &format, &profile),
             SliceCommands::Lint {
                 dir,
                 min_tier,

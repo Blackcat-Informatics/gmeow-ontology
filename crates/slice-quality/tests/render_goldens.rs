@@ -53,6 +53,21 @@ fn goldens_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/goldens")
 }
 
+/// Exercise the public diagnostic renderer from an existing structured product,
+/// without scoring authored sources or constructing any corpus input.
+#[test]
+fn sarif_from_frozen_report_matches_the_versioned_golden() {
+    let goldens = goldens_dir();
+    let report: gmeow_errors::Report =
+        serde_json::from_slice(&read_golden(&goldens, "sample-slice.json")).unwrap();
+    let rendered = to_sarif(&report).unwrap();
+    assert_no_machine_paths("sample-slice.sarif", &rendered);
+    assert_eq!(
+        rendered.as_bytes(),
+        read_golden(&goldens, "sample-slice.sarif")
+    );
+}
+
 /// Render the fixture slice all four ways: (name, produced-bytes).
 fn render_all(report: &SliceReport) -> Vec<(&'static str, String)> {
     let diag = report.to_report();

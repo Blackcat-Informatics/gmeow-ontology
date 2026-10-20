@@ -47,6 +47,43 @@ fn version_prints_package_version() {
         .stdout(predicate::str::starts_with(env!("CARGO_PKG_VERSION")));
 }
 
+#[test]
+fn i18n_lint_cli_preserves_distinct_source_findings_and_failure_exit() {
+    let root = tempfile::tempdir().unwrap();
+    let catalogs = root.path().join("slices/core/example/i18n");
+    std::fs::create_dir_all(&catalogs).unwrap();
+    for name in ["first.po", "second.po"] {
+        std::fs::write(catalogs.join(name), "msgid \"\"\nmsgstr \"\"\n").unwrap();
+    }
+    let output = Command::cargo_bin("gmeow-dev")
+        .unwrap()
+        .env("GMEOW_ROOT", root.path())
+        .env("GMEOW_CONSOLE", "jsonl")
+        .args(["i18n", "lint"])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let events: Vec<serde_json::Value> = stdout
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .filter(|event: &serde_json::Value| event["tool"] == "i18n-lint")
+        .collect();
+    assert_eq!(events.len(), 2, "{stdout}");
+    let paths: std::collections::BTreeSet<_> = events
+        .iter()
+        .map(|event| {
+            let finding = &event["finding"];
+            assert_eq!(finding["code"], "docs.i18n.catalog-inconsistent");
+            assert!(finding["finding_iri"].is_string());
+            finding["locations"][0]["path"].as_str().unwrap()
+        })
+        .collect();
+    assert_eq!(paths.len(), 2);
+    assert!(paths.iter().any(|path| path.ends_with("first.po")));
+    assert!(paths.iter().any(|path| path.ends_with("second.po")));
+}
+
 /// Scrape the subcommand names from the `Commands:` block of a clap `--help`
 /// screen, asserting the help itself renders and exits 0. Returns an empty vec
 /// for a leaf command (no `Commands:` block). `help` is elided.

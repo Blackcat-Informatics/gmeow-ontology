@@ -510,8 +510,10 @@ fn harvest_reasoned_types(
         LogicalGraph::Default,
         DomainProfile::NonemptyObjectDomainV1,
         "gmeow.pipeline.reasoned-type-harvest.v1".to_owned(),
-        *blake3::hash(b"gmeow.pipeline.reasoned-type-harvest.v1/default/nonempty-object-domain-v1")
-            .as_bytes(),
+        *purrdf_hash::blake3::hash(
+            b"gmeow.pipeline.reasoned-type-harvest.v1/default/nonempty-object-domain-v1",
+        )
+        .as_bytes(),
     )?])?;
     let result =
         gmeow_logic::reason::reason_all_with_data(bundle.as_ref(), user.as_ref(), &domains)

@@ -209,9 +209,10 @@ advises ≤1 instrument per participation — mint one participation per instrum
 ### Credit derivation
 
 A `Contribution` on the resulting `Recording` is derived from the
-`PerformanceParticipation` cells by a documented FnO projection rule
-(`gmeow:fnParticipationToContribution`), never an OWL property chain (Principle
-12). Full cataloguing of the rule lands with the projection toolchain (projection toolchain).
+`PerformanceParticipation` cells through the callable operation `gmeow:fnParticipationToContribution`, whose
+identity is authored as `logic:Callable` and projected into the generated FnO
+catalog. The declaration does not provide an executor or a complete argument
+signature; it is never an OWL property chain (Principle 12).
 
 ### Session micro-fixture
 
@@ -328,7 +329,7 @@ A `gmeow:NotationProjectionProfile` is a `gmeow:Profile` (closed descriptor sche
 - `gmeow:declaredLoss` — which `ProjectionLoss` values explain every parameter the notation drops or approximates.
 - `gmeow:projectionFunction` — the FnO function reference that performs the render.
 
-The completeness gate requires that **every `MusicalParameter` is either representable or accounted for by a declared loss** in every profile. This is enforced by `slices/extensions/music/tests/test_music_notation_projection.py`.
+The completeness gate requires that **every `MusicalParameter` is either representable or accounted for by a declared loss** in every profile. The native slice specification in `tests/structural.ttl` enforces this, requires every loss to account for a parameter, and requires exactly one profile per notation system. Each ban has a registered failing witness; independent synthetic Rust controls execute those same queries.
 
 ### `gmeow:ProjectionLoss`
 

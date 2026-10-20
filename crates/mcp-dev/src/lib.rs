@@ -1,14 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `gmeow-mcp-dev` — the four repo-reading MCP developer tools.
+//! `gmeow-mcp-dev` — the repo-reading MCP developer tools.
 //!
 //! `gmeow-mcp` serves the consumer surface off a bundled `gmeow.gts` and nothing
-//! else. `gmeow-dev mcp` serves that same surface PLUS four tools that need a
+//! else. `gmeow-dev mcp` serves that same surface PLUS tools that need a
 //! checkout: `validate` and `sync` (the pipeline's check/update runs),
 //! `reason` (native reasoning over the bundle's carrier graph), and `constitution`
-//! (the checked-out `CONSTITUTION.md`, also exposed as a fifth resource). Those four
-//! live here.
+//! (the checked-out `CONSTITUTION.md`, also exposed as a resource), and
+//! `submit_packet_candidate` (a source packet's theory through governed submission).
+//! Those repository operations live here.
 //!
 //! # Why they are a separate crate
 //!
@@ -51,7 +52,7 @@
 //! reason it is here:
 //!
 //! * `gmeow-mcp` — the consumer MCP engine: the server, the bundle view, and the
-//!   [`Extension`] seam these four tools register through. Every consumer tool is
+//!   [`Extension`] seam these tools register through. Every consumer tool is
 //!   inherited unchanged.
 //! * `gmeow-pipeline` — the build executor: `run::run_full` + `run::RunMode` are what
 //!   the `validate` and `sync` tools ARE. This single edge is the whole reason the dev
@@ -60,9 +61,11 @@
 //!   [`gmeow_logic::reason::reason_all`] over the bundle's folded carrier graph.
 //! * `gmeow-errors` — the diagnostic substrate: the dev tools raise typed `DiagKind`s
 //!   as `Diag`s, on the same content-bound catalog as every other crate.
+//! * `gmeow-slice-brief` — canonical packet assembly and source-scoped candidate KBs.
 //! * `serde_json` — the MCP wire format: the tool descriptors and every result
 //!   envelope.
 
+mod candidate_packet;
 pub mod error;
 
 use std::fs;
@@ -81,7 +84,7 @@ pub const CONSTITUTION_URI: &str = "gmeow://ontology/constitution";
 /// The medium-registry resource URI, re-exported from the leaf that defines the surface.
 pub use gmeow_mcp::MEDIUM_RESOURCE_URI as MEDIUM_URI;
 
-/// The four repo-reading developer tools plus the Constitution resource, bound to
+/// The repo-reading developer tools plus the Constitution resource, bound to
 /// the checkout at `root`.
 ///
 /// Each handler captures its own copy of `root`: the seam passes only the server and
@@ -106,12 +109,16 @@ pub fn medium_extension() -> Extension {
 #[must_use]
 pub fn dev_extension(root: PathBuf) -> Extension {
     let validate_root = root.clone();
+    let candidate_root = root.clone();
     let sync_root = root.clone();
     let constitution_tool_root = root.clone();
     let constitution_resource_root = root;
     // Built ON the medium extension rather than beside it: the dev server is a superset of
     // the consumer surface, and composing it here is what keeps the two from drifting.
     medium_extension()
+        .with_tool(candidate_packet::descriptor(), move |server, args| {
+            candidate_packet::submit(server, args, &candidate_root)
+        })
         .with_tool(
             tool("validate", "Run the native validation/check surface.", &[]),
             move |_server, _args| run_pipeline(&validate_root, "check"),
@@ -173,7 +180,7 @@ pub fn dev_extension(root: PathBuf) -> Extension {
 }
 
 /// Build the DEVELOPER MCP server: the consumer surface over `snapshot`, plus the
-/// four repo-reading tools and the Constitution resource bound to `root`.
+/// repo-reading tools and the Constitution resource bound to `root`.
 ///
 /// # Errors
 ///

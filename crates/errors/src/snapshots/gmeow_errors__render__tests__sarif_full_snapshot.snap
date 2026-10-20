@@ -1,6 +1,6 @@
 ---
-source: crates/errors/src/render.rs
-assertion_line: 1370
+source: crates/errors/src/render.tests.rs
+assertion_line: 194
 expression: value
 ---
 {
@@ -21,6 +21,9 @@ expression: value
       ],
       "automationDetails": {
         "id": "ontology"
+      },
+      "properties": {
+        "category": "ontology"
       },
       "results": [
         {
@@ -54,7 +57,7 @@ expression: value
             "text": "missing property"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1a45975eee1afc5f"
+            "gmeowFindingHash/v3": "1a45975eee1afc5f"
           },
           "ruleId": "shacl.MinCount"
         },
@@ -85,7 +88,7 @@ expression: value
             "text": "missing property"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "5b5b3cf07de70c17"
+            "gmeowFindingHash/v3": "5b5b3cf07de70c17"
           },
           "properties": {
             "gmeow.attributions": [
@@ -121,7 +124,7 @@ expression: value
             "text": "class gmeow:Analogy is missing gmeow:howToUse"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "713f947ffc5ec1e5"
+            "gmeowFindingHash/v3": "713f947ffc5ec1e5"
           },
           "ruleId": "validate.warning"
         }

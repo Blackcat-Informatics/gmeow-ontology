@@ -294,6 +294,17 @@ fn property_chains_keep_their_authored_order() {
 }
 
 #[test]
+fn callable_signature_lists_keep_position_and_repeated_slot_identity() {
+    for field in ["inputParameters", "outputParameters"] {
+        let (program, diagnostics) =
+            compile(&format!("ex:call logic:{field} ( ex:z ex:a ex:z ) ."));
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        let head = only_iri(&program, &ex("call"), &logic(field));
+        assert_eq!(ir_list(&program, &head), iris(&["z", "a", "z"]));
+    }
+}
+
+#[test]
 fn literal_enumerations_are_admitted_and_kept_typed() {
     let (program, diagnostics) = compile("ex:Level logic:oneOf ( \"high\" \"low\" ) .");
     assert!(diagnostics.is_empty(), "{diagnostics:?}");

@@ -337,12 +337,6 @@ fn corpus_texts(root: &Path) -> Result<BTreeMap<String, CorpusDoc>, gmeow_errors
     Ok(out)
 }
 
-/// `_current_digest`: `"blake3:" + blake3(text).hexdigest()`.
-fn current_digest(text: &str) -> String {
-    let hash = blake3::hash(text.as_bytes());
-    format!("blake3:{}", hash.to_hex())
-}
-
 /// `_span_verified`: quote re-anchors; when the digest is current, offsets bind.
 fn span_verified(span: &Value, text: &str, digest_current: bool) -> bool {
     let quote = span.get("quote").and_then(Value::as_str).unwrap_or("");
@@ -628,10 +622,9 @@ fn score_emissions(
         let (text, digest_current) = match corpus.get(source) {
             Some(doc) => {
                 let dc = !doc.text.is_empty()
-                    && doc
-                        .declared_digests
-                        .iter()
-                        .any(|d| *d == current_digest(&doc.text));
+                    && doc.declared_digests.iter().any(|d| {
+                        *d == gmeow_lang_bridge::gmn1_digest::tagged_text_digest(&doc.text)
+                    });
                 (doc.text.as_str(), dc)
             }
             None => ("", false),

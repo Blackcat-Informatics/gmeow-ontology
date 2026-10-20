@@ -34,7 +34,7 @@ pub(crate) fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
 
 /// Hash typed framing without allocating or retaining a serialized program.
 #[derive(Default)]
-struct TypedDigest(blake3::Hasher);
+struct TypedDigest(purrdf_hash::blake3::Hasher);
 
 impl std::io::Write for TypedDigest {
     fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
@@ -52,7 +52,7 @@ pub(crate) fn typed_digest(value: &impl serde::Serialize) -> String {
     let mut sink = TypedDigest::default();
     ciborium::ser::into_writer(value, &mut sink)
         .expect("derived typed serialization into an infallible hash sink");
-    sink.0.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
 /// The complete payload identity is independent of its governed RDF projection.
@@ -144,3 +144,7 @@ pub(crate) fn contains_graph(bundle: &PipelineBundle<PipelineHandle>, graph: &st
         .owned_named_graphs()
         .any(|term| matches!(term, RdfTerm::Iri(iri) if iri == graph))
 }
+
+#[cfg(test)]
+#[path = "handle_identity.tests.rs"]
+mod tests;

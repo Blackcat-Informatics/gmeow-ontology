@@ -48,6 +48,7 @@ use purrdf::slice::SliceCatalog;
 use purrdf::{DatasetView, GraphMatch, TermRef, parse_dataset};
 
 use gmeow_lang_bridge::emit::{digest16, ntriples_sorted};
+use gmeow_lang_bridge::gmn1_digest::tagged_text_digest;
 use gmeow_lang_bridge::{
     Bridge, PlainTextBridge, exact_surface_correspondence, normalization_label,
 };
@@ -185,14 +186,6 @@ pub fn build_surface_blobs(
     Ok(blobs)
 }
 
-/// The content-addressed `blake3:<hex>` blob reference for a surface's bytes — the SAME
-/// digest the gts writer's `digest_string` assigns the registered [`BlobRow`] (mirroring
-/// the per-slice `gmeow:guideBlob` anchor), so the emitted reference resolves to the
-/// registered bytes.
-fn surface_blob_digest(text: &str) -> String {
-    format!("blake3:{}", blake3::hash(text.as_bytes()).to_hex())
-}
-
 /// The totality of the prose lift: the size of the extraction universe (distinct
 /// `@x-gmeow-english` literals) and how many of them the built corpus actually lifts to a
 /// reachable `lang:SurfaceForm`. The lift is TOTAL — the count-equality the flagship
@@ -215,7 +208,7 @@ pub struct ProseLiftCoverage {
 /// A document-scale surface (byte-length exceeding [`DOCUMENT_SCALE_BYTES`]) holds its bytes
 /// BY REFERENCE — a content-addressed `lang:surfaceBlob "blake3:<hex>"` handle — rather than
 /// inline `lang:surfaceText`, so a universe literal counts as covered if it is reachable
-/// through EITHER channel, keyed on the SAME threshold and [`surface_blob_digest`] the corpus
+/// through EITHER channel, keyed on the SAME threshold and [`tagged_text_digest`] the corpus
 /// emits. `None` (no `slices/` tree) yields an empty universe.
 pub fn prose_lift_coverage(
     catalog: Option<&SliceCatalog>,
@@ -257,7 +250,7 @@ pub fn prose_lift_coverage(
     let mut covered = 0usize;
     for text in &universe {
         let reachable = if text.len() > DOCUMENT_SCALE_BYTES {
-            blobs.contains(nt_literal(&surface_blob_digest(text)).as_str())
+            blobs.contains(nt_literal(&tagged_text_digest(text)).as_str())
         } else {
             emitted.contains(nt_literal(text).as_str())
         };
@@ -537,7 +530,7 @@ fn emit_ntriples(proses: &[Prose]) -> Vec<u8> {
             lines.push(triple_lit(
                 &prose.surface_iri,
                 &iri(LANG_NS, "surfaceBlob"),
-                &surface_blob_digest(&prose.text),
+                &tagged_text_digest(&prose.text),
             ));
         } else {
             lines.push(triple_lit(

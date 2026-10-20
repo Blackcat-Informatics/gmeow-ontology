@@ -22,6 +22,137 @@ fn test_context(stage_id: &str, salt: &str) -> StageKeyContext {
 }
 
 #[test]
+fn prior_diagnostic_cache_revisions_are_misses_before_hydration() {
+    for prior_version in [16, 17] {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = PipelineCache::open(dir.path()).unwrap();
+        let context = test_context("stage-diagnostics", "identity-revision");
+        let product = StageProduct::from_artifacts(
+            "stage-diagnostics",
+            BTreeMap::from([(
+                "diagnostics.json".to_owned(),
+                b"old diagnostic identity".to_vec(),
+            )]),
+        );
+        let selection = full_selection(&product);
+        let mut manifest = CachedBundle::from_product(&product, &selection).unwrap();
+        manifest.version = prior_version;
+        let bytes = bincode::serialize(&manifest).unwrap();
+        let mut prior = context.action_context();
+        prior.dimensions.insert(
+            "pipeline-cache-version".to_owned(),
+            prior_version.to_string(),
+        );
+        let mut receipt = StageReceipt::from_product(
+            context.clone(),
+            "stable",
+            "persistent",
+            &selection,
+            &product,
+            Some(gmeow_action_cache::bytes_digest(&bytes)),
+            u64::try_from(bytes.len()).unwrap(),
+        )
+        .unwrap();
+        receipt.action_key = prior.key().to_string();
+        cache
+            .store
+            .publish(&prior, product.digest.clone(), receipt, &bytes)
+            .unwrap();
+        assert!(cache.store.get::<StageReceipt>(&prior).unwrap().is_some());
+        assert_ne!(prior.key(), context.action_context().key());
+        assert!(cache.get(&context).unwrap().is_none());
+        assert!(cache.inspect_receipt(&context).unwrap().is_none());
+        // A current publication still round-trips in the same store; the revision
+        // boundary never suppresses legitimate warm diagnostic products.
+        persist_test_product(&cache, &context, &product);
+        assert_eq!(
+            cache.get(&context).unwrap().unwrap().product.artifacts(),
+            product.artifacts()
+        );
+        assert!(cache.store.get::<StageReceipt>(&prior).unwrap().is_some());
+    }
+}
+
+fn diagnostic_test_product(
+    producer: &str,
+    encoded_producer: &str,
+    nodes: &[gmeow_errors::DiagNode],
+) -> StageProduct {
+    let mut builder = RdfDatasetBuilder::new();
+    let graph = builder
+        .intern_iri(crate::stages::carrier::GRAPH_DIAGNOSTICS)
+        .unwrap();
+    builder.declare_named_graph(graph).unwrap();
+    let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+        builder.freeze().unwrap(),
+        BTreeMap::new(),
+        purrdf::provenance::DatasetProvenance::new(),
+        crate::stages::carrier::REP_DIAG_NODES,
+        "application/json",
+        crate::node::encode_diag_nodes(encoded_producer, nodes).unwrap(),
+    );
+    StageProduct::from_bundle(producer, Arc::new(bundle))
+}
+
+#[test]
+fn diagnostic_contributions_survive_persistent_cache_and_warm_replay() {
+    let dir = tempfile::tempdir().unwrap();
+    let cache = PipelineCache::open(dir.path()).unwrap();
+    let stage = "stage-export-json-schema";
+    for subjects in [vec![], vec!["urn:constraint:a", "urn:constraint:b"]] {
+        let mut ledger = gmeow_errors::DiagLedger::new();
+        for subject in &subjects {
+            ledger.attach(
+                gmeow_errors::Diag::from_rdf_loss(purrdf::LossEntry {
+                    code: "schema.unrepresentable".into(),
+                    from: "shacl".into(),
+                    to: "json-schema".into(),
+                    note: "cross-node constraint is not representable".into(),
+                    location: Some(Box::new(
+                        purrdf::RdfLocation::logical("authored.ttl").with_subject(*subject),
+                    )),
+                }),
+                gmeow_errors::StageId::new(stage),
+            );
+        }
+        let nodes: Vec<_> = ledger.emit_sorted().into_iter().cloned().collect();
+        let product = diagnostic_test_product(stage, stage, &nodes);
+        let context = test_context(stage, &format!("diagnostics-{}", subjects.len()));
+        persist_test_product(&cache, &context, &product);
+        let restored = cache.get(&context).unwrap().unwrap().product;
+        assert_eq!(restored.digest, product.digest);
+        assert_eq!(
+            serde_json::to_vec(&restored.diag_nodes()).unwrap(),
+            serde_json::to_vec(&nodes).unwrap()
+        );
+        let mut replay = gmeow_errors::DiagLedger::new();
+        replay.replay(restored.diag_nodes());
+        assert_eq!(replay.len(), subjects.len());
+        assert_eq!(replay.verdict(), ledger.verdict());
+        assert_eq!(
+            gmeow_errors::render::to_json(&replay.project_report("json-schema")).unwrap(),
+            gmeow_errors::render::to_json(&ledger.project_report("json-schema")).unwrap(),
+        );
+    }
+}
+
+#[test]
+#[should_panic(expected = "diagnostic contribution has the wrong producer")]
+fn diagnostic_contribution_rejects_wrong_producer_even_when_empty() {
+    assert_ne!(
+        crate::node::encode_diag_nodes("stage-validate", &[]).unwrap(),
+        crate::node::encode_diag_nodes("stage-export-json-schema", &[]).unwrap()
+    );
+    diagnostic_test_product("stage-validate", "stage-export-json-schema", &[]).diag_nodes();
+}
+
+#[test]
+#[should_panic(expected = "missing its required diagnostics:nodes contribution")]
+fn diagnostic_producer_rejects_absent_contribution() {
+    StageProduct::from_artifacts("stage-export-json-schema", BTreeMap::new()).diag_nodes();
+}
+
+#[test]
 fn selected_dimension_is_a_first_class_action_key_input() {
     let base = StageKeyContext::new("stage", "test-v1", Vec::new(), Vec::new());
     assert_eq!(

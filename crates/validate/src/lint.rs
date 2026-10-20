@@ -224,12 +224,7 @@ impl LintReport {
     }
 
     fn messages(&self, severity: Severity) -> Vec<String> {
-        self.ledger
-            .emit_sorted()
-            .into_iter()
-            .filter(|node| node.grade.severity == severity)
-            .flat_map(|node| node.observations.iter().map(|o| o.message.clone()))
-            .collect()
+        self.ledger.messages(severity).map(str::to_owned).collect()
     }
 }
 
@@ -897,12 +892,9 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // carrier, not asserted data, and holds bundle-wide (`GraphMatch::Any`).
     check_math_probability_invariants(ds, &mut report);
 
-    // math: projection-side reasoned gate — the two join-requiring native checks over
-    // math:ProjectionRecord loss-ledger carriers: a projection converting a source
-    // confidence into a math:ProbabilityValue without a declared mapping, and a lossy
-    // projection dropping a source math:Distribution's parameterization without
-    // enumerating it in logic:unsupportedConstruct. Purely native (no SHACL target
-    // shape), exactly like the four lang: native projection gates.
+    // Native projection-ledger checks: declared preservation and losses, expression
+    // flattening, confidence/probability and parameterization boundaries, and exact
+    // judgments contradicted by their own loss or polarity declarations.
     check_math_projection_invariants(ds, &mut report);
 
     report
@@ -2290,6 +2282,53 @@ fn check_math_projection_invariants(ds: &RdfDataset, report: &mut LintReport) {
     check_math_missing_preservation_kind(ds, report);
     check_math_undeclared_unsupported_construct(ds, report);
     check_math_unrecorded_projection_loss(ds, report);
+    check_math_exact_projection_overclaim(ds, report);
+}
+
+/// An exact projection cannot simultaneously declare dropped constructs or a
+/// different preservation polarity. This is a contradiction in the carried
+/// judgment, independent of the probability-model completeness checks.
+fn check_math_exact_projection_overclaim(ds: &RdfDataset, report: &mut LintReport) {
+    let (Some(type_id), Some(record_type), Some(preservation_kind), Some(exact)) = (
+        ds_iri_id(ds, rdf::TYPE),
+        ds_iri_id(ds, &math_iri("ProjectionRecord")),
+        ds_iri_id(ds, &logic_iri("preservationKind")),
+        ds_iri_id(ds, &logic_iri("ExactPreservation")),
+    ) else {
+        return;
+    };
+    let unsupported = ds_iri_id(ds, &logic_iri("unsupportedConstruct"));
+    let records: BTreeSet<_> = ds
+        .quads_for_pattern(None, Some(type_id), Some(record_type), GraphMatch::Any)
+        .map(|quad| quad.s)
+        .collect();
+    for record in records {
+        let kinds: BTreeSet<_> = ds
+            .quads_for_pattern(Some(record), Some(preservation_kind), None, GraphMatch::Any)
+            .map(|quad| quad.o)
+            .collect();
+        let has_loss = unsupported.is_some_and(|predicate| {
+            ds.quads_for_pattern(Some(record), Some(predicate), None, GraphMatch::Any)
+                .next()
+                .is_some()
+        });
+        if kinds.contains(&exact) && (kinds.len() != 1 || has_loss) {
+            let record = match ds.resolve(record) {
+                TermRef::Iri(iri) => iri.to_owned(),
+                TermRef::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
+                other => ds_object_display(other),
+            };
+            report.push_error(
+                codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+                record.clone(),
+                format!(
+                    "math:ExactPreservationViolated: projection record {record} claims \
+                     logic:ExactPreservation while declaring unsupported constructs or a \
+                     conflicting preservation kind; an exact projection cannot carry loss"
+                ),
+            );
+        }
+    }
 }
 
 /// `math:MissingPreservationKind` — every `math:ProjectionRecord` declares a

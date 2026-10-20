@@ -29,7 +29,7 @@ pub(super) fn grade(
     observation.admission.validate()?;
     let bytes = std::fs::read(directory.join("input.nq"))
         .map_err(|error| super::stage_err(&error.to_string()))?;
-    if observation.input_blake3 != *blake3::hash(&bytes).as_bytes() {
+    if observation.input_blake3 != *purrdf_hash::blake3::hash(&bytes).as_bytes() {
         return Err(super::stage_err(
             "source-admission producer observed different input bytes",
         ));
@@ -102,7 +102,7 @@ pub(super) fn emit(observations: &[GradedAdmission]) -> gmeow_errors::Result<Str
         .map_err(|error| super::stage_err(&error.to_string()))?;
         let subject = format!(
             "urn:gmeow:source-admission:{}",
-            blake3::hash(&receipt.0).to_hex()
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&receipt.0).as_bytes())
         );
         let graph = gmeow_conformance::divergence::CONFORMANCE_GRAPH;
         let logic = gmeow_ns::LOGIC_NS;

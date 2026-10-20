@@ -95,7 +95,7 @@ pub struct Focus(pub String);
 
 /// A structured `observed`/`expected` value carried beside the message, so a
 /// consumer can compare values without parsing prose.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Slot {
     pub lexical: String,
     pub datatype: Option<String>,
@@ -284,13 +284,22 @@ impl Remediation {
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct SourceContext {
     pub location: SourceLocation,
+    /// Named graph identity. The native type guarantees an absolute IRI;
+    /// it is never used to resolve or normalize source terms.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "crate::source_graph"
+    )]
+    pub graph: Option<purrdf_core::BaseIri>,
     pub focus: Option<Focus>,
     pub term_role: Option<TermRole>,
 }
 
 impl SourceContext {
     /// Whether this context names a *genuine* source position — a non-empty path,
-    /// a logical anchor (e.g. a SHACL finding's focus-node IRI, which rides in
+    /// a named graph, a GTS wire coordinate, a logical anchor (e.g. a SHACL
+    /// finding's focus-node IRI, which rides in
     /// `location.logical`), OR a focus node — as opposed to the empty/default anchor
     /// every locationless finding collapses onto. This is the guard the
     /// cross-node-glut meta-rule joins on: only a non-trivial anchor is typed
@@ -307,6 +316,12 @@ impl SourceContext {
                 .as_deref()
                 .is_some_and(|l| !l.is_empty())
             || self.focus.as_ref().is_some_and(|f| !f.0.is_empty())
+            || self.graph.is_some()
+            || self.location.gts_term_id.is_some()
+            || self.location.gts_quad_index.is_some()
+            || self.location.gts_reifier_id.is_some()
+            || self.location.gts_frame_index.is_some()
+            || self.location.gts_segment_index.is_some()
     }
 }
 
@@ -393,6 +408,8 @@ pub struct DiagInner {
     /// (`gmeow:findingDerivedFromQuad`) — the explain-skeleton cited IRIs of the
     /// reasoned quads that fired. Empty for a non-reasoned diagnostic.
     pub derived_from_quads: Vec<String>,
+    /// Actual IRI-typed evidence terms, distinct from quad-reifier provenance.
+    pub cited_iris: Vec<String>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     /// The DOCUMENTED ontology terms this diagnostic structurally concerns (a SHACL
@@ -434,6 +451,7 @@ impl Diag {
             remediation: Vec::new(),
             guidance: Vec::new(),
             derived_from_quads: Vec::new(),
+            cited_iris: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),
@@ -452,9 +470,8 @@ impl Diag {
         let grade = kind.grade();
         let failure_class = kind.failure_class().map(str::to_owned);
         let message = kind.to_string();
-        let mut diag = Diag::new(code, grade, message);
+        let mut diag = Diag::new(code, grade, message).with_source(kind);
         diag.0.failure_class = failure_class;
-        diag.0.source = Some(Box::new(kind));
         diag
     }
 
@@ -526,6 +543,18 @@ impl Diag {
 
     // --- builders (the sole mutation surface) --------------------------------
 
+    /// Retain an operation's original typed cause until ledger lowering. The
+    /// diagnostic's domain code, grade and observation remain unchanged.
+    /// Replacing an existing causal chain is an invariant violation.
+    pub fn with_source(mut self, source: impl StdError + Send + Sync + 'static) -> Self {
+        assert!(
+            self.0.source.is_none(),
+            "diagnostic source must not replace an existing causal chain"
+        );
+        self.0.source = Some(Box::new(source));
+        self
+    }
+
     #[track_caller]
     pub fn with_context(mut self, label: impl Into<String>) -> Self {
         self.0.context.push(ContextFrame {
@@ -536,6 +565,11 @@ impl Diag {
     }
     pub fn with_focus(mut self, focus: impl Into<String>) -> Self {
         self.0.source_ctx.focus = Some(Focus(focus.into()));
+        self
+    }
+    /// Retain the original named graph as a typed source-identity coordinate.
+    pub fn with_graph(mut self, graph: purrdf_core::BaseIri) -> Self {
+        self.0.source_ctx.graph = Some(graph);
         self
     }
     pub fn with_term_role(mut self, role: TermRole) -> Self {
@@ -583,6 +617,11 @@ impl Diag {
     }
     pub fn with_label(mut self, label: Label) -> Self {
         self.0.labels.push(label);
+        self
+    }
+    /// Carry citations obtained from typed IRI bindings, never from rendered prose.
+    pub fn with_cited_iris(mut self, iris: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.0.cited_iris.extend(iris.into_iter().map(Into::into));
         self
     }
     pub fn with_observed(mut self, slot: Slot) -> Self {
@@ -633,7 +672,7 @@ impl<E: StdError + Send + Sync + 'static> From<E> for Diag {
     #[track_caller]
     fn from(err: E) -> Self {
         let message = err.to_string();
-        let mut diag = Diag::new(
+        Diag::new(
             code::foreign_code(),
             Grade::new(
                 Severity::Error,
@@ -641,9 +680,8 @@ impl<E: StdError + Send + Sync + 'static> From<E> for Diag {
                 Standpoint::Binding,
             ),
             message,
-        );
-        diag.0.source = Some(Box::new(err));
-        diag
+        )
+        .with_source(err)
     }
 }
 

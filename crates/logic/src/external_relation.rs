@@ -600,7 +600,8 @@ impl<'provider, E> QueryRelationProviders<'provider, E> {
             push_frame(&mut canonical, &registration.descriptor.canonical_key());
             push_frame(&mut canonical, &registration.per_call_limit.to_string());
         }
-        let manifest_hash = blake3::hash(canonical.as_bytes()).to_hex().to_string();
+        let manifest_hash =
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(canonical.as_bytes()).as_bytes());
         Ok(Self {
             registrations,
             budget,
@@ -860,7 +861,7 @@ struct CachedRelationBatch<E> {
 }
 
 fn hash_canonical(canonical: &str) -> String {
-    blake3::hash(canonical.as_bytes()).to_hex().to_string()
+    purrdf_hash::hex::encode(purrdf_hash::blake3::hash(canonical.as_bytes()).as_bytes())
 }
 
 fn request_iri(
