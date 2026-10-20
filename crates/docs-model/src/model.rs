@@ -15,8 +15,8 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use purrdf::slice::{
-    ArtifactRecord, ArtifactRole, ManifestView, OwnershipAnalyzer, OwnershipReport, SliceCatalog,
-    SliceError, SliceRecord, SliceTier,
+    ArtifactRecord, ArtifactRole, ManifestView, OwnershipAnalyzer, OwnershipReport,
+    OwnershipStatus, SliceCatalog, SliceError, SliceRecord, SliceTier,
 };
 
 use crate::i18n::{self, Translations, UiCatalog};
@@ -2098,7 +2098,9 @@ impl DocsModel {
     /// v18: [`DocChangelogEntry`] grows a source identity so authored and computed
     /// records at the same release remain independent rather than collapsing by
     /// version.
-    pub const VERSION: &'static str = "18";
+    /// v19: terms with validated ownership are documented from their owning
+    /// slice, rather than also publishing foreign type redeclarations as owners.
+    pub const VERSION: &'static str = "19";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -2176,6 +2178,21 @@ impl DocsModel {
                 ));
             }
         }
+        // A foreign module can redeclare a class without defining it. Use the
+        // ownership analysis already supplied by the caller to distinguish that
+        // reference from its canonical documentation entry. Unvalidated claims
+        // stay visible for diagnosis; never resolve a real conflict by order.
+        let validated_owners: BTreeMap<_, _> = ownership
+            .ownership
+            .values()
+            .filter(|record| matches!(record.status, OwnershipStatus::Validated))
+            .map(|record| (record.term.as_str(), record.declared_owner.as_str()))
+            .collect();
+        terms.retain(|term| {
+            validated_owners
+                .get(term.iri.as_str())
+                .is_none_or(|owner| *owner == term.owner_slice.as_str())
+        });
         terms.sort_by(|a, b| a.iri.cmp(&b.iri));
 
         // Bidirectional related terms: if A lists B, ensure B lists A. The

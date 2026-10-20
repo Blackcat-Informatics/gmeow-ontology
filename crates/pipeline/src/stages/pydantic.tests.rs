@@ -72,6 +72,15 @@ fn synthetic_models() -> (
         std::fs::write(dir.join("module.ttl"), format!(
             "@prefix g: <https://blackcatinformatics.ca/gmeow/> .\n@prefix l: <https://blackcatinformatics.ca/logic/> .\n@prefix s: <http://www.w3.org/2004/02/skos/core#> .\n@prefix r: <http://www.w3.org/2000/01/rdf-schema#> .\ng:{name} a l:Class ; r:label \"{name}\" ; s:definition \"A documented {name}.\" ; g:useWhen \"Use this {name}.\" ; g:avoidWhen \"Avoid guessing.\" ; g:howToUse \"Name its identity.\" ; s:example \"An example {name}.\" ."
         )).unwrap();
+        let mut source = std::fs::read_to_string(dir.join("module.ttl")).unwrap();
+        source.push_str(&format!(
+            "\ng:{name} r:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/{slice}> .\n"
+        ));
+        if slice == "people" {
+            // A foreign class reference is not a second owning definition.
+            source.push_str("g:Cat a l:Class .\n");
+        }
+        std::fs::write(dir.join("module.ttl"), source).unwrap();
     }
     let mut model = gmeow_docs::DocsModel::from_slice_dir(root.path()).unwrap();
     for term in &mut model.terms {
@@ -103,6 +112,16 @@ fn synthetic_models() -> (
 #[test]
 fn pydantic_routed_models_carry_ontology_metadata_and_cross_slice_references() {
     let (compiled, shapes, model) = synthetic_models();
+    let cats: Vec<_> = model
+        .terms
+        .iter()
+        .filter(|term| term.iri == "https://blackcatinformatics.ca/gmeow/Cat")
+        .collect();
+    assert_eq!(cats.len(), 1, "foreign declarations do not create owners");
+    assert_eq!(
+        cats[0].owner_slice,
+        "https://blackcatinformatics.ca/gmeow/slices/tags"
+    );
     let config = topology::config(&compiled, &shapes, &model).unwrap();
     let package = emit_pydantic(&compiled, &config).unwrap();
     assert!(!package.artifacts.contains_key("gmeow_models/models.py"));
@@ -145,6 +164,25 @@ fn pydantic_routed_models_carry_ontology_metadata_and_cross_slice_references() {
     assert_eq!(
         package.artifacts,
         emit_pydantic(&compiled, &config).unwrap().artifacts
+    );
+}
+
+#[test]
+fn pydantic_routing_refuses_conflicting_term_owners() {
+    let (compiled, shapes, mut model) = synthetic_models();
+    let mut conflicting = model
+        .terms
+        .iter()
+        .find(|term| term.iri == "https://blackcatinformatics.ca/gmeow/Cat")
+        .unwrap()
+        .clone();
+    conflicting.owner_slice = "https://blackcatinformatics.ca/gmeow/slices/people".into();
+    model.terms.push(conflicting);
+    assert!(
+        topology::config(&compiled, &shapes, &model)
+            .unwrap_err()
+            .to_string()
+            .contains("model definition identity collision")
     );
 }
 
