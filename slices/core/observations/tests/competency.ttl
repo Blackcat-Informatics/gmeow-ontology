@@ -6,6 +6,7 @@
 @prefix ex: <https://example.org/refinement/> .
 @prefix test: <https://blackcatinformatics.ca/gmeow/examples/observations/tests/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
 
 test:cqRefinementOutcomes a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/refinement-readings.ttl" ;
