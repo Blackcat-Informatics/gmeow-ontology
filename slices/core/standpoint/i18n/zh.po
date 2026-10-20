@@ -12,14 +12,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimAssertoricForce is functional"
 msgstr "claimAssertoricForce 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimAssertoricForce is functional: a standpoint claim carries one speech-act force — assert, conjecture, assume, or retract — so the relator takes a single force (absent reading as assert) and a retracted assertion is closed as a retained act rather than gaining a rival force."
-msgstr "在规范载体上断言 gmeow:claimAssertoricForce 是函数式的：一个立场主张携带一种言语行为效力——断言、推测、假定或撤回——因此关系体取唯一一种效力（缺省即读作 assert），被撤回的断言被封闭为一个被保留的行为，而不会获得一个相竞争的效力。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimCredence is functional"
@@ -41,17 +36,9 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http:
 msgid "claimModalForce is functional"
 msgstr "claimModalForce 具有函数性"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimModalForce is functional: a standpoint claim carries one alethic modal force in the □/◊ register, so the relator takes a single force (absent reading as necessary), kept orthogonal to credence and confidence rather than stacking rival modal values."
-msgstr "在规范载体上断言 gmeow:claimModalForce 是函数式的：一个立场主张在 □/◊ 记法体系中携带一种真势模态力，因此关系体取唯一一种效力（缺省即读作 necessary），与可信度和置信度保持正交，而不是叠加相互竞争的模态值。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimModality is functional"
 msgstr "claimModality 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimModality is functional: a standpoint claim carries one five-value belief modality — unequivocal, probable, conceivable, refuted, or bullshit — the lossless projection of the six canonical axes, so this convenience twin resolves to a single frame-relative value (absent reading as unequivocal) rather than several modalities on one claim."
-msgstr "在规范载体上断言 gmeow:claimModality 是函数式的：一个立场主张携带一个五值信念模态——unequivocal、probable、conceivable、refuted 或 bullshit——即六条规范轴的无损投影，因此这个便利化的孪生值解析为唯一一个相对于框架的值（缺省即读作 unequivocal），而不是在同一主张上存在多个模态。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimPolarity is functional"
@@ -165,10 +152,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|ht
 msgid "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
 msgstr "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:claimModalForce names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:claimModalForce 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
 msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
@@ -180,10 +163,6 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:c
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
 msgstr "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:claimModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:claimModality 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
