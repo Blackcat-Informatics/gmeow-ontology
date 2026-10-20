@@ -7,6 +7,86 @@ fn store_from(ttl: &str) -> Store {
     parse_turtle_lenient(ttl.as_bytes()).expect("parse")
 }
 
+fn documentation_ownership_fixture(owner: Option<&str>, conflicting: bool) -> DocsModel {
+    let root = tempfile::tempdir().unwrap();
+    for slice in ["alpha", "zeta"] {
+        let dir = root.path().join(slice);
+        std::fs::create_dir_all(&dir).unwrap();
+        let slice_iri = format!("https://blackcatinformatics.ca/gmeow/slices/{slice}");
+        std::fs::write(
+            dir.join("manifest.ttl"),
+            format!(
+                "@prefix g: <https://blackcatinformatics.ca/gmeow/> .\n<{slice_iri}> a g:Slice ; g:sliceTier g:tierCore ."
+            ),
+        )
+        .unwrap();
+        let mut source = String::from(
+            "@prefix g: <https://blackcatinformatics.ca/gmeow/> .\n@prefix l: <https://blackcatinformatics.ca/logic/> .\n@prefix r: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix s: <http://www.w3.org/2004/02/skos/core#> .\ng:Agent a l:Class .\n",
+        );
+        if conflicting || owner == Some(slice) {
+            source.push_str(&format!(
+                "g:Agent r:isDefinedBy <{slice_iri}> ; r:label \"Agent from {slice}\" ; s:definition \"Canonical definition from {slice}.\" .\n"
+            ));
+        }
+        std::fs::write(dir.join("module.ttl"), source).unwrap();
+    }
+    DocsModel::from_slice_dir(root.path()).unwrap()
+}
+
+#[test]
+fn documented_terms_use_validated_owner_before_or_after_reference() {
+    for owner in ["alpha", "zeta"] {
+        let model = documentation_ownership_fixture(Some(owner), false);
+        let agents: Vec<_> = model
+            .terms
+            .iter()
+            .filter(|term| term.iri == "https://blackcatinformatics.ca/gmeow/Agent")
+            .collect();
+        assert_eq!(agents.len(), 1, "one validated owner for {owner}");
+        assert_eq!(
+            agents[0].owner_slice,
+            format!("https://blackcatinformatics.ca/gmeow/slices/{owner}")
+        );
+        assert_eq!(agents[0].label, Some(format!("Agent from {owner}")));
+        assert_eq!(
+            agents[0].definition,
+            Some(format!("Canonical definition from {owner}."))
+        );
+    }
+}
+
+#[test]
+fn documented_terms_keep_conflicting_ownership_claims_visible() {
+    let model = documentation_ownership_fixture(None, true);
+    let owners: BTreeSet<_> = model
+        .terms
+        .iter()
+        .filter(|term| term.iri == "https://blackcatinformatics.ca/gmeow/Agent")
+        .map(|term| term.owner_slice.as_str())
+        .collect();
+    assert_eq!(
+        owners,
+        BTreeSet::from([
+            "https://blackcatinformatics.ca/gmeow/slices/alpha",
+            "https://blackcatinformatics.ca/gmeow/slices/zeta",
+        ])
+    );
+}
+
+#[test]
+fn documented_terms_keep_unowned_declarations_visible() {
+    let model = documentation_ownership_fixture(None, false);
+    assert_eq!(
+        model
+            .terms
+            .iter()
+            .filter(|term| term.iri == "https://blackcatinformatics.ca/gmeow/Agent")
+            .count(),
+        2,
+        "an unvalidated reference is not silently assigned a canonical owner"
+    );
+}
+
 /// The `cqQueryFile` resolution boundary: repo-root-relative, `..`-free, and
 /// under one of the content-addressed roots. Anything else is a hard fail —
 /// see `apply_competency_query_text`.
