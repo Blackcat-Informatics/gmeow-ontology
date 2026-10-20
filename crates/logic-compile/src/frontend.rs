@@ -2193,7 +2193,8 @@ fn read_list_member_subjects(store: &RdfDataset, head: &Node) -> Vec<Subject> {
 /// keys distinctly from that block ([`PropertyConstraintIr::enforcement_key`] is per-path), which
 /// would defeat the equivalence-before-deletion oracle for a shape whose covered fragment is
 /// genuinely equivalent. Merging is sound: the lower bound is the tightest present (max of mins),
-/// the upper bound the tightest present (min of maxes), the components the de-duplicated union, and
+/// the upper bound the tightest present (min of maxes), the components the de-duplicated union
+/// with node-kind facets intersected by the IR constructor, and
 /// the reifier obligation the strengthened one (present shape / required OR). A same-path but
 /// opposite-`inverse` pair constrains different statements (forward vs. inverse) and is never
 /// merged. Deterministic: groups keep first-seen path order, and [`PropertyConstraintIr::new`]

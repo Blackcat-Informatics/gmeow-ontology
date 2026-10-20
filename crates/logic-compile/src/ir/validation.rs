@@ -130,6 +130,52 @@ impl ShaclNodeKind {
     }
 }
 
+/// Intersect conjunctive node-kind facets before either shape projection sees them.
+/// SHACL permits one nodeKind per property shape; retaining both IRI and
+/// BlankNodeOrIRI as separate facets produces an invalid surface. An empty
+/// intersection forbids values, not an absent optional property.
+fn intersect_node_kinds(components: &mut Vec<ConstraintComponent>) {
+    let (count, intersection) = components
+        .iter()
+        .filter_map(|component| match component {
+            ConstraintComponent::NodeKindShacl(kind) => Some(match kind {
+                ShaclNodeKind::Iri => 1,
+                ShaclNodeKind::BlankNode => 2,
+                ShaclNodeKind::Literal => 4,
+                ShaclNodeKind::BlankNodeOrIri => 3,
+                ShaclNodeKind::IriOrLiteral => 5,
+                ShaclNodeKind::BlankNodeOrLiteral => 6,
+            }),
+            _ => None,
+        })
+        .fold((0usize, 7u8), |(count, left), right| {
+            (count + 1, left & right)
+        });
+    if count < 2 {
+        return;
+    }
+    components.retain(|component| {
+        !(matches!(component, ConstraintComponent::NodeKindShacl(_))
+            || intersection == 0 && matches!(component, ConstraintComponent::In(_)))
+    });
+    let kind = match intersection {
+        0 => {
+            // The empty value set dominates any other value-set conjunct.
+            // sh:in () rejects every value while preserving vacuous satisfaction.
+            components.push(ConstraintComponent::In(vec![]));
+            return;
+        }
+        1 => ShaclNodeKind::Iri,
+        2 => ShaclNodeKind::BlankNode,
+        3 => ShaclNodeKind::BlankNodeOrIri,
+        4 => ShaclNodeKind::Literal,
+        5 => ShaclNodeKind::IriOrLiteral,
+        6 => ShaclNodeKind::BlankNodeOrLiteral,
+        _ => unreachable!("intersecting restricted node kinds cannot admit every kind"),
+    };
+    components.push(ConstraintComponent::NodeKindShacl(kind));
+}
+
 /// The `sh:severity` vocabulary (verbatim SHACL local names). Carried per property shape so
 /// a projected surface reproduces the authored severity of a shape a bespoke renderer emitted.
 #[derive(
@@ -415,6 +461,7 @@ impl ConstraintComponent {
                 for c in shape.iter_mut() {
                     c.normalize()?;
                 }
+                intersect_node_kinds(shape);
                 shape.sort_by_cached_key(ConstraintComponent::content_key);
             }
             ConstraintComponent::Not(inner) => inner.normalize()?,
@@ -624,6 +671,7 @@ impl PropertyConstraintIr {
         for component in &mut components {
             component.normalize()?;
         }
+        intersect_node_kinds(&mut components);
         components.sort_by_cached_key(ConstraintComponent::content_key);
         Ok(Self {
             path,
@@ -895,6 +943,7 @@ impl ValidationShapeIr {
         for component in &mut node_components {
             component.normalize()?;
         }
+        intersect_node_kinds(&mut node_components);
         node_components.sort_by_cached_key(ConstraintComponent::content_key);
         self.node_components = node_components;
         Ok(self)
