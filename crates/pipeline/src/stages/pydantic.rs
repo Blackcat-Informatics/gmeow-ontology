@@ -419,7 +419,7 @@ impl Stage for PydanticStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "pydantic.v4-validated-documentation-ownership"
+        "pydantic.v5-imported-template-ownership"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union (`shapes/*.ttl` minus lints +

@@ -195,6 +195,26 @@ pub const OPT_SOURCE_PATH: &str = "validations/openehr-bloodpressure/Blutdruck.o
 /// that carries `C_DV_ORDINAL` and `C_DATE_TIME` constraints. Lifting it is what makes the
 /// ordinal / datetime constraint families flow slices → gmeow.gts (not just prove in unit tests).
 pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/TestAllDatatypes.opt";
+/// Namespace allocated to schema targets lifted from the blood-pressure OPT.
+pub const OPT_BLOODPRESSURE_BASE: &str =
+    "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/";
+/// Namespace allocated to schema targets lifted from the datatype OPT.
+pub const OPT_DATATYPES_BASE: &str = "https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/";
+
+/// Resolve a source-specific imported schema target to its template artifact.
+/// These namespaces are owned by the OPT producer, not by a vocabulary slice.
+pub(crate) fn imported_opt_source(iri: &str) -> Option<&'static str> {
+    [
+        (OPT_BLOODPRESSURE_BASE, OPT_SOURCE_PATH),
+        (OPT_DATATYPES_BASE, OPT_TEST_DATATYPES_PATH),
+    ]
+    .into_iter()
+    .find_map(|(base, source)| {
+        iri.strip_prefix(base)
+            .filter(|local| !local.is_empty())
+            .map(|_| source)
+    })
+}
 /// The worked-example source authoring the ONLY `a logic:PathShape` individuals in the
 /// repo today (design/LOGIC-PATHS.md): `ex:nearbyOrgs` (wildcard, namespace-scoped,
 /// bounded depth) and `ex:ancestorsTo3` (named-predicate bounded depth). `SOURCE_PATH`
@@ -519,22 +539,20 @@ impl Stage for CompileLogicStage {
         // template pins its production systolic/diastolic pair by at-code; the CaboLabs
         // "Test all datatypes" template is the one real OPT carrying C_DV_ORDINAL and C_DATE_TIME,
         // so lifting it is what carries the ordinal / datetime families into gmeow.gts.
-        const BP_BASE: &str = "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/";
         let bp_naming = BTreeMap::from([
             ("at0004".to_string(), "Systolic".to_string()),
             ("at0005".to_string(), "Diastolic".to_string()),
         ]);
         let opt_xml = std::fs::read_to_string(input.root.join(OPT_SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {OPT_SOURCE_PATH}: {e}")))?;
-        let mut validation_shapes = lift_opt_constraints(&opt_xml, BP_BASE, &bp_naming)?;
+        let mut validation_shapes =
+            lift_opt_constraints(&opt_xml, OPT_BLOODPRESSURE_BASE, &bp_naming)?;
 
-        const TEST_DATATYPES_BASE: &str =
-            "https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/";
         let td_xml = std::fs::read_to_string(input.root.join(OPT_TEST_DATATYPES_PATH))
             .map_err(|e| stage_err(format!("read {OPT_TEST_DATATYPES_PATH}: {e}")))?;
         validation_shapes.extend(lift_opt_constraints(
             &td_xml,
-            TEST_DATATYPES_BASE,
+            OPT_DATATYPES_BASE,
             &BTreeMap::new(),
         )?);
         // Derive validation views from the same retained source selection,

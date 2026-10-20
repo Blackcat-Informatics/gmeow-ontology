@@ -208,6 +208,13 @@ same topology. Definition digests come from the current pipeline run's term
 manifest, including all four registered ontology namespaces. Missing documentation,
 ownership or a required digest fails the export rather than inventing a link.
 
+The openEHR importer owns two source-specific template namespaces. Its generated
+validation classes are routed to `schema_helpers`, with `sourceClass` retaining
+the original class IRI and `sourceArtifact` naming the template. They have no
+fabricated slice owner or ontology definition digest. Distinct target IRIs that
+collapse to one schema key, or documentation naming a different target IRI, fail
+the export rather than borrowing another class's metadata.
+
 The Rust checks exercise emitted routing, metadata and reference wiring. They do
 not execute Python imports or prove Pydantic runtime schema agreement. A live
 Python import/schema lane remains a separate acceptance requirement.
