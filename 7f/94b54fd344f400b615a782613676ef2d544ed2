@@ -1,0 +1,21 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 7f94b54fd344f400b615a782613676ef2d544ed2
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1886
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1886
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 5e9be8ae1893ff76bf76e2bac6f213d7acce614f
+GhpRsq-Head-Ref: paudley/1815-claim-lifecycle-doctrine-erasure-and
+GhpRsq-Head-OID: 7f94b54fd344f400b615a782613676ef2d544ed2
+GhpRsq-Result-Tree: 6c23a23f12add62330152bdc610f37cf79d9689f
+GhpRsq-Result-Commit: 9374de2dcc3f26203635f528cdd4b42e296a6365
+GhpRsq-Parent-Hashes: 7f94b54fd344f400b615a782613676ef2d544ed2
+GhpRsq-Squash-Notes-SHA256: 609cbad85c03006ea54f606d023c8c8ce919e8e148ffed973ddef8f3783a54b5
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Tree: 2a07d2e884e319189ebe84039bf61b7ffbe204f4
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1886/stage
+GhpRsq-Stage-Files: 62
