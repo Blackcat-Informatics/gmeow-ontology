@@ -1,0 +1,3 @@
+$ stagectl pr-checks 1873
+(no checks configured for Blackcat-Informatics/gmeow-ontology)
+state: none

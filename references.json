@@ -1,0 +1,87 @@
+{
+  "paths": [
+    {
+      "ref": "core/inquiry",
+      "path": "/home/paudley/Active/gmeow-ontology/core/inquiry",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/documents",
+      "path": "/home/paudley/Active/gmeow-ontology/core/documents",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "extensions/email",
+      "path": "/home/paudley/Active/gmeow-ontology/extensions/email",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/ai",
+      "path": "/home/paudley/Active/gmeow-ontology/core/ai",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/cognition",
+      "path": "/home/paudley/Active/gmeow-ontology/core/cognition",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2074
+    },
+    {
+      "name": "a631f73",
+      "files": 0
+    },
+    {
+      "name": "identifier",
+      "files": 767
+    },
+    {
+      "name": "extent",
+      "files": 82
+    },
+    {
+      "name": "BodyValue",
+      "files": 8
+    },
+    {
+      "name": "MemoryItem",
+      "files": 15
+    },
+    {
+      "name": "remembers",
+      "files": 15
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

@@ -1,0 +1,111 @@
+{
+  "issue": 1818,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "Documentation: question wording, identifier and extent outside creative works, memory as claims vs remembering (consumer: memetics)",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1807": "[term] Literal typing: language on words, types for machinery, time at its stated precision (consumers: memetics, katamari)",
+    "164": "Canonical private-use language tags with public BCP 47 projection"
+  },
+  "link_relations": {
+    "1807": "mentions",
+    "164": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1770,
+      "title": "feat: certify and precompile the complete canon for consumer proof",
+      "state": "OPEN"
+    },
+    {
+      "number": 1642,
+      "title": "slice-quality: close the last 4 axis floors and adjudicate 5 projection ceilings left by the #1442 relocations",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1670,
+      "title": "mapping-dsl: a tracker token ships inside the generated web-annotation projection",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1336,
+      "title": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+      "state": "OPEN"
+    },
+    {
+      "number": 1468,
+      "title": "Derive SSSOM rows from emitSssom projection bindings",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1407,
+      "title": "AI-agent docs surface: MCP validate_local, doc_card tiers, docs_search / counter_examples / entailments",
+      "state": "CLOSED"
+    },
+    {
+      "number": 582,
+      "title": "feat(inquiry): Questions as the erotetic content sibling of Proposition/Goal (new core slice)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 940,
+      "title": "Tier 2 gap: port export.py (+okf_*) generators to Rust",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1491,
+      "title": "architecture: revisit external documentation projection distribution",
+      "state": "CLOSED"
+    },
+    {
+      "number": 649,
+      "title": "Pin and document `gmeow-gts` Rust version policy",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1024,
+      "title": "EPIC: differentiator docs surfaces \u2014 live data, per-term provenance, AI consumption, visible quality",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1402,
+      "title": "EPIC: World-class multi-format documentation \u2014 mdbook/HTML/PDF/snippets/Pydantic packed in gmeow.gts",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1672,
+      "title": "Carry the purrdf substrate as ontology content: a reasoned SBOM in gmeow.gts",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1111,
+      "title": "Move the repo static guards (narrow-waist, lane-purity, no-rdflib) to Rust gates",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 32,
+    "missing-intrinsic-runtime": 2,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1818-documentation-question-wording"
+  },
+  "coverage": [
+    "issue #1818 + 0 comment(s) via github",
+    "link crawl: 2 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['Documentation:', 'question', 'wording,']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1818 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1818: 0",
+    "requirement candidates: 3 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 5 path(s) (0 on disk), 7 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

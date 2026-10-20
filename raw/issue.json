@@ -1,0 +1,33 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nThree documentation questions. Each is cheap to answer and changes how a\nconsumer writes data.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumer\n\n**memetics**, the memory adapter for a companion agent, modelling her\nrecords (questions she holds, media she was sent, memories) in GMEOW.\n\n## 1. Where a question's wording goes\n\n**Today.** `gmeow:Question` (`core/inquiry`) has no text property, so\nits wording rides `rdfs:label`.\n\n**Ask.** Is that the intent? A question she holds (\"what do I want this\nhouse to feel like?\") is content, not a label. A `gmeow:questionText`,\nlanguage-tagged per #1807 item 1, would keep labels for naming.\n\n## 2. Identifier, extent and body value outside creative works\n\n**Today.**\n- `gmeow:identifier` and `gmeow:extent` (`core/documents`) have domain\n  `gmeow:CreativeWork`.\n- A chat attachment is a `gmeow:MediaObject`.\n- A chat message part might be a `gmeow:BodyValue`\n  (`extensions/email`).\n\n**Ask.**\n- Does `identifier` apply to a media object (a manifestation)?\n- Is `extent` meant for a byte length?\n- Is `BodyValue` the intended home for a chat part's content?\n\nWith the domains as written, using them on a media object infers it to\nbe a creative work.\n\n## 3. Memory as claims, memory as remembering\n\n**Today.**\n- `core/ai` describes memory as claims, with `gmeow:MemoryItem`.\n- `core/cognition` has `gmeow:remembers` as objectual memory.\n- The bridge between them is prose only.\n\n**Ask.** Document how they relate. Is a `MemoryItem` the content of a\n`remembers` relation, or are they separate models? The consumer stores\nher memories as claims and also needs \"she remembers X\" to be queryable.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-10T10:12:39Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZK3g",
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    }
+  ],
+  "milestone": null,
+  "number": 1818,
+  "state": "OPEN",
+  "title": "Documentation: question wording, identifier and extent outside creative works, memory as claims vs remembering (consumer: memetics)",
+  "updatedAt": "2026-10-10T10:12:39Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1818"
+}

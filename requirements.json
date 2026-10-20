@@ -1,0 +1,38 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 32,
+      "rules": [
+        "question"
+      ],
+      "text": "- Does `identifier` apply to a media object (a manifestation)?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 33,
+      "rules": [
+        "question"
+      ],
+      "text": "- Is `extent` meant for a byte length?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 34,
+      "rules": [
+        "question"
+      ],
+      "text": "- Is `BodyValue` the intended home for a chat part's content?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    }
+  ],
+  "silent_comments": []
+}
