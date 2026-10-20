@@ -132,3 +132,59 @@ msgstr "跨节点过剩见证计数约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitnessCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world structural integrity constraint: a gmeow:CrossNodeGlutWitness carries EXACTLY two gmeow:glutWitnessOf links (one per conflicting Finding) — the reasoner-minted meta-finding's two-sided coherence-conflict record."
 msgstr "闭世界结构完整性约束：一个 gmeow:CrossNodeGlutWitness 恰好携带两条 gmeow:glutWitnessOf 链接（每个相冲突的构件各一条）——即推理机所铸造的元构件对该一致性冲突的双边记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding logical location"
+msgstr "诊断构件的逻辑位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact lexical logical anchor supplied by a diagnostic source location, independent of physical path, line, column and GTS coordinates. Its spelling does not assert an RDF term kind."
+msgstr "诊断源位置提供的精确词法逻辑锚点，独立于物理路径、行、列及 GTS 坐标。其拼写不声明任何 RDF 术语种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This source-location token remains a string even when it resembles an IRI, a blank node or a file path."
+msgstr "即使此源位置标记看起来像 IRI、空白节点或文件路径，它仍保持为字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:location1 gmeow:findingLocationLogical \"authored.ttl#constraint\" ."
+msgstr "ex:location1 gmeow:findingLocationLogical \"authored.ttl#constraint\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Project the source location's logical token verbatim onto its diagnostic location node and retain it through rendering and replay."
+msgstr "将源位置的逻辑标记原样投影到其诊断位置节点，并在呈现及重放过程中保留它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a diagnostic location supplies a logical anchor, with or without physical coordinates."
+msgstr "当诊断位置提供逻辑锚点时使用，无论它是否同时具有物理坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingLocationLogical|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original anchor with a generated location-node IRI, a display path or a guessed RDF term."
+msgstr "不要用生成的位置节点 IRI、显示路径或猜测的 RDF 术语替换原始锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding source focus identity"
+msgstr "诊断构件的源焦点标识"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact lexical identity of a finding's original source focus, independent of its primary logical location and source graph. The source token remains a string; its spelling does not determine the source term's RDF kind."
+msgstr "诊断构件原始源焦点的精确词法标识，独立于其主要逻辑位置和源图。源标记保持为字符串；其拼写不决定源术语的 RDF 种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A source focus can differ from the location's logical name; keep both. Absence means the producer supplied no explicit focus."
+msgstr "源焦点可以不同于位置的逻辑名称；两者都应保留。缺省表示生产者未提供明确焦点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:f1 gmeow:findingSourceFocusIdentity \"urn:constraint:one\" ."
+msgstr "ex:f1 gmeow:findingSourceFocusIdentity \"urn:constraint:one\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Project the source context's focus token verbatim and keep it unchanged through report normalization, native RDF publication and replay."
+msgstr "原样投影源上下文的焦点标记，并在报告规范化、原生 RDF 发布及重放过程中保持其内容不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the original source subject or other focus token when a finding also has a distinct logical or physical anchor."
+msgstr "当诊断构件还具有不同的逻辑或物理锚点时，用于保留原始源主体或其他焦点标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute the diagnostics graph, the finding fingerprint, the primary logical location or a term guessed from the token's spelling."
+msgstr "不要以诊断图、诊断构件指纹、主要逻辑位置或根据标记拼写猜测的术语替代它。"

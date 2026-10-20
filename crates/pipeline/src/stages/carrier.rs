@@ -887,6 +887,7 @@ fn assemble_carrier(
         producer_graph(upstream, "stage-validate", GRAPH_DIAGNOSTICS)?.as_ref(),
         producer_graph(upstream, "stage-compile-logic", GRAPH_DIAGNOSTICS)?.as_ref(),
         producer_graph(upstream, "stage-reason", GRAPH_DIAGNOSTICS)?.as_ref(),
+        producer_graph(upstream, "stage-export-json-schema", GRAPH_DIAGNOSTICS)?.as_ref(),
     ])?;
     let conformance = producer_graph(upstream, "stage-conformance", GRAPH_CONFORMANCE)?;
     let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;

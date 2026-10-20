@@ -120,6 +120,13 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
+    entry(
+        &mut t,
+        "stage-export-json-schema",
+        &[crate::stages::carrier::GRAPH_DIAGNOSTICS],
+        &[crate::stages::carrier::REP_DIAG_NODES],
+    );
+
     // stage-archive-blobs — the eleven by-reference TAR archives, each on its own
     // blob-representation lane. No named graph: the archives are opaque byte payloads
     // the terminal staples alongside the carrier, never graph content.

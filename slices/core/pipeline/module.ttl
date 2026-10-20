@@ -504,6 +504,20 @@ gmeow:pipeline-dataflow-validate-compile-logic
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
 
+gmeow:pipeline-dataflow-json-schema-compile-logic
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: compile-logic → json-schema"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
+    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-export-json-schema: the JSON Schema exporter reads the compile-logic product's projected validation-shape byte artifacts (the fresh generated/shapes union members), keyed by the complete logic, relational-core, and correspondence carrier graph set — the program-level digest those projections are functions of. The narrowing keeps the exporter's graph/diagnostics attachment a genuine delta over its inputs while source projections retain the complete compiled program identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-compile-logic ;
+    gmeow:buildFlowTo gmeow:stage-export-json-schema ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/correspondence> ,
+        <https://blackcatinformatics.ca/gmeow/graph/logic> ,
+        <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
+
 # stage-validate ALSO reads the graph/reasoning named graph of stage-reason's product
 # (the typed Reasoning handle's backing graph): the D5 abductive (constructive-advice)
 # wing reads the REASONED graph, so the validator feeds its producer the union of the
@@ -579,6 +593,7 @@ gmeow:pipeline-build
         gmeow:pipeline-dataflow-verify-compile-logic ,
         gmeow:pipeline-dataflow-verify-reason ,
         gmeow:pipeline-dataflow-validate-compile-logic ,
+        gmeow:pipeline-dataflow-json-schema-compile-logic ,
         gmeow:pipeline-dataflow-validate-reason ,
         gmeow:pipeline-dataflow-goal-directed-reason ;
     gmeow:hasStage
@@ -1442,6 +1457,10 @@ gmeow:stage-archive-blobs
         "statements-archive" ,
         "tests-archive" ,
         "yaml-ld-archive" .
+
+gmeow:stage-export-json-schema
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;
+    gmeow:attachesBlobRep "diagnostics:nodes" .
 
 gmeow:stage-validate
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics>, <https://blackcatinformatics.ca/gmeow/graph/norm-claims> ;

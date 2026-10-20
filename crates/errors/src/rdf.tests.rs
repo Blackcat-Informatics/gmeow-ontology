@@ -181,6 +181,44 @@ fn losses_with_dropped_lang_tag() -> LossLedger {
 }
 
 #[test]
+fn standalone_projection_loss_retains_original_direction_and_coordinates() {
+    let loss = LossEntry {
+        code: Cow::Borrowed("schema.unrepresentable"),
+        from: Cow::Borrowed("shacl"),
+        to: Cow::Borrowed("json-schema"),
+        note: Cow::Borrowed("cross-node constraint is not representable"),
+        location: Some(Box::new(RdfLocation {
+            path: Some("authored.ttl".into()),
+            line: Some(0),
+            column: Some(0),
+            gts_quad_index: Some(0),
+            ..RdfLocation::logical("constraint").with_subject("urn:constraint")
+        })),
+    };
+    let diag = Diag::from_rdf_loss(loss.clone());
+    let original = &diag.downcast_ref::<NativeLoss>().unwrap().0;
+    assert_eq!(original.code, loss.code);
+    assert_eq!(original.from, loss.from);
+    assert_eq!(original.to, loss.to);
+    assert_eq!(original.note, loss.note);
+    assert_eq!(original.location, loss.location);
+    assert_eq!(diag.inner().source_ctx.location.line, Some(0));
+    assert_eq!(diag.inner().source_ctx.location.column, Some(0));
+    assert_eq!(diag.inner().source_ctx.location.gts_quad_index, Some(0));
+    assert_eq!(
+        diag.inner().source_ctx.focus.as_ref().unwrap().0,
+        "urn:constraint"
+    );
+    let mut ledger = DiagLedger::new();
+    ledger.attach(diag, StageId::new("stage-export-json-schema"));
+    assert_ne!(ledger.verdict(), GateVerdict::Fatal);
+    let finding = &ledger.project_report("json-schema").findings[0];
+    let detail = finding.detail.as_ref().unwrap();
+    assert!(detail.contains("shacl → json-schema"));
+    assert!(detail.contains(loss.note.as_ref()));
+}
+
+#[test]
 fn loss_subjects_remain_distinct_witnesses() {
     let mut losses = LossLedger::new();
     for subject in ["urn:subject:a", "urn:subject:b"] {

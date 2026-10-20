@@ -1243,13 +1243,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_pipeline::stages::json_schema::report_losses",
-    "gmeow_pipeline::stages::pydantic::report_losses"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_pipeline::stages::lang_docs_rendering::rendering_ledger_row",
     "gmeow_pipeline::stages::lang_docs_rendering::translation_ledger_row"
    ]
@@ -2536,15 +2529,6 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_pipeline::stages::json_schema::JsonSchemaStage::new",
-    "gmeow_pipeline::stages::pydantic::PydanticStage::new",
-    "gmeow_pipeline::stages::schemas::SchemasStage::new",
-    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
     "gmeow_pipeline::stages::lpg::LpgStage::new",
     "gmeow_pipeline::stages::metadata::MetadataStage::new",
     "gmeow_pipeline::stages::okf::OkfStage::new"
@@ -2555,6 +2539,14 @@
    "members": [
     "gmeow_pipeline::stages::provenance_graph::triple_iri",
     "gmeow_pipeline::stages::substrate_graph::triple_iri"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::pydantic::PydanticStage::new",
+    "gmeow_pipeline::stages::schemas::SchemasStage::new",
+    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
    ]
   },
   {

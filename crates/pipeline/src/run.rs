@@ -579,7 +579,7 @@ pub fn full_spec() -> PipelineSpec {
         // re-derived from the carrier).
         ("stage-export-schemas", "schemas"),
     ] {
-        stages.push(st(
+        let mut schema_stage = st(
             id,
             impl_key,
             &[
@@ -588,7 +588,14 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-frame-shapes",
                 "stage-export-result-shapes",
             ],
-        ));
+        );
+        if impl_key == "json_schema" {
+            schema_stage.dataflow_entities = crate::node::Stage::consumed_entities(
+                &crate::stages::json_schema::JsonSchemaStage::new(),
+            )
+            .to_vec();
+        }
+        stages.push(schema_stage);
     }
     // research-objects reads two generated projections off upstream products, never the
     // stale/absent committed files on disk: `generated/evals/scores.ttl` off the
