@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1194,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1194-v4-equivalence-before-deletion-retire",
+  "branch": "paudley/1194-v4-equivalence-before-deletion-retire",
+  "slug": "v4-equivalence-before-deletion-retire",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1194-v4-equivalence-before-deletion-retire/.stage/v4-equivalence-before-deletion-retire",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "84e8a1bece41f815eb772c9ece0f0dc6686dc136",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1194-v4-equivalence-before-deletion-retire",
+    "branch:paudley/1194-v4-equivalence-before-deletion-retire",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1194-v4-equivalence-before-deletion-retire/.stage/v4-equivalence-before-deletion-retire",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1194-v4-equivalence-before-deletion-retire/.stage/v4-equivalence-before-deletion-retire/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T00:24:39-0600"
+}
