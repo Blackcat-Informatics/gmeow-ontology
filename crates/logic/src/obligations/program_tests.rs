@@ -431,10 +431,8 @@ fn independent_document_blank_obligations_survive_native_ingress() {
     );
 }
 
-/// Inventory describes selected native worlds, including empty ones, rather
-/// than the verifier's flattened presentation or the number of type triples.
-#[test]
-fn mixed_typing_inventory_retains_exact_world_counts_and_identities() {
+/// Execute a tiny authored program; no repository corpus or fixture is produced.
+fn mixed_typing_worlds() -> (Arc<RdfDataset>, crate::result::ReasoningResult) {
     let declaration = |name: &str, typing: &str| {
         format!(
             "ex:{name} {typing} ; logic:obligationForbiddenPredicate ex:forbidden ; \
@@ -465,6 +463,14 @@ fn mixed_typing_inventory_retains_exact_world_counts_and_identities() {
         ))]),
         &store,
     );
+    (store, result)
+}
+
+/// Inventory describes selected native worlds, including empty ones, rather
+/// than the verifier's flattened presentation or the number of type triples.
+#[test]
+fn mixed_typing_inventory_retains_exact_world_counts_and_identities() {
+    let (_, result) = mixed_typing_worlds();
     let assessment = assess_non_entailment_obligations(&result).unwrap();
     let identities: BTreeSet<_> = assessment
         .outcomes
@@ -488,7 +494,6 @@ fn mixed_typing_inventory_retains_exact_world_counts_and_identities() {
         })
     );
     let findings = assessment.findings().collect::<Vec<_>>();
-    let report = crate::verify::verify_with_reasoning_result(&store, &result, &[]).unwrap();
     for (world, authored, count) in [("first", 3, 4), ("second", 1, 1), ("empty", 0, 0)] {
         let world = format!("https://example.org/{world}");
         let inventories = findings
@@ -524,6 +529,22 @@ fn mixed_typing_inventory_retains_exact_world_counts_and_identities() {
                     outcome.authored == (outcome.obligation != "https://example.org/derived")
                 })
         );
+    }
+}
+
+/// The public verifier additionally consumes authenticated producer-selected laws.
+/// Its normal corpus lane must retain every native inventory field verbatim.
+#[test]
+fn corpus_verifier_preserves_mixed_typing_obligation_inventories() {
+    let (store, result) = mixed_typing_worlds();
+    let assessment = assess_non_entailment_obligations(&result).unwrap();
+    let report = crate::verify::verify_with_reasoning_result(&store, &result, &[]).unwrap();
+    let inventories = assessment
+        .findings()
+        .filter(|finding| finding.code == "verify.non-entailment.inventory")
+        .collect::<Vec<_>>();
+    assert!(!inventories.is_empty());
+    for inventory in inventories {
         assert!(report.findings.iter().any(|finding| {
             finding.code == inventory.code
                 && finding.source_graph == inventory.source_graph
