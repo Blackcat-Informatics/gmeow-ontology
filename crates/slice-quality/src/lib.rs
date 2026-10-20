@@ -25,6 +25,7 @@ pub mod lattice;
 pub mod lint;
 pub mod model;
 pub mod prioritize;
+pub mod profile;
 pub mod read;
 pub mod reasoner;
 pub mod report;
@@ -954,14 +955,12 @@ pub fn ratchet_surface_paths(slice_dir: &Path) -> Vec<PathBuf> {
 }
 
 /// The repo-level DSL mapping surface IRI a `dsl/mappings/` residue is attributed to
-/// — a non-slice authoring surface (the hand-authored FnO carve-out
-/// `dsl/mappings/transforms.fno.ttl` lives here) that the ratchet still guards.
+/// — a non-slice authoring surface that the ratchet guards alongside slice mappings.
 pub const DSL_MAPPING_SURFACE_IRI: &str = "https://blackcatinformatics.ca/gmeow/dsl/mappings";
 
 /// The repo-level `dsl/mappings/` authoring surface — every `.ttl` under it, sorted.
 /// Scanned once (attributed to [`DSL_MAPPING_SURFACE_IRI`]), because it is a real
-/// hand-authored projection surface (`transforms.fno.ttl`, the FnO carve-out) that
-/// is NOT under any slice's `mappings/` directory and would otherwise be missed.
+/// authoring surface outside any slice mapping directory that would otherwise be missed.
 #[must_use]
 pub fn ratchet_dsl_surface_paths(repo_root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
@@ -1038,7 +1037,7 @@ pub fn measure_repo_residue_constructs(
             out.insert((slice_iri.clone(), prefix), constructs);
         }
     }
-    // The repo-level dsl/mappings/ surface (the hand-authored FnO carve-out) is not
+    // The shared repo-level dsl/mappings/ source surface is not
     // under any slice — measure it once, attributed to the DSL surface IRI, so it is
     // guarded rather than silently missed.
     let dsl_paths = ratchet_dsl_surface_paths(repo_root);
@@ -1235,7 +1234,10 @@ pub fn relocation_reasons_for_surfaces(
 /// wherever it lives.
 pub struct BundleStandards {
     standard: MeasurementStandard,
-    gmn_dict: Arc<GmnDictionary>,
+    gmn_dict: Option<Arc<GmnDictionary>>,
+    profile: profile::QualityProfile,
+    rubric_identity: String,
+    source: Arc<RdfDataset>,
 }
 
 impl BundleStandards {
@@ -1247,18 +1249,78 @@ impl BundleStandards {
     /// structurally-incomplete rubric, or a dictionary that is not a valid bijection —
     /// all required shipped inputs, never papered over with a fallback.
     pub fn from_gts(bundle_gts: &[u8]) -> gmeow_errors::Result<Self> {
+        Self::from_gts_with_profile(bundle_gts, "full")
+    }
+
+    /// Select the canonical profile before admitting its required capabilities.
+    ///
+    /// # Errors
+    /// Rejects malformed bundles/profiles and missing selected capabilities. No
+    /// absent capability can select a different profile or earn a vacuous grade.
+    pub fn from_gts_with_profile(
+        bundle_gts: &[u8],
+        profile_key: &str,
+    ) -> gmeow_errors::Result<Self> {
         let ds = purrdf::gts::flattened_dataset_from_bytes(bundle_gts).map_err(|e| {
             gmeow_errors::Diag::of_kind(error::Io {
                 detail: format!("cannot flatten gmeow.gts bundle: {e}"),
             })
         })?;
+        Self::from_dataset(
+            ds,
+            format!(
+                "blake3:{}",
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bundle_gts).as_bytes())
+            ),
+            profile_key,
+        )
+    }
+
+    /// Admit selected standards from already parsed native inputs. The artifact
+    /// identity is computed by the owning byte boundary, not by scoring or tests.
+    pub(crate) fn from_dataset(
+        ds: Arc<RdfDataset>,
+        rubric_identity: String,
+        profile_key: &str,
+    ) -> gmeow_errors::Result<Self> {
         let standard = rubric::load_rubric(&ds)?.standard;
-        let gmn_dict = Arc::new(GmnDictionary::from_dataset(&ds).map_err(|e| {
-            gmeow_errors::Diag::of_kind(error::Rubric {
-                detail: format!("bundle gmn1 dictionary failed to load: {}", e.0),
-            })
-        })?);
-        Ok(Self { standard, gmn_dict })
+        let profile = profile::QualityProfile::load(&ds, &standard, profile_key)?;
+        let standard = profile.measurement_standard(&standard)?;
+        let gmn_dict = if standard
+            .axes
+            .iter()
+            .any(|axis| axis.producer == "gmn1_coverage_axis")
+        {
+            Some(Arc::new(GmnDictionary::from_dataset(&ds).map_err(|e| {
+                gmeow_errors::Diag::of_kind(error::Rubric {
+                    detail: format!("bundle gmn1 dictionary failed to load: {}", e.0),
+                })
+            })?))
+        } else {
+            None
+        };
+        Ok(Self {
+            standard,
+            gmn_dict,
+            profile,
+            rubric_identity,
+            source: ds,
+        })
+    }
+
+    fn scoring_env(&self) -> ScoringEnv {
+        match &self.gmn_dict {
+            Some(dictionary) => ScoringEnv::Bundle(dictionary.clone()),
+            None => ScoringEnv::External,
+        }
+    }
+
+    /// Select another profile from the same immutable bundle without decoding it again.
+    ///
+    /// # Errors
+    /// Rejects unknown/malformed profiles and missing newly selected capabilities.
+    pub fn select_profile(&self, key: &str) -> gmeow_errors::Result<Self> {
+        Self::from_dataset(self.source.clone(), self.rubric_identity.clone(), key)
     }
 }
 
@@ -1278,11 +1340,17 @@ pub fn score_external_slice_from_files(
     std: &BundleStandards,
     files: &std::collections::BTreeMap<String, Vec<u8>>,
 ) -> gmeow_errors::Result<report::SliceReport> {
-    report::score_slice_files_with_standard(
+    let (dataset, imports) = profile::prepare_inputs(files, &std.source)?;
+    let mut report =
+        report::score_slice_files_with_dataset(files, &std.standard, std.scoring_env(), &dataset)?;
+    report.profile = Some(profile::ProfileAssessment::new(
+        &std.profile,
+        &std.rubric_identity,
         files,
-        &std.standard,
-        ScoringEnv::Bundle(std.gmn_dict.clone()),
-    )
+        imports,
+        &report,
+    )?);
+    Ok(report)
 }
 
 /// Score an external slice DIRECTORY against the standards flattened from a bundle
@@ -1297,11 +1365,10 @@ pub fn score_external_slice(
     std: &BundleStandards,
     slice_dir: &Path,
 ) -> gmeow_errors::Result<report::SliceReport> {
-    report::score_slice_with_standard(
-        slice_dir,
-        &std.standard,
-        ScoringEnv::Bundle(std.gmn_dict.clone()),
-    )
+    let files = report::slice_files_from_dir(slice_dir)?;
+    let mut report = score_external_slice_from_files(std, &files)?;
+    report.prefix_source_paths(slice_dir);
+    Ok(report)
 }
 
 /// Score an external slice held in memory straight from bundle bytes — the one-slice
@@ -1335,7 +1402,20 @@ pub fn score_external_slice_bytes(
     bundle_gts: &[u8],
     slice_dir: &Path,
 ) -> gmeow_errors::Result<report::SliceReport> {
-    let standards = BundleStandards::from_gts(bundle_gts)?;
+    score_external_slice_bytes_with_profile(bundle_gts, slice_dir, "full")
+}
+
+/// Score an installed consumer operation under an explicitly selected canonical profile.
+///
+/// # Errors
+/// Rejects unknown profiles, missing selected capabilities, malformed source data
+/// and unreadable directories before returning an assessment.
+pub fn score_external_slice_bytes_with_profile(
+    bundle_gts: &[u8],
+    slice_dir: &Path,
+    profile: &str,
+) -> gmeow_errors::Result<report::SliceReport> {
+    let standards = BundleStandards::from_gts_with_profile(bundle_gts, profile)?;
     score_external_slice(&standards, slice_dir)
 }
 

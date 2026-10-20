@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+# Canonical callable signatures: named, ordered inputs and outputs.
+# Signatures declare interfaces; an executable implementation is a separate contract.
+# The correspondence lowering derives the single generated FnO catalog from these records.
+
+# --- Projection-domain transforms ----------------------------- #
+
+gmeow:fnSkillProficiencyToKnowsAbout
+    a logic:CallableSignature ;
+    rdfs:label "SkillProficiency → schema:knowsAbout/skills (lossy flatten)"@x-gmeow-english ;
+    dcterms:description "Projects a reified gmeow:SkillProficiency relator to a flat schema:knowsAbout or schema:skills edge. Lossy: level, scale, interval, standpoint, and confidence are dropped."@x-gmeow-english ;
+    skos:definition "Projects a reified gmeow:SkillProficiency relator to a flat schema:knowsAbout or schema:skills edge. Lossy: level, scale, interval, standpoint, and confidence are dropped."@x-gmeow-english ;
+    logic:inputParameters ( gmeow:pSkillProficiency ) ;
+    logic:outputParameters ( gmeow:oKnowsAbout ) ;
+    rdfs:seeAlso gmeow:hasSkill ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+
+gmeow:pSkillProficiency a logic:CallParameter ; logic:parameterPredicate gmeow:hasSkill ; logic:parameterValueType gmeow:Skill ; logic:parameterRequired true ;
+    rdfs:label "skill proficiency input"@x-gmeow-english ;
+    skos:definition "The gmeow:Skill borne by a SkillProficiency, input to the knowsAbout projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+gmeow:oKnowsAbout       a logic:CallResult ;     logic:parameterPredicate schema:knowsAbout ;     logic:parameterValueType gmeow:Skill ;
+    rdfs:label "knowsAbout output"@x-gmeow-english ;
+    skos:definition "The schema:knowsAbout value emitted for a skill proficiency by the projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .

@@ -23,8 +23,8 @@
 //!   `imports/targets/<prefix>.ttl` ⊕ the fixture `tests/fixtures/target_axioms/<prefix>.ttl`
 //!   ⊕ (when `allow_network`) a live network fetch of the canonical source document,
 //!   filtered to the minimal structural axiom subset in the target namespace.
-//! * **FnO catalog** — `generated/projections/functions.fno.ttl` ⊕ `transforms.fno.ttl`
-//!   (falling back to `dsl/mappings/transforms.fno.ttl`).
+//! * **FnO catalog** — the complete generated `generated/projections/functions.fno.ttl`,
+//!   derived from canonical projection functions and slice-owned callable signatures.
 //! * **EDOAL** — every committed `generated/projections/*.edoal.ttl`, sorted by path.
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -66,7 +66,6 @@ const SCHEMA_RANGE_INCLUDES: &str = "https://schema.org/rangeIncludes";
 const OWL_PROPERTY_TYPES: &[&str] = soundness::OWL_PROPERTY_TYPES;
 
 const FNO_FUNCTIONS_FILE: &str = "functions.fno.ttl";
-const FNO_TRANSFORMS_FILE: &str = "transforms.fno.ttl";
 
 /// A fetchable target-vocabulary source document.
 struct TargetSource {
@@ -367,25 +366,12 @@ fn load_target_axioms(
     Ok(Some(ds))
 }
 
-/// The merged FnO catalog dataset (`functions.fno.ttl` ⊕ `transforms.fno.ttl`, the latter
-/// falling back to `dsl/mappings/transforms.fno.ttl`).
-fn fno_catalog(root: &Path, projections: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let mut b = RdfDatasetBuilder::new();
+/// The single generated FnO catalog. A missing output is a hard failure; source declarations
+/// are never substituted for the selected generated artifact.
+fn fno_catalog(projections: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let functions = projections.join(FNO_FUNCTIONS_FILE);
     let bytes = std::fs::read(&functions).map_err(SliceError::Io)?;
-    let functions_ds = parse_turtle(&bytes, &functions.display().to_string())?;
-    b.push_dataset(&functions_ds)?;
-
-    let transforms = projections.join(FNO_TRANSFORMS_FILE);
-    let transforms = if transforms.is_file() {
-        transforms
-    } else {
-        root.join("dsl").join("mappings").join(FNO_TRANSFORMS_FILE)
-    };
-    let bytes = std::fs::read(&transforms).map_err(SliceError::Io)?;
-    let transforms_ds = parse_turtle(&bytes, &transforms.display().to_string())?;
-    b.push_dataset(&transforms_ds)?;
-    b.freeze().map_err(gmeow_errors::Diag::from)
+    parse_turtle(&bytes, &functions.display().to_string())
 }
 
 /// Every committed `*.edoal.ttl` under `projections`, sorted by path.
@@ -653,7 +639,7 @@ pub fn lint_correspondence_soundness(
     // GENERATED-READ-OK: audit lane (see load_sssom_mappings) — this lints the committed
     // generated/projections EDOAL/FnO output; not a produce-stage read, never folds into gmeow.gts.
     let projections = root.join("generated").join("projections");
-    let fno = fno_catalog(root, &projections)?;
+    let fno = fno_catalog(&projections)?;
     let edoal = edoal_datasets(&projections)?;
 
     let corpus = Corpus {

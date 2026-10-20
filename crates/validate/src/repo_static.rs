@@ -115,14 +115,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     }
     let modules = ProductionModules::resolve(root, &mut report);
     check_lane_purity(root, &mut report);
-    check_projection_compute_purity(root, &mut report);
-    check_projection_shape_purity(root, &mut report);
-    // The BLANKET declarative-shape peer: the hand-authored shape corpus has been retired, so this
-    // is now armed. It reds on any authored `sh:NodeShape`/`sh:PropertyShape` (in
-    // slices/shapes/dsl/governance) lacking a `logic:formalizes` back-reference — the terminal
-    // single-source-of-truth invariant (Principle 17).
-    check_declarative_shape_purity(root, &mut report);
-    check_authored_shex_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
     check_gmeow_shapes_drained(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report, &modules);
@@ -215,9 +208,7 @@ pub fn to_diagnostics_report(report: &RepoStaticReport) -> Report {
     out
 }
 
-/// The SHACL namespace — the SHACL-AF computational vocabulary all lives under it, so the
-/// `shacl#` substring appears (in a `@prefix` binding or a full IRI) in every file that uses it
-/// regardless of the prefix chosen. Used as a cheap pre-filter before parsing.
+/// The SHACL namespace used to resolve constructs after parsing.
 const SHACL_NS: &str = "http://www.w3.org/ns/shacl#";
 
 /// The SHACL **computational** (derivation) *property* IRIs whose subject node declares a
@@ -267,37 +258,40 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
     }
 }
 
-/// Computation-surfaces-are-projections purity gate (Principles 17/4/12,
-/// `design/LOGIC-SHACL-AF.md` / `design/LOGIC-RDFQUERY.md`): scan the authored RDF sources
-/// (`slices/` + `dsl/`, `.ttl` only — NOT `generated/`, NOT prose `.md` docs) for computational
-/// SHACL-AF vocabulary. The check is **Turtle-aware**: it parses each file and resolves the
-/// computational predicates/classes as IRIs (so an alternate prefix or a full IRI cannot bypass
-/// it), and it requires the `logic:formalizes` back-reference **on the construct node itself or
-/// its owning shape** (so an unrelated back-reference elsewhere in the file cannot legalize it).
-/// A construct without such a back-reference is a hand-authored second source of truth and fails.
-fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
-    let mut ttl_files = Vec::new();
+/// Check authored validation and alignment surfaces through one inventory and one Turtle parse
+/// per source file (negative-witness registrations are read separately). Generated output is
+/// deliberately outside the authored roots. Registered negative witnesses retain their existing
+/// declarative test-input role; registration never hides
+/// computational or migrated-axiom constructs.
+fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
+    let mut files = Vec::new();
     for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
-            collect_ttl_files(&dir, report, &mut ttl_files);
+            collect_projection_files(&dir, report, &mut files);
         }
     }
-    ttl_files.sort();
-    for path in ttl_files {
+    files.sort();
+    let mut witness_cache: BTreeMap<PathBuf, BTreeSet<PathBuf>> = BTreeMap::new();
+    for path in files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        if path.extension().is_some_and(|ext| ext == "shex") {
+            report.error(format!(
+                "{rel}: authored ShEx surface is forbidden — ShEx is an emit-only projection of the \
+                 logic: canon, PROJECTED to generated/ (Principle 17), never hand-authored \
+                 (design/LOGIC-VALIDATION.md)"
+            ));
+            continue;
+        }
         let text = match fs::read_to_string(&path) {
             Ok(text) => text,
             Err(err) => {
-                report.error(format!("{}: cannot read: {err}", path.display()));
+                report.error(format!("{rel}: cannot read: {err}"));
                 continue;
             }
         };
-        // Cheap pre-filter: the SHACL namespace IRI is present (as a prefix binding or full IRI)
-        // in any file that uses SHACL vocabulary, whatever prefix it binds.
-        if !text.contains(SHACL_NS) {
-            continue;
-        }
-        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        // Namespace aliases, Turtle escapes and relative IRIs are resolved by the parser.
+        // A source-text namespace filter would let equivalent encodings bypass the gate.
         let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
             Ok(ds) => ds,
             Err(err) => {
@@ -305,63 +299,325 @@ fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
                 continue;
             }
         };
-
-        // Construct-bearing subjects, with the marker that flagged them, and the shape→rule-node
-        // parent links the back-reference may sit on.
-        let mut construct_subjects: BTreeMap<TermId, BTreeSet<String>> = BTreeMap::new();
-        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
-
-        for local in COMPUTE_PROPERTY_LOCALS {
-            let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
-                continue;
-            };
-            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
-                construct_subjects
-                    .entry(q.s)
-                    .or_default()
-                    .insert(format!("sh:{local}"));
-                parents.entry(q.o).or_default().insert(q.s);
-            }
+        let backing = ProjectionBacking::new(&ds);
+        check_compute_constructs(&ds, &rel, &backing, report);
+        check_migrated_constraint_constructs(&ds, &rel, &backing, report);
+        check_alignment_constructs(&ds, &rel, &backing, report);
+        let is_witness = enclosing_slice_dir(&path).is_some_and(|slice_dir| {
+            witness_cache
+                .entry(slice_dir.clone())
+                .or_insert_with(|| registered_fail_witnesses(&slice_dir))
+                .contains(&path)
+        });
+        if !is_witness {
+            check_declarative_constructs(&ds, &rel, &backing, report);
+            check_owl_constructs(&ds, &rel, &backing, report);
         }
-        if let Some(type_id) = iri_id_static(&ds, rdf::TYPE) {
-            for local in COMPUTE_CLASS_LOCALS {
-                let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
-                    continue;
-                };
-                for q in ds.quads_for_pattern(None, Some(type_id), Some(cid), GraphMatch::Any) {
-                    construct_subjects
-                        .entry(q.s)
-                        .or_default()
-                        .insert(format!("sh:{local}"));
+    }
+}
+
+/// OWL declarations and axioms are generated views. Native annotated correspondence
+/// assertions are admitted through the same typed frontend the projection stage uses;
+/// only the exact admitted triple is covered, never every axiom on its subject.
+fn check_owl_constructs(
+    ds: &RdfDataset,
+    rel: &str,
+    backing: &ProjectionBacking,
+    report: &mut RepoStaticReport,
+) {
+    const OWL: &str = "http://www.w3.org/2002/07/owl#";
+    let constructs: Vec<_> = ds
+        .quads()
+        .filter(|quad| {
+            matches!(ds.resolve(quad.p), TermRef::Iri(p) if p.starts_with(OWL))
+                || (matches!(ds.resolve(quad.p), TermRef::Iri(p) if p == rdf::TYPE)
+                    && matches!(ds.resolve(quad.o), TermRef::Iri(o) if o.starts_with(OWL)))
+        })
+        .collect();
+    if constructs.is_empty() {
+        return;
+    }
+    let mut lifted = BTreeSet::new();
+    if constructs
+        .iter()
+        .any(|quad| matches!(ds.resolve(quad.p), TermRef::Iri(p) if p.starts_with(OWL)))
+    {
+        let view = gmeow_logic_compile::ingest::DslView::new(ds);
+        match gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(&view) {
+            Ok((_, analysis)) => {
+                for cell in analysis.alignment_cells() {
+                    if let (Some(s), Some(p), Some(o)) = (
+                        ds.term_id_by_iri(&cell.subject),
+                        ds.term_id_by_iri(&cell.predicate),
+                        ds.term_id_by_iri(&cell.obj),
+                    ) {
+                        lifted.insert((s, p, o));
+                    }
                 }
             }
+            Err(error) => report.error(format!("{rel}: cannot admit native correspondence: {error}")),
         }
-        if construct_subjects.is_empty() {
-            continue;
-        }
+    }
+    let unbacked: BTreeSet<_> = constructs
+        .into_iter()
+        .filter(|quad| !backing.contains(quad.s) && !lifted.contains(&(quad.s, quad.p, quad.o)))
+        .map(|quad| quad.s)
+        .collect();
+    for subject in unbacked {
+        report.error(format!("{rel}: {} hand-authors a generated OWL construct without a logic:formalizes back-reference or exact native correspondence admission (Principle 17)", node_label(ds, subject)));
+    }
+}
 
+/// Generated alignment vocabularies. References and quoted query text are not authored
+/// constructs; predicate assertions and type declarations are.
+fn alignment_family(iri: &str) -> Option<&'static str> {
+    if iri.starts_with("https://w3id.org/function/") {
+        Some("FnO")
+    } else if iri.starts_with("https://w3id.org/sssom/") {
+        Some("SSSOM")
+    } else if iri.starts_with("http://ns.inria.org/edoal/1.0/")
+        || iri.starts_with("http://knowledgeweb.semanticweb.org/heterogeneity/alignment#")
+    {
+        Some("EDOAL")
+    } else {
+        None
+    }
+}
+
+fn check_alignment_constructs(
+    ds: &RdfDataset,
+    rel: &str,
+    backing: &ProjectionBacking,
+    report: &mut RepoStaticReport,
+) {
+    let mut constructs: BTreeMap<TermId, BTreeSet<&str>> = BTreeMap::new();
+    for quad in ds.quads() {
+        let TermRef::Iri(predicate) = ds.resolve(quad.p) else {
+            continue;
+        };
+        if let Some(family) = alignment_family(predicate) {
+            constructs.entry(quad.s).or_default().insert(family);
+        }
+        if predicate == rdf::TYPE
+            && let TermRef::Iri(kind) = ds.resolve(quad.o)
+            && let Some(family) = alignment_family(kind)
+        {
+            constructs.entry(quad.s).or_default().insert(family);
+        }
+    }
+    for (subject, families) in constructs {
+        if !backing.contains(subject) {
+            report.error(format!("{rel}: {} hand-authors a generated {} construct without a logic:formalizes back-reference on it or its owning construct (Principle 17)", node_label(ds, subject), families.into_iter().collect::<Vec<_>>().join("/")));
+        }
+    }
+}
+
+/// Construct-scoped backing shared by every projection detector. Only explicit ownership
+/// edges propagate a back-reference; unrelated triples in the same file cannot legalize a node.
+struct ProjectionBacking {
+    directly_backed: BTreeSet<TermId>,
+    parents: BTreeMap<TermId, BTreeSet<TermId>>,
+    shape_members: BTreeSet<TermId>,
+}
+
+impl ProjectionBacking {
+    fn new(ds: &RdfDataset) -> Self {
+        let mut shape_members = BTreeSet::new();
         let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
-        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
+        if let Some(fid) = iri_id_static(ds, PROJECTION_FORMALIZES_IRI) {
             for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
                 directly_backed.insert(q.s);
             }
         }
-
-        for (subj, markers) in &construct_subjects {
-            if formalizes_backed(*subj, &directly_backed, &parents) {
-                continue;
+        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
+        for local in ["rule", "js", "values", "sparql", "target"] {
+            if let Some(pid) = iri_id_static(ds, &format!("{SHACL_NS}{local}")) {
+                for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+                    parents.entry(q.o).or_default().insert(q.s);
+                }
             }
-            let constructs: Vec<&str> = markers.iter().map(String::as_str).collect();
-            report.error(format!(
-                "{rel}: {} hand-authors computational SHACL-AF vocabulary ({}) without a \
-                 `logic:formalizes` back-reference on it or its owning shape: computation is \
-                 authored in the logic: canon and PROJECTED to these surfaces under generated/ \
-                 (Principle 17), never hand-authored as a second source of truth \
-                 (design/LOGIC-SHACL-AF.md)",
-                node_label(&ds, *subj),
-                constructs.join(", ")
-            ));
         }
+        if let Some(pid) = iri_id_static(ds, &format!("{SHACL_NS}property")) {
+            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+                shape_members.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        // Boolean-combinator members → their owning subject, so a `logic:formalizes` on a node
+        // shape legalizes a construct nested inside its logical combinators — the gate's own
+        // semantics ("on it or its owning shape"): the shape is the migration-tracking unit and
+        // its back-reference covers its whole logical structure, not only direct `sh:property`
+        // children. `sh:and`/`sh:or`/`sh:xone` take an RDF list of shapes; `sh:not` a single shape.
+        let rdf_first = iri_id_static(ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
+        let rdf_rest = iri_id_static(ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+        let rdf_nil = iri_id_static(ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
+        let list_members = |head: TermId| -> Vec<TermId> {
+            let (Some(first), Some(rest)) = (rdf_first, rdf_rest) else {
+                return Vec::new();
+            };
+            let mut out = Vec::new();
+            let mut pending = vec![head];
+            let mut seen = BTreeSet::new();
+            while let Some(node) = pending.pop() {
+                if Some(node) == rdf_nil || !seen.insert(node) {
+                    continue;
+                }
+                // Inspect every arc, including malformed branching lists, so an extra
+                // rdf:first/rest cannot hide a second unbacked construct from the seal.
+                out.extend(
+                    ds.quads_for_pattern(Some(node), Some(first), None, GraphMatch::Any)
+                        .map(|q| q.o),
+                );
+                pending.extend(
+                    ds.quads_for_pattern(Some(node), Some(rest), None, GraphMatch::Any)
+                        .map(|q| q.o),
+                );
+            }
+            out
+        };
+        for comb in ["and", "or", "xone"] {
+            if let Some(cid) = iri_id_static(ds, &format!("{SHACL_NS}{comb}")) {
+                for q in ds.quads_for_pattern(None, Some(cid), None, GraphMatch::Any) {
+                    for member in list_members(q.o) {
+                        shape_members.insert(member);
+                        parents.entry(member).or_default().insert(q.s);
+                    }
+                }
+            }
+        }
+        if let Some(nid) = iri_id_static(ds, &format!("{SHACL_NS}not")) {
+            for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
+                shape_members.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        for predicate in [
+            "https://w3id.org/function/ontology#expects",
+            "https://w3id.org/function/ontology#returns",
+            "https://w3id.org/sssom/mappings",
+            "http://ns.inria.org/edoal/1.0/#and",
+            "http://ns.inria.org/edoal/1.0/#or",
+            "http://ns.inria.org/edoal/1.0/#compose",
+            "http://www.w3.org/2002/07/owl#intersectionOf",
+            "http://www.w3.org/2002/07/owl#unionOf",
+            "http://www.w3.org/2002/07/owl#disjointUnionOf",
+            "http://www.w3.org/2002/07/owl#members",
+            "http://www.w3.org/2002/07/owl#distinctMembers",
+            "http://www.w3.org/2002/07/owl#withRestrictions",
+            "http://www.w3.org/2002/07/owl#hasKey",
+            "http://www.w3.org/2002/07/owl#propertyChainAxiom",
+            "http://www.w3.org/2002/07/owl#onProperties",
+        ] {
+            if let Some(id) = iri_id_static(ds, predicate) {
+                for quad in ds.quads_for_pattern(None, Some(id), None, GraphMatch::Any) {
+                    for member in list_members(quad.o) {
+                        if (!predicate.starts_with("http://ns.inria.org/")
+                            && !predicate.starts_with("http://www.w3.org/2002/07/owl#"))
+                            || matches!(ds.resolve(member), TermRef::Blank { .. })
+                        {
+                            parents.entry(member).or_default().insert(quad.s);
+                        }
+                    }
+                }
+            }
+        }
+        for predicate in [
+            "https://w3id.org/function/vocabulary/mapping#parameterMapping",
+            "https://w3id.org/function/vocabulary/mapping#returnMapping",
+            "https://w3id.org/sssom/mappings",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#map",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity1",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity2",
+            "http://ns.inria.org/edoal/1.0/#inverse",
+            "http://ns.inria.org/edoal/1.0/#not",
+            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+            "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
+            "http://www.w3.org/2000/01/rdf-schema#domain",
+            "http://www.w3.org/2000/01/rdf-schema#range",
+            "http://www.w3.org/2002/07/owl#equivalentClass",
+            "http://www.w3.org/2002/07/owl#equivalentProperty",
+            "http://www.w3.org/2002/07/owl#disjointWith",
+            "http://www.w3.org/2002/07/owl#complementOf",
+            "http://www.w3.org/2002/07/owl#datatypeComplementOf",
+            "http://www.w3.org/2002/07/owl#onProperty",
+            "http://www.w3.org/2002/07/owl#inverseOf",
+            "http://www.w3.org/2002/07/owl#someValuesFrom",
+            "http://www.w3.org/2002/07/owl#allValuesFrom",
+            "http://www.w3.org/2002/07/owl#onClass",
+            "http://www.w3.org/2002/07/owl#onDataRange",
+        ] {
+            if let Some(id) = iri_id_static(ds, predicate) {
+                for quad in ds.quads_for_pattern(None, Some(id), None, GraphMatch::Any) {
+                    if matches!(ds.resolve(quad.o), TermRef::Blank { .. }) {
+                        parents.entry(quad.o).or_default().insert(quad.s);
+                    }
+                }
+            }
+        }
+        Self {
+            directly_backed,
+            parents,
+            shape_members,
+        }
+    }
+
+    fn contains(&self, node: TermId) -> bool {
+        formalizes_backed(node, &self.directly_backed, &self.parents)
+    }
+}
+
+fn check_compute_constructs(
+    ds: &RdfDataset,
+    rel: &str,
+    backing: &ProjectionBacking,
+    report: &mut RepoStaticReport,
+) {
+    // Construct-bearing subjects, with the marker that flagged them, and the shape→rule-node
+    // parent links the back-reference may sit on.
+    let mut construct_subjects: BTreeMap<TermId, BTreeSet<String>> = BTreeMap::new();
+
+    for local in COMPUTE_PROPERTY_LOCALS {
+        let Some(pid) = iri_id_static(ds, &format!("{SHACL_NS}{local}")) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+            construct_subjects
+                .entry(q.s)
+                .or_default()
+                .insert(format!("sh:{local}"));
+        }
+    }
+    if let Some(type_id) = iri_id_static(ds, rdf::TYPE) {
+        for local in COMPUTE_CLASS_LOCALS {
+            let Some(cid) = iri_id_static(ds, &format!("{SHACL_NS}{local}")) else {
+                continue;
+            };
+            for q in ds.quads_for_pattern(None, Some(type_id), Some(cid), GraphMatch::Any) {
+                construct_subjects
+                    .entry(q.s)
+                    .or_default()
+                    .insert(format!("sh:{local}"));
+            }
+        }
+    }
+    if construct_subjects.is_empty() {
+        return;
+    }
+
+    for (subj, markers) in &construct_subjects {
+        if backing.contains(*subj) {
+            continue;
+        }
+        let constructs: Vec<&str> = markers.iter().map(String::as_str).collect();
+        report.error(format!(
+            "{rel}: {} hand-authors computational SHACL-AF vocabulary ({}) without a \
+             `logic:formalizes` back-reference on it or its owning shape: computation is \
+             authored in the logic: canon and PROJECTED to these surfaces under generated/ \
+             (Principle 17), never hand-authored as a second source of truth \
+             (design/LOGIC-SHACL-AF.md)",
+            node_label(ds, *subj),
+            constructs.join(", ")
+        ));
     }
 }
 
@@ -383,291 +639,93 @@ const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
     ("linkAntecedent", "linkConsequent"),
 ];
 
-/// The shape-half of the projection-purity seal (the peer of [`check_projection_compute_purity`]):
-/// an authored `sh:sparql`/`sh:select` that re-encodes a migrated open-world FOL axiom
-/// (irreflexivity / acyclicity / relatum-distinctness — the distinctive self-reference and
-/// coincident-role signatures) is a hand-authored second source of truth. It must be authored in
-/// the logic: canon and PROJECTED to `generated/shapes/constraint-shapes.ttl` (Principle 17), or
-/// carry a `logic:formalizes` back-reference on the construct or its owning shape. This realizes
-/// the `sh:sparql` procedural-constraint fragment of the shape gate
-/// (`design/LOGIC-VALIDATION.md`); the declarative `sh:PropertyShape` fragment follows as the
-/// remaining closed-world shapes migrate (the same incremental realization the frame/result shape
-/// stages are already described under). Scans `shapes/` (where the FOL SHACL lived) as well as
-/// `slices/` + `dsl/`.
-fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
-    let mut ttl_files = Vec::new();
-    for sub in ["shapes", "slices", "dsl", "governance"] {
-        let dir = root.join(sub);
-        if dir.is_dir() {
-            collect_ttl_files(&dir, report, &mut ttl_files);
-        }
-    }
-    ttl_files.sort();
-    for path in ttl_files {
-        let text = match fs::read_to_string(&path) {
-            Ok(text) => text,
-            Err(err) => {
-                report.error(format!("{}: cannot read: {err}", path.display()));
-                continue;
-            }
-        };
-        if !text.contains(SHACL_NS) {
-            continue;
-        }
-        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
-        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
-            Ok(ds) => ds,
-            Err(err) => {
-                report.error(format!("{rel}: does not parse as Turtle: {err}"));
-                continue;
-            }
-        };
-
-        // Parents: a `sh:sparql` / `sh:target` construct block → its owning shape, so a
-        // `logic:formalizes` on the shape legalizes the block (the upward walk).
-        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
-        for local in ["sparql", "target"] {
-            let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
-                continue;
-            };
-            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
-                parents.entry(q.o).or_default().insert(q.s);
-            }
-        }
-        let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
-        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
-            for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
-                directly_backed.insert(q.s);
-            }
-        }
-
-        let Some(sel_id) = iri_id_static(&ds, &format!("{SHACL_NS}select")) else {
+fn check_migrated_constraint_constructs(
+    ds: &RdfDataset,
+    rel: &str,
+    backing: &ProjectionBacking,
+    report: &mut RepoStaticReport,
+) {
+    let Some(sel_id) = iri_id_static(ds, &format!("{SHACL_NS}select")) else {
+        return;
+    };
+    for q in ds.quads_for_pattern(None, Some(sel_id), None, GraphMatch::Any) {
+        let TermRef::Literal { lexical, .. } = ds.resolve(q.o) else {
             continue;
         };
-        for q in ds.quads_for_pattern(None, Some(sel_id), None, GraphMatch::Any) {
-            let TermRef::Literal { lexical, .. } = ds.as_ref().resolve(q.o) else {
-                continue;
-            };
-            // The sh:select lexical with ALL whitespace removed. The seal is a lexical
-            // heuristic; stripping whitespace means a hand-authored re-encoding cannot slip
-            // it by padding the `<prop> $this` self-loop (or the `<prop1> … <prop2>` pair)
-            // with tabs, newlines, or extra spaces. IRIs and `$this` carry no interior
-            // whitespace, so removal preserves every token while collapsing the evasion
-            // surface (it also defeats a stray space before a `+` property-path modifier).
-            let sel: String = lexical.split_whitespace().collect();
-            let mut matched: Option<String> = None;
-            for p in MIGRATED_SELF_PREDS {
-                let base = format!("{GMEOW_NS_STATIC}{p}>");
-                if sel.contains(&format!("{base}$this")) || sel.contains(&format!("{base}+$this")) {
-                    matched = Some(format!("irreflexivity/acyclicity on gmeow:{p}"));
-                }
-            }
-            for (a, b) in MIGRATED_DISTINCT_PAIRS {
-                if sel.contains(&format!("{GMEOW_NS_STATIC}{a}>"))
-                    && sel.contains(&format!("{GMEOW_NS_STATIC}{b}>"))
-                {
-                    matched = Some(format!("relatum-distinctness on gmeow:{a}/gmeow:{b}"));
-                }
-            }
-            let Some(desc) = matched else {
-                continue;
-            };
-            if formalizes_backed(q.s, &directly_backed, &parents) {
-                continue;
-            }
-            report.error(format!(
-                "{rel}: a hand-authored sh:sparql re-encodes the migrated FOL axiom \
-                 ({desc}) without a `logic:formalizes` back-reference on it or its owning \
-                 shape: this axiom is authored in the logic: canon and PROJECTED to \
-                 generated/shapes/constraint-shapes.ttl (Principle 17, H8), never \
-                 hand-authored as a second source of truth (design/LOGIC-VALIDATION.md)"
-            ));
-        }
-    }
-}
-
-/// The BLANKET declarative-shape fragment of the projection-purity seal — the declarative
-/// `sh:NodeShape` / `sh:PropertyShape` peer of the procedural `sh:sparql` fragment
-/// ([`check_projection_shape_purity`]). Every validation shape is authored in the `logic:` canon
-/// and PROJECTED to `generated/shapes/*.ttl` (Principle 17, `design/LOGIC-VALIDATION.md`), never
-/// hand-authored as a second source of truth. So ANY authored `sh:NodeShape` or `sh:PropertyShape`
-/// construct (a typed shape subject, or an inline shape reached through `sh:property`) that lacks a
-/// `logic:formalizes` back-reference — on itself or on its owning node shape (the upward walk) — is
-/// a violation. No peer/projected-surface condition, no allowlist: the rule is blanket.
-///
-/// NOT wired into [`check_repo_static`] yet. Activated at the terminal migration increment once the
-/// legacy shape corpus is deleted; until then it would (correctly, by design) red on the ~245
-/// coexisting legacy shapes that have not yet migrated. Its production semantics are proven now
-/// over the live tree by `declarative_gate_flags_the_live_legacy_corpus`.
-///
-/// One exemption applies: a file's construct subjects are skipped when the file itself is a
-/// registered `gmeow:saFailWitness` for its enclosing slice ([`registered_fail_witnesses`]). A
-/// `mustNot` structural assertion (e.g. `ex:saNoHandAuthoredShapes`) proves its ban is non-vacuous
-/// by committing a fixture that DELIBERATELY hand-authors the banned shape; without the fixture the
-/// ban would pass whether or not its pattern is even correct. The exemption is keyed on the
-/// REGISTRATION, not a blanket `tests/counter-examples/` directory skip, so an unregistered
-/// hand-authored shape parked in the same directory is still caught.
-// Wired into `check_repo_static` once the hand-authored shape corpus is retired: reds on any
-// authored `sh:NodeShape`/`sh:PropertyShape` (in slices/shapes/dsl/governance) lacking a
-// `logic:formalizes` back-reference. Backed residue / boundary-kept shapes carry one and pass.
-fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
-    let mut ttl_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl", "governance"] {
-        let dir = root.join(sub);
-        if dir.is_dir() {
-            collect_ttl_files(&dir, report, &mut ttl_files);
-        }
-    }
-    ttl_files.sort();
-    let mut witness_cache: BTreeMap<PathBuf, BTreeSet<PathBuf>> = BTreeMap::new();
-    for path in ttl_files {
-        if let Some(slice_dir) = enclosing_slice_dir(&path) {
-            let witnesses = witness_cache
-                .entry(slice_dir.clone())
-                .or_insert_with(|| registered_fail_witnesses(&slice_dir));
-            if witnesses.contains(&path) {
-                continue;
+        // The sh:select lexical with ALL whitespace removed. The seal is a lexical
+        // heuristic; stripping whitespace means a hand-authored re-encoding cannot slip
+        // it by padding the `<prop> $this` self-loop (or the `<prop1> … <prop2>` pair)
+        // with tabs, newlines, or extra spaces. IRIs and `$this` carry no interior
+        // whitespace, so removal preserves every token while collapsing the evasion
+        // surface (it also defeats a stray space before a `+` property-path modifier).
+        let sel: String = lexical.split_whitespace().collect();
+        let mut matched: Option<String> = None;
+        for p in MIGRATED_SELF_PREDS {
+            let base = format!("{GMEOW_NS_STATIC}{p}>");
+            if sel.contains(&format!("{base}$this")) || sel.contains(&format!("{base}+$this")) {
+                matched = Some(format!("irreflexivity/acyclicity on gmeow:{p}"));
             }
         }
-        let text = match fs::read_to_string(&path) {
-            Ok(text) => text,
-            Err(err) => {
-                report.error(format!("{}: cannot read: {err}", path.display()));
-                continue;
+        for (a, b) in MIGRATED_DISTINCT_PAIRS {
+            if sel.contains(&format!("{GMEOW_NS_STATIC}{a}>"))
+                && sel.contains(&format!("{GMEOW_NS_STATIC}{b}>"))
+            {
+                matched = Some(format!("relatum-distinctness on gmeow:{a}/gmeow:{b}"));
             }
+        }
+        let Some(desc) = matched else {
+            continue;
         };
-        if !text.contains(SHACL_NS) {
+        if backing.contains(q.s) {
             continue;
         }
-        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
-        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
-            Ok(ds) => ds,
-            Err(err) => {
-                report.error(format!("{rel}: does not parse as Turtle: {err}"));
-                continue;
-            }
-        };
-
-        // Construct subjects: any subject typed `sh:NodeShape` / `sh:PropertyShape`, plus any
-        // object of an `sh:property` triple (an inline property shape). Resolve the class /
-        // property IRIs (not source tokens), so an alternate prefix or a full IRI cannot bypass.
-        let mut construct_subjects: BTreeSet<TermId> = BTreeSet::new();
-        if let Some(type_id) = iri_id_static(&ds, rdf::TYPE) {
-            for local in ["NodeShape", "PropertyShape"] {
-                let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
-                    continue;
-                };
-                for q in ds.quads_for_pattern(None, Some(type_id), Some(cid), GraphMatch::Any) {
-                    construct_subjects.insert(q.s);
-                }
-            }
-        }
-
-        // Parents: an `sh:property` object → its owning node shape, so a `logic:formalizes` on the
-        // node shape legalizes the inline property shape (the upward walk).
-        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
-        if let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}property")) {
-            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
-                construct_subjects.insert(q.o);
-                parents.entry(q.o).or_default().insert(q.s);
-            }
-        }
-        // Boolean-combinator members → their owning subject, so a `logic:formalizes` on a node
-        // shape legalizes a construct nested inside its logical combinators — the gate's own
-        // semantics ("on it or its owning shape"): the shape is the migration-tracking unit and
-        // its back-reference covers its whole logical structure, not only direct `sh:property`
-        // children. `sh:and`/`sh:or`/`sh:xone` take an RDF list of shapes; `sh:not` a single shape.
-        let rdf_first = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
-        let rdf_rest = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
-        let rdf_nil = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
-        let list_members = |head: TermId| -> Vec<TermId> {
-            let (Some(first), Some(rest)) = (rdf_first, rdf_rest) else {
-                return Vec::new();
-            };
-            let mut out = Vec::new();
-            let mut node = Some(head);
-            let mut guard = 0usize;
-            while let Some(n) = node {
-                if Some(n) == rdf_nil || guard > 100_000 {
-                    break;
-                }
-                guard += 1;
-                if let Some(q) = ds
-                    .quads_for_pattern(Some(n), Some(first), None, GraphMatch::Any)
-                    .next()
-                {
-                    out.push(q.o);
-                }
-                node = ds
-                    .quads_for_pattern(Some(n), Some(rest), None, GraphMatch::Any)
-                    .next()
-                    .map(|q| q.o);
-            }
-            out
-        };
-        for comb in ["and", "or", "xone"] {
-            if let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{comb}")) {
-                for q in ds.quads_for_pattern(None, Some(cid), None, GraphMatch::Any) {
-                    for member in list_members(q.o) {
-                        construct_subjects.insert(member);
-                        parents.entry(member).or_default().insert(q.s);
-                    }
-                }
-            }
-        }
-        if let Some(nid) = iri_id_static(&ds, &format!("{SHACL_NS}not")) {
-            for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
-                construct_subjects.insert(q.o);
-                parents.entry(q.o).or_default().insert(q.s);
-            }
-        }
-        if construct_subjects.is_empty() {
-            continue;
-        }
-
-        let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
-        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
-            for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
-                directly_backed.insert(q.s);
-            }
-        }
-
-        for subj in &construct_subjects {
-            if formalizes_backed(*subj, &directly_backed, &parents) {
-                continue;
-            }
-            report.error(format!(
-                "{rel}: {} is a hand-authored declarative validation shape \
-                 (sh:NodeShape/sh:PropertyShape) without a `logic:formalizes` back-reference on it \
-                 or its owning shape: validation shapes are authored in the logic: canon and \
-                 PROJECTED to generated/shapes/*.ttl (Principle 17), never hand-authored as a \
-                 second source of truth (design/LOGIC-VALIDATION.md)",
-                node_label(&ds, *subj)
-            ));
-        }
-    }
-}
-
-/// ShEx is an emit-only projection of the `logic:` canon (Principle 17): the pipeline PROJECTS
-/// `.shex` under `generated/`, and no `.shex` is ever hand-authored. So ANY authored `.shex` file
-/// under the source dirs (`slices/`, `shapes/`, `dsl/`) is a forbidden second source of truth.
-/// There are ZERO authored `.shex` files today, so this gate is armed-and-empty on the live tree —
-/// it enforces the invariant going forward.
-fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
-    let mut shex_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl", "governance"] {
-        let dir = root.join(sub);
-        if dir.is_dir() {
-            collect_shex_files(&dir, report, &mut shex_files);
-        }
-    }
-    shex_files.sort();
-    for path in shex_files {
-        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
         report.error(format!(
-            "{rel}: authored ShEx surface is forbidden — ShEx is an emit-only projection of the \
-             logic: canon, PROJECTED to generated/ (Principle 17), never hand-authored \
-             (design/LOGIC-VALIDATION.md)"
+            "{rel}: a hand-authored sh:sparql re-encodes the migrated FOL axiom \
+             ({desc}) without a `logic:formalizes` back-reference on it or its owning \
+             shape: this axiom is authored in the logic: canon and PROJECTED to \
+             generated/shapes/constraint-shapes.ttl (Principle 17, H8), never \
+             hand-authored as a second source of truth (design/LOGIC-VALIDATION.md)"
+        ));
+    }
+}
+
+fn check_declarative_constructs(
+    ds: &RdfDataset,
+    rel: &str,
+    backing: &ProjectionBacking,
+    report: &mut RepoStaticReport,
+) {
+    // Construct subjects: any subject typed `sh:NodeShape` / `sh:PropertyShape`, plus any
+    // object of an `sh:property` triple (an inline property shape). Resolve the class /
+    // property IRIs (not source tokens), so an alternate prefix or a full IRI cannot bypass.
+    let mut construct_subjects: BTreeSet<TermId> = BTreeSet::new();
+    if let Some(type_id) = iri_id_static(ds, rdf::TYPE) {
+        for local in ["NodeShape", "PropertyShape"] {
+            let Some(cid) = iri_id_static(ds, &format!("{SHACL_NS}{local}")) else {
+                continue;
+            };
+            for q in ds.quads_for_pattern(None, Some(type_id), Some(cid), GraphMatch::Any) {
+                construct_subjects.insert(q.s);
+            }
+        }
+    }
+
+    construct_subjects.extend(backing.shape_members.iter().copied());
+    if construct_subjects.is_empty() {
+        return;
+    }
+
+    for subj in &construct_subjects {
+        if backing.contains(*subj) {
+            continue;
+        }
+        report.error(format!(
+            "{rel}: {} is a hand-authored declarative validation shape \
+             (sh:NodeShape/sh:PropertyShape) without a `logic:formalizes` back-reference on it \
+             or its owning shape: validation shapes are authored in the logic: canon and \
+             PROJECTED to generated/shapes/*.ttl (Principle 17), never hand-authored as a \
+             second source of truth (design/LOGIC-VALIDATION.md)",
+            node_label(ds, *subj)
         ));
     }
 }
@@ -907,7 +965,7 @@ const GMEOW_SA_FAIL_WITNESS_IRI: &str = "https://blackcatinformatics.ca/gmeow/sa
 /// belongs to rather than assume a single repo-wide `tests/` root.
 ///
 /// Shared by [`registered_fail_witnesses`]'s two callers — the `crate-check` projection-purity
-/// scan ([`check_declarative_shape_purity`]) and `gmeow-validate`'s `shape_census` test — so the
+/// scan ([`check_projection_purity`]) and `gmeow-validate`'s `shape_census` test — so the
 /// two gates the same failing fixture must satisfy agree on exactly one exemption rule rather
 /// than drifting into two independently-maintained ones.
 pub fn enclosing_slice_dir(start: &Path) -> Option<PathBuf> {
@@ -992,8 +1050,8 @@ fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<Pa
     }
 }
 
-/// Recursively collect `.shex` files under `dir` (symlink-safe, mirroring [`collect_ttl_files`]).
-fn collect_shex_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
+/// Collect the authored formats handled by the projection-purity gate in one walk.
+fn collect_projection_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
         Err(err) => {
@@ -1015,8 +1073,12 @@ fn collect_shex_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<P
         let path = entry.path();
         // Recurse into real subdirectories only — a symlinked directory could form a cycle.
         if path.is_dir() && !path.is_symlink() {
-            collect_shex_files(&path, report, out);
-        } else if !path.is_symlink() && path.extension().is_some_and(|ext| ext == "shex") {
+            collect_projection_files(&path, report, out);
+        } else if !path.is_symlink()
+            && path
+                .extension()
+                .is_some_and(|ext| ext == "ttl" || ext == "shex")
+        {
             out.push(path);
         }
     }

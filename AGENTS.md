@@ -494,7 +494,7 @@ Mapping compilation runs inside `gmeow-dev sync --mode update --outputs generate
   * `generated/projections/*.edoal.ttl` — EDOAL alignment cells.
   * `generated/projections/functions.fno.ttl` — generated FnO function catalog.
   * `generated/queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
-* **Hand-authored companion file**: `dsl/mappings/transforms.fno.ttl` is read by the compiler/lints but is authored, never generated.
+* **Callable interfaces**: author `logic:CallableSignature` records with named, ordered slots in the owning slice under `mappings/callable-signatures.ttl`. The compiler derives the single FnO catalog; there is no authored FnO companion or source fallback.
 * **Important behavior**: the registered generator first renders artifacts into a staging product, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
 * **Drift check**: `make check-sync` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
 
@@ -574,7 +574,7 @@ slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segmen
 slices/vocabulary.ttl    # The slice-manifest authoring vocabulary (spec layer)
 ontology/gmeow.ttl # Root ontology = the CORE profile (generated imports)
 dsl/mappings/            # Shared mapping vocabulary, cross-cutting sets,
-                         #   shared equivalences, transforms.fno.ttl
+                         #   shared equivalences (callables are slice-owned)
 dsl/statements/          # Statement DSL (canonical RDF 1.2 statement metadata)
 shapes/                  # Authored SHACL (incl. slice-manifest-shapes.ttl)
 queries/                 # Authored SPARQL: competency/, verify/, qc/, codecs/

@@ -532,7 +532,7 @@ meta:gate-projection-compute-purity a meta:Gate ;
         "generated/shacl-af/gmeow.shacl-af.ttl",
         "slices/grounding/logic/design/LOGIC-SHACL-AF.md",
         "slices/grounding/logic/design/LOGIC-RDFQUERY.md" ;
-    meta:symbol "check_projection_compute_purity", "project_shacl_af" ;
+    meta:symbol "check_projection_purity", "project_shacl_af" ;
     meta:cliCommand "crate-check", "sync" ;
     meta:makeTarget "crate-check", "check-sync" .
 
@@ -542,15 +542,16 @@ meta:gate-projection-compute-purity a meta:Gate ;
 # sh:sparql second source of truth. The repo-static seal red-fails on an authored
 # sh:select re-encoding a migrated axiom signature without a logic:formalizes
 # back-reference. This realizes the sh:sparql procedural-constraint fragment of the
-# shape gate (design/LOGIC-VALIDATION.md); the declarative sh:PropertyShape fragment
-# follows as the remaining closed-world shapes migrate. Sharpens Principles 17 + 4.
+# shape gate (design/LOGIC-VALIDATION.md). Both registry entries share the unified
+# source inventory and construct-ownership check, which also seals declarative
+# SHACL, ShEx, FnO, SSSOM, EDOAL and OWL surfaces. Sharpens Principles 17 + 4.
 meta:gate-projection-shape-purity a meta:Gate ;
     rdfs:label "validation constraints are projections of logic:, not hand-authored second sources"@x-gmeow-english ;
     meta:artifact "crates/validate/src/repo_static.rs",
         "crates/pipeline/src/stages/constraint_shapes.rs",
         "generated/shapes/constraint-shapes.ttl",
         "slices/grounding/logic/design/LOGIC-VALIDATION.md" ;
-    meta:symbol "check_projection_shape_purity", "render_constraint_shapes" ;
+    meta:symbol "check_projection_purity", "render_constraint_shapes" ;
     meta:cliCommand "crate-check", "sync" ;
     meta:makeTarget "crate-check", "check-sync" .
 

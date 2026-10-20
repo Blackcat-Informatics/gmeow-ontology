@@ -210,7 +210,10 @@ impl PreparedProgram {
                 detail: "schema template lock poisoned".to_owned(),
             })
         };
-        if let Some(template) = self.schema_templates.lock().map_err(lock_error)?.get(&key) {
+        // Retain the immutable template, not the cache guard, across observation
+        // and input analysis. Other requests must remain able to use the cache.
+        let cached = self.schema_templates.lock().map_err(lock_error)?.get(&key);
+        if let Some(template) = cached {
             if trace_large_input {
                 tracing::info!(
                     target: "pipeline_reasoning_detail",

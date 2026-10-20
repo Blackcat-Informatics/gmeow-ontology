@@ -58,17 +58,14 @@ ex:plHeritage a gmeow:ExpectedRow ;
 # ── LanguageState bitemporal query ───────────────────────────────────
 ex:cqLanguageStateBitemporal a gmeow:CompetencyQuestion ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX langex: <https://example.org/lang/>
 SELECT ?state WHERE {
     BIND("1200-01-01T00:00:00Z"^^xsd:dateTime AS ?validAt)
     BIND("2100-01-01T00:00:00Z"^^xsd:dateTime AS ?asOf)
     ?state a gmeow:LanguageState .
-    ?ax a owl:Axiom ;
-        owl:annotatedSource   ?state ;
-        owl:annotatedProperty gmeow:stateStatusValue ;
-        owl:annotatedTarget   ?status .
+    ?ax rdf:reifies <<( ?state gmeow:stateStatusValue ?status )>> .
     OPTIONAL { ?ax gmeow:validFrom           ?vf . }
     OPTIONAL { ?ax gmeow:validUntil          ?vu . }
     OPTIONAL { ?ax gmeow:assertedAt          ?aa . }

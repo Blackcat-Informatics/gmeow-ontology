@@ -23990,3 +23990,68 @@ logic:CompilerSourceBoundary
     skos:scopeNote "Successful source decoding does not establish semantic completeness."@x-gmeow-english ;
     skos:example "An unreadable source file fails before a theory is emitted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Callable interfaces retain parameter identity, position and declared value types.
+
+logic:Callable
+    a logic:Class ;
+    rdfs:label "callable operation"@x-gmeow-english ;
+    skos:definition "A named callable operation. Its identity alone asserts neither an executable implementation nor a complete argument signature. A logic:CallableSignature specializes it with explicit ordered input and output slots."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:CallableSignature
+    a logic:Class ;
+    logic:subClassOf logic:Callable ;
+    rdfs:label "callable signature"@x-gmeow-english ;
+    skos:definition "A declarative callable interface whose ordered input and output slots have persistent identities. A signature asserts no executable implementation or entailment law."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:CallParameter
+    a logic:Class ;
+    rdfs:label "call input parameter"@x-gmeow-english ;
+    skos:definition "A named input slot in a callable signature, with a predicate role, value type and explicit requiredness."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:CallResult
+    a logic:Class ;
+    rdfs:label "call output parameter"@x-gmeow-english ;
+    skos:definition "A named output slot in a callable signature, with a predicate role and declared value type."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:inputParameters
+    a logic:ObjectProperty ;
+    rdfs:label "input parameters"@x-gmeow-english ;
+    skos:definition "The finite ordered RDF list of named input slots of a callable interface. Position and repeated occurrences are significant."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:domain logic:CallableSignature ;
+    logic:range rdf:List .
+
+logic:outputParameters
+    a logic:ObjectProperty ;
+    rdfs:label "output parameters"@x-gmeow-english ;
+    skos:definition "The finite ordered RDF list of named output slots of a callable interface. A target profile must refuse a result count it cannot represent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:domain logic:CallableSignature ;
+    logic:range rdf:List .
+
+logic:parameterPredicate
+    a logic:ObjectProperty ;
+    rdfs:label "parameter predicate"@x-gmeow-english ;
+    skos:definition "The predicate role through which a named callable input or output is presented."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:range rdf:Property .
+
+logic:parameterValueType
+    a logic:ObjectProperty ;
+    rdfs:label "parameter value type"@x-gmeow-english ;
+    skos:definition "The explicit declared value type of a callable slot; it is not inferred from positional order or from an unrelated ontology range."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:range rdfs:Resource .
+
+logic:parameterRequired
+    a logic:DatatypeProperty ;
+    rdfs:label "parameter required"@x-gmeow-english ;
+    skos:definition "Whether a named callable input is required by its declared interface. Both truth values are explicit; omission is not false."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:domain logic:CallParameter ;
+    logic:range xsd:boolean .

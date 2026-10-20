@@ -204,6 +204,7 @@ fn publication_recipe(root: &Path) -> ExecutableRecipe {
                 manifest: Some("Cargo.toml".into()),
                 source: Some("lib.rs".into()),
                 target: "fixture".into(),
+                edition: "2024".into(),
                 kinds: vec!["lib".into()],
                 cfg: CfgContext::from_rustc("unix", &[], true).unwrap(),
                 dependencies: vec![],
@@ -467,6 +468,7 @@ fn source_unit(name: &str, features: &[&str], dependencies: Vec<usize>) -> UnitS
         manifest: None,
         source: None,
         target: name.to_owned(),
+        edition: "2024".into(),
         kinds: vec!["lib".into()],
         cfg: CfgContext::from_rustc("unix", &features, false).unwrap(),
         dependency_names: dependencies
@@ -657,6 +659,7 @@ fn producer_inventory_tracks_embedded_queries_and_runtime_dependencies() {
         manifest: Some(format!("crates/{name}/Cargo.toml")),
         source: Some(format!("crates/{name}/src/{source}")),
         target: name.into(),
+        edition: "2024".into(),
         kinds: vec!["lib".into()],
         cfg: CfgContext::from_rustc("unix", &[], true).unwrap(),
         dependencies,
@@ -694,4 +697,16 @@ fn producer_inventory_tracks_embedded_queries_and_runtime_dependencies() {
             .digest()
             .unwrap()
     );
+}
+
+#[test]
+fn canonical_source_graph_retains_selected_target_edition() {
+    let mut modern = vec![source_unit("root", &[], vec![])];
+    let mut legacy = modern.clone();
+    legacy[0].edition = "2015".into();
+    let mut modern_roots = vec![0];
+    let mut legacy_roots = vec![0];
+    canonicalize_source_graph(&mut modern, &mut modern_roots).unwrap();
+    canonicalize_source_graph(&mut legacy, &mut legacy_roots).unwrap();
+    assert_ne!(modern, legacy);
 }

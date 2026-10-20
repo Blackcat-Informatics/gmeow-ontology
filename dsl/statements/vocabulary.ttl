@@ -1,5 +1,4 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
@@ -13,20 +12,16 @@
 # GMEOW is RDF 1.2 / RDF*-FIRST (CONSTITUTION Principles 2-3): statement-level
 # metadata is authored ONCE here, and the `gmeow-dev sync --mode update --outputs generated` statements generator emits two
 # verified artifacts from it — the RDF 1.2 / RDF* serialization (the canonical
-# LEAD form, via Apache Jena) and the OWL 2 axiom-annotation form (the generated,
+# LEAD form, through the native RDF codec) and the OWL 2 axiom-annotation form (the generated,
 # reasoning-lossless DOWNCAST the OWL 2 DL reasoners consume). The OWL form is a
 # projection (Principle 4), never a competing source of truth; it recedes as
 # RDF-1.2-native reasoners arrive.
 #
-# WHY A DSL AND NOT LITERAL RDF 1.2 TURTLE? rdflib (the pure-Python engine the
-# whole pipeline lints/serializes/round-trips with) cannot yet parse RDF 1.2
-# triple-term syntax (`<<( s p o )>>` / rdf:reifies). So we author in plain Turtle
-# that rdflib reads today — but each cell is a 1:1 STRUCTURAL TRANSCRIPTION of one
+# Each cell is a 1:1 STRUCTURAL TRANSCRIPTION of one
 # RDF 1.2 reifying statement: the (qSubject qPredicate qObject) triad IS the
 # quoted triple, gmeow:reifier IS the rdf:reifies subject, and the gmeow:annotation
-# list IS every triple hung off the reifier. The source READS as RDF 1.2; the
-# eventual switch to native `<<( )>>` is a near-syntactic re-skin of the parser,
-# not a re-model.
+# list IS every triple hung off the reifier. The native compiler preserves
+# this statement identity in both projections.
 #
 # This file is a SPEC LAYER — grounded in gmeow: and annotated like every GMEOW
 # term, but NOT owl:imports-ed into the reasoned OWL 2 DL core. It is the sibling
@@ -34,7 +29,7 @@
 # =============================================================================
 
 <https://blackcatinformatics.ca/gmeow/statement-dsl>
-    a owl:Ontology ;
+    a logic:Ontology ;
     rdfs:label "GMEOW statement DSL vocabulary"@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Authoring vocabulary for the canonical RDF 1.2 / RDF* statement-metadata layer; compiled to the RDF 1.2 serialization + the OWL axiom-annotation downcast by the `gmeow-dev sync --mode update --outputs generated` statements generator."@x-gmeow-english .
@@ -43,36 +38,36 @@
 # The cell type — one reified statement
 # --------------------------------------------------------------------------- #
 
-gmeow:StatementMetadata a owl:Class ;
+gmeow:StatementMetadata a logic:Class ;
     rdfs:label "statement metadata"@x-gmeow-english ;
     skos:definition "One reified RDF 1.2 statement: a quoted base triple (qSubject/qPredicate/qObject) plus the metadata annotations hung off its reifier (confidence, provenance, temporal scope). The structural isomorph of `?reifier rdf:reifies <<( ?s ?p ?o )>> . ?reifier <annProp> <annVal> .` — authored as plain Turtle, compiled to both RDF 1.2 and the OWL owl:Axiom downcast."@x-gmeow-english ;
     logic:subClassOf [
         a logic:Restriction ;
         logic:onProperty rdfs:label ;
-        logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ;
     ] .
 
 # --------------------------------------------------------------------------- #
 # The reifier and the quoted triple
 # --------------------------------------------------------------------------- #
 
-gmeow:reifier a owl:ObjectProperty, owl:FunctionalProperty ;
+gmeow:reifier a logic:ObjectProperty ;
     rdfs:label "reifier"@x-gmeow-english ;
     skos:definition "The named reifier IRI for the statement — the subject of `rdf:reifies` in the RDF 1.2 form and the `owl:Axiom` node in the OWL downcast. OPTIONAL: when omitted, the compiler mints a deterministic, content-addressed reifier IRI from the quoted triple, so the same statement always yields the same reifier (no spurious drift)."@x-gmeow-english .
 
-gmeow:qSubject a owl:ObjectProperty, owl:FunctionalProperty ;
+gmeow:qSubject a logic:ObjectProperty ;
     rdfs:label "quoted subject"@x-gmeow-english ;
     skos:definition "The subject of the quoted base triple — the `s` in `<<( s p o )>>` and the `owl:annotatedSource` in the OWL downcast."@x-gmeow-english .
 
-gmeow:qPredicate a owl:ObjectProperty, owl:FunctionalProperty ;
+gmeow:qPredicate a logic:ObjectProperty ;
     rdfs:label "quoted predicate"@x-gmeow-english ;
     skos:definition "The predicate of the quoted base triple — the `p` in `<<( s p o )>>` and the `owl:annotatedProperty` in the OWL downcast."@x-gmeow-english .
 
-gmeow:qObject a owl:ObjectProperty, owl:FunctionalProperty ;
+gmeow:qObject a logic:ObjectProperty ;
     rdfs:label "quoted object (IRI)"@x-gmeow-english ;
     skos:definition "The object of the quoted base triple when it is an IRI / value individual — the `o` in `<<( s p o )>>` and the `owl:annotatedTarget` in the OWL downcast. Mutually exclusive with gmeow:qObjectLiteral."@x-gmeow-english .
 
-gmeow:qObjectLiteral a owl:DatatypeProperty, owl:FunctionalProperty ;
+gmeow:qObjectLiteral a logic:DatatypeProperty ;
     rdfs:label "quoted object (literal)"@x-gmeow-english ;
     skos:definition "The object of the quoted base triple when it is a literal (a date, a string, a number). Mutually exclusive with gmeow:qObject."@x-gmeow-english .
 
@@ -80,19 +75,19 @@ gmeow:qObjectLiteral a owl:DatatypeProperty, owl:FunctionalProperty ;
 # The annotations hung off the reifier
 # --------------------------------------------------------------------------- #
 
-gmeow:annotation a owl:ObjectProperty ;
+gmeow:annotation a logic:ObjectProperty ;
     rdfs:label "annotation"@x-gmeow-english ;
     skos:definition "Links a statement cell to one metadata annotation node (annProperty + annValue). Each annotation becomes one triple on the reifier in the RDF 1.2 form and one annotation on the owl:Axiom in the OWL downcast. A cell carries several."@x-gmeow-english .
 
-gmeow:annProperty a owl:ObjectProperty, owl:FunctionalProperty ;
+gmeow:annProperty a logic:ObjectProperty ;
     rdfs:label "annotation property"@x-gmeow-english ;
     skos:definition "The metadata property of one annotation — a real GMEOW statement-level annotation property (gmeow:confidence, gmeow:validFrom, gmeow:assertedAt, gmeow:mappedFrom, …). Must be an owl:AnnotationProperty in the ontology so the generated OWL downcast stays OWL 2 DL-clean."@x-gmeow-english .
 
-gmeow:annValue a rdf:Property, owl:FunctionalProperty ;
+gmeow:annValue a rdf:Property ;
     rdfs:label "annotation value"@x-gmeow-english ;
     skos:definition "The value of one annotation — an IRI/value individual or a literal (0.95, a date, an agent IRI). Authored as a single field for ergonomics; the compiler emits it verbatim into both forms. (A bare rdf:Property in this spec layer, never reasoned; the generated OWL form attaches it under the real owl:AnnotationProperty named by gmeow:annProperty.)"@x-gmeow-english .
 
-# Backfilled annotations for annotation-completeness gate (issue #221)
+# Backfilled annotations for annotation-completeness gate
 gmeow:StatementMetadata rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
 
 gmeow:annProperty rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
@@ -203,11 +198,11 @@ logic:sdvTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
     ?this a ?t .
     FILTER(?t IN (
-        <http://www.w3.org/2002/07/owl#Class>,
-        <http://www.w3.org/2002/07/owl#ObjectProperty>,
-        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
-        <http://www.w3.org/2002/07/owl#AnnotationProperty>,
-        <http://www.w3.org/2002/07/owl#Ontology>,
+        <https://blackcatinformatics.ca/logic/Class>,
+        <https://blackcatinformatics.ca/logic/ObjectProperty>,
+        <https://blackcatinformatics.ca/logic/DatatypeProperty>,
+        <https://blackcatinformatics.ca/logic/AnnotationProperty>,
+        <https://blackcatinformatics.ca/logic/Ontology>,
         <http://www.w3.org/2000/01/rdf-schema#Datatype>
     ))
     FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
@@ -234,3 +229,75 @@ gmeow:qPredicate gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:qSubject gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:reifier gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
 gmeow:statement-dsl gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+
+# Canonical property characteristics (Principle 17).
+
+gmeow:statementDslReifierFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "reifier is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:reifier: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    logic:characterizes gmeow:reifier ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reifier ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statementDslQSubjectFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "qSubject is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:qSubject: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    logic:characterizes gmeow:qSubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:qSubject ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statementDslQPredicateFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "qPredicate is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:qPredicate: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    logic:characterizes gmeow:qPredicate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:qPredicate ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statementDslQObjectFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "qObject is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:qObject: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    logic:characterizes gmeow:qObject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:qObject ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statementDslQObjectLiteralFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "qObjectLiteral is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:qObjectLiteral: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    logic:characterizes gmeow:qObjectLiteral ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:qObjectLiteral ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statementDslAnnPropertyFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "annProperty is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:annProperty: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    logic:characterizes gmeow:annProperty ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:annProperty ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statementDslAnnValueFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "annValue is functional"@x-gmeow-english ;
+    skos:definition "The canonical property-characteristic assertion for gmeow:annValue: each subject has at most one value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    logic:characterizes gmeow:annValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:annValue ;
+    gmeow:graphBoxRole gmeow:boxABox .

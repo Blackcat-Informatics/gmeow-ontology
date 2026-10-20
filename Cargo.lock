@@ -1885,7 +1885,9 @@ dependencies = [
  "gmeow-logic",
  "gmeow-mcp",
  "gmeow-pipeline",
+ "gmeow-slice-brief",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -2031,6 +2033,7 @@ dependencies = [
  "insta",
  "pretty_assertions",
  "purrdf",
+ "purrdf-core",
  "purrdf-hash",
  "rayon",
  "regex",

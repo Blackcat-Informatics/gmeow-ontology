@@ -16,6 +16,7 @@ fn inventory(root: &Path) -> gmeow_build_inputs::InputInventory {
                 manifest: Some("Cargo.toml".into()),
                 source: Some("input.rs".into()),
                 target: "fixture".into(),
+                edition: "2024".into(),
                 kinds: vec!["lib".into()],
                 cfg: CfgContext::from_rustc("unix", &[], true).unwrap(),
                 dependencies: vec![],
