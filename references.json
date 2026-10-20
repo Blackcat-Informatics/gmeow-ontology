@@ -1,0 +1,44 @@
+{
+  "paths": [
+    {
+      "ref": "crates/logic/src/obligations.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/logic/src/obligations.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 931,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "720eef2b4 fix: retain graph and wire identity throughout diagnostics",
+        "d2437b90f refactor(logic): retain obligation diagnostics in the shared ledger",
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "41ec956a4 deps: adopt purrdf 3.0 and enforce a major-3 substrate floor (#1784)",
+        "a159730f8 perf(logic): integrate the certified native pipeline",
+        "830c937f7 style(762): apply rustfmt + i18n trailing-newline normalization",
+        "13393e5bf feat(762): first-class useWhen AdviceGuidance carrier + per-cell advice-coverage",
+        "3f340a16f feat(762): bind advisory-constraint message to avoidWhen prose via verify gate",
+        "2b64001ee refactor(validate): make advisory rules data-matching logic:Constraints",
+        "48b8474dd feat(validate): harvest accepted recommendation candidates into advisory findings"
+      ]
+    },
+    {
+      "ref": "agent/fol-tptp-export",
+      "path": "/home/paudley/Active/gmeow-ontology/agent/fol-tptp-export",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "UNION",
+      "files": 389
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

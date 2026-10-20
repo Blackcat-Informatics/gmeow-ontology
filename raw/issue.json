@@ -1,0 +1,49 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Found while wiring a consistency gate over the Principia corpus (lillith_soul/principia), which authors pure `logic:` GMEOW.\n\n## Problem\n\n`crates/logic/src/obligations.rs` discovers obligations with:\n\n```sparql\nSELECT ?o ?pred ?cond WHERE {\n  ?o a logic:NonEntailmentObligation ;\n     logic:obligationForbiddenPredicate ?pred .\n  OPTIONAL { ?o logic:obligationDischargeCondition ?cond } }\n```\n\nBut a `logic:`-native corpus types individuals with `logic:instanceOf`, not `rdf:type` \u2014 and the grounding module deliberately keeps the two distinct (HiLog deep instantiation; `gmeow:avoidWhen \"Do not replace ordinary rdf:type indiscriminately\"`). Principia authors 353 obligation individuals, all but 2 via `logic:instanceOf`; the discharge checker sees almost none of them. The check silently passes with ~99% of the corpus's obligations invisible.\n\n## Proposed direction\n\nAccept either spelling in the discovery query (a `UNION` over `a` / `logic:instanceOf`), or normalize `logic:instanceOf logic:NonEntailmentObligation` into the store view the checker queries. A count of discovered obligations in the report would also make this class of silent miss visible (\"0 obligations found\" should look suspicious to a caller who authored 353).\n\n## Workaround in use\n\nNone good \u2014 the consuming corpus would have to double-type every obligation with `a`, which fights the grounding doctrine.\n\n## Approved integration under #1704\n\nThis report remains current implementation scope. Preserve the fixes on `agent/fol-tptp-export`; its branch still lacks the obligation-loader repair described here. The preserved C1 integration now implements native obligation and candidate discovery through both structural typing surfaces, deduplicates identical subjects while retaining document-scoped blank identity, discovers declarations before validating their required fields, rejects malformed/conflicting values, and reports the selected default-graph inventory including zero. All five obligation-discovery controls passed in the recorded 804/804 shared-typing batch.\n\nThat local implementation is unpublished and unmerged; complete producer/gate acceptance remains pending. Exact authored/admitted/discharged coverage and context-bound receipts remain required under #1748/#1747. Foundation-only reachability is still open under #1747. The acceptance requirements below remain in force.\n\n- Discover canonical `logic:instanceOf` and supported `rdf:type` spellings through the shared native reader, deduplicating genuinely identical declarations while preserving graph/standpoint/source identity. Do not equate the two predicates globally.\n- Report authored, discovered, admitted and discharged obligation identities/counts. Discover declarations before validating required fields, so malformed or missed obligations cannot disappear into a successful empty result. Apply the same admitted structural typing to candidate attribution.\n- Verify logic-only, RDF-typed, dual-typed and mixed-document obligations, malformed declarations and context isolation with GMEOW product fixtures. Preserve existing discharge policy.\n\nBlocks #1747. Full gate evidence remains required for the integrated batch; tests never build the corpus. Principles 4, 7, 9, 17\u201319.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABTVQmiQ",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Implementation progress under the approved plan (Principles 4, 7, 9, 17\u201319): obligation and candidate discovery now read the native dataset indexes and accept structural `rdf:type` and canonical `logic:instanceOf` declarations, deduplicating identical native subjects while retaining document-scoped blank identities. Declarations are discovered before required fields: missing, conflicting, non-IRI and malformed forbidden predicates fail instead of disappearing or choosing a first value. Candidate coverage and source-hash checks use the same admitted structural typing. A visible inventory finding reports the selected graph's discovered identities/count, including zero.\n\nFive focused obligation regressions and the related compiler extraction tests passed as part of an 804-test selection. Repository lint passed. All fixtures are synthetic, authored inputs; tests produced no corpus and PurRDF conformance was not rerun.\n\nThis is progress, not full closure: exact authored/admitted/discharged coverage and context-bound receipts still need the shared coverage/reachability integration under #1748/#1747. The current foundation-only reachability check is being replaced; a reachable head will no longer be presented as a witnessed violation. Full gate evidence remains pending for the integrated batch.\n",
+      "createdAt": "2026-09-08T21:48:50Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1746#issuecomment-5592327817",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-09-08T19:40:01Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    }
+  ],
+  "milestone": null,
+  "number": 1746,
+  "state": "OPEN",
+  "title": "logic: non-entailment obligation discharge misses logic:instanceOf-typed obligations",
+  "updatedAt": "2026-09-11T04:33:51Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1746"
+}

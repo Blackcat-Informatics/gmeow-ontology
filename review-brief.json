@@ -1,0 +1,22 @@
+{
+  "issue": 1746,
+  "branch": "paudley/1746-logic-non-entailment-obligation",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "6592e22b6232ac46a28cde44a7235c96ec6c0bab",
+      "subject": "test: separate authenticated verifier and native inventory coverage",
+      "date": "2026-10-20"
+    },
+    {
+      "oid": "63893810c46b7091cb4ede844ce850200e9b29ae",
+      "subject": "fix: retain authored obligation identities in native inventories",
+      "date": "2026-10-20"
+    }
+  ],
+  "files": [
+    "crates/logic/src/obligations/assessment.rs",
+    "crates/logic/src/obligations/program_tests.rs"
+  ],
+  "adrs_touched": []
+}

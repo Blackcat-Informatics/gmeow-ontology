@@ -1,0 +1,112 @@
+./scripts/test-check-sync-prerequisites.sh
+check-sync prerequisites fail closed OK
+pre-commit run --all-files --show-diff-on-failure
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check json...............................................................Passed
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.................................................................Passed
+Lint GitHub Actions workflow files.......................................Passed
+markdownlint-cli2........................................................Passed
+shellcheck...............................................................Passed
+zizmor...................................................................Passed
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Failed
+- hook id: cargo-fmt-check
+- files were modified by this hook
+lint issue/PR references.................................................Passed
+pre-commit hook(s) made changes.
+If you are seeing this message in CI, reproduce locally with: `pre-commit run --all-files`.
+To run `pre-commit` as part of git workflow, use `pre-commit install`.
+All changes made by hooks:
+diff --git crates/logic/src/obligations/program_tests.rs crates/logic/src/obligations/program_tests.rs
+index da6ff9650..69813ecc9 100644
+--- crates/logic/src/obligations/program_tests.rs
++++ crates/logic/src/obligations/program_tests.rs
+@@ -430,3 +430,78 @@ fn independent_document_blank_obligations_survive_native_ingress() {
+             .all(|outcome| outcome.disposition == ObligationDisposition::SyntacticallyDischarged)
+     );
+ }
++
++/// Inventory describes selected native worlds, including empty ones, rather
++/// than the verifier's flattened presentation or the number of type triples.
++#[test]
++fn mixed_typing_inventory_retains_exact_world_counts_and_identities() {
++    let declaration = |name: &str, typing: &str| {
++        format!(
++            "ex:{name} {typing} ; logic:obligationForbiddenPredicate ex:forbidden ; \
++             logic:obligationDischargeCondition logic:DischargeSyntacticReachability ."
++        )
++    };
++    let text = format!(
++        "@prefix logic: <{LOGIC_NS}> . @prefix ex: <https://example.org/> .
++         ex:first {{ {} {} {} }}
++         ex:second {{ {} }}
++         ex:empty {{ ex:record ex:unrelated ex:value . }}",
++        declaration("rdf", "a logic:NonEntailmentObligation"),
++        declaration("native", "logic:instanceOf logic:NonEntailmentObligation"),
++        declaration(
++            "both",
++            "a logic:NonEntailmentObligation ; logic:instanceOf logic:NonEntailmentObligation"
++        ),
++        declaration("rdf", "logic:instanceOf logic:NonEntailmentObligation"),
++    );
++    let store = purrdf::parse_dataset(text.as_bytes(), "application/trig", None).unwrap();
++    let result = run(&program(vec![]), &store);
++    let assessment = assess_non_entailment_obligations(&result).unwrap();
++    let identities: BTreeSet<_> = assessment
++        .outcomes
++        .iter()
++        .map(|outcome| (outcome.world.as_str(), outcome.obligation.as_str()))
++        .collect();
++    assert_eq!(assessment.outcomes.len(), 4);
++    assert_eq!(
++        identities,
++        BTreeSet::from([
++            ("https://example.org/first", "https://example.org/rdf"),
++            ("https://example.org/first", "https://example.org/native"),
++            ("https://example.org/first", "https://example.org/both"),
++            ("https://example.org/second", "https://example.org/rdf"),
++        ])
++    );
++    assert!(
++        assessment.outcomes.iter().all(|outcome| {
++            outcome.disposition == ObligationDisposition::SyntacticallyDischarged
++        })
++    );
++    let findings = assessment.findings().collect::<Vec<_>>();
++    let report = crate::verify::verify_with_reasoning_result(&store, &result, &[]).unwrap();
++    for (world, count) in [("first", 3), ("second", 1), ("empty", 0)] {
++        let world = format!("https://example.org/{world}");
++        let inventories = findings
++            .iter()
++            .filter(|finding| {
++                finding.code == "verify.non-entailment.inventory"
++                    && finding.source_graph.as_ref().map(|graph| graph.as_str())
++                        == Some(world.as_str())
++            })
++            .collect::<Vec<_>>();
++        assert_eq!(inventories.len(), 1, "{world}: {findings:?}");
++        let inventory = inventories[0];
++        assert!(inventory.message.contains(&format!("{count} distinct")));
++        assert!(inventory.message.contains(&format!(
++            "authored={count}, admitted={count}, discharged={count}"
++        )));
++        assert_eq!(inventory.cited_iris.len(), count);
++        assert_eq!(inventory.severity, Severity::Note);
++        assert!(report.findings.iter().any(|finding| {
++            finding.code == inventory.code
++                && finding.source_graph == inventory.source_graph
++                && finding.message == inventory.message
++                && finding.cited_iris == inventory.cited_iris
++        }));
++    }
++}
+make: *** [Makefile:260: lint] Error 1

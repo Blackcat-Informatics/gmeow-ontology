@@ -1,0 +1,157 @@
+{
+  "issue": 1746,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "logic: non-entailment obligation discharge misses logic:instanceOf-typed obligations",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1704": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+    "1748": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+    "1747": "logic: reachability discharge (Arm A) never consults the corpus's own compiled rule heads",
+    "1695": "bug(logic): route modal verdict evaluation through the shipped reasoner",
+    "1731": "build: authenticate an O3 full-LTO pipeline producer",
+    "1739": "build: authenticate the O3/full-LTO pipeline producer",
+    "1732": "perf: persist completed producer fixtures across CI runs",
+    "1733": "logic: implement the composite agentic modal kernel",
+    "1734": "logic: evaluate LTLf operators over enactment journals",
+    "1735": "logic: derive per-step deontic work-graph assessments",
+    "1736": "logic: implement compositional intent algebra and revision",
+    "1737": "logic: project certified protocol roles into orchestrations",
+    "1742": "logic: implement correspondence composition and standpoint-indexed merge",
+    "1743": "perf: certify correspondence normalization and physical fusion",
+    "1738": "perf: execute the production pipeline as a certified deontic work graph",
+    "1745": "perf: adopt typed correspondence execution throughout the production pipeline",
+    "272": "feat(gts): COSE signing & encryption \u2014 evidence/opaque profiles + remaining \u00a718 vectors",
+    "1741": "logic: complete typed correspondence execution and law-bearing source recovery",
+    "1755": "[bug] Compact LogicAxiom lowering collapses distinct RDF literal identities",
+    "1744": "logic: complete correspondence targets and executable openEHR exemplars",
+    "1749": "slicetest: competency cells with cqDataFile cannot use a reasoning lane, and always merge the repo's own store",
+    "1712": "logic/mappings: salvage the correspondence frontend \u2014 dsl/mappings cells as logic:Correspondence IR",
+    "1746": "logic: non-entailment obligation discharge misses logic:instanceOf-typed obligations",
+    "1750": "cli: consistency-family commands need gate-able exit codes and machine-readable verdicts",
+    "1751": "logic: TPTP-FOF export + external prover harness (whole-corpus FOL verdicts)",
+    "1752": "slice-quality: an external-corpus mode for sacred/consumer slices outside the GMEOW checkout"
+  },
+  "link_relations": {
+    "1704": "mentions",
+    "1748": "mentions",
+    "1747": "blocks",
+    "1695": "2-hop",
+    "1731": "2-hop",
+    "1739": "2-hop",
+    "1732": "2-hop",
+    "1733": "2-hop",
+    "1734": "2-hop",
+    "1735": "2-hop",
+    "1736": "2-hop",
+    "1737": "2-hop",
+    "1742": "2-hop",
+    "1743": "2-hop",
+    "1738": "2-hop",
+    "1745": "2-hop",
+    "272": "2-hop",
+    "1741": "2-hop",
+    "1755": "2-hop",
+    "1744": "2-hop",
+    "1749": "2-hop",
+    "1712": "2-hop",
+    "1746": "2-hop",
+    "1750": "2-hop",
+    "1751": "2-hop",
+    "1752": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1704,
+      "title": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1336,
+      "title": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+      "state": "OPEN"
+    },
+    {
+      "number": 1755,
+      "title": "[bug] Compact LogicAxiom lowering collapses distinct RDF literal identities",
+      "state": "CLOSED"
+    },
+    {
+      "number": 772,
+      "title": "ME6 \u2014 typed formalization governance (FormalizationCandidate + NonEntailmentObligation)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1666,
+      "title": "Cut the reasoning substrate over to PurRDF (datalog/entail/xsd)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1732,
+      "title": "perf: persist completed producer fixtures across CI runs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 735,
+      "title": "H1 \u2014 Harvest mechanism + whole-ontology coherence gate + over-typing flag",
+      "state": "CLOSED"
+    },
+    {
+      "number": 778,
+      "title": "ME12 \u2014 multidimensional CognitiveAssessment (ladder becomes a coarse projection)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 739,
+      "title": "H5 \u2014 Definitional axioms: deception / standpoint / falsehood family",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1373,
+      "title": "logic: glyph enrichment \u2014 operator symbology plane for GMN (part of #1371)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1311,
+      "title": "logic: conjecture / anti-conjecture library \u2014 first-class candidate formulas, KB testing, persisted refutation witnesses",
+      "state": "CLOSED"
+    },
+    {
+      "number": 771,
+      "title": "ME5 \u2014 context algebra: typed worlds/states/standpoints/paths/frames + typed accessibility",
+      "state": "CLOSED"
+    },
+    {
+      "number": 762,
+      "title": "D3 \u2014 advisory-rule harvest machinery + advice-coverage axis (per-slice prose harvest \u2192 background uplift lane)",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 39,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1746-logic-non-entailment-obligation"
+  },
+  "coverage": [
+    "issue #1746 + 1 comment(s) via github",
+    "link crawl: 26 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['logic:', 'non-entailment', 'obligation']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 3 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1746 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1746: 0",
+    "requirement candidates: 6 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 2 path(s) (1 on disk), 1 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

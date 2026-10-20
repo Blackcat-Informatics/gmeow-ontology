@@ -1,0 +1,70 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-logic) & test(obligations) & !test(corpus_)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1746-logic-non-entailment-obligation/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 43s
+────────────
+ Nextest run ID 933a235f-938b-418a-b1b1-95017cd9884f with nextest profile: ci
+    Starting 38 tests across 26 binaries (2327 tests and 200 binaries skipped)
+        PASS [   0.325s] ( 1/38) gmeow-logic obligations::tests::counterexample_survives_without_finite_closure_condition
+        PASS [   0.323s] ( 2/38) gmeow-logic obligations::tests::missing_discharge_condition_is_a_hard_error
+        PASS [   0.324s] ( 3/38) gmeow-logic obligations::tests::arm_b_finite_closure_green_then_red
+        PASS [   0.325s] ( 4/38) gmeow-logic obligations::tests::reachable_head_remains_unknown_without_a_counterexample
+        PASS [   0.332s] ( 5/38) gmeow-logic obligations::tests::native_obligation_discovery_preserves_independent_document_blank_scopes
+        PASS [   0.353s] ( 6/38) gmeow-logic obligations::tests::advisory_constraint_message_binds_avoidwhen_prose
+        PASS [   0.354s] ( 7/38) gmeow-logic obligations::tests::advice_guidance_message_binds_usewhen_prose
+        PASS [   0.354s] ( 8/38) gmeow-logic obligations::tests::malformed_governance_query_retains_the_original_native_cause
+        PASS [   0.354s] ( 9/38) gmeow-logic obligations::tests::edited_prose_surfaces_as_drift
+        PASS [   0.354s] (10/38) gmeow-logic obligations::tests::candidate_without_harvest_link_is_skipped
+        PASS [   0.357s] (11/38) gmeow-logic obligations::tests::duplicate_category_on_candidate_is_a_hard_error
+        PASS [   0.359s] (12/38) gmeow-logic obligations::tests::single_category_candidate_produces_correct_coverage
+        PASS [   0.360s] (13/38) gmeow-logic obligations::tests::projected_translation_is_not_hashed
+        PASS [   0.362s] (14/38) gmeow-logic obligations::tests::canonical_candidate_typing_reaches_coverage_and_prose_drift_checks
+        PASS [   0.377s] (15/38) gmeow-logic obligations::program_tests::independent_document_blank_obligations_survive_native_ingress
+        PASS [   0.378s] (16/38) gmeow-logic obligations::tests::native_obligation_inventory_covers_both_typings_once_with_attribution
+        PASS [   0.381s] (17/38) gmeow-logic obligations::tests::empty_selected_obligation_inventory_is_visible
+        PASS [   0.011s] (18/38) gmeow-logic obligations::tests::standing_obligations_discharge_on_the_real_strata
+        PASS [   0.383s] (19/38) gmeow-logic obligations::program_tests::budgeted_closure_cannot_discharge_finite_absence
+        PASS [   0.385s] (20/38) gmeow-logic obligations::program_tests::native_schema_consequences_of_nonfiring_authored_heads_are_possible
+        PASS [   0.015s] (21/38) gmeow-logic obligations::tests::unwired_discharge_condition_is_a_hard_error
+        PASS [   0.019s] (22/38) gmeow-logic obligations::tests::source_hash_matches_prose_no_drift
+        PASS [   0.397s] (23/38) gmeow-logic obligations::program_tests::unsupported_conditions_retain_distinct_worlds_and_native_outcomes
+        PASS [   0.399s] (24/38) gmeow-logic obligations::program_tests::foreign_world_counterexamples_do_not_violate_a_local_obligation
+        PASS [   0.401s] (25/38) gmeow-logic obligations::program_tests::a_committed_schema_operator_cannot_bypass_admission_at_a_budget_cut
+        PASS [   0.021s] (26/38) gmeow-logic reason::refute::native::tests::cardinality_obligations_bind_only_individuals_of_a_clashing_class
+        PASS [   0.407s] (27/38) gmeow-logic obligations::program_tests::excluded_formula_prevents_absence_but_preserves_supported_counterexamples
+        PASS [   0.407s] (28/38) gmeow-logic obligations::program_tests::zero_budget_does_not_mistake_missing_schema_admission_for_an_empty_source
+        PASS [   0.408s] (29/38) gmeow-logic obligations::program_tests::foreign_or_changed_program_analysis_is_refused
+        PASS [   0.415s] (30/38) gmeow-logic obligations::program_tests::mixed_typing_inventory_retains_exact_world_counts_and_identities
+        PASS [   0.420s] (31/38) gmeow-logic obligations::program_tests::changed_import_input_and_engine_recipe_invalidate_analysis
+        PASS [   0.426s] (32/38) gmeow-logic obligations::tests::candidate_over_typing_a_non_assertion_is_surfaced_and_attributed_to_the_candidate
+        PASS [   0.429s] (33/38) gmeow-logic obligations::tests::finite_closure_can_discharge_a_reachable_head
+        PASS [   0.429s] (34/38) gmeow-logic obligations::tests::authored_program_heads_are_unknown_until_finite_closure_is_selected
+        PASS [   0.096s] (35/38) gmeow-logic reason::refute::datatype::tests::unmodeled_class_and_property_obligations_withhold_whole_case_consistency
+        PASS [   0.471s] (36/38) gmeow-logic obligations::tests::malformed_obligation_declarations_cannot_disappear_or_choose_a_first_value
+        PASS [   0.101s] (37/38) gmeow-logic reason::program::minimum_tests::unqualified_object_and_some_value_obligations_share_the_witness_pipeline
+        PASS [   1.359s] (38/38) gmeow-logic obligations::program_tests::possible_open_schema_selector_cannot_certify_an_absent_predicate
+────────────
+     Summary [   1.377s] 38 tests run: 38 passed, 2327 skipped
