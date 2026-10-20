@@ -356,3 +356,26 @@ ASK {
     gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:NarrativeScope .
 }""" ;
     gmeow:saRationale "gmeow:RoleInNarrative MUST be a logic:Relator with narrativeRoleScope ranging over NarrativeScope and the narrative scope graft asserted extension-side; its bearer, scope, and role-value functionality is now carried by logic:PropertyCharacteristicAssertions (DL-enforced). Replaces the stale gufo:Relator assertion." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/narrative/narrative-gap-tests/> .
+
+ntest:saBeatFunctionVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { gmeow:BeatFunction a logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue . gmeow:beatFunction a owl:ObjectProperty ; rdfs:domain gmeow:NarrativePosition ; rdfs:range gmeow:BeatFunction . gmeow:beatFunctionIncitingIncident a gmeow:BeatFunction . gmeow:beatFunctionThreshold a gmeow:BeatFunction . gmeow:beatFunctionMidpoint a gmeow:BeatFunction . gmeow:beatFunctionCrisis a gmeow:BeatFunction . gmeow:beatFunctionClimax a gmeow:BeatFunction . gmeow:beatFunctionResolution a gmeow:BeatFunction . gmeow:beatFunctionOpenThread a gmeow:BeatFunction . }" ;
+    gmeow:saRationale "All seven generic beat functions are explicit values on frame-bound positions." .
+
+ntest:saBeatFunctionNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { gmeow:beatFunction a owl:FunctionalProperty . }" ;
+    gmeow:saRationale "A position may support overlapping structural readings and coequal attributions." .
+
+ntest:saMemorialHomecomingValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { gmeow:arcTypeMemorial a gmeow:ArcType . gmeow:arcTypeHomecoming a gmeow:ArcType . }" ;
+    gmeow:saRationale "Both requested trajectories extend the existing interpretive arc type vocabulary." .
+
+ntest:saNarrativeValuesNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { VALUES ?value { gmeow:beatFunctionIncitingIncident gmeow:beatFunctionThreshold gmeow:beatFunctionMidpoint gmeow:beatFunctionCrisis gmeow:beatFunctionClimax gmeow:beatFunctionResolution gmeow:beatFunctionOpenThread gmeow:arcTypeMemorial gmeow:arcTypeHomecoming } ?value a owl:Class . }" ;
+    gmeow:saRationale "Beat and arc classifications remain values instead of multiplying position or arc subclasses." .

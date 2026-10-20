@@ -572,3 +572,311 @@ msgstr "范围：该记录仅承载关于 gmeow:sampleSubject 的一项完整性
 msgctxt "https://blackcatinformatics.ca/gmeow/storyTimeOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:storyTimeOf and nothing else. It is not a definition of gmeow:storyTimeOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:storyTimeOf 的一项完整性义务，别无其他。它不是 gmeow:storyTimeOf 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BeatFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Beat Function"
+msgstr "叙事节拍功能"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BeatFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed structural function of a narrative beat at a position, such as a crisis, threshold or resolution."
+msgstr "对某一叙事位置的节拍所归属的结构功能，例如危机、门槛或收束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BeatFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:beatFunctionCrisis a gmeow:BeatFunction ."
+msgstr "gmeow:beatFunctionCrisis a gmeow:BeatFunction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BeatFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An open value vocabulary of individuals; generic functions do not impose a universal story structure, order or duration."
+msgstr "这是由个体构成的开放值词表；通用功能不强制规定普遍的故事结构、顺序或时长。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BeatFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a position subclass for every beat function or confusing function with an ordinal."
+msgstr "不要为每种节拍功能创建位置子类，也不要将功能与序号混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BeatFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point beatFunction from a frame-bound NarrativePosition at one or more function values."
+msgstr "通过 beatFunction 将具有参照框架的 NarrativePosition 关联到一个或多个功能值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BeatFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when structural readings must be queryable rather than buried in position labels."
+msgstr "当结构性解读需要可查询而不能隐藏在位置标签中时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "beat function"
+msgstr "节拍功能关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a narrative position to an attributed structural function of its beat."
+msgstr "将叙事位置关联到其节拍所归属的结构功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionThreshold ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionThreshold ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional: functions may overlap at one position and competing readers may retain different attributed functions."
+msgstr "关系非函数性：同一位置可有重叠功能，不同读者也可保留各自归属的功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a beat-function label as a chronological coordinate or forcing one preferred interpretation."
+msgstr "不要将节拍功能标签视为时间坐标，也不要强制选择某个优先解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep positionFrame and the locator on the position; attribute disputed function statements through the statement layer."
+msgstr "在位置上保留 positionFrame 和定位信息；通过语句层为有争议的功能陈述标明归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for querying which positions a reading treats as structural turning points or unresolved threads."
+msgstr "用于查询某种解读将哪些位置视为结构转折点或未决线索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionIncitingIncident|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inciting incident"
+msgstr "诱发事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionIncitingIncident|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A beat that disturbs the established situation and sets a focal narrative development in motion."
+msgstr "打破既定情境并启动核心叙事发展的节拍。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionIncitingIncident|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionIncitingIncident ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionIncitingIncident ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionIncitingIncident|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "It need not be the first narrated event and may coincide with a threshold."
+msgstr "它不必是最先讲述的事件，也可与门槛功能重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionIncitingIncident|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning this function to opening exposition solely because it appears first."
+msgstr "不要仅因开场说明排在最前面就赋予此功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionIncitingIncident|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Locate the interpreted disturbance and retain the frame and attributing reader."
+msgstr "定位被解读为扰动的节拍，并保留参照框架及作出归属的读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionIncitingIncident|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the event a reading identifies as initiating its focal development."
+msgstr "用于某种解读认定为启动核心发展的事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionThreshold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "threshold"
+msgstr "跨越门槛"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionThreshold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A beat marking entry into a changed situation, commitment or domain of action."
+msgstr "标志进入新的情境、承诺或行动领域的节拍。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionThreshold|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionThreshold ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionThreshold ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionThreshold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A structural crossing, not necessarily a physical doorway or a fixed stage in every story."
+msgstr "这是结构性跨越，不必对应实体门口，也不是所有故事的固定阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionThreshold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid marking every geographic crossing as a narrative threshold."
+msgstr "不要将每次地理位置跨越都标记为叙事门槛。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionThreshold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the value where the reading locates the change of commitment or situation."
+msgstr "在解读认定承诺或情境发生转变的位置附上该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionThreshold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a beat changes what the character is entering or committed to."
+msgstr "当某个节拍改变角色所进入的情境或所作承诺时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionMidpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "midpoint turn"
+msgstr "中段转折"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionMidpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structural turn interpreted as the midpoint of a focal narrative development."
+msgstr "被解读为核心叙事发展中段的结构转折。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionMidpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionMidpoint ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionMidpoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionMidpoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This function is not an assertion that an ordinal is exactly half the total length."
+msgstr "此功能并不断言某个序号恰好位于总长度的一半处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionMidpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving midpoint function by dividing the number of positions."
+msgstr "不要通过将位置总数除以二来推导中段转折功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionMidpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the interpreted pivot without replacing its explicit position locator."
+msgstr "标明解读中的枢纽，同时保留其明确的位置定位信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionMidpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a reorientation that a reading treats as its central structural turn."
+msgstr "用于某种解读视为核心结构转折的重新定向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionCrisis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "crisis"
+msgstr "危机"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionCrisis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A beat of acute impasse or pressured choice in a focal narrative development."
+msgstr "核心叙事发展中陷入严重僵局或被迫抉择的节拍。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionCrisis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionCrisis ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionCrisis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionCrisis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A crisis can precede or overlap a climax; the two functions are not equivalent."
+msgstr "危机可先于高潮，也可与其重叠；两种功能并不等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionCrisis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the function as a clinical diagnosis or as a synonym for any tense scene."
+msgstr "不要将此功能用作临床诊断，或视为任何紧张场面的同义词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionCrisis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mark the position of the interpreted impasse or consequential choice."
+msgstr "标记被解读为僵局或重大抉择的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionCrisis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use where a reading identifies a decisive dilemma or inability to continue unchanged."
+msgstr "当某种解读识别出决定性困境或无法照旧继续的局面时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionClimax|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "climax"
+msgstr "高潮"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionClimax|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A culminating confrontation, action or turn that a reading treats as decisive for its focal tension."
+msgstr "被解读为决定核心张力走向的最终对抗、行动或转折。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionClimax|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionClimax ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionClimax ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionClimax|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A structural culmination, not automatically the loudest scene or the strongest measured affect."
+msgstr "这是结构性的汇聚点，不自动等同于最喧闹的场面或测得最强的情绪。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionClimax|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid computing this function from emotional intensity alone."
+msgstr "不要仅凭情绪强度计算该功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionClimax|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the position and reader that identify the decisive culmination."
+msgstr "保留认定决定性汇聚点的位置和读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionClimax|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the culminating beat of the development being analysed."
+msgstr "用于所分析发展过程的高潮节拍。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionResolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution"
+msgstr "收束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionResolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A beat that settles consequences or releases a focal narrative tension."
+msgstr "处理后果或释放核心叙事张力的节拍。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionResolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionResolution ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionResolution ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionResolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Other threads may remain open; narrative resolution is not a formal goal-verification verdict."
+msgstr "其他线索仍可保持未决；叙事收束不是形式化目标验证的结论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionResolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating this function with proof that every goal was achieved."
+msgstr "不要将此功能等同于所有目标均已实现的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionResolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to the position where the reading finds settlement or consequences."
+msgstr "将其附于解读发现局势收束或后果呈现的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionResolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for closure of the focal tension, even when another thread survives."
+msgstr "用于核心张力的收束，即使另有线索尚未结束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionOpenThread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "open thread"
+msgstr "未决线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionOpenThread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A beat that carries an unresolved question, possibility or tension beyond the current focus."
+msgstr "将未解决的问题、可能性或张力延续到当前焦点之外的节拍。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionOpenThread|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:position gmeow:beatFunction gmeow:beatFunctionOpenThread ."
+msgstr "ex:position gmeow:beatFunction gmeow:beatFunctionOpenThread ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionOpenThread|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An intentional narrative reading, not missing source data or an automatic defect."
+msgstr "这是有意作出的叙事解读，并非来源数据缺失或自动认定的缺陷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionOpenThread|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every omitted fact as an open narrative thread."
+msgstr "不要将每个被省略的事实都视为未决叙事线索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionOpenThread|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the position and preserve any simultaneous resolution function."
+msgstr "记录该位置，并保留同时存在的收束功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/beatFunctionOpenThread|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a reading keeps a question or possibility alive beyond a beat."
+msgstr "当某种解读使问题或可能性在某个节拍之后继续存在时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeMemorial|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "memorial arc"
+msgstr "纪念叙事弧"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeMemorial|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An interpreted trajectory organised around remembrance or commemoration, including an identity shaped by being named in memory of another."
+msgstr "围绕回忆或纪念而组织的解读轨迹，包括因以他人之名纪念命名而形成的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeMemorial|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:arc gmeow:arcType gmeow:arcTypeMemorial ."
+msgstr "ex:arc gmeow:arcType gmeow:arcTypeMemorial ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeMemorial|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An attributed arc interpretation; it does not by itself assert a death, a naming act or a historical relationship."
+msgstr "这是具有归属视角的叙事弧解读；它本身不断言死亡、命名行为或历史关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeMemorial|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the arc type in place of explicit provenance for the remembered person or naming event."
+msgstr "不要用此叙事弧类型替代被纪念者或命名事件的明确来源记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeMemorial|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Create a CharacterArc with subject and narrative frame, attribute the reading and attach this type."
+msgstr "创建具有对象和叙事框架的 CharacterArc，标明解读归属并附上该类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeMemorial|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when remembrance or commemoration shapes the trajectory being analysed."
+msgstr "当回忆或纪念塑造所分析的轨迹时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeHomecoming|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "homecoming arc"
+msgstr "归家叙事弧"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeHomecoming|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An interpreted trajectory of returning to or establishing a place as home, including a house becoming a home."
+msgstr "被解读为返回家园或使某地成为家的轨迹，包括房屋逐渐成为家的过程。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeHomecoming|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:arc gmeow:arcType gmeow:arcTypeHomecoming ."
+msgstr "ex:arc gmeow:arcType gmeow:arcTypeHomecoming ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeHomecoming|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Belonging is the narrative focus; the value does not assert geographic travel, ownership or a housing tenure."
+msgstr "叙事焦点是归属感；该值并不断言地理迁移、所有权或居住任期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeHomecoming|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying it to every arrival or using it as evidence of a legal residence."
+msgstr "不要将其用于每次抵达，也不要把它当作法定居所的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeHomecoming|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the arc subject and frame explicit, whether the trajectory concerns a character, a household or the house itself."
+msgstr "无论轨迹涉及角色、家庭还是房屋本身，都应明确保留叙事弧对象和框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeHomecoming|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a place becomes home or a return is interpreted as renewed belonging."
+msgstr "当某地成为家，或一次返回被解读为重新获得归属感时使用。"

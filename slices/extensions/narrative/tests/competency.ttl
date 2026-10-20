@@ -37,3 +37,110 @@ ex:myPropagatesFrom a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:propagatesFrom ] .
 ex:myWasDerivedFrom a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:wasDerivedFrom ] .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/narrative/narrative-gap-tests/> .
+@prefix case: <https://example.org/narrative-beats/> .
+
+ntest:cqFrameBoundBeatFunctions a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/beat-functions.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/narrative-beats/> SELECT ?position ?function ?ordinal WHERE { ?position a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ; gmeow:positionOrdinal ?ordinal ; gmeow:beatFunction ?function . }" ;
+    gmeow:cqRationale "All seven functions and both overlaps are queryable without deriving function from an ordinal or a label." ;
+    gmeow:cqResultShape ntest:shapeFrameBoundBeatFunctions ;
+    gmeow:cqExpectRow ntest:rowFrameBoundBeatFunctions0, ntest:rowFrameBoundBeatFunctions1, ntest:rowFrameBoundBeatFunctions2, ntest:rowFrameBoundBeatFunctions3, ntest:rowFrameBoundBeatFunctions4, ntest:rowFrameBoundBeatFunctions5, ntest:rowFrameBoundBeatFunctions6, ntest:rowFrameBoundBeatFunctions7, ntest:rowFrameBoundBeatFunctions8 .
+
+ntest:shapeFrameBoundBeatFunctions a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "position" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "function" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "ordinal" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowFrameBoundBeatFunctions0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat0 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionIncitingIncident ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "0"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat0 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionThreshold ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "0"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat1 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionThreshold ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "1"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions3 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat2 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionMidpoint ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "2"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions4 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat3 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionCrisis ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "3"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions5 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat4 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionClimax ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "4"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions6 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat5 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionResolution ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "5"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions7 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat5 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionOpenThread ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "5"^^xsd:integer ] .
+
+ntest:rowFrameBoundBeatFunctions8 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat6 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri gmeow:beatFunctionOpenThread ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ordinal" ; gmeow:cellValueLiteral "6"^^xsd:integer ] .
+
+ntest:cqNewArcTypes a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/beat-functions.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/narrative-beats/> SELECT ?arc ?subject ?type WHERE { VALUES ?arc { ex:memorialArc ex:homeArc } ?arc gmeow:arcFrame ex:canon ; gmeow:accordingTo ex:reader ; gmeow:arcSubject ?subject ; gmeow:arcType ?type . }" ;
+    gmeow:cqRationale "A memorial naming trajectory and a house becoming home retain their subjects, frame and attribution." ;
+    gmeow:cqResultShape ntest:shapeNewArcTypes ;
+    gmeow:cqExpectRow ntest:rowNewArcTypes0, ntest:rowNewArcTypes1 .
+
+ntest:shapeNewArcTypes a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "arc" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "type" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowNewArcTypes0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "arc" ; gmeow:cellValueIri case:memorialArc ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri case:creature ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "type" ; gmeow:cellValueIri gmeow:arcTypeMemorial ] .
+
+ntest:rowNewArcTypes1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "arc" ; gmeow:cellValueIri case:homeArc ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri case:house ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "type" ; gmeow:cellValueIri gmeow:arcTypeHomecoming ] .
+
+ntest:cqSampledEpistemicAffects a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/beat-functions.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/narrative-beats/> SELECT ?state ?position WHERE { ex:memorialArc gmeow:arcSample ?sample . ?sample gmeow:vantage ex:reader ; gmeow:sampleSubject ex:creature ; gmeow:samplePosition ?position ; gmeow:sampleState ?state . }" ;
+    gmeow:cqRationale "Storytelling can sample the two previously omitted affects as attributed readings." ;
+    gmeow:cqResultShape ntest:shapeSampledEpistemicAffects ;
+    gmeow:cqExpectRow ntest:rowSampledEpistemicAffects0, ntest:rowSampledEpistemicAffects1 .
+
+ntest:shapeSampledEpistemicAffects a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "state" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "position" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowSampledEpistemicAffects0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri gmeow:emotionSelfDoubt ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat3 ] .
+
+ntest:rowSampledEpistemicAffects1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri gmeow:emotionSelfCorrection ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat5 ] .

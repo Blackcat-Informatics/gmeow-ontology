@@ -162,3 +162,16 @@ ASK {
     gmeow:hasSensoryObservation owl:inverseOf gmeow:sensoryObservationOf .
 }""" ;
     gmeow:saRationale "gmeow:hasSensoryObservation MUST be owl:inverseOf gmeow:sensoryObservationOf -- the bidirectional navigation pair for sensory observations." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/sensory/narrative-gap-tests/> .
+
+ntest:saOdorObservableProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { gmeow:observablePropertyOdor a gmeow:ObservableProperty . }" ;
+    gmeow:saRationale "Odor extends the existing observable-property naming family." .
+
+ntest:saOdorIsValueNotClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { gmeow:observablePropertyOdor a owl:Class . }" ;
+    gmeow:saRationale "Odor is an observable-property value rather than an additional subclass of observation or property." .

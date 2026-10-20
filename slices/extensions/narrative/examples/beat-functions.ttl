@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/narrative-beats/> .
+
+ex:novel a gmeow:CreativeWork ; gmeow:title "A Name for the House"@x-gmeow-english .
+ex:reader a gmeow:Agent ; rdfs:label "the interpreting reader"@x-gmeow-english .
+ex:creature a gmeow:Agent ; rdfs:label "the creature named in remembrance"@x-gmeow-english .
+ex:house a gmeow:Entity ; rdfs:label "the house becoming home"@x-gmeow-english .
+ex:order a gmeow:Axis ; rdfs:label "order of telling"@x-gmeow-english .
+ex:canon a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ; gmeow:hasAxis ex:order ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+ex:telling a gmeow:NarrativeTimeFrame ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ; gmeow:discourseTimeOf ex:novel ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ; gmeow:hasAxis ex:order ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+
+ex:beat0 a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "0"^^xsd:integer ; gmeow:beatFunction gmeow:beatFunctionIncitingIncident, gmeow:beatFunctionThreshold .
+
+ex:beat1 a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "1"^^xsd:integer ; gmeow:beatFunction gmeow:beatFunctionThreshold .
+
+ex:beat2 a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "2"^^xsd:integer ; gmeow:beatFunction gmeow:beatFunctionMidpoint .
+
+ex:beat3 a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "3"^^xsd:integer ; gmeow:beatFunction gmeow:beatFunctionCrisis .
+
+ex:beat4 a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "4"^^xsd:integer ; gmeow:beatFunction gmeow:beatFunctionClimax .
+
+ex:beat5 a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "5"^^xsd:integer ; gmeow:beatFunction gmeow:beatFunctionResolution, gmeow:beatFunctionOpenThread .
+
+ex:beat6 a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "6"^^xsd:integer ; gmeow:beatFunction gmeow:beatFunctionOpenThread .
+
+# This order belongs to this example, not to the BeatFunction vocabulary.
+ex:doubtSample a gmeow:ArcSample ; gmeow:vantage ex:reader ;
+    gmeow:sampleSubject ex:creature ; gmeow:observedFeature ex:creature ;
+    gmeow:samplePosition ex:beat3 ; gmeow:sampleState gmeow:emotionSelfDoubt .
+ex:correctionSample a gmeow:ArcSample ; gmeow:vantage ex:reader ;
+    gmeow:sampleSubject ex:creature ; gmeow:observedFeature ex:creature ;
+    gmeow:samplePosition ex:beat5 ; gmeow:sampleState gmeow:emotionSelfCorrection .
+ex:memorialArc a gmeow:CharacterArc ; gmeow:arcSubject ex:creature ;
+    gmeow:arcFrame ex:canon ; gmeow:arcType gmeow:arcTypeMemorial ;
+    gmeow:accordingTo ex:reader ; gmeow:arcSample ex:doubtSample, ex:correctionSample .
+ex:homeArc a gmeow:CharacterArc ; gmeow:arcSubject ex:house ;
+    gmeow:arcFrame ex:canon ; gmeow:arcType gmeow:arcTypeHomecoming ;
+    gmeow:accordingTo ex:reader .

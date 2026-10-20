@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/odor-observations/> .
+
+# Synthetic instrument example: a declared relative score, not a chemical concentration.
+ex:sensor a gmeow:Sensor ; rdfs:label "synthetic odor sensor"@x-gmeow-english .
+ex:room a gmeow:Location ; rdfs:label "the example room"@x-gmeow-english .
+ex:environment a gmeow:SensoryEnvironment ;
+    gmeow:environmentAtLocation ex:room ; gmeow:sensoryModality gmeow:sensoryModalityOlfactory .
+ex:intensity a gmeow:Axis ; rdfs:label "declared relative odor intensity from zero to one"@x-gmeow-english .
+ex:instrumentScale a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmMeasurement ; gmeow:hasAxis ex:intensity ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+ex:relativeScoring a gmeow:ObservationMethod ;
+    rdfs:label "synthetic instrument relative-intensity scoring"@x-gmeow-english .
+ex:instrumentReading a gmeow:SensoryObservation ;
+    gmeow:vantage ex:sensor ; gmeow:observedFeature ex:environment ;
+    gmeow:sensoryObservationOf ex:environment ;
+    gmeow:sensoryProperty gmeow:observablePropertyOdor ;
+    gmeow:observationMethod ex:relativeScoring ;
+    gmeow:hasReferenceFrame ex:instrumentScale ;
+    gmeow:sensoryResult ex:relativeIntensity ; gmeow:observationResult ex:relativeIntensity .
+ex:relativeIntensity a gmeow:SensoryQuantity ;
+    math:quantityValue "0.4"^^xsd:decimal ; math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:instrumentScale .
+
+# A subjective scent stays categorical rather than borrowing the instrument score.
+ex:perceiver a gmeow:Agent ; rdfs:label "the perceiver"@x-gmeow-english .
+ex:quality a gmeow:Axis ; rdfs:label "perceived scent quality"@x-gmeow-english .
+ex:mentalFrame a gmeow:MentalReferenceFrame ;
+    gmeow:isHostedBy ex:perceiver ; gmeow:requiresHost true ;
+    gmeow:frameRealm gmeow:frameRealmPerceptual ; gmeow:hasAxis ex:quality ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+ex:pineScent a logic:QualityValue ; rdfs:label "recalled scent of pine"@x-gmeow-english .
+ex:subjectiveScent a gmeow:SensoryPerception ;
+    gmeow:vantage ex:perceiver ; gmeow:observedFeature ex:environment ;
+    gmeow:perceptionEnvironment ex:environment ;
+    gmeow:perceptionModality gmeow:sensoryModalityOlfactory ;
+    gmeow:hasReferenceFrame ex:mentalFrame ; gmeow:observationResult ex:pineScent .

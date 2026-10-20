@@ -122,3 +122,17 @@ product may carry one (domain `gmeow:Entity`, range `gmeow:MediaObject`). It is
 subproperty of `gmeow:isAbout` — mirroring why `schema:logo` is separate from `schema:image`
 upstream. Non-functional: light/dark, wordmark/glyph, and seasonal variants coexist (P9).
 Projects to `schema:logo` and `foaf:logo`.
+
+## Image regions and diegetic placement
+
+`SceneGraphEdge`, `sceneSubject` and `sceneObject` keep their image-region
+contracts. Do not use a prop or character as an endpoint merely to describe a
+story world: an entity is not its depicted pixel region. Image relation values
+such as `sceneRelationInside` belong to that typed image-graph interface.
+
+For qualitative entity placement in a selected world, reuse the places surface:
+`besideOf`, `onTopOf` and `insideOf`, recorded with frame and vantage through the
+[attributed placement pattern](../../core/places/docs.md#qualitative-placement-in-a-frame).
+This does not widen image endpoint ranges or create another scene graph class.
+A correspondence between a depicted region and an entity is a separate claim;
+image coordinates and story-world placement are not automatically interchangeable.

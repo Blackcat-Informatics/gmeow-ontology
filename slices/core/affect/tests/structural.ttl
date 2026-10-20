@@ -242,3 +242,16 @@ ex:saClassifierLabelNotEmotionType a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { ?label a gmeow:AffectClassifierLabel , gmeow:EmotionType . }""" ;
     gmeow:saRationale "No gmeow:AffectClassifierLabel (including the seeded GoEmotions/Ekman/SST-2/Cardiff labels and any example-loaded label) may ALSO be a gmeow:EmotionType — 'neutral' as an EmotionType is a hard fail (rule 3); labels are external identities, never canonical emotion vocabulary." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/affect/narrative-gap-tests/> .
+
+ntest:saEpistemicAffectValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { gmeow:emotionSelfDoubt a gmeow:EmotionType . gmeow:emotionSelfCorrection a gmeow:EmotionType . }" ;
+    gmeow:saRationale "Both felt epistemic affects extend the existing open emotion vocabulary." .
+
+ntest:saEpistemicAffectsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX logic: <https://blackcatinformatics.ca/logic/> ASK { VALUES ?value { gmeow:emotionSelfDoubt gmeow:emotionSelfCorrection } ?value a owl:Class . }" ;
+    gmeow:saRationale "A felt state classification is a value, not a new emotion subclass or a correctness verdict." .

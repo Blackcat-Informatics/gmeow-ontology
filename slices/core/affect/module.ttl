@@ -3577,3 +3577,27 @@ gmeow:prototypeForFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:prototypeFor and nothing else. It is not a definition of gmeow:prototypeFor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:prototypeForFunctionality logic:characterizes gmeow:prototypeFor ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionSelfDoubt
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "self-doubt"@x-gmeow-english ;
+    skos:definition "The felt doubt directed at an interpretation or judgment made by the experiencer."@x-gmeow-english ;
+    skos:example "ex:sample gmeow:sampleState gmeow:emotionSelfDoubt ."@x-gmeow-english ;
+    skos:scopeNote "An emotion-type value, not a numeric credence, a diagnosis or proof that the interpretation is wrong."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for every uncertainty or inferring low confidence in all claims made by the bearer."@x-gmeow-english ;
+    gmeow:howToUse "Use emotionType on an Emotion with its bearer, or sampleState on an attributed narrative ArcSample."@x-gmeow-english ;
+    gmeow:useWhen "Use when a record describes doubt about the experiencer’s own reading or judgment."@x-gmeow-english .
+
+gmeow:emotionSelfCorrection
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "felt self-correction"@x-gmeow-english ;
+    skos:definition "The affect of catching and revising an error in the experiencer’s own interpretation or judgment."@x-gmeow-english ;
+    skos:example "ex:sample gmeow:sampleState gmeow:emotionSelfCorrection ."@x-gmeow-english ;
+    skos:scopeNote "The felt response is distinct from a correction operation; it does not certify that any revised claim is true."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this emotion as evidence that a correction succeeded or as a lifecycle status on a claim."@x-gmeow-english ;
+    gmeow:howToUse "Attribute the feeling through an Emotion or ArcSample and record any actual correction separately."@x-gmeow-english ;
+    gmeow:useWhen "Use for the emotional moment of noticing and correcting oneself in a recorded experience or narrative reading."@x-gmeow-english .

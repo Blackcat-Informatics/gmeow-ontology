@@ -1338,3 +1338,87 @@ msgstr "repère de référence H3"
 msgctxt "https://blackcatinformatics.ca/gmeow/referenceFrameH3|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The H3 reference frame — Uber's hierarchical hexagonal geospatial indexing system, partitioning the Earth's surface into hexagonal (and pentagonal) cells at sixteen resolutions (0-15), each cell addressed by a single 64-bit index string."
 msgstr "Le repère de référence H3 — le système d'indexation géospatiale hexagonale hiérarchique d'Uber, qui partitionne la surface de la Terre en cellules hexagonales (et pentagonales) à seize résolutions (0-15), chaque cellule étant adressée par une unique chaîne d'index sur 64 bits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "beside"
+msgstr "à côté de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A qualitative lateral placement of one entity beside another within the selected spatial frame."
+msgstr "Un placement latéral qualitatif d’une entité à côté d’une autre dans le référentiel spatial choisi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop gmeow:besideOf ex:other ."
+msgstr "ex:prop gmeow:besideOf ex:other ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Symmetric within the same frame; it does not require contact, a shared boundary, numeric distance or image-region identity."
+msgstr "Symétrique dans le même référentiel ; n’exige ni contact, ni frontière commune, ni distance numérique, ni identité de région d’image."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting it for adjacentTo between bordering Locations or for a calibrated proximity measurement."
+msgstr "Éviter de la substituer à adjacentTo entre Locations limitrophes ou à une mesure étalonnée de proximité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the spatial frame and attributing vantage, especially for a diegetic or imagined scene."
+msgstr "Conserver le référentiel spatial et le point de vue attribuant, en particulier pour une scène diégétique ou imaginée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/besideOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a description places a prop or character laterally beside another entity."
+msgstr "À employer lorsqu’une description place un objet ou un personnage latéralement à côté d’une autre entité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "on top of"
+msgstr "posé sur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A direct upper-surface placement in which one entity rests on or is supported by another, relative to the selected frame."
+msgstr "Un placement direct sur la surface supérieure où une entité repose sur une autre ou est soutenue par elle, selon le référentiel choisi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop gmeow:onTopOf ex:other ."
+msgstr "ex:prop gmeow:onTopOf ex:other ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Directed and not asserted transitive: a supported object need not directly rest on every object below it. Mere above-position is insufficient."
+msgstr "Orientée et sans transitivité affirmée : un objet soutenu ne repose pas nécessairement directement sur chaque objet inférieur. Être au-dessus ne suffit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for floating above, ownership, part-whole or an unscoped image-region relation."
+msgstr "Éviter de l’utiliser pour un objet flottant au-dessus, la propriété, une relation partie-tout ou une relation non contextualisée de régions d’image."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the relevant orientation and frame with the attributed placement claim."
+msgstr "Préciser l’orientation et le référentiel pertinents avec l’affirmation de placement attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/onTopOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a cup on a table or another directly supported upper-surface placement."
+msgstr "À employer pour une tasse posée sur une table ou un autre placement directement soutenu sur une surface supérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inside"
+msgstr "à l’intérieur de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A direct qualitative placement of an entity in the interior of another entity in the selected spatial frame."
+msgstr "Un placement qualitatif direct d’une entité à l’intérieur d’une autre dans le référentiel spatial choisi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop gmeow:insideOf ex:other ."
+msgstr "ex:prop gmeow:insideOf ex:other ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Interior placement does not assert part-whole or set membership, and does not type the participants as Locations or image regions. No transitivity is declared."
+msgstr "Le placement intérieur n’affirme ni partie-tout ni appartenance ensembliste et ne classe pas les participants comme Locations ou régions d’image. Aucune transitivité n’est déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for containedInLocation between nested Locations, which has stronger topological and part-whole semantics."
+msgstr "Éviter de l’utiliser à la place de containedInLocation entre Locations emboîtées, dont la sémantique topologique et partie-tout est plus forte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the container and contained entity under the same attributed spatial frame."
+msgstr "Enregistrer le contenant et l’entité contenue dans le même référentiel spatial attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a prop in a box or another direct interior placement in an actual or narrated scene."
+msgstr "À employer pour un objet dans une boîte ou un autre placement intérieur direct dans une scène réelle ou racontée."

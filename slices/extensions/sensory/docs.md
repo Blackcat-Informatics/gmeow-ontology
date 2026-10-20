@@ -92,3 +92,20 @@ pre-existing `gmeow:Agent → sosa:Sensor` broadMatch becomes precise here, with
 `gmeow:Sensor` as the exact counterpart. Depends on `kernel`, `observations` (the claim
 stack and `SensoryObservation` stub it deepens), and `places` (platform locations). The
 sensory-environment slice consumes this stack for ambient Location×time conditions.
+
+## Odor and olfactory perception
+
+`observablePropertyOdor` extends the existing `observableProperty...` naming
+family. It names the olfactory property being sensed, not a universal unit, a
+scent descriptor or a second modality vocabulary. The matching channel already
+exists as `sensoryModalityOlfactory` in sensory-environment; no alias or duplicate
+modality is needed.
+
+An instrument `SensoryObservation` uses `sensoryProperty observablePropertyOdor`
+with a `SensoryQuantity`, declared method, dimension and frame/scale. A relative
+intensity score is not a chemical concentration and a qualitative scent must not
+be assigned an invented number. A person or character describing a scent uses
+the existing `SensoryPerception` with `perceptionModality sensoryModalityOlfactory`,
+its environment, perceiver and categorical/structured result. Do not put
+`sensoryProperty` on that perception and accidentally claim a quantitative
+instrument reading. See the [two worked odor records](examples/odor-observations.ttl).

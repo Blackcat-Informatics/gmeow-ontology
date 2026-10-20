@@ -712,3 +712,59 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/prototypeForFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:prototypeFor and nothing else. It is not a definition of gmeow:prototypeFor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:prototypeFor, et rien d'autre. Ce n'est pas une définition de gmeow:prototypeFor (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfDoubt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "self-doubt"
+msgstr "doute de soi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfDoubt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The felt doubt directed at an interpretation or judgment made by the experiencer."
+msgstr "Le doute ressenti envers une interprétation ou un jugement de la personne qui l’éprouve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfDoubt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sample gmeow:sampleState gmeow:emotionSelfDoubt ."
+msgstr "ex:sample gmeow:sampleState gmeow:emotionSelfDoubt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfDoubt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An emotion-type value, not a numeric credence, a diagnosis or proof that the interpretation is wrong."
+msgstr "Une valeur de type émotionnel, non une crédence numérique, un diagnostic ou une preuve que l’interprétation est fausse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfDoubt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for every uncertainty or inferring low confidence in all claims made by the bearer."
+msgstr "Éviter de l’utiliser pour toute incertitude ou d’en déduire une faible confiance envers toutes les affirmations du sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfDoubt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use emotionType on an Emotion with its bearer, or sampleState on an attributed narrative ArcSample."
+msgstr "Employer emotionType sur une Emotion avec son sujet, ou sampleState sur un ArcSample narratif attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfDoubt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a record describes doubt about the experiencer’s own reading or judgment."
+msgstr "À employer lorsqu’un enregistrement décrit un doute envers sa propre lecture ou son propre jugement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "felt self-correction"
+msgstr "autocorrection ressentie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The affect of catching and revising an error in the experiencer’s own interpretation or judgment."
+msgstr "L’affect éprouvé en repérant et en corrigeant une erreur dans sa propre interprétation ou son propre jugement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sample gmeow:sampleState gmeow:emotionSelfCorrection ."
+msgstr "ex:sample gmeow:sampleState gmeow:emotionSelfCorrection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The felt response is distinct from a correction operation; it does not certify that any revised claim is true."
+msgstr "La réponse ressentie est distincte d’une opération de correction ; elle ne certifie pas la vérité d’une affirmation révisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this emotion as evidence that a correction succeeded or as a lifecycle status on a claim."
+msgstr "Éviter d’utiliser cette émotion comme preuve d’une correction réussie ou comme statut de cycle de vie d’une affirmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute the feeling through an Emotion or ArcSample and record any actual correction separately."
+msgstr "Attribuer le sentiment par une Emotion ou un ArcSample et enregistrer séparément toute correction effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the emotional moment of noticing and correcting oneself in a recorded experience or narrative reading."
+msgstr "À employer pour le moment émotionnel où l’on se reprend dans une expérience enregistrée ou une lecture narrative."

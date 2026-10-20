@@ -194,6 +194,45 @@ here references a deception-slice or norms-slice IRI: the unreliable-narration b
 the `NarrativeScope` graft are documented bridges and extension-side grafts (P16), never
 core edits.
 
+## Beat functions and memorial/homecoming arcs
+
+`BeatFunction` is an open vocabulary for the structural work a beat does.
+`beatFunction` links a `NarrativePosition` to one or more attributed values:
+
+| Value | Structural reading |
+| --- | --- |
+| `beatFunctionIncitingIncident` | Disturbs the established situation and initiates the focal development. |
+| `beatFunctionThreshold` | Crosses into a changed situation or commitment. |
+| `beatFunctionMidpoint` | Reorients the development at an interpreted structural middle. |
+| `beatFunctionCrisis` | Presents an acute impasse or pressured choice. |
+| `beatFunctionClimax` | Culminates in a decisive confrontation, action or turn. |
+| `beatFunctionResolution` | Settles consequences or releases the focal tension. |
+| `beatFunctionOpenThread` | Carries an unresolved possibility or question onward. |
+
+The generic set does not impose three-act structure, another tradition, a fixed
+order or a length fraction. A midpoint is not computed by dividing an ordinal,
+and a climax is not inferred from affect intensity. One position can serve
+several functions, such as threshold plus inciting incident or resolution plus
+open thread. Keep `positionFrame` and the locator; preserve disputed readings
+with statement-level attribution rather than choosing a preferred function.
+
+`arcTypeMemorial` describes a trajectory shaped by remembrance, including a
+creature named in memory of another. It does not infer a death or naming event.
+`arcTypeHomecoming` covers return or the establishment of belonging, including a
+house becoming a home; it does not assert travel, ownership or residence.
+`arcType` keeps its existing functional contract: distinct attributed arc
+interpretations use distinct `CharacterArc` records with subject and frame.
+See [the worked beats and arcs](examples/beat-functions.ttl).
+
+For props inside the story world, use the generic qualitative placement
+predicates `besideOf`, `onTopOf` and `insideOf` with an explicit narrative frame
+and vantage. The [places pattern](../../core/places/docs.md#qualitative-placement-in-a-frame)
+keeps those claims separate from world-independent facts and image regions.
+Olfactory story texture can use the existing subjective `SensoryPerception`
+pattern and `sensoryModalityOlfactory`; the sensory vocabulary also supplies
+`observablePropertyOdor` for instrument readings. See the
+[odor examples](../sensory/examples/odor-observations.ttl).
+
 ## Dependencies
 
 Depends on `kernel`, `documents` (CreativeWork, ContentSegment, the image spine), `places`

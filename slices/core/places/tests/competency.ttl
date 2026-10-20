@@ -132,3 +132,80 @@ ex:ipdHasCoordinates a gmeow:ExpectedRow ;
 ex:ipdHasGeometry a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasGeometry ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueLiteral true ] .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ntest: <https://blackcatinformatics.ca/gmeow/examples/places/narrative-gap-tests/> .
+@prefix case: <https://example.org/qualitative-placement/> .
+
+ntest:cqNarratedPlacements a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/qualitative-placement.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/qualitative-placement/> SELECT ?subject ?relation ?object WHERE { ?claim a gmeow:Observation ; gmeow:vantage ex:narrator ; gmeow:hasReferenceFrame ex:storyA ; rdf:reifies <<( ?subject ?relation ?object )>> . }" ;
+    gmeow:cqRationale "All three entity-placement relations retain the selected story frame and narrator." ;
+    gmeow:cqResultShape ntest:shapeNarratedPlacements ;
+    gmeow:cqExpectRow ntest:rowNarratedPlacements0, ntest:rowNarratedPlacements1, ntest:rowNarratedPlacements2 .
+
+ntest:shapeNarratedPlacements a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "relation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowNarratedPlacements0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri case:cup ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri gmeow:besideOf ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:book ] .
+
+ntest:rowNarratedPlacements1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri case:cup ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri gmeow:onTopOf ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:table ] .
+
+ntest:rowNarratedPlacements2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri case:key ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri gmeow:insideOf ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:box ] .
+
+ntest:cqAlternativeWorldPlacement a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/qualitative-placement.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/qualitative-placement/> SELECT ?relation ?object WHERE { ?claim gmeow:hasReferenceFrame ex:storyB ; rdf:reifies <<( ex:key ?relation ?object )>> . }" ;
+    gmeow:cqRationale "A different world can retain another placement of the same referenced entity without overwriting the first reading." ;
+    gmeow:cqResultShape ntest:shapeAlternativeWorldPlacement ;
+    gmeow:cqExpectRow ntest:rowAlternativeWorldPlacement0 .
+
+ntest:shapeAlternativeWorldPlacement a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "relation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:rowAlternativeWorldPlacement0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri gmeow:onTopOf ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:box ] .
+
+ntest:cqNoGlobalPlacement a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/qualitative-placement.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/qualitative-placement/> SELECT ?subject ?relation ?object WHERE { VALUES ?subject { ex:cup ex:key } VALUES ?relation { gmeow:besideOf gmeow:onTopOf gmeow:insideOf } ?subject ?relation ?object . }" ;
+    gmeow:cqRationale "Quoted world-scoped placement claims do not become bare world-independent placement facts." ;
+    gmeow:cqResultShape ntest:shapeNoGlobalPlacement ;
+    gmeow:cqExpectRowCount 0 .
+
+ntest:shapeNoGlobalPlacement a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "relation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ntest:cqNoForcedPixelOrLocationKind a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/qualitative-placement.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX math: <https://blackcatinformatics.ca/math/> PREFIX ex: <https://example.org/qualitative-placement/> SELECT ?entity ?kind WHERE { VALUES ?entity { ex:cup ex:book ex:table ex:key ex:box } VALUES ?kind { gmeow:ImageRegion gmeow:Location } ?entity a ?kind . }" ;
+    gmeow:cqRationale "Props do not acquire image-region or Location identity merely to express placement." ;
+    gmeow:cqResultShape ntest:shapeNoForcedPixelOrLocationKind ;
+    gmeow:cqExpectRowCount 0 .
+
+ntest:shapeNoForcedPixelOrLocationKind a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "entity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
