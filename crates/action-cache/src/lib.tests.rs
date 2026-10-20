@@ -62,6 +62,28 @@ fn cold_publish_and_warm_read_share_one_receipt() {
 }
 
 #[test]
+fn blob_growth_is_refused_at_its_receipt_size_before_read_or_verification() {
+    let temp = tempfile::tempdir().unwrap();
+    let cache = store(temp.path());
+    let context = context("grown-blob", vec![]);
+    let receipt = cache
+        .publish(&context, "semantic", 7_u32, b"payload")
+        .unwrap();
+    std::fs::OpenOptions::new()
+        .write(true)
+        .open(cache.blob_path(&receipt.product_blob.digest))
+        .unwrap()
+        .set_len(receipt.product_blob.bytes + 1)
+        .unwrap();
+    for error in [
+        cache.get::<u32>(&context).unwrap_err(),
+        cache.verify_blob(&receipt.product_blob).unwrap_err(),
+    ] {
+        assert!(error.to_string().contains("within 7 bytes"), "{error}");
+    }
+}
+
+#[test]
 fn existing_open_modes_separate_read_only_consumers_from_writable_workers() {
     let absent_parent = tempfile::tempdir().unwrap();
     let absent = absent_parent.path().join("absent");
