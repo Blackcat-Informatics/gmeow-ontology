@@ -1,0 +1,1 @@
+{"body": "Fixed. Shared repository discovery permits manifest-only profiles, preserves errors for unreadable or invalid selected modules, and the consumer command explicitly requires its authored module. Added a synthetic regression covering both entry points and an invalid module path."}

@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/.stage/slice-quality-ratchet-widen-the-counted/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/.stage/slice-quality-ratchet-widen-the-counted/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/.stage/slice-quality-ratchet-widen-the-counted/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/.stage/slice-quality-ratchet-widen-the-counted/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/.stage/slice-quality-ratchet-widen-the-counted/brief.json  (+ requirements.json, references.json)
+
+  - issue #1652 + 4 comment(s) via github
+  - link crawl: 12 issue(s) within 2 hop(s) of `#N` references
+  - forge search on ['slice-quality', 'ratchet:', 'widen']: 14 other item(s)
+  - GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits
+  - prior attempts: 0 commit(s) citing #1652 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1652: 1
+  - requirement candidates: 9 line(s); 1 comment(s) matched no rule
+  - referenced artifacts: 7 path(s) (6 on disk), 3 identifier(s), 3 workspace package(s), 1 URL(s)

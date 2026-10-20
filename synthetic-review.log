@@ -1,0 +1,48 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(projection_debt_) | test(owl_purity_checks_declarations_axioms_and_escaped_namespaces) | test(structural_axiom_anchors_on_the_subject_term_not_the_whole_triple)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/docs-catalog)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/slice-brief)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/mcp-core-wasm)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1652-slice-quality-ratchet-widen-the-counted/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 8m 29s
+────────────
+ Nextest run ID b9b043a4-8eda-4446-bd39-d00d081b3368 with nextest profile: ci
+    Starting 13 tests across 225 binaries (7718 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.013s] ( 1/13) gmeow-slice-quality projection_debt::tests::projection_debt_preserves_exact_u64_headroom_and_wide_totals
+        PASS [   0.016s] ( 2/13) gmeow-slice-quality projection_debt::tests::projection_debt_shared_inventory_accepts_manifest_only_profiles
+        PASS [   0.020s] ( 3/13) gmeow-slice-quality projection_debt::tests::projection_debt_does_not_present_documentary_surfaces_as_measured
+        PASS [   0.019s] ( 4/13) gmeow-slice-quality projection_debt::tests::projection_debt_measures_recursive_authoring_only_without_a_checkout
+        PASS [   0.021s] ( 5/13) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_a_mapping_tree_that_cannot_be_scanned
+        PASS [   0.022s] ( 6/13) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_ambiguous_or_missing_governance
+        PASS [   0.020s] ( 7/13) gmeow-slice-quality projection_debt::tests::projection_debt_uses_trusted_defaults_and_reports_deficits_without_rebaselining
+        PASS [   0.019s] ( 8/13) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_mapping_cycles_and_dangling_optional_sources
+        PASS [   0.031s] ( 9/13) gmeow-slice-quality projection_debt::tests::projection_debt_preserves_the_declared_subsumption_budget_unit
+        PASS [   0.031s] (10/13) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_missing_malformed_and_ambiguous_selected_sources
+        PASS [   0.032s] (11/13) gmeow-slice-quality counting::tests::structural_axiom_anchors_on_the_subject_term_not_the_whole_triple
+        PASS [   0.032s] (12/13) gmeow-slice-quality projection_debt::tests::projection_debt_parses_every_selected_shape_and_mapping_file
+        PASS [   0.108s] (13/13) gmeow-validate repo_static::tests::owl_purity_checks_declarations_axioms_and_escaped_namespaces
+────────────
+     Summary [   0.175s] 13 tests run: 13 passed, 7718 skipped

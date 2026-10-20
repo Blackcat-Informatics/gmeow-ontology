@@ -1,0 +1,1 @@
+{"body": "Fixed both French and Chinese catalog contexts to use the expanded avoidWhen predicate IRI. The source text and translations remain aligned."}

@@ -1,0 +1,112 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "Blocked by: #1642 \u2014 which owns the adjacent question of whether the ratchet should net a relocation across its source and destination cells.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 15,
+      "rules": [
+        "scope-out",
+        "question"
+      ],
+      "text": "Worth revisiting now the bootstrap is past: are domain/range and declarative OWL genuinely out of scope, or were they excluded to get the ratchet landed?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 27,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Decide whether `rdfs:domain`/`range` join the counted set now the bootstrap is resolved.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 28,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Decide whether declarative OWL gets its own count kind or stays with `reason-verify`.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 29,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] Triage the 124 seeded cells: which burn down by grounding, which need re-homing, which are permanent.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 30,
+      "rules": [
+        "checkbox",
+        "modal"
+      ],
+      "text": "- [ ] Give the shippable surface a measured/headroom view, or state why measurement must stay repo-anchored.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 18,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan",
+      "source": "comment 1",
+      "author": "coderabbitai",
+      "date": "2026-07-27T00:17:43Z"
+    },
+    {
+      "id": "C2.1",
+      "line": 1,
+      "rules": [
+        "modal"
+      ],
+      "text": "Adjacency worth naming so these two do not get worked as one: #1201 generalizes the **projection-purity gate** (no hand-authored construct that belongs to a generated surface), while this issue widens the **projection-vocabulary ratchet** (which predicates count toward a slice's ungrounded-residue ceiling). Different mechanisms \u2014 a purity violation is categorical, a ratchet breach is quantitative \u2014 but they cover overlapping vocabulary, so whoever takes either should read the other first. In particular, a decision on #1201 about which generated-formalism constructs are authored-forbidden constrains what this issue can sensibly count.",
+      "source": "comment 2",
+      "author": "paudley",
+      "date": "2026-07-27T07:10:55Z"
+    },
+    {
+      "id": "C3.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "> Blocked by: #1642 \u2014 which owns the adjacent question of whether the ratchet should net a relocation across its source and destination cells.",
+      "source": "comment 3",
+      "author": "paudley",
+      "date": "2026-09-05T03:05:23Z"
+    }
+  ],
+  "silent_comments": [
+    {
+      "comment": 4,
+      "author": "paudley",
+      "date": "2026-09-06T02:51:21Z"
+    }
+  ]
+}
