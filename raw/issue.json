@@ -1,0 +1,43 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "With the certifier artifacts of the companion issue removed, a class-level analysis of the slice ontologies (502 TTL files, 855 restrictions) leaves two genuine existential cycles. Both run through an inverse property pair:\n\n- **Finance:** `JournalEntry \u2291 \u22652 journalEntryPostings.Posting` (`slices/\u2026/finance/module.ttl` ~L150-157, ~L1169) and `Posting \u2291 \u2203postingJournalEntry.JournalEntry` (~L238-243). The inverse is at ~L573/~L766; ranges at ~L569-571/~L762-764.\n- **Music:** `PitchTrajectory \u2291 \u22652 trajectoryControlPoint.Thing` (music `module.ttl` ~L7218) and `PitchTrajectoryControlPoint \u2291 \u2203controlPointOfTrajectory.PitchTrajectory` (~L568-573). The inverse is at ~L1218.\n\nThe engine's **restricted** chase terminates on these: the inverse edge back to the parent already satisfies the child's restriction. But every rung of the current termination ladder (weak, joint, super-weak and model-summarizing acyclicity) bounds the **skolem** chase, which does not terminate here. A scratch reproduction of the finance pair stays refused on the full ladder.\n\n## Options\n1. **A restricted-chase termination certifier** (RMFA/RMSA-style): a trigger counts as blocked when Datalog-first reasoning already satisfies it through the inverse edge. This admits these programs soundly, but it is new certifier capability.\n2. **Change the modelling:** for example, state the child-to-parent link without an existential, or drop one direction's cardinality. This is an ontology decision.\n\nUntil one of these lands, production stage-reason cannot be admitted even after the artifact fixes. Caveat: the analysis covered slice TTL only, without property chains or nominals.",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABZEO9rw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Decision and design: restricted-chase certification, done efficiently\n\nDecision: admit these programs with a **restricted-chase termination certifier**, keeping the ontology as authored. It must be a general, efficient `logic:` capability, because restrictions paired with inverse properties are ordinary DL modelling.\n\n### Precondition found: the engine is not Datalog-first\nThe joint materializer gathers **every** producer against one frozen round snapshot (`crates/logic/src/physical/seminaive/joint.rs`: *\"Every producer reads the same cross-world frozen round\"*). So, for finance:\n1. Round *k* mints a `Posting` null `n`.\n2. In round *k+1*, the inverse rule derives `postingJournalEntry(n, x)`. In that same round, `Posting \u2291 \u2203postingJournalEntry.JournalEntry` is checked against the frozen snapshot, which lacks that edge, and mints a fresh `JournalEntry`.\n3. That repeats forever.\n\nUnder today's strategy these programs **genuinely do not terminate**. A blocking-based certifier on top of it would be unsound.\n\n### Plan\n1. **Datalog-first restricted chase.** Within each stratum, witness-minting producers (existential and source existential rules, minimum and qualified-cardinality witness families, n-ary reifier heads) are gathered only in a round where the non-generative producers have reached a fixpoint. Every other round evaluates the non-generative producers alone.\n   - It stays deterministic (sorted commit, unchanged) and semi-naive.\n   - It mints a subset of today's witnesses, never more.\n   - It is the standard strategy of production existential-rule engines, and the precondition for (2).\n2. **Restricted joint acyclicity (RJA)** (Carral, Dragoste & Kr\u00f6tzsch 2017, already in `LOGIC-REFERENCES.md`) as a ladder rung after super-weak acyclicity:\n   - It refines joint acyclicity's null-propagation edges with a blocking test. For an edge from rule \u03c1's existential to rule \u03c1\u2032: instantiate \u03c1's body with fresh constants, add \u03c1's head with the null, and close that constant-size instance under the program's Datalog rules.\n   - If every trigger of \u03c1\u2032 on the null already has its head satisfied, the edge is blocked.\n   - The cost is one small Datalog closure per rule pair, polynomial overall, self-hosted on the engine's fixpoint (as `LOGIC-PERFORMANCE.md` prescribes for the model-summarizing rung).\n   - Sound under Datalog-first restricted-chase scheduling.\n3. **Doctrine:** record Datalog-first scheduling and the RJA rung in the `LOGIC-PERFORMANCE.md` chase doctrine.\n4. **Tests:**\n   - finance-style and music-style inverse pairs certify under RJA and terminate under Datalog-first execution;\n   - a genuinely cyclic program stays refused;\n   - certify and execute agree on bounded runs;\n   - mutation checks for each mechanism.\n\nGenerated outputs may change: Datalog-first mints fewer witnesses.",
+      "createdAt": "2026-10-04T05:59:50Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1796#issuecomment-5977128367",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-04T05:56:40Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZK3g",
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    }
+  ],
+  "milestone": null,
+  "number": 1796,
+  "state": "OPEN",
+  "title": "Two authored existential cycles through inverse properties cannot be certified by a skolem-chase termination certifier",
+  "updatedAt": "2026-10-04T05:59:51Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1796"
+}

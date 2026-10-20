@@ -1,0 +1,16 @@
+{
+  "issue": 1796,
+  "branch": "paudley/1796-two-authored-existential-cycles-through",
+  "base": "origin/main",
+  "commits": [
+    {
+      "oid": "0776b650af9d9ffd13daee565825ba8f91dc1c32",
+      "subject": "test: verify authored finance and music inverse-cycle termination",
+      "date": "2026-10-20"
+    }
+  ],
+  "files": [
+    "crates/logic/src/reason/program/minimum_tests.rs"
+  ],
+  "adrs_touched": []
+}

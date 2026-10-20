@@ -1,0 +1,141 @@
+{
+  "issue": 1796,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "Two authored existential cycles through inverse properties cannot be certified by a skolem-chase termination certifier",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {},
+  "link_relations": {},
+  "related": [
+    {
+      "number": 1742,
+      "title": "logic: implement correspondence composition and standpoint-indexed merge",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1704,
+      "title": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+      "state": "OPEN"
+    },
+    {
+      "number": 1732,
+      "title": "perf: persist completed producer fixtures across CI runs",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1344,
+      "title": "logic: certify broader chase-termination classes (joint-acyclicity, guardedness, stickiness)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1429,
+      "title": "logic: Nemo deletion dossier & gate \u2014 retire the forward substrate and its toolchain regime",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1301,
+      "title": "logic: stratified NAF in the physical core \u2014 port foundation.rs semantics, unify the two native chases",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1420,
+      "title": "logic: engine-vs-engine external benchmark corpus + leaderboard lanes (ChaseBench, Nemo KR-2024 sets, Datalog program families)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 930,
+      "title": "Full W3C conformance (SPARQL 1.1/1.2 \u00b7 RDF-canon \u00b7 IRI \u00b7 syntax) + rdflib LSP gate (post-v1)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1544,
+      "title": "Complete math grounding for signed compactified radial fields",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1525,
+      "title": "extension: contextual preference observations and proof-carrying learning receipts",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1428,
+      "title": "logic/math: native moded builtin family \u2014 exact-\u211a arithmetic, SI dimension 7-vectors, bilinear-form distance",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1449,
+      "title": "slice-quality: shape-grounding axis thresholds + curation docs + authoring-skill update (per-slice shape grounding \u2192 background uplift lane)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1405,
+      "title": "FULL/MAXIMAL slice documentation standard: documentation slice, DocMaturity, coverage\u2192RDF, grounding-slice lift",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 41,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [
+      "6dc235778 docs: describe the implemented chase certificate partial order"
+    ],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1799,
+        "title": "feat(1796): certify restricted joint acyclicity",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1799",
+        "this_stage": false
+      },
+      {
+        "number": 1798,
+        "title": "feat(1796): run the restricted chase Datalog-first",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1798",
+        "this_stage": false
+      },
+      {
+        "number": 1868,
+        "title": "Restore producer source admission and correct certificate doctrine",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1868",
+        "this_stage": false
+      },
+      {
+        "number": 1801,
+        "title": "perf(1757): compute joint acyclicity in linear Horn propagation",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1801",
+        "this_stage": false
+      },
+      {
+        "number": 1800,
+        "title": "fix(1795): sharpen termination-statement encoding and bind closed relations",
+        "state": "MERGED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1800",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1796-two-authored-existential-cycles-through"
+  },
+  "coverage": [
+    "issue #1796 + 1 comment(s) via github",
+    "link crawl: no `#N` references in the issue or its comments",
+    "forge search on ['authored', 'existential', 'cycles']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 3 distinct class(es) in the last 200 commits",
+    "prior attempts: 1 commit(s) citing #1796 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1796: 5",
+    "requirement candidates: 1 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 5 path(s) (1 on disk), 3 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

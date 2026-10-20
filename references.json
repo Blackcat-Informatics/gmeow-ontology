@@ -1,0 +1,82 @@
+{
+  "paths": [
+    {
+      "ref": "slices/\u2026/finance/module.ttl",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/\u2026/finance/module.ttl",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "crates/logic/src/physical/seminaive/joint.rs",
+      "path": "/home/paudley/Active/gmeow-ontology/crates/logic/src/physical/seminaive/joint.rs",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 1776,
+      "licence": "SPDX: AGPL-3.0-only",
+      "commits": [
+        "a0b0deb02 Execute native node-kind integrity checks",
+        "ec2222790 fix(logic): preserve portable browser reasoning identities and timing",
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "22193fc44 fix(logic): preserve restricted-trigger proof conditions",
+        "96b1ac63a fix(1757): name the obstruction that withholds completed native reads",
+        "61fc549fb fix(1757): admit definition writes that only re-derive asserted statements",
+        "3238773a2 fix(1757): admit clash commitments under a source-bound contextual grammar",
+        "bce830888 fix(1757): name the write that changes a selected definition grammar",
+        "12e5c4f8a feat(1796): apply Datalog-first to every chase executor and producer",
+        "0e9a889a4 feat(1796): run the restricted chase Datalog-first"
+      ]
+    },
+    {
+      "ref": "LOGIC-REFERENCES.md",
+      "path": "/home/paudley/Active/gmeow-ontology/LOGIC-REFERENCES.md",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "LOGIC-PERFORMANCE.md",
+      "path": "/home/paudley/Active/gmeow-ontology/LOGIC-PERFORMANCE.md",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "/finance/module.ttl",
+      "path": "/finance/module.ttl",
+      "where": "absolute",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "module.ttl",
+      "files": 555
+    },
+    {
+      "name": "Posting",
+      "files": 38
+    },
+    {
+      "name": "JournalEntry",
+      "files": 40
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

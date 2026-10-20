@@ -1,0 +1,16 @@
+{
+  "rows": [
+    {
+      "id": "C1.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "Decision: admit these programs with a **restricted-chase termination certifier**, keeping the ontology as authored. It must be a general, efficient `logic:` capability, because restrictions paired with inverse properties are ordinary DL modelling.",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-04T05:59:50Z"
+    }
+  ],
+  "silent_comments": []
+}
