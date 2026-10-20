@@ -991,9 +991,11 @@ gmeow:stage-export-pydantic
     gmeow:stageImpl "pydantic" ;
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
+        gmeow:stage-constraint-catalog ,
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-frame-shapes ,
-        gmeow:stage-export-result-shapes ;
+        gmeow:stage-export-result-shapes ,
+        gmeow:stage-term-manifest ;
     gmeow:producesFormat "pydantic" .
 
 gmeow:stage-export-schemas

@@ -79,6 +79,32 @@ fn every_gmeow_typed_term_gets_a_digest() {
 }
 
 #[test]
+fn term_manifest_includes_all_registered_grounding_namespaces() {
+    let dataset = Dataset::parse_turtle(
+        br#"
+        @prefix l: <https://blackcatinformatics.ca/logic/> .
+        @prefix m: <https://blackcatinformatics.ca/math/> .
+        @prefix lang: <https://blackcatinformatics.ca/lang/> .
+        @prefix g: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        <https://blackcatinformatics.ca/gmeow> owl:versionInfo "1.0.0" .
+        l:Example a l:Class . m:Example a l:Class .
+        lang:Example a l:Class . g:Example a l:Class .
+        <https://example.org/Other> a l:Class .
+    "#,
+        None,
+        "synthetic registered namespaces",
+    )
+    .unwrap();
+    let records = resolve_term_records(&dataset, &BTreeMap::new()).unwrap();
+    assert_eq!(records.len(), 4);
+    for namespace in gmeow_ns::TERM_NAMESPACES {
+        let term = format!("{namespace}Example");
+        assert!(records[&term].digest.starts_with("blake3:"));
+    }
+}
+
+#[test]
 fn digest_excludes_provenance_predicates() {
     // A term's digest is over its defining triples only; adding a provenance
     // predicate (e.g. addedInVersion) must not change it.
@@ -306,7 +332,7 @@ fn fresh_and_warm_fixed_points_render_byte_identical_term_docs() {
 
     /// Render the synthetic term and changelog pages with distinct authored and computed notes.
     fn docs_pages(records: &BTreeMap<String, PriorTerm>) -> (String, String) {
-        let term_iri = format!("{GMEOW}BoundaryTerm");
+        let term_iri = format!("{}BoundaryTerm", gmeow_ns::GMEOW_NS);
         let record = records.get(&term_iri).expect("BoundaryTerm record");
         let mut changelog = vec![gmeow_docs::model::DocChangelogEntry {
             version: "1.1.0".to_string(),
