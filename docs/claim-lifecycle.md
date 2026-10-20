@@ -59,6 +59,8 @@ An in-flight `gmeow:ForgetRequest` has one or more values for each of:
 - `gmeow:requestUnderRight`: the named right or policy being invoked.
 
 The last two are IRI references, not literal selectors or transitive queries.
+The requester may be a named or anonymous agent. A literal is not an agent;
+the consuming policy may separately require an identified requester.
 The three paths are required by class-scoped canonical closed-world constraints.
 A request does not grant permission. Pending and denied requests do not delete
 anything. Authorization and exact-object deletion are the consuming store's duties.

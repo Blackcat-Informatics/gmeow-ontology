@@ -127,6 +127,15 @@ fn forget_request_requires_roles_and_named_references_without_granting_permissio
         validate_dataset(&data, &shapes).unwrap()
     };
     assert!(report(valid).results.is_empty());
+    assert!(
+        report(&valid.replace(
+            "gmeow:requestingAgent ex:person",
+            "gmeow:requestingAgent [ a gmeow:Agent ]",
+        ))
+        .results
+        .is_empty(),
+        "the requester may be an anonymous typed agent"
+    );
     for missing in [
         "gmeow:requestingAgent ex:person ;",
         "gmeow:requestedErasureTarget ex:claim ;",
@@ -135,6 +144,10 @@ fn forget_request_requires_roles_and_named_references_without_granting_permissio
         assert!(!report(&valid.replace(missing, "")).results.is_empty());
     }
     for (from, to) in [
+        (
+            "gmeow:requestingAgent ex:person",
+            "gmeow:requestingAgent \"requester\"",
+        ),
         (
             "gmeow:requestedErasureTarget ex:claim",
             "gmeow:requestedErasureTarget []",
@@ -146,6 +159,10 @@ fn forget_request_requires_roles_and_named_references_without_granting_permissio
         (
             "gmeow:requestUnderRight ex:right",
             "gmeow:requestUnderRight \"right\"",
+        ),
+        (
+            "gmeow:requestUnderRight ex:right",
+            "gmeow:requestUnderRight []",
         ),
     ] {
         assert!(!report(&valid.replace(from, to)).results.is_empty());

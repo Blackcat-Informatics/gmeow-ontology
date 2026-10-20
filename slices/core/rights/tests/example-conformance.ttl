@@ -4,6 +4,25 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex: <https://example.org/lifecycle/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:forget-anonymous-requester a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/forget-anonymous-requester.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A requester must be an agent, but need not have a global IRI; authorization remains a separate policy decision." .
+
+ex:forget-blank-right a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/forget-blank-right.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ForgetRequest-shape ;
+    gmeow:conformanceRationale "The invoked right must be a named IRI, unlike the requesting agent." .
+
+ex:forget-literal-requester a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/forget-literal-requester.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ForgetRequest-shape ;
+    gmeow:conformanceRationale "A literal cannot satisfy the requester range Agent." .
 ex:forget-valid a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/forget-request.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
