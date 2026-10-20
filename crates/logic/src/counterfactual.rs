@@ -901,6 +901,16 @@ fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
     use crate::query_ir::QBuiltin;
     let term = atom_str_term;
     match b {
+        QBuiltin::TermCompare {
+            left,
+            right,
+            comparison,
+            expected,
+        } => format!(
+            "{comparison:?}({}, {}) = {expected}",
+            left.key(),
+            right.key()
+        ),
         QBuiltin::TermEqual {
             left,
             right,

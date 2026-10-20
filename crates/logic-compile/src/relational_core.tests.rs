@@ -203,11 +203,37 @@ fn unsupported_conjunct_never_leaves_a_partially_enforced_law() {
     let valid = intrinsic_atom("termIsIri", &["this"]);
     let program = intrinsic_constraint(Formula::And(vec![
         valid.clone(),
-        Formula::Or(vec![valid.clone(), valid]),
+        Formula::Iff(Box::new(valid.clone()), Box::new(valid)),
     ]));
     let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
     assert!(rules.is_empty());
     assert_eq!(residue[0].gap, RcViolationGap::UnsupportedConsequent);
+}
+
+/// Every disjunct must fail together, while a nested conjunction contributes
+/// distinct violation branches. Each branch retains all original operands.
+#[test]
+fn intrinsic_disjunctions_distribute_failure_without_losing_safety() {
+    let iri = intrinsic_atom("termIsIri", &["this"]);
+    let literal = intrinsic_atom("termIsLiteral", &["this"]);
+    let finite = intrinsic_atom("termIsFiniteNumeric", &["this"]);
+    let program = intrinsic_constraint(Formula::Or(vec![iri, Formula::And(vec![literal, finite])]));
+    let (rules, residue) = lower_violation_constraints_to_rc(&program, &BTreeSet::new());
+    assert!(residue.is_empty(), "{residue:?}");
+    assert_eq!(rules.len(), 2);
+    for (index, rule) in rules.iter().enumerate() {
+        assert_eq!(rule.conjunct_index, index);
+        assert_eq!(rule.term_kinds.len(), 2);
+        assert_eq!(rule.term_kinds[0].predicate, TermKindPredicate::Iri);
+        assert!(rule.term_kinds.iter().all(|test| test.expected));
+    }
+    let unsafe_program = intrinsic_constraint(Formula::Or(vec![
+        intrinsic_atom("termIsIri", &["this"]),
+        intrinsic_atom("termIsLiteral", &["missing"]),
+    ]));
+    let (rules, residue) = lower_violation_constraints_to_rc(&unsafe_program, &BTreeSet::new());
+    assert!(rules.is_empty());
+    assert_eq!(residue[0].gap, RcViolationGap::UnsafeTermKindVariable);
 }
 
 #[test]

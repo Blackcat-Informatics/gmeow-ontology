@@ -1614,7 +1614,8 @@ fn apply_builtins(
             let outcome = eval_native(b, &|name| sol.get(name), resolver);
             match outcome {
                 BuiltinOutcome::Filter(holds) => {
-                    let invert = constraint_tagged && !matches!(b, QBuiltin::TermEqual { .. });
+                    let invert = constraint_tagged
+                        && !matches!(b, QBuiltin::TermEqual { .. } | QBuiltin::TermCompare { .. });
                     if holds == invert {
                         // Consequent checks prune a satisfied law. Body equality
                         // filters and ordinary filters prune a false condition.
@@ -1630,7 +1631,12 @@ fn apply_builtins(
                 | BuiltinOutcome::Error(_)
                 | BuiltinOutcome::NativeFailure(_) => {
                     if constraint_tagged
-                        && !matches!(b, QBuiltin::TermKind { .. } | QBuiltin::TermEqual { .. })
+                        && !matches!(
+                            b,
+                            QBuiltin::TermKind { .. }
+                                | QBuiltin::TermEqual { .. }
+                                | QBuiltin::TermCompare { .. }
+                        )
                         && !matches!(outcome, BuiltinOutcome::NativeFailure(_))
                     {
                         // Undefinedness is NOT a violation: skip ONLY this candidate

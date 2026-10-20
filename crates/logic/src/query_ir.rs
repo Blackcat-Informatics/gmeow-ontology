@@ -164,6 +164,17 @@ pub enum QBodyLit {
 /// and becomes a native filter failure if reached).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum QBuiltin {
+    /// Exact RDF numeric comparison in an integrity violation body.
+    TermCompare {
+        /// Original typed left operand.
+        left: gmeow_logic_compile::ir::AtomicTerm,
+        /// Original typed right operand.
+        right: gmeow_logic_compile::ir::AtomicTerm,
+        /// Numeric ordering predicate.
+        comparison: gmeow_logic_compile::relational_core::RcComparison,
+        /// Truth required to retain the violation candidate.
+        expected: bool,
+    },
     /// A native SPARQL equality filter on a joined violation candidate.
     TermEqual {
         /// Original typed left operand.

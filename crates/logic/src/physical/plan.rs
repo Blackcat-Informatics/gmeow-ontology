@@ -384,6 +384,18 @@ fn hash_qterm(hasher: &mut purrdf_hash::blake3::Hasher, term: &QTerm) {
 
 fn hash_builtin(hasher: &mut purrdf_hash::blake3::Hasher, builtin: &QBuiltin) {
     match builtin {
+        QBuiltin::TermCompare {
+            left,
+            right,
+            comparison,
+            expected,
+        } => {
+            hasher.update(&[7]);
+            frame_str(hasher, comparison.local_name());
+            frame_str(hasher, &left.key());
+            frame_str(hasher, &right.key());
+            hasher.update(&[u8::from(*expected)]);
+        }
         QBuiltin::TermEqual {
             left,
             right,

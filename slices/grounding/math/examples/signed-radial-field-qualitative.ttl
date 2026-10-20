@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# FLAGSHIP worked example (qualitative path) — a signed radial field on a
+# Worked example (qualitative path) — a signed radial field on a
 # compactified Lorentzian 2-plane with a central singularity, modelled with NO
 # equation at all. This is one of two co-equal worked demonstrators that model the
 # SAME target: a signed field that runs to +∞ at the centre (the ideal value R′),

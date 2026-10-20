@@ -125,6 +125,7 @@ pub(super) fn read_patterns(
     use crate::query_ir::QBuiltin;
     let (predicates, reads_types): (&[&str], bool) = match builtin {
         QBuiltin::TermEqual { .. }
+        | QBuiltin::TermCompare { .. }
         | QBuiltin::TermKind { .. }
         | QBuiltin::Is { .. }
         | QBuiltin::Compare { .. } => (&[], false),
@@ -413,6 +414,16 @@ impl BuiltinGap {
 #[must_use]
 pub(crate) fn render_builtin_op(builtin: &QBuiltin) -> String {
     match builtin {
+        QBuiltin::TermCompare {
+            left,
+            right,
+            comparison,
+            expected,
+        } => format!(
+            "{comparison:?}({}, {}) = {expected}",
+            left.key(),
+            right.key()
+        ),
         QBuiltin::TermEqual {
             left,
             right,
@@ -1282,6 +1293,41 @@ fn eval_inputs<'a>(
     resolver: &dyn CellResolver,
 ) -> BuiltinOutcome {
     match builtin {
+        QBuiltin::TermCompare {
+            left,
+            right,
+            comparison,
+            expected,
+        } => {
+            let (Some(left), Some(right)) = (
+                resolve_native_term(left, lookup),
+                resolve_native_term(right, lookup),
+            ) else {
+                return BuiltinOutcome::Unbound;
+            };
+            let holds = match (
+                gmeow_logic_compile::ir::FiniteNumericLiteral::try_from(left.into_owned()),
+                gmeow_logic_compile::ir::FiniteNumericLiteral::try_from(right.into_owned()),
+            ) {
+                (Ok(left), Ok(right)) => {
+                    use gmeow_logic_compile::relational_core::RcComparison;
+                    use std::cmp::Ordering;
+                    let order = purrdf::xsd::numeric::numeric_cmp(left.value(), right.value());
+                    match comparison {
+                        RcComparison::Less => order == Some(Ordering::Less),
+                        RcComparison::LessEqual => {
+                            matches!(order, Some(Ordering::Less | Ordering::Equal))
+                        }
+                        RcComparison::Greater => order == Some(Ordering::Greater),
+                        RcComparison::GreaterEqual => {
+                            matches!(order, Some(Ordering::Greater | Ordering::Equal))
+                        }
+                    }
+                }
+                _ => false,
+            };
+            BuiltinOutcome::Filter(holds == *expected)
+        }
         QBuiltin::TermEqual {
             left,
             right,

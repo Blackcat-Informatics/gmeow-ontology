@@ -439,6 +439,16 @@ pub(crate) fn lower_violation_rules(
                     right: test.right.clone(),
                     expected: test.expected,
                 }))
+                .chain(
+                    rc.term_comparisons
+                        .iter()
+                        .map(|test| QBuiltin::TermCompare {
+                            left: test.left.clone(),
+                            right: test.right.clone(),
+                            comparison: test.comparison,
+                            expected: test.expected,
+                        }),
+                )
                 .collect(),
             reduction: None,
             constraint_tag: Some(rc.constraint_iri.clone()),

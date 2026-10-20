@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# FLAGSHIP worked example (closed-form path) — the SAME signed radial field on a
+# Worked example (closed-form path) — the SAME signed radial field on a
 # compactified Lorentzian 2-plane as examples/signed-radial-field-qualitative.ttl,
 # now given EXACTLY by its defining equation
 #

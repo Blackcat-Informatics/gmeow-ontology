@@ -672,19 +672,19 @@ fn flatten_and<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
 //
 // The GENERAL sibling of the builtin-bound lowering above, and the one that carries the
 // ordinary authored corpus: a `logic:Constraint` whose `logic:integrity` formula is
-// `∀ vars. antecedent → consequent`, where the consequent's conjuncts are ordinary
-// STORED-relation literals (never a builtin call), lowers to one violation-emitting rule
-// PER CONJUNCT by NEGATING that conjunct — the classic "a constraint is a rule whose body
-// is its own falsification". The antecedent becomes the ordinary positive Horn body, the
-// negated conjunct joins it as an extra literal, and the head types the focus variable
-// with the constraint's `gmeow:enforcesFailureClass`. A body whose literals ALL hold is
-// therefore exactly a datum that satisfies the guard and breaks the obligation.
+// `∀ vars. antecedent → consequent`, lowers each way of falsifying its consequent
+// to a violation-emitting rule. Stored-relation literals use stratified negation;
+// intrinsic kind, membership and numeric tests inspect the original RDF operands.
+// The positive antecedent binds the focus and every intrinsic operand. A body
+// whose literals and filters ALL hold satisfies the guard and breaks the obligation.
 //
 // One rule per conjunct, never one rule per constraint: `φ → (ψ₁ ∧ ψ₂)` is violated by
 // breaking EITHER conjunct, and a single rule carrying `¬ψ₁ ∧ ¬ψ₂` would only fire when
 // BOTH are broken — a strictly weaker gate that would pass a record missing one mandatory
 // field. The conjuncts share the constraint's one failure class, exactly as the two
 // `math:` dimension laws share `math:DimensionalInhomogeneity`.
+// A disjunction fails only when every arm fails together; nested conjunctions
+// distribute those alternatives without dropping any branch or binding check.
 //
 // Negation is negation-as-failure against the stratified store, which is the right reading
 // here and only here: a `logic:Constraint` is a CLOSED-WORLD well-formedness assertion
@@ -709,6 +709,8 @@ pub struct RcViolationRule {
     pub term_kinds: Vec<RcTermKindTest>,
     /// Native equality filters on joined operands, never asserted relations.
     pub term_equalities: Vec<RcTermEqualityTest>,
+    /// Exact native numeric filters over original RDF operands.
+    pub term_comparisons: Vec<RcTermComparisonTest>,
     /// The constraint's `∀` focus variable (`vars[0]`) as an [`RcTerm::Var`] — the
     /// violation marker's subject.
     pub subject: RcTerm,
@@ -736,6 +738,45 @@ pub struct RcTermEqualityTest {
     /// Original right operand.
     pub right: RcTerm,
     /// True for equality, false for distinctness after literal negation.
+    pub expected: bool,
+}
+
+/// Numeric ordering predicates supported by native integrity laws.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum RcComparison {
+    /// Strictly less than.
+    Less,
+    /// Less than or equal.
+    LessEqual,
+    /// Strictly greater than.
+    Greater,
+    /// Greater than or equal.
+    GreaterEqual,
+}
+
+impl RcComparison {
+    /// Stable canonical predicate name for rule identity and diagnostics.
+    #[must_use]
+    pub const fn local_name(self) -> &'static str {
+        match self {
+            Self::Less => "termLess",
+            Self::LessEqual => "termLessEqual",
+            Self::Greater => "termGreater",
+            Self::GreaterEqual => "termGreaterEqual",
+        }
+    }
+}
+
+/// Numeric comparison truth required by a violation-body filter.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcTermComparisonTest {
+    /// Original left operand.
+    pub left: RcTerm,
+    /// Original right operand.
+    pub right: RcTerm,
+    /// Numeric value-space ordering, independent of RDF identity.
+    pub comparison: RcComparison,
+    /// Required truth after negating the obligation.
     pub expected: bool,
 }
 
@@ -895,22 +936,15 @@ fn lower_one_violation_constraint(
         &mut cons_conjuncts,
     )?;
     let mut out = Vec::with_capacity(cons_conjuncts.len());
-    for (conjunct_index, (guards, universals, conjunct)) in cons_conjuncts.into_iter().enumerate() {
-        let mut body = ante_atoms.clone();
-        for guard in guards {
-            body.extend(guard_lowering.lower(guard)?);
-        }
-        if let Formula::Atom {
-            relation: Term::Iri(relation),
-            ..
-        } = strip_quantifier(conjunct)
-            && builtin_relations.contains(relation)
-        {
-            return Err(RcViolationGap::BuiltinBoundConsequent);
-        }
-        let term_kinds = if let Some(test) = term_kind_consequent(conjunct)? {
-            vec![test]
-        } else {
+    for (guards, universals, consequent) in cons_conjuncts {
+        for conjuncts in violation_branches(consequent)? {
+            let mut body = ante_atoms.clone();
+            for guard in &guards {
+                body.extend(guard_lowering.lower(guard)?);
+            }
+            let mut term_kinds = Vec::new();
+            let mut term_equalities = Vec::new();
+            let mut term_comparisons = Vec::new();
             let mut occupied = universals.clone();
             for atom in &body {
                 for term in [&atom.subject, &atom.object] {
@@ -919,56 +953,166 @@ fn lower_one_violation_constraint(
                     }
                 }
             }
-            body.extend(negate_consequent_conjunct(conjunct, &mut occupied)?);
-            Vec::new()
-        };
-        let mut term_equalities = Vec::new();
-        body.retain(|atom| {
-            let equal = match atom.predicate.strip_prefix(LOGIC_NAMESPACE) {
-                Some("termEqual") => true,
-                Some("termDistinct") => false,
-                _ => return true,
-            };
-            term_equalities.push(RcTermEqualityTest {
-                left: atom.subject.clone(),
-                right: atom.object.clone(),
-                expected: equal != atom.negated,
-            });
-            false
-        });
-        if !positive_binding(&body, &subject) {
-            return Err(RcViolationGap::UnsafeFocusVariable);
-        }
-        for variable in universals {
-            if !positive_binding(&body, &RcTerm::Var(format!("?{variable}"))) {
-                return Err(RcViolationGap::UnsafeUniversalVariable);
-            }
-        }
-        for test in &term_kinds {
-            if matches!(test.term, RcTerm::Var(_)) && !positive_binding(&body, &test.term) {
-                return Err(RcViolationGap::UnsafeTermKindVariable);
-            }
-        }
-        for test in &term_equalities {
-            for operand in [&test.left, &test.right] {
-                if matches!(operand, RcTerm::Var(_)) && !positive_binding(&body, operand) {
-                    return Err(RcViolationGap::UnsafeEqualityVariable);
+            for conjunct in conjuncts {
+                if let Formula::Atom {
+                    relation: Term::Iri(relation),
+                    ..
+                } = strip_quantifier(conjunct)
+                    && builtin_relations.contains(relation)
+                {
+                    return Err(RcViolationGap::BuiltinBoundConsequent);
+                }
+                if let Some(test) = term_kind_consequent(conjunct)? {
+                    term_kinds.push(test);
+                } else if let Some(test) = comparison_consequent(conjunct)? {
+                    term_comparisons.push(test);
+                } else if let Formula::Atom {
+                    relation: Term::Iri(relation),
+                    args,
+                } = conjunct
+                    && relation == &format!("{LOGIC_NAMESPACE}termIn")
+                {
+                    let [term, members @ ..] = args.as_slice() else {
+                        return Err(RcViolationGap::UnsupportedConsequent);
+                    };
+                    if members.is_empty() {
+                        return Err(RcViolationGap::UnsupportedConsequent);
+                    }
+                    for member in members {
+                        term_equalities.push(RcTermEqualityTest {
+                            left: formula_term_to_rc(term, true)
+                                .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+                            right: formula_term_to_rc(member, true)
+                                .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+                            expected: false,
+                        });
+                    }
+                } else {
+                    body.extend(negate_consequent_conjunct(conjunct, &mut occupied)?);
                 }
             }
+            body.retain(|atom| {
+                let equal = match atom.predicate.strip_prefix(LOGIC_NAMESPACE) {
+                    Some("termEqual") => true,
+                    Some("termDistinct") => false,
+                    _ => return true,
+                };
+                term_equalities.push(RcTermEqualityTest {
+                    left: atom.subject.clone(),
+                    right: atom.object.clone(),
+                    expected: equal != atom.negated,
+                });
+                false
+            });
+            if !positive_binding(&body, &subject) {
+                return Err(RcViolationGap::UnsafeFocusVariable);
+            }
+            for variable in &universals {
+                if !positive_binding(&body, &RcTerm::Var(format!("?{variable}"))) {
+                    return Err(RcViolationGap::UnsafeUniversalVariable);
+                }
+            }
+            for test in &term_kinds {
+                if matches!(test.term, RcTerm::Var(_)) && !positive_binding(&body, &test.term) {
+                    return Err(RcViolationGap::UnsafeTermKindVariable);
+                }
+            }
+            for test in &term_equalities {
+                for operand in [&test.left, &test.right] {
+                    if matches!(operand, RcTerm::Var(_)) && !positive_binding(&body, operand) {
+                        return Err(RcViolationGap::UnsafeEqualityVariable);
+                    }
+                }
+            }
+            for test in &term_comparisons {
+                for operand in [&test.left, &test.right] {
+                    if matches!(operand, RcTerm::Var(_)) && !positive_binding(&body, operand) {
+                        return Err(RcViolationGap::UnsafeEqualityVariable);
+                    }
+                }
+            }
+            body.sort_unstable();
+            body.dedup();
+            out.push(RcViolationRule {
+                constraint_iri: constraint.iri.clone(),
+                conjunct_index: out.len(),
+                body,
+                term_kinds,
+                term_equalities,
+                term_comparisons,
+                subject: subject.clone(),
+                failure_class: failure_class.clone(),
+            });
         }
-        body.sort_unstable();
-        body.dedup();
-        out.push(RcViolationRule {
-            constraint_iri: constraint.iri.clone(),
-            conjunct_index,
-            body,
-            term_kinds,
-            term_equalities,
-            subject: subject.clone(),
-            failure_class: failure_class.clone(),
-        });
     }
     Ok(out)
+}
+
+/// De Morgan expansion: a failed conjunction contributes alternatives, while a
+/// failed disjunction requires every arm to fail in the same joined candidate.
+fn violation_branches(formula: &Formula) -> Result<Vec<Vec<&Formula>>, RcViolationGap> {
+    match formula {
+        Formula::And(parts) if !parts.is_empty() => {
+            let mut branches = Vec::new();
+            for part in parts {
+                branches.extend(violation_branches(part)?);
+            }
+            Ok(branches)
+        }
+        Formula::Or(parts) if !parts.is_empty() => {
+            let mut branches = vec![Vec::new()];
+            for part in parts {
+                let alternatives = violation_branches(part)?;
+                branches = branches
+                    .into_iter()
+                    .flat_map(|prefix| {
+                        alternatives.iter().map(move |suffix| {
+                            let mut branch = prefix.clone();
+                            branch.extend(suffix);
+                            branch
+                        })
+                    })
+                    .collect();
+            }
+            Ok(branches)
+        }
+        Formula::And(_) | Formula::Or(_) => Err(RcViolationGap::UnsupportedConsequent),
+        other => Ok(vec![vec![other]]),
+    }
+}
+
+/// Comparisons retain typed operands; failed or nonnumeric comparisons are false.
+fn comparison_consequent(
+    formula: &Formula,
+) -> Result<Option<RcTermComparisonTest>, RcViolationGap> {
+    let (atom, expected) = match formula {
+        Formula::Not(inner) => (inner.as_ref(), true),
+        other => (other, false),
+    };
+    let Formula::Atom {
+        relation: Term::Iri(relation),
+        args,
+    } = atom
+    else {
+        return Ok(None);
+    };
+    let comparison = match relation.strip_prefix(LOGIC_NAMESPACE) {
+        Some("termLess") => RcComparison::Less,
+        Some("termLessEqual") => RcComparison::LessEqual,
+        Some("termGreater") => RcComparison::Greater,
+        Some("termGreaterEqual") => RcComparison::GreaterEqual,
+        _ => return Ok(None),
+    };
+    let [left, right] = args.as_slice() else {
+        return Err(RcViolationGap::UnsupportedConsequent);
+    };
+    Ok(Some(RcTermComparisonTest {
+        left: formula_term_to_rc(left, true).map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+        right: formula_term_to_rc(right, true)
+            .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+        comparison,
+        expected,
+    }))
 }
 
 /// Reserve every authored variable and binder before inventing fresh names.

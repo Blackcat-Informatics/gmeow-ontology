@@ -681,6 +681,17 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
     fn rename_builtin(b: &crate::query_ir::QBuiltin, suffix: &str) -> crate::query_ir::QBuiltin {
         use crate::query_ir::QBuiltin;
         match b {
+            QBuiltin::TermCompare {
+                left,
+                right,
+                comparison,
+                expected,
+            } => QBuiltin::TermCompare {
+                left: left.map_variable(|name| format!("{name}{suffix}")),
+                right: right.map_variable(|name| format!("{name}{suffix}")),
+                comparison: *comparison,
+                expected: *expected,
+            },
             QBuiltin::TermEqual {
                 left,
                 right,
