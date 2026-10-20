@@ -166,8 +166,9 @@ to email, although decoding a MIME `gmeow:BodyPart` is its usual example. A chat
 part can use it for an actual decoded information object; the message part,
 transport representation and decoded result retain separate identities. Link
 the result to the actual source part with `gmeow:wasDerivedFrom` when recording
-that decoding provenance. A file attachment remains a `gmeow:MediaObject` at its
-manifestation layer.
+that decoding provenance. An image, audio, or video file attachment remains a
+`gmeow:MediaObject` at its manifestation layer. Other file attachments are not
+necessarily `gmeow:MediaObject`.
 
 Do not type a literal or a part-tree node as `BodyValue` merely because it carries
 words. `BodyValue` does not declare a universal body-text property: the decoded
