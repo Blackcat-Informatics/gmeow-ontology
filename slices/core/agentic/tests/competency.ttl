@@ -13,6 +13,9 @@
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
 @prefix ext:   <https://blackcatinformatics.ca/gmeow/examples/agentic/tests/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ot:    <https://example.org/observation-record-tests/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix case:  <https://example.org/attention-lifecycle/> .
 
 ext:cqWhichToolUnderWhichInvocation a gmeow:CompetencyQuestion ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
@@ -69,8 +72,6 @@ ext:cqActionPolicyRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "policy" ;
         gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/mcpActionPolicy> ] .
 
-@prefix case: <https://example.org/attention-lifecycle/> .
-
 ot:cqRaisedRequest a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
     gmeow:cqQuery "PREFIX ex: <https://example.org/attention-lifecycle/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?source ?actor ?when ?message WHERE { ex:request a gmeow:AttentionRequest ; gmeow:wasDerivedFrom ?source ; gmeow:wasAttributedTo ?actor ; gmeow:attentionRequestedAt ?when ; gmeow:description ?message . }" ;
@@ -91,8 +92,6 @@ ot:rowRaisedRequest0 a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T09:00:00Z"^^xsd:dateTime ],
         [ a gmeow:ExpectedCell ; gmeow:cellVar "message" ; gmeow:cellValueLiteral "Revisit the dream’s unanswered question."@en ] .
 
-@prefix case: <https://example.org/attention-lifecycle/> .
-
 ot:cqAcknowledgement a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
     gmeow:cqQuery "PREFIX ex: <https://example.org/attention-lifecycle/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?actor ?when WHERE { ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ; gmeow:wasAssociatedWith ?actor ; gmeow:eventTime ?when . }" ;
@@ -108,8 +107,6 @@ ot:shapeAcknowledgement a logic:ResultShape ;
 ot:rowAcknowledgement0 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "actor" ; gmeow:cellValueIri case:self ],
         [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T09:01:00Z"^^xsd:dateTime ] .
-
-@prefix case: <https://example.org/attention-lifecycle/> .
 
 ot:cqResolutionHistory a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
@@ -142,8 +139,6 @@ ot:rowResolutionHistory2 a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "request" ; gmeow:cellValueIri case:otherRequest ],
         [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:resolutionDismissed ],
         [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-10T11:01:00Z"^^xsd:dateTime ] .
-
-@prefix case: <https://example.org/attention-lifecycle/> .
 
 ot:cqNoResolutionByAcknowledgement a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/attention-lifecycle.ttl" ;
