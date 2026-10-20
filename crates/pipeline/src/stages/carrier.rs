@@ -1238,6 +1238,8 @@ fn fold_coherence_certificate(
         carrier_quads = composed.quad_count(), canonical_bytes = composed_nq.len(),
         "coherence input size"
     );
+    // Only the digest is needed by the certificate and final carrier union.
+    drop(composed_nq);
 
     let outcome =
         crate::node::measure_stage_phase("stage-snapshot", "assess-coherence-certificate", || {
