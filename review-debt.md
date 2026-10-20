@@ -1,0 +1,3 @@
+# Review dispositions
+
+The single actionable inline finding concerned the read-error test for recorded constructors. Verified against the selected native source: recorded construction performs canonical identity preparation and retains Canonicalization(Read), while direct construction retains SourceRead. The test now asserts each exact phase and original Arc identity. All 103 selected synthetic cases and strict producer-independent Clippy pass. A reply records the fix; the review thread is resolved. Informational processing and optional automation controls require no source change. No independent execution audit or full owning-issue completion is claimed. CI remains waived by the maintainer's explicit instruction.
