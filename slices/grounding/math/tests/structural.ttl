@@ -1108,9 +1108,9 @@ ASK {
     math:UnderspecifiedPiecewiseFunction logic:subClassOf math:MathConformanceFailure .
     math:UnbackedAnalyticProperty logic:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function, so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each use canonical logic:subClassOf to specialize math:MathConformanceFailure, so each violation is a typed, queryable object and RDFS remains a projection rather than semantic authority." .
+    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function, so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two piecewise-function hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each use canonical logic:subClassOf to specialize math:MathConformanceFailure, so each violation is a typed, queryable object and RDFS remains a projection rather than semantic authority." .
 
-# --- Task 8 — the two co-equal flagship signed-radial-field scenes ---------- #
+# --- The two co-equal worked signed-radial-field scenes ------------------- #
 
 # The qualitative scene is well-framed AND carries ZERO closed-form apparatus (MUST).
 # The field is a framed math:PiecewiseFunction (domain, codomain math:ExtendedRealLine,

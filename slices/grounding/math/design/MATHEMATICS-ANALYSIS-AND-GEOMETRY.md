@@ -573,7 +573,7 @@ The manifold declares dimension and structure kind; the chart names its coordina
 the Lorentzian metric is a tensor field — all math-side, ready for a physics slice to build spacetime
 frames on top.
 
-## The flagship demonstrator — a signed radial field on a compactified Lorentzian 2-plane
+## Worked scenes — a signed radial field on a compactified Lorentzian 2-plane
 
 Two co-equal worked scenes (`examples/signed-radial-field-qualitative.ttl` and
 `examples/signed-radial-field-closed-form.ttl`) model the *same* target: a signed extended-real field
@@ -595,6 +595,14 @@ may interpret the central singularity, the outward decline, the flat far field, 
 physically (a gravitational well, a potential, a far field, a repulsive edge), but that reading lives
 entirely downstream and is never asserted math-side — the slice states only a signed extended-real
 field over a compactified line.
+
+These are authored competency examples, not `gmeow:FlagshipScenario` registrations.
+Their structural assertions, competency questions and example-conformance cells
+test equation-free sufficiency and explicit expression linkage. They do not claim
+a native producer that computes a radial solution or verifies its analytic limits.
+The five executable flagship scenarios retain their separate producer-bound
+acceptance contract; registering these scenes would require such a computation
+and a corresponding hard-rule counter-example first.
 
 ## Shape and lint gates
 

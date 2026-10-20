@@ -20,7 +20,7 @@
 @prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
 # The worked closed-form example (examples/closed-form-functions.ttl).
 @prefix exm:   <https://blackcatinformatics.ca/gmeow/examples/math/> .
-# The two flagship signed-radial-field scenes (examples/signed-radial-field-*.ttl).
+# The two worked signed-radial-field scenes (examples/signed-radial-field-*.ttl).
 @prefix rqf:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/> .
 @prefix rcf:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/> .
 @prefix cov:   <https://blackcatinformatics.ca/gmeow/examples/math/coverage/> .
@@ -2402,7 +2402,7 @@ ex:rowAnalyticSmoothness a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:smoothness ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:smoothnessBoundary ] .
 
-# === The two flagship signed-radial-field scenes ============================ #
+# === The two worked signed-radial-field scenes ============================ #
 # The qualitative scene: the whole target recovered with NO closed form. The seven
 # rows are the two divergent poles, the plateau bound, and the four ring masses.
 ex:cqRadialFieldQualitative a gmeow:CompetencyQuestion ;
