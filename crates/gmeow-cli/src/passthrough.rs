@@ -501,12 +501,21 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
 ///   distinction, and minting a third integer for a lossy copy of information the reporter
 ///   already emits exactly would invite callers to branch on the weaker channel.
 pub(crate) fn math(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
+    if matches!(
+        command,
+        MathCommands::Project { .. } | MathCommands::Lift { .. }
+    ) {
+        return math_interchange(reporter, command);
+    }
     // One shared body for the three bridges: they differ only in which `lift` they call,
     // because every bridge has the identical `(&[u8], &str) -> Result<Lifted>` contract.
     type LiftFn = fn(&[u8], &str) -> gmeow_errors::Result<gmeow_math_lift::Lifted>;
     // `leaf` is the invoked subcommand name, carried onto a failure's context frame so the
     // finding says which bridge refused without the reader having to infer it from the code.
     let (source, out, lift, leaf): (&PathBuf, &Option<PathBuf>, LiftFn, &str) = match command {
+        MathCommands::Project { .. } | MathCommands::Lift { .. } => {
+            unreachable!("interchange commands dispatched above")
+        }
         MathCommands::LiftR { source, out } => (source, out, gmeow_math_lift::r::lift, "lift-r"),
         MathCommands::LiftOnnx { source, out } => {
             (source, out, gmeow_math_lift::onnx::lift, "lift-onnx")
@@ -587,5 +596,63 @@ impl StagedBundle {
 
     fn path(&self) -> &Path {
         self.file.path()
+    }
+}
+
+/// Installed interchange entry point: all inputs are explicit user artifacts.
+fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
+    use gmeow_math_lift::projection::{self, Target};
+    let result = (|| -> gmeow_errors::Result<()> {
+        match command {
+            MathCommands::Project {
+                source,
+                subject,
+                to,
+                reference,
+                out,
+                ledger,
+            } => {
+                if out == ledger {
+                    return Err(gmeow_errors::Diag::of_kind(
+                        gmeow_math_lift::error::ProjectionInput {
+                            detail: "artifact and ledger paths must differ".to_owned(),
+                        },
+                    ));
+                }
+                let bytes = read_source_bytes(source)?;
+                let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)?;
+                let reference =
+                    purrdf::parse_dataset(&std::fs::read(reference)?, "text/turtle", None)?;
+                let emission =
+                    projection::project(&dataset, subject, Target::parse(to)?, &reference)?;
+                std::fs::write(out, emission.bytes)?;
+                std::fs::write(ledger, emission.ledger)?;
+            }
+            MathCommands::Lift {
+                source,
+                from,
+                subject,
+                reference,
+                out,
+            } => {
+                let bytes = read_source_bytes(source)?;
+                let reference =
+                    purrdf::parse_dataset(&std::fs::read(reference)?, "text/turtle", None)?;
+                let lifted = projection::lift(
+                    &bytes,
+                    Target::parse(from)?,
+                    subject,
+                    &reference,
+                    MATH_LIFT_MINT_BASE,
+                )?;
+                std::fs::write(out, lifted.turtle)?;
+            }
+            _ => unreachable!("only interchange commands reach this entry point"),
+        }
+        Ok(())
+    })();
+    match result {
+        Ok(()) => 0,
+        Err(diag) => gmeow_cli_core::emit_and_exit(reporter, diag, "gmeow"),
     }
 }

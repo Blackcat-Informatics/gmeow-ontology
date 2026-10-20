@@ -3062,7 +3062,6 @@ msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|skos:definition"
 msgid "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."
 msgstr "Relie un math:ProofStep à la règle d'inférence qui l'autorise. Domaine math:ProofStep, portée laissée OUVERTE en prose : la règle peut être une règle logic: ou une identité de trace de preuve, une règle nommée du calcul d'un prouveur, ou une identité de déclenchement adressée par contenu, et le couplage à logic: se fait par référence plutôt que par des triplets affirmés dans celui-ci. Le pendant au niveau de l'étape de math:usesProofMethod, qui nomme la stratégie globale d'une math:Proof ; l'autorisation d'une étape de résolution n'est pas la stratégie de la preuve, de sorte que les deux sont des propriétés distinctes à des niveaux distincts."
 
-
 # --- Algebraic structures, activation, and the alpha-equivalence class ---
 
 msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2000/01/rdf-schema#label"
@@ -3132,3 +3131,40 @@ msgstr "Un individu frappé et adressé par contenu, jamais rédigé à la main 
 msgctxt "https://blackcatinformatics.ca/math/AlternativeHypothesis|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The effect-present claim H1, distinct from the tested default math:NullHypothesis and from the math:Sidedness value that records its direction."
 msgstr "L'assertion d'effet présent H1, distincte de l'hypothèse par défaut testée math:NullHypothesis et de la valeur math:Sidedness qui en consigne la direction."
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Projection Request"
+msgstr "Demande de projection"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit selection of one canonical mathematical source and one external consumer codec. The request names its source through math:projectionSource and its target through math:projectionTargetName. Execution must produce the selected artifact together with its computed math:ProjectionRecord or fail; the request is not a preservation claim and never stands in for the resulting loss judgment."
+msgstr "Une sélection explicite d’une source mathématique canonique et d’un codec externe destiné à un consommateur. La demande nomme sa source par math:projectionSource et sa cible par math:projectionTargetName. Son exécution doit produire l’artefact choisi avec son math:ProjectionRecord calculé, ou échouer ; la demande ne revendique aucune préservation et ne remplace jamais le jugement de perte du résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to select a mathematical artifact that must be emitted for an external consumer."
+msgstr "Utiliser pour sélectionner un artefact mathématique qui doit être émis pour un consommateur externe."
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an unexecuted request as evidence that a projection exists or that its preservation claim was checked."
+msgstr "Ne pas traiter une demande non exécutée comme la preuve qu’une projection existe ou que sa préservation a été vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name exactly one source and one target codec: mathml, openmath, data-cube, stato or qudt. Inspect the emitted artifact and its computed loss record."
+msgstr "Nommer exactement une source et un codec cible : mathml, openmath, data-cube, stato ou qudt. Examiner l’artefact émis et son relevé de perte calculé."
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The request selects work; the separate ProjectionRecord judges the actual result. Unknown or unsupported selected targets fail explicitly."
+msgstr "La demande sélectionne un travail ; le ProjectionRecord distinct juge le résultat effectif. Toute cible sélectionnée inconnue ou non prise en charge provoque un échec explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:request a math:ProjectionRequest ; math:projectionSource ex:rendering ; math:projectionTargetName \"mathml\" ."
+msgstr "ex:request a math:ProjectionRequest ; math:projectionSource ex:rendering ; math:projectionTargetName \"mathml\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/math/projectionSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ProjectionRecord or ProjectionRequest to its named canonical mathematical source. A request selects the source to lower; the resulting record judges what that lowering preserved. A source distribution's parameterization and an expression's structure remain explicit: an omitted construct belongs in the computed loss record, never in an unrecorded simplification."
+msgstr "Relie un ProjectionRecord ou un ProjectionRequest à sa source mathématique canonique nommée. Une demande sélectionne la source à traduire ; le relevé résultant juge ce que cette traduction a préservé. La paramétrisation d’une distribution source et la structure d’une expression restent explicites : tout élément omis appartient au relevé de perte calculé, jamais à une simplification non consignée."
+
+msgctxt "https://blackcatinformatics.ca/math/projectionTargetName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the external target of a mathematical projection record or request. Records identify the addressee of the preservation judgment. Requests select exactly one supported codec name: mathml, openmath, data-cube, stato or qudt; an unknown selected codec fails rather than producing a substitute artifact."
+msgstr "Nomme la cible externe d’un relevé ou d’une demande de projection mathématique. Les relevés identifient le destinataire du jugement de préservation. Les demandes choisissent exactement un codec pris en charge : mathml, openmath, data-cube, stato ou qudt ; un codec sélectionné inconnu provoque un échec plutôt qu’un artefact de remplacement."

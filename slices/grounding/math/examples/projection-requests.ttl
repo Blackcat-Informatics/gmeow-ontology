@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/math/projection/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:integer a math:NumberLiteral ; math:literalValue "7"^^xsd:integer .
+ex:rendering a math:ExpressionRendering ;
+    lang:renderedContent ex:integer ;
+    lang:renderingKind lang:renderingNotation ;
+    lang:renderingConvention <http://www.w3.org/1998/Math/MathML> ;
+    lang:renderingPreservation logic:ExactPreservation .
+
+ex:length a math:Quantity ;
+    math:quantityValue "2.5"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/M> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
+    math:hasDimension math:lengthDimension .
+
+ex:matrix a math:DatasetMatrix , math:Matrix ; math:hasEntry ex:entry .
+ex:entry a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:rational .
+ex:rational a math:RationalValue ; math:numerator 1 ; math:denominator 3 .
+
+ex:model a math:StatisticalModel ; math:modelFormula <http://example.org/math/mpgFormula> .
+
+ex:mathml a math:ProjectionRequest ; math:projectionSource ex:rendering ; math:projectionTargetName "mathml" .
+ex:openmath a math:ProjectionRequest ; math:projectionSource ex:integer ; math:projectionTargetName "openmath" .
+ex:qudt a math:ProjectionRequest ; math:projectionSource ex:length ; math:projectionTargetName "qudt" .
+ex:cube a math:ProjectionRequest ; math:projectionSource ex:matrix ; math:projectionTargetName "data-cube" .
+ex:stato a math:ProjectionRequest ; math:projectionSource ex:model ; math:projectionTargetName "stato" .

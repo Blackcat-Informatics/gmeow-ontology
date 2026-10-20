@@ -135,6 +135,15 @@ define_diag_kind! {
     failure_class = "https://blackcatinformatics.ca/math/UnliftableIngest";
 }
 
+define_diag_kind! {
+    /// A selected projection or inbound artifact cannot satisfy its declared contract.
+    pub struct ProjectionInput { detail: String }
+    code = "math.lift.projection.input";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/UnliftableIngest";
+}
+
 /// The complete `math-lift` diagnostic-code catalog, in registration order.
 pub const MATH_LIFT_DIAG_CODES: &[&str] = &[
     SourceNotUtf8::CODE,
@@ -145,6 +154,7 @@ pub const MATH_LIFT_DIAG_CODES: &[&str] = &[
     TstpParse::CODE,
     ProofUnliftable::CODE,
     EmptyCodomain::CODE,
+    ProjectionInput::CODE,
 ];
 
 /// Eagerly intern every `math-lift` diagnostic code (idempotent).
@@ -158,6 +168,7 @@ pub fn register_all() -> Vec<Code> {
         TstpParse::register(),
         ProofUnliftable::register(),
         EmptyCodomain::register(),
+        ProjectionInput::register(),
     ]
 }
 

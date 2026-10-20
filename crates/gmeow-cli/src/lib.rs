@@ -1494,6 +1494,43 @@ pub enum AffectCommands {
 /// about what crossed the bridge.
 #[derive(Debug, Subcommand)]
 pub enum MathCommands {
+    /// Project an explicitly selected canonical math source and write its mandatory loss ledger.
+    Project {
+        /// Source RDF Turtle file; '-' reads standard input.
+        source: PathBuf,
+        /// Named canonical expression-rendering, expression, quantity, model or matrix.
+        #[arg(long)]
+        subject: String,
+        /// Target: mathml, openmath, data-cube, stato or qudt.
+        #[arg(long)]
+        to: String,
+        /// Explicit symbol and classified-unit reference Turtle file.
+        #[arg(long)]
+        reference: PathBuf,
+        /// Target artifact output path.
+        #[arg(long)]
+        out: PathBuf,
+        /// Required canonical Turtle loss-ledger output path.
+        #[arg(long)]
+        ledger: PathBuf,
+    },
+    /// Lift a mathematical interchange artifact conservatively against explicit reference data.
+    Lift {
+        /// External XML or RDF Turtle artifact; '-' reads standard input.
+        source: PathBuf,
+        /// Target dialect of the artifact.
+        #[arg(long)]
+        from: String,
+        /// Named RDF root; XML uses the document root.
+        #[arg(long)]
+        subject: String,
+        /// Canonical symbol and classified-unit reference Turtle file.
+        #[arg(long)]
+        reference: PathBuf,
+        /// Canonical mathematical draft output path.
+        #[arg(long)]
+        out: PathBuf,
+    },
     /// Lift an R model/statistics script into `math:` structures: `math:ModelFormula` over
     /// indexed `math:ArgumentSlot`s, `math:FittedModel` (with both its formula and its
     /// `math:fittedToData` dataset), `math:DatasetMatrix` BY REFERENCE, `math:Distribution`,

@@ -2390,3 +2390,36 @@ fn ungrounded_result_claim_fires_under_a_non_default_namespace() {
         report.errors()
     );
 }
+
+#[test]
+fn generated_math_projection_ledger_passes_the_six_native_projection_checks() {
+    // gmeow-test-input: synthetic-only
+    let source = dataset_from(
+        "@prefix math: <https://blackcatinformatics.ca/math/> . <urn:math:leaf> a math:NumberLiteral ; math:literalValue 7 .",
+    );
+    let reference = dataset_from("");
+    let emission = gmeow_math::projection::project(
+        &source,
+        "urn:math:leaf",
+        gmeow_math::projection::Target::OpenMath,
+        &reference,
+    )
+    .unwrap();
+    let ledger = dataset_from(&emission.ledger);
+    let combined = purrdf::RdfDataset::union(&[source.as_ref(), ledger.as_ref()]).unwrap();
+    let report = structural_lint_dataset(&combined, &cfg());
+    let failures = [
+        "MissingPreservationKind",
+        "UndeclaredUnsupportedConstruct",
+        "UnrecordedProjectionLoss",
+        "ProjectionConfidenceAsProbability",
+        "ProjectionDroppedParameterization",
+        "ExactPreservationViolated",
+    ];
+    for message in report.errors() {
+        assert!(
+            !failures.iter().any(|failure| message.contains(failure)),
+            "{message}"
+        );
+    }
+}

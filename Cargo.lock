@@ -1767,6 +1767,7 @@ dependencies = [
  "gmeow-term-arena",
  "purrdf",
  "purrdf-hash",
+ "purrdf-lex",
 ]
 
 [[package]]

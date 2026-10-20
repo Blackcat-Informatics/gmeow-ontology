@@ -6,10 +6,8 @@
 //! The mathematics grounding slice ships the ingestion-bridge **ontology**: the
 //! `math:IngestRun` family, the `math:parseSource` witness, the
 //! `math:ingestCorrespondence` law spine, the `math:UnliftableIngest` gate, and the
-//! twelve codomain classes. What it did not ship is anything that *reads a file*. The
-//! in-bundle producer emits a fixed Turtle string and takes no arguments;
-//! `slices/grounding/math/docs.md` says plainly that "the R/ONNX/proof lifters themselves
-//! are design-only".
+//! mathematical codomain classes. Native readers and writers implement this contract
+//! over explicitly supplied bytes and reference datasets.
 //!
 //! This crate is those lifters. Each takes a REAL external artifact and produces `math:`
 //! structures conforming to the shipped codomain:
@@ -19,6 +17,7 @@
 //! | [`r`] | an R model/statistics script | hand-written recursive descent |
 //! | [`onnx`] | an `.onnx` graph | hand-written protobuf wire decoder |
 //! | [`proof`] | a TSTP derivation | hand-written annotated-formula parser |
+//! | [`projection`] | MathML, OpenMath, Data Cube, STATO and QUDT | native XML/RDF codecs |
 //!
 //! # Why this is a separate crate from `gmeow-math`
 //!
@@ -40,7 +39,8 @@
 //! "best effort" lifter. Accordingly every entry point here returns
 //! `gmeow_errors::Result` and every failure is a typed [`error`] diagnostic under
 //! `math.lift.*`. There is no partial lift: an artifact this crate cannot fully structure
-//! produces no triples at all.
+//! produces no triples at all. Presentation-only MathML explicitly selects notation
+//! rendering: its retained source does not imply an inferred expression AST.
 //!
 //! # Reader tiers
 //!
@@ -55,6 +55,7 @@ pub mod error;
 pub mod frame;
 pub mod ns;
 pub mod onnx;
+pub mod projection;
 pub mod proof;
 pub mod r;
 pub mod sink;

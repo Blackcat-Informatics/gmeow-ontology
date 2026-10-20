@@ -1061,3 +1061,6 @@ pub fn load_vector(index: &TripleIndex, vector_iri: &str) -> Result<Vec<Rational
 #[path = "lib.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+/// Explicit mathematical interchange codecs shared by pipeline and installed callers.
+pub use gmeow_math_lift::projection;

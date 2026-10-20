@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The ingest-run frame: the part of a lift that is the SAME for all three bridges.
+//! The ingest-run frame shared by native artifact and mathematical projection readers.
 //!
 //! `MATHEMATICS-BRIDGES.md`'s shared bridge contract says a bridge run *is* the
 //! mnemomorphic `put` leg of a `logic:Correspondence`. Mechanically that means four
@@ -51,6 +51,8 @@ pub enum BridgeKind {
     Onnx,
     /// A proof / dependency DAG, as a TSTP derivation.
     Proof,
+    /// A mathematical interchange artifact, using its explicitly selected codec.
+    Projection(crate::projection::Target),
 }
 
 impl BridgeKind {
@@ -61,6 +63,7 @@ impl BridgeKind {
             Self::R => "RIngestRun",
             Self::Onnx => "ONNXIngestRun",
             Self::Proof => "ProofIngestRun",
+            Self::Projection(_) => "IngestRun",
         }
     }
 
@@ -72,7 +75,7 @@ impl BridgeKind {
     #[must_use]
     pub fn is_textual(self) -> bool {
         match self {
-            Self::R | Self::Proof => true,
+            Self::R | Self::Proof | Self::Projection(_) => true,
             Self::Onnx => false,
         }
     }
@@ -84,6 +87,7 @@ impl BridgeKind {
             Self::R => "r",
             Self::Onnx => "onnx",
             Self::Proof => "proof",
+            Self::Projection(target) => target.name(),
         }
     }
 }

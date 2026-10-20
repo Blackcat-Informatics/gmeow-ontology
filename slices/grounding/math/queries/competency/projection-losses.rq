@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Which constructs are lost by each selected mathematical target?
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+SELECT DISTINCT ?source ?target ?loss WHERE {
+  ?record a math:ProjectionRecord ;
+    math:projectionSource ?source ; math:projectionTargetName ?target ;
+    logic:unsupportedConstruct ?loss .
+} ORDER BY ?source ?target ?loss

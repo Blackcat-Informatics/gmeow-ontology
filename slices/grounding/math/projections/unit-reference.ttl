@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Explicit external codec reference input, not an imported TBox or canonical law.
+# The metre's dimensional metadata is referenced from https://qudt.org/vocab/unit/M .
+# Native lengthDimension is this codec profile's admitted dimensional classification.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+<http://qudt.org/vocab/unit/M>
+    a qudt:Unit ;
+    math:hasDimension math:lengthDimension ;
+    qudt:hasDimensionVector <http://qudt.org/vocab/dimensionvector/A0E0L1I0M0H0T0D0> .

@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Does a lowering explicitly name omitted confidence or distribution parameterization?
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+SELECT DISTINCT ?source ?target ?loss WHERE {
+  ?record a math:ProjectionRecord ;
+    math:projectionSource ?source ; math:projectionTargetName ?target ;
+    logic:unsupportedConstruct ?loss .
+  FILTER (?loss IN (logic:confidence, math:distributionParameterization))
+} ORDER BY ?source ?target ?loss

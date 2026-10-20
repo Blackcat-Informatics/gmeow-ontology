@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-math-lift"
-description = "Executable math: ingestion front-ends: R / ONNX / proof artifacts parsed into math: structures as the mnemomorphic put leg of a logic:Correspondence"
+description = "Native mathematical ingestion and target projection codecs with source-bound preservation records"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -22,6 +22,8 @@ path = "src/lib.rs"
 # through `RdfDatasetBuilder` rather than by string concatenation, so canonical ordering
 # is the codec's job and not a promise this crate has to keep by hand.
 purrdf.workspace = true
+purrdf-lex.workspace = true
+purrdf-hash.workspace = true
 # gmeow-errors: the typed-diagnostic substrate. Every unliftable input is a
 # `define_diag_kind!` hard failure under the `math.lift.*` namespace — never a string
 # fallback, never a degraded AST (MATHEMATICS-RUNTIME.md "Ingestion hard rules").
@@ -32,6 +34,3 @@ gmeow-errors = { path = "../errors" }
 # structure, not textual repetition" acceptance bar. Reasoner-free, so this crate stays
 # engine-free and wasm-buildable.
 gmeow-term-arena = { path = "../term-arena" }
-
-[dev-dependencies]
-purrdf-hash.workspace = true

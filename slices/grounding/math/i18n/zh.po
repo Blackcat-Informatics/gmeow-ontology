@@ -3062,7 +3062,6 @@ msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|skos:definition"
 msgid "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."
 msgstr "把一个 math:ProofStep 关联到许可该步骤的推理规则。定义域 math:ProofStep，值域在散文中保持\"开放\"：该规则可以是 logic: 规则或证明轨迹标识、某个证明器具名的演算规则，或按内容寻址的触发标识；与 logic: 的耦合是按引用进行，而非向其断言三元组。它是 math:usesProofMethod 在步骤层面的对应物，后者命名的是一个 math:Proof 的整体策略；一个归结步骤的许可并不是该证明的策略，因此二者是处于不同层次的两个属性。"
 
-
 # --- Algebraic structures, activation, and the alpha-equivalence class ---
 
 msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2000/01/rdf-schema#label"
@@ -3132,3 +3131,40 @@ msgstr "一个被铸造的、内容寻址的个体，绝不手工编写：它的
 msgctxt "https://blackcatinformatics.ca/math/AlternativeHypothesis|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The effect-present claim H1, distinct from the tested default math:NullHypothesis and from the math:Sidedness value that records its direction."
 msgstr "效应存在的主张 H1，区别于所检验的默认假设 math:NullHypothesis，也区别于记录其方向的 math:Sidedness 值。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Projection Request"
+msgstr "投影请求"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit selection of one canonical mathematical source and one external consumer codec. The request names its source through math:projectionSource and its target through math:projectionTargetName. Execution must produce the selected artifact together with its computed math:ProjectionRecord or fail; the request is not a preservation claim and never stands in for the resulting loss judgment."
+msgstr "对一个规范数学源和一个面向外部使用者的编解码器的显式选择。请求通过 math:projectionSource 指定源，通过 math:projectionTargetName 指定目标。执行必须生成所选产物及其计算得到的 math:ProjectionRecord，否则失败；请求本身不作保留性声明，也不能替代结果的损失判断。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to select a mathematical artifact that must be emitted for an external consumer."
+msgstr "用于选择必须为外部使用者输出的数学产物。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an unexecuted request as evidence that a projection exists or that its preservation claim was checked."
+msgstr "不要把尚未执行的请求当作投影已存在或其保留性声明已获验证的证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name exactly one source and one target codec: mathml, openmath, data-cube, stato or qudt. Inspect the emitted artifact and its computed loss record."
+msgstr "恰好指定一个源和一个目标编解码器：mathml、openmath、data-cube、stato 或 qudt。检查输出产物及计算得到的损失记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The request selects work; the separate ProjectionRecord judges the actual result. Unknown or unsupported selected targets fail explicitly."
+msgstr "请求选择要执行的工作；独立的 ProjectionRecord 判断实际结果。选择未知或不受支持的目标必须显式失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProjectionRequest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:request a math:ProjectionRequest ; math:projectionSource ex:rendering ; math:projectionTargetName \"mathml\" ."
+msgstr "ex:request a math:ProjectionRequest ; math:projectionSource ex:rendering ; math:projectionTargetName \"mathml\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/math/projectionSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ProjectionRecord or ProjectionRequest to its named canonical mathematical source. A request selects the source to lower; the resulting record judges what that lowering preserved. A source distribution's parameterization and an expression's structure remain explicit: an omitted construct belongs in the computed loss record, never in an unrecorded simplification."
+msgstr "将 ProjectionRecord 或 ProjectionRequest 关联到其具名规范数学源。请求选择要投影的源；生成的记录判断投影保留了什么。源分布的参数化和表达式结构必须保持显式；省略的构造必须列入计算得到的损失记录，不能隐含于未记录的简化中。"
+
+msgctxt "https://blackcatinformatics.ca/math/projectionTargetName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the external target of a mathematical projection record or request. Records identify the addressee of the preservation judgment. Requests select exactly one supported codec name: mathml, openmath, data-cube, stato or qudt; an unknown selected codec fails rather than producing a substitute artifact."
+msgstr "指定数学投影记录或请求的外部目标。记录标识保留性判断所针对的使用者。请求恰好选择一个受支持的编解码器名称：mathml、openmath、data-cube、stato 或 qudt；选择未知编解码器必须失败，不能生成替代产物。"

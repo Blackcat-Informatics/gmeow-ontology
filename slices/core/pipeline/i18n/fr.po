@@ -12,7 +12,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "stageImpl is functional"
 msgstr "stageImpl est fonctionnelle"
@@ -128,3 +127,120 @@ msgstr "Cette frontière ne certifie pas la complétude des sources canoniques a
 msgctxt "https://blackcatinformatics.ca/gmeow/RecordedConsumerBoundary|http://www.w3.org/2004/02/skos/core#example"
 msgid "A report-writing failure prevents successful consumer completion."
 msgstr "Un échec d’écriture du rapport empêche de déclarer le consommateur terminé avec succès."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Run the ten deterministic native mathematical producers and execute explicit mathematical projection requests from the declared source product. Read symbol and class correspondences from the existing mappings product and unit classification from the declared codec reference input. Attach the computed mathematical graphs and publish the selected MathML, OpenMath, Data Cube, STATO and QUDT artifacts with their computed loss records. The codec reference does not enter the canonical reasoning theory. Missing inputs, unsupported selected operations and failed producer parity are hard failures; no generated file is read as pipeline transport."
+msgstr "Exécuter les dix producteurs mathématiques natifs déterministes et les demandes explicites de projection mathématique du produit source déclaré. Lire les correspondances de symboles et de classes dans le produit de correspondances existant, et la classification des unités dans la référence déclarée du codec. Attacher les graphes mathématiques calculés et publier les artefacts MathML, OpenMath, Data Cube, STATO et QUDT sélectionnés avec leurs relevés de perte calculés. La référence du codec n’entre pas dans la théorie canonique de raisonnement. Les entrées manquantes, les opérations sélectionnées non prises en charge et tout échec de parité des producteurs provoquent un échec ferme ; aucun fichier généré ne sert de transport au pipeline."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical data-cube projection fanout"
+msgstr "Extraction de la projection mathématique data-cube"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/data-cube.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "Reconstruire generated/projections/math/data-cube.ttl depuis sa projection RDF nommée dans le paquet distribué. Le relevé de perte est émis par la même opération de codec mathématique sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "À utiliser pour extraire la projection RDF mathématique sélectionnée du paquet distribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "Ne pas utiliser une projection cible externe comme théorie mathématique canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "Extraire le graphe nommé déclaré en Turtle et examiner les relevés de préservation et de perte associés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "Cette extraction reconstitue un artefact cible émis ; elle ne renforce pas son jugement de préservation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-data-cube|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/data-cube.ttl together with generated/projections/math/loss-ledger.ttl."
+msgstr "Extraire generated/projections/math/data-cube.ttl avec generated/projections/math/loss-ledger.ttl."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical stato projection fanout"
+msgstr "Extraction de la projection mathématique stato"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/stato.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "Reconstruire generated/projections/math/stato.ttl depuis sa projection RDF nommée dans le paquet distribué. Le relevé de perte est émis par la même opération de codec mathématique sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "À utiliser pour extraire la projection RDF mathématique sélectionnée du paquet distribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "Ne pas utiliser une projection cible externe comme théorie mathématique canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "Extraire le graphe nommé déclaré en Turtle et examiner les relevés de préservation et de perte associés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "Cette extraction reconstitue un artefact cible émis ; elle ne renforce pas son jugement de préservation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-stato|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/stato.ttl together with generated/projections/math/loss-ledger.ttl."
+msgstr "Extraire generated/projections/math/stato.ttl avec generated/projections/math/loss-ledger.ttl."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical qudt projection fanout"
+msgstr "Extraction de la projection mathématique qudt"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/qudt.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "Reconstruire generated/projections/math/qudt.ttl depuis sa projection RDF nommée dans le paquet distribué. Le relevé de perte est émis par la même opération de codec mathématique sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "À utiliser pour extraire la projection RDF mathématique sélectionnée du paquet distribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "Ne pas utiliser une projection cible externe comme théorie mathématique canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "Extraire le graphe nommé déclaré en Turtle et examiner les relevés de préservation et de perte associés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "Cette extraction reconstitue un artefact cible émis ; elle ne renforce pas son jugement de préservation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-qudt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/qudt.ttl together with generated/projections/math/loss-ledger.ttl."
+msgstr "Extraire generated/projections/math/qudt.ttl avec generated/projections/math/loss-ledger.ttl."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical loss-ledger projection fanout"
+msgstr "Extraction de la projection mathématique loss-ledger"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reconstruct generated/projections/math/loss-ledger.ttl from its named RDF projection in the shipped bundle. The loss ledger is emitted by the same selected mathematical codec operation."
+msgstr "Reconstruire generated/projections/math/loss-ledger.ttl depuis sa projection RDF nommée dans le paquet distribué. Le relevé de perte est émis par la même opération de codec mathématique sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when extracting the selected mathematical RDF projection from the shipped bundle."
+msgstr "À utiliser pour extraire la projection RDF mathématique sélectionnée du paquet distribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use an external target projection as the canonical mathematical theory."
+msgstr "Ne pas utiliser une projection cible externe comme théorie mathématique canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extract the declared named graph as Turtle and inspect the accompanying preservation and loss records."
+msgstr "Extraire le graphe nommé déclaré en Turtle et examiner les relevés de préservation et de perte associés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extraction reconstructs an emitted target artifact; it does not strengthen its preservation judgment."
+msgstr "Cette extraction reconstitue un artefact cible émis ; elle ne renforce pas son jugement de préservation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extract generated/projections/math/loss-ledger.ttl together with generated/projections/math/loss-ledger.ttl."
+msgstr "Extraire generated/projections/math/loss-ledger.ttl avec generated/projections/math/loss-ledger.ttl."

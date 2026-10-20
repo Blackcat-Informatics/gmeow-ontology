@@ -796,6 +796,7 @@ impl ArchiveBlobsStage {
                 "stage-export-pydantic".to_string(),
                 "stage-export-result-shapes".to_string(),
                 "stage-mappings".to_string(),
+                "stage-math-producers".to_string(),
                 "stage-statements".to_string(),
             ],
         }
@@ -834,7 +835,7 @@ impl Stage for ArchiveBlobsStage {
         // the unit a dictionary primes, so this is what gave the claim dictionary and
         // gmeow-lang-ast-v1 the frame sets their names claim. The claim dictionary was
         // later retired for failing the two-part code; its reps ride unprimed.
-        "archive-blobs.v4"
+        "archive-blobs.v5-math-queries"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         authored_archive_sources(root)
@@ -900,10 +901,33 @@ pub(crate) fn fold_archive_blobs(
     // files are not flushed until the reconcile returns, so reading them from disk here
     // would tar the STALE committed set and a mapping edit could never reach the bundle
     // without a manual disk write. Sourced from the product exactly as schemas / axioms are.
-    let mappings_artifacts = upstream
+    let mut mappings_artifacts = upstream
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product"))?
         .artifacts();
+    if members_basename_from_artifacts(&mappings_artifacts, "generated/queries/", ".rq").is_empty()
+    {
+        return Err(stage_err(
+            "missing generated queries in stage-mappings product",
+        ));
+    }
+    // Mathematical competencies share the existing query archive. Read the selected
+    // producer product, never generated files, and reject collisions or omissions.
+    let math_product = upstream
+        .get("stage-math-producers")
+        .ok_or_else(|| stage_err("missing stage-math-producers query product"))?;
+    for (name, _) in gmeow_math::projection::COMPETENCY_QUERIES {
+        let path = format!("generated/queries/math-{name}");
+        let bytes = math_product
+            .artifact(&path)
+            .ok_or_else(|| stage_err(&format!("missing mathematical competency {path}")))?;
+        if mappings_artifacts
+            .insert(path.clone(), bytes.to_vec())
+            .is_some()
+        {
+            return Err(stage_err(&format!("duplicate generated query {path}")));
+        }
+    }
     // THIS run's terminology surfaces (the two non-RDF members of REP_LANG_PROJECTIONS),
     // from the stage-export-glossary product: the `.po` fold ran ONCE in that leaf, and the
     // committed generated/catalog/glossary.md and generated/projections/glossary.tbx are

@@ -165,6 +165,18 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         dependencies: &["logic-compile"],
     },
     GeneratorInfo {
+        name: "math-projections",
+        sources: &["slices/grounding/math/"],
+        outputs: &[
+            "generated/projections/math/",
+            "generated/queries/math-projection-losses.rq",
+            "generated/queries/math-projection-expression-losses.rq",
+            "generated/queries/math-projection-preservation.rq",
+            "generated/queries/math-projection-sensitive-losses.rq",
+        ],
+        dependencies: &[],
+    },
+    GeneratorInfo {
         name: "matrix",
         sources: &["slices/"],
         outputs: &["generated/module-status.md"],

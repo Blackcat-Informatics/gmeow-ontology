@@ -13570,3 +13570,41 @@ repo:README.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/json-schema-license-choice> a gmeow:Selector ;
     gmeow:selectorLocator "crates/validate/vendor/json-schema-2020-12/README.md:17" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/mathml-content-profile> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.w3.org/TR/MathML/chapter4-d.html> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/mathml-content-profile> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/mathml-content-profile> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md" .
+
+<https://www.w3.org/TR/MathML/chapter4-d.html> a gmeow:CreativeWork ;
+    rdfs:label "MathML content markup"@en ;
+    gmeow:sourceLocation "https://www.w3.org/TR/MathML/chapter4-d.html" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/openmath-content-profile> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://openmath.org/standard/om20-2019-07-01/omstd20.html> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/openmath-content-profile> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/openmath-content-profile> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md" .
+
+<https://openmath.org/standard/om20-2019-07-01/omstd20.html> a gmeow:CreativeWork ;
+    rdfs:label "OpenMath 2 standard"@en ;
+    gmeow:sourceLocation "https://openmath.org/standard/om20-2019-07-01/omstd20.html" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/qudt-metre-codec-reference> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://qudt.org/vocab/unit/M> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/qudt-metre-codec-reference> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/qudt-metre-codec-reference> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md" .
