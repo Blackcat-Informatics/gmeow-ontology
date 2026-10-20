@@ -1,0 +1,109 @@
+{
+  "issue": 1814,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "[term] Narrative and affect: epistemic affects, beat functions, diegetic relations, smell, two arc types (consumer: memetics)",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1809": "[term] Chat messages, the persona a record was made in, and the origin of composed speech (consumers: memetics, katamari)"
+  },
+  "link_relations": {
+    "1809": "mentions"
+  },
+  "related": [
+    {
+      "number": 589,
+      "title": "feat(dreaming): dreaming as a published composition over the experiential layer (extension)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1380,
+      "title": "feat(affect): Rust classifier-ingestion adapter \u2014 HF model output \u2192 attributed AffectClassifierOutput/AffectiveClaim",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1247,
+      "title": "EPIC \u2014 Affect \u2192 core: emotions as a high-dimensional landscape (5-stage build-out)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 358,
+      "title": "EPIC \u2014 Narrative interiority: the text is not the story (story-time frames \u00b7 depiction seam \u00b7 arcs \u00b7 roles \u00b7 motifs)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1379,
+      "title": "feat(affect): compute derived affect-intensity norm (fnAffectiveIntensity) \u2014 Rust evaluable, not just an ontology handle",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1589,
+      "title": "ontology: define embedding-projection semantics and a PurRDF .purremb profile",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1405,
+      "title": "FULL/MAXIMAL slice documentation standard: documentation slice, DocMaturity, coverage\u2192RDF, grounding-slice lift",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1448,
+      "title": "Ground validation shapes: re-home shapes/gmeow-shapes.ttl (~78) to owning slices",
+      "state": "CLOSED"
+    },
+    {
+      "number": 694,
+      "title": "logic: finish per-slice owl/gUFO source retirement (incremental migration tail of #500/#663)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1434,
+      "title": "grounding: unify the flagship acceptance bar \u2014 shared vocabulary, logic: flagship manifest, math: execution discharge",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1260,
+      "title": "math: linear algebra & learning \u2014 PCA, embeddings, AI self-structure (LINEAR-ALGEBRA-AND-LEARNING)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1267,
+      "title": "lang: meaning \u2014 sense, reference, and the denotation bridge into logic: (MEANING)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1475,
+      "title": "Downstream integration findings: GMN-1 losslessness, Cyc lineage, factored security rings, mentation coverage",
+      "state": "CLOSED"
+    },
+    {
+      "number": 704,
+      "title": "C1 \u2014 Holon kernel: derive logic:Holon, holarchy & the weak-supplementation axiom",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 35,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1814-term-narrative-and-affect-epistemic"
+  },
+  "coverage": [
+    "issue #1814 + 0 comment(s) via github",
+    "link crawl: 1 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['[term]', 'Narrative', 'affect:']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1814 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1814: 0",
+    "requirement candidates: 2 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 4 path(s) (0 on disk), 10 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

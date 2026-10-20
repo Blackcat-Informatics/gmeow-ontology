@@ -1,0 +1,3 @@
+# Primary-agent prior-art assessment
+
+Self-analysis, not an independent review. The gathered prior-art report covers the full issue, no comments, no earlier attempt and the separately owned speech-origin dependency. Source inspection confirms the open affect/value pattern, existing frame-bound positions and arcs, olfactory modality and typed image graph. Reuse those owners without a second graph class, duplicate modality, fixed story sequence or ontology aliases. Existing bordering/containment relations have different domains and part-whole semantics from qualitative prop placement. New source declarations use logic and preserve all legacy image contracts. No external formalism, new runtime engine or dependency is introduced.

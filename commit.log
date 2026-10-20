@@ -1,0 +1,28 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.........(no files to check)Skipped
+cargo fmt --check....................................(no files to check)Skipped
+lint issue/PR references.................................................Passed
+[paudley/1814-term-narrative-and-affect-epistemic 2cd52bb8e] feat: complete narrative, affect and odor vocabulary (Principles 4, 7, 9, 17, 19)
+ 29 files changed, 1797 insertions(+)
+ create mode 100644 slices/core/affect/examples/epistemic-affects.ttl
+ create mode 100644 slices/core/places/examples/qualitative-placement.ttl
+ create mode 100644 slices/extensions/narrative/examples/beat-functions.ttl
+ create mode 100644 slices/extensions/sensory/examples/odor-observations.ttl
+ create mode 100644 slices/extensions/sensory/i18n/fr.po
+ create mode 100644 slices/extensions/sensory/i18n/zh.po
+ create mode 100644 slices/extensions/sensory/tests/competency.ttl

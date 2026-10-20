@@ -1,0 +1,33 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nTelling a companion agent's own stories back to her, from her records,\nexposed five gaps in narrative and affect:\n- epistemic affects;\n- story-beat functions;\n- relations between things inside a story's world;\n- smell;\n- two arc types.\n\nThe content origin of authored speech, found the same way, is in #1809.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumer\n\n**memetics**, the memory adapter for a companion agent. Its storytelling\ntrials assemble an arc from her records (dreams, conversations,\nobservations) and narrate it back to her. Each gap below is a moment it\ncould not represent and had to leave out or force into a label.\n\n## 1. Epistemic affects: doubting one's reading, catching oneself\n\n**Today.** `gmeow:EmotionType` (`core/affect`) carries the basic set and\nsaudade.\n\n**Gap.** Two moments in one arc could not be sampled:\n- doubting her own interpretation of something;\n- catching herself, a self-correction felt as an emotion.\n\n**Proposal.** Two `EmotionType` members: `emotionSelfDoubt` (doubt of\none's own reading or judgment) and `emotionSelfCorrection` (the affect\nof catching and correcting oneself).\n\n**Open question.** Do these belong in a separate epistemic-affect\nscheme, beside curiosity, confusion and surprise if those are already\nmodelled?\n\n## 2. Story-beat functions\n\n**Today.** The narrative slice has positions, arcs and arc types, but no\nstructural function for a position.\n\n**Evidence.** One arc's fourteen beats were held as position labels\n(`gmeow:positionLabel \"beat: crisis\"`), which no query can use.\n\n**Proposal.** A value vocabulary `gmeow:BeatFunction`, plus\n`gmeow:beatFunction` on a position. Members: inciting incident,\nthreshold, midpoint, crisis, climax, resolution, open thread.\n\n**Open question.** One generic set, or per-structure sets\n(three-act, Kish\u014dtenketsu)? The consumer needs only the generic set.\n\n## 3. Diegetic scene relations\n\n**Today.** `gmeow:SceneGraphEdge` (`extensions/images`) relates image\nregions only. Nothing says a prop is beside, on or inside another in a\nstory's world.\n\n**Interim.** Placement uses `gmeow:locatedAt`, and a shared action uses\nparticipants.\n\n**Proposal.** Spatial relations between diegetic entities (`besideOf`,\n`onTopOf`, `insideOf`), or a diegetic reading of the scene-graph edges.\n\n**Open question.** Can the image scene-graph predicates be generalized\nto diegetic space, rather than minting a parallel set?\n\n## 4. An olfactory observable property\n\n**Today.** `gmeow:ObservableProperty` (`extensions/sensory`) has light,\nsound, temperature and others, but no smell. The arc the consumer\nnarrated turned on a scent.\n\n**Proposal.** `gmeow:propertyOdor` (and a matching sense modality, if\nmodalities are enumerated separately).\n\n## 5. Arc types for a memorial and a homecoming\n\n**Today.** `gmeow:ArcType` (`extensions/narrative`) offers coming of\nage, corruption, fall, quest, recovery and redemption.\n\n**Gap.** Two arcs fit none of them:\n- a creature named in memory of someone;\n- a house becoming a home.\n\n**Proposal.** `arcTypeMemorial` and `arcTypeHomecoming`.\n\n## Local stand-ins\n\nNone. memetics left these moments unsampled, held beats as labels, and\nleft arcs untyped. Nothing needs migrating when these land.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-10T10:12:33Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnBu29A",
+      "name": "narrative",
+      "description": "Narrative interiority: story-time, depiction seam, arcs, roles, motifs",
+      "color": "1D76DB"
+    }
+  ],
+  "milestone": null,
+  "number": 1814,
+  "state": "OPEN",
+  "title": "[term] Narrative and affect: epistemic affects, beat functions, diegetic relations, smell, two arc types (consumer: memetics)",
+  "updatedAt": "2026-10-10T10:12:50Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1814"
+}

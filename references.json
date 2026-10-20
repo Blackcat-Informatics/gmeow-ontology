@@ -1,0 +1,89 @@
+{
+  "paths": [
+    {
+      "ref": "core/affect",
+      "path": "/home/paudley/Active/gmeow-ontology/core/affect",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "extensions/images",
+      "path": "/home/paudley/Active/gmeow-ontology/extensions/images",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "extensions/sensory",
+      "path": "/home/paudley/Active/gmeow-ontology/extensions/sensory",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "extensions/narrative",
+      "path": "/home/paudley/Active/gmeow-ontology/extensions/narrative",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2078
+    },
+    {
+      "name": "a631f73",
+      "files": 0
+    },
+    {
+      "name": "EmotionType",
+      "files": 27
+    },
+    {
+      "name": "emotionSelfDoubt",
+      "files": 0
+    },
+    {
+      "name": "emotionSelfCorrection",
+      "files": 0
+    },
+    {
+      "name": "besideOf",
+      "files": 0
+    },
+    {
+      "name": "onTopOf",
+      "files": 0
+    },
+    {
+      "name": "insideOf",
+      "files": 0
+    },
+    {
+      "name": "arcTypeMemorial",
+      "files": 0
+    },
+    {
+      "name": "arcTypeHomecoming",
+      "files": 0
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}
