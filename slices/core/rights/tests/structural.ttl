@@ -551,3 +551,14 @@ ASK {
     gmeow:trademarkStatus       a owl:ObjectProperty ; rdfs:domain gmeow:Trademark ; rdfs:range gmeow:TrademarkStatus .
 }""" ;
     gmeow:saRationale "The projection-facing rights property surface MUST retain its datatype/object property typing and its core domain/range anchors, because the CC, DC Terms, ODRL, schema.org, and SPDX projections rely on these contracts." .
+
+<https://example.org/lifecycle/tests/request-fields> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ex: <https://example.org/lifecycle/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK { gmeow:ForgetRequest rdfs:subClassOf gmeow:Activity . gmeow:requestingAgent rdfs:domain gmeow:ForgetRequest ; rdfs:range gmeow:Agent . gmeow:requestedErasureTarget rdfs:domain gmeow:ForgetRequest . gmeow:requestUnderRight rdfs:domain gmeow:ForgetRequest . }""" ;
+    gmeow:saRationale "A forget request is an activity with explicit requester, target and invoked-right roles, rather than an authorization rule." .

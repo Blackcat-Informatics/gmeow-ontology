@@ -67,3 +67,93 @@ fn malformed_constraints_remain_visible_in_the_record() {
         "a failed constraint cannot become a silently empty shape product"
     );
 }
+
+#[test]
+fn forget_request_requires_roles_and_named_references_without_granting_permission() {
+    // Independently authored, tiny input: this never loads or produces the corpus.
+    let prefixes = "@prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix ex: <https://example.org/> .";
+    let mut source = format!("{prefixes} gmeow:ForgetRequest a logic:Class .");
+    for (property, range) in [
+        ("requestingAgent", "gmeow:Agent"),
+        ("requestedErasureTarget", "logic:Thing"),
+        ("requestUnderRight", "logic:Thing"),
+    ] {
+        source.push_str(&format!(
+            "gmeow:ForgetRequest logic:subClassOf [ a logic:Restriction ;
+                logic:onProperty gmeow:{property} ; logic:allValuesFrom {range} ] .
+            [ a logic:ClosureEntry ; logic:onClass gmeow:ForgetRequest ;
+                logic:closureKey \"https://blackcatinformatics.ca/gmeow/{property}\" ;
+                logic:closureValue logic:ClosedWorldClosure ] ."
+        ));
+    }
+    for property in ["requestedErasureTarget", "requestUnderRight"] {
+        source.push_str(&format!(
+            "ex:{property}Kind a logic:PathNodeKindConstraint ;
+                logic:onClass gmeow:ForgetRequest ; logic:valuePath gmeow:{property} ;
+                logic:nodeKind \"IRI\" ; logic:formalizes gmeow:ForgetRequest ."
+        ));
+    }
+    let product = compile(&source);
+    let shape = product
+        .shapes
+        .iter()
+        .find(|shape| {
+            shape.ir.target
+                == ShapeTarget::Class(
+                    "https://blackcatinformatics.ca/gmeow/ForgetRequest".to_owned(),
+                )
+        })
+        .expect("the request has a derived validation shape");
+    for property in [
+        "requestingAgent",
+        "requestedErasureTarget",
+        "requestUnderRight",
+    ] {
+        assert!(shape.ir.properties.iter().any(|path| {
+            path.path == format!("https://blackcatinformatics.ca/gmeow/{property}")
+                && path.min_count == Some(1)
+        }));
+    }
+    let shape_graph = purrdf::parse_dataset(
+        format!("{SH_HEADER}{}", shape.shacl).as_bytes(),
+        "text/turtle",
+        None,
+    )
+    .unwrap();
+    let shapes = parse_shapes(&shape_graph).unwrap();
+    let valid = "ex:request a gmeow:ForgetRequest ;
+        gmeow:requestingAgent ex:person ; gmeow:requestedErasureTarget ex:claim ;
+        gmeow:requestUnderRight ex:right . ex:person a gmeow:Agent .";
+    let report = |text: &str| {
+        let data =
+            purrdf::parse_dataset(format!("{prefixes} {text}").as_bytes(), "text/turtle", None)
+                .unwrap();
+        validate_dataset(&data, &shapes).unwrap()
+    };
+    assert!(report(valid).results.is_empty());
+    for missing in [
+        "gmeow:requestingAgent ex:person ;",
+        "gmeow:requestedErasureTarget ex:claim ;",
+        "gmeow:requestUnderRight ex:right",
+    ] {
+        assert!(!report(&valid.replace(missing, "")).results.is_empty());
+    }
+    for (from, to) in [
+        (
+            "gmeow:requestedErasureTarget ex:claim",
+            "gmeow:requestedErasureTarget []",
+        ),
+        (
+            "gmeow:requestedErasureTarget ex:claim",
+            "gmeow:requestedErasureTarget \"claim\"",
+        ),
+        (
+            "gmeow:requestUnderRight ex:right",
+            "gmeow:requestUnderRight \"right\"",
+        ),
+    ] {
+        assert!(!report(&valid.replace(from, to)).results.is_empty());
+    }
+}

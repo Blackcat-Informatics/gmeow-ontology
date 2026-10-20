@@ -50,7 +50,7 @@ gmeow:StandpointModality
     gmeow:avoidWhen "Avoid conflating it with gmeow:confidence (our certainty about the stance) or with gmeow:accordingTo (whose frame); modality is how settled the standpoint itself holds the claim, an axis orthogonal to those. Never use a refuted value to mark a proposition globally false — refutation is one standpoint's denial, never a winner over the rest (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Reference the seeded modality individuals from a StandpointClaim via gmeow:claimModality or from an annotated statement via gmeow:standpointModality; leave the value absent to mean unequivocal, and keep competing modalities on coexisting claims rather than resolving them."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for HOW a standpoint holds a proposition — the closed set of belief values (unequivocal, probable, conceivable, refuted, bullshit) a claim declares through gmeow:standpointModality or gmeow:claimModality."@x-gmeow-english .
 
 gmeow:StandpointTenure
@@ -154,7 +154,7 @@ gmeow:claimModality
     gmeow:avoidWhen "Avoid for the produced value of a non-standpoint observation (use gmeow:observationResult) and avoid asserting two modalities — it is functional; a refuted value denies the claim from this frame, never marks it globally false (Principle 9). For new claims prefer the six canonical axes — this five-value twin is a generated projection surface, not a co-equal authoring path."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
-    gmeow:howToUse "Point the StandpointClaim at one gmeow:StandpointModality individual; when the claim is flattened to an annotated statement, this becomes gmeow:standpointModality, and an absent value reads as unequivocal."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."@x-gmeow-english ;
     gmeow:useWhen "Use to assign the belief value a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointModality, used when a claim is a first-class observation rather than an annotated statement."@x-gmeow-english .
 
 gmeow:conceivable
@@ -270,7 +270,7 @@ gmeow:unequivocal
     a gmeow:StandpointModality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "unequivocal (□, true)"@x-gmeow-english ;
-    skos:definition "□_S — settled / necessary true according to the standpoint: the proposition holds in every precisification the standpoint admits (CRMinf belief value 'true'). The default when no gmeow:standpointModality is given."@x-gmeow-english ;
+    skos:definition "Explicit settled or necessary truth according to a standpoint: the proposition holds in every admitted precisification. Its declared decomposition includes necessary. An absent modality never implies this value."@x-gmeow-english ;
     gmeow:decomposesToAxis gmeow:polarityAffirm ,
         gmeow:modalForceNecessary ,
         gmeow:credenceCertain ,
@@ -366,14 +366,14 @@ gmeow:ModalForce
     gmeow:avoidWhen "Avoid conflating gmeow:modalForcePossible (◊, an alethic register) with a low gmeow:CredenceLevel (graded belief) or with low gmeow:confidence (our certainty) — the three are orthogonal axes, not points on one scale."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Reference one seeded modal-force individual from a gmeow:StandpointClaim via gmeow:claimModalForce, or from an annotated statement via gmeow:standpointModalForce; an absent value reads as gmeow:modalForceNecessary."@x-gmeow-english ;
+    gmeow:howToUse "Reference a modal-force individual via claimModalForce on a StandpointClaim or standpointModalForce on an annotated statement. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for the alethic □/◊ register — necessary / actual / possible / counterfactual — under which a standpoint holds a proposition, kept distinct from credence and confidence."@x-gmeow-english .
 
 gmeow:modalForceNecessary
     a gmeow:ModalForce ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "necessary (□)"@x-gmeow-english ;
-    skos:definition "□_S — the proposition is settled in every precisification the standpoint admits. The alethic force from which the legacy gmeow:unequivocal and gmeow:refuted project. The default when no gmeow:claimModalForce is given."@x-gmeow-english ;
+    skos:definition "The proposition holds in every precisification admitted by the standpoint. This explicit necessary force participates in the seeded unequivocal and refuted decompositions; it is never inferred from absence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -453,9 +453,9 @@ gmeow:AssertoricForce
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Assertoric Force"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The assertoric-force / speech-act axis — what the standpoint DOES with the proposition: gmeow:assertoricAssert (puts it forward as true), gmeow:assertoricConjecture (offers it tentatively), gmeow:assertoricAssume (supposes it for the sake of argument), gmeow:assertoricRetract (withdraws a prior assertion, retained not erased — Principle 10). One of the six axes."@x-gmeow-english ;
+    skos:definition "The speech-act force axis: assert puts a proposition forward, conjecture offers it tentatively, assume supposes it for argument, retract describes a withdrawal utterance. Speech-act classification alone has no lifecycle effect."@x-gmeow-english ;
     skos:example "ex:claim gmeow:claimAssertoricForce gmeow:assertoricConjecture ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid conflating gmeow:assertoricAssume (a supposition not endorsed) with gmeow:assertoricAssert (an endorsement), and never delete a retracted assertion — gmeow:assertoricRetract closes it as a retained act (Principle 10)."@x-gmeow-english ;
+    gmeow:avoidWhen "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
     gmeow:howToUse "Reference one seeded force individual from a gmeow:StandpointClaim via gmeow:claimAssertoricForce, or from an annotated statement via gmeow:standpointAssertoricForce; an absent value reads as gmeow:assertoricAssert."@x-gmeow-english ;
@@ -489,7 +489,7 @@ gmeow:assertoricRetract
     a gmeow:AssertoricForce ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "retract"@x-gmeow-english ;
-    skos:definition "The standpoint withdraws a prior assertion — retained as a closed act, never erased (Principle 10). No legacy gmeow:StandpointModality value projects from it, so a claim carrying it has no lossless legacy equivalent (hard-unsupported on projection)."@x-gmeow-english ;
+    skos:definition "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -599,7 +599,7 @@ gmeow:standpointModalForce
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint modal force"@x-gmeow-english ;
     rdfs:range gmeow:ModalForce ;
-    skos:definition "The alethic □/◊ register under which a standpoint holds the annotated proposition. The flattened-statement twin of gmeow:claimModalForce; absent reads as gmeow:modalForceNecessary. Orthogonal to credence and gmeow:confidence."@x-gmeow-english ;
+    skos:definition "The alethic modal force of an annotated proposition, orthogonal to credence and confidence. It is the flattened-statement twin of claimModalForce. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernStandpoints ,
         gmeow:concernStatementMetadata ;
     gmeow:graphBoxRole gmeow:boxCBox ,
@@ -687,7 +687,7 @@ gmeow:claimModalForce
     gmeow:avoidWhen "Avoid asserting two modal forces — it is functional — and avoid conflating gmeow:modalForcePossible with a low credence band or low gmeow:confidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
-    gmeow:howToUse "Point the StandpointClaim at one gmeow:ModalForce individual; absent reads as gmeow:modalForceNecessary, and on flattening it becomes gmeow:standpointModalForce."@x-gmeow-english ;
+    gmeow:howToUse "Name one ModalForce individual when specified; flatten it to standpointModalForce without supplying a value for absence. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."@x-gmeow-english ;
     gmeow:useWhen "Use to assign the alethic □/◊ register a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointModalForce, kept distinct from credence and confidence."@x-gmeow-english .
 
 gmeow:claimCredence
@@ -726,7 +726,7 @@ gmeow:claimAssertoricForce
     rdfs:range gmeow:AssertoricForce ;
     skos:definition "The speech-act force — assert / conjecture / assume / retract — assigned to a gmeow:StandpointClaim. Not rdfs:subPropertyOf gmeow:observationResult (DL disjointness). When the claim is flattened, it becomes gmeow:standpointAssertoricForce."@x-gmeow-english ;
     skos:example "ex:claim gmeow:claimAssertoricForce gmeow:assertoricConjecture ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting two forces — it is functional — and never delete a retracted assertion; gmeow:assertoricRetract closes it as a retained act (Principle 10)."@x-gmeow-english ;
+    gmeow:avoidWhen "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
     gmeow:howToUse "Point the StandpointClaim at one gmeow:AssertoricForce individual; absent reads as gmeow:assertoricAssert, and on flattening it becomes gmeow:standpointAssertoricForce."@x-gmeow-english ;
@@ -791,9 +791,9 @@ DOCTRINE.
   * Three orthogonal axes, no inferential bridge: gmeow:accordingTo (whose frame) ⟂ gmeow:wasAttributedTo (which source recorded it) ⟂ gmeow:confidence (how sure we are).
   * Two clocks kept apart: fact-time (gmeow:validFrom / gmeow:validUntil — when the claimed fact holds) ⟂ standpoint-time (when the standpoint held the position — light via validFrom/Until on the statement, heavy via a reified gmeow:StandpointTenure).
   * No single slot to win (CONSTITUTION Principle 9): a contested fact is several standpoint-indexed claims that coexist; there is no preferredRank / primary* selector.
-  * Suppression, never erasure (Principle 10): a withdrawn claim or a closed tenure sets gmeow:displayable false; it is retained, not deleted.
+  * Suppression for ordinary revision (Principle 10): a withdrawn claim or a closed tenure sets gmeow:displayable false; it is retained, not deleted.
   * DL-clean by construction (Principle 3): the standpoint axis is an OWL AnnotationProperty, so the generated OWL downcast stays OWL 2 DL.
-  * Factored modality: claim modality is six orthogonal canonical axes — gmeow:Polarity (affirm/deny/suspend) ⟂ gmeow:ModalForce (necessary/actual/possible/counterfactual) ⟂ gmeow:CredenceLevel + numeric gmeow:standpointCredence ⟂ gmeow:AssertoricForce (assert/conjecture/assume/retract) ⟂ gmeow:TruthDirectedness (truth-aimed/indifferent/strategic) ⟂ gmeow:SupportStatus (Belnap supported/opposed/both/neither). The legacy five-value gmeow:StandpointModality is RETAINED as a lossless projection of the axes (each value carries its canonical decomposition via gmeow:decomposesToAxis; the projection is round-tripped in crates/slice/src/standpoint_modality.rs, which hard-fails any axis tuple with no legacy equivalent rather than approximating). bullshit = truthDirectedness indifferent (not a truth value); refuted = polarity deny (frame-relative, never global-false). The logic: machinery (Standpoint-Logic □/◊, Belnap support) stays central in slices/grounding/logic, referenced here by prose only — no asserted logic: triples.
+  * Factored modality: claim modality is six orthogonal canonical axes — gmeow:Polarity (affirm/deny/suspend) ⟂ gmeow:ModalForce (necessary/actual/possible/counterfactual) ⟂ gmeow:CredenceLevel + numeric gmeow:standpointCredence ⟂ gmeow:AssertoricForce (assert/conjecture/assume/retract) ⟂ gmeow:TruthDirectedness (truth-aimed/indifferent/strategic) ⟂ gmeow:SupportStatus (Belnap supported/opposed/both/neither). The legacy five-value gmeow:StandpointModality is RETAINED as a lossless projection of the axes (each value carries its canonical decomposition via gmeow:decomposesToAxis; absence supplies no legacy value; an axis tuple without an exact declared decomposition has no lossless legacy equivalent). bullshit = truthDirectedness indifferent (not a truth value); refuted = polarity deny (frame-relative, never global-false). The logic: machinery (Standpoint-Logic □/◊, Belnap support) stays central in slices/grounding/logic, referenced here by prose only — no asserted logic: triples.
 
 FORMAL GROUNDING. The facility realises Standpoint Logic (Gómez Álvarez & Rudolph): gmeow:accordingTo is the axiom-level standpoint label (cf. Standpoint-OWL 2 standpointLabel); gmeow:standpointModality unequivocal / conceivable are the □_S / ◊_S operators (gmeow:modalForceNecessary / gmeow:modalForcePossible on the factored axis); gmeow:sharpens is the standpoint ⊆ / precisification relation; gmeow:universalStandpoint is the universal standpoint *. See docs/standpoints.md."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
@@ -1091,7 +1091,7 @@ gmeow:claimAssertoricForceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimAssertoricForce is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:claimAssertoricForce is functional: a standpoint claim carries one speech-act force — assert, conjecture, assume, or retract — so the relator takes a single force (absent reading as assert) and a retracted assertion is closed as a retained act rather than gaining a rival force."@x-gmeow-english ;
+    skos:definition "The canonical functional-property obligation permits at most one explicit claimAssertoricForce per claim. The retract value classifies speech only; lifecycle withdrawal is represented by Activity/retractsClaim."@x-gmeow-english ;
     logic:characterizes gmeow:claimAssertoricForce ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:claimAssertoricForce ;
@@ -1136,11 +1136,11 @@ gmeow:claimModalForceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimModalForce is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:claimModalForce is functional: a standpoint claim carries one alethic modal force in the □/◊ register, so the relator takes a single force (absent reading as necessary), kept orthogonal to credence and confidence rather than stacking rival modal values."@x-gmeow-english ;
+    skos:definition "The canonical functional-property obligation permits at most one explicit claimModalForce per claim. Absence remains unspecified; functionality does not require a value or supply necessary."@x-gmeow-english ;
     logic:characterizes gmeow:claimModalForce ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:claimModalForce ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimModalForce names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject multiple explicit modal-force values without requiring a missing value."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimModalForce, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimModalForce and nothing else. It is not a definition of gmeow:claimModalForce (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -1151,11 +1151,11 @@ gmeow:claimModalityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimModality is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:claimModality is functional: a standpoint claim carries one five-value belief modality — unequivocal, probable, conceivable, refuted, or bullshit — the lossless projection of the six canonical axes, so this convenience twin resolves to a single frame-relative value (absent reading as unequivocal) rather than several modalities on one claim."@x-gmeow-english ;
+    skos:definition "The canonical functional-property obligation permits at most one explicit legacy claimModality per claim. Absence is unspecified, supplies no unequivocal value and licenses no necessary-force decomposition."@x-gmeow-english ;
     logic:characterizes gmeow:claimModality ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:claimModality ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject multiple explicit legacy modality values without requiring a missing value."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimModality and nothing else. It is not a definition of gmeow:claimModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -1236,3 +1236,49 @@ gmeow:tenureStandpointFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tenureStandpoint and nothing else. It is not a definition of gmeow:tenureStandpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:tenureStandpointFunctionality logic:characterizes gmeow:tenureStandpoint ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:succeedsClaim
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Entity ;
+    logic:range gmeow:Entity ;
+    logic:subPropertyOf gmeow:supersedes ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "succeeds claim"@x-gmeow-english ;
+    skos:definition "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
+    gmeow:howToUse "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."@x-gmeow-english ;
+    gmeow:useWhen "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."@x-gmeow-english ;
+    skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
+    skos:example "ex:janet gmeow:succeedsClaim ex:bob ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:correctsClaim
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Entity ;
+    logic:range gmeow:Entity ;
+    logic:subPropertyOf gmeow:supersedes ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "corrects claim"@x-gmeow-english ;
+    skos:definition "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."@x-gmeow-english ;
+    gmeow:howToUse "Annotate the relation with accordingTo and validFrom for when the correction took effect. Suppress the erroneous predecessor in that standpoint without erasing its retained record."@x-gmeow-english ;
+    gmeow:useWhen "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."@x-gmeow-english ;
+    skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
+    skos:example "ex:correction gmeow:correctsClaim ex:mistakenName ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:retractsClaim
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "retracts claim"@x-gmeow-english ;
+    skos:definition "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
+    gmeow:howToUse "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."@x-gmeow-english ;
+    gmeow:useWhen "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."@x-gmeow-english ;
+    skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
+    skos:example "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+<https://blackcatinformatics.ca/gmeow/slices/standpoint> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."@x-gmeow-english .

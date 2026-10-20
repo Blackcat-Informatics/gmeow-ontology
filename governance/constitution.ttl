@@ -136,6 +136,12 @@ meta:gate-suppression a meta:Gate ;
     meta:artifact "dsl/mappings/vocabulary.ttl" ;
     meta:symbol "fnSelectDisplayName" .
 
+meta:tests-claim-lifecycle a meta:TestSuite ;
+    rdfs:label "claim lifecycle and forget request contracts"@x-gmeow-english ;
+    meta:artifact "slices/core/rights/tests/example-conformance.ttl",
+        "slices/core/rights/tests/structural.ttl", "slices/core/standpoint/tests/structural.ttl",
+        "crates/lang-bridge/tests/gmn1_roundtrip.rs" .
+
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
     meta:artifact "crates/validate/tests/conformance_cases/conformance_disclosure.rs", "crates/validate/tests/conformance_cases/conformance_privacy.rs",
@@ -429,10 +435,10 @@ meta:Principle9 a meta:Principle ;
 
 meta:Principle10 a meta:Principle ;
     meta:number 10 ;
-    meta:title "Suppression, never erasure" ;
+    meta:title "Suppression for revision; governed erasure" ;
     meta:enforcedBy meta:gate-suppression, meta:tests-suppression,
         meta:gate-suppression-injection, meta:tests-leak-conformance,
-        meta:gate-claim-audit .
+        meta:gate-claim-audit, meta:tests-claim-lifecycle .
 
 meta:Principle11 a meta:Principle ;
     meta:number 11 ;

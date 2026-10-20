@@ -484,3 +484,39 @@ ASK {
     { gmeow:universalStandpoint owl:sameAs gmeow:unspecifiedStandpoint . }
 }""" ;
     gmeow:saRationale "gmeow:unspecifiedStandpoint MUST NOT be owl:sameAs gmeow:universalStandpoint -- the central 'unspecified, not universal' distinction: the default-of-silence and the explicit-universal top are distinct frames; conflating them re-introduces the silent-universality collapse." .
+
+<https://example.org/lifecycle/tests/distinct-lifecycle-relations> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ex: <https://example.org/lifecycle/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK { gmeow:succeedsClaim rdfs:subPropertyOf gmeow:supersedes . gmeow:correctsClaim rdfs:subPropertyOf gmeow:supersedes . gmeow:retractsClaim rdfs:domain gmeow:Activity ; rdfs:range gmeow:Entity . }""" ;
+    gmeow:saRationale "Succession and correction specialize supersession; actual withdrawal belongs to an activity, not a force individual." .
+
+<https://example.org/lifecycle/tests/lifecycle-examples> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ex: <https://example.org/lifecycle/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+ ex:janetUsage gmeow:succeedsClaim ex:bobUsage .
+ ex:correctUsage gmeow:correctsClaim ex:mistakenUsage .
+ ex:withdrawal gmeow:retractsClaim ex:claim ; gmeow:wasAssociatedWith ex:person .
+ ex:bobUsage gmeow:validUntil "2025-01-01T00:00:00Z"^^xsd:dateTime ; gmeow:displayable false .
+ ?s rdf:reifies <<( ex:janetUsage gmeow:succeedsClaim ex:bobUsage )>> ;
+    gmeow:accordingTo ex:person ; gmeow:validFrom "2025-01-01T00:00:00Z"^^xsd:dateTime .
+ ?c rdf:reifies <<( ex:correctUsage gmeow:correctsClaim ex:mistakenUsage )>> ;
+    gmeow:accordingTo ex:person ; gmeow:validFrom "2025-02-01T00:00:00Z"^^xsd:dateTime .
+ ?r rdf:reifies <<( ex:withdrawal gmeow:retractsClaim ex:claim )>> ;
+    gmeow:accordingTo ex:person ; gmeow:validFrom "2025-03-01T00:00:00Z"^^xsd:dateTime .
+ FILTER NOT EXISTS { ex:janetUsage gmeow:correctsClaim ex:bobUsage }
+ FILTER NOT EXISTS { ex:utterance gmeow:retractsClaim ?target }
+ FILTER NOT EXISTS { ex:utterance gmeow:claimModalForce ?force }
+}""" ;
+    gmeow:saRationale "Worked succession, correction and withdrawal retain distinct relation kinds, standpoint and effective time. Speech-act force alone supplies neither withdrawal nor necessity." .

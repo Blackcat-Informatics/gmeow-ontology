@@ -1931,3 +1931,5 @@ gmeow:usageRelationshipScopeFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:usageRelationshipScope and nothing else. It is not a definition of gmeow:usageRelationshipScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:usageRelationshipScopeFunctionality logic:characterizes gmeow:usageRelationshipScope ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+<https://blackcatinformatics.ca/gmeow/slices/names> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."@x-gmeow-english .

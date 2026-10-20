@@ -18,6 +18,62 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
+#[test]
+fn absent_modal_force_stays_unspecified_through_gmn() {
+    let source = br#"
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix ex: <https://example.org/> .
+        ex:message gmeow:hasState ex:sent .
+    "#;
+    let dataset = parse_dataset(source, "text/turtle", None).expect("plain observation");
+    let model = Gmn0Model::from_dataset(&dataset);
+    let document = gmn1_write(&model, &dict()).expect("encode plain observation");
+    assert!(!document.text.contains("m:"), "{}", document.text);
+    let decoded = gmn1_read(&document, &dict()).expect("decode plain observation");
+    assert!(gmn0_canonically_equal(&model, &decoded).expect("canonical comparison"));
+}
+
+#[test]
+fn explicit_necessary_and_speech_act_survive_without_lifecycle_invention() {
+    let source = br#"
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix ex: <https://example.org/> .
+        ex:claim gmeow:hasState ex:sent ;
+            gmeow:claimModalForce gmeow:modalForceNecessary ;
+            gmeow:claimAssertoricForce gmeow:assertoricRetract .
+    "#;
+    let dataset = parse_dataset(source, "text/turtle", None).expect("explicit force fixture");
+    let model = Gmn0Model::from_dataset(&dataset);
+    let document = gmn1_write(&model, &dict()).expect("encode explicit force");
+    let decoded = gmn1_read(&document, &dict()).expect("decode explicit force");
+    assert!(
+        gmn0_canonically_equal(&model, &decoded).expect("canonical comparison"),
+        "explicit necessary and the speech-act classification must survive exactly, without adding retractsClaim or changing their values"
+    );
+}
+
+#[test]
+fn lifecycle_relations_keep_standpoint_and_effective_time_through_gmn() {
+    let source = br#"
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix ex: <https://example.org/> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        ex:newUsage gmeow:succeedsClaim ex:oldUsage
+            {| gmeow:accordingTo ex:person ;
+               gmeow:validFrom "2025-01-01T00:00:00Z"^^xsd:dateTime |} .
+        ex:correction gmeow:correctsClaim ex:mistake
+            {| gmeow:accordingTo ex:person ;
+               gmeow:validFrom "2025-02-01T00:00:00Z"^^xsd:dateTime |} .
+        ex:withdrawal gmeow:retractsClaim ex:claim
+            {| gmeow:accordingTo ex:person ;
+               gmeow:validFrom "2025-03-01T00:00:00Z"^^xsd:dateTime |} .
+    "#;
+    let dataset = parse_dataset(source, "text/turtle", None).expect("lifecycle annotations");
+    let model = Gmn0Model::from_dataset(&dataset);
+    round_trip_check(&model, &dict())
+        .expect("relation kind, standpoint, and effective time must survive together");
+}
+
 fn dict() -> GmnDictionary {
     static DICTIONARY: OnceLock<GmnDictionary> = OnceLock::new();
     DICTIONARY.get_or_init(|| {

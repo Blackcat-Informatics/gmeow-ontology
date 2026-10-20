@@ -1352,3 +1352,171 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:trademarkStatus and nothing else. It is not a definition of gmeow:trademarkStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:trademarkStatus, et rien d'autre. Ce n'est pas une définition de gmeow:trademarkStatus (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|rdfs:label"
+msgid "Forget Request"
+msgstr "Demande d’effacement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|skos:definition"
+msgid "An in-flight request by an agent to erase explicitly named objects under a stated right. A request is not authorization and does not itself delete anything."
+msgstr "Demande en cours par un agent visant à effacer des objets explicitement nommés au titre d’un droit indiqué. Une demande ne constitue pas une autorisation et ne supprime rien par elle-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|skos:scopeNote"
+msgid "On authorized fulfillment, erase the selected targets and the request record itself. Retain no deletion receipt, removed-identifier list or tombstone in the governed store. Unselected references may dangle and answer gone; erasure never implies a cascade. Historical repair receipts remain source evidence outside migrated stores."
+msgstr "Lors de l’exécution autorisée, effacer les cibles sélectionnées et la demande elle-même. Ne conserver dans le dépôt gouverné aucun reçu de suppression, liste d’identifiants supprimés ou marqueur de suppression. Les références non sélectionnées peuvent rester pendantes et répondre « disparu » ; aucun effacement en cascade n’est implicite. Les reçus de réparations historiques restent des preuves sources hors des dépôts migrés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|gmeow:useWhen"
+msgid "Use for a pending governed request to forget named objects."
+msgstr "Utiliser pour une demande gouvernée en attente visant des objets nommés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|gmeow:avoidWhen"
+msgid "Do not use for ordinary revision, automatic expiry, a deletion receipt or a grant of permission."
+msgstr "Ne pas utiliser pour une révision ordinaire, une expiration automatique, un reçu de suppression ou un octroi de permission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|gmeow:howToUse"
+msgid "Name at least one requestingAgent, requestedErasureTarget and requestUnderRight. Select the request itself explicitly in the authorized purge; denied or pending requests do not trigger erasure."
+msgstr "Indiquer au moins un requestingAgent, un requestedErasureTarget et un requestUnderRight. Sélectionner explicitement la demande elle-même dans la purge autorisée ; les demandes refusées ou en attente ne déclenchent aucun effacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequest|skos:example"
+msgid "ex:request a gmeow:ForgetRequest ; gmeow:requestingAgent ex:person ; gmeow:requestedErasureTarget ex:claim ; gmeow:requestUnderRight ex:erasureRight ."
+msgstr "ex:request a gmeow:ForgetRequest ; gmeow:requestingAgent ex:person ; gmeow:requestedErasureTarget ex:claim ; gmeow:requestUnderRight ex:erasureRight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|rdfs:label"
+msgid "requesting agent"
+msgstr "agent demandeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|skos:definition"
+msgid "The agent making a forget request; not necessarily its data subject or authorizing authority."
+msgstr "Agent qui formule une demande d’effacement ; ce n’est pas nécessairement la personne concernée ni l’autorité qui l’autorise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|gmeow:howToUse"
+msgid "Name each requesting agent; joint requests are permitted."
+msgstr "Nommer chaque agent demandeur ; les demandes conjointes sont permises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|gmeow:avoidWhen"
+msgid "Do not infer erasure authority from being the requester."
+msgstr "Ne pas déduire une autorisation d’effacement de la qualité de demandeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|gmeow:useWhen"
+msgid "The agent making a forget request; not necessarily its data subject or authorizing authority."
+msgstr "Agent qui formule une demande d’effacement ; ce n’est pas nécessairement la personne concernée ni l’autorité qui l’autorise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|skos:scopeNote"
+msgid "Applies to an in-flight request, not a persistent deletion receipt."
+msgstr "Concerne une demande en cours, et non un reçu de suppression persistant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestingAgent|skos:example"
+msgid "ex:request gmeow:requestingAgent ex:person ."
+msgstr "ex:request gmeow:requestingAgent ex:person ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|rdfs:label"
+msgid "requested erasure target"
+msgstr "cible d’effacement demandée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|skos:definition"
+msgid "A named object whose erasure is requested. It selects exactly that object, not objects referring to it or referred to by it."
+msgstr "Objet nommé dont l’effacement est demandé. Il sélectionne exactement cet objet, et non les objets qui le référencent ou qu’il référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|gmeow:howToUse"
+msgid "Name each target by IRI. Include the request record itself in the authorized fulfillment selection."
+msgstr "Nommer chaque cible par une IRI. Inclure la demande elle-même dans la sélection de l’exécution autorisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|gmeow:avoidWhen"
+msgid "Do not use a literal selector or infer a transitive deletion closure."
+msgstr "Ne pas utiliser de sélecteur littéral ni déduire une fermeture transitive de suppression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|gmeow:useWhen"
+msgid "A named object whose erasure is requested. It selects exactly that object, not objects referring to it or referred to by it."
+msgstr "Objet nommé dont l’effacement est demandé. Il sélectionne exactement cet objet, et non les objets qui le référencent ou qu’il référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|skos:scopeNote"
+msgid "Applies to an in-flight request, not a persistent deletion receipt."
+msgstr "Concerne une demande en cours, et non un reçu de suppression persistant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedErasureTarget|skos:example"
+msgid "ex:request gmeow:requestedErasureTarget ex:claim ."
+msgstr "ex:request gmeow:requestedErasureTarget ex:claim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|rdfs:label"
+msgid "request under right"
+msgstr "droit invoqué par la demande"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|skos:definition"
+msgid "The named right or governing policy invoked by a forget request; citing it does not establish that the request is authorized."
+msgstr "Droit nommé ou politique gouvernante invoqué par une demande d’effacement ; sa citation ne prouve pas que la demande est autorisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|gmeow:howToUse"
+msgid "Reference the right or policy by IRI; assess authorization separately."
+msgstr "Référencer le droit ou la politique par une IRI ; évaluer l’autorisation séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|gmeow:avoidWhen"
+msgid "Do not treat an invoked right as an automatically granted permission."
+msgstr "Ne pas traiter un droit invoqué comme une permission automatiquement accordée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|gmeow:useWhen"
+msgid "The named right or governing policy invoked by a forget request; citing it does not establish that the request is authorized."
+msgstr "Droit nommé ou politique gouvernante invoqué par une demande d’effacement ; sa citation ne prouve pas que la demande est autorisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|skos:scopeNote"
+msgid "Applies to an in-flight request, not a persistent deletion receipt."
+msgstr "Concerne une demande en cours, et non un reçu de suppression persistant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestUnderRight|skos:example"
+msgid "ex:request gmeow:requestUnderRight ex:erasureRight ."
+msgstr "ex:request gmeow:requestUnderRight ex:erasureRight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|rdfs:label"
+msgid "Forget request requestedErasureTarget kind constraint"
+msgstr "Contrainte de type pour requestedErasureTarget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|skos:definition"
+msgid "Requires the requestedErasureTarget of a forget request to be a named IRI."
+msgstr "Exige que requestedErasureTarget d’une demande d’effacement soit une IRI nommée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|skos:example"
+msgid "ex:request gmeow:requestedErasureTarget ex:target ."
+msgstr "ex:request gmeow:requestedErasureTarget ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|skos:scopeNote"
+msgid "Canonical validation condition, projected to validation surfaces; it does not authorize deletion."
+msgstr "Condition canonique projetée vers les surfaces de validation ; elle n’autorise aucune suppression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|gmeow:useWhen"
+msgid "Use to reject unnamed request references."
+msgstr "Utiliser pour rejeter les références non nommées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|gmeow:avoidWhen"
+msgid "Do not use as an erasure operation."
+msgstr "Ne pas utiliser comme opération d’effacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestedErasureTargetKind|gmeow:howToUse"
+msgid "Validate the selected request graph through the derived constraint."
+msgstr "Valider le graphe de demande sélectionné via la contrainte dérivée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|rdfs:label"
+msgid "Forget request requestUnderRight kind constraint"
+msgstr "Contrainte de type pour requestUnderRight"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|skos:definition"
+msgid "Requires the requestUnderRight of a forget request to be a named IRI."
+msgstr "Exige que requestUnderRight d’une demande d’effacement soit une IRI nommée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|skos:example"
+msgid "ex:request gmeow:requestUnderRight ex:target ."
+msgstr "ex:request gmeow:requestUnderRight ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|skos:scopeNote"
+msgid "Canonical validation condition, projected to validation surfaces; it does not authorize deletion."
+msgstr "Condition canonique projetée vers les surfaces de validation ; elle n’autorise aucune suppression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|gmeow:useWhen"
+msgid "Use to reject unnamed request references."
+msgstr "Utiliser pour rejeter les références non nommées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|gmeow:avoidWhen"
+msgid "Do not use as an erasure operation."
+msgstr "Ne pas utiliser comme opération d’effacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ForgetRequestRequestUnderRightKind|gmeow:howToUse"
+msgid "Validate the selected request graph through the derived constraint."
+msgstr "Valider le graphe de demande sélectionné via la contrainte dérivée."

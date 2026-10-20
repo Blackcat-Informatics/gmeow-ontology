@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/lifecycle/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+ex:request a gmeow:ForgetRequest ;
+    gmeow:requestingAgent ex:person ;
+    gmeow:requestedErasureTarget ex:claim ;
+    gmeow:requestedErasureTarget ex:claim .
+ex:person a gmeow:Agent .
+ex:claim a gmeow:Entity .

@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/lifecycle/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:person a gmeow:Agent .
+ex:bobUsage a gmeow:Entity ; gmeow:displayable false ;
+    gmeow:validFrom "2020-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "2025-01-01T00:00:00Z"^^xsd:dateTime .
+ex:janetUsage a gmeow:Entity ;
+    gmeow:succeedsClaim ex:bobUsage
+    {| gmeow:accordingTo ex:person ;
+       gmeow:validFrom "2025-01-01T00:00:00Z"^^xsd:dateTime |} .
+ex:mistakenUsage a gmeow:Entity ; gmeow:displayable false .
+ex:correctUsage a gmeow:Entity ;
+    gmeow:correctsClaim ex:mistakenUsage
+    {| gmeow:accordingTo ex:person ;
+       gmeow:validFrom "2025-02-01T00:00:00Z"^^xsd:dateTime |} .
+ex:claim a gmeow:Entity ; gmeow:displayable false .
+ex:withdrawal a gmeow:Activity ; gmeow:wasAssociatedWith ex:person ;
+    gmeow:retractsClaim ex:claim
+    {| gmeow:accordingTo ex:person ;
+       gmeow:validFrom "2025-03-01T00:00:00Z"^^xsd:dateTime |} .
+ex:utterance gmeow:standpointAssertoricForce gmeow:assertoricRetract .
