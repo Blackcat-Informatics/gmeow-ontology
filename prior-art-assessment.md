@@ -1,0 +1,3 @@
+# Primary-agent prior-art assessment
+
+Self-analysis, not an independent audit. Prior-art retrieval covers the complete issue, no comments, no earlier attempt/branch and five related items. Source inspection confirms candidateHypothesis has InferenceCommitment domain, credence has DoxasticState domain and spanStart/spanEnd are domain-free. Chunk is retrieval segmentation; ContentSegment is structural work segmentation. Reuse observedFeature/vantage/observationResult, spans, versionLabel and wasDerivedFrom. Only the missing reading axis and candidate relation are added. Support, determinacy, formal lang denotation and narrative ranges retain their existing owners. This is new vocabulary; no matching defect recurrence is claimed.

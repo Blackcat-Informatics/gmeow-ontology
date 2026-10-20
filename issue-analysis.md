@@ -1,0 +1,3 @@
+# Primary-agent issue analysis
+
+Self-analysis, not an independent audit. The full body and empty comment inventory were read. All three sections are required: refinement/four outcomes, candidate/credence choices, lighter mentions and chunk/narrative identity. observationResult is already individual-valued and nonfunctional; observedFeature identifies the source. RDF 1.2 reification carries candidates without asserting them. Domain-free spans permit one source-bound process-reading record without inventing a linguistic grounding seam. Formal denotation remains a distinct full operation. No requirement is deferred.

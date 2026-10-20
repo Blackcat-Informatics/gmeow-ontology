@@ -1,0 +1,127 @@
+{
+  "paths": [
+    {
+      "ref": "core/sources",
+      "path": "/home/paudley/Active/gmeow-ontology/core/sources",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/inference",
+      "path": "/home/paudley/Active/gmeow-ontology/core/inference",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/kernel",
+      "path": "/home/paudley/Active/gmeow-ontology/core/kernel",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/standpoint",
+      "path": "/home/paudley/Active/gmeow-ontology/core/standpoint",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/coreference",
+      "path": "/home/paudley/Active/gmeow-ontology/core/coreference",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "extensions/narrative",
+      "path": "/home/paudley/Active/gmeow-ontology/extensions/narrative",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/ai",
+      "path": "/home/paudley/Active/gmeow-ontology/core/ai",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2076
+    },
+    {
+      "name": "a631f73",
+      "files": 0
+    },
+    {
+      "name": "InferenceCommitment",
+      "files": 25
+    },
+    {
+      "name": "refinementResolved",
+      "files": 0
+    },
+    {
+      "name": "refinementBestGuess",
+      "files": 0
+    },
+    {
+      "name": "refinementAmbiguous",
+      "files": 0
+    },
+    {
+      "name": "refinementUnresolved",
+      "files": 0
+    },
+    {
+      "name": "refinementCandidate",
+      "files": 64
+    },
+    {
+      "name": "candidateHypothesis",
+      "files": 5
+    },
+    {
+      "name": "Chunk",
+      "files": 46
+    },
+    {
+      "name": "ContentSegment",
+      "files": 28
+    },
+    {
+      "name": "narratedIn",
+      "files": 12
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

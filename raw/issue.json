@@ -1,0 +1,27 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nBoth consumers derive structured observations from records after the\nfact: resolving who a mention refers to, which event a passage narrates,\nwhat a record implies. Each such reading has an outcome: resolved, best\nguess, ambiguous between candidates, or unresolved. GMEOW has no\nvocabulary for that outcome. The same modelling turned up two\ncoreference ergonomics questions.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumers\n\n- **memetics**: the memory adapter for a companion agent. Its\n  refinements are observations of other records. A refiner (named and\n  versioned) reads a record and states what it found. It never alters\n  or annotates the source. Refinements at volume include mentions,\n  coreference, time joins and story beats.\n- **katamari**: the governed store. It takes memetics' four outcomes as\n  its starting default for the same concept. Entities minted by a\n  refinement are anchored to the observation that minted them (\"a\n  person is a cluster, not an id\").\n\n## 1. Refinements and their outcomes (joint proposal)\n\n**Today.**\n- `gmeow:stepIngestionUnresolvedLeads` (`core/sources`) covers only the\n  unresolved case.\n- `gmeow:candidateHypothesis` (`core/inference`) belongs to an\n  `InferenceCommitment`, not an observation.\n- `gmeow:Determinacy` (`core/kernel`) and `gmeow:SupportStatus`\n  (`core/standpoint`) overlap with the outcome axis only in part:\n  determinacy is about the world, support about evidence. A refinement\n  outcome is about the reading.\n\n**Proposed terms.**\n- `gmeow:Refinement`, a sub-kind of `gmeow:Observation`: \"An observation\n  a named, versioned process makes of another record. Its vantage is the\n  process, its observed feature the source record, and its results the\n  observations it found there. It never alters or annotates the source.\"\n- `gmeow:RefinementOutcome`, a value vocabulary, plus\n  `gmeow:refinementOutcome`:\n  - `refinementResolved`: one reading, confidently;\n  - `refinementBestGuess`: one reading, not confidently;\n  - `refinementAmbiguous`: several candidate readings, none chosen;\n  - `refinementUnresolved`: no reading found.\n- `gmeow:refinementCandidate`, an object property from a refinement to\n  one candidate of an ambiguous outcome, named without being asserted.\n\n**Why a separate axis.** The outcome says how far the reading got, which\nneither determinacy nor support expresses. Recall uses it to decide\nwhether to show a result, to hedge it, or to ask which candidate was\nmeant.\n\n**Open questions.**\n- Should `refinementCandidate` reuse `candidateHypothesis`, by widening\n  its domain, rather than mint a sibling?\n- Should \"best guess\" carry a credence (`gmeow:credence`), or is the\n  outcome enough?\n\n## 2. Per-mention coreference at volume\n\n**Today.** `gmeow:corefDenotation` (`core/coreference`) reaches a\nreified `lang:Denotation`, which must name form, kind, target and\ncontext. A `lang:Form` must itself be situated. So every mention costs\ntwo records.\n\n**Evidence.** One story pass over a few weeks of records produced 55\nmentions, which became 110 records.\n\n**Ask.** Is there a lighter sanctioned pattern for per-mention\ncoreference at volume? For example, a mention with surface text, span\nand target, and the full denotation only when a mention is disputed.\n\n## 3. A chunk that also narrates\n\n**Today.** `gmeow:narratedIn` (`extensions/narrative`) ranges over\n`gmeow:ContentSegment`, while a retrieval chunk is a `gmeow:Chunk`\n(`core/ai`). A record that is both a chunk read and a segment narrating\nan event must be typed twice.\n\n**Ask.** Is a `Chunk` meant to be a `ContentSegment` (subclass), or\nshould `narratedIn`'s range widen?\n\n## Local stand-ins\n\nmemetics' local observations slice mints `gmeow:Refinement`,\n`gmeow:RefinementOutcome` (with its four members),\n`gmeow:refinementOutcome` and `gmeow:refinementCandidate`, in GMEOW's\nnamespace. Upstreaming is a move. katamari has no stand-in yet and\nadopts the upstream terms when they land.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-10T10:12:31Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "milestone": null,
+  "number": 1813,
+  "state": "OPEN",
+  "title": "[term] Refinement outcomes, and coreference at volume (consumers: memetics, katamari)",
+  "updatedAt": "2026-10-10T10:12:31Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1813"
+}

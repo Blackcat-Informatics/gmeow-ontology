@@ -1,0 +1,60 @@
+{
+  "issue": 1813,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "[term] Refinement outcomes, and coreference at volume (consumers: memetics, katamari)",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {},
+  "link_relations": {},
+  "related": [
+    {
+      "number": 1638,
+      "title": "[term] Durable work orchestration, plan refinement, decision support, and external-effect saga vocabulary",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1327,
+      "title": "EDOAL projection silently mistypes object properties as edoal:Property (repo-wide)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 695,
+      "title": "logic: replicate/subsume ROBOT natively in the Rust core (SLME module extraction + reasoned-graph verify) \u2014 retire Java/Docker extract",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1413,
+      "title": "feat(logic): decide the withheld OWL 2 DL/Full fragment natively \u2014 complement refutation, qualified-cardinality counting, nominal/datatype value-space, xsd facet evaluation",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 33,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1813-term-refinement-outcomes-and"
+  },
+  "coverage": [
+    "issue #1813 + 0 comment(s) via github",
+    "link crawl: no `#N` references in the issue or its comments",
+    "forge search on ['[term]', 'Refinement', 'outcomes,']: 5 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1813 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1813: 0",
+    "requirement candidates: 8 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 7 path(s) (0 on disk), 12 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}
