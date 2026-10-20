@@ -102,14 +102,9 @@ pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
 /// it authenticates without knowing its storage path.
 pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor1+receipt-json-2";
 
-/// No independently reusable contribution may serialize above 512 MiB. The measured
-/// complete `stage-compile-logic` publication is 369,597,157 bytes after typed
-/// correspondence integration; its typed program and report fields are intentionally
-/// retained so a hit does not reparse projections or repeat lowering. Whole-document
-/// leaves at 1.5--2.5 GiB and cumulative carriers remain explicitly recomputed. This
-/// ratchet forces a future growing stage through a fresh size/hydration census instead
-/// of silently turning the cache into another multi-gigabyte carrier store. It remains
-/// much stricter than the repository's separate 16 GiB peak-build-memory contract.
+/// Complete independently reusable contributions use the shared store's byte
+/// budget. Stage disposition and authenticated output selection determine which
+/// products are reusable; historical serialized sizes do not select correctness.
 pub const MAX_ENTRY_BYTES: u64 = gmeow_action_cache::DEFAULT_MAX_ENTRY_BYTES;
 
 /// Receipts are a bounded census, never a payload lane. The conformance action retains
@@ -124,7 +119,7 @@ const MAX_RECEIPT_BYTES: u64 = gmeow_action_cache::DEFAULT_MAX_RECEIPT_BYTES;
 // evict the fine-grained test DAG that was just produced. The byte ceiling remains the
 // authoritative storage bound; receipts themselves are compact.
 const MAX_CACHE_ENTRIES: usize = 4_096;
-const MAX_CACHE_BYTES: u64 = 8 * 1024 * 1024 * 1024;
+const MAX_CACHE_BYTES: u64 = gmeow_action_cache::DEFAULT_MAX_TOTAL_BYTES;
 
 /// The build fingerprint folded into every [`stage_key`]: workspace Rust sources and
 /// Cargo manifests, lock/config/toolchain files, full compiler identity, target,
