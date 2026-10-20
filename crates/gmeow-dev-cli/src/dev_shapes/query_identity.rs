@@ -28,12 +28,7 @@ enum IdentityToken {
     Syntax(String),
 }
 
-#[cfg(test)]
-pub(super) fn sparql_alpha_canonical(select: &str) -> Result<QueryKey, Diag> {
-    query_key(select, false)
-}
-
-fn query_key(select: &str, preserve_variables: bool) -> Result<QueryKey, Diag> {
+pub(super) fn query_key(select: &str, preserve_variables: bool) -> Result<QueryKey, Diag> {
     let query = SparqlParser::new()
         .parse_query(select)
         .map_err(Diag::from)?;

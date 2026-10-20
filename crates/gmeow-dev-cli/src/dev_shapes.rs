@@ -225,8 +225,6 @@ fn collect_formalized_failure_classes(
 
 mod query_identity;
 use query_identity::raw_sparql_block_key;
-#[cfg(test)]
-use query_identity::sparql_alpha_canonical;
 
 /// Parse a Turtle file into a dataset, mapping a read/parse failure to the dev exit code.
 fn parse_ttl_file(path: &Path) -> Result<std::sync::Arc<RdfDataset>, i32> {
