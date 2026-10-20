@@ -166,6 +166,48 @@ records co-existing observations; the solver layer ranks, fuses, or projects the
 consumer policy. Suppressing a contested observation is projection-time filtering, never
 erasure (Principle 10).
 
+## Refinement readings
+
+`gmeow:Refinement` is an `Observation` made by a named, versioned process reading
+another record. `observedFeature` names the source; `vantage` names that process
+version. The source remains unchanged. New findings live in separate observation
+records, reachable through the existing `observationResult`. A selected referent
+can also be an individual-valued result. When a reading mints an entity, retain
+its derivation from the refinement with `wasDerivedFrom`; do not manufacture an
+identity independent of the observation that introduced it.
+
+Use `refinementOutcome` for the reading axis:
+
+| Value | Meaning |
+| --- | --- |
+| `refinementResolved` | One sufficiently supported reading was selected for this task. |
+| `refinementBestGuess` | One reading was selected provisionally. |
+| `refinementAmbiguous` | Several candidates remain, with none selected. |
+| `refinementUnresolved` | This completed process produced no reading in its recorded scope. |
+
+These values describe the reading, not world `Determinacy`, evidential
+`SupportStatus`, truth or calibrated probability. Missing outcome data does not
+mean unresolved. A changed process version or source revision gets a new
+refinement; competing vantages coexist rather than overwrite each other.
+
+`refinementCandidate` lists unselected alternatives. It is deliberately separate
+from `candidateHypothesis`, whose `InferenceCommitment` domain would mistype an
+ordinary refinement. It is not a subproperty of `observationResult`: listing a
+candidate does not select it. A propositional candidate can be an Observation
+using RDF 1.2 `rdf:reifies`; naming that record does not assert its quoted content.
+An unresolved reading needs no fabricated result node.
+
+Best-guess status is sufficient for a qualitative outcome; it has no default
+numeric score. If a consumer records numerical belief, keep the existing typed
+roles: `credence` belongs on a `DoxasticState`, `claimCredence` on a
+`StandpointClaim`, and statement-level `confidence` qualifies a particular claim.
+Do not put `credence` directly on a Refinement and accidentally type it as a
+belief state. Nor does a high confidence turn a process result into source truth.
+
+The [worked readings](examples/refinement-readings.ttl) show all four outcomes,
+versioned process identities, unasserted candidate statements, source-bound
+mention offsets and a chunk that also serves as a narrative segment.
+
 ## Dependencies
 
 Depends on `kernel`, `entities`, `events`, `names`, `places`, and `temporal`. Consumed by

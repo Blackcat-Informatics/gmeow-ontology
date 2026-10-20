@@ -96,6 +96,34 @@ vocabulary is consumed by reference in instance data (Principle 5), and the
 maximal-linkage doctrine expects every slice to exercise these links — coreference is
 the one slice whose job is to be everyone else's out-edge.
 
+## Per-mention process readings
+
+For the operational question “which target did this refiner read here?”, use one
+[`gmeow:Refinement`](../observations/docs.md#refinement-readings) per occurrence.
+Its `observedFeature` is the exact immutable source version. The existing,
+domain-free `spanStart` and `spanEnd` locate the occurrence in that source using
+zero-based Unicode code points and an exclusive end. A `description` can repeat
+the mention as a language-tagged display note; the source and offsets, not that
+note or string equality, identify the occurrence. Preserve the source digest,
+encoding/normalization identity and versioned process vantage. A changed source
+cannot inherit old offsets without a new reading.
+
+Put a selected referent in `observationResult`, retain the qualitative
+`refinementOutcome`, and use `refinementCandidate` for unselected alternatives.
+This pattern adds one reading record per ordinary mention and reuses the
+existing source and target; a Form/Denotation pair is not required merely to
+record that process output. Ambiguous or disputed readings may have additional
+candidate records. It does not merge referents or assert that a source statement
+is true.
+
+This is an observational reading operation, not a lightweight replacement for
+formal linguistic denotation. When the requested operation asserts analyzed
+form/reference semantics, retain the full `lang:Denotation` contract: form,
+sign system, denotation kind, target and context. Never synthesize a fake Form,
+hang denotation on a raw SurfaceForm, or silently substitute the process-reading
+pattern for that operation. The [worked record](../observations/examples/refinement-readings.ttl)
+shows the one-record pattern without inventing formal linguistic analysis.
+
 ## Dependencies
 
 Depends on `kernel`, `documents` (the CreativeWork range of `editionOf`), and `lang`

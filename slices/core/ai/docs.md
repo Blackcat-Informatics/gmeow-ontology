@@ -152,6 +152,21 @@ plus the integer offsets `gmeow:spanStart`/`gmeow:spanEnd` (zero-based, half-ope
 code points). The one genuinely missing information-object kind in the
 source → Chunk → EvidenceSpan → claim spine.
 
+### Chunks and narrative segments
+
+`Chunk` records retrieval segmentation; `ContentSegment` records structural
+membership in a work. Neither role implies the other: an arbitrary retrieval
+window need not be an authored scene or paragraph, and a narrative segment need
+not be a retrieval unit. There is no universal `Chunk` subclass of
+`ContentSegment`.
+
+When one node really serves both roles, type it as both, retain `chunkOf` and its
+source offsets, and record its document structure through `segmentOf` and
+`segmentType`. An event can then point to that node with `narratedIn` without
+widening its `ContentSegment` range. Two type assertions express two real roles;
+they do not require duplicate nodes. See the
+[refinement example](../observations/examples/refinement-readings.ttl).
+
 ### gmeow:spanOfChunk · gmeow:groundedIn · gmeow:supportPolarity · gmeow:SupportPolarity
 
 The evidence seam: `gmeow:spanOfChunk` pins an `EvidenceSpan` into the retrieved

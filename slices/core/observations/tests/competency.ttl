@@ -1,0 +1,192 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://example.org/refinement/> .
+@prefix test: <https://blackcatinformatics.ca/gmeow/examples/observations/tests/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+test:cqRefinementOutcomes a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?reading ?outcome WHERE { VALUES ?reading { ex:resolved ex:guess ex:ambiguous ex:unresolved } ?reading a gmeow:Refinement ; gmeow:refinementOutcome ?outcome . }" ;
+    gmeow:cqRationale "All four process outcomes are explicit, with no default invented from missing data." ;
+    gmeow:cqResultShape test:shapeRefinementOutcomes ;
+    gmeow:cqExpectRow test:rowRefinementOutcomes0, test:rowRefinementOutcomes1, test:rowRefinementOutcomes2, test:rowRefinementOutcomes3 .
+
+test:shapeRefinementOutcomes a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "reading" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "outcome" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementOutcomes0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri ex:resolved ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:refinementResolved ] .
+
+test:rowRefinementOutcomes1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri ex:guess ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:refinementBestGuess ] .
+
+test:rowRefinementOutcomes2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri ex:ambiguous ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:refinementAmbiguous ] .
+
+test:rowRefinementOutcomes3 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri ex:unresolved ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:refinementUnresolved ] .
+
+test:cqRefinementSelectedReadings a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?reading ?target WHERE { VALUES ?reading { ex:resolved ex:guess ex:ambiguous ex:unresolved } ?reading gmeow:observationResult ?target . }" ;
+    gmeow:cqRationale "Only the resolved and provisional readings have selected results; neither ambiguity nor an unresolved attempt invents one." ;
+    gmeow:cqResultShape test:shapeRefinementSelectedReadings ;
+    gmeow:cqExpectRow test:rowRefinementSelectedReadings0, test:rowRefinementSelectedReadings1 .
+
+test:shapeRefinementSelectedReadings a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "reading" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementSelectedReadings0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri ex:resolved ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri ex:alice ] .
+
+test:rowRefinementSelectedReadings1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri ex:guess ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri ex:jordanPerson ] .
+
+test:cqRefinementCandidateStatements a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?candidate ?target WHERE { ex:ambiguous gmeow:refinementCandidate ?candidate . ?candidate rdf:reifies <<( ex:ambiguous gmeow:observationResult ?target )>> . }" ;
+    gmeow:cqRationale "Both named candidate observations retain their exact proposed content without selecting either as the ambiguous result." ;
+    gmeow:cqResultShape test:shapeRefinementCandidateStatements ;
+    gmeow:cqExpectRow test:rowRefinementCandidateStatements0, test:rowRefinementCandidateStatements1 .
+
+test:shapeRefinementCandidateStatements a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "candidate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementCandidateStatements0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri ex:personReading ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri ex:jordanPerson ] .
+
+test:rowRefinementCandidateStatements1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri ex:placeReading ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri ex:jordanPlace ] .
+
+test:cqRefinementNoAmbiguousSelection a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?target WHERE { ex:ambiguous gmeow:observationResult ?target . }" ;
+    gmeow:cqRationale "Reified candidate statements do not become chosen outputs of the ambiguous refinement." ;
+    gmeow:cqResultShape test:shapeRefinementNoAmbiguousSelection ;
+    gmeow:cqExpectRowCount 0 .
+
+test:shapeRefinementNoAmbiguousSelection a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:cqRefinementNoUnresolvedResult a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?target WHERE { ex:unresolved gmeow:observationResult ?target . }" ;
+    gmeow:cqRationale "A recorded unresolved outcome has no fabricated answer." ;
+    gmeow:cqResultShape test:shapeRefinementNoUnresolvedResult ;
+    gmeow:cqExpectRowCount 0 .
+
+test:shapeRefinementNoUnresolvedResult a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:cqRefinementMentionLocation a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?source ?start ?end WHERE { ex:resolved gmeow:observedFeature ?source ; gmeow:spanStart ?start ; gmeow:spanEnd ?end . }" ;
+    gmeow:cqRationale "One ordinary mention-reading record retains its exact source and half-open Unicode-code-point span." ;
+    gmeow:cqResultShape test:shapeRefinementMentionLocation ;
+    gmeow:cqExpectRow test:rowRefinementMentionLocation0 .
+
+test:shapeRefinementMentionLocation a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "start" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "end" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementMentionLocation0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri ex:sourceV1 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "start" ; gmeow:cellValueLiteral "0"^^xsd:nonNegativeInteger ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "end" ; gmeow:cellValueLiteral "5"^^xsd:nonNegativeInteger ] .
+
+test:cqRefinementProcessVersions a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?process ?version WHERE { VALUES ?process { ex:refinerV1 ex:refinerV2 } ?process gmeow:versionLabel ?version . }" ;
+    gmeow:cqRationale "Competing readings retain the named process version rather than overwriting its identity." ;
+    gmeow:cqResultShape test:shapeRefinementProcessVersions ;
+    gmeow:cqExpectRow test:rowRefinementProcessVersions0, test:rowRefinementProcessVersions1 .
+
+test:shapeRefinementProcessVersions a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "process" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementProcessVersions0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "process" ; gmeow:cellValueIri ex:refinerV1 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueLiteral "1.0" ] .
+
+test:rowRefinementProcessVersions1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "process" ; gmeow:cellValueIri ex:refinerV2 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueLiteral "2.0" ] .
+
+test:cqRefinementMintedEntity a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?entity WHERE { ?entity gmeow:wasDerivedFrom ex:resolved . ex:resolved gmeow:observationResult ?entity . }" ;
+    gmeow:cqRationale "A newly introduced entity remains anchored to the observation that introduced it." ;
+    gmeow:cqResultShape test:shapeRefinementMintedEntity ;
+    gmeow:cqExpectRow test:rowRefinementMintedEntity0 .
+
+test:shapeRefinementMintedEntity a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "entity" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementMintedEntity0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "entity" ; gmeow:cellValueIri ex:alice ] .
+
+test:cqRefinementDualRoleChunk a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?chunk WHERE { ex:narratedMeeting gmeow:narratedIn ?chunk . ?chunk a gmeow:Chunk, gmeow:ContentSegment ; gmeow:chunkOf ex:sourceV1 ; gmeow:segmentOf ex:sourceV1 . }" ;
+    gmeow:cqRationale "One node intentionally serves both retrieval and structural narrative roles without widening narratedIn." ;
+    gmeow:cqResultShape test:shapeRefinementDualRoleChunk ;
+    gmeow:cqExpectRow test:rowRefinementDualRoleChunk0 .
+
+test:shapeRefinementDualRoleChunk a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "chunk" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementDualRoleChunk0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "chunk" ; gmeow:cellValueIri ex:paragraphChunk ] .
+
+test:cqRefinementNoInventedDenotation a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?denotation WHERE { ?denotation a lang:Denotation ; lang:denotationTarget ex:alice . }" ;
+    gmeow:cqRationale "Recording a process reading does not synthesize a formal linguistic denotation." ;
+    gmeow:cqResultShape test:shapeRefinementNoInventedDenotation ;
+    gmeow:cqExpectRowCount 0 .
+
+test:shapeRefinementNoInventedDenotation a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "denotation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:cqRefinementSourceWords a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/refinement-readings.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?text WHERE { ex:sourceV1 gmeow:description ?text . }" ;
+    gmeow:cqRationale "The original source wording remains intact instead of being replaced by a refinement result." ;
+    gmeow:cqResultShape test:shapeRefinementSourceWords ;
+    gmeow:cqExpectRow test:rowRefinementSourceWords0 .
+
+test:shapeRefinementSourceWords a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "text" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowRefinementSourceWords0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "text" ; gmeow:cellValueLiteral "Alice saw Jordan.\n\nNobody replied."@x-gmeow-english ] .

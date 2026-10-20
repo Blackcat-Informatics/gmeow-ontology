@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/refinement/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:sourceV1 a gmeow:InformationObject, gmeow:CreativeWork ;
+    gmeow:versionLabel "source-v1" ;
+    gmeow:description "Alice saw Jordan.\n\nNobody replied."@x-gmeow-english ;
+    gmeow:contentDigest "sha256:07888ef51c82078f6cd614e9a1afac94b2f2f130edcde2e9fa078d932e5f5004" ;
+    rdfs:comment "The exact source bytes are the UTF-8 NFC encoding of the description literal, without a trailing newline. All offsets count Unicode code points in that source."@x-gmeow-english .
+
+ex:refinerV1 a gmeow:SoftwareAgent ;
+    rdfs:label "mention reader version one"@x-gmeow-english ;
+    gmeow:versionLabel "1.0" .
+ex:refinerV2 a gmeow:SoftwareAgent ;
+    rdfs:label "mention reader version two"@x-gmeow-english ;
+    gmeow:versionLabel "2.0" .
+
+# A single occurrence reading, with no extra Form/Denotation pair.
+ex:resolved a gmeow:Refinement ;
+    gmeow:observedFeature ex:sourceV1 ; gmeow:vantage ex:refinerV2 ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ; gmeow:spanEnd "5"^^xsd:nonNegativeInteger ;
+    gmeow:description "Alice"@x-gmeow-english ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:alice .
+ex:alice a gmeow:Person ; gmeow:wasDerivedFrom ex:resolved .
+
+# A different process version made a provisional choice for the next mention.
+ex:guess a gmeow:Refinement ;
+    gmeow:observedFeature ex:sourceV1 ; gmeow:vantage ex:refinerV1 ;
+    gmeow:spanStart "10"^^xsd:nonNegativeInteger ; gmeow:spanEnd "16"^^xsd:nonNegativeInteger ;
+    gmeow:description "Jordan"@x-gmeow-english ;
+    gmeow:refinementOutcome gmeow:refinementBestGuess ;
+    gmeow:observationResult ex:jordanPerson .
+ex:jordanPerson a gmeow:Person .
+ex:jordanPlace a gmeow:Place .
+
+# The later process retained alternatives, without selecting either statement.
+ex:ambiguous a gmeow:Refinement ;
+    gmeow:observedFeature ex:sourceV1 ; gmeow:vantage ex:refinerV2 ;
+    gmeow:spanStart "10"^^xsd:nonNegativeInteger ; gmeow:spanEnd "16"^^xsd:nonNegativeInteger ;
+    gmeow:description "Jordan"@x-gmeow-english ;
+    gmeow:refinementOutcome gmeow:refinementAmbiguous ;
+    gmeow:refinementCandidate ex:personReading, ex:placeReading .
+ex:personReading a gmeow:Observation ;
+    gmeow:observedFeature ex:sourceV1 ; gmeow:vantage ex:refinerV2 ;
+    rdf:reifies <<( ex:ambiguous gmeow:observationResult ex:jordanPerson )>> .
+ex:placeReading a gmeow:Observation ;
+    gmeow:observedFeature ex:sourceV1 ; gmeow:vantage ex:refinerV2 ;
+    rdf:reifies <<( ex:ambiguous gmeow:observationResult ex:jordanPlace )>> .
+
+# A completed attempt at another task found no reading; no result is fabricated.
+ex:unresolved a gmeow:Refinement ;
+    gmeow:observedFeature ex:sourceV1 ; gmeow:vantage ex:refinerV2 ;
+    gmeow:refinementOutcome gmeow:refinementUnresolved .
+
+# One identity can serve both retrieval and authored structural roles.
+ex:paragraphChunk a gmeow:Chunk, gmeow:ContentSegment ;
+    gmeow:chunkOf ex:sourceV1 ; gmeow:spanStart "0"^^xsd:nonNegativeInteger ; gmeow:spanEnd "17"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "sha256:15dc86d65eb986e4526971a559b876482c19c6e1ad1813899ae8900c82e37f1b" ;
+    gmeow:segmentOf ex:sourceV1 ; gmeow:segmentType gmeow:segmentTypeParagraph .
+ex:narratedMeeting a gmeow:Event ; gmeow:narratedIn ex:paragraphChunk .
