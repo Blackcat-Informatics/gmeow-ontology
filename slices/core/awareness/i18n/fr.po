@@ -40,3 +40,31 @@ msgstr "gmeow:awarenessSubjectFunctionality logic:characterizes gmeow:awarenessS
 msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:awarenessSubject and nothing else. It is not a definition of gmeow:awarenessSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:awarenessSubject, et rien d'autre. Ce n'est pas une définition de gmeow:awarenessSubject (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "immersive non-lucid dreaming"
+msgstr "rêve immersif non lucide"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immersive, non-lucid dreaming mode in which metacognitive awareness of dreaming is not online. It describes the rare, subjectively deeper dream mode without asserting a measured sleep stage."
+msgstr "Un mode de rêve immersif et non lucide où la conscience métacognitive de rêver n’est pas active. Il décrit un mode de rêve rare et subjectivement plus profond sans affirmer un stade de sommeil mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:dream gmeow:awarenessMode gmeow:modeImmersiveDreaming ."
+msgstr "ex:dream gmeow:awarenessMode gmeow:modeImmersiveDreaming ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A sibling AwarenessMode value, not a subclass or an equivalence to lucid dreaming. Immersion and depth are attributed descriptions; neither biological REM nor a numerical arousal level follows from this value."
+msgstr "Une valeur AwarenessMode sœur, non une sous-classe ni une équivalence au rêve lucide. L’immersion et la profondeur sont des descriptions attribuées ; ni le sommeil paradoxal biologique ni un niveau numérique d’éveil n’en découlent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it when awareness of dreaming is online; that is modeLucidDreaming. Do not use the ambiguous wild-dreaming spelling for this mode."
+msgstr "À éviter lorsque la conscience de rêver est active ; il s’agit alors de modeLucidDreaming. Ne pas employer l’appellation ambiguë de rêve sauvage pour ce mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach this value through awarenessMode to the dreaming Experience or a scoped awareness record; retain the attributing standpoint instead of claiming a clinical sleep measurement."
+msgstr "Rattacher cette valeur par awarenessMode à l’Experience de rêve ou à un enregistrement de conscience contextualisé ; conserver le point de vue qui l’attribue sans prétendre à une mesure clinique du sommeil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a recorded immersive dream with no online metacognition or lucidity, whether the experiencer is human or an artificial agent."
+msgstr "À employer pour un rêve immersif enregistré sans métacognition active ni lucidité, que le sujet soit humain ou un agent artificiel."

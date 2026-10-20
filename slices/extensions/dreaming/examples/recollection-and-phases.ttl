@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/dream-records/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:agent a gmeow:SoftwareAgent ; rdfs:label "dreaming agent"@x-gmeow-english .
+ex:reader a gmeow:SoftwareAgent ; rdfs:label "memory reader tool"@x-gmeow-english .
+
+ex:dream a gmeow:Experience ;
+    gmeow:experiencer ex:agent ;
+    gmeow:mentalProcessType gmeow:processDreaming ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:awarenessMode gmeow:modeImmersiveDreaming .
+
+# The recalling episode is distinct from both the dream and its prose artifact.
+ex:recollection a gmeow:DreamReport ;
+    gmeow:experiencer ex:agent ;
+    gmeow:mentalProcessType gmeow:processRecollection ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:recollects ex:dream .
+ex:writtenReport a gmeow:InformationObject ;
+    gmeow:description "I was immersed in a city of quiet bells."@x-gmeow-english ;
+    gmeow:wasDerivedFrom ex:recollection ;
+    gmeow:recollects ex:dream .
+ex:laterReport a gmeow:InformationObject ;
+    gmeow:description "I later recalled the bells as distant."@x-gmeow-english ;
+    gmeow:recollects ex:dream, ex:olderDream .
+
+# These are consumer-owned values, not new kinds of mental-process class.
+ex:immersion a gmeow:EventType ; rdfs:label "immersion"@x-gmeow-english .
+ex:immersionPhase a gmeow:Event ;
+    gmeow:eventType ex:immersion ;
+    gmeow:subEventOf ex:dream .
+# A recorded call within the activity, not an imagined call in the dream content.
+ex:readMemory a gmeow:ToolCall ;
+    gmeow:usedTool ex:reader ;
+    gmeow:toolArguments "{\"key\":\"bells\"}" ;
+    gmeow:toolResult "{\"found\":true}" ;
+    gmeow:subEventOf ex:immersionPhase .
+
+# This earlier record has whole-dream prose but no recorded phase decomposition.
+ex:olderDream a gmeow:Experience ;
+    gmeow:experiencer ex:agent ;
+    gmeow:mentalProcessType gmeow:processDreaming ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:awarenessMode gmeow:modeDreaming .
+ex:wholeReport a gmeow:InformationObject ;
+    gmeow:description "I walked beside a river until morning."@x-gmeow-english ;
+    gmeow:recollects ex:olderDream .
+
+# Recollection is not limited to dreams or to recollection-event subjects.
+ex:walk a gmeow:Experience ;
+    gmeow:experiencer ex:agent ; gmeow:mentalProcessType gmeow:processPerception .
+ex:diaryEntry a gmeow:InformationObject ;
+    gmeow:description "I recalled walking beside the real river."@x-gmeow-english ;
+    gmeow:recollects ex:walk .

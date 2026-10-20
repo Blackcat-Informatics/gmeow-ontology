@@ -40,3 +40,31 @@ msgstr "gmeow:experiencerFunctionality logic:characterizes gmeow:experiencer ."
 msgctxt "https://blackcatinformatics.ca/gmeow/experiencerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:experiencer and nothing else. It is not a definition of gmeow:experiencer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:experiencer 的一项完整性义务，别无其他。它不是 gmeow:experiencer 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recollects"
+msgstr "追忆"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a recollection episode or its recorded artifact to the experience it recalls. A specialization of derivation, not a claim that the recalled content is accurate."
+msgstr "将追忆事件或其记录载体关联到所回忆的体验。这是派生关系的特化，并不宣称回忆内容准确。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:recollects ex:dream ."
+msgstr "ex:report gmeow:recollects ex:dream ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Domain deliberately open: both a recollection Experience and an information artifact can recall an Experience. Nonfunctional; several recalled experiences and competing reports may coexist. The link does not assert the dream content as waking fact."
+msgstr "定义域有意开放：追忆体验和信息载体都可回忆某个体验。该关系非函数性；可并存多个被回忆体验及相互竞争的报告。此链接不将梦境内容断言为清醒现实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a merely topical description or for the agent who remembers; use the existing aboutness construct or remembers relation for those distinct roles."
+msgstr "不用于仅涉及某主题的描述，也不用于指出记忆者；这些不同角色应使用已有主题结构或 remembers 关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the recollection episode or written artifact at the original Experience; keep the artifact distinct from the act of recalling and retain the claim standpoint and provenance."
+msgstr "从追忆事件或书面载体指向原始 Experience；区分载体与回忆行为，并保留陈述的立场和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollects|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recall must trace a report, diary entry or recollection episode back to the experience it recalls."
+msgstr "当需要从报告、日记条目或追忆事件追溯到被回忆的体验时使用。"

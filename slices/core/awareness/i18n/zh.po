@@ -40,3 +40,31 @@ msgstr "gmeow:awarenessSubjectFunctionality logic:characterizes gmeow:awarenessS
 msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:awarenessSubject and nothing else. It is not a definition of gmeow:awarenessSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:awarenessSubject 的一项完整性义务，别无其他。它不是 gmeow:awarenessSubject 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "immersive non-lucid dreaming"
+msgstr "沉浸式非清醒梦境"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immersive, non-lucid dreaming mode in which metacognitive awareness of dreaming is not online. It describes the rare, subjectively deeper dream mode without asserting a measured sleep stage."
+msgstr "一种沉浸式、非清醒的梦境模式，其中对正在做梦的元认知意识未处于在线状态。它描述罕见且主观上更深的梦境模式，而非断言某个测得的睡眠阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:dream gmeow:awarenessMode gmeow:modeImmersiveDreaming ."
+msgstr "ex:dream gmeow:awarenessMode gmeow:modeImmersiveDreaming ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A sibling AwarenessMode value, not a subclass or an equivalence to lucid dreaming. Immersion and depth are attributed descriptions; neither biological REM nor a numerical arousal level follows from this value."
+msgstr "这是并列的 AwarenessMode 值，而非子类，也不等同于清醒梦。沉浸和深度是归属给某立场的描述；该值不蕴含生物学上的快速眼动睡眠或数值化唤醒水平。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it when awareness of dreaming is online; that is modeLucidDreaming. Do not use the ambiguous wild-dreaming spelling for this mode."
+msgstr "当对做梦的意识在线时不要使用，应使用 modeLucidDreaming。不要对此模式使用含义模糊的 wild-dreaming 名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach this value through awarenessMode to the dreaming Experience or a scoped awareness record; retain the attributing standpoint instead of claiming a clinical sleep measurement."
+msgstr "通过 awarenessMode 将此值附于做梦的 Experience 或有作用域的意识记录；保留作出归属的立场，不将其冒充为临床睡眠测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeImmersiveDreaming|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a recorded immersive dream with no online metacognition or lucidity, whether the experiencer is human or an artificial agent."
+msgstr "用于记录没有在线元认知或清醒意识的沉浸式梦境，无论体验者是人类还是人工代理。"

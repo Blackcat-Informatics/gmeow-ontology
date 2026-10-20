@@ -325,3 +325,15 @@ gmeow:awarenessSubjectFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:awarenessSubject and nothing else. It is not a definition of gmeow:awarenessSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:awarenessSubjectFunctionality logic:characterizes gmeow:awarenessSubject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:modeImmersiveDreaming
+    a gmeow:AwarenessMode ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+    rdfs:label "immersive non-lucid dreaming"@x-gmeow-english ;
+    skos:definition "An immersive, non-lucid dreaming mode in which metacognitive awareness of dreaming is not online. It describes the rare, subjectively deeper dream mode without asserting a measured sleep stage."@x-gmeow-english ;
+    skos:example "ex:dream gmeow:awarenessMode gmeow:modeImmersiveDreaming ."@x-gmeow-english ;
+    skos:scopeNote "A sibling AwarenessMode value, not a subclass or an equivalence to lucid dreaming. Immersion and depth are attributed descriptions; neither biological REM nor a numerical arousal level follows from this value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when awareness of dreaming is online; that is modeLucidDreaming. Do not use the ambiguous wild-dreaming spelling for this mode."@x-gmeow-english ;
+    gmeow:howToUse "Attach this value through awarenessMode to the dreaming Experience or a scoped awareness record; retain the attributing standpoint instead of claiming a clinical sleep measurement."@x-gmeow-english ;
+    gmeow:useWhen "Use for a recorded immersive dream with no online metacognition or lucidity, whether the experiencer is human or an artificial agent."@x-gmeow-english .

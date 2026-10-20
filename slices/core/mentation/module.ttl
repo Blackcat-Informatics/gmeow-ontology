@@ -245,3 +245,17 @@ gmeow:experiencerFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:experiencer and nothing else. It is not a definition of gmeow:experiencer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:experiencerFunctionality logic:characterizes gmeow:experiencer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:recollects
+    a logic:ObjectProperty ;
+    logic:range gmeow:Experience ;
+    logic:subPropertyOf gmeow:wasDerivedFrom ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
+    rdfs:label "recollects"@x-gmeow-english ;
+    skos:definition "Relates a recollection episode or its recorded artifact to the experience it recalls. A specialization of derivation, not a claim that the recalled content is accurate."@x-gmeow-english ;
+    skos:example "ex:report gmeow:recollects ex:dream ."@x-gmeow-english ;
+    skos:scopeNote "Domain deliberately open: both a recollection Experience and an information artifact can recall an Experience. Nonfunctional; several recalled experiences and competing reports may coexist. The link does not assert the dream content as waking fact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a merely topical description or for the agent who remembers; use the existing aboutness construct or remembers relation for those distinct roles."@x-gmeow-english ;
+    gmeow:howToUse "Point the recollection episode or written artifact at the original Experience; keep the artifact distinct from the act of recalling and retain the claim standpoint and provenance."@x-gmeow-english ;
+    gmeow:useWhen "Use when recall must trace a report, diary entry or recollection episode back to the experience it recalls."@x-gmeow-english .

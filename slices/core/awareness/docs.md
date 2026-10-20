@@ -17,6 +17,20 @@ human↔machine bridge**: a single open vocabulary holds the human awareness mod
 whether it was formed during live online-inference or offline replay, exactly as a
 human memory can record whether it was formed awake or in a dream.
 
+## Immersive non-lucid dreaming
+
+`gmeow:modeImmersiveDreaming` is an `AwarenessMode` value for an immersive dream
+with no online metacognitive awareness of dreaming. It is a sibling value of
+`modeDreaming` and `modeLucidDreaming`, usable for human or artificial experiencers.
+Use `modeLucidDreaming` when awareness of dreaming is online.
+
+The name avoids confusion with WILD, used for wake-initiated lucid dreaming.
+No `modeWildDreaming` alias is declared. The consumer's descriptions of rarity
+and greater depth are attributed descriptions, not a physiological sleep-stage
+diagnosis or a measured awareness level. Nothing infers REM, lucidity or an
+arousal scalar from the value. Different vantages can attribute different modes
+without collapsing their claims or declaring the values globally disjoint.
+
 ## The state-of-the-experiencer axis
 
 A model of mind that records only *what* an agent entertains and *how* it holds it
