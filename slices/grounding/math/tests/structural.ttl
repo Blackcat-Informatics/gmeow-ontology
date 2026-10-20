@@ -1135,7 +1135,7 @@ ASK {
         { ?s a math:ClosedFormFunction } UNION { ?s math:definingExpression ?e }
     }
 }""" ;
-    gmeow:saRationale "The qualitative flagship scene MUST model the signed radial field WITHOUT any closed form: its field is a framed math:PiecewiseFunction declaring BOTH math:domain and math:codomain math:ExtendedRealLine and at least one math:hasPiece, it is NOT a math:ClosedFormFunction, and NO subject in the radial-qual namespace carries a math:ClosedFormFunction typing or a math:definingExpression. This runs the qualitative-sufficiency claim as an executable FILTER NOT EXISTS over the scene, proving the equation-free path is genuinely equation-free rather than merely described as such." .
+    gmeow:saRationale "The qualitative worked scene MUST model the signed radial field WITHOUT any closed form: its field is a framed math:PiecewiseFunction declaring BOTH math:domain and math:codomain math:ExtendedRealLine and at least one math:hasPiece, it is NOT a math:ClosedFormFunction, and NO subject in the radial-qual namespace carries a math:ClosedFormFunction typing or a math:definingExpression. This runs the qualitative-sufficiency claim as an executable FILTER NOT EXISTS over the scene, proving the equation-free path is genuinely equation-free rather than merely described as such." .
 
 # Ring 2 strictly dominates the spatial measure in the qualitative scene (MUST).
 # The dominance is an executed numeric inequality: no other radial-qual measure
@@ -1177,7 +1177,7 @@ ASK {
         FILTER NOT EXISTS { rcf:signedRadialFieldCF math:functionParameter ?decl }
     }
 }""" ;
-    gmeow:saRationale "Over the closed-form flagship scene, every math:VariableExpression leaf reachable from T(x)'s math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth) MUST resolve, via math:variableOccurrence/math:declaredVariable, to a declaration that is EITHER the field's math:formalArgument (x) OR one of its math:functionParameters (A, B, C, p, q) — no leaf refers to a variable the closed form does not abstract over or tune by. This is the Task-6 leaf-linkage gate scoped to the signed compactified curve, executed as a transitive FILTER NOT EXISTS over the scene." .
+    gmeow:saRationale "Over the closed-form worked scene, every math:VariableExpression leaf reachable from T(x)'s math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth) MUST resolve, via math:variableOccurrence/math:declaredVariable, to a declaration that is EITHER the field's math:formalArgument (x) OR one of its math:functionParameters (A, B, C, p, q) — no leaf refers to a variable the closed form does not abstract over or tune by. This is the leaf-linkage gate scoped to the signed compactified curve, executed as a transitive FILTER NOT EXISTS over the scene." .
 
 # Ring 2 strictly dominates the spatial measure in the closed-form scene (MUST) —
 # the same executed inequality, so the dominant-plateau reading holds on BOTH paths.

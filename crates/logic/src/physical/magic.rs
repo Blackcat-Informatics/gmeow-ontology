@@ -212,6 +212,18 @@ fn prefix_builtin_term(t: &QTerm) -> QTerm {
 /// surface changes.
 fn builtin_of(b: &QBuiltin) -> QBuiltin {
     match b {
+        QBuiltin::TermCompare {
+            left,
+            right,
+            comparison,
+            expected,
+        } => QBuiltin::TermCompare {
+            left: left.map_variable(|name| format!("?{}", name.strip_prefix('?').unwrap_or(name))),
+            right: right
+                .map_variable(|name| format!("?{}", name.strip_prefix('?').unwrap_or(name))),
+            comparison: *comparison,
+            expected: *expected,
+        },
         QBuiltin::TermEqual {
             left,
             right,
@@ -531,6 +543,7 @@ fn negated_body_flounders(body: &[EvalAtom], builtins: &[QBuiltin]) -> bool {
             QBuiltin::Is { .. }
             | QBuiltin::TermKind { .. }
             | QBuiltin::TermEqual { .. }
+            | QBuiltin::TermCompare { .. }
             | QBuiltin::Compare { .. }
             | QBuiltin::BilinearSqDist { .. }
             | QBuiltin::DimEqual { .. }

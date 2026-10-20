@@ -2409,7 +2409,7 @@ ex:cqRadialFieldQualitative a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/radial-field-qualitative.rq" ;
     gmeow:cqDataFile "examples/signed-radial-field-qualitative.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The qualitative flagship scene models a signed radial field on a compactified Lorentzian 2-plane WITHOUT any equation; the competency proves the whole story is recoverable as data. Over the scene the answer is exactly the seven rows: the central singularity limit → math:PositiveInfinity (R′), the infinity limit → math:NegativeInfinity, the Ring-2 plateau bound 0.01, and the four ring measure evaluations {μ(Ring 0)=0.1, μ(Ring 1)=0.25, μ(Ring 2)=0.55, μ(Ring 3)=0.1} — Ring 2 the strictly-dominant plateau band. Values are projected as strings so the pole IRIs, the bound, and the masses share one column." ;
+    gmeow:cqRationale "The qualitative worked scene models a signed radial field on a compactified Lorentzian 2-plane WITHOUT any equation; the competency proves the whole story is recoverable as data. Over the scene the answer is exactly the seven rows: the central singularity limit → math:PositiveInfinity (R′), the infinity limit → math:NegativeInfinity, the Ring-2 plateau bound 0.01, and the four ring measure evaluations {μ(Ring 0)=0.1, μ(Ring 1)=0.25, μ(Ring 2)=0.55, μ(Ring 3)=0.1} — Ring 2 the strictly-dominant plateau band. Values are projected as strings so the pole IRIs, the bound, and the masses share one column." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqRadialQualShape ;
     gmeow:cqExpectRow ex:rowRadialCentre , ex:rowRadialInfinity , ex:rowRadialPlateau ,
@@ -2463,7 +2463,7 @@ ex:cqRadialFieldClosedForm a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/radial-field-closed-form.rq" ;
     gmeow:cqDataFile "examples/signed-radial-field-closed-form.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The closed-form flagship scene stores the exact signed compactified curve T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C as a structured AST; the competency recovers the operator tree by traversing math:argumentSlot/math:slotExpression to arbitrary depth. Over the scene the answer is exactly the nine operator nodes: rcf:cfBodyAdd → math:Addition, rcf:cfOuterSub → math:Subtraction, rcf:cfTermA and rcf:cfTermB → math:Multiplication, rcf:cfPowX and rcf:cfPowOneMinusX → math:Exponentiation, rcf:cfOneMinusX → math:Subtraction, and rcf:cfNegP and rcf:cfNegQ → math:Negation — the operand structure recovered node by node." ;
+    gmeow:cqRationale "The closed-form worked scene stores the exact signed compactified curve T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C as a structured AST; the competency recovers the operator tree by traversing math:argumentSlot/math:slotExpression to arbitrary depth. Over the scene the answer is exactly the nine operator nodes: rcf:cfBodyAdd → math:Addition, rcf:cfOuterSub → math:Subtraction, rcf:cfTermA and rcf:cfTermB → math:Multiplication, rcf:cfPowX and rcf:cfPowOneMinusX → math:Exponentiation, rcf:cfOneMinusX → math:Subtraction, and rcf:cfNegP and rcf:cfNegQ → math:Negation — the operand structure recovered node by node." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqRadialCFShape ;
     gmeow:cqExpectRow ex:rowCFBodyAdd , ex:rowCFOuterSub , ex:rowCFTermA , ex:rowCFPowX ,

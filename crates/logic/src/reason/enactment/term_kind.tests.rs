@@ -147,6 +147,112 @@ fn question_wording_language_guard_runs_through_native_integrity() {
     assert!(authored_findings(law, "ex:open a gmeow:Question .", 1).is_empty());
 }
 
+/// The measure law admits the named positive pole without treating it as a
+/// number, and compares finite values exactly rather than rounding to binary floats.
+#[test]
+fn finite_numeric_measure_law_preserves_poles_and_exact_nonnegativity() {
+    let law = r#"
+        @prefix math: <https://blackcatinformatics.ca/math/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        math:MeasureResultNonNegativeConstraint a logic:Constraint ;
+            logic:formalizes math:MeasureEvaluation ;
+            gmeow:enforcesFailureClass math:UnderspecifiedMeasureEvaluation ;
+            logic:integrity math:mrForall .
+        math:mrForall a logic:Formula ;
+            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                     [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+            logic:forall math:mrImpl .
+        math:mrImpl a logic:Formula ; logic:antecedent math:mrGuard ;
+            logic:consequent math:mrAllowed .
+        math:mrGuard a logic:Formula ; logic:and math:mrClass, math:mrValue .
+        math:mrClass a logic:Formula ; logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                           [ logic:termIndex 1 ; logic:termIri math:MeasureEvaluation ] .
+        math:mrValue a logic:Formula ; logic:relation math:measureResult ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                           [ logic:termIndex 1 ; logic:termVariable "value" ] .
+        math:mrAllowed a logic:Formula ; logic:or math:mrPole, math:mrFiniteNonNegative .
+        math:mrPole a logic:Formula ; logic:relation logic:termIn ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ],
+                           [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] .
+        math:mrFiniteNonNegative a logic:Formula ; logic:and math:mrFinite, math:mrNonNegative .
+        math:mrFinite a logic:Formula ; logic:relation logic:termIsFiniteNumeric ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+        math:mrNonNegative a logic:Formula ; logic:relation logic:termGreaterEqual ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ],
+                           [ logic:termIndex 1 ; logic:termLiteral "0"^^xsd:integer ] .
+    "#;
+    let large_integer = "9".repeat(320);
+    let tiny_positive = format!("0.{}1", "0".repeat(320));
+    let tiny_negative = format!("-{tiny_positive}");
+    for (value, valid) in [
+        ("0", true),
+        ("2.5", true),
+        (large_integer.as_str(), true),
+        (tiny_positive.as_str(), true),
+        (tiny_negative.as_str(), false),
+        ("-0.25", false),
+        (
+            "<https://blackcatinformatics.ca/math/PositiveInfinity>",
+            true,
+        ),
+        (
+            "<https://blackcatinformatics.ca/math/NegativeInfinity>",
+            false,
+        ),
+        ("<urn:other>", false),
+        ("_:blank", false),
+        ("\"text\"", false),
+        ("\"2.5\"", false),
+        ("\"2.5\"@en", false),
+        ("\"oops\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+        ("\"NaN\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+        ("\"INF\"^^<http://www.w3.org/2001/XMLSchema#double>", false),
+        ("\"-INF\"^^<http://www.w3.org/2001/XMLSchema#float>", false),
+    ] {
+        let data = format!(
+            "ex:evaluation a <https://blackcatinformatics.ca/math/MeasureEvaluation> ;
+             <https://blackcatinformatics.ca/math/measureResult> {value} ."
+        );
+        let actual = authored_findings(law, &data, 2);
+        if valid {
+            assert!(actual.is_empty(), "{value}: {actual:?}");
+        } else {
+            assert_eq!(
+                actual,
+                vec![(
+                    "https://example.org/evaluation".to_owned(),
+                    "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint"
+                        .to_owned(),
+                    "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation"
+                        .to_owned(),
+                )],
+                "{value}"
+            );
+        }
+    }
+    for (relation, accepted) in [
+        ("termLess", [true, false, false]),
+        ("termLessEqual", [true, true, false]),
+        ("termGreater", [false, false, true]),
+        ("termGreaterEqual", [false, true, true]),
+    ] {
+        let selected = law.replace("logic:termGreaterEqual", &format!("logic:{relation}"));
+        for (value, valid) in ["-0.25", "0", "0.25"].into_iter().zip(accepted) {
+            let data = format!(
+                "ex:evaluation a <https://blackcatinformatics.ca/math/MeasureEvaluation> ;
+                 <https://blackcatinformatics.ca/math/measureResult> {value} ."
+            );
+            assert_eq!(
+                authored_findings(&selected, &data, 2).is_empty(),
+                valid,
+                "{relation}({value}, 0)"
+            );
+        }
+    }
+}
+
 #[test]
 fn iri_kind_enforces_native_values_and_exact_law_identity() {
     assert_eq!(
