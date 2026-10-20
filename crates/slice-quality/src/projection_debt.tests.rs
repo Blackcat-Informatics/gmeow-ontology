@@ -233,3 +233,17 @@ fn projection_debt_preserves_the_declared_subsumption_budget_unit() {
     assert_eq!(rows[0].measured, 2);
     assert_eq!(rows[0].headroom(), 0);
 }
+
+#[test]
+fn projection_debt_shared_inventory_accepts_manifest_only_profiles() {
+    let directory = source();
+    std::fs::remove_file(directory.path().join("module.ttl")).unwrap();
+    assert!(
+        crate::ratchet_surface_paths(directory.path())
+            .unwrap()
+            .is_empty()
+    );
+    assert!(measure_slice_debt(directory.path(), &governance(0)).is_err());
+    std::fs::create_dir(directory.path().join("module.ttl")).unwrap();
+    assert!(crate::ratchet_surface_paths(directory.path()).is_err());
+}

@@ -770,6 +770,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord|http://www
 msgid "Freshness and integrity are separate obligations that this one class covers because both make the record unreadable in the same way: the fingerprint asks whether the record describes THIS tree, the content digest asks whether the record is what the scorer wrote, and an input-only witness answers only the first."
 msgstr "新鲜性与完整性是两项各自独立的义务，本单一类之所以同时覆盖，是因为二者以相同方式使记录不可读：指纹追问该记录是否描述这棵树，内容摘要追问该记录是否即评分者所写，而仅覆盖输入的见证只能回答前者。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|gmeow:avoidWhen"
-msgid "Avoid hardcoding the guarded registry, empty vocabulary namespaces, or missing grounding owners. The quantitative RDFS budget counts subsumption, not property signatures; this is not permission to author semantic signatures outside logic:. OWL authoring is checked by projection purity, not by a numeric ceiling or reason-verify alone."
-msgstr "避免硬编码受管注册表、空词汇命名空间或缺失基础层所有者。RDFS 定量预算计数涵摄关系，而非属性签名；这不允许在 logic: 之外编写语义签名。OWL 编写由投影纯度检查约束，而非由数值上限或单独的 reason-verify 约束。"
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid hardcoding the guarded registry. Require each guarded projection vocabulary to have at least one gmeow:vocabularyNamespace and exactly one gmeow:vocabularyOwner from a grounding slice. The quantitative RDFS budget counts subsumption, not property signatures; this is not permission to author semantic signatures outside logic:. OWL authoring is checked by projection purity, not by a numeric ceiling or reason-verify alone."
+msgstr "避免硬编码受管注册表。每个受管投影词汇必须具有至少一个 gmeow:vocabularyNamespace，以及恰好一个来自基础层切片的 gmeow:vocabularyOwner。RDFS 定量预算计数涵摄关系，而非属性签名；这不允许在 logic: 之外编写语义签名。OWL 编写由投影纯度检查约束，而非由数值上限或单独的 reason-verify 约束。"

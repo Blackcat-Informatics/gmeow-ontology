@@ -387,7 +387,7 @@ exercise each invariant directly against inline fixtures.
   Each measurable vocabulary has measured/ceiling/headroom fields, including
   explicit zero/default cells and negative deficits. Source-local ceiling
   declarations cannot raise the embedded authority. Both CLI surfaces use the
-  same exact signed headroom and wide checked totals; neither saturates at the
+  exact signed headroom and wide checked totals; neither saturates at the
   signed-64-bit boundary. A deficit is report data and does not edit a commitment.
 - **Generated projections:**
   `generated/governance/slice-quality-projection-ceilings.tsv`

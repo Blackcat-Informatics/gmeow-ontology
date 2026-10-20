@@ -944,19 +944,27 @@ pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
 /// reconstruction that could drift from the working-tree one.
 ///
 /// # Errors
-/// Rejects a missing module, unreadable selected inputs, and invalid mapping trees.
+/// Rejects unreadable selected inputs and invalid mapping trees. Manifest-only
+/// profiles have no module authoring surface and remain valid repository inputs.
 pub fn ratchet_surface_paths(slice_dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let module = slice_dir.join("module.ttl");
-    if !std::fs::metadata(&module)
-        .map_err(|error| source_inventory_error(&module, error))?
-        .is_file()
-    {
-        return Err(source_inventory_error(
-            &module,
-            "expected a Turtle module file",
-        ));
+    let mut paths = Vec::new();
+    match std::fs::symlink_metadata(&module) {
+        Ok(_) => {
+            if !std::fs::metadata(&module)
+                .map_err(|error| source_inventory_error(&module, error))?
+                .is_file()
+            {
+                return Err(source_inventory_error(
+                    &module,
+                    "expected a Turtle module file",
+                ));
+            }
+            paths.push(module);
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(source_inventory_error(&module, error)),
     }
-    let mut paths = vec![module];
     let shapes = slice_dir.join("shapes.ttl");
     match std::fs::symlink_metadata(&shapes) {
         Ok(_) => {

@@ -56,6 +56,16 @@ pub fn measure_slice_debt(
             "projection debt requires a guarded vocabulary registry",
         ));
     }
+    let module = slice_dir.join("module.ttl");
+    if !std::fs::metadata(&module)
+        .map_err(|error| invalid(format!("{}: {error}", module.display())))?
+        .is_file()
+    {
+        return Err(invalid(format!(
+            "{}: expected a Turtle module file",
+            module.display()
+        )));
+    }
     let slice = crate::slice_iri_of_dir(slice_dir)?;
     let paths = crate::ratchet_surface_paths(slice_dir)?;
     let measured =
