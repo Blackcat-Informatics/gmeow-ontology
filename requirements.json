@@ -1,0 +1,137 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 12,
+      "rules": [
+        "modal"
+      ],
+      "text": "`xsd:dateTime`, so a day- or year-precision time must be padded into",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 67,
+      "rules": [
+        "modal"
+      ],
+      "text": "- Should the SHACL constraint be one shared shape (a \"natural-language",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 68,
+      "rules": [
+        "question"
+      ],
+      "text": "literal\" node shape) that properties reference, or stated per property?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 69,
+      "rules": [
+        "question"
+      ],
+      "text": "- How does this interact with the `@x-gmeow-*` canonical tags of #164?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 70,
+      "rules": [
+        "modal"
+      ],
+      "text": "The constraint should admit both private-use and public tags. Is a",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 71,
+      "rules": [
+        "question"
+      ],
+      "text": "tag check (well-formed BCP 47) wanted as well?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B7",
+      "line": 97,
+      "rules": [
+        "modal"
+      ],
+      "text": "that carries the scheme. A generic digest datatype must never be",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B8",
+      "line": 109,
+      "rules": [
+        "question"
+      ],
+      "text": "beside `contentDigest`?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B9",
+      "line": 114,
+      "rules": [
+        "question"
+      ],
+      "text": "deprecating the old one preferred?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B10",
+      "line": 131,
+      "rules": [
+        "modal"
+      ],
+      "text": "**Proposal.** Either of these, and GMEOW should choose:",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B11",
+      "line": 142,
+      "rules": [
+        "question"
+      ],
+      "text": "the temporal slices as an interval entity the time points to?",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 5,
+      "rules": [
+        "question"
+      ],
+      "text": "- be complemented by a structured form, so a no-JSON consumer has a sanctioned home?",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-10T20:21:12Z"
+    }
+  ],
+  "silent_comments": []
+}

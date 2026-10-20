@@ -1,0 +1,49 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nThree typing gaps make literals ill-typed or over-precise once a consumer\nstores real data:\n\n1. **Words cannot carry a language.** 132 properties range over\n   `xsd:string` and none admits a language-tagged literal.\n2. **Machinery has no named type.** `gmeow:contentDigest`,\n   `gmeow:mediaType` and `gmeow:identifier` range over `rdfs:Literal`, so\n   a digest, a media type and an identifier are all just strings.\n3. **Coarse-precision time cannot be stated.** Time properties range over\n   `xsd:dateTime`, so a day- or year-precision time must be padded into\n   an instant nobody observed.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumers\n\n- **memetics**: the memory adapter for a companion agent. Its stores hold\n  her dreams, conversations, intentions and observations as RDF 1.2. It\n  tags every piece of her text with its language at ingest. It types\n  every piece of machinery: digests, identifiers, statuses and times.\n  Its vector families embed only language-tagged text, so an untagged\n  digest or status string can never be embedded as if it were prose.\n- **katamari**: the governed RDF 1.2 store memetics provisions. It admits\n  only declared natural languages to a vector family, keyed on the\n  literal's language. It stores RDF 1.2 directional strings\n  (`rdf:dirLangString`). It addresses content by plain BLAKE3-256 of the\n  exact bytes. It stores time with an explicit precision: day, month,\n  year or a named period.\n\n## 1. Words should admit a language tag\n\n**Today.** 132 properties declare `rdfs:range xsd:string` (for example\n`gmeow:positionLabel` in `extensions/narrative`, and\n`gmeow:conditionText` in `core/norms`). No property ranges over\n`rdf:langString`. Since RDF 1.1, `\"...\"@en` has datatype\n`rdf:langString`, which is not `xsd:string` and not a subtype of it.\nSo any language-tagged value of these properties is ill-typed under\nD-entailment and in OWL 2 DL.\n\n**Why it matters.**\n- GMEOW's own policy (#164) tags GMEOW-authored text `@x-gmeow-english`.\n  It keeps public BCP 47 tags for consumer and external data.\n- A consumer that follows that policy and tags its users' text `@en`\n  then contradicts the ranges it is using.\n- Both consumers here gate semantic indexing on the tag: text with a\n  declared language is embedded, untagged strings are not. The ranges\n  currently forbid the very tag the gate needs.\n\n**Proposal.**\n- A property whose values are words (prose, labels, names, reasons,\n  summaries) ranges over `rdfs:Literal`, with a SHACL constraint\n  admitting `rdf:langString` and `rdf:dirLangString`.\n  - `rdfs:range rdf:langString` alone would exclude RDF 1.2 directional\n    strings, which katamari already stores.\n- A property whose values are identifiers or codes (keys, ids, version\n  strings) ranges over `xsd:token`.\n  - `xsd:token` is derived from `xsd:string`, so every existing value\n    that is a valid token stays valid.\n- The 132 properties need sorting into words and identifiers. That is a\n  judgment per property. A first pass over the ones the consumers use:\n  - `positionLabel` and `conditionText` are words;\n  - `version` is an identifier.\n\n**Open questions for GMEOW.**\n- Should the SHACL constraint be one shared shape (a \"natural-language\n  literal\" node shape) that properties reference, or stated per property?\n- How does this interact with the `@x-gmeow-*` canonical tags of #164?\n  The constraint should admit both private-use and public tags. Is a\n  tag check (well-formed BCP 47) wanted as well?\n\n## 2. A digest's algorithm is its datatype; a media type is an IRI\n\n**Today.** `gmeow:contentDigest` (`core/sources`), `gmeow:mediaType` and\n`gmeow:identifier` (`core/documents`) range over `rdfs:Literal`.\n`gmeow:identifier` is also domain-bound to `gmeow:CreativeWork`.\nConsumers write digests as prefixed strings (`\"blake3:...\"`) or bare\nhex, and media types as strings.\n\n**Proposal (agreed by both consumers).**\n- **One datatype per digest algorithm**, for example a BLAKE3-256\n  datatype whose lexical form is 64 lowercase hex digits, as `b3sum`\n  prints it.\n  - A digest stays one triple, and digests compare by RDF term equality.\n  - Several digests of one thing are several triples.\n  - Hex rather than base32: shell-only conformance gates compare with\n    the stock tool's output.\n- **A digest is a hash of exact bytes, never a scheme-prefixed\n  identifier.**\n  - katamari's content id is plain BLAKE3-256 of the exact bytes, which\n    stock BLAKE3 verifies. That is a generic digest and belongs here.\n  - Its record ids are BLAKE3 over a domain tag (`\"<scheme>:<type>:v2\"`,\n    a zero byte, then canonical bytes). Those are an identifier scheme,\n    not a digest.\n  - If GMEOW wants to name such ids, they need an identifier datatype\n    that carries the scheme. A generic digest datatype must never be\n    used for them, or two unrelated hashes would compare as if\n    comparable.\n- **A media type is the IANA media-type IRI**\n  (`https://www.iana.org/assignments/media-types/image/png`).\n  - Parameters such as `charset` go in their own properties, never in\n    the IRI.\n  - That makes `gmeow:mediaType` an object property, or adds a sibling\n    object property beside it.\n\n**Open questions for GMEOW.**\n- Where do digest datatypes live: a small `core/digests` vocabulary, or\n  beside `contentDigest`?\n- Which algorithms are needed at first? Both consumers need BLAKE3-256.\n  SHA-256 is the obvious second.\n- Changing `gmeow:mediaType` from a datatype property to an object\n  property is a breaking change. Is a new object property plus\n  deprecating the old one preferred?\n\n## 3. Time at the precision it was stated\n\n**Today.** Time properties range over `xsd:dateTime`. There is no way to\nstate \"on 2026-09-30\", \"in September 2026\" or \"in 2025\" without\nasserting an instant.\n\n**Why it matters.**\n- An observation known only to the day, forced into `xsd:dateTime`,\n  claims a precision nobody stated.\n- A later query that compares instants then treats a guess as a fact.\n- Both consumers answer recall questions like \"what did I do last fall\".\n  That needs the stored precision to be honest.\n- katamari already keeps an explicit `TimePrecision` (day, month, year,\n  named period) beside each time.\n\n**Proposal.** Either of these, and GMEOW should choose:\n- (a) time properties range over a union admitting `xsd:dateTime`,\n  `xsd:date`, `xsd:gYearMonth` and `xsd:gYear`, stated as a shared SHACL\n  shape the way item 1's text constraint is;\n- (b) keep `xsd:dateTime` and add a precision annotation, a value\n  vocabulary (instant, day, month, year, named period) on the claim.\n\n  (a) is simpler for plain data. (b) also covers named periods (\"last\n  fall\", \"the summer of the move\"), which no XSD type expresses.\n\n**Open question for GMEOW.** Does a named period belong here, or with\nthe temporal slices as an interval entity the time points to?\n\n## Local stand-ins\n\n- memetics:\n  - its local extension slices range words over `rdf:langString` and\n    identifiers over `xsd:token`;\n  - it emits digests as `xsd:hexBinary` (algorithm implied by the\n    property), media types as `xsd:token`, and only exact instants as\n    `xsd:dateTime`;\n  - each moves to whatever GMEOW settles.\n- katamari: stores time precision in its own record (`Timestamp`), and\n  directional strings natively.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABa7H-7g",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "A related case for item 2 (machinery has no named type): **`gmeow:toolArguments` (core/agentic) is documented as \"the verbatim arguments payload presented to the tool (typically JSON)\".**\n\nA consumer enforcing a no-JSON admission law cannot write that: a JSON object in a literal is opaque to every graph tool. memetics instead keeps a call's arguments as labelled facets of the call, one per argument leaf, labelled by its path (see the labelled-facets issue, #1808). Could `toolArguments` either:\n- document arguments as structure (facets, or properties of the call) and keep a literal only for an opaque payload, typed by its media type (#1807 item 2); or\n- be complemented by a structured form, so a no-JSON consumer has a sanctioned home?\n\nThe same applies to `gmeow:toolResult`.\n",
+      "createdAt": "2026-10-10T20:21:12Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1807#issuecomment-6101794542",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-10T10:12:13Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    }
+  ],
+  "milestone": null,
+  "number": 1807,
+  "state": "OPEN",
+  "title": "[term] Literal typing: language on words, types for machinery, time at its stated precision (consumers: memetics, katamari)",
+  "updatedAt": "2026-10-10T20:21:12Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1807"
+}

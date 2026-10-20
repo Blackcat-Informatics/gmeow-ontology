@@ -1,0 +1,15 @@
+# Literal projection prerequisite: current acceptance
+
+The full issue plan is plan.md. This branch implements Task 1 only; Tasks 2–4 and the complete original issue remain open. No canonical property migration, byte-digest policy, media cutover, precision migration or structured-tool delivery is claimed.
+
+- Baseline regression reproduced the defect: two explicitly closed anonymous ranges produced zero shapes. See baseline.log; this is a failure demonstration, not qualification.
+- Initial new-test builds failed on a diagnostic-code assertion API spelling. See tests.log and tests-repaired.log. The assertion now uses the existing public registry API; no expected outcome was weakened.
+- The broad affected selection passed 73 tests after repair, including the actual native-validator language/direction/calendar-precision matrix. See tests-final.log.
+- Final review removed newly enabled anonymous non-union range handling and added a refusal control, preventing a malformed facet selection from silently yielding only its base datatype. The final selection passed all 73 tests in tests-qualified.log, including the added rejection control. Strict producer-independent workspace/all-target Clippy passed with warnings denied; see clippy.log.
+- Source hygiene and static producer-recipe admission passed before that final hardening; normal commit hooks will cover the final files. No optimized producer, corpus/fixture generation, synchronization or full make check ran.
+
+Reviewed scope: existing validation-shape datatype classification and explicit closed property ranges, compiler controls and native generated-SHACL acceptance. Named and class-restriction language datatypes use the shared classifier. Canonical Datarange declarations use structural typing. Strict union walking reuses the existing native list owner; other anonymous closed range forms fail explicitly. Open-world defaults and explicit opt-outs are unchanged. No dependency, second parser, datatype engine or hand-authored ontology shape is introduced.
+
+The corpus/generated-product lane remains unrun locally by standing restriction. Hosted CI is ignored as a merge prerequisite by the user: “merge them one by one, ignoring CI.” This does not authorize reporting it passed. Self-review only; no independent dispatcher is available. Final source whitespace checks passed. Normal signed commit hooks and push passed. Fresh review has only an automated in-progress notice, with no source findings or threads. The fetched main has no intervening delta and merge-tree is clean. Structured merge and cleanup remain pending.
+
+Cache applicability: pipeline/build.rs emits the shared selected implementation identity as GMEOW_BUILD_FINGERPRINT. cache::StageKeyContext carries that build identity into each action key. The repaired compiler is part of the selected native Rust implementation, so a rebuild invalidates old generated products without a redundant manual stage-version bump. This was traced in source; no production cold/warm cache run was performed.

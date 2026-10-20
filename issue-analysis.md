@@ -1,0 +1,1 @@
+The issue includes all word/code property classification, algorithm-specific exact-byte digests, IANA media identity, coarse/named time and the tool argument/result comment. Each is preserved in plan.md. Source inspection exposed shared validation-projection prerequisites before canonical migration. Self-analysis only; no independent dispatcher is available.

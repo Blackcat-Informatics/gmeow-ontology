@@ -1,0 +1,105 @@
+{
+  "paths": [
+    {
+      "ref": "extensions/narrative",
+      "path": "/home/paudley/Active/gmeow-ontology/extensions/narrative",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/norms",
+      "path": "/home/paudley/Active/gmeow-ontology/core/norms",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/sources",
+      "path": "/home/paudley/Active/gmeow-ontology/core/sources",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/documents",
+      "path": "/home/paudley/Active/gmeow-ontology/core/documents",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/digests",
+      "path": "/home/paudley/Active/gmeow-ontology/core/digests",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2084
+    },
+    {
+      "name": "a631f73",
+      "files": 0
+    },
+    {
+      "name": "positionLabel",
+      "files": 7
+    },
+    {
+      "name": "conditionText",
+      "files": 15
+    },
+    {
+      "name": "version",
+      "files": 968
+    },
+    {
+      "name": "b3sum",
+      "files": 1
+    },
+    {
+      "name": "charset",
+      "files": 173
+    },
+    {
+      "name": "contentDigest",
+      "files": 187
+    },
+    {
+      "name": "TimePrecision",
+      "files": 0
+    },
+    {
+      "name": "Timestamp",
+      "files": 20
+    },
+    {
+      "name": "toolArguments",
+      "files": 23
+    }
+  ],
+  "packages": [],
+  "urls": [
+    "https://www.iana.org/assignments/media-types/image/png"
+  ],
+  "truncated": []
+}
