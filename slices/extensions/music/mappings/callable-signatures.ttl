@@ -1,0 +1,271 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+# Canonical callable signatures: named, ordered inputs and outputs.
+# Signatures declare interfaces; an executable implementation is a separate contract.
+# The correspondence lowering derives the single generated FnO catalog from these records.
+
+# --- Music / pitch solver -------------------------------------- #
+# Declarative function catalogue for the pitch frame layer.  These are specs;
+
+gmeow:fnRatioToCents
+    a logic:CallableSignature ;
+    rdfs:label "ratio → cents"@x-gmeow-english ;
+    dcterms:description "Converts an exact integer-ratio interval to cents: 1200·log₂(numerator/denominator). The canonical value remains the ratio pair; cents is a lossy projection."@x-gmeow-english ;
+    skos:definition "Converts an exact integer-ratio interval to cents: 1200·log₂(numerator/denominator). The canonical value remains the ratio pair; cents is a lossy projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pRatioNumerator gmeow:pRatioDenominator ) ;
+    logic:outputParameters ( gmeow:oCents ) ;
+    rdfs:seeAlso gmeow:centsFromOrigin .
+
+gmeow:fnPitchToFrequency
+    a logic:CallableSignature ;
+    rdfs:label "pitch value + anchor → frequency (Hz)"@x-gmeow-english ;
+    dcterms:description "Maps a frame-relative PitchValue to a physical frequency in Hz using a PitchAnchor. Hz is never asserted directly on a PitchValue; it is always reached through this solver (Principle 11)."@x-gmeow-english ;
+    skos:definition "Maps a frame-relative PitchValue to a physical frequency in Hz using a PitchAnchor. Hz is never asserted directly on a PitchValue; it is always reached through this solver (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pPitchValue gmeow:pPitchAnchor ) ;
+    logic:outputParameters ( gmeow:oFrequency ) ;
+    rdfs:seeAlso gmeow:PitchAnchor .
+
+gmeow:fnConvertTuning
+    a logic:CallableSignature ;
+    rdfs:label "convert pitch value to another tuning system"@x-gmeow-english ;
+    dcterms:description "Projects a PitchValue expressed in one TuningSystem into another TuningSystem, returning a new PitchValue (possibly approximate). Notation letters are projections, not inputs."@x-gmeow-english ;
+    skos:definition "Projects a PitchValue expressed in one TuningSystem into another TuningSystem, returning a new PitchValue (possibly approximate). Notation letters are projections, not inputs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pPitchValue gmeow:pTuningSystemTarget ) ;
+    logic:outputParameters ( gmeow:oPitchValue ) ;
+    rdfs:seeAlso gmeow:hasTuningFrame .
+
+gmeow:fnSpectrumToPitchCollection
+    a logic:CallableSignature ;
+    rdfs:label "spectrum → pitch collection"@x-gmeow-english ;
+    dcterms:description "Derives a PitchCollection from a Spectrum via peak detection / fundamental estimation. The output is a standpoint-indexed projection of the spectral content (Principle 12)."@x-gmeow-english ;
+    skos:definition "Derives a PitchCollection from a Spectrum via peak detection / fundamental estimation. The output is a standpoint-indexed projection of the spectral content (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pSpectrum ) ;
+    logic:outputParameters ( gmeow:oPitchCollection ) ;
+    rdfs:seeAlso gmeow:derivedFromSpectrum .
+
+# Parameters / outputs (declarative; no bound executor)
+
+gmeow:pRatioNumerator   a logic:CallParameter ; logic:parameterPredicate gmeow:ratioNumerator ;   logic:parameterValueType xsd:integer ;  logic:parameterRequired true ;
+    rdfs:label "ratio numerator input"@x-gmeow-english ;
+    skos:definition "The numerator of the ratio supplied to a pitch solver function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pRatioDenominator a logic:CallParameter ; logic:parameterPredicate gmeow:ratioDenominator ; logic:parameterValueType xsd:integer ;  logic:parameterRequired true ;
+    rdfs:label "ratio denominator input"@x-gmeow-english ;
+    skos:definition "The denominator of the ratio supplied to a pitch solver function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pPitchValue       a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputPitchValue ;       logic:parameterValueType gmeow:PitchValue ;      logic:parameterRequired true ;
+    rdfs:label "pitch value input"@x-gmeow-english ;
+    skos:definition "A frame-relative pitch value supplied to a pitch solver function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pPitchAnchor      a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputPitchAnchor ;      logic:parameterValueType gmeow:PitchAnchor ;     logic:parameterRequired true ;
+    rdfs:label "pitch anchor input"@x-gmeow-english ;
+    skos:definition "A PitchAnchor that supplies the tuning-system degree and frequency for a pitch-to-frequency conversion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pTuningSystemTarget a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputTuningSystem ;   logic:parameterValueType gmeow:TuningSystem ;    logic:parameterRequired true ;
+    rdfs:label "target tuning system input"@x-gmeow-english ;
+    skos:definition "The TuningSystem that a pitch value should be projected into."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pSpectrum         a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputSpectrum ;         logic:parameterValueType gmeow:Spectrum ;        logic:parameterRequired true ;
+    rdfs:label "spectrum input"@x-gmeow-english ;
+    skos:definition "A Spectrum supplied to a spectral-to-pitch derivation function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:oCents            a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputCents ;          logic:parameterValueType xsd:decimal ;
+    rdfs:label "cents output"@x-gmeow-english ;
+    skos:definition "A logarithmic interval size in cents, produced by fnRatioToCents."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:oFrequency        a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputFrequency ;      logic:parameterValueType xsd:decimal ;
+    rdfs:label "frequency output (Hz)"@x-gmeow-english ;
+    skos:definition "A physical frequency in hertz, produced by fnPitchToFrequency."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:oPitchValue       a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputPitchValue ;     logic:parameterValueType gmeow:PitchValue ;
+    rdfs:label "pitch value output"@x-gmeow-english ;
+    skos:definition "A PitchValue produced by a conversion or derivation function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:oPitchCollection  a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputPitchCollection ; logic:parameterValueType gmeow:PitchCollection ;
+    rdfs:label "pitch collection output"@x-gmeow-english ;
+    skos:definition "A PitchCollection produced by fnSpectrumToPitchCollection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Declarative argument-role properties for the music functions.
+
+# --- Music / time solver -------------------------------------- #
+# Declarative function catalogue for the musical-time layer. These are specs;
+
+gmeow:fnComposeTimeMappings
+    a logic:CallableSignature ;
+    rdfs:label "compose time mappings"@x-gmeow-english ;
+    dcterms:description "Composes two TimeMappings, returning a new TimeMapping that represents their sequential application. Tuplet nesting and tempo-canon layering are evaluated by this solver (Principle 12)."@x-gmeow-english ;
+    skos:definition "Composes two TimeMappings, returning a new TimeMapping that represents their sequential application."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pTimeMappingA gmeow:pTimeMappingB ) ;
+    logic:outputParameters ( gmeow:oComposedTimeMapping ) ;
+    rdfs:seeAlso gmeow:TimeMapping .
+
+gmeow:fnMusicalToClockTime
+    a logic:CallableSignature ;
+    rdfs:label "musical time span + tempo map → clock time span"@x-gmeow-english ;
+    dcterms:description "Evaluates a MusicalTimeSpan against a TempoMap and a target TemporalFrame, returning a clock-time TimeInterval. Tempo is a frame mapping, never a single number (Principle 11)."@x-gmeow-english ;
+    skos:definition "Evaluates a MusicalTimeSpan against a TempoMap and a target TemporalFrame, returning a clock-time TimeInterval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pMusicalTimeSpan gmeow:pTempoMap gmeow:pClockFrame ) ;
+    logic:outputParameters ( gmeow:oClockTimeSpan ) ;
+    rdfs:seeAlso gmeow:TempoMap .
+
+gmeow:fnApplyGroove
+    a logic:CallableSignature ;
+    rdfs:label "apply groove profile"@x-gmeow-english ;
+    dcterms:description "Applies a GrooveProfile to a MusicalTimeSpan, returning a deviation-offset span. Groove is content, not error (Principle 9/12)."@x-gmeow-english ;
+    skos:definition "Applies a GrooveProfile to a MusicalTimeSpan, returning a deviation-offset span."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pGrooveProfile gmeow:pGrooveInputSpan ) ;
+    logic:outputParameters ( gmeow:oGroovedSpan ) ;
+    rdfs:seeAlso gmeow:GrooveProfile .
+
+# Parameters / outputs (declarative; no bound executor)
+
+gmeow:pTimeMappingA      a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputTimeMappingA ; logic:parameterValueType gmeow:TimeMapping ;      logic:parameterRequired true ;
+    rdfs:label "first time mapping input"@x-gmeow-english ;
+    skos:definition "The first TimeMapping to compose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pTimeMappingB      a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputTimeMappingB ; logic:parameterValueType gmeow:TimeMapping ;      logic:parameterRequired true ;
+    rdfs:label "second time mapping input"@x-gmeow-english ;
+    skos:definition "The second TimeMapping to compose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pMusicalTimeSpan   a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputMusicalTimeSpan ; logic:parameterValueType gmeow:MusicalTimeSpan ; logic:parameterRequired true ;
+    rdfs:label "musical time span input"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan to evaluate against a TempoMap."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pTempoMap          a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputTempoMap ;        logic:parameterValueType gmeow:TempoMap ;        logic:parameterRequired true ;
+    rdfs:label "tempo map input"@x-gmeow-english ;
+    skos:definition "The TempoMap used to convert musical time to clock time."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pClockFrame        a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputClockFrame ;        logic:parameterValueType gmeow:TemporalFrame ;    logic:parameterRequired true ;
+    rdfs:label "clock frame input"@x-gmeow-english ;
+    skos:definition "The target TemporalFrame for clock-time output."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pGrooveProfile     a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputGrooveProfile ;     logic:parameterValueType gmeow:GrooveProfile ;    logic:parameterRequired true ;
+    rdfs:label "groove profile input"@x-gmeow-english ;
+    skos:definition "The GrooveProfile to apply."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pGrooveInputSpan   a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputGrooveSpan ;        logic:parameterValueType gmeow:MusicalTimeSpan ;  logic:parameterRequired true ;
+    rdfs:label "groove input span"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan to which the groove profile is applied."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:oComposedTimeMapping a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputComposedTimeMapping ; logic:parameterValueType gmeow:TimeMapping ;
+    rdfs:label "composed time mapping output"@x-gmeow-english ;
+    skos:definition "The TimeMapping resulting from fnComposeTimeMappings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:oClockTimeSpan     a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputClockTimeSpan ;     logic:parameterValueType gmeow:TimeInterval ;
+    rdfs:label "clock time span output"@x-gmeow-english ;
+    skos:definition "The clock-time TimeInterval produced by fnMusicalToClockTime."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:oGroovedSpan       a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputGroovedSpan ;        logic:parameterValueType gmeow:MusicalTimeSpan ;
+    rdfs:label "grooved span output"@x-gmeow-english ;
+    skos:definition "The deviation-offset MusicalTimeSpan produced by fnApplyGroove."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Declarative argument-role properties for the music time functions.
+
+# --- Music / performance solver --------------------------------
+# Declarative function catalogue for form, process, indeterminacy, and ornament.
+
+gmeow:fnTraverseMobileForm
+    a logic:CallableSignature ;
+    rdfs:label "traverse mobile form"@x-gmeow-english ;
+    dcterms:description "Interprets a TraversalConstraint and a starting fragment, returning a documented traversal sequence. Graph reachability and termination are solver-evaluated, never reasoner-asserted (Principle 12)."@x-gmeow-english ;
+    skos:definition "Interprets a TraversalConstraint and a starting fragment, returning a documented traversal sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pTraversalConstraint gmeow:pStartingFragment ) ;
+    logic:outputParameters ( gmeow:oTraversalSequence ) ;
+    rdfs:seeAlso gmeow:TraversalConstraint .
+
+gmeow:fnRealizePhasing
+    a logic:CallableSignature ;
+    rdfs:label "realize phasing process"@x-gmeow-english ;
+    dcterms:description "Realizes a phasing GenerativeProcess over a MusicalTimeSpan, producing an Expression. The rule text is canonical; this function is the solver projection (Principle 12)."@x-gmeow-english ;
+    skos:definition "Realizes a phasing GenerativeProcess over a span, producing an Expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pGenerativeProcess gmeow:pRealizationSpan ) ;
+    logic:outputParameters ( gmeow:oRealizedExpression ) ;
+    rdfs:seeAlso gmeow:GenerativeProcess .
+
+gmeow:fnRealizeStochasticProcess
+    a logic:CallableSignature ;
+    rdfs:label "realize stochastic process"@x-gmeow-english ;
+    dcterms:description "Realizes a stochastic GenerativeProcess over a MusicalTimeSpan, producing an Expression. Distribution parameters are read from the process node (Principle 12)."@x-gmeow-english ;
+    skos:definition "Realizes a stochastic GenerativeProcess over a span, producing an Expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pGenerativeProcess gmeow:pRealizationSpan ) ;
+    logic:outputParameters ( gmeow:oRealizedExpression ) ;
+    rdfs:seeAlso gmeow:GenerativeProcess .
+
+gmeow:fnEvaluateTrajectory
+    a logic:CallableSignature ;
+    rdfs:label "evaluate pitch trajectory"@x-gmeow-english ;
+    dcterms:description "Evaluates a PitchTrajectory at a given rational time position, returning the interpolated PitchValue. Interpolation is solver-evaluated, never reasoner-asserted (Principle 12)."@x-gmeow-english ;
+    skos:definition "Evaluates a PitchTrajectory at a rational time position, returning the interpolated PitchValue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    logic:inputParameters ( gmeow:pPitchTrajectory gmeow:pEvaluationTimeNumerator gmeow:pEvaluationTimeDenominator ) ;
+    logic:outputParameters ( gmeow:oEvaluatedPitchValue ) ;
+    rdfs:seeAlso gmeow:PitchTrajectory .
+
+# Parameters / outputs (declarative; no bound executor)
+
+gmeow:pTraversalConstraint a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputTraversalConstraint ; logic:parameterValueType gmeow:TraversalConstraint ; logic:parameterRequired true ;
+    rdfs:label "traversal constraint input"@x-gmeow-english ;
+    skos:definition "The TraversalConstraint to interpret."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pStartingFragment    a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputStartingFragment ;    logic:parameterValueType gmeow:MusicalSegment ;     logic:parameterRequired true ;
+    rdfs:label "starting fragment input"@x-gmeow-english ;
+    skos:definition "The initial MusicalSegment from which to traverse the mobile form."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pGenerativeProcess   a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputGenerativeProcess ;   logic:parameterValueType gmeow:GenerativeProcess ;  logic:parameterRequired true ;
+    rdfs:label "generative process input"@x-gmeow-english ;
+    skos:definition "The GenerativeProcess to realize."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pRealizationSpan     a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputRealizationSpan ;     logic:parameterValueType gmeow:MusicalTimeSpan ;    logic:parameterRequired true ;
+    rdfs:label "realization span input"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan over which to realize the generative process."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pPitchTrajectory     a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputPitchTrajectory ;     logic:parameterValueType gmeow:PitchTrajectory ;    logic:parameterRequired true ;
+    rdfs:label "pitch trajectory input"@x-gmeow-english ;
+    skos:definition "The PitchTrajectory to evaluate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pEvaluationTimeNumerator a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputEvaluationTimeNumerator ; logic:parameterValueType xsd:integer ; logic:parameterRequired true ;
+    rdfs:label "evaluation time numerator input"@x-gmeow-english ;
+    skos:definition "The numerator of the rational time position at which to evaluate the PitchTrajectory, expressed in the trajectory's MusicalTimeFrame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:pEvaluationTimeDenominator a logic:CallParameter ; logic:parameterPredicate gmeow:fnInputEvaluationTimeDenominator ; logic:parameterValueType xsd:positiveInteger ; logic:parameterRequired true ;
+    rdfs:label "evaluation time denominator input"@x-gmeow-english ;
+    skos:definition "The denominator of the rational time position at which to evaluate the PitchTrajectory, expressed in the trajectory's MusicalTimeFrame. Must be positive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:oTraversalSequence    a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputTraversalSequence ;    logic:parameterValueType xsd:string ;
+    rdfs:label "traversal sequence output"@x-gmeow-english ;
+    skos:definition "A documented traversal sequence produced by fnTraverseMobileForm."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:oRealizedExpression   a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputRealizedExpression ;   logic:parameterValueType gmeow:Expression ;
+    rdfs:label "realized expression output"@x-gmeow-english ;
+    skos:definition "The Expression produced by realizing a GenerativeProcess."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:oEvaluatedPitchValue  a logic:CallResult ; logic:parameterPredicate gmeow:fnOutputEvaluatedPitchValue ;  logic:parameterValueType gmeow:PitchValue ;
+    rdfs:label "evaluated pitch value output"@x-gmeow-english ;
+    skos:definition "The PitchValue produced by evaluating a PitchTrajectory at a time position."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Declarative argument-role properties for the performance functions.

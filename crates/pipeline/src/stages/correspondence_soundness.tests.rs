@@ -49,3 +49,25 @@ fn canonical_property_typing_loads_the_target_axiom_prefix() {
         BTreeSet::from(["geo".to_owned()])
     );
 }
+
+#[test]
+fn fno_audit_requires_the_generated_catalog_and_never_substitutes_source() {
+    let temp = tempfile::tempdir().unwrap();
+    let projections = temp.path().join("generated/projections");
+    let old_source = temp.path().join("dsl/mappings/transforms.fno.ttl");
+    std::fs::create_dir_all(old_source.parent().unwrap()).unwrap();
+    std::fs::write(&old_source, "<urn:old> <urn:p> <urn:o> .").unwrap();
+    assert!(
+        fno_catalog(&projections).is_err(),
+        "authored source cannot stand in for missing generated output"
+    );
+    std::fs::create_dir_all(&projections).unwrap();
+    std::fs::write(
+        projections.join(FNO_FUNCTIONS_FILE),
+        "<urn:generated> <urn:p> <urn:o> .",
+    )
+    .unwrap();
+    let actual = fno_catalog(&projections).expect("selected generated catalog");
+    assert!(actual.term_id_by_iri("urn:generated").is_some());
+    assert!(actual.term_id_by_iri("urn:old").is_none());
+}

@@ -455,7 +455,7 @@ pub struct SoundnessInputs<'a> {
     pub network_failed: &'a BTreeMap<String, String>,
     /// The SSSOM mapping rows (from the committed `generated/mappings/*.sssom.tsv`).
     pub mappings: &'a [Mapping],
-    /// The merged FnO catalog view (`functions.fno.ttl` ⊕ `transforms.fno.ttl`).
+    /// The complete generated FnO catalog view (`functions.fno.ttl`).
     pub fno: &'a DslView<'a>,
     /// The committed EDOAL views, sorted by file name (mirrors the sorted glob).
     pub edoal: &'a [(String, DslView<'a>)],

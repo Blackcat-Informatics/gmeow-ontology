@@ -6,7 +6,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix fno: <https://w3id.org/function/ontology#> .
 
 gmeow:Scenario
     a logic:Kind ,
@@ -773,7 +772,7 @@ gmeow:decomposesToAxis
         gmeow:boxTBox .
 
 gmeow:heldIn
-    a fno:Function ;
+    a logic:Callable ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "held in"@x-gmeow-english ;
     skos:definition "A boolean SPARQL extension function, gmeow:heldIn(reifier, standpoint): true iff the reified statement's gmeow:accordingTo vantage is the given standpoint, or a standpoint that gmeow:sharpens it — so a claim held in a sharper frame counts as held in the broader one. A direct, non-transitive membership test over the already-reasoned graph: the gmeow:sharpens closure is materialised upstream by the reasoner, never recomputed by the query, so the native logic solver stays the sole reasoning authority."@x-gmeow-english ;

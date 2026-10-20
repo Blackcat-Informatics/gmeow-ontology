@@ -38,8 +38,8 @@ residue(slice, vocab) = |hand-authored constructs in vocab's namespace(s)|
 - **Surfaces scanned:** every slice-owned `*.ttl` — `module.ttl`, `shapes.ttl`, and
   every `.ttl` under a `mappings/` directory (scanned RECURSIVELY, matching the base
   reconstruction so working and base never diverge) — plus the repo-level
-  `dsl/mappings/` surface (the one intentional hand-authored FnO carve-out path
-  `dsl/mappings/transforms.fno.ttl`), attributed to the DSL surface IRI.
+  `dsl/mappings/` surface, attributed to the DSL surface IRI. Callable signatures
+  belong to their owning slices; FnO has no authoring exception.
 - **Grounding subtraction:** a construct is excluded only if its `logic:formalizes`
   back-reference resolves to an **appropriately-typed grounding construct** — a
   target whose `rdf:type` is a `logic:` axiom class (`logic:Formula`/`logic:Rule`/

@@ -6,7 +6,6 @@
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 # A small, semantically true projection witness containing adopted glyphs from each grounding
 # plane. The statements repeat canonical module facts intentionally: regeneration lowers this
@@ -15,7 +14,7 @@
 # explicitly so the long-standing ⊑ example is exercised against its canonical logic: owner,
 # never against the downstream rdfs:subClassOf projection term.
 math:Addition math:operatorDomain math:realNumbers .
-math:pi rdf:type owl:NamedIndividual .
+math:pi rdf:type logic:NamedIndividual .
 logic:not rdfs:domain logic:Formula .
-logic:subClassOf rdf:type owl:ObjectProperty .
-lang:Ungrammaticality rdf:type owl:Class .
+logic:subClassOf rdf:type logic:ObjectProperty .
+lang:Ungrammaticality rdf:type logic:Class .

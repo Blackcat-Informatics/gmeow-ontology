@@ -147,8 +147,8 @@ the level and the skill.
 ## Transformations are functions (FnO)
 
 Transliteration, transcription and translation are *functions* — `script→script`
-or `language→language` — so GMEOW catalogues them declaratively as
-**`fno:Function`s** (`projections/transforms.fno.ttl`): Hepburn, Kunrei, Pinyin,
+or `language→language` — so GMEOW authors their interfaces as `logic:CallableSignature` records and projects
+them to **`fno:Function`s** (`projections/functions.fno.ttl`): Hepburn, Kunrei, Pinyin,
 Wade-Giles, Revised Romanization, ISO 233 / 15919, IPA transcription, and a generic
 translate. This closes a loop in the names block: `gmeow:romanization` now **names
 the system that produced it** via `gmeow:transliterationScheme`, and each scheme
@@ -244,7 +244,7 @@ Because `LanguageState` is an `Observation`, the existing **bitemporal query** (
 |---|---|---|
 | SSSOM | 1:1 term links (Language ≈ `schema:Language` / `wd:Q34770`; `knowsLanguage` ≈ `schema:knowsLanguage`) | `mappings/gmeow-languages.sssom.tsv` |
 | EDOAL | complex correspondences (relator→flat, code composition) | `projections/schema-org.edoal.ttl` |
-| FnO | the transform functions | `projections/functions.fno.ttl` (+ `transforms.fno.ttl`) |
+| FnO | the transform functions | `projections/functions.fno.ttl` |
 | CONSTRUCT | executor → pure schema.org | `queries/projections/schema-org.rq` |
 
 The schema.org projection (run `gmeow project`) emits `schema:Language` /
