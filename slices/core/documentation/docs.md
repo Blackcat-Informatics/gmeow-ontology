@@ -67,3 +67,13 @@ The orphan-zero contract is enforced in Rust rather than as a slice cell because
 live `gmeow:graph/documentation` projection is produced downstream of `stage-validate`
 and never seen by `make validate`; the gate re-derives the emitted term set from the
 projection output itself, so a newly-emitted undeclared term reds the gate.
+
+## Literal language and direction
+
+The natural-language fields `gmeow:docClaim`, `gmeow:conformanceRationale`, `gmeow:docSearchLabel`, `gmeow:docSearchDefinition`, `gmeow:docTitle`, `gmeow:docSearchAdvice` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

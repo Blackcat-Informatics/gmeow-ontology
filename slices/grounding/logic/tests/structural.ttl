@@ -1966,3 +1966,11 @@ ASK {
     rdfs:range logic:UnsupportedFragmentCondition .
 }""" ;
     gmeow:saRationale "Signature guard 12 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix wordtest: <https://example.org/natural-language-values/tests/> .
+
+wordtest:salogicWords a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { logic:withdrawalReason (logic:range|rdfs:range) rdfs:Literal . logic:Conjecture (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) logic:withdrawalReason ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . logic:message (logic:range|rdfs:range) rdfs:Literal . logic:Constraint (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) logic:message ; (logic:allValuesFrom|owl:allValuesFrom) ?values1_0 ] . ?values1_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . logic:fragmentBoundaryReason (logic:range|rdfs:range) ?values2 . ?values2 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
+    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .

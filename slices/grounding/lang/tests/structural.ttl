@@ -439,3 +439,11 @@ ASK {
     ?formula a logic:Formula .
 }""" ;
     gmeow:saRationale "The rule that an analysis output MUST cite a canonicalization profile with a declared pipeline is authored in logic: as lang:ProfileAttributionConstraint carrying a logic:Formula integrity body and enforcing the typed lang:UnattributedAnalysisProfile failure — never a hand-authored shape — mirroring the lang:UnattributedEngineClaim discipline for engine readings." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix wordtest: <https://example.org/natural-language-values/tests/> .
+
+wordtest:salangWords a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:glossarySource (logic:range|rdfs:range) rdfs:Literal . gmeow:GlossaryEntry (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:glossarySource ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . gmeow:glossaryTranslation (logic:range|rdfs:range) rdfs:Literal . gmeow:GlossaryEntry (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:glossaryTranslation ; (logic:allValuesFrom|owl:allValuesFrom) ?values1_0 ] . ?values1_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
+    gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .

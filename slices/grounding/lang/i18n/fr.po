@@ -594,16 +594,16 @@ msgid "glossary source"
 msgstr "source de glossaire"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|skos:definition"
-msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
-msgstr "Le littéral source anglais qu'une entrée de glossaire rend — la valeur @x-gmeow-english que porte le msgid du catalogue. Fonctionnel : une source par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string. L'invariant de cohérence regroupe sur le gmeow:glossaryConcept de l'entrée (un sens que la projection frappe à partir de cette source), de sorte qu'une source correspond normalement à un concept et donc à une traduction, tandis qu'un homographe déclaré répartit une même source sur des concepts distincts."
+msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
+msgstr "Le littéral source anglais qu'une entrée de glossaire rend — la valeur @x-gmeow-english que porte le msgid du catalogue. Fonctionnel : une source par entrée. Domaine gmeow:GlossaryEntry, portée rdfs:Literal. L'invariant de cohérence regroupe sur le gmeow:glossaryConcept de l'entrée (un sens que la projection frappe à partir de cette source), de sorte qu'une source correspond normalement à un concept et donc à une traduction, tandis qu'un homographe déclaré répartit une même source sur des concepts distincts."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|rdfs:label"
 msgid "glossary translation"
 msgstr "traduction de glossaire"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|skos:definition"
-msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
-msgstr "Le rendu en langue cible auquel une entrée de glossaire lie sa source anglaise — le msgstr non fuzzy que porte le catalogue. Fonctionnel : une traduction par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string. Deux entrées partageant un gmeow:glossaryConcept doivent porter la même gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+msgstr "Le rendu en langue cible auquel une entrée de glossaire lie sa source anglaise — le msgstr non fuzzy que porte le catalogue. Fonctionnel : une traduction par entrée. Domaine gmeow:GlossaryEntry, portée rdfs:Literal. Deux entrées partageant un gmeow:glossaryConcept doivent porter la même gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|rdfs:label"
 msgid "glossary concept"

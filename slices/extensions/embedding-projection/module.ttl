@@ -384,7 +384,7 @@ gmeow:externalRole
     rdfs:domain gmeow:ExternalBinding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "external role"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The caller-supplied role/scope of a gmeow:ExternalBinding — a verbatim label naming WHY the projection references the external artifact (e.g. \"source-corpus\", \"eval-set\"). purrdf mints NO role vocabulary, so the role is caller-supplied text (P12); the graph carries it verbatim so the binding's purpose is auditable without re-resolving the artifact."@x-gmeow-english ;
     skos:example "ex:ext1 gmeow:externalRole \"source-corpus\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing a fixed role vocabulary here (purrdf mints none — the role is caller-supplied) and avoid omitting it on a binding whose purpose must be auditable."@x-gmeow-english ;
@@ -436,7 +436,7 @@ gmeow:indexLossContract
     rdfs:domain gmeow:DerivedVectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "index loss contract"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The declared loss contract a derived index is built to honour — a verbatim statement of the approximation guarantee (e.g. a target recall@k or an exactness assertion) the index binds alongside its exact matrix projection and prefix dimension. Kept as text (P12); the graph carries the contract so a retrieval's tolerated imperfection is auditable against the index's measured gmeow:approximationRecall."@x-gmeow-english ;
     skos:example "ex:idx1 gmeow:indexLossContract \"recall@10>=0.98\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding the loss contract as an opaque blob the graph cannot audit and avoid omitting it on a lossy accelerator whose approximation guarantee must be stated."@x-gmeow-english ;
@@ -605,7 +605,7 @@ gmeow:queryContext
     rdfs:domain gmeow:SimilarityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "query context"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The query context of a similarity observation, recorded verbatim — the retrieval intent, filter, or comparison prompt under which the pairwise proximity was observed. Kept as text (P12) so the observation is interpretable after the fact without re-running the retrieval; distinct from graphrag's gmeow:forQuery, which is a gmeow:RetrievalEvent's query string."@x-gmeow-english ;
     skos:example "ex:sim1 gmeow:queryContext \"nearest neighbours of ex:docA under the internal bookshelf filter\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with graphrag's gmeow:forQuery (that is a retrieval EVENT's query; this is a similarity OBSERVATION's context) and avoid encoding structured filters as opaque blobs the graph cannot audit."@x-gmeow-english ;
@@ -2011,3 +2011,8 @@ gmeow:withMetricFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:withMetric and nothing else. It is not a definition of gmeow:withMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:withMetricFunctionality logic:characterizes gmeow:withMetric ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:ExternalBinding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:externalRole ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:DerivedVectorIndex logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:indexLossContract ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:SimilarityObservation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryContext ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

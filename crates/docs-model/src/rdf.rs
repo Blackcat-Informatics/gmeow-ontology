@@ -119,6 +119,7 @@ pub fn to_gmeow_rdf(
         lines.push(format!("{s} <{p}> {o} {graph} ."));
     };
     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
+    let prose = |value: &str| format!("{}@{}", literal(value), gmeow_errors::abox::X_GMEOW_ENGLISH);
 
     // Every projected subject is generated A-Box instance data, not vocabulary
     // surface: tag it with a human label, a derived definition-equivalent, its
@@ -255,14 +256,14 @@ pub fn to_gmeow_rdf(
         triple(
             &subject,
             &format!("{GMEOW}docSearchLabel"),
-            &literal(term.label.as_deref().unwrap_or(&term.curie)),
+            &prose(term.label.as_deref().unwrap_or(&term.curie)),
             &mut lines,
         );
         if let Some(definition) = &term.definition {
             triple(
                 &subject,
                 &format!("{GMEOW}docSearchDefinition"),
-                &literal(definition),
+                &prose(definition),
                 &mut lines,
             );
         }
@@ -270,7 +271,7 @@ pub fn to_gmeow_rdf(
             triple(
                 &subject,
                 &format!("{GMEOW}docSearchAdvice"),
-                &literal(&advice),
+                &prose(&advice),
                 &mut lines,
             );
         }
@@ -392,7 +393,7 @@ pub fn to_gmeow_rdf(
             triple(
                 &ev_iri,
                 &format!("{GMEOW}docClaim"),
-                &literal(&ev.claim),
+                &prose(&ev.claim),
                 &mut lines,
             );
             // The grounding edge is mandatory and never empty — the fail-fast
@@ -510,7 +511,7 @@ pub fn to_gmeow_rdf(
         triple(
             &subject,
             &format!("{GMEOW}docSearchLabel"),
-            &literal(&slice_display(slice)),
+            &prose(&slice_display(slice)),
             &mut lines,
         );
 
@@ -601,7 +602,7 @@ pub fn to_gmeow_rdf(
             triple(
                 &subject,
                 &format!("{GMEOW}docTitle"),
-                &literal(&doc.title),
+                &prose(&doc.title),
                 &mut lines,
             );
             triple(
@@ -667,14 +668,14 @@ pub fn to_gmeow_rdf(
         triple(
             &subject,
             &format!("{GMEOW}docSearchLabel"),
-            &literal(&concern_display(concern)),
+            &prose(&concern_display(concern)),
             &mut lines,
         );
         if let Some(definition) = &concern.definition {
             triple(
                 &subject,
                 &format!("{GMEOW}docSearchDefinition"),
-                &literal(definition),
+                &prose(definition),
                 &mut lines,
             );
         }
@@ -792,7 +793,7 @@ pub fn to_gmeow_rdf(
             triple(
                 subject,
                 &format!("{GMEOW}conformanceRationale"),
-                &literal(rationale),
+                &prose(rationale),
                 &mut lines,
             );
         }

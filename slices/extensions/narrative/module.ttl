@@ -1,3 +1,4 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -610,7 +611,7 @@ gmeow:positionLabel
     rdfs:domain gmeow:NarrativePosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "position label"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "A human-oriented label for this position — a chapter title ('Thirty-Three'), a named story moment ('the Longest Night'). Non-functional: co-equal labels coexist (Principle 9). A position must carry an ordinal or a label or both (SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1577,3 +1578,6 @@ gmeow:arcTypeHomecoming
     gmeow:avoidWhen "Avoid applying it to every arrival or using it as evidence of a legal residence."@x-gmeow-english ;
     gmeow:howToUse "Keep the arc subject and frame explicit, whether the trajectory concerns a character, a household or the house itself."@x-gmeow-english ;
     gmeow:useWhen "Use when a place becomes home or a return is interpreted as renewed belonging."@x-gmeow-english .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:NarrativePosition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:positionLabel ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

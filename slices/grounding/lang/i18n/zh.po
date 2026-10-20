@@ -594,16 +594,16 @@ msgid "glossary source"
 msgstr "术语表源"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|skos:definition"
-msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range xsd:string. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
-msgstr "一个术语表条目所渲染的英文源字面量——目录 msgid 所携带的 @x-gmeow-english 值。函数性：每个条目一个源。定义域 gmeow:GlossaryEntry，值域 xsd:string。一致性不变式在条目的 gmeow:glossaryConcept 上分组（投影从该源铸造的一个义项），因此一个源通常映射到一个概念，从而映射到一种翻译，而一个已声明的同形异义词则把同一个源拆分到相异的概念上。"
+msgid "The English source literal a glossary entry renders — the @x-gmeow-english value the catalog msgid carries. Functional: one source per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. The consistency invariant groups on the entry's gmeow:glossaryConcept (a sense the projection mints from this source), so one source normally maps to one concept and thus one translation, while a declared homograph splits one source across distinct concepts."
+msgstr "一个术语表条目所渲染的英文源字面量——目录 msgid 所携带的 @x-gmeow-english 值。函数性：每个条目一个源。定义域 gmeow:GlossaryEntry，值域 rdfs:Literal。一致性不变式在条目的 gmeow:glossaryConcept 上分组（投影从该源铸造的一个义项），因此一个源通常映射到一个概念，从而映射到一种翻译，而一个已声明的同形异义词则把同一个源拆分到相异的概念上。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|rdfs:label"
 msgid "glossary translation"
 msgstr "术语表翻译"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTranslation|skos:definition"
-msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range xsd:string. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
-msgstr "一个术语表条目把其英文源绑定到的目标语言渲染——目录所携带的非 fuzzy 的 msgstr。函数性：每个条目一种翻译。定义域 gmeow:GlossaryEntry，值域 xsd:string。共享同一个 gmeow:glossaryConcept 的两个条目必须携带相同的 gmeow:glossaryTranslation（lang:GlossaryTermConsistencyConstraint）。"
+msgid "The target-language rendering a glossary entry binds its English source to — the non-fuzzy msgstr the catalog carries. Functional: one translation per entry. Domain gmeow:GlossaryEntry, range rdfs:Literal. Two entries sharing a gmeow:glossaryConcept must carry the same gmeow:glossaryTranslation (lang:GlossaryTermConsistencyConstraint)."
+msgstr "一个术语表条目把其英文源绑定到的目标语言渲染——目录所携带的非 fuzzy 的 msgstr。函数性：每个条目一种翻译。定义域 gmeow:GlossaryEntry，值域 rdfs:Literal。共享同一个 gmeow:glossaryConcept 的两个条目必须携带相同的 gmeow:glossaryTranslation（lang:GlossaryTermConsistencyConstraint）。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryConcept|rdfs:label"
 msgid "glossary concept"

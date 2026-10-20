@@ -105,6 +105,42 @@ fn projection_is_well_formed_and_deterministic() {
     assert!(a.ends_with('\n'));
 }
 
+/// Documentation prose retains the known carrier language, while machine
+/// provenance and alignment tokens remain untagged.
+#[test]
+fn documentation_words_retain_their_known_language() {
+    let mut model = tiny_model();
+    model.terms[0].scope_notes = vec!["Keep the source context.".to_owned()];
+    let wire = to_gmeow_rdf(&model, &BTreeMap::new());
+    let dataset = purrdf::parse_dataset(wire.as_bytes(), "application/n-quads", None).unwrap();
+    let mut words = 0;
+    let mut machine = 0;
+    for quad in dataset.quads() {
+        let purrdf::TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
+            continue;
+        };
+        match predicate.strip_prefix(GMEOW) {
+            Some("docSearchLabel" | "docSearchDefinition" | "docSearchAdvice") => {
+                let purrdf::TermRef::Literal { language, .. } = dataset.resolve(quad.o) else {
+                    panic!("documentation words must be literals");
+                };
+                assert_eq!(language, Some(gmeow_errors::abox::X_GMEOW_ENGLISH));
+                words += 1;
+            }
+            Some("docUrl" | "docCategory") => {
+                let purrdf::TermRef::Literal { language, .. } = dataset.resolve(quad.o) else {
+                    panic!("machine fields must be literals");
+                };
+                assert!(language.is_none());
+                machine += 1;
+            }
+            _ => {}
+        }
+    }
+    assert!(words >= 4);
+    assert!(machine >= 2);
+}
+
 #[test]
 fn authored_and_computed_same_release_entries_have_distinct_rdf_identities() {
     let mut model = tiny_model();

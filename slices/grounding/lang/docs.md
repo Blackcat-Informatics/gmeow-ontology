@@ -197,3 +197,13 @@ constituents of a composed form in index order, a word form's lexeme and morph f
 by kind, the surfaces that realize one form as its encoding fan-out widens, and — for the profile
 family — which analysis outputs cite a canonicalization/analyzer profile (and which one), with an
 output naming no profile rejected so it does not answer.
+
+## Literal language and direction
+
+The natural-language fields `gmeow:glossarySource`, `gmeow:glossaryTranslation` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

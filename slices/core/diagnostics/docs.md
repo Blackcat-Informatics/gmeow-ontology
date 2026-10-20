@@ -223,3 +223,13 @@ file aligns to external vocabularies only, that unification is documented here r
   appears; the slice is a projection, not a verdict mint.
 - **Annotation completeness** (Principle 8) — all 16 locally-declared terms carry an `rdfs:label`, a
   `skos:definition`, `rdfs:isDefinedBy` the diagnostics slice IRI, and a `gmeow:graphBoxRole`.
+
+## Literal language and direction
+
+The natural-language fields `gmeow:findingMessage`, `gmeow:findingSuggestion`, `gmeow:ruleRemediation`, `gmeow:findingRemediation`, `gmeow:adviceAvoidWhen`, `gmeow:adviceUseWhen`, `gmeow:adviceHowToUse`, `gmeow:findingHowToUse`, `gmeow:findingUseWhen`, `gmeow:findingAvoidWhen` admit
+plain text with unspecified language, language-tagged text, and RDF 1.2 directional
+text. Supplied public or private-use language tags remain part of the literal.
+The canonical value restrictions derive the validation view; they do not add a
+closed-world requirement for an explicitly asserted subject type. A machine key,
+source expression, or byte payload uses its own declared property and datatype.
+See [literal policy](../../../docs/LITERALS.md) for the shared contract.

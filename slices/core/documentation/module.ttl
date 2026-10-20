@@ -333,7 +333,7 @@ gmeow:docClaim
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc claim"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The short human claim a gmeow:DocEvidence node asserts (e.g. \"exercised by 3 competency question(s)\", \"has 2 projection-loss row(s)\") — the one-line summary the evidence panel renders. The claim WITHOUT its grounds would be a bare assertion; it always travels with at least one gmeow:docGroundedBy truthmaker."@x-gmeow-english ;
     skos:example "ex:evCatCompetency gmeow:docClaim \"exercised by 1 competency question\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid packing multiple claims into one string, and avoid asserting a claim without its gmeow:docGroundedBy grounds — a claim without grounds is DARK."@x-gmeow-english ;
@@ -578,7 +578,7 @@ gmeow:conformanceRationale
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "conformance rationale"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The human-readable \"why\" a conformance fixture conforms or violates, from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record — the prose explanation, never the machine violation code sitting beside it (that is gmeow:docViolationCode). Absent when the fixture carries no authored binding."@x-gmeow-english ;
     skos:example "ex:fixtureCatBad gmeow:conformanceRationale \"A cat must declare an owner.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid fabricating a rationale for an unbound fixture (leave it absent) and avoid overloading it with the violation code — that is gmeow:docViolationCode."@x-gmeow-english ;
@@ -1162,7 +1162,7 @@ gmeow:docSearchLabel
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc search label"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     skos:definition "The REAL display label of a documentation-entry record (a gmeow:DocumentedTerm's own label or CURIE, a gmeow:DocumentedSlice / gmeow:DocumentedConcern display name), carried as the primary searchable field so an offline docs_search matches it directly from gmeow:graph/documentation. Distinct from the record's structural rdfs:label (which is the generated 'Documentation entry: …' annotation): this facet carries the term's own human name, the same value the site search-index.json indexes. Carried by every documentation-entry record; its domain is left open (the term/slice/concern record classes all carry it)."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docSearchLabel \"Cat\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid confusing it with the record's structural rdfs:label (that is the generated documentation-entry annotation, not the term's own name) and avoid emitting it empty — a labelless term falls back to its CURIE, never a vacuous facet."@x-gmeow-english ;
@@ -1176,7 +1176,7 @@ gmeow:docSearchDefinition
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc search definition"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     skos:definition "The REAL definition / comment prose of a documentation-entry record (a gmeow:DocumentedTerm's or gmeow:DocumentedConcern's own definition), carried as a searchable field so an offline docs_search matches on the definition text, not just the label. Absent when the record carries no definition (an honest absence, never a fabricated one). The same definition value the site search-index.json indexes."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docSearchDefinition \"A small domesticated felid.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid emitting it for a record with no authored definition (leave it absent) and avoid using the generated documentation-entry skos:definition here — this facet carries the term's own definition."@x-gmeow-english ;
@@ -1207,7 +1207,7 @@ gmeow:docTitle
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc title"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The title of a gmeow:DocumentedDocument — the first ATX H1 of the Markdown source when present, else a humanized fallback from the filename stem (\"design/ARCHITECTURE.md\" → \"Architecture\"). The label shown for the document in its owning slice's child-document index and in the search corpus."@x-gmeow-english ;
     skos:example "ex:entryDocZooArchitecture gmeow:docTitle \"Architecture\" ."@x-gmeow-english ;
     skos:scopeNote "The document's own display title (its first H1 or a humanized filename), NOT the owning slice's title and NOT the record's structural rdfs:label (which is the generated documentation-entry annotation)."@x-gmeow-english ;
@@ -1239,7 +1239,7 @@ gmeow:docSearchAdvice
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc search advice"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "One advisory-prose carrier of a gmeow:DocumentedTerm (a scope note, use-when, avoid-when, or how-to-use string), carried repeatably as a searchable field so an offline docs_search matches on advisory prose, not just the label and definition. The SAME flattened advice facet the site search-index.json indexes (crates/docs render term_advice_facet). Emitted once per advice string, in the stable scope→use-when→avoid-when→how-to-use field order; absent for a term carrying no advice."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docSearchAdvice \"Use for a domesticated cat; avoid for a wildcat.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid collapsing the advisory carriers into one blob (each is one repeatable value) and avoid emitting it for a term with no advice (leave it absent)."@x-gmeow-english ;
@@ -1381,3 +1381,11 @@ gmeow:DocumentedTermOwnerIriConstraint
     skos:definition "The GMEOW Documentation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Natural-language values retain language and direction; plain text declares no language.
+gmeow:DocEvidence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docClaim ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:DocFixture logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:conformanceRationale ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docSearchLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docSearchDefinition" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:DocumentedDocument logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docTitle ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:DocumentedTerm logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docSearchAdvice ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

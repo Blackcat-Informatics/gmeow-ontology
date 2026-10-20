@@ -24,3 +24,27 @@ ex:cqDvvAuthority a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vocabulary" ; gmeow:cellValueIri gmeow:AuthorityLevel ] .
 ex:cqDvvModality a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vocabulary" ; gmeow:cellValueIri gmeow:DeonticModality ] .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix wordtest: <https://example.org/natural-language-values/tests/> .
+@prefix wordcase: <https://example.org/language-values/> .
+
+wordtest:cqConditionWords a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/language-values.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?condition ?words WHERE { ?condition a gmeow:Condition ; gmeow:conditionText ?words . }" ;
+    gmeow:cqRationale "Condition recall preserves original language, direction and an explicitly unspecified language without coercing any value to a plain string." ;
+    gmeow:cqResultShape wordtest:conditionWordShape ;
+    gmeow:cqExpectRow wordtest:englishRow, wordtest:arabicRow, wordtest:unspecifiedRow .
+wordtest:conditionWordShape a logic:ResultShape ; logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "condition" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "words" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+wordtest:englishRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri wordcase:english ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "words" ; gmeow:cellValueLiteral "The requester consented."@en ] .
+wordtest:arabicRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri wordcase:arabic ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "words" ; gmeow:cellValueLiteral "وافق صاحب الطلب."@ar--rtl ] .
+wordtest:unspecifiedRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri wordcase:unspecified ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "words" ; gmeow:cellValueLiteral "Source words without a declared language." ] .
