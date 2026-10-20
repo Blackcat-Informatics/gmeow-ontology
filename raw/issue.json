@@ -1,0 +1,43 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nTwo small gaps in dreaming: nothing links a dream report to the\nexperience it recollects, and the awareness modes lack the rare\nnon-lucid, immersive dream.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumer\n\n**memetics**, the memory adapter for a companion agent who dreams. Each\ndream cycle has an experience (phases from descent to reorientation) and\na report she writes on waking. Her recall and storytelling trace from a\nreport back to the dream it describes, and from there to the\nconversations it later inspired.\n\n## 1. `recollects`: a report to the experience it recalls\n\n**Today.**\n- `gmeow:DreamReport` is in `extensions/dreaming`.\n- `gmeow:Experience` is in `core/mentation`.\n- The only link from a report is `gmeow:dreamElement`, to elements of\n  the dream. Nothing relates the report, as a whole, to the experience\n  it recollects.\n\n**Proposed term.** `gmeow:recollects`:\n- an object property, \u2291 `gmeow:wasDerivedFrom`;\n- domain `gmeow:DreamReport`, range `gmeow:Experience`;\n- definition: \"Relates a report to the experience it recollects.\"\n\n**Open question.** Should the domain be wider, any recollection (a\nremembrance, a diary entry recalling an event), with `DreamReport` as\none case? The consumer has one use today; a wider domain looks right.\n\n## 2. A wild (non-lucid, immersive) dream mode\n\n**Today.** `gmeow:AwarenessMode` (`core/awareness`) has `modeDreaming`,\n`modeREM` and `modeLucidDreaming`.\n\n**Gap.** The agent's dream cycle has a rare mode deeper than ordinary\ndreaming: immersive, with no metacognition online, and no lucidity.\nLucid dreaming is its opposite, not a neighbour.\n\n**Proposed term.** `gmeow:modeWildDreaming`, an `AwarenessMode`\nindividual: \"Dreaming that is rare, non-lucid and immersive: no\nmetacognition online, deeper than an ordinary dream.\" A sibling of\n`modeDreaming` and `modeLucidDreaming`.\n\n**Open question.** \"Wild\" collides with the sleep-science acronym WILD\n(wake-initiated lucid dream), which means nearly the opposite. A clearer\nname may be better, for example `modeImmersiveDreaming`.\n\n## Local stand-ins\n\nmemetics' local dreaming slice mints `gmeow:recollects` and\n`gmeow:modeWildDreaming`, in GMEOW's namespace. Upstreaming is a move.\nmemetics would welcome a rename to avoid the WILD collision.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABa7H-eA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Two more dreaming gaps found while migrating a companion agent's dream records (memetics):\n\n**Dream text written before phases were recorded.** Some dreams were written as one prose text, before the agent's dream cycle recorded phases (threshold, descent, immersion, integration, reorientation). The consumer keeps such a dream as one phase-text node (`gmeow:DreamPhaseText`, a local term) with no phase named. Is there an upstream way to say \"the text of the whole dream, phases not recorded\"?\n\n**Tool calls made while dreaming.** During a dream phase the agent can call tools (look at an object, read a memory, send a message). The consumer models each call as a `gmeow:ToolCall` that is `gmeow:subEventOf` the dream `gmeow:Experience`, naming the phase it happened in by the local `gmeow:phaseKind`. Questions:\n- Is an `Experience` an event, so that `subEventOf` is right, or should a tool call relate to the experience some other way?\n- Should the phase be a property of the call, or should each phase be a node (a sub-event of the experience) that the call is part of?\n",
+      "createdAt": "2026-10-10T20:21:11Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1811#issuecomment-6101794424",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-10T10:12:29Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "milestone": null,
+  "number": 1811,
+  "state": "OPEN",
+  "title": "[term] Dreaming: a report recollects its experience; an immersive non-lucid dream mode (consumer: memetics)",
+  "updatedAt": "2026-10-10T20:21:11Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1811"
+}

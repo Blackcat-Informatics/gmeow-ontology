@@ -1,0 +1,80 @@
+{
+  "issue": 1811,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "[term] Dreaming: a report recollects its experience; an immersive non-lucid dream mode (consumer: memetics)",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {},
+  "link_relations": {},
+  "related": [
+    {
+      "number": 589,
+      "title": "feat(dreaming): dreaming as a published composition over the experiential layer (extension)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 588,
+      "title": "feat(awareness): states of consciousness / awareness modes (human + machine) (new core slice)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 586,
+      "title": "feat(mentation): the occurrent/experiential spine \u2014 MentalProcess/Experience (new core slice)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1026,
+      "title": "docs: per-term changelog, stability, profile membership, citation/DOI from release evidence",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1364,
+      "title": "[feature] Migrate the SPARQL test cluster to native Rust conformance",
+      "state": "CLOSED"
+    },
+    {
+      "number": 830,
+      "title": "fix(ontology): 4 terms claim rdfs:isDefinedBy in two slices \u2014 restore single-owner invariant (unblocks #820 S8)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 867,
+      "title": "chore(test): cull redundant pytest \u2014 Rust-first coverage already lands it (roadmap, refs #781)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1247,
+      "title": "EPIC \u2014 Affect \u2192 core: emotions as a high-dimensional landscape (5-stage build-out)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 694,
+      "title": "logic: finish per-slice owl/gUFO source retirement (incremental migration tail of #500/#663)",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "missing-intrinsic-runtime": 3,
+    "none": 32,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1,
+    "repeated-unshared-reasoning-analysis": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1811-term-dreaming-a-report-recollects-its"
+  },
+  "coverage": [
+    "issue #1811 + 1 comment(s) via github",
+    "link crawl: no `#N` references in the issue or its comments",
+    "forge search on ['[term]', 'Dreaming:', 'report']: 9 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1811 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1811: 0",
+    "requirement candidates: 4 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 3 path(s) (0 on disk), 11 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

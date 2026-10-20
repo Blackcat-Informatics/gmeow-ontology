@@ -1,0 +1,3 @@
+# Primary-agent issue analysis
+
+This is self-analysis, not an independent review. The body and the single comment were read completely. Four consumer needs must ship together: recollection source linkage, immersive non-lucid mode, whole-report text without fabricated phases, and tool calls within actual dream phases. Canonical source declarations already establish the required event ancestry. The plan preserves this ancestry, uses a domain-free recollection link for both episodes and artifacts and distinguishes unrecorded phases from their absence. The proposed WILD spelling is rejected in favor of the explicitly permitted immersive name. No issue requirement is moved to another issue.

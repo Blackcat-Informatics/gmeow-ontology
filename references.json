@@ -1,0 +1,83 @@
+{
+  "paths": [
+    {
+      "ref": "extensions/dreaming",
+      "path": "/home/paudley/Active/gmeow-ontology/extensions/dreaming",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/mentation",
+      "path": "/home/paudley/Active/gmeow-ontology/core/mentation",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/awareness",
+      "path": "/home/paudley/Active/gmeow-ontology/core/awareness",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2075
+    },
+    {
+      "name": "a631f73",
+      "files": 0
+    },
+    {
+      "name": "recollects",
+      "files": 0
+    },
+    {
+      "name": "DreamReport",
+      "files": 12
+    },
+    {
+      "name": "modeDreaming",
+      "files": 12
+    },
+    {
+      "name": "modeREM",
+      "files": 9
+    },
+    {
+      "name": "modeLucidDreaming",
+      "files": 10
+    },
+    {
+      "name": "AwarenessMode",
+      "files": 8
+    },
+    {
+      "name": "modeImmersiveDreaming",
+      "files": 0
+    },
+    {
+      "name": "Experience",
+      "files": 31
+    },
+    {
+      "name": "subEventOf",
+      "files": 38
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

@@ -1,0 +1,51 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 31,
+      "rules": [
+        "modal"
+      ],
+      "text": "**Open question.** Should the domain be wider, any recollection (a",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 3,
+      "rules": [
+        "question"
+      ],
+      "text": "**Dream text written before phases were recorded.** Some dreams were written as one prose text, before the agent's dream cycle recorded phases (threshold, descent, immersion, integration, reorientation). The consumer keeps such a dream as one phase-text node (`gmeow:DreamPhaseText`, a local term) with no phase named. Is there an upstream way to say \"the text of the whole dream, phases not recorded\"?",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-10T20:21:11Z"
+    },
+    {
+      "id": "C1.2",
+      "line": 6,
+      "rules": [
+        "modal",
+        "question"
+      ],
+      "text": "- Is an `Experience` an event, so that `subEventOf` is right, or should a tool call relate to the experience some other way?",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-10T20:21:11Z"
+    },
+    {
+      "id": "C1.3",
+      "line": 7,
+      "rules": [
+        "modal",
+        "question"
+      ],
+      "text": "- Should the phase be a property of the call, or should each phase be a node (a sub-event of the experience) that the call is part of?",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-10-10T20:21:11Z"
+    }
+  ],
+  "silent_comments": []
+}

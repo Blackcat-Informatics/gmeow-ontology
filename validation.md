@@ -1,0 +1,15 @@
+# Current validation and completion assessment
+
+The complete body and its single comment map to plan.md. Self-assessment checked each requested behavior against canonical declarations and the final documentation. No independent dispatcher is available; no independent execution audit is claimed.
+
+- Source hygiene: the first full make lint passed. After adding the two new canonical files, its repeat found one extra EOF blank line in the competency file and fixed it. All remaining checks passed. That correction was staged before the normal signed commit; its complete hooks passed.
+- Static producer-recipe admission passed. It did not build or execute the optimized producer.
+- All seven new English annotation contexts for each of recollects and modeImmersiveDreaming match both source-local French and Mandarin catalogs exactly, with nonempty translations: fourteen canonical fields and twenty-eight translations.
+- Final staged diff has no whitespace errors. The implementation changes ontology source, examples, tests, documentation and translation catalogs only; no runtime code, dependency pin, generated artifact or legacy shape changed.
+- Canonical structural assertions pin recollects range, provenance specialization, open subject and multiplicity, and the immersive mode's individual identity rather than a class/lucid alias. Five exact-row competency cases cover coequal reports, real phase/call nesting, whole text without recorded phases, the immersive mode and a non-dream diary recollection.
+
+Those canonical cases are registered producer-owned work, not locally executed tests. No local corpus production, optimized producer run, generated-bundle acceptance, full make check, clinical sleep inference, native runtime regression run or published-package consumer demonstration is claimed. No new runtime mechanism was introduced. CI is waived by the user's instruction to merge one by one while ignoring CI. Corpus qualification remains unrun rather than represented as passed.
+
+All source requirements are delivered: the general relation allows an episode or artifact to recall an Experience; DreamReport remains the recollection event. The immersive value preserves the explicit non-lucid/no-online-metacognition meaning. Whole prose uses an existing InformationObject/description instead of fabricating a phase. Actual phase events and actual ToolCalls use existing event mereology, distinct from temporal coincidence or imagined content. The wider consumer vocabulary issues are not claimed complete.
+
+Final all-file make lint rerun: PASS after the EOF correction, with every hook succeeding. The normal signed source commit and push completed. The fetched main has no intervening base-only changes; git merge-tree computed a clean candidate. Existing source hygiene and translation checks apply directly; no source synchronization is required. Hosted CI and automatic review are pending, not passing evidence. Complete review/thread retrieval returned no findings and no additional pages.
