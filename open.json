@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1812,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1812-term-observations-encounters-witnessing",
+  "branch": "paudley/1812-term-observations-encounters-witnessing",
+  "slug": "term-observations-encounters-witnessing",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1812-term-observations-encounters-witnessing/.stage/term-observations-encounters-witnessing",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "7586e941e254936de0a293e9bfd598b71b03dda0",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1812-term-observations-encounters-witnessing",
+    "branch:paudley/1812-term-observations-encounters-witnessing",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1812-term-observations-encounters-witnessing/.stage/term-observations-encounters-witnessing",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1812-term-observations-encounters-witnessing/.stage/term-observations-encounters-witnessing/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T07:42:54-0600"
+}

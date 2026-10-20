@@ -1,0 +1,1 @@
+The full issue includes encounter observations, frame-bound simulated-world places/head identifiers, redaction counts, attention requests and the complete consultation comment. All map to plan.md; no comment is excluded. The consumer requires attributed original words, not inferred truth from free text. This is self-analysis, not independent review.

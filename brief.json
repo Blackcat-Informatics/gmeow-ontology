@@ -1,0 +1,39 @@
+{
+  "issue": 1812,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "[term] Observations: encounters, witnessing in a simulated environment, the attention-request lifecycle (consumer: memetics)",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1807": "[term] Literal typing: language on words, types for machinery, time at its stated precision (consumers: memetics, katamari)",
+    "164": "Canonical private-use language tags with public BCP 47 projection"
+  },
+  "link_relations": {
+    "1807": "mentions",
+    "164": "2-hop"
+  },
+  "related": [],
+  "defect_classes": {
+    "none": 36,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1,
+    "compiler-input-identity-mismatch": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1812-term-observations-encounters-witnessing"
+  },
+  "coverage": [
+    "issue #1812 + 2 comment(s) via github",
+    "link crawl: 2 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['[term]', 'Observations:', 'encounters,']: 0 other item(s)",
+    "GhpRsq-Defect-Class trailers: 4 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1812 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1812: 0",
+    "requirement candidates: 3 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 0 path(s) (0 on disk), 12 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

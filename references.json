@@ -1,0 +1,56 @@
+{
+  "paths": [],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2081
+    },
+    {
+      "name": "a631f73",
+      "files": 0
+    },
+    {
+      "name": "Encounter",
+      "files": 1
+    },
+    {
+      "name": "EventType",
+      "files": 102
+    },
+    {
+      "name": "witnessedAtHead",
+      "files": 0
+    },
+    {
+      "name": "attendsTo",
+      "files": 8
+    },
+    {
+      "name": "processAttention",
+      "files": 4
+    },
+    {
+      "name": "resolutionAddressed",
+      "files": 0
+    },
+    {
+      "name": "resolutionDeferred",
+      "files": 0
+    },
+    {
+      "name": "resolutionDismissed",
+      "files": 0
+    },
+    {
+      "name": "AttentionRequest",
+      "files": 0
+    },
+    {
+      "name": "witnessedLocus",
+      "files": 0
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

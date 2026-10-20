@@ -1,0 +1,1 @@
+Existing Observation mediates vantage and observedFeature; observationResult is individual-valued. Event participants/time, locatedAt, InformationObject and generic provenance already supply the reusable backbone. No general request lifecycle or requested terms were found in canonical modules. Stage prior-art search reports no prior implementation. Self-assessment only.
