@@ -1291,3 +1291,99 @@ gmeow:assessmentTargetFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:assessmentTarget and nothing else. It is not a definition of gmeow:assessmentTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:assessmentTargetFunctionality logic:characterizes gmeow:assessmentTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:Refinement
+    a logic:Class, logic:SubKind ; logic:subClassOf gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Refinement"@x-gmeow-english ;
+    skos:definition "An observation made by a named, versioned process reading another record, with that record as observed feature and the process as vantage. Results are new readings, never edits to the source."@x-gmeow-english ;
+    skos:example "ex:reading a gmeow:Refinement ; gmeow:observedFeature ex:record ; gmeow:vantage ex:refinerV2 ."@x-gmeow-english ;
+    skos:scopeNote "A process reading, not world determinacy, evidential support or a formal linguistic denotation. Different process versions and vantages retain separate records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mutating the source or treating a selected reading as an automatically asserted source fact."@x-gmeow-english ;
+    gmeow:howToUse "Name the source and versioned vantage, record refinementOutcome, and put selected individuals or derived observations in observationResult. Keep unselected alternatives in refinementCandidate."@x-gmeow-english ;
+    gmeow:useWhen "Use for record interpretation such as mention resolution, time joins or narrative readings performed after the source was recorded."@x-gmeow-english .
+
+gmeow:RefinementOutcome
+    a logic:Class, logic:AbstractIndividualType ; logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Refinement Outcome"@x-gmeow-english ;
+    skos:definition "The qualitative outcome of a process reading: resolved, best guess, ambiguous or unresolved. This axis describes the reading rather than the truth of its subject."@x-gmeow-english ;
+    skos:example "gmeow:refinementAmbiguous a gmeow:RefinementOutcome ."@x-gmeow-english ;
+    skos:scopeNote "Outcome values are individuals, not subclasses, and are distinct from Determinacy and SupportStatus. The four supplied values do not assign a numeric probability."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a reading outcome as a truth value or a calibrated confidence score."@x-gmeow-english ;
+    gmeow:howToUse "Select an outcome individual through refinementOutcome on the corresponding Refinement."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish how far a recorded interpretation progressed."@x-gmeow-english .
+
+gmeow:refinementOutcome
+    a logic:ObjectProperty ; logic:domain gmeow:Refinement ; logic:range gmeow:RefinementOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "refinement outcome"@x-gmeow-english ;
+    skos:definition "Relates a refinement to the qualitative outcome of its reading. Nonfunctional so coexisting attributed outcomes are retained."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:refinementOutcome gmeow:refinementBestGuess ."@x-gmeow-english ;
+    skos:scopeNote "This reports the process outcome, not the evidence grade of a claim. A distinct process version should have a distinct refinement record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a default outcome from missing data or silently choosing between competing attributions."@x-gmeow-english ;
+    gmeow:howToUse "Attach the explicit outcome value and preserve the vantage that attributed it."@x-gmeow-english ;
+    gmeow:useWhen "Use when recall must distinguish a resolved reading from a guess, ambiguity or failure to resolve."@x-gmeow-english .
+
+gmeow:refinementCandidate
+    a logic:ObjectProperty ; logic:domain gmeow:Refinement ; logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "refinement candidate"@x-gmeow-english ;
+    skos:definition "Relates a refinement to an unselected candidate reading or referent. Naming a candidate neither selects it as a result nor asserts the statement it reifies."@x-gmeow-english ;
+    skos:example "ex:ambiguous gmeow:refinementCandidate ex:readingA, ex:readingB ."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and deliberately not a subproperty of observationResult or candidateHypothesis. The latter belongs to an InferenceCommitment, not a generic process reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting all candidate contents or treating candidate existence as a selected answer."@x-gmeow-english ;
+    gmeow:howToUse "Reference each alternative from the refinement; if it is propositional, use RDF 1.2 reification without asserting its quoted content."@x-gmeow-english ;
+    gmeow:useWhen "Use for ambiguous or otherwise unselected reading alternatives that must remain queryable."@x-gmeow-english .
+
+gmeow:refinementResolved
+    a gmeow:RefinementOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "resolved reading"@x-gmeow-english ;
+    skos:definition "The process selected one reading with adequate confidence for its declared task."@x-gmeow-english ;
+    skos:example "ex:r gmeow:refinementOutcome gmeow:refinementResolved ."@x-gmeow-english ;
+    skos:scopeNote "Resolution belongs to this process and source scope; it is not a guarantee of world truth or universal agreement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using resolved status to erase another vantage or bypass source provenance."@x-gmeow-english ;
+    gmeow:howToUse "Record the selected target or derived observation through observationResult."@x-gmeow-english ;
+    gmeow:useWhen "Use when one sufficiently supported reading was selected."@x-gmeow-english .
+
+gmeow:refinementBestGuess
+    a gmeow:RefinementOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "best-guess reading"@x-gmeow-english ;
+    skos:definition "The process provisionally selected one reading without the confidence required for resolved status."@x-gmeow-english ;
+    skos:example "ex:r gmeow:refinementOutcome gmeow:refinementBestGuess ."@x-gmeow-english ;
+    skos:scopeNote "A qualitative provisional selection, not a prescribed credence number or a claim of certainty."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a numeric probability from this value or presenting the answer without its provisional status."@x-gmeow-english ;
+    gmeow:howToUse "Keep the selected result and expose the best-guess outcome to consumers that hedge or request confirmation."@x-gmeow-english ;
+    gmeow:useWhen "Use when one reading is useful but remains a guess."@x-gmeow-english .
+
+gmeow:refinementAmbiguous
+    a gmeow:RefinementOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "ambiguous reading"@x-gmeow-english ;
+    skos:definition "The process retained several candidate readings without selecting one."@x-gmeow-english ;
+    skos:example "ex:r gmeow:refinementOutcome gmeow:refinementAmbiguous ."@x-gmeow-english ;
+    skos:scopeNote "Candidate multiplicity is explicit and is not resolved by graph order, label matching or a privileged vantage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying every candidate into selected results."@x-gmeow-english ;
+    gmeow:howToUse "List alternatives with refinementCandidate and leave a selected result absent until a reading is actually chosen."@x-gmeow-english ;
+    gmeow:useWhen "Use when several readings remain and recall should ask which was meant."@x-gmeow-english .
+
+gmeow:refinementUnresolved
+    a gmeow:RefinementOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "unresolved reading"@x-gmeow-english ;
+    skos:definition "The process produced no reading in the recorded source and task scope."@x-gmeow-english ;
+    skos:example "ex:r gmeow:refinementOutcome gmeow:refinementUnresolved ."@x-gmeow-english ;
+    skos:scopeNote "An explicit process outcome, not missing data and not proof that no interpretation exists."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a result node merely to fill an unresolved record."@x-gmeow-english ;
+    gmeow:howToUse "Retain source and versioned vantage, record this outcome and omit a selected result."@x-gmeow-english ;
+    gmeow:useWhen "Use when a completed reading attempt found no interpretation."@x-gmeow-english .

@@ -384,3 +384,41 @@ ASK {
     FILTER (?x NOT IN (gmeow:verdictHeld, gmeow:verdictNotHeld, gmeow:verdictUndetermined))
 }""" ;
     gmeow:saRationale "No fourth gmeow:EvaluationVerdict individual MUST NOT exist — the held/not-held/undetermined trichotomy is closed by design (a fourth verdict would violate the semantics)." .
+
+ex:saRefinementObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Refinement a logic:SubKind ; rdfs:subClassOf gmeow:Observation .
+    gmeow:RefinementOutcome rdfs:subClassOf logic:QualityValue .
+    gmeow:refinementResolved a gmeow:RefinementOutcome .
+    gmeow:refinementBestGuess a gmeow:RefinementOutcome .
+    gmeow:refinementAmbiguous a gmeow:RefinementOutcome .
+    gmeow:refinementUnresolved a gmeow:RefinementOutcome . }
+""" ;
+    gmeow:saRationale "Refinement specializes the observation owner; the four reading outcomes are quality-value individuals, not truth or support classes." .
+
+ex:saRefinementRelations a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:refinementOutcome a owl:ObjectProperty ;
+    rdfs:domain gmeow:Refinement ; rdfs:range gmeow:RefinementOutcome .
+    gmeow:refinementCandidate a owl:ObjectProperty ; rdfs:domain gmeow:Refinement . }
+""" ;
+    gmeow:saRationale "The outcome and unselected-candidate relations belong to ordinary refinement observations." .
+
+ex:saRefinementNoSelectionOrCollapse a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { { VALUES ?p { gmeow:refinementOutcome gmeow:refinementCandidate }
+        ?p a owl:FunctionalProperty }
+    UNION { VALUES ?p { gmeow:observationResult gmeow:candidateHypothesis }
+        gmeow:refinementCandidate rdfs:subPropertyOf+ ?p }
+    UNION { gmeow:Refinement rdfs:subClassOf+ gmeow:InferenceCommitment } }
+""" ;
+    gmeow:saRationale "Unselected candidates are not chosen outputs, ordinary readings are not inference commitments, and coequal attributions are not collapsed." .

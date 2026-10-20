@@ -104,6 +104,17 @@ segment S."
   **No `owl:inverseOf`** between the orientations — EL-clean; query both
   (the `connectsTo` convention).
 
+### Retrieval chunks that also narrate
+
+`narratedIn` continues to range over `ContentSegment`. A retrieval `Chunk` is not
+automatically a structural content segment, so neither a universal subclass nor
+a wider range is warranted. If a retrieved node is also a paragraph, scene or
+other structural part of the source, type the same node as both `Chunk` and
+`ContentSegment`, using `chunkOf`/spans for retrieval and `segmentOf`/`segmentType`
+for document structure. This deliberate dual typing keeps one identity and
+both roles. An arbitrary retrieval window is only a Chunk until that structural
+role is actually asserted. See the [worked dual-role segment](../../core/observations/examples/refinement-readings.ttl).
+
 ### gmeow:NarrationUsage · gmeow:NarrationMode
 
 - **Reify with a reason**: `NarrationUsage` (the NameUsage/DepictionUsage

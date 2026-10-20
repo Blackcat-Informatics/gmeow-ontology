@@ -468,3 +468,227 @@ msgstr "L'individu dont la propriété ou l'état est observé — la caractéri
 msgctxt "https://blackcatinformatics.ca/gmeow/vantage|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "gmeow:vantage ⊑ gmeow:accordingTo: the reified relator edge is semantically subsumed by the annotation-property axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is authored as a logic:AnnotationProperty (its generated OWL/RDFS projection is the W3C OWL AnnotationProperty) while vantage is a logic:ObjectProperty — keeping the OWL 2 DL downcast clean on that projection, Principle 3. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."
 msgstr "gmeow:vantage ⊑ gmeow:accordingTo : l'arête de relateur réifié est sémantiquement subsumée par l'axe des propriétés d'annotation. Ceci n'est PAS affirmé comme rdfs:subPropertyOf car gmeow:accordingTo est écrit comme une logic:AnnotationProperty (sa projection OWL/RDFS générée est le W3C OWL AnnotationProperty) tandis que vantage est une logic:ObjectProperty — ce qui garde propre le sous-typage OWL 2 DL sur cette projection, Principe 3. La subsomption est documentée ici et réalisée dans la couche de projection, non axiomatisée dans le cœur raisonné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Refinement"
+msgstr "Affinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation made by a named, versioned process reading another record, with that record as observed feature and the process as vantage. Results are new readings, never edits to the source."
+msgstr "Une observation produite par un processus nommé et versionné qui lit un autre enregistrement, pris comme objet observé, le processus étant le point de vue. Les résultats sont de nouvelles lectures, jamais des modifications de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading a gmeow:Refinement ; gmeow:observedFeature ex:record ; gmeow:vantage ex:refinerV2 ."
+msgstr "ex:reading a gmeow:Refinement ; gmeow:observedFeature ex:record ; gmeow:vantage ex:refinerV2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A process reading, not world determinacy, evidential support or a formal linguistic denotation. Different process versions and vantages retain separate records."
+msgstr "Une lecture de processus, non la détermination du monde, le soutien probant ou une dénotation linguistique formelle. Les versions et points de vue distincts conservent des enregistrements séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mutating the source or treating a selected reading as an automatically asserted source fact."
+msgstr "Éviter de modifier la source ou de traiter une lecture retenue comme un fait source automatiquement affirmé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the source and versioned vantage, record refinementOutcome, and put selected individuals or derived observations in observationResult. Keep unselected alternatives in refinementCandidate."
+msgstr "Nommer la source et le point de vue versionné, renseigner refinementOutcome et placer les individus retenus ou observations dérivées dans observationResult. Garder les alternatives non retenues dans refinementCandidate."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for record interpretation such as mention resolution, time joins or narrative readings performed after the source was recorded."
+msgstr "À employer pour interpréter des enregistrements après leur création : résolution de mentions, rapprochements temporels ou lectures narratives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RefinementOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Refinement Outcome"
+msgstr "Issue d’affinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RefinementOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The qualitative outcome of a process reading: resolved, best guess, ambiguous or unresolved. This axis describes the reading rather than the truth of its subject."
+msgstr "L’issue qualitative d’une lecture : résolue, meilleure hypothèse, ambiguë ou non résolue. Cet axe décrit la lecture plutôt que la vérité de son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RefinementOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:refinementAmbiguous a gmeow:RefinementOutcome ."
+msgstr "gmeow:refinementAmbiguous a gmeow:RefinementOutcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RefinementOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Outcome values are individuals, not subclasses, and are distinct from Determinacy and SupportStatus. The four supplied values do not assign a numeric probability."
+msgstr "Les valeurs sont des individus, non des sous-classes, distincts de Determinacy et SupportStatus. Les quatre valeurs fournies n’attribuent aucune probabilité numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RefinementOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a reading outcome as a truth value or a calibrated confidence score."
+msgstr "Éviter d’utiliser une issue de lecture comme valeur de vérité ou score de confiance étalonné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RefinementOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select an outcome individual through refinementOutcome on the corresponding Refinement."
+msgstr "Associer un individu d’issue à l’Affinement correspondant par refinementOutcome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RefinementOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish how far a recorded interpretation progressed."
+msgstr "À employer pour distinguer le degré d’aboutissement d’une interprétation enregistrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement outcome"
+msgstr "issue d’affinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a refinement to the qualitative outcome of its reading. Nonfunctional so coexisting attributed outcomes are retained."
+msgstr "Relie un affinement à l’issue qualitative de sa lecture. Non fonctionnelle afin de conserver les issues attribuées coexistantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:refinementOutcome gmeow:refinementBestGuess ."
+msgstr "ex:reading gmeow:refinementOutcome gmeow:refinementBestGuess ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This reports the process outcome, not the evidence grade of a claim. A distinct process version should have a distinct refinement record."
+msgstr "Cette relation décrit l’issue du processus, non le degré probant d’une affirmation. Chaque version distincte du processus devrait avoir son propre enregistrement d’affinement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a default outcome from missing data or silently choosing between competing attributions."
+msgstr "Éviter de déduire une issue par défaut de données absentes ou de choisir silencieusement entre des attributions concurrentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the explicit outcome value and preserve the vantage that attributed it."
+msgstr "Associer la valeur explicite d’issue et préserver le point de vue qui l’a attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when recall must distinguish a resolved reading from a guess, ambiguity or failure to resolve."
+msgstr "À employer lorsque le rappel doit distinguer une lecture résolue d’une hypothèse, d’une ambiguïté ou d’un échec de résolution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement candidate"
+msgstr "candidat d’affinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a refinement to an unselected candidate reading or referent. Naming a candidate neither selects it as a result nor asserts the statement it reifies."
+msgstr "Relie un affinement à une lecture ou un référent candidat non retenu. Nommer un candidat ne le sélectionne pas comme résultat et n’affirme pas l’énoncé qu’il réifie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ambiguous gmeow:refinementCandidate ex:readingA, ex:readingB ."
+msgstr "ex:ambiguous gmeow:refinementCandidate ex:readingA, ex:readingB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and deliberately not a subproperty of observationResult or candidateHypothesis. The latter belongs to an InferenceCommitment, not a generic process reading."
+msgstr "Non fonctionnelle et délibérément sans relation de sous-propriété vers observationResult ou candidateHypothesis. Cette dernière appartient à un InferenceCommitment, non à une lecture de processus générique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting all candidate contents or treating candidate existence as a selected answer."
+msgstr "Éviter d’affirmer tous les contenus candidats ou de prendre leur existence pour une réponse retenue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each alternative from the refinement; if it is propositional, use RDF 1.2 reification without asserting its quoted content."
+msgstr "Référencer chaque alternative depuis l’affinement ; pour une proposition, employer la réification RDF 1.2 sans affirmer son contenu cité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ambiguous or otherwise unselected reading alternatives that must remain queryable."
+msgstr "À employer pour les alternatives ambiguës ou non retenues qui doivent rester interrogeables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementResolved|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolved reading"
+msgstr "lecture résolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementResolved|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The process selected one reading with adequate confidence for its declared task."
+msgstr "Le processus a retenu une lecture avec une confiance suffisante pour sa tâche déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementResolved|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:refinementOutcome gmeow:refinementResolved ."
+msgstr "ex:r gmeow:refinementOutcome gmeow:refinementResolved ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementResolved|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Resolution belongs to this process and source scope; it is not a guarantee of world truth or universal agreement."
+msgstr "La résolution concerne ce processus et cette portée source ; elle ne garantit ni vérité du monde ni accord universel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementResolved|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using resolved status to erase another vantage or bypass source provenance."
+msgstr "Éviter d’utiliser le statut résolu pour effacer un autre point de vue ou contourner la provenance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementResolved|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the selected target or derived observation through observationResult."
+msgstr "Enregistrer la cible retenue ou l’observation dérivée par observationResult."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementResolved|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when one sufficiently supported reading was selected."
+msgstr "À employer lorsqu’une lecture suffisamment étayée a été retenue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementBestGuess|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "best-guess reading"
+msgstr "meilleure hypothèse de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementBestGuess|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The process provisionally selected one reading without the confidence required for resolved status."
+msgstr "Le processus a provisoirement retenu une lecture sans la confiance nécessaire au statut résolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementBestGuess|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:refinementOutcome gmeow:refinementBestGuess ."
+msgstr "ex:r gmeow:refinementOutcome gmeow:refinementBestGuess ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementBestGuess|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A qualitative provisional selection, not a prescribed credence number or a claim of certainty."
+msgstr "Une sélection provisoire qualitative, non un nombre de crédence prescrit ni une affirmation de certitude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementBestGuess|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a numeric probability from this value or presenting the answer without its provisional status."
+msgstr "Éviter d’inventer une probabilité à partir de cette valeur ou de présenter la réponse sans son statut provisoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementBestGuess|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the selected result and expose the best-guess outcome to consumers that hedge or request confirmation."
+msgstr "Conserver le résultat retenu et exposer cette issue aux consommateurs qui nuancent la réponse ou demandent confirmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementBestGuess|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when one reading is useful but remains a guess."
+msgstr "À employer lorsqu’une lecture est utile mais demeure une hypothèse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementAmbiguous|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ambiguous reading"
+msgstr "lecture ambiguë"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementAmbiguous|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The process retained several candidate readings without selecting one."
+msgstr "Le processus a conservé plusieurs lectures candidates sans en retenir une."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementAmbiguous|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:refinementOutcome gmeow:refinementAmbiguous ."
+msgstr "ex:r gmeow:refinementOutcome gmeow:refinementAmbiguous ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementAmbiguous|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate multiplicity is explicit and is not resolved by graph order, label matching or a privileged vantage."
+msgstr "La multiplicité des candidats est explicite ; ni l’ordre du graphe, ni les libellés, ni un point de vue privilégié ne la résolvent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementAmbiguous|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying every candidate into selected results."
+msgstr "Éviter de recopier tous les candidats dans les résultats retenus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementAmbiguous|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "List alternatives with refinementCandidate and leave a selected result absent until a reading is actually chosen."
+msgstr "Énumérer les alternatives avec refinementCandidate et laisser le résultat retenu absent tant qu’aucune lecture n’est choisie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementAmbiguous|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when several readings remain and recall should ask which was meant."
+msgstr "À employer lorsque plusieurs lectures subsistent et que le rappel doit demander laquelle était visée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unresolved reading"
+msgstr "lecture non résolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The process produced no reading in the recorded source and task scope."
+msgstr "Le processus n’a produit aucune lecture dans la portée source et la tâche enregistrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:refinementOutcome gmeow:refinementUnresolved ."
+msgstr "ex:r gmeow:refinementOutcome gmeow:refinementUnresolved ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An explicit process outcome, not missing data and not proof that no interpretation exists."
+msgstr "Une issue de processus explicite, non une donnée absente ni une preuve qu’aucune interprétation n’existe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a result node merely to fill an unresolved record."
+msgstr "Éviter d’inventer un nœud résultat pour remplir un enregistrement non résolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain source and versioned vantage, record this outcome and omit a selected result."
+msgstr "Conserver la source et le point de vue versionné, enregistrer cette issue et ne pas renseigner de résultat retenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refinementUnresolved|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a completed reading attempt found no interpretation."
+msgstr "À employer lorsqu’une tentative de lecture achevée n’a trouvé aucune interprétation."
