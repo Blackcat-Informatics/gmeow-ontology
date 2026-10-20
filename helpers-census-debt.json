@@ -2544,7 +2544,6 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_pipeline::stages::pydantic::PydanticStage::new",
     "gmeow_pipeline::stages::schemas::SchemasStage::new",
     "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
    ]
