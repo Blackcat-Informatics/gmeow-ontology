@@ -122,7 +122,7 @@ pub(super) fn native_admission(
     let bytes = std::fs::read(input_nq).expect("exact selected case bytes");
     assert_eq!(
         observed.input_blake3,
-        *blake3::hash(&bytes).as_bytes(),
+        *purrdf_hash::blake3::hash(&bytes).as_bytes(),
         "source-admission input identity"
     );
     observed

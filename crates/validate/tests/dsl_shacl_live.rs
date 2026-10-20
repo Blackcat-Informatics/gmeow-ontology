@@ -144,3 +144,52 @@ fn dsl_shacl_can_fail() {
          got zero errors — the DSL SHACL guard has lost its teeth. Findings: {findings:#?}"
     );
 }
+
+/// Canonical metadata declarations must remain in the annotation gate's focus set.
+/// A type-spelling migration must not turn a malformed vocabulary term invisible.
+#[test]
+fn canonical_metadata_declarations_still_require_annotations() {
+    let dsl = authored_dsl_shacl_inputs(&repo_root()).expect("resolve committed DSL inputs");
+    let tmp = tempfile::tempdir().expect("create temp dir");
+    for (surface, shapes) in [
+        ("mapping", &dsl.mapping_shapes),
+        ("statement", &dsl.statement_shapes),
+        ("test", &dsl.test_shapes),
+    ] {
+        for kind in [
+            "Class",
+            "ObjectProperty",
+            "DatatypeProperty",
+            "AnnotationProperty",
+            "Ontology",
+        ] {
+            let fixture = tmp.path().join("metadata.ttl");
+            let declaration = format!(
+                "<https://blackcatinformatics.ca/gmeow/MissingMetadata> a <https://blackcatinformatics.ca/logic/{kind}> ."
+            );
+            std::fs::write(&fixture, &declaration).expect("write synthetic declaration");
+            let findings = validate_dsl(std::slice::from_ref(&fixture), shapes, surface)
+                .expect("validate canonical declaration");
+            assert!(
+                findings
+                    .iter()
+                    .any(|f| f.severity == Severity::Error
+                        && f.message.contains("DSL vocabulary term")),
+                "{surface} {kind} escaped annotation validation: {findings:?}"
+            );
+            std::fs::write(&fixture, format!(
+                "{declaration}
+                 <https://blackcatinformatics.ca/gmeow/MissingMetadata>
+                   <http://www.w3.org/2000/01/rdf-schema#label> \"metadata\" ;
+                   <http://www.w3.org/2004/02/skos/core#definition> \"A synthetic metadata declaration.\" ;
+                   <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/{surface}-dsl> ."
+            )).expect("write annotated declaration");
+            let complete =
+                validate_dsl(&[fixture], shapes, surface).expect("validate complete declaration");
+            assert!(
+                !complete.iter().any(|f| f.severity == Severity::Error),
+                "{surface} {kind} with complete annotations must pass: {complete:?}"
+            );
+        }
+    }
+}

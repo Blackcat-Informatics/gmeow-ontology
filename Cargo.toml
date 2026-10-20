@@ -204,6 +204,8 @@ purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf"
 purrdf-core = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
 # The substrate's one JSON/YAML/CBOR/XML home; the facade does not re-export it.
 purrdf-lex = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
+# The substrate JSON Schema engine; meta-schemas are embedded by the validator.
+purrdf-jsonschema = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
 # The substrate's one Ed25519 implementation (GTS signing and verification keys).
 purrdf-ed25519 = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "0c8ceac5259fbfe2aa256b59b8c9e5b6b1db322e" }
 # The substrate's one BLAKE3/hex home.
@@ -213,10 +215,6 @@ purrdf-hash = { version = "3", git = "https://github.com/Blackcat-Informatics/pu
 # the single dependency authority while individual crates retain dev-only scope.
 gmeow-cost-measure = { path = "crates/cost-measure" }
 
-# `wasm-bindgen` and `blake3` are declared ONCE each in the third-party block below,
-# where this branch's normalization sweep put them — not here. A second declaration in
-# the same table is a TOML duplicate key, and both sides independently reached for one.
-
 # --- Third-party dependencies: ONE declaration site each -----------------------
 # Every member crate inherits these with `<dep>.workspace = true` and never
 # re-states a version. A member may still narrow or widen its own use of a
@@ -225,19 +223,12 @@ gmeow-cost-measure = { path = "crates/cost-measure" }
 # agree silently stop agreeing. The per-dependency rationale (why a crate needs it,
 # what it is allowed to reach) stays in the member manifest beside the use.
 #
-# The BLAKE3 content digest: the project's canonical fingerprint for vendored-asset
-# anti-rot manifests, blob content addressing, and `blake3:<hex>` grounding values.
-blake3 = "1"
 # CBOR value codec: the gts snapshot's per-blob metadata maps and segment payloads
 # are read and written with it, so every reader and writer must share one codec.
 ciborium = "0.2"
 # Snapshot goldens. The version is fixed here; a crate that asserts JSON snapshots
 # adds `features = ["json"]` at its own site, since not every consumer needs it.
 insta = { version = "1.48" }
-# JSON Schema validation of shipped JSON projections. `default-features = false` is
-# part of the shared fact, not a per-crate choice: the default feature set pulls a
-# network-fetching resolver that no gate is permitted to depend on.
-jsonschema = { version = "0.46", default-features = false }
 # Unix process resource accounting for the report-only performance sampler. The
 # sampler reads `getrusage(RUSAGE_CHILDREN)` around exactly one measured command;
 # production libraries never call libc through this dependency.

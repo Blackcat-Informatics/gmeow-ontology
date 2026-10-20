@@ -4,8 +4,8 @@
 # A worked GMN version migration: the executor-facing demonstrator for
 # gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo and the gmeow:GmnMigrationRewrite
 # leg it aggregates. Only ONE GMN dialect major ships today, so this scene
-# authors a SYNTHETIC source→target pair (ex:gmnDialectVSrc owl:versionInfo "1"
-# → ex:gmnDialectVTgt owl:versionInfo "2") carrying a GENUINE schema delta, so
+# authors a SYNTHETIC source→target pair (ex:gmnDialectVSrc logic:versionInfo "1"
+# → ex:gmnDialectVTgt logic:versionInfo "2") carrying a GENUINE schema delta, so
 # the migration executor's preservation judgment is exercised non-trivially and
 # not as a v1→v1 identity.
 #
@@ -25,7 +25,6 @@
 #      lang:GmnUnbridgedGlyphDrop HARD FAIL the executor refuses to apply.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -36,12 +35,12 @@
 ex:gmnDialectVSrc
     a gmeow:InformationObject ;
     rdfs:label "synthetic GMN dialect major 1 (migration source)"@x-gmeow-english ;
-    owl:versionInfo "1" .
+    logic:versionInfo "1" .
 
 ex:gmnDialectVTgt
     a gmeow:InformationObject ;
     rdfs:label "synthetic GMN dialect major 2 (migration target)"@x-gmeow-english ;
-    owl:versionInfo "2" ;
+    logic:versionInfo "2" ;
     # The target major's NATIVE operator inventory, authored graph-natively with
     # gmeow:gmnVersionDefinesOperator so the migrate executor derives target_inventory
     # from the graph, never a Rust constant. logic:subClassOf is a NATIVE SURVIVOR the

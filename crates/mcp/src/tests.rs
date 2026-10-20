@@ -3843,14 +3843,12 @@ gmeow_test_batch_macros::batch_mcp_items! {
     /// surfacing every validation error verbatim on failure (a real payload the
     /// schema rejects is a schema bug to FIX, never to weaken).
     fn assert_conforms(schema: &Value, instance: &Value, what: &str) {
-        let validator = jsonschema::options()
-            .with_draft(jsonschema::Draft::Draft202012)
-            .build(schema)
-            .unwrap_or_else(|e| panic!("{what}: schema does not compile: {e}"));
-        let errors: Vec<String> = validator
-            .iter_errors(instance)
-            .map(|e| e.to_string())
-            .collect();
+        let errors = gmeow_validate::instance::validate_instance(
+            &serde_json::to_vec(instance).expect("serialize actual instance payload"),
+            gmeow_validate::instance::InstanceFormat::Json,
+            &serde_json::to_vec(schema).expect("serialize schema"),
+        )
+        .unwrap_or_else(|e| panic!("{what}: could not validate payload: {e}"));
         assert!(
             errors.is_empty(),
             "{what}: real payload does not conform to its schema:\n{}\ninstance: {instance}",

@@ -57,6 +57,23 @@ fn materialized_key_is_deterministic() {
 }
 
 #[test]
+fn persisted_world_identity_vectors() {
+    let actual = [
+        materialized_world_key(&baseline_mat()),
+        counterfactual_world_key(&baseline_cf()),
+        hypothetical_run_key(&baseline_hypo()),
+    ];
+    assert_eq!(
+        actual,
+        [
+            "b8b01a0ff3124ef1479ef96dfae6fdc10a82681b4f75d347736b3f02ef3f79fa",
+            "06a025439e77ca3daa869850072962cb7633d092c8376039383dac26cf362dbe",
+            "1a7679c9039393838f92a1a0b24ce525ff78a2ff74caa78b6bf0c17b48258482",
+        ]
+    );
+}
+
+#[test]
 fn counterfactual_key_is_deterministic() {
     let k0 = counterfactual_world_key(&baseline_cf());
     let k1 = counterfactual_world_key(&baseline_cf());

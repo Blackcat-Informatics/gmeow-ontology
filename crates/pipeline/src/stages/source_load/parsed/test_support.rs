@@ -25,7 +25,9 @@ impl ParsedAuthoredSources {
                     path: PathBuf::from(path),
                     relative_path: path.into(),
                     content_digest: purrdf::ContentDigest::of(content.as_bytes()).to_hex(),
-                    blake3_digest: blake3::hash(content.as_bytes()).to_hex().to_string(),
+                    blake3_digest: purrdf_hash::hex::encode(
+                        purrdf_hash::blake3::hash(content.as_bytes()).as_bytes(),
+                    ),
                     kind: OriginKind::Source,
                     ingested: PurrdfAdapter
                         .ingest(path, media_type, content.as_bytes())

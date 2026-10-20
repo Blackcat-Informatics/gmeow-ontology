@@ -937,7 +937,7 @@ const STRUCTURAL_KEY_TAG: &[u8] = b"gmeow-math-structural-key-v1";
 /// Length-prefixed, domain-separated field feed (mirrors `ledger.rs`'s `feed`): a length
 /// prefix before both the tag and the payload makes a delimiter-injection collision
 /// between the two impossible, whatever bytes either carries.
-fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
+fn feed_structural(hasher: &mut purrdf_hash::blake3::Hasher, tag: &[u8], bytes: &[u8]) {
     hasher.update(&(tag.len() as u64).to_le_bytes());
     hasher.update(tag);
     hasher.update(&(bytes.len() as u64).to_le_bytes());
@@ -950,9 +950,9 @@ fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 /// [`crate::term_arena::TermArena`]-facing routes cannot drift: both end here, over the same
 /// bytes ([`gmeow_term_arena::Arena::key`] returns `dag.key` verbatim).
 fn fold_content_key(content_key: &str) -> String {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     feed_structural(&mut hasher, STRUCTURAL_KEY_TAG, content_key.as_bytes());
-    hasher.finalize().to_hex().to_string()
+    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }
 
 /// Lower one root through the arena seam ([`crate::term_arena::intern_math_root`]) and fold the

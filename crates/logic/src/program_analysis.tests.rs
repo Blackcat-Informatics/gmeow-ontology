@@ -4,6 +4,86 @@
 use super::*;
 use gmeow_logic_compile::frontend::parse_logic_str;
 
+/// Observe the actual cache-hit event without timing concurrent requests. A
+/// subscriber must be called after the template-cache lock has been released.
+struct TemplateCacheObserver {
+    program: Arc<PreparedProgram>,
+    hits: Arc<std::sync::atomic::AtomicUsize>,
+}
+
+impl tracing::Subscriber for TemplateCacheObserver {
+    fn enabled(&self, metadata: &tracing::Metadata<'_>) -> bool {
+        metadata.is_event() && metadata.target() == "pipeline_reasoning_detail"
+    }
+
+    fn new_span(&self, _: &tracing::span::Attributes<'_>) -> tracing::span::Id {
+        tracing::span::Id::from_u64(1)
+    }
+
+    fn record(&self, _: &tracing::span::Id, _: &tracing::span::Record<'_>) {}
+    fn record_follows_from(&self, _: &tracing::span::Id, _: &tracing::span::Id) {}
+    fn enter(&self, _: &tracing::span::Id) {}
+    fn exit(&self, _: &tracing::span::Id) {}
+
+    fn event(&self, event: &tracing::Event<'_>) {
+        struct CacheHit(bool);
+        impl tracing::field::Visit for CacheHit {
+            fn record_debug(&mut self, _: &tracing::field::Field, _: &dyn std::fmt::Debug) {}
+
+            fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
+                if field.name() == "phase" && value == "reuse-native-reasoning-template" {
+                    self.0 = true;
+                }
+            }
+        }
+        let mut hit = CacheHit(false);
+        event.record(&mut hit);
+        if hit.0 {
+            assert!(
+                self.program.schema_templates.try_lock().is_ok(),
+                "cached input preparation still holds the shared template-cache lock"
+            );
+            self.hits.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        }
+    }
+}
+
+#[test]
+fn cached_native_input_releases_template_cache_before_observation_and_preparation() {
+    let prepared = prepare_program(&program()).unwrap();
+    let sources = crate::reason::source_existentials::Collector::default()
+        .prepare()
+        .unwrap();
+    let domains = crate::physical::SelectedDomains::new([]).unwrap();
+    // Repeat one synthetic row to reach the existing large-input event boundary
+    // without introducing a corpus or a large abstract value domain.
+    let facts = std::collections::BTreeMap::from([(
+        "urn:world".to_owned(),
+        vec![
+            crate::rule_ir::Fact {
+                subject: purrdf::TermValue::iri("urn:s"),
+                predicate: "https://example.test/asserted".to_owned(),
+                object: purrdf::TermValue::iri("urn:o"),
+            };
+            100_000
+        ],
+    )]);
+    let first = prepared
+        .reasoning_input(&[], &sources, &domains, &facts, Arc::from([]), &[])
+        .unwrap();
+    let hits = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let observer = TemplateCacheObserver {
+        program: Arc::clone(&prepared),
+        hits: Arc::clone(&hits),
+    };
+    let again = tracing::subscriber::with_default(observer, || {
+        prepared.reasoning_input(&[], &sources, &domains, &facts, Arc::from([]), &[])
+    })
+    .unwrap();
+    assert_eq!(hits.load(std::sync::atomic::Ordering::Relaxed), 1);
+    assert_eq!(first.identity(), again.identity());
+}
+
 /// A real typed rule input, independently parsed for cache identity checks.
 fn program() -> LogicProgram {
     parse_logic_str(

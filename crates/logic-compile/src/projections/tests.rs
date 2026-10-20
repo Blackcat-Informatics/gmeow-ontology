@@ -1381,6 +1381,33 @@ fn functional_carrier_record_projects_owl_functional_property() {
 }
 
 #[test]
+fn functional_metadata_projection_preserves_datatype_property_kind() {
+    let program = parse(
+        "ex:field a logic:DatatypeProperty .
+         ex:fieldLaw a logic:PropertyCharacteristicAssertion ;
+             logic:characterizes ex:field ;
+             logic:characteristicSort logic:functionalProperty .",
+    );
+    let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
+    let triples = triple_set(&dl.content);
+    let prop = "https://example.org/test/field";
+    for kind in ["DatatypeProperty", "FunctionalProperty"] {
+        assert!(
+            triples.contains(&format!(
+                "<{prop}> <{RDF_TYPE}> <http://www.w3.org/2002/07/owl#{kind}>"
+            )),
+            "{kind}: {triples:?}"
+        );
+    }
+    assert!(
+        !triples.contains(&format!(
+            "<{prop}> <{RDF_TYPE}> <http://www.w3.org/2002/07/owl#ObjectProperty>"
+        )),
+        "a scalar metadata field must not become an object property: {triples:?}"
+    );
+}
+
+#[test]
 fn owl_restriction_round_trips_through_dl_projection() {
     // Parse a logic: restriction into the IR, then project OWL-DL: the owl:Restriction
     // graph must appear (anchored on the deterministic skolem node).

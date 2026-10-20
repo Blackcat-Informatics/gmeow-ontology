@@ -483,7 +483,7 @@ pub fn verify_format(
                 .map_err(fail)?;
         syn::parse_file(&actual).map_err(fail)?;
         syn::parse_file(&replacement.contents).map_err(fail)?;
-        let edition = source_edition(workspace, &replacement.path)?;
+        let edition = gmeow_build_inputs::source_edition(workspace, &replacement.path)?;
         let directory = workspace
             .join(&replacement.path)
             .parent()
@@ -507,52 +507,6 @@ pub fn verify_format(
         });
     }
     Ok(evidence)
-}
-
-fn source_edition(workspace: &Path, source: &str) -> Result<String> {
-    let root: toml::Value = std::fs::read_to_string(workspace.join("Cargo.toml"))
-        .map_err(fail)?
-        .parse()
-        .map_err(fail)?;
-    let mut directory = workspace
-        .join(source)
-        .parent()
-        .ok_or_else(|| fail("source has no parent"))?
-        .to_path_buf();
-    loop {
-        let manifest = directory.join("Cargo.toml");
-        if manifest.try_exists().map_err(fail)? {
-            let package: toml::Value = std::fs::read_to_string(&manifest)
-                .map_err(fail)?
-                .parse()
-                .map_err(fail)?;
-            let edition = package
-                .get("package")
-                .and_then(|package| package.get("edition"));
-            if let Some(edition) = edition.and_then(toml::Value::as_str) {
-                return Ok(edition.to_owned());
-            }
-            if edition
-                .and_then(|edition| edition.get("workspace"))
-                .and_then(toml::Value::as_bool)
-                == Some(true)
-            {
-                return root
-                    .get("workspace")
-                    .and_then(|workspace| workspace.get("package"))
-                    .and_then(|package| package.get("edition"))
-                    .and_then(toml::Value::as_str)
-                    .map(str::to_owned)
-                    .ok_or_else(|| fail("missing workspace Rust edition"));
-            }
-            if package.get("package").is_some() {
-                return Ok("2015".into());
-            }
-        }
-        if directory == workspace || !directory.pop() {
-            return Err(fail("source has no Cargo edition owner"));
-        }
-    }
 }
 
 fn canonical_format(directory: &Path, edition: &str, source: &str) -> Result<Vec<u8>> {

@@ -19,11 +19,10 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/slices/affect/declined-bridges>
-    a owl:Ontology ;
+    a logic:Ontology ;
     rdfs:label "affect declined-bridge ledger"@x-gmeow-english ;
     skos:definition "The declined-bridge ledger of the affect slice: every external affect vocabulary whose surface carries no resolvable per-term RDF, recorded as a gmeow:DeclinedCorrespondence with its rationale, probed candidate namespace(s), dated probe verdict, revisit condition, and in-slice coverage witness, each carrying logic:preservationKind logic:Unsupported. Queryable per declined target (see queries/competency/declined-external-bridges.rq), so the descope decision is reviewable data, not a prose comment."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect/declined-bridges> ;

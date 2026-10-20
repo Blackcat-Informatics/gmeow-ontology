@@ -742,7 +742,7 @@ impl<F: Frame> Evaluator<'_, F> {
                 .map_err(|error| AdmissionError::Malformed(error.to_string()))?;
             self.context_anchors.insert(
                 context.to_owned(),
-                blake3::hash(&identity).to_hex().to_string(),
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&identity).as_bytes()),
             );
         }
         Ok(())
@@ -976,7 +976,10 @@ impl<F: Frame> Evaluator<'_, F> {
             &self.context_anchors[context],
         ))
         .expect("strings and integer serialize");
-        let anchor_identity = format!("urn:gmeow:modal-assessment:{}", blake3::hash(&anchor));
+        let anchor_identity = format!(
+            "urn:gmeow:modal-assessment:{}",
+            purrdf_hash::hex::Lower(purrdf_hash::blake3::hash(&anchor).as_bytes())
+        );
         self.anchors
             .entry(anchor_identity.clone())
             .or_insert_with(|| AssessmentAnchor {

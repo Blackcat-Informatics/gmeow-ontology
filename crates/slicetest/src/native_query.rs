@@ -33,6 +33,10 @@ use sha2::{Digest, Sha256};
 
 use crate::error::{DatasetRead, SparqlEval, UnexpectedResultForm};
 
+#[cfg(test)]
+#[path = "native_query.projection_fixtures.tests.rs"]
+mod projection_fixtures_tests;
+
 /// One SELECT result: the projected variable names and the rows of optional terms,
 /// the dataset-independent egress shape the native engine materializes.
 pub struct Solutions {

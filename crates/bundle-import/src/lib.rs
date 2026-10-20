@@ -1102,7 +1102,8 @@ fn inspect_import(
             bytes += count as u64;
             hash.update(&buffer[..count]);
         }
-        let digest = ContentDigest::from_raw(hash.finalize().into()).to_hex();
+        let digest =
+            purrdf_hash::hex::encode(ContentDigest::from_raw(hash.finalize().into()).as_bytes());
         if bytes != receipt.pack_bytes || digest != receipt.pack_digest {
             return Err(diag("bundle import: referenced pack digest/size mismatch"));
         }

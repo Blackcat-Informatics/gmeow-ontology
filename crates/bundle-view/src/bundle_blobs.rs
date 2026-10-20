@@ -772,7 +772,10 @@ impl Bundle {
                     message: format!("blob {digest}: {e}"),
                 })
             })?;
-            let recomputed = format!("blake3:{}", blake3::hash(&decoded).to_hex());
+            let recomputed = format!(
+                "blake3:{}",
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&decoded).as_bytes())
+            );
             if &recomputed != digest {
                 hash_mismatches.push((digest.clone(), recomputed));
             }

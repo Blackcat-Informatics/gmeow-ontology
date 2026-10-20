@@ -174,7 +174,10 @@ impl VendoredWasmAsset {
             .map(|name| {
                 let bytes = std::fs::read(dir.join(name))
                     .unwrap_or_else(|e| panic!("vendored {name} must exist: {e}"));
-                format!("{}  {name}", blake3::hash(&bytes).to_hex())
+                format!(
+                    "{}  {name}",
+                    purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&bytes).as_bytes())
+                )
             })
             .collect();
         let mut out = lines.join("\n");

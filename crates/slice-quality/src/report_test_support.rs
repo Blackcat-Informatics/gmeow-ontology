@@ -36,6 +36,7 @@ impl SliceReport {
                 module: Some(MODULE_KEY.to_owned()),
             },
             reasoner_probes: ReasonerProbeCounts::default(),
+            profile: None,
         }
     }
 

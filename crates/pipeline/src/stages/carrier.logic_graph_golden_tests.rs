@@ -432,7 +432,16 @@ const GRAPH_CORRESPONDENCE: &str = crate::stages::compile_logic::GRAPH_CORRESPON
 /// second emit is asserted byte-identical (determinism).
 #[test]
 fn graph_correspondence_fold_byte_golden() {
-    let correspondence = crate::stages::compile_logic::synthetic_affine_program();
+    let mut correspondence = crate::stages::compile_logic::synthetic_affine_program();
+    let mut cell = correspondence.correspondences.remove(0);
+    cell.preservation = Some(gmeow_logic_compile::ir::PreservationKind::SoundUnder);
+    correspondence.correspondences.push(
+        cell.with_loss_evidence(vec![purrdf::RdfLiteral::language_tagged(
+            "The overlap omits the complete agent/person versus contact-channel distinction.",
+            "en",
+        )])
+        .expect("the synthetic cell declares its under-approximation loss"),
+    );
     let corr_nt =
         gmeow_logic_compile::projections::correspondence::project_correspondence(&correspondence)
             .unwrap();

@@ -1,3 +1,4 @@
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
@@ -19,7 +20,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/> .
 
 # --- The body as a measurable space with its mass distribution --------------- #
@@ -132,4 +132,4 @@ ex:totalForce a math:DimensionalExpression ;
 # glyph registry is graph-derived, not a hard-coded symbol table. A GMN glyph is a
 # rendering of the canonical term, a sibling of math:ExpressionRendering, never a rival
 # identity.
-math:Morphism a owl:Class .
+math:Morphism a logic:Class .

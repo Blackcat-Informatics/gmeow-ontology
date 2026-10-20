@@ -54,7 +54,6 @@ sha2.workspace = true
 # blake3: the framed, domain-tagged content-digest discipline shared with
 # crates/logic (`ReasoningContract::content_digest` pins the reasoning contract for
 # the operational `ReasoningSession` identity). Pure-Rust, wasm-clean.
-blake3.workspace = true
 # serde: complete typed compiler publications and compact report judgments support
 # authenticated persistence. Live pipeline consumers share native values directly.
 # Pure-Rust + wasm-clean (no oxigraph / no std::fs).

@@ -209,7 +209,7 @@ pub fn qwen_asset_path() -> PathBuf {
 
 /// Verify `bytes` hash to `expected` (lowercase hex blake3); return the actual digest on mismatch.
 fn verify_blake3(family: &str, bytes: &[u8], expected: &str) -> Result<()> {
-    let actual = blake3::hash(bytes).to_hex().to_string();
+    let actual = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bytes).as_bytes());
     if actual == expected {
         Ok(())
     } else {

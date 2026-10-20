@@ -162,10 +162,17 @@ provide.
 ## Deriving the fragment from slice axioms
 
 The validation shapes are not hand-authored: they are **derived** from the constraint-bearing
-axioms slices already carry — `rdfs:domain`/`rdfs:range`, cardinality, `owl:Functional`/
-`InverseFunctionalProperty`, `owl:someValuesFrom`/`allValuesFrom`/`hasValue`, qualified
-cardinality, `owl:disjointWith`/`oneOf`/`AllDisjointClasses`, and the value-set and facet
-restrictions. Two validates-but-does-not-entail conditions have NO slice-authorable OWL
+axioms slices already carry in `logic:` — `logic:domain`/`logic:range`, restrictions using
+`logic:someValuesFrom`/`logic:allValuesFrom`/`logic:hasValue`, qualified cardinality with an
+explicit `logic:onClass` or `logic:onDataRange`, and
+`logic:disjointWith`/`logic:oneOf`/`logic:AllDisjointClasses`. Property characteristics use
+`logic:PropertyCharacteristicAssertion` records with `logic:characterizes` and
+`logic:characteristicSort`, including `logic:functionalProperty` and
+`logic:inverseFunctionalProperty`. OWL/RDFS spellings are generated views or legacy
+equivalence inputs, never declarations to add to slice sources. Authored restrictions must
+remain inside the native reasoner's supported fragment, as described in the
+[migration guide](../../../../docs/MIGRATING-SHAPES-TO-LOGIC.md).
+Two validates-but-does-not-entail conditions have NO slice-authorable OWL
 antecedent, because their OWL renderings are outside the native reasoner's decidable
 fragment, and are authored as constraint-sugar records the derive lowers onto the target
 class shape instead: a literal-pinned **forbidden value** ("class C must never carry
@@ -181,13 +188,12 @@ below.
 
 **Dataset-derive, not typed-IR lift.** The derivation reads the **merged authored dataset**
 directly (the root ontology plus every slice module, closed under the same fold the pipeline
-builds) and lowers each constraint axiom to a `ValidationShapeIr`. The alternative — lifting the
-already-typed logic IR — was rejected: the restriction and cardinality axioms live in the
-authored OWL/RDFS surface, not in a typed logic node, so a dataset-derive reads them where they
-actually are and stays a thin, single-pass projection of the authored ground rather than a
-second typed layer that could itself drift from the slices. This keeps the derivation consistent
-with the rest of the pipeline (every generated artifact is a projection of the same fold) and
-means an author adds a constraint by writing ordinary slice OWL, never a shape.
+builds) and lowers each canonical constraint axiom to a `ValidationShapeIr`. It reads the
+`logic:` restriction, closure and characteristic records before materializing their OWL/RDFS
+views; it does not require those generated views as another input authority. This keeps the
+derivation consistent with the rest of the pipeline (every generated artifact is a projection
+of the same fold). An author adds a constraint in the slice's `logic:` declarations, never by
+hand-authoring an OWL/RDFS or shape surface.
 
 **Derive-all by default, with a closure opt-out.** Every eligible axiom derives a shape by
 default (MAXIMAL UTILITY). A property or class may decline the closed-world reading with a single
@@ -195,7 +201,7 @@ authored signal — a `logic:ClosureEntry` binding its `logic:closureKey` to
 `logic:closureValue logic:OpenWorldClosure` — reusing the existing closure-map vocabulary
 verbatim (no new shape DSL). An absent annotation means "derive".
 
-**The domain/range exception: open-world by default.** `rdfs:domain` and `rdfs:range` are the
+**The domain/range exception: open-world by default.** `logic:domain` and `logic:range` are the
 one construct that inverts the default. They are open-world **inference** axioms: they *entail*
 the subject's / object's type, they do not *require* that type to be asserted. Read closed-world
 as an `sh:targetSubjectsOf`/`sh:targetObjectsOf` + `sh:class` obligation, they over-claim on any
@@ -208,18 +214,18 @@ polarity of the opt-out, using the same closure vocabulary. Genuinely closed-wor
 obligations, not inference axioms, and stay derive-all: a node carrying two disjoint types or a
 second value on a functional property is a genuine violation, not an un-asserted entailment.
 
-**Required-path projection without OWL existentials.** An `owl:someValuesFrom` restriction
+**Required-path projection without existential witnesses.** A `logic:someValuesFrom` restriction
 `K ⊑ ∃P.C` remains an open-world existential in the logical core. Its validation projection is
 therefore only the conservative value-typing under-approximation: a bare `sh:class` obligation,
 vacuously satisfied when the path is absent. It never projects `sh:minCount` by itself.
 
-A genuinely closed-world required path is authored as an `owl:allValuesFrom` value constraint plus
+A genuinely closed-world required path is authored as a `logic:allValuesFrom` value constraint plus
 an explicit `logic:ClosureEntry` carrying `logic:onClass K`, `logic:closureKey P`, and
 `logic:closureValue logic:ClosedWorldClosure`. That class/property pair is the canonical authority
-for adding `sh:minCount 1`. Keeping requiredness out of `owl:someValuesFrom` prevents the native
+for adding `sh:minCount 1`. Keeping requiredness out of `logic:someValuesFrom` prevents the native
 reasoner from minting existential witnesses into the shipped closure while preserving the exact
 closed-world validation obligation. A closure entry without `logic:onClass` may still opt a
-property's `rdfs:domain`/`rdfs:range` projection in globally, but it cannot make a path required for
+property's `logic:domain`/`logic:range` projection in globally, but it cannot make a path required for
 every class that uses the property.
 
 **The statement-layer reifier obligation (`sh:reifierShape` / `sh:reificationRequired`).** One
@@ -246,8 +252,8 @@ condition is carried in the loss ledger as ShEx residue (the SHACL surface emits
 ## Verified by construction, and the placement rule
 
 The emitted shape surfaces are generated artifacts, regenerated by the single-pass pipeline
-and proven drift-free by strict `sync` (Principle 7): the committed bytes equal the
-bytes the projector produces, or the build is red. They ride the in-memory carrier into
+and proven drift-free by strict `sync` (Principle 7): the materialized RDF shape graphs are
+graph-isomorphic to the projector's output, or the build is red. They ride the in-memory carrier into
 `gmeow.gts` through the typed shape lookaside (the `Shacl` / `Shex` sidecar kinds the RDF
 core already distinguishes), so a repo-free consumer reads the validation surface without
 re-running the compiler (maximal information flow).
@@ -255,31 +261,31 @@ re-running the compiler (maximal information flow).
 The placement rule is the **Hybrid convention** the foundation and the computation surface
 already use, now extended from derivation to constraint: a validation-shape construct
 (`sh:NodeShape` / `sh:PropertyShape`, or a ShEx shape expression) that appears anywhere in
-the authored sources (`slices/`, `shapes/`, `dsl/`) rather than under the generated tree is
+the authored sources (`slices/`, `shapes/`, `dsl/`, `governance/`) rather than under the generated tree is
 either a hand-authored second source of truth — which is **forbidden** — or it carries a
 `logic:formalizes` back-reference naming the `logic:` validation shape it is the projection
-of. The static seal that enforces this is the **shape half** of the projection-purity gate
-in [`governance/constitution.ttl`](../../../../governance/constitution.ttl) (`meta:gate-projection-shape-purity`,
-`check_projection_shape_purity`): the computation gate seals `sh:rule` / `sh:SPARQLRule`; the
-shape gate seals `sh:NodeShape` / `sh:PropertyShape` and the ShEx surface, closing the exemption
-that currently lets a hand-authored constraint shape pass.
+of. The unified projection-purity gate in
+[`governance/constitution.ttl`](../../../../governance/constitution.ttl)
+(`meta:gate-projection-shape-purity`, `check_projection_purity`) checks both computation
+(`sh:rule` / `sh:SPARQLRule`) and validation (`sh:NodeShape` / `sh:PropertyShape` and ShEx)
+through the same source inventory and backing index. A backing reference admits a legacy
+surface to this seal; it does not itself prove parity with the canonical projector or
+authorize deleting the golden oracle.
 
-The shape gate is realized **incrementally**, exactly as the frame/result shape stages that
-already emit SHACL under the generated tree are "the projector's first realized fragment." The
-first realized fragment of the *constraint* half is the **`sh:sparql` procedural-constraint
-signature** of the open-world FOL axioms (irreflexivity, acyclicity, relatum-distinctness): each
+The **`sh:sparql` procedural-constraint signature** of the open-world FOL axioms
+(irreflexivity, acyclicity, relatum-distinctness) remains part of this same seal: each
 is authored once in `logic:` (a `logic:PropertyCharacteristicAssertion` /
-`logic:RelatumDistinctnessAssertion` / named `owl:AllDisjointClasses`), reasoned over by the
+`logic:RelatumDistinctnessAssertion` / named `logic:AllDisjointClasses`), reasoned over by the
 native coherence gate, and projected to `sh:SPARQLConstraint` node shapes in
 `generated/shapes/constraint-shapes.ttl`; the seal red-fails on an authored `sh:select`
 re-encoding one of those axiom signatures without a `logic:formalizes` back-reference. The
-remaining fragment — the declarative `sh:PropertyShape` closed-world checks (cardinality,
-datatype, node-kind, value-set) and the ShEx surface — migrates next, under
+declarative `sh:PropertyShape` closed-world checks (cardinality, datatype, node-kind,
+value-set) and the ShEx surface are sealed as well. Legacy surfaces retire under
 equivalence-before-deletion ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)): the current
-committed shapes are the golden oracle the projector must reproduce before the hand-authored
-versions are deleted. (SPARQL/cross-node constraints have no ShEx form — ShEx has no
+committed shapes are the golden oracle the projector must reproduce before those authored
+versions are deleted. SPARQL/cross-node constraints have no ShEx form — ShEx has no
 SPARQL-based constraint — so the FOL-axiom fragment is SHACL-only, recorded as a `logic:unsupported`
-ShEx drop in the loss ledger.)
+ShEx drop in the loss ledger.
 
 ## A named consumer (P15)
 

@@ -59,7 +59,7 @@ fn tiny() -> (GmnDictionary, CurrentCodebook) {
 fn tiny_packet() -> (Vec<u8>, String) {
     let (dictionary, codebook) = tiny();
     let source = b"explicit tiny native source identity";
-    let expected = blake3::hash(source).to_hex().to_string();
+    let expected = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(source).as_bytes());
     (
         encode(
             &dictionary,
@@ -183,5 +183,8 @@ fn browser_source_identity_pin_matches_original_bytes_without_compilation() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let bytes =
         std::fs::read(root.join(SOURCE_PATH)).expect("original source bytes for pure digest check");
-    assert_eq!(blake3::hash(&bytes).to_hex().as_str(), SOURCE_BLAKE3);
+    assert_eq!(
+        purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&bytes).as_bytes()).as_str(),
+        SOURCE_BLAKE3
+    );
 }

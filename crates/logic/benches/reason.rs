@@ -115,7 +115,7 @@ fn bench_reason_all(c: &mut Criterion) {
     group.sample_size(20);
     for &(n, inst) in &[(8usize, 4usize), (30usize, 15usize)] {
         let store = hierarchy_store(n, inst);
-        let selection = blake3::hash(format!("{W}:{n}:{inst}").as_bytes());
+        let selection = purrdf_hash::blake3::hash(format!("{W}:{n}:{inst}").as_bytes());
         let domains = SelectedDomains::new([SelectedLogicalWorld::new(
             LogicalGraph::Named(purrdf::TermValue::iri(W)),
             DomainProfile::NonemptyObjectDomainV1,
@@ -247,8 +247,9 @@ fn bench_class_evidence(c: &mut Criterion) {
         let prepared = prepare_reasoning_input(store.as_ref()).expect("class benchmark contexts");
         let domains =
             SelectedDomains::new(prepared.source_contexts().iter().map(|(world, graph)| {
-                let selection =
-                    blake3::hash(format!("{world}:qualified-restrictions:{count}").as_bytes());
+                let selection = purrdf_hash::blake3::hash(
+                    format!("{world}:qualified-restrictions:{count}").as_bytes(),
+                );
                 SelectedLogicalWorld::new(
                     LogicalGraph::from_graph(graph.clone()),
                     DomainProfile::NonemptyObjectDomainV1,

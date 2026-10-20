@@ -1023,7 +1023,7 @@ fn build_proofs(
 /// with the ground head + positive body so distinct instances of one clause never share a
 /// [`RuleCtx`] key.
 fn firing_rule_iri(dag: &mut TermDag, rule: &GroundRule) -> TermId {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     // Seed from the rule IRI's STABLE lexical surface, never its `TermId` index (a per-DAG
     // mint-order handle that leaks arena history): identical ground firings must fold to the
     // SAME firing IRI across independent DAG interning histories. Length-framed so the IRI's
@@ -1038,7 +1038,7 @@ fn firing_rule_iri(dag: &mut TermDag, rule: &GroundRule) -> TermId {
     }
     let iri = format!(
         "https://blackcatinformatics.ca/logic/dag/firing/{}",
-        hasher.finalize().to_hex()
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
     );
     dag.intern_atom(&TermValue::iri(iri))
 }

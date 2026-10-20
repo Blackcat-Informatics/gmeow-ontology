@@ -394,7 +394,7 @@ fn projection_compute_purity_flags_unbacked_construct_and_passes_a_backed_one() 
                  sh:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
     );
     let mut report = RepoStaticReport::default();
-    check_projection_compute_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     assert!(
         report
             .errors
@@ -417,7 +417,7 @@ fn projection_compute_purity_flags_unbacked_construct_and_passes_a_backed_one() 
                  sh:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
     );
     let mut backed = RepoStaticReport::default();
-    check_projection_compute_purity(root, &mut backed);
+    check_projection_purity(root, &mut backed);
     assert!(
         backed.errors.is_empty(),
         "a logic:formalizes-backed construct must pass the purity gate; got {:?}",
@@ -448,12 +448,12 @@ fn purity_gate_catches_alternate_prefix_and_full_iri_bypass() {
                  <http://www.w3.org/ns/shacl#construct> \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
     );
     let mut report = RepoStaticReport::default();
-    check_projection_compute_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     assert!(
         report
             .errors
             .iter()
-            .any(|e| e.contains("altprefix/module.ttl")),
+            .any(|e| e.contains("altprefix/module.ttl") && e.contains("computational SHACL-AF")),
         "an alternate-prefix computational construct must be flagged; got {:?}",
         report.errors
     );
@@ -461,8 +461,122 @@ fn purity_gate_catches_alternate_prefix_and_full_iri_bypass() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("fulliri/module.ttl")),
+            .any(|e| e.contains("fulliri/module.ttl") && e.contains("computational SHACL-AF")),
         "a full-IRI computational construct must be flagged; got {:?}",
+        report.errors
+    );
+}
+
+#[test]
+fn projection_purity_rejects_escaped_and_relative_namespace_bypasses() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    for (name, namespace) in [
+        ("short", r"http://www.w3.org/ns/sh\u0061cl#"),
+        ("long", r"http://www.w3.org/ns/sh\U00000061cl#"),
+    ] {
+        write(
+            &root.join(format!("dsl/{name}.ttl")),
+            &format!(
+                "@prefix s: <{namespace}> .\n\
+                 <https://example.org/shape> a s:NodeShape ; s:rule [ a s:TripleRule ] .\n"
+            ),
+        );
+    }
+    write(
+        &root.join("dsl/relative.ttl"),
+        "@base <http://www.w3.org/ns/> . @prefix s: <shacl#> .
+         <https://example.org/shape> a s:NodeShape ; s:rule [ a s:TripleRule ] .",
+    );
+    let mut report = RepoStaticReport::default();
+    check_projection_purity(root, &mut report);
+    for name in ["short", "long", "relative"] {
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|error| error.contains(&format!("{name}.ttl"))
+                    && error.contains("computational SHACL-AF")),
+            "escaped or relative namespace must not hide an authored rule: {:?}",
+            report.errors
+        );
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|error| error.contains(&format!("{name}.ttl"))
+                    && error.contains("declarative validation shape")),
+            "escaped or relative namespace must not hide an authored shape: {:?}",
+            report.errors
+        );
+    }
+}
+
+#[test]
+fn projection_purity_shares_backing_through_nested_shapes_and_cyclic_lists() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let module = root.join("shapes/nested.ttl");
+    let prefixes = "@prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <https://example.org/> .";
+    let nested = "ex:S a sh:NodeShape ; sh:and ex:list .
+        ex:list rdf:first ex:child ; rdf:rest ex:list .
+        ex:child sh:property [ sh:rule [ a sh:TripleRule ] ] .";
+    write(&module, &format!("{prefixes} {nested}"));
+    let mut unbacked = RepoStaticReport::default();
+    check_projection_purity(root, &mut unbacked);
+    assert!(
+        unbacked
+            .errors
+            .iter()
+            .any(|e| e.contains("computational SHACL-AF"))
+    );
+    assert!(
+        unbacked
+            .errors
+            .iter()
+            .any(|e| e.contains("declarative validation shape"))
+    );
+
+    write(
+        &module,
+        &format!("{prefixes} {nested} ex:S logic:formalizes ex:canonical ."),
+    );
+    let mut backed = RepoStaticReport::default();
+    check_projection_purity(root, &mut backed);
+    assert!(
+        backed.ok(),
+        "nested constructs must share their owning shape backing: {:?}",
+        backed.errors
+    );
+}
+
+#[test]
+fn projection_purity_checks_every_branch_of_an_rdf_list() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    write(
+        &root.join("shapes/branching.ttl"),
+        "@prefix sh: <http://www.w3.org/ns/shacl#> .
+         @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .
+         @prefix ex: <https://example.org/> .
+         ex:S a sh:NodeShape ; logic:formalizes ex:canonical ; sh:and ex:list .
+         ex:list rdf:first ex:a, ex:b ; rdf:rest ex:tail1, ex:tail2 .
+         ex:tail1 rdf:first ex:c ; rdf:rest rdf:nil .
+         ex:tail2 rdf:first ex:d ; rdf:rest ex:list .
+         ex:a sh:rule [ a sh:TripleRule ] .
+         ex:b sh:rule [ a sh:TripleRule ] .
+         ex:c sh:rule [ a sh:TripleRule ] .
+         ex:d sh:rule [ a sh:TripleRule ] .",
+    );
+    let mut report = RepoStaticReport::default();
+    check_projection_purity(root, &mut report);
+    assert!(
+        report.ok(),
+        "every nested rule must see its owning shape: {:?}",
         report.errors
     );
 }
@@ -495,12 +609,12 @@ fn purity_gate_rejects_backref_on_unrelated_node_or_in_a_comment() {
                  sh:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
     );
     let mut report = RepoStaticReport::default();
-    check_projection_compute_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     assert!(
         report
             .errors
             .iter()
-            .any(|e| e.contains("unrelated/module.ttl")),
+            .any(|e| e.contains("unrelated/module.ttl") && e.contains("computational SHACL-AF")),
         "a back-reference on an unrelated node must NOT legalize the construct; got {:?}",
         report.errors
     );
@@ -508,7 +622,7 @@ fn purity_gate_rejects_backref_on_unrelated_node_or_in_a_comment() {
         report
             .errors
             .iter()
-            .any(|e| e.contains("comment/module.ttl")),
+            .any(|e| e.contains("comment/module.ttl") && e.contains("computational SHACL-AF")),
         "a back-reference present only in a comment must NOT legalize the construct; got {:?}",
         report.errors
     );
@@ -554,7 +668,11 @@ fn write_slice_ttl(root: &Path, rel: &str, body: &str) {
 fn a_slice_ttl_without_a_trailing_newline_is_rejected() {
     let temp = tempfile::tempdir().unwrap();
     write_minimal_repo(temp.path());
-    write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .");
+    write_slice_ttl(
+        temp.path(),
+        "core/demo/module.ttl",
+        "<https://example.org/A> a <https://example.org/B> .",
+    );
     let report = check_repo_static(temp.path());
     assert!(
         report
@@ -578,7 +696,11 @@ fn the_gate_covers_every_slice_ttl_not_only_module_ttl() {
     ] {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
-        write_slice_ttl(temp.path(), rel, "ex:A a ex:B .");
+        write_slice_ttl(
+            temp.path(),
+            rel,
+            "<https://example.org/A> a <https://example.org/B> .",
+        );
         let report = check_repo_static(temp.path());
         assert!(
             report
@@ -597,7 +719,11 @@ fn a_slice_ttl_ending_in_a_blank_line_is_rejected() {
     // would let the gate and the fixer disagree about what correct looks like.
     let temp = tempfile::tempdir().unwrap();
     write_minimal_repo(temp.path());
-    write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n\n");
+    write_slice_ttl(
+        temp.path(),
+        "core/demo/module.ttl",
+        "<https://example.org/A> a <https://example.org/B> .\n\n",
+    );
     let report = check_repo_static(temp.path());
     assert!(
         report
@@ -629,7 +755,11 @@ fn an_empty_slice_ttl_is_rejected() {
 fn a_correctly_terminated_slice_ttl_passes() {
     let temp = tempfile::tempdir().unwrap();
     write_minimal_repo(temp.path());
-    write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n");
+    write_slice_ttl(
+        temp.path(),
+        "core/demo/module.ttl",
+        "<https://example.org/A> a <https://example.org/B> .\n",
+    );
     let report = check_repo_static(temp.path());
     assert!(report.ok(), "{:?}", report.errors);
 }
@@ -810,7 +940,7 @@ fn differential_oracle_seal_allows_retained_engine_independent_goldens() {
 }
 
 #[test]
-fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_world() {
+fn projection_purity_flags_migrated_axioms_and_unbacked_closed_world_shapes() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path();
     let g = "https://blackcatinformatics.ca/gmeow/";
@@ -849,8 +979,8 @@ fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_worl
                      sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal> $this . }}\"\"\" ] .\n"
         ),
     );
-    // A retained closed-world check (FILTER NOT EXISTS existence) → NOT a migrated axiom,
-    // must NOT be flagged even without logic:formalizes.
+    // This closed-world check is not a migrated FOL axiom, but its owning node shape
+    // still needs a back-reference under the unified production gate.
     write(
         &root.join("shapes/closed-world.ttl"),
         &format!(
@@ -877,12 +1007,12 @@ fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_worl
     );
 
     let mut report = RepoStaticReport::default();
-    check_projection_shape_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     assert!(
         report
             .errors
             .iter()
-            .any(|e| e.contains("bad-irreflexive.ttl")),
+            .any(|e| e.contains("bad-irreflexive.ttl") && e.contains("migrated FOL axiom")),
         "an unbacked irreflexivity self-reference axiom must be flagged; got {:?}",
         report.errors
     );
@@ -890,12 +1020,15 @@ fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_worl
         report
             .errors
             .iter()
-            .any(|e| e.contains("bad-irreflexive-ws.ttl")),
+            .any(|e| e.contains("bad-irreflexive-ws.ttl") && e.contains("migrated FOL axiom")),
         "a whitespace-padded re-encoding of a migrated axiom must still be flagged; got {:?}",
         report.errors
     );
     assert!(
-        report.errors.iter().any(|e| e.contains("bad-distinct.ttl")),
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("bad-distinct.ttl") && e.contains("relatum-distinctness")),
         "an unbacked coincident-role distinctness axiom must be flagged; got {:?}",
         report.errors
     );
@@ -905,8 +1038,11 @@ fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_worl
         report.errors
     );
     assert!(
-        !report.errors.iter().any(|e| e.contains("closed-world.ttl")),
-        "a retained closed-world check must NOT be flagged; got {:?}",
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("closed-world.ttl") && e.contains("declarative validation shape")),
+        "the unified gate must reject an unbacked closed-world node shape too; got {:?}",
         report.errors
     );
 }
@@ -927,14 +1063,10 @@ fn live_repo_root() -> &'static Path {
 
 #[test]
 fn declarative_gate_is_clean_on_the_migrated_tree() {
-    // The BLANKET declarative-shape gate is now wired into `check_repo_static` (terminal
-    // migration increment): the hand-authored shape corpus has been retired to the `logic:`
-    // canon. Every authored `sh:NodeShape`/`sh:PropertyShape` remaining under the scanned
-    // roots (slices/shapes/dsl/governance) is either deleted (grounded + re-projected) or a
-    // backed boundary-kept residue carrying a `logic:formalizes` back-reference. So the gate
-    // must be GREEN on the live tree — this is the terminal single-source-of-truth invariant.
+    // Remaining authored shapes must be backed by the canon; generated surfaces and
+    // registered negative-test inputs are handled by the same production check.
     let mut report = RepoStaticReport::default();
-    check_declarative_shape_purity(live_repo_root(), &mut report);
+    check_projection_purity(live_repo_root(), &mut report);
     assert!(
         report.errors.is_empty(),
         "declarative-shape purity gate must be clean on the migrated tree; an unbacked \
@@ -958,7 +1090,7 @@ fn declarative_gate_flags_unbacked_node_shape_and_passes_backed() {
              ex:S a sh:NodeShape ; sh:targetClass ex:Thing .\n",
     );
     let mut report = RepoStaticReport::default();
-    check_declarative_shape_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     assert!(
         report
             .errors
@@ -977,7 +1109,7 @@ fn declarative_gate_flags_unbacked_node_shape_and_passes_backed() {
              ex:S a sh:NodeShape ; logic:formalizes ex:someConstraint ; sh:targetClass ex:Thing .\n",
     );
     let mut backed = RepoStaticReport::default();
-    check_declarative_shape_purity(root, &mut backed);
+    check_projection_purity(root, &mut backed);
     assert!(
         backed.errors.is_empty(),
         "a logic:formalizes-backed node shape must pass; got {:?}",
@@ -1014,7 +1146,7 @@ fn declarative_gate_exempts_only_a_registered_fail_witness() {
     write(&ce.join("smuggled.ttl"), declarer);
 
     let mut report = RepoStaticReport::default();
-    check_declarative_shape_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
 
     assert!(
         report.errors.iter().any(|e| e.contains("smuggled.ttl")),
@@ -1045,7 +1177,7 @@ fn declarative_gate_walks_inline_property_shape_up_to_its_node_shape() {
                  sh:property [ sh:path ex:p ; sh:minCount 1 ] .\n",
     );
     let mut report = RepoStaticReport::default();
-    check_declarative_shape_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     assert!(
         report.errors.iter().any(|e| e.contains("module.ttl")),
         "an inline property shape under an unbacked node shape must be flagged; got {:?}",
@@ -1063,7 +1195,7 @@ fn declarative_gate_walks_inline_property_shape_up_to_its_node_shape() {
                  sh:property [ sh:path ex:p ; sh:minCount 1 ] .\n",
     );
     let mut backed = RepoStaticReport::default();
-    check_declarative_shape_purity(root, &mut backed);
+    check_projection_purity(root, &mut backed);
     assert!(
         backed.errors.is_empty(),
         "a backed node shape must legalize its inline property shape (upward walk); got {:?}",
@@ -1092,7 +1224,7 @@ fn declarative_gate_catches_alternate_prefix_and_full_iri_bypass() {
                  <http://www.w3.org/ns/shacl#path> ex:p .\n",
     );
     let mut report = RepoStaticReport::default();
-    check_declarative_shape_purity(root, &mut report);
+    check_projection_purity(root, &mut report);
     assert!(
         report
             .errors
@@ -1122,7 +1254,7 @@ fn authored_shex_gate_flags_a_shex_file_and_passes_when_absent() {
         "@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n",
     );
     let mut clean = RepoStaticReport::default();
-    check_authored_shex_purity(root, &mut clean);
+    check_projection_purity(root, &mut clean);
     assert!(
         clean.errors.is_empty(),
         "no authored .shex → gate passes; got {:?}",
@@ -1132,7 +1264,7 @@ fn authored_shex_gate_flags_a_shex_file_and_passes_when_absent() {
     // A hand-authored .shex under shapes/ → flagged.
     write(&root.join("shapes/gmeow-shapes.shex"), "<S> { ex:p . }\n");
     let mut dirty = RepoStaticReport::default();
-    check_authored_shex_purity(root, &mut dirty);
+    check_projection_purity(root, &mut dirty);
     assert!(
         dirty
             .errors
@@ -2902,7 +3034,11 @@ fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
             "lang-bridge.gmn1.native-codebook",
             "lang-bridge.gmn1.unpinned-glyph-cost",
             "logic-compile.formula-admission",
+            "logic-compile.source-parse",
+            "logic-compile.source-read",
             "logic.contextual-fragment",
+            "logic.dl-service",
+            "logic.native-builtin",
             "logic.native-coverage",
             "logic.native-source-admission",
             "logic.temporal-journal-admission",
@@ -2928,6 +3064,7 @@ fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
             "pipeline.medium.undeclared-dictionary",
             "pipeline.medium.unknown-dictionary",
             "pipeline.medium.unknown-schema",
+            "pipeline.recorded-input",
             "slice-quality.record",
         ],
         "these are the failure-class-bound kinds today"
@@ -3114,4 +3251,304 @@ fn pin_gate_flags_a_purrdf_release_below_the_major_floor() {
     write(&root.join("fuzz/Cargo.lock"), &downgraded);
     let errs = pin_gate_errors(root);
     assert!(errs.iter().any(|e| e.contains("floor")), "{errs:?}");
+}
+
+#[test]
+fn alignment_purity_checks_types_and_predicates_in_every_generated_family() {
+    for (family, ns, kind, property) in [
+        (
+            "FnO",
+            "https://w3id.org/function/ontology#",
+            "Function",
+            "expects",
+        ),
+        (
+            "FnO",
+            "https://w3id.org/function/vocabulary/mapping#",
+            "Mapping",
+            "function",
+        ),
+        ("SSSOM", "https://w3id.org/sssom/", "Mapping", "subject_id"),
+        ("EDOAL", "http://ns.inria.org/edoal/1.0/#", "Class", "class"),
+        (
+            "EDOAL",
+            "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
+            "Cell",
+            "entity1",
+        ),
+    ] {
+        for statement in [
+            format!("ex:item a v:{kind} ."),
+            format!("ex:item v:{property} ex:value ."),
+        ] {
+            let temp = tempfile::tempdir().unwrap();
+            let path = temp.path().join("dsl/construct.ttl");
+            let prefixes = format!(
+                "@prefix ex: <https://example.org/> . @prefix v: <{ns}> . @prefix logic: <https://blackcatinformatics.ca/logic/> ."
+            );
+            write(
+                &path,
+                &format!("{prefixes} {statement} ex:unrelated logic:formalizes ex:law ."),
+            );
+            let mut unbacked = RepoStaticReport::default();
+            check_projection_purity(temp.path(), &mut unbacked);
+            assert!(
+                unbacked.errors.iter().any(|e| e.contains("construct.ttl")
+                    && e.contains(&format!("generated {family} construct"))),
+                "{statement}: {:?}",
+                unbacked.errors
+            );
+            write(
+                &path,
+                &format!("{prefixes} {statement} ex:item logic:formalizes ex:law ."),
+            );
+            let mut backed = RepoStaticReport::default();
+            check_projection_purity(temp.path(), &mut backed);
+            assert!(backed.ok(), "{statement}: {:?}", backed.errors);
+        }
+    }
+}
+
+#[test]
+fn owl_purity_checks_declarations_axioms_and_escaped_namespaces() {
+    for statement in [
+        "ex:item a owl:Class .",
+        "ex:item a owl:ObjectProperty .",
+        "ex:item a owl:DatatypeProperty .",
+        "ex:item a owl:AnnotationProperty .",
+        "ex:item a owl:Ontology .",
+        "ex:item a owl:FunctionalProperty .",
+        "ex:item a owl:Restriction ; owl:onProperty ex:p .",
+        "ex:item owl:equivalentClass ex:Other .",
+        "ex:item owl:sameAs ex:Other .",
+        "ex:item owl:unionOf ( ex:A ex:B ) .",
+        r"ex:item a <http://www.w3.org/2002/07/ow\u006c#Class> .",
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("dsl/construct.ttl");
+        let prefixes = "@prefix ex: <https://example.org/> . @prefix owl: <http://www.w3.org/2002/07/owl#> . @prefix logic: <https://blackcatinformatics.ca/logic/> .";
+        write(
+            &path,
+            &format!("{prefixes} {statement} ex:unrelated logic:formalizes ex:law ."),
+        );
+        let mut unbacked = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut unbacked);
+        assert!(
+            unbacked
+                .errors
+                .iter()
+                .any(|e| e.contains("generated OWL construct")),
+            "{statement}: {:?}",
+            unbacked.errors
+        );
+        write(
+            &path,
+            &format!("{prefixes} {statement} ex:item logic:formalizes ex:law ."),
+        );
+        let mut backed = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut backed);
+        assert!(backed.ok(), "{statement}: {:?}", backed.errors);
+    }
+}
+
+#[test]
+fn owl_purity_admits_only_the_exact_typed_native_correspondence() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("dsl/correspondence.ttl");
+    let source = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        ex:A owl:equivalentClass ex:B {| gmeow:sssomFile "native" |} .
+    "#;
+    write(&path, source);
+    let mut valid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut valid);
+    assert!(valid.ok(), "{:?}", valid.errors);
+    write(&path, &format!("{source} ex:A owl:equivalentClass ex:C ."));
+    let mut unbacked = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut unbacked);
+    assert_eq!(unbacked.errors.len(), 1, "{:?}", unbacked.errors);
+    assert!(unbacked.errors[0].contains("generated OWL construct"));
+    write(&path, &source.replace("ex:B", "\"not an IRI\""));
+    let mut malformed = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut malformed);
+    assert!(
+        malformed
+            .errors
+            .iter()
+            .any(|e| e.contains("cannot admit native correspondence")),
+        "{:?}",
+        malformed.errors
+    );
+}
+
+#[test]
+fn owl_purity_does_not_treat_references_or_query_literals_as_declarations() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        &temp.path().join("dsl/references.ttl"),
+        r#"
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        ex:reference ex:target owl:Class ; ex:query "ASK { ?s a owl:Class }" .
+    "#,
+    );
+    let mut report = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut report);
+    assert!(report.ok(), "{:?}", report.errors);
+}
+
+#[test]
+fn owl_purity_propagates_ownership_to_blank_expressions_not_named_references() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("dsl/expressions.ttl");
+    let source = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        ex:Class a owl:Class ; logic:formalizes ex:law ;
+            owl:equivalentClass [ owl:intersectionOf (
+                [ a owl:Restriction ; owl:onProperty ex:p ; owl:allValuesFrom
+                    [ owl:unionOf ( ex:Named [ owl:complementOf ex:Forbidden ] ) ] ]
+                ex:Named ) ] .
+    "#;
+    write(&path, source);
+    let mut valid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut valid);
+    assert!(valid.ok(), "{:?}", valid.errors);
+    write(&path, &format!("{source} ex:Named a owl:Class ."));
+    let mut invalid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut invalid);
+    assert!(
+        invalid
+            .errors
+            .iter()
+            .any(|e| e.contains("example.org/Named") && e.contains("generated OWL construct")),
+        "{:?}",
+        invalid.errors
+    );
+}
+
+#[test]
+fn owl_purity_covers_rdfs_attachments_and_inverse_property_structure() {
+    for attachment in [
+        "rdfs:subClassOf [ a owl:Restriction ; owl:onProperty [ owl:inverseOf ex:Named ] ; owl:someValuesFrom ex:Named ]",
+        "rdfs:subPropertyOf [ owl:inverseOf ex:Named ]",
+        "rdfs:domain [ owl:unionOf ( ex:Named ) ]",
+        "rdfs:range [ owl:datatypeComplementOf ex:Named ]",
+        "owl:equivalentProperty [ owl:inverseOf ex:Named ]",
+        "owl:onProperties ( [ owl:inverseOf ex:Named ] ex:Named )",
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("dsl/attachments.ttl");
+        let source = format!(
+            r#"
+            @prefix ex: <https://example.org/> .
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+            ex:owner logic:formalizes ex:law ; {attachment} .
+        "#
+        );
+        write(&path, &source);
+        let mut valid = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut valid);
+        assert!(valid.ok(), "{attachment}: {:?}", valid.errors);
+        write(&path, &source.replace("logic:formalizes ex:law ; ", ""));
+        let mut unbacked = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut unbacked);
+        assert!(
+            unbacked
+                .errors
+                .iter()
+                .any(|error| error.contains("generated OWL construct")),
+            "unbacked {attachment}: {:?}",
+            unbacked.errors
+        );
+        write(&path, &format!("{source} ex:Named a owl:Class ."));
+        let mut invalid = RepoStaticReport::default();
+        check_projection_purity(temp.path(), &mut invalid);
+        assert!(
+            invalid
+                .errors
+                .iter()
+                .any(|error| error.contains("example.org/Named")
+                    && error.contains("generated OWL construct")),
+            "{attachment}: {:?}",
+            invalid.errors
+        );
+    }
+}
+
+#[test]
+fn alignment_purity_resolves_escaped_iris_without_flagging_references_or_literals() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        &temp.path().join("dsl/escaped.ttl"),
+        r#"
+        @prefix f: <https://w3id.org/funct\u0069on/ontology#> .
+        <https://example.org/call> a f:Function .
+    "#,
+    );
+    write(
+        &temp.path().join("dsl/references.ttl"),
+        r#"
+        @prefix f: <https://w3id.org/function/ontology#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix ex: <https://example.org/> .
+        ex:term rdfs:seeAlso f:Function ; rdfs:comment "ex:bad a f:Function" .
+        # ex:bad f:expects ex:input .
+    "#,
+    );
+    let mut report = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut report);
+    assert!(
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("escaped.ttl") && e.contains("generated FnO construct")),
+        "{:?}",
+        report.errors
+    );
+    assert!(
+        !report.errors.iter().any(|e| e.contains("references.ttl")),
+        "{:?}",
+        report.errors
+    );
+}
+
+#[test]
+fn alignment_purity_shares_only_structural_ownership_with_nested_constructs() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("dsl/nested.ttl");
+    let fixture = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix f: <https://w3id.org/function/ontology#> .
+        @prefix a: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+        @prefix e: <http://ns.inria.org/edoal/1.0/#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        ex:call a f:Function ; logic:formalizes ex:source ;
+            f:expects ( [ a f:Parameter ; f:predicate ex:input ] ) ;
+            f:returns ( [ a f:Output ; f:predicate ex:output ] ) ;
+            rdfs:seeAlso ex:detached .
+        ex:cell a a:Cell ; logic:formalizes ex:source ;
+            a:entity1 [ a e:Class ; e:and ( [ a e:Class ; e:class ex:Target ] ) ] .
+    "#;
+    write(&path, fixture);
+    let mut valid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut valid);
+    assert!(valid.ok(), "{:?}", valid.errors);
+    write(&path, &format!("{fixture} ex:detached a f:Function ."));
+    let mut invalid = RepoStaticReport::default();
+    check_projection_purity(temp.path(), &mut invalid);
+    assert!(
+        invalid
+            .errors
+            .iter()
+            .any(|e| e.contains("example.org/detached") && e.contains("generated FnO construct")),
+        "a reference is not ownership: {:?}",
+        invalid.errors
+    );
 }

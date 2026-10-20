@@ -25,7 +25,6 @@ regex.workspace = true
 # manifest, and the uniform `gmeow:DocEvidence` projection fingerprints each
 # term's competency query text as a `blake3:<hex>` grounding property (matching
 # the term content manifest's own `blake3:` digests). Pure-Rust and wasm-clean.
-blake3.workspace = true
 purrdf.workspace = true
 purrdf-hash.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.

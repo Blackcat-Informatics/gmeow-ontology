@@ -16,11 +16,12 @@ expression: folded
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/hasCaveat> <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/hasDeterminacy> <https://blackcatinformatics.ca/logic/Vague> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/hasLawClaim> <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/lossyDrop> "The overlap omits the complete agent/person versus contact-channel distinction."@en .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/morphismClass> <https://blackcatinformatics.ca/logic/AffineCorrespondence> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/morphismKind> <https://blackcatinformatics.ca/logic/InstitutionMorphism> .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/putLeg> <https://blackcatinformatics.ca/gmeow/example/schemaContactPointToGmeowContactFacet> .
 <https://blackcatinformatics.ca/gmeow/example/schemaContactPointToGmeowContactFacet> <http://www.w3.org/2004/02/skos/core#relatedMatch> <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> .
 <https://blackcatinformatics.ca/logic/correspondence-program> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/CorrespondenceProgram> .
 <https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasCorrespondence> <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> .
 <https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
-<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/lossyDrop> "a caveated overlap is projected as skos:relatedMatch, never skos:exactMatch / owl:equivalentClass; the forced-equality reading is refused (under-approximation)" .

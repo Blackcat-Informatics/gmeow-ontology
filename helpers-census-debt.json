@@ -1832,13 +1832,6 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_docs::render::short_iri_digest",
-    "gmeow_docs_model::slug::short_iri_digest"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
     "gmeow_docs::render::slice_display",
     "gmeow_docs_model::slug::slice_display"
    ]

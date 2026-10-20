@@ -53,7 +53,7 @@ pub fn version() -> String {
 #[wasm_bindgen(js_name = blake3Hex)]
 #[must_use]
 pub fn blake3_hex(bytes: &[u8]) -> String {
-    blake3::hash(bytes).to_hex().to_string()
+    purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bytes).as_bytes())
 }
 
 /// An in-memory RDF 1.2 dataset the browser can parse, serialize, and query.

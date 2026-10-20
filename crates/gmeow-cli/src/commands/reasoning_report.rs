@@ -133,7 +133,7 @@ impl InputIdentity {
             role: role.into(),
             media_type: media_type.into(),
             base_iri,
-            content_digest: blake3::hash(bytes).to_hex().to_string(),
+            content_digest: purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bytes).as_bytes()),
             bytes: u64::try_from(bytes.len()).unwrap_or(u64::MAX),
         }
     }
@@ -151,7 +151,7 @@ impl ProgramIdentity {
     /// The shared framing preserves the existing domain bytes and identity preimage.
     pub(crate) fn selected(profile: impl Into<String>, components: &[&str]) -> Self {
         let profile = profile.into();
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         for field in std::iter::once(PROGRAM_IDENTITY_DOMAIN.as_bytes())
             .chain(std::iter::once(profile.as_bytes()))
             .chain(components.iter().map(|component| component.as_bytes()))
@@ -162,7 +162,7 @@ impl ProgramIdentity {
         }
         Self {
             profile,
-            content_digest: hasher.finalize().to_hex().to_string(),
+            content_digest: purrdf_hash::hex::encode(hasher.finalize().as_bytes()),
         }
     }
 }
@@ -626,7 +626,9 @@ pub(crate) fn digest_file(path: &Path) -> gmeow_errors::Result<String> {
         gmeow_errors::Diag::from(error)
             .with_context(format!("read {} for identity", path.display()))
     })?;
-    Ok(blake3::hash(&bytes).to_hex().to_string())
+    Ok(purrdf_hash::hex::encode(
+        purrdf_hash::blake3::hash(&bytes).as_bytes(),
+    ))
 }
 
 fn current_executable_identity() -> Option<ExecutableIdentity> {
@@ -661,7 +663,7 @@ mod tests {
             }
             assert_eq!(
                 ProgramIdentity::selected(profile, &components).content_digest,
-                blake3::hash(&preimage).to_hex().to_string()
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&preimage).as_bytes())
             );
         }
         assert_ne!(

@@ -25,7 +25,7 @@ pub struct FormulaAnalysis {
 /// The bytes are neither stored nor parsed, and no semantic normalization occurs here.
 #[derive(Default)]
 struct Digest {
-    hash: blake3::Hasher,
+    hash: purrdf_hash::blake3::Hasher,
     bytes: usize,
 }
 

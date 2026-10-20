@@ -33,15 +33,17 @@
 pub mod assemble;
 pub mod digest;
 pub mod error;
+pub mod knowledge_base;
 pub mod model;
 pub mod ns;
 pub mod render;
 pub mod turtle;
 
 pub use assemble::{
-    BriefInputs, CHUNK, ShapeUnion, assemble_packet, batch_count, batch_range, defined_terms,
-    exemplar_tiers, load_shape_union, resolve_repo_root,
+    BriefInputs, CHUNK, ShapeUnion, assemble_candidate_packet, assemble_packet, batch_count,
+    batch_range, defined_terms, exemplar_tiers, load_shape_union, resolve_repo_root,
 };
+pub use knowledge_base::CandidatePacket;
 pub use model::{
     Annotation, AuthoringPacket, ClosureEntry, CoveredTerm, GroundingAttribute, GroundingCell,
     GroundingMargins, ObjTerm, Triple,

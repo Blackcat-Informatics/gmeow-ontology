@@ -23,8 +23,8 @@ resources in the current slices-first, Rust-native repository.
      slice's `mappings/equivalences.ttl`. Author slice-owned projection cells
      beside that slice, normally as `mappings/projections-<profile>.ttl`.
      Shared or cross-slice projection enrichment may live in
-     `dsl/mappings/projections/*.ttl`; shared transform function declarations
-     live in `dsl/mappings/transforms.fno.ttl`.
+     `dsl/mappings/projections/*.ttl`; callable signatures live in their owning
+     slice under `mappings/callable-signatures.ttl` and generate FnO.
    - **Statements**: Author statement-level metadata in `dsl/statements/`.
    - **References**: Author citations in `metadata/references.ttl`.
    - **Generated artifacts**: NEVER hand-edit `generated/`, root

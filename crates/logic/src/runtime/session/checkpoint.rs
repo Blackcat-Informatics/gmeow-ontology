@@ -50,7 +50,7 @@ impl Checkpoint {
         journal_head: &str,
         deltas: &[CommittedDelta],
     ) -> String {
-        let mut hasher = blake3::Hasher::new();
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
         frame(&mut hasher, b"domain", b"gmeow-logic-session-checkpoint-v1");
         frame(
             &mut hasher,
@@ -79,7 +79,7 @@ impl Checkpoint {
             );
             frame(&mut hasher, b"delta-end", b"");
         }
-        hasher.finalize().to_hex().to_string()
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
     }
 
     /// Mint a checkpoint, computing its content address over every field including the

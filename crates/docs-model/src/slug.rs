@@ -152,7 +152,7 @@ pub fn category_slug(category: DocTermCategory) -> &'static str {
 /// BLAKE3 digest — a deterministic, order-independent tiebreak for the rare case
 /// where two distinct terms share BOTH a base slug and a category.
 pub fn short_iri_digest(iri: &str) -> String {
-    blake3::hash(iri.as_bytes()).to_hex()[..12].to_owned()
+    purrdf_hash::hex::encode(&purrdf_hash::blake3::hash(iri.as_bytes()).as_bytes()[..6])
 }
 
 /// Resolve the disambiguated `documentation/term/{slug}` slug for every term whose

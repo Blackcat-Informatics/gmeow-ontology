@@ -12,7 +12,6 @@
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <http://example.org/lang/> .
 
@@ -20,10 +19,10 @@ ex:dialectLineage a gmeow:VersionSet ;
     gmeow:gmnAcceptWindow 1 .
 
 ex:dialectV1 a gmeow:InformationObject ;
-    owl:versionInfo "1" .
+    logic:versionInfo "1" .
 
 ex:dialectV2 a gmeow:InformationObject ;
-    owl:versionInfo "2" .
+    logic:versionInfo "2" .
 
 ex:membershipV1 a gmeow:VersionMembership ;
     gmeow:versionMember ex:dialectV1 ;

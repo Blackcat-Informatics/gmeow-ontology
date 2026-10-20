@@ -43,7 +43,6 @@ gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true
-blake3.workspace = true
 
 # The fixture is a native on-disk action cache. Browser/Wasm consumers use the
 # complete in-memory documentation model and must not inherit filesystem cache

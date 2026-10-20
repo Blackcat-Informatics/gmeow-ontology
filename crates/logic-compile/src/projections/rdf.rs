@@ -158,18 +158,24 @@ const DL_PROJECTABLE_CHARACTERISTIC_SORTS: [&str; 4] = [
 /// characteristic), so the characteristic survives the removal of the direct
 /// `?P rdf:type owl:{…}Property` marker — exactly as each carrier record's prose promises, and
 /// mirroring the direct-marker `owl_for_char` emission (the OWL type + `owl:ObjectProperty`).
-/// Returned as a sorted (property, sort-local) BTreeSet for a deterministic, idempotent view.
+/// The third field retains explicit datatype-property declarations, so functional
+/// metadata fields do not become object properties at the OWL exit. Returned sorted.
 fn dl_projectable_carrier_characteristics(
     program: &LogicProgram,
-) -> std::collections::BTreeSet<(String, String)> {
+) -> std::collections::BTreeSet<(String, String, bool)> {
     let characterizes = logic("characterizes");
     let characteristic_sort = logic("characteristicSort");
     let mut rec_prop: BTreeMap<String, String> = BTreeMap::new();
     let mut rec_sort: BTreeMap<String, String> = BTreeMap::new();
+    let datatype_property = logic("DatatypeProperty");
+    let mut data_properties = BTreeSet::new();
     for ax in &program.axioms {
         let Some(object) = ax.obj.as_iri() else {
             continue;
         };
+        if ax.predicate == RDF_TYPE && object == datatype_property {
+            data_properties.insert(ax.subject.as_str());
+        }
         if ax.predicate == characterizes {
             rec_prop.insert(ax.subject.clone(), object.to_owned());
         } else if ax.predicate == characteristic_sort
@@ -181,7 +187,15 @@ fn dl_projectable_carrier_characteristics(
     }
     rec_prop
         .iter()
-        .filter_map(|(rec, prop)| rec_sort.get(rec).map(|sort| (prop.clone(), sort.clone())))
+        .filter_map(|(rec, prop)| {
+            rec_sort.get(rec).map(|sort| {
+                (
+                    prop.clone(),
+                    sort.clone(),
+                    data_properties.contains(prop.as_str()),
+                )
+            })
+        })
         .collect()
 }
 
@@ -1074,10 +1088,18 @@ pub fn project_owl_dl_dataset(
     // emission for a direct marker (the OWL type + owl:ObjectProperty). The triple set is a set,
     // so this is idempotent with any surviving direct marker. Asymmetric / irreflexive sorts are
     // excluded by the projectable set — OWL 2 DL cannot carry them on a non-simple property.
-    for (prop, sort_local) in dl_projectable_carrier_characteristics(program) {
+    for (prop, sort_local, is_data) in dl_projectable_carrier_characteristics(program) {
         if let Some(owl_char) = owl_for_char(&logic(&sort_local)) {
             g.add_iri(&prop, RDF_TYPE, &owl_char)?;
-            g.add_iri(&prop, RDF_TYPE, &owl("ObjectProperty"))?;
+            g.add_iri(
+                &prop,
+                RDF_TYPE,
+                &owl(if is_data {
+                    "DatatypeProperty"
+                } else {
+                    "ObjectProperty"
+                }),
+            )?;
         }
     }
 
@@ -1297,7 +1319,7 @@ pub fn project_owl_el_dataset(
     // (`is_el_safe_char`). Symmetry, functionality, and inverse-functionality are NOT EL-safe, so
     // their carriers are the documented EL loss and never projected here. Set-idempotent with any
     // surviving direct marker the axiom loop above already lowered.
-    for (prop, sort_local) in dl_projectable_carrier_characteristics(program) {
+    for (prop, sort_local, _) in dl_projectable_carrier_characteristics(program) {
         let sort_iri = logic(&sort_local);
         if is_el_safe_char(&sort_iri)
             && let Some(owl_char) = owl_for_char(&sort_iri)

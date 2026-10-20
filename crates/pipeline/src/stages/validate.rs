@@ -90,7 +90,7 @@ pub fn shacl_input_digest(
     // members sharing a path (an authored shape file listed by both halves) keep their
     // assembly order, so the fold is exactly the one the whole-corpus `Vec` produced.
     members.sort_by(|a, b| a.0.cmp(&b.0));
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-shacl-input-v1\x1e");
     for (path, member) in &members {
         // ONE member's bytes are resident at a time: an on-disk member is read, folded,
@@ -113,7 +113,10 @@ pub fn shacl_input_digest(
         hasher.update(&bytes);
         hasher.update(b"\x1e");
     }
-    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+    Ok(format!(
+        "blake3:{}",
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+    ))
 }
 
 /// One member of the [`shacl_input_digest`] fold, carried BY REFERENCE so the fold never

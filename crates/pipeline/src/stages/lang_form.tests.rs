@@ -38,7 +38,7 @@ fn document_scale_surface_holds_bytes_by_reference() {
         build_prose(&long, &english_binding()).expect("long prose")
     ]))
     .expect("utf8");
-    assert!(nt.contains(&surface_blob_digest(&long)));
+    assert!(nt.contains(&tagged_text_digest(&long)));
     assert!(!nt.contains(&iri(LANG_NS, "surfaceText")));
     assert!(!nt.contains(&long));
 }

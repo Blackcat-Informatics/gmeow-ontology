@@ -47,6 +47,9 @@ pub fn to_sarif(report: &Report) -> Result<String, serde_json::Error> {
     if let Some(category) = sarif_category(&normalized) {
         run["automationDetails"] = json!({ "id": category });
     }
+    if !normalized.metadata.is_empty() {
+        run["properties"] = json!(normalized.metadata);
+    }
     let payload = json!({
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
         "version": "2.1.0",
@@ -161,7 +164,7 @@ fn stable_fingerprint(finding: &Finding) -> String {
         return iri.clone();
     }
     let (severity, code, location, message) = finding.sort_key();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
 
     // The primary finding fields, each followed by a field separator.
     for part in [severity.as_str(), code, location.as_str(), message] {

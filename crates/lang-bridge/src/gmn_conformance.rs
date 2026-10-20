@@ -79,7 +79,7 @@ pub fn observe_positive(
 ) -> gmeow_errors::Result<PositiveObservation> {
     let document = gmn1_write(model, dictionary)?;
     let source = model.canonical_nquads()?;
-    let content_digest = crate::gmn1_digest::canonical_content_digest(&source);
+    let content_digest = crate::gmn1_digest::tagged_text_digest(&source);
     Ok(PositiveObservation {
         source,
         reconstructed: gmn1_read(&document, dictionary)

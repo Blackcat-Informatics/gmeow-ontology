@@ -928,7 +928,7 @@ fn snapshot_identity(quads: &[DerivedQuad]) -> gmeow_errors::Result<WorldSourceI
         ]);
     }
     rows.sort();
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = purrdf_hash::blake3::Hasher::new();
     hasher.update(b"gmeow-world-fact-snapshot-generation-v2");
     for row in rows {
         for field in row {
@@ -937,7 +937,10 @@ fn snapshot_identity(quads: &[DerivedQuad]) -> gmeow_errors::Result<WorldSourceI
         }
     }
     Ok(WorldSourceIdentity::new(
-        format!("urn:blake3:{}", hasher.finalize().to_hex()),
+        format!(
+            "urn:blake3:{}",
+            purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+        ),
         SNAPSHOT_SOURCE_CONTRACT,
     ))
 }
