@@ -90,6 +90,183 @@ fn fillers(result: &ProgramClosure, predicate: &str) -> std::collections::BTreeS
         .collect()
 }
 
+/// Independent copies of the authored finance/music cycle, including finance's
+/// typed and universal minima. This never reads or builds the repository corpus.
+fn inverse_cycle_source(
+    parent: &str,
+    child: &str,
+    forward: &str,
+    reverse: &str,
+    typed_forward: bool,
+) -> Arc<RdfDataset> {
+    let filler = if typed_forward {
+        format!("g:{child}")
+    } else {
+        "logic:Thing".to_owned()
+    };
+    let universal = if typed_forward {
+        format!(
+            "g:{parent} logic:subClassOf [ a logic:Restriction ;
+             logic:onProperty g:{forward} ; logic:minQualifiedCardinality 2 ;
+             logic:onClass logic:Thing ] ."
+        )
+    } else {
+        String::new()
+    };
+    let text = format!(
+        "@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .
+         g:{parent} a logic:Class ; logic:subClassOf [ a logic:Restriction ;
+             logic:onProperty g:{forward} ; logic:minQualifiedCardinality 2 ;
+             logic:onClass {filler} ] .
+         g:{child} a logic:Class ; logic:subClassOf [ a logic:Restriction ;
+             logic:onProperty g:{reverse} ; logic:someValuesFrom g:{parent} ] .
+         g:{forward} a logic:ObjectProperty ; logic:domain g:{parent} ; logic:range g:{child} .
+         g:{reverse} a logic:ObjectProperty ; logic:inverseOf g:{forward} ;
+             logic:domain g:{child} ; logic:range g:{parent} .
+         <urn:inverse-cycle:root> a g:{parent} .
+         {universal}"
+    );
+    purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap()
+}
+
+/// The two real inverse-cycle patterns retain their minimum of two, terminate
+/// under native scheduling, and refuse unbounded execution without the inverse.
+#[test]
+fn finance_and_music_inverse_cycles_keep_their_authored_minimums() {
+    const ROOT: &str = "urn:inverse-cycle:root";
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    let prepared = crate::program_analysis::prepare_program(&copying(&[])).unwrap();
+    let domains = crate::physical::SelectedDomains::new([]).unwrap();
+    let execute_source = |store: &Arc<RdfDataset>, budget| {
+        execute(
+            &prepared,
+            crate::reason::program::prepare_reasoning_input(store).unwrap(),
+            &domains,
+            budget,
+        )
+    };
+    for (parent, child, forward, reverse, typed) in [
+        (
+            "JournalEntry",
+            "Posting",
+            "journalEntryPostings",
+            "postingJournalEntry",
+            true,
+        ),
+        (
+            "PitchTrajectory",
+            "PitchTrajectoryControlPoint",
+            "trajectoryControlPoint",
+            "controlPointOfTrajectory",
+            false,
+        ),
+    ] {
+        let store = inverse_cycle_source(parent, child, forward, reverse, typed);
+        let result = execute_source(&store, None).unwrap();
+        let bounded = execute_source(&store, Some(512)).unwrap();
+        assert_eq!(result.status, crate::seam::BudgetStatus::Ok, "{parent}");
+        assert_eq!(bounded.status, crate::seam::BudgetStatus::Ok, "{parent}");
+        assert!(
+            result.certificates.iter().any(|certificate| {
+                matches!(
+                    certificate.admission,
+                    crate::physical::ChaseAdmission::RestrictedJointlyAcyclic { .. }
+                )
+            }),
+            "{parent}: {:?}",
+            result.certificates
+        );
+        let children = |closure: &ProgramClosure| -> std::collections::BTreeSet<_> {
+            closure
+                .inferred
+                .iter()
+                .filter(|row| row.subject == ROOT && row.predicate == format!("{GMEOW}{forward}"))
+                .map(|row| row.object.clone())
+                .collect()
+        };
+        let actual = children(&result);
+        assert!(actual.len() >= 2, "{parent}: {actual:?}");
+        assert_eq!(actual, children(&bounded), "{parent}");
+        let facts = |closure: &ProgramClosure| -> std::collections::BTreeSet<_> {
+            closure
+                .inferred
+                .iter()
+                .map(|row| {
+                    (
+                        row.world.clone(),
+                        row.subject.clone(),
+                        row.predicate.clone(),
+                        row.object.clone(),
+                    )
+                })
+                .collect()
+        };
+        assert_eq!(facts(&result), facts(&bounded), "{parent}");
+        let child_keys: std::collections::BTreeSet<_> = actual
+            .iter()
+            .map(|value| {
+                crate::reason::subject_iri(crate::facts::skolemize(value).as_ref()).unwrap()
+            })
+            .collect();
+        assert!(
+            result.inferred.iter().any(|row| {
+                row.predicate == DIFFERENT
+                    && child_keys.contains(&row.subject)
+                    && crate::facts::skolemize(&row.object)
+                        .as_iri()
+                        .is_some_and(|other| {
+                            other != row.subject.as_str() && child_keys.contains(other)
+                        })
+            }),
+            "{parent}: no distinct qualified filler pair"
+        );
+        for subject in child_keys {
+            assert!(
+                result.inferred.iter().any(|row| {
+                    row.subject == subject
+                        && row.predicate == format!("{GMEOW}{reverse}")
+                        && row.object == TermValue::iri(ROOT)
+                }),
+                "{parent}: missing inverse for {subject}"
+            );
+            assert!(
+                result.inferred.iter().any(|row| {
+                    row.subject == subject
+                        && row.predicate == TYPE
+                        && row.object == TermValue::iri(format!("{GMEOW}{child}"))
+                }),
+                "{parent}: missing range type for {subject}"
+            );
+        }
+        assert!(
+            result
+                .inferred
+                .iter()
+                .filter(|row| {
+                    row.predicate == TYPE
+                        && row.object == TermValue::iri(format!("{GMEOW}{parent}"))
+                })
+                .all(|row| row.subject == ROOT),
+            "{parent}: invented another parent"
+        );
+        let mutant = source(
+            store
+                .owned_quads()
+                .filter(|quad| quad.predicate != "https://blackcatinformatics.ca/logic/inverseOf")
+                .collect(),
+        );
+        let error = match execute_source(&mutant, None) {
+            Ok(_) => panic!("{parent}: a genuine cycle must refuse"),
+            Err(error) => error,
+        };
+        assert!(
+            error.to_string().contains("NonTerminatingExistential"),
+            "{parent}: {error}"
+        );
+    }
+}
+
 #[test]
 fn qualified_minimum_and_exact_witnesses_feed_native_consumers_with_actual_premises() {
     for predicate in [MIN, EXACT] {
