@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1779,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1779-deps-validate-json-yaml-instances-with",
+  "branch": "paudley/1779-deps-validate-json-yaml-instances-with",
+  "slug": "deps-validate-json-yaml-instances-with",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1779-deps-validate-json-yaml-instances-with/.stage/deps-validate-json-yaml-instances-with",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "79e95bc8d14b7d7a13a1fe78593ae1c61ae88f62",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1779-deps-validate-json-yaml-instances-with",
+    "branch:paudley/1779-deps-validate-json-yaml-instances-with",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1779-deps-validate-json-yaml-instances-with/.stage/deps-validate-json-yaml-instances-with",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1779-deps-validate-json-yaml-instances-with/.stage/deps-validate-json-yaml-instances-with/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-19T03:58:20-0600"
+}
