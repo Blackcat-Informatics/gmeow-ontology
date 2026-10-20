@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/encounters-and-worlds/> .
+
+ex:observer a gmeow:Agent .
+ex:visitor a gmeow:Agent .
+ex:conversation a gmeow:InformationObject .
+ex:meeting1 a gmeow:Event ; gmeow:hasParticipant ex:observer, ex:visitor ;
+    gmeow:eventTime "2026-10-01T12:00:00Z"^^xsd:dateTime ; gmeow:eventLocation ex:roomA .
+ex:meeting2 a gmeow:Event ; gmeow:hasParticipant ex:observer, ex:visitor ;
+    gmeow:eventTime "2026-10-02T12:00:00Z"^^xsd:dateTime ; gmeow:eventLocation ex:roomA .
+ex:encounter1 a gmeow:Encounter ; gmeow:vantage ex:observer ;
+    gmeow:observedFeature ex:meeting1 ; gmeow:encounteredIn ex:conversation .
+ex:encounter2 a gmeow:Encounter ; gmeow:vantage ex:observer ;
+    gmeow:observedFeature ex:meeting2 ; gmeow:encounteredIn ex:conversation .
+ex:axis a gmeow:Axis ; rdfs:label "simulated scene coordinate"@x-gmeow-english .
+ex:worldA a gmeow:ReferenceFrame ; gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis ex:axis ; gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+ex:worldB a gmeow:ReferenceFrame ; gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis ex:axis ; gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+ex:roomA a gmeow:Location ; gmeow:hasReferenceFrame ex:worldA .
+ex:roomB a gmeow:Location ; gmeow:hasReferenceFrame ex:worldB .
+ex:stateA a gmeow:Entity .
+ex:stateB a gmeow:Entity .
+ex:witnessA a gmeow:Observation ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:stateA ;
+    gmeow:witnessedLocus ex:roomA ; gmeow:witnessedAtHead "head-42"^^xsd:token ;
+    gmeow:hasReferenceFrame ex:worldA .
+ex:witnessB a gmeow:Observation ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:stateB ;
+    gmeow:witnessedLocus ex:roomB ; gmeow:witnessedAtHead "head-42"^^xsd:token ;
+    gmeow:hasReferenceFrame ex:worldB .

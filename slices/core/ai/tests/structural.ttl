@@ -138,3 +138,23 @@ ASK {
     gmeow:embeddingModel a owl:ObjectProperty ; rdfs:domain gmeow:Embedding ; rdfs:range gmeow:SoftwareAgent .
 }""" ;
     gmeow:saRationale "The single-valued embedding edges MUST carry their declared domains/ranges: an embedding embeds one object and one model. Their single-valued (functional) characteristic is asserted on the logic:PropertyCharacteristicAssertion carrier and enforced by the DL reasoner, not in the slice module." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saConsultationText a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:promptText (logic:domain|rdfs:domain) gmeow:Prompt ; (logic:range|rdfs:range) rdfs:Literal . gmeow:answerText (logic:domain|rdfs:domain) gmeow:InformationObject ; (logic:range|rdfs:range) rdfs:Literal . }" ;
+    gmeow:saRationale "Original words admit language and directional literals without altering individual-valued observation results." .
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+ot:saConsultationMachinery a gmeow:StructuralAssertion ;
+    gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
+    gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ASK { gmeow:modelAlias (logic:domain|rdfs:domain) gmeow:ModelInvocation ; (logic:range|rdfs:range) <http://www.w3.org/2001/XMLSchema#token> . gmeow:externalRedactionCount (logic:domain|rdfs:domain) gmeow:ModelInvocation ; (logic:range|rdfs:range) <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> . }" ;
+    gmeow:saRationale "Requested aliases and redacted-item counts are machine values, not prose." .

@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/consultation-record/> .
+
+ex:observer a gmeow:Agent .
+ex:model a gmeow:SoftwareAgent .
+ex:question a gmeow:Prompt ; gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "What did you observe?"@en .
+ex:call a gmeow:ModelInvocation ; gmeow:hasPrompt ex:question ; gmeow:usedModel ex:model ;
+    gmeow:modelAlias "provider/latest"^^xsd:token ;
+    gmeow:externalRedactionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:eventTime "2026-10-10T12:00:00Z"^^xsd:dateTime .
+ex:source1 a gmeow:InformationObject .
+ex:source2 a gmeow:InformationObject .
+ex:source3 a gmeow:InformationObject .
+ex:answer a gmeow:InformationObject ;
+    gmeow:answerText "The account remains unverified; two items were redacted."@en ;
+    gmeow:wasGeneratedBy ex:call ; gmeow:wasAttributedTo ex:model ;
+    gmeow:wasDerivedFrom ex:source1, ex:source2, ex:source3 .
+ex:report a gmeow:Observation ; gmeow:vantage ex:observer ;
+    gmeow:observedFeature ex:call ; gmeow:observationResult ex:answer .
+ex:unredactedCall a gmeow:ModelInvocation ; gmeow:hasPrompt ex:question ;
+    gmeow:usedModel ex:model ; gmeow:externalRedactionCount "0"^^xsd:nonNegativeInteger .
+
+ex:directionalQuestion a gmeow:Prompt ; gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "ماذا رأيت؟"@ar--rtl .
+ex:directionalAnswer a gmeow:InformationObject ; gmeow:answerText "لم أتحقق بعد."@ar--rtl .

@@ -1185,3 +1185,51 @@ gmeow:embeddingOfFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:embeddingOf and nothing else. It is not a definition of gmeow:embeddingOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:embeddingOfFunctionality logic:characterizes gmeow:embeddingOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:externalRedactionCount
+    a logic:DatatypeProperty ; logic:domain gmeow:ModelInvocation ; logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "external redaction count"@x-gmeow-english ;
+    skos:definition "The number of answer items reported redacted for a model invocation."@x-gmeow-english ;
+    skos:example "ex:call gmeow:externalRedactionCount \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    skos:scopeNote "A count of items, not characters or hidden content; explicit zero differs from missing information."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."@x-gmeow-english ;
+    gmeow:howToUse "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."@x-gmeow-english ;
+    gmeow:useWhen "Use when preserving what was asked and answered without treating generated words as established facts."@x-gmeow-english .
+
+gmeow:promptText
+    a logic:DatatypeProperty ; logic:domain gmeow:Prompt ; logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "prompt text"@x-gmeow-english ;
+    skos:definition "The original words of a concrete prompt presented to a model."@x-gmeow-english ;
+    skos:example "ex:question gmeow:promptText \"What did you observe?\"@en ."@x-gmeow-english ;
+    skos:scopeNote "Retain language and direction where supplied; a text rendering does not replace the exact-byte content digest."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."@x-gmeow-english ;
+    gmeow:howToUse "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."@x-gmeow-english ;
+    gmeow:useWhen "Use when preserving what was asked and answered without treating generated words as established facts."@x-gmeow-english .
+
+gmeow:modelAlias
+    a logic:DatatypeProperty ; logic:domain gmeow:ModelInvocation ; logic:range xsd:token ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "requested model alias"@x-gmeow-english ;
+    skos:definition "The provider model name or alias requested for a model invocation before resolution to the actual model."@x-gmeow-english ;
+    skos:example "ex:call gmeow:modelAlias \"provider/latest\"^^xsd:token ."@x-gmeow-english ;
+    skos:scopeNote "The requested token is provenance; usedModel still names the actual model agent."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."@x-gmeow-english ;
+    gmeow:howToUse "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."@x-gmeow-english ;
+    gmeow:useWhen "Use when preserving what was asked and answered without treating generated words as established facts."@x-gmeow-english .
+
+gmeow:answerText
+    a logic:DatatypeProperty ; logic:domain gmeow:InformationObject ; logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "answer text"@x-gmeow-english ;
+    skos:definition "The original words of an answer retained as an information object."@x-gmeow-english ;
+    skos:example "ex:answer gmeow:answerText \"I could not verify it.\"@en ."@x-gmeow-english ;
+    skos:scopeNote "Text is attributed content, not an asserted triple or proof of what it says; preserve language and direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."@x-gmeow-english ;
+    gmeow:howToUse "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."@x-gmeow-english ;
+    gmeow:useWhen "Use when preserving what was asked and answered without treating generated words as established facts."@x-gmeow-english .

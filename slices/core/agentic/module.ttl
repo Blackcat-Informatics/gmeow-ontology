@@ -1,3 +1,4 @@
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -252,3 +253,159 @@ gmeow:usedToolFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:usedTool and nothing else. It is not a definition of gmeow:usedTool (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:usedToolFunctionality logic:characterizes gmeow:usedTool ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:AttentionRequest
+    a logic:Class, logic:Kind ; logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Attention Request"@x-gmeow-english ;
+    skos:definition "A recorded request to attend to something, including one raised by a dream report."@x-gmeow-english ;
+    skos:example "ex:request a gmeow:AttentionRequest ."@x-gmeow-english ;
+    skos:scopeNote "The request is an information object; acknowledgement and resolution are separate events."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:AttentionAcknowledgement
+    a logic:Class, logic:Event ; logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Attention Acknowledgement"@x-gmeow-english ;
+    skos:definition "An event in which an agent acknowledges an attention request without necessarily resolving it."@x-gmeow-english ;
+    skos:example "ex:ack a gmeow:AttentionAcknowledgement ; gmeow:acknowledges ex:request ."@x-gmeow-english ;
+    skos:scopeNote "Acknowledgement records receipt, not agreement, completion or resolution."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:AttentionResolution
+    a logic:Class, logic:Event ; logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Attention Resolution"@x-gmeow-english ;
+    skos:definition "An event recording how an agent disposed of an attention request, with rationale and supporting evidence."@x-gmeow-english ;
+    skos:example "ex:resolution a gmeow:AttentionResolution ; gmeow:resolves ex:request ."@x-gmeow-english ;
+    skos:scopeNote "Addressed, deferred and dismissed are explicit outcomes; none implies deletion of the request."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:acknowledges
+    a logic:ObjectProperty ; logic:domain gmeow:AttentionAcknowledgement ; logic:range gmeow:AttentionRequest ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "acknowledges"@x-gmeow-english ;
+    skos:definition "Relates an attention acknowledgement event to the request it acknowledges."@x-gmeow-english ;
+    skos:example "ex:ack gmeow:acknowledges ex:request ."@x-gmeow-english ;
+    skos:scopeNote "Multiple acknowledgements may coexist with their own actors and times."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:resolves
+    a logic:ObjectProperty ; logic:domain gmeow:AttentionResolution ; logic:range gmeow:AttentionRequest ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolves"@x-gmeow-english ;
+    skos:definition "Relates an attention resolution event to the request whose disposition it records."@x-gmeow-english ;
+    skos:example "ex:resolution gmeow:resolves ex:request ."@x-gmeow-english ;
+    skos:scopeNote "Resolution does not imply that the requested work succeeded; inspect resolutionOutcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:ResolutionOutcome
+    a logic:Class, logic:AbstractIndividualType ; logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Resolution Outcome"@x-gmeow-english ;
+    skos:definition "An attributed disposition value for an attention resolution event."@x-gmeow-english ;
+    skos:example "gmeow:resolutionAddressed a gmeow:ResolutionOutcome ."@x-gmeow-english ;
+    skos:scopeNote "An open value vocabulary, distinct from a logical evaluation verdict or task execution status."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Use the value with resolutionOutcome on an attributed AttentionResolution event."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:resolutionAddressed
+    a gmeow:ResolutionOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "addressed"@x-gmeow-english ;
+    skos:definition "The resolving agent records that the requested attention was given."@x-gmeow-english ;
+    skos:example "ex:resolution gmeow:resolutionOutcome gmeow:resolutionAddressed ."@x-gmeow-english ;
+    skos:scopeNote "This is the agent’s disposition, not proof that every underlying problem was solved."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Use the value with resolutionOutcome on an attributed AttentionResolution event."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:resolutionDeferred
+    a gmeow:ResolutionOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "deferred"@x-gmeow-english ;
+    skos:definition "The resolving agent deliberately postpones the requested attention."@x-gmeow-english ;
+    skos:example "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."@x-gmeow-english ;
+    skos:scopeNote "An explicit postponement differs from an unacknowledged or missing record."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Use the value with resolutionOutcome on an attributed AttentionResolution event."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:resolutionDismissed
+    a gmeow:ResolutionOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "dismissed"@x-gmeow-english ;
+    skos:definition "The resolving agent deliberately declines the requested attention."@x-gmeow-english ;
+    skos:example "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDismissed ."@x-gmeow-english ;
+    skos:scopeNote "Retain the rationale and request; dismissal is not erasure or an inference from silence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Use the value with resolutionOutcome on an attributed AttentionResolution event."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:resolutionOutcome
+    a logic:ObjectProperty ; logic:domain gmeow:AttentionResolution ; logic:range gmeow:ResolutionOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolution outcome"@x-gmeow-english ;
+    skos:definition "Relates an attention resolution event to its recorded disposition."@x-gmeow-english ;
+    skos:example "ex:resolution gmeow:resolutionOutcome gmeow:resolutionDeferred ."@x-gmeow-english ;
+    skos:scopeNote "The outcome belongs to the event; later decisions are new events, not overwritten request states."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:resolutionRationale
+    a logic:DatatypeProperty ; logic:domain gmeow:AttentionResolution ; logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolution rationale"@x-gmeow-english ;
+    skos:definition "The resolving agent’s stated reason for an attention request disposition."@x-gmeow-english ;
+    skos:example "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."@x-gmeow-english ;
+    skos:scopeNote "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:resolutionEvidence
+    a logic:ObjectProperty ; logic:domain gmeow:AttentionResolution ; logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolution evidence"@x-gmeow-english ;
+    skos:definition "Relates an attention resolution to a record or entity offered as evidence for its disposition."@x-gmeow-english ;
+    skos:example "ex:resolution gmeow:resolutionEvidence ex:receipt ."@x-gmeow-english ;
+    skos:scopeNote "Evidence is offered by the resolving actor and does not become automatically authoritative."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+gmeow:attentionRequestedAt
+    a logic:DatatypeProperty ; logic:domain gmeow:AttentionRequest ; logic:range xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "attention requested at"@x-gmeow-english ;
+    skos:definition "The explicitly known instant at which an attention request was raised."@x-gmeow-english ;
+    skos:example "ex:request gmeow:attentionRequestedAt \"2026-10-10T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    skos:scopeNote "This is the request time, not the dream’s occurrence time or an acknowledgement or resolution time."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .

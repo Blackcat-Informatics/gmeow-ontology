@@ -190,3 +190,63 @@ test:shapeRefinementSourceWords a logic:ResultShape ;
 
 test:rowRefinementSourceWords0 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "text" ; gmeow:cellValueLiteral "Alice saw Jordan.\n\nNobody replied."@x-gmeow-english ] .
+
+@prefix case: <https://example.org/encounters-and-worlds/> .
+
+ot:cqFirstEncounter a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/encounters-and-worlds.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/encounters-and-worlds/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?encounter ?when WHERE { { SELECT ?encounter ?when WHERE { ?encounter a gmeow:Encounter ; gmeow:vantage ex:observer ; gmeow:observedFeature ?meeting ; gmeow:encounteredIn ex:conversation . ?meeting gmeow:hasParticipant ex:visitor ; gmeow:eventTime ?when . } ORDER BY ?when LIMIT 1 } }" ;
+    gmeow:cqRationale "Recall the first recorded meeting through the observation and event, retaining its conversation." ;
+    gmeow:cqResultShape ot:shapeFirstEncounter ;
+    gmeow:cqExpectRow ot:rowFirstEncounter0 .
+
+ot:shapeFirstEncounter a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "encounter" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "when" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowFirstEncounter0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "encounter" ; gmeow:cellValueIri case:encounter1 ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "when" ; gmeow:cellValueLiteral "2026-10-01T12:00:00Z"^^xsd:dateTime ] .
+
+@prefix case: <https://example.org/encounters-and-worlds/> .
+
+ot:cqWitnessedWorlds a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/encounters-and-worlds.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/encounters-and-worlds/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?record ?place ?head ?frame WHERE { ?record gmeow:vantage ex:observer ; gmeow:witnessedLocus ?place ; gmeow:witnessedAtHead ?head ; gmeow:hasReferenceFrame ?frame . ?place a gmeow:Location ; gmeow:hasReferenceFrame ?frame . }" ;
+    gmeow:cqRationale "Equal head spellings retain separate virtual environment frames and Locations." ;
+    gmeow:cqResultShape ot:shapeWitnessedWorlds ;
+    gmeow:cqExpectRow ot:rowWitnessedWorlds0, ot:rowWitnessedWorlds1 .
+
+ot:shapeWitnessedWorlds a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "record" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "place" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "head" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "frame" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowWitnessedWorlds0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:witnessA ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "place" ; gmeow:cellValueIri case:roomA ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "head" ; gmeow:cellValueLiteral "head-42"^^xsd:token ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "frame" ; gmeow:cellValueIri case:worldA ] .
+
+ot:rowWitnessedWorlds1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:witnessB ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "place" ; gmeow:cellValueIri case:roomB ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "head" ; gmeow:cellValueLiteral "head-42"^^xsd:token ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "frame" ; gmeow:cellValueIri case:worldB ] .
+
+@prefix case: <https://example.org/encounters-and-worlds/> .
+
+ot:cqNoCrossWorldPlace a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/encounters-and-worlds.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/encounters-and-worlds/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?place WHERE { ex:witnessA gmeow:witnessedLocus ?place . ?place gmeow:hasReferenceFrame ex:worldB . }" ;
+    gmeow:cqRationale "The selected witnessing record does not silently borrow the other world\u2019s place." ;
+    gmeow:cqResultShape ot:shapeNoCrossWorldPlace ;
+    gmeow:cqExpectRowCount 0 .
+
+ot:shapeNoCrossWorldPlace a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "place" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .

@@ -592,3 +592,115 @@ msgstr "contrainte de complétude d'une plage de fondement"
 msgctxt "https://blackcatinformatics.ca/gmeow/GroundingSpanConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: every span reached via gmeow:groundedIn from a claim (a grounding span) must be pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart, gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity) — evidence without recoverable, offset-located, polarity-classified bytes is a vibe, not grounding."
 msgstr "Une contrainte d'intégrité en monde clos : toute plage atteinte depuis une affirmation par gmeow:groundedIn (une plage de fondement) doit être ancrée dans un fragment (gmeow:spanOfChunk), située par décalages (gmeow:spanStart, gmeow:spanEnd) et classée en polarité (gmeow:supportPolarity) — une preuve dont les octets ne sont ni récupérables, ni situés par décalage, ni classés en polarité relève de l'impression, non du fondement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "external redaction count"
+msgstr "nombre de suppressions externes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The number of answer items reported redacted for a model invocation."
+msgstr "Le nombre d’éléments de réponse signalés comme supprimés pour une invocation de modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:call gmeow:externalRedactionCount \"0\"^^xsd:nonNegativeInteger ."
+msgstr "ex:call gmeow:externalRedactionCount \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A count of items, not characters or hidden content; explicit zero differs from missing information."
+msgstr "Un compte d’éléments, non de caractères ou de contenu caché ; zéro explicite diffère d’une information absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "Ne pas remplacer l’invite originale, l’alias demandé, le modèle réel et la réponse attribuée par une chaîne unique non structurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "Conserver hasPrompt, usedModel et la provenance wasGeneratedBy/wasAttributedTo de la sortie ; atteindre la réponse via observationResult."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/externalRedactionCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "À employer pour conserver la question et la réponse sans traiter les mots générés comme des faits établis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prompt text"
+msgstr "texte de l’invite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original words of a concrete prompt presented to a model."
+msgstr "Les mots originaux d’une invite concrète présentée à un modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:question gmeow:promptText \"What did you observe?\"@en ."
+msgstr "ex:question gmeow:promptText \"What did you observe?\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain language and direction where supplied; a text rendering does not replace the exact-byte content digest."
+msgstr "Conserver langue et direction lorsqu’elles sont fournies ; le texte ne remplace pas l’empreinte des octets exacts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "Ne pas remplacer l’invite originale, l’alias demandé, le modèle réel et la réponse attribuée par une chaîne unique non structurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "Conserver hasPrompt, usedModel et la provenance wasGeneratedBy/wasAttributedTo de la sortie ; atteindre la réponse via observationResult."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "À employer pour conserver la question et la réponse sans traiter les mots générés comme des faits établis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requested model alias"
+msgstr "alias de modèle demandé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider model name or alias requested for a model invocation before resolution to the actual model."
+msgstr "Le nom ou alias de modèle demandé au fournisseur avant sa résolution vers le modèle effectivement utilisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:call gmeow:modelAlias \"provider/latest\"^^xsd:token ."
+msgstr "ex:call gmeow:modelAlias \"provider/latest\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The requested token is provenance; usedModel still names the actual model agent."
+msgstr "Le jeton demandé est une provenance ; usedModel nomme toujours l’agent modèle effectivement utilisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "Ne pas remplacer l’invite originale, l’alias demandé, le modèle réel et la réponse attribuée par une chaîne unique non structurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "Conserver hasPrompt, usedModel et la provenance wasGeneratedBy/wasAttributedTo de la sortie ; atteindre la réponse via observationResult."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelAlias|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "À employer pour conserver la question et la réponse sans traiter les mots générés comme des faits établis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "answer text"
+msgstr "texte de réponse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original words of an answer retained as an information object."
+msgstr "Les mots originaux d’une réponse conservée comme objet informationnel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
+msgstr "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Text is attributed content, not an asserted triple or proof of what it says; preserve language and direction."
+msgstr "Le texte est un contenu attribué, non un triplet affirmé ni une preuve de son contenu ; conserver langue et direction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace the original prompt, requested alias, actual model and attributed answer with one unstructured invocation string."
+msgstr "Ne pas remplacer l’invite originale, l’alias demandé, le modèle réel et la réponse attribuée par une chaîne unique non structurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep hasPrompt, usedModel and the output’s wasGeneratedBy/wasAttributedTo provenance; reach answer content through observationResult."
+msgstr "Conserver hasPrompt, usedModel et la provenance wasGeneratedBy/wasAttributedTo de la sortie ; atteindre la réponse via observationResult."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when preserving what was asked and answered without treating generated words as established facts."
+msgstr "À employer pour conserver la question et la réponse sans traiter les mots générés comme des faits établis."

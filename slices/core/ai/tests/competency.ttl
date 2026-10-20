@@ -1,0 +1,96 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ot: <https://example.org/observation-record-tests/> .
+
+@prefix case: <https://example.org/consultation-record/> .
+
+ot:cqOriginalConsultation a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/consultation-record.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/consultation-record/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?question ?alias ?model ?answer ?redacted WHERE { ex:call gmeow:hasPrompt ?prompt ; gmeow:modelAlias ?alias ; gmeow:usedModel ?model ; gmeow:externalRedactionCount ?redacted . ?prompt gmeow:promptText ?question . ex:report gmeow:observedFeature ex:call ; gmeow:observationResult ?output . ?output gmeow:answerText ?answer ; gmeow:wasGeneratedBy ex:call ; gmeow:wasAttributedTo ?model . }" ;
+    gmeow:cqRationale "The original question and answer retain requested alias, actual model, generation, attribution and redaction count." ;
+    gmeow:cqResultShape ot:shapeOriginalConsultation ;
+    gmeow:cqExpectRow ot:rowOriginalConsultation0 .
+
+ot:shapeOriginalConsultation a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "question" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "alias" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "model" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "answer" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "redacted" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowOriginalConsultation0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "question" ; gmeow:cellValueLiteral "What did you observe?"@en ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "alias" ; gmeow:cellValueLiteral "provider/latest"^^xsd:token ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri case:model ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "answer" ; gmeow:cellValueLiteral "The account remains unverified; two items were redacted."@en ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "redacted" ; gmeow:cellValueLiteral "2"^^xsd:nonNegativeInteger ] .
+
+@prefix case: <https://example.org/consultation-record/> .
+
+ot:cqConsultationSources a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/consultation-record.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/consultation-record/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?source WHERE { ex:answer gmeow:wasDerivedFrom ?source . }" ;
+    gmeow:cqRationale "All three cited sources remain individually queryable." ;
+    gmeow:cqResultShape ot:shapeConsultationSources ;
+    gmeow:cqExpectRow ot:rowConsultationSources0, ot:rowConsultationSources1, ot:rowConsultationSources2 .
+
+ot:shapeConsultationSources a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "source" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowConsultationSources0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri case:source1 ] .
+
+ot:rowConsultationSources1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri case:source2 ] .
+
+ot:rowConsultationSources2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri case:source3 ] .
+
+@prefix case: <https://example.org/consultation-record/> .
+
+ot:cqExplicitZeroRedactions a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/consultation-record.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/consultation-record/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?count WHERE { ex:unredactedCall gmeow:externalRedactionCount ?count . }" ;
+    gmeow:cqRationale "An explicit zero is not silently omitted as missing information." ;
+    gmeow:cqResultShape ot:shapeExplicitZeroRedactions ;
+    gmeow:cqExpectRow ot:rowExplicitZeroRedactions0 .
+
+ot:shapeExplicitZeroRedactions a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "count" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ot:rowExplicitZeroRedactions0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "count" ; gmeow:cellValueLiteral "0"^^xsd:nonNegativeInteger ] .
+
+@prefix case: <https://example.org/consultation-record/> .
+
+ot:cqAnswerIsContent a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/consultation-record.ttl" ;
+    gmeow:cqQuery "PREFIX ex: <https://example.org/consultation-record/> PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?literal WHERE { ex:report gmeow:observationResult ?literal . FILTER(isLiteral(?literal)) }" ;
+    gmeow:cqRationale "Observation results point to answer content objects, never raw answer text or automatic truth assertions." ;
+    gmeow:cqResultShape ot:shapeAnswerIsContent ;
+    gmeow:cqExpectRowCount 0 .
+
+ot:shapeAnswerIsContent a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "literal" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ot:cqDirectionalConsultation a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/consultation-record.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/consultation-record/> SELECT ?question ?answer WHERE { ex:directionalQuestion gmeow:promptText ?question . ex:directionalAnswer gmeow:answerText ?answer . }" ;
+    gmeow:cqRationale "The original direction and language survive on both prompt and answer rather than becoming plain strings." ;
+    gmeow:cqResultShape ot:shapeDirectionalConsultation ;
+    gmeow:cqExpectRow ot:rowDirectionalConsultation .
+ot:shapeDirectionalConsultation a logic:ResultShape ; logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "question" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "answer" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+ot:rowDirectionalConsultation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "question" ; gmeow:cellValueLiteral "ماذا رأيت؟"@ar--rtl ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "answer" ; gmeow:cellValueLiteral "لم أتحقق بعد."@ar--rtl ] .
