@@ -11,7 +11,7 @@
 
 use gmeow_errors::{Finding, FindingCategory, Severity};
 use purrdf::gts::policy::TrustPolicy;
-use purrdf::gts::verify::{VerifyOptions, verify_file_with_options};
+use purrdf::gts::verify::{VerificationError, VerifyOptions, verify_file_with_options};
 
 use crate::codes;
 use crate::validate_all::SignatureConfig;
@@ -50,15 +50,14 @@ pub fn verify_gts_bundle(
     // Top-level verification errors from purrdf::gts. These cover conditions not
     // captured by the count-based fields below, especially key-loading failures.
     for error in &result.errors {
-        let code = if error.starts_with("cannot load trusted key")
-            || error.starts_with("cannot load embedded transport key")
-            || error.contains("transportKey")
-        {
-            codes::SIGNATURE_INVALID
-        } else {
-            codes::SIGNATURE_VERIFY
+        let code = match error {
+            VerificationError::TrustedPublicKey(_)
+            | VerificationError::EmbeddedKey { .. }
+            | VerificationError::MissingTransportKey => codes::SIGNATURE_INVALID,
+            _ => codes::SIGNATURE_VERIFY,
         };
-        findings.push(Finding::new(Severity::Error, code, error.clone()).with_tool("gts-verify"));
+        findings
+            .push(Finding::new(Severity::Error, code, error.to_string()).with_tool("gts-verify"));
     }
 
     // Missing signatures.

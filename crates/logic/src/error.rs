@@ -115,7 +115,7 @@ define_diag_kind! {
     /// disposition and original upstream cause remain attached to the shared Diag.
     pub struct DlService {
         kind: crate::reasoner_services::DlServiceFailureKind,
-        cause: std::sync::Arc<purrdf::entail::EntailError>
+        cause: std::sync::Arc<dyn std::error::Error + Send + Sync>
     }
     code = "logic.dl-service";
     grade = logic_grade!();

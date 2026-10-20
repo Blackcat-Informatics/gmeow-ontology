@@ -82,9 +82,13 @@ and the no-debug-symbol policy intact.
 
 Maintainer-only targets are prefixed with `maint-`. Use `make help` for the
 complete list. Common lanes are `make maint-wikidata-live` and
-`make maint-rust-heavy` (the off-gate heavy Rust suite). The native `logic:`
-reasoner is the single reasoning authority; `make reason-verify` (native
-reason + reasoned-graph verify, one closure) runs on-gate as its own
+`make maint-rust-heavy` (the off-gate heavy Rust suite). GMEOW is the single
+authority on `logic:` semantics, executed on PurRDF's generic engines. GMEOW
+owns compilation, world scope, grounding and proof-ledger policy; PurRDF owns
+RDF, datatype semantics, Datalog/chase and OWL-Direct DL decision procedures.
+Keep one owner per mechanism and delete an inferior implementation when its
+replacement qualifies. `make reason-verify` (native reason + reasoned-graph
+verify, one closure) runs on-gate as its own
 `make check` target, not as a `maint-` lane. There is no live second
 reasoner on-gate — engine-independent coverage is retained via the
 committed, frozen `dl_oracle_gold` corpus and the native gap-zero DL⊇EL

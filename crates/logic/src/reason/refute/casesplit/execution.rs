@@ -346,12 +346,10 @@ impl PreparedClassAnalysis {
             changed = true;
         }
         native.observed_rows = input.store.row_count();
-        let prior = native.last.take();
-        let mut result = if !changed { prior.clone() } else { None };
-        if result.is_none() {
-            result = Some(self.observe_world(input, ledger)?);
-        }
-        let mut result = result.expect("class current result");
+        let (mut result, prior) = match (native.last.take(), changed) {
+            (Some(prior), false) => (prior, None),
+            (prior, _) => (self.observe_world(input, ledger)?, prior),
+        };
         if let Some(prior) = prior {
             for conflict in prior.contextual_conflicts {
                 if !result.contextual_conflicts.contains(&conflict) {

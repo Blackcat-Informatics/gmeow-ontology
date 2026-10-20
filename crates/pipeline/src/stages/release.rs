@@ -386,7 +386,12 @@ pub fn verify_release_bundle(
         let detail = if result.errors.is_empty() {
             "no cryptographically valid, trusted signature".to_string()
         } else {
-            result.errors.join("; ")
+            result
+                .errors
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join("; ")
         };
         return Err(Diag::of_kind(Release {
             message: format!("release bundle signature/trust verification failed: {detail}"),

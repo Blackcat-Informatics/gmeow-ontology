@@ -5,6 +5,139 @@ use super::*;
 use purrdf::RdfDatasetBuilder;
 use purrdf::entail::{ClaimSubject, DlCompleteness, Question};
 
+#[test]
+fn packed_view_retains_borrowed_proof_context_and_session() {
+    let dataset = consistent_dataset();
+    let bytes = purrdf::PackBuilder::build_bytes(&dataset).unwrap();
+    let view = purrdf::PackView::from_bytes(&bytes).unwrap();
+    let mut reasoner = DlReasoner::with_proofs(&view).unwrap();
+    reasoner.prepare(&Question::Consistency).unwrap();
+    let result = reasoner.consistency();
+    assert_eq!(*result.answer(), Verdict::True);
+    {
+        let context = reasoner.borrowed_proof_context().unwrap();
+        result
+            .proof()
+            .unwrap()
+            .verify(
+                &view,
+                &Question::Consistency,
+                Some(result.certificate()),
+                &context,
+            )
+            .unwrap();
+    }
+    assert_eq!(*reasoner.consistency().answer(), Verdict::True);
+    assert_eq!(
+        *DlReasoner::new(&view).unwrap().consistency().answer(),
+        Verdict::True
+    );
+    assert_eq!(DlReasoner::with_step_cap(&view, 1).unwrap().step_cap(), 1);
+}
+
+#[test]
+fn shared_view_read_failure_preserves_original_cause_in_every_constructor() {
+    use std::sync::Arc;
+    let source = RefusingView {
+        dataset: consistent_dataset(),
+        failed: std::cell::Cell::new(false),
+        cause: Arc::new(std::io::Error::other("caller source read failed")),
+    };
+    let cause = Arc::clone(&source.cause);
+    let results: Vec<_> = (0..4)
+        .map(|mode| {
+            source.failed.set(false);
+            match mode {
+                0 => DlReasoner::new(&source),
+                1 => DlReasoner::with_proofs(&source),
+                2 => DlReasoner::with_step_cap(&source, 1),
+                _ => DlReasoner::with_proofs_and_stop(
+                    &source,
+                    purrdf::entail::reasoner::SchemaPreparationBudget::default(),
+                    Arc::new(CallerStop::default()),
+                ),
+            }
+        })
+        .collect();
+    drop(source);
+    for (mode, result) in results.into_iter().enumerate() {
+        let diagnostic = result.unwrap_err();
+        let failure = diagnostic
+            .downcast_ref::<crate::error::DlService>()
+            .unwrap();
+        assert_eq!(failure.kind, DlServiceFailureKind::Execution);
+        let native = failure
+            .cause
+            .downcast_ref::<EntailError<Arc<std::io::Error>>>()
+            .unwrap();
+        let original = match (mode, native) {
+            (0 | 2, EntailError::SourceRead(original))
+            | (1 | 3, EntailError::Canonicalization(purrdf::CanonError::Read(original))) => {
+                original
+            }
+            _ => panic!("each constructor must retain its exact native source-read path"),
+        };
+        assert!(Arc::ptr_eq(original, &cause));
+        assert!(std::error::Error::source(native).is_some());
+    }
+}
+
+struct RefusingView {
+    dataset: std::sync::Arc<RdfDataset>,
+    failed: std::cell::Cell<bool>,
+    cause: std::sync::Arc<std::io::Error>,
+}
+
+impl purrdf::DatasetView for RefusingView {
+    type Id = purrdf::TermId;
+    type ReadError = std::sync::Arc<std::io::Error>;
+    type TermGuard<'a> = purrdf::TermRef<'a>;
+    type ProbePlan = ();
+
+    fn read_error(&self) -> Option<Self::ReadError> {
+        self.failed.get().then(|| self.cause.clone())
+    }
+
+    fn quads(&self) -> impl Iterator<Item = purrdf::QuadIds> + '_ {
+        self.dataset
+            .quads()
+            .take(1)
+            .inspect(|_| self.failed.set(true))
+    }
+
+    fn resolve(&self, id: Self::Id) -> std::result::Result<Self::TermGuard<'_>, Self::ReadError> {
+        Ok(self.dataset.as_ref().resolve(id))
+    }
+
+    fn term_id_by_value(
+        &self,
+        value: &TermValue,
+    ) -> std::result::Result<Option<Self::Id>, Self::ReadError> {
+        Ok(self.dataset.as_ref().term_id_by_value(value))
+    }
+
+    fn capabilities(&self) -> purrdf::RdfStoreCapabilities {
+        self.dataset.capabilities()
+    }
+
+    fn probe_plan(&self, _: bool, _: bool, _: bool, _: purrdf::GraphMatch) {}
+
+    fn quads_for_pattern_with_plan(
+        &self,
+        (): &Self::ProbePlan,
+        s: Option<Self::Id>,
+        p: Option<Self::Id>,
+        o: Option<Self::Id>,
+        g: purrdf::GraphMatch,
+    ) -> impl Iterator<Item = purrdf::QuadIds> + '_ {
+        self.quads_for_pattern(s, p, o, g)
+    }
+
+    fn term_count(&self) -> u64 {
+        purrdf::DatasetView::term_count(&self.dataset)
+    }
+}
+
 #[derive(Debug, Default)]
 struct CallerStop(std::sync::atomic::AtomicBool);
 
@@ -72,7 +205,10 @@ fn recorded_preparation_cancellation_remains_a_typed_execution_diagnostic() {
     drop(dataset);
     let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
     assert_eq!(failure.kind, DlServiceFailureKind::Execution);
-    assert!(matches!(failure.cause.as_ref(), EntailError::Stopped));
+    assert!(matches!(
+        failure.cause.downcast_ref::<EntailError>().unwrap(),
+        EntailError::Stopped
+    ));
     assert_eq!(
         gmeow_errors::code::code_str(error.code()),
         "logic.dl-service"
@@ -208,7 +344,10 @@ fn class_satisfiability_on_the_unsatisfiable_ontology_is_an_error() {
         .expect_err("an unsatisfiable ontology has no meaningful class answer");
     let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
     assert_eq!(failure.kind, DlServiceFailureKind::NoModel);
-    assert!(matches!(failure.cause.as_ref(), EntailError::Unsatisfiable));
+    assert!(matches!(
+        failure.cause.downcast_ref::<EntailError>().unwrap(),
+        EntailError::Unsatisfiable
+    ));
     assert!(error.message().contains("unsatisfiable"), "{error}");
     assert_eq!(
         error.inner().failure_class.as_deref(),
@@ -235,7 +374,7 @@ fn a_malformed_role_hierarchy_retains_native_evidence_after_the_input_is_dropped
     let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
     assert_eq!(failure.kind, DlServiceFailureKind::Malformed);
     assert!(matches!(
-        failure.cause.as_ref(),
+        failure.cause.downcast_ref::<EntailError>().unwrap(),
         EntailError::RoleHierarchy(_)
     ));
     assert!(
@@ -290,7 +429,8 @@ fn a_class_role_refusal_keeps_its_source_in_recorded_and_unrecorded_services() {
         drop(dataset);
         let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
         assert_eq!(failure.kind, DlServiceFailureKind::Malformed);
-        let EntailError::RoleHierarchy(role) = failure.cause.as_ref() else {
+        let EntailError::RoleHierarchy(role) = failure.cause.downcast_ref::<EntailError>().unwrap()
+        else {
             panic!("the adapter must preserve the original native role refusal");
         };
         assert!(matches!(
@@ -313,13 +453,13 @@ fn a_class_role_refusal_keeps_its_source_in_recorded_and_unrecorded_services() {
 
 #[test]
 fn native_service_cancellation_is_an_execution_diagnostic_with_its_original_cause() {
-    let error = map_entail_err(EntailError::RoleHierarchy(
+    let error = map_entail_err(EntailError::<std::convert::Infallible>::RoleHierarchy(
         purrdf::entail::RoleHierarchyError::Stopped,
     ));
     let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
     assert_eq!(failure.kind, DlServiceFailureKind::Execution);
     assert!(matches!(
-        failure.cause.as_ref(),
+        failure.cause.downcast_ref::<EntailError>().unwrap(),
         EntailError::RoleHierarchy(purrdf::entail::RoleHierarchyError::Stopped)
     ));
     assert_eq!(
@@ -418,6 +558,21 @@ fn unrecorded_service_keeps_absence_distinct_from_an_empty_proof() {
     let dataset = consistent_dataset();
     let reasoner = DlReasoner::new(&dataset).unwrap();
     assert!(reasoner.consistency().proof().is_none());
+    let borrowed_error = match reasoner.borrowed_proof_context() {
+        Ok(_) => panic!("unrecorded services cannot borrow a proof context"),
+        Err(error) => error,
+    };
+    let borrowed_failure = borrowed_error
+        .downcast_ref::<crate::error::DlService>()
+        .unwrap();
+    assert_eq!(borrowed_failure.kind, DlServiceFailureKind::Execution);
+    assert!(matches!(
+        borrowed_failure
+            .cause
+            .downcast_ref::<EntailError>()
+            .unwrap(),
+        EntailError::ProofsNotRecorded
+    ));
     let error = match reasoner.proof_context() {
         Ok(_) => panic!("unrecorded services cannot create a proof context"),
         Err(error) => error,
@@ -425,7 +580,7 @@ fn unrecorded_service_keeps_absence_distinct_from_an_empty_proof() {
     let failure = error.downcast_ref::<crate::error::DlService>().unwrap();
     assert_eq!(failure.kind, DlServiceFailureKind::Execution);
     assert!(matches!(
-        failure.cause.as_ref(),
+        failure.cause.downcast_ref::<EntailError>().unwrap(),
         EntailError::ProofsNotRecorded
     ));
 }

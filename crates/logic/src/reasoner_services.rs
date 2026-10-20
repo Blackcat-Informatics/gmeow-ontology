@@ -45,7 +45,9 @@ pub enum DlServiceFailureKind {
 
 /// Attach an original native entailment refusal to the sole diagnostic substrate.
 /// Logical no-model, malformed source and physical execution remain distinct.
-fn map_entail_err(error: EntailError) -> gmeow_errors::Diag {
+fn map_entail_err<E: std::error::Error + Send + Sync + 'static>(
+    error: EntailError<E>,
+) -> gmeow_errors::Diag {
     let kind = match &error {
         EntailError::Unsatisfiable => DlServiceFailureKind::NoModel,
         EntailError::Parse(_) | EntailError::MalformedList(_) => DlServiceFailureKind::Malformed,
@@ -66,7 +68,7 @@ fn map_entail_err(error: EntailError) -> gmeow_errors::Diag {
     })
 }
 
-/// The OWL 2 Direct-Semantics reasoning services over one [`RdfDataset`], each
+/// The OWL 2 Direct-Semantics reasoning services over one [`purrdf::DatasetView`], each
 /// answering with the unchanged native [`Certified`] value.
 ///
 /// Owns a purrdf [`Reasoner`], whose three question-taking services
@@ -90,7 +92,7 @@ impl DlReasoner {
     ///
     /// A typed [`crate::error::DlService`] if reverse mapping sees malformed input, execution
     /// fails, or an `owl:hasKey` axiom proves the ontology has no model.
-    pub fn new(dataset: &RdfDataset) -> Result<Self> {
+    pub fn new<D: purrdf::DatasetView>(dataset: &D) -> Result<Self> {
         Reasoner::new(dataset)
             .map(|inner| Self { inner })
             .map_err(map_entail_err)
@@ -100,7 +102,7 @@ impl DlReasoner {
     ///
     /// # Errors
     /// Original source, execution or canonicalization refusals, as typed diagnostics.
-    pub fn with_proofs(dataset: &RdfDataset) -> Result<Self> {
+    pub fn with_proofs<D: purrdf::DatasetView>(dataset: &D) -> Result<Self> {
         Reasoner::with_proofs(dataset)
             .map(|inner| Self { inner })
             .map_err(map_entail_err)
@@ -112,8 +114,8 @@ impl DlReasoner {
     ///
     /// # Errors
     /// Original typed native source, preparation or cancellation refusals.
-    pub fn with_proofs_and_stop(
-        dataset: &RdfDataset,
+    pub fn with_proofs_and_stop<D: purrdf::DatasetView>(
+        dataset: &D,
         budget: purrdf::entail::reasoner::SchemaPreparationBudget,
         stop: std::sync::Arc<dyn purrdf::StopSignal>,
     ) -> Result<Self> {
@@ -135,8 +137,18 @@ impl DlReasoner {
     ///
     /// # Errors
     /// A typed execution refusal if the session did not record proofs.
-    pub fn proof_context(self) -> Result<purrdf::entail::DlProofContext> {
+    pub fn proof_context(self) -> Result<purrdf::entail::DlProofContext<'static>> {
         self.inner.proof_context().map_err(map_entail_err)
+    }
+
+    /// Borrow the native checking context without consuming the reasoning session.
+    /// Prepare the selected question before borrowing; the context prevents further
+    /// mutation until verification finishes.
+    ///
+    /// # Errors
+    /// A typed execution refusal if the session did not record proofs.
+    pub fn borrowed_proof_context(&self) -> Result<purrdf::entail::DlProofContext<'_>> {
+        self.inner.borrowed_proof_context().map_err(map_entail_err)
     }
 
     /// Open the reasoning services over `dataset` with the per-decision step cap
@@ -149,7 +161,7 @@ impl DlReasoner {
     /// # Errors
     ///
     /// As [`new`](Self::new).
-    pub fn with_step_cap(dataset: &RdfDataset, cap: u64) -> Result<Self> {
+    pub fn with_step_cap<D: purrdf::DatasetView>(dataset: &D, cap: u64) -> Result<Self> {
         Reasoner::new(dataset)
             .map(|reasoner| Self {
                 inner: reasoner.with_step_cap(cap),

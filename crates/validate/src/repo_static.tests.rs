@@ -3027,6 +3027,7 @@ fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
             "bundle-view.rdf.parse",
             "docs-catalog.concept-lattice",
             "docs-catalog.distribution",
+            "gts-profile.append-admission",
             "gts-profile.archive",
             "gts-profile.frame",
             "gts-profile.snapshot-admission",

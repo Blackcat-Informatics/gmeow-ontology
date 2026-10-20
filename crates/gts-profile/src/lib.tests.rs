@@ -3,6 +3,32 @@
 
 use super::*;
 
+#[test]
+fn append_readers_retain_native_admission_causes() {
+    let medium = StoreMedium {
+        dictionary: "test-dictionary".into(),
+        bytes: vec![],
+    };
+    for bytes in [&[0xf6][..], &[0x58][..]] {
+        let failures = [
+            store_writer("test", bytes, &medium)
+                .err()
+                .expect("invalid append input"),
+            segment_dictionaries(bytes).unwrap_err(),
+            store_tail_pins(bytes, &medium.dictionary).unwrap_err(),
+        ];
+        for diagnostic in failures {
+            let failure = diagnostic.downcast_ref::<error::AppendAdmission>().unwrap();
+            match (bytes, failure.cause.as_ref()) {
+                ([0xf6], purrdf::gts::reader::AppendError::MissingHeader)
+                | ([0x58], purrdf::gts::reader::AppendError::Torn { offset: 0, .. }) => {}
+                _ => panic!("the original framing refusal must survive admission"),
+            }
+            assert!(std::error::Error::source(failure).is_some());
+        }
+    }
+}
+
 fn fixture_builder() -> SnapshotBuilder {
     let dataset = purrdf::parse_dataset(
         b"<https://e/s> <https://e/p> <https://e/o> .\n",

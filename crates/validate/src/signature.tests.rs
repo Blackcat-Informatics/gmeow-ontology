@@ -312,6 +312,23 @@ fn armored_key_string_passes_through() {
 }
 
 #[test]
+fn malformed_trusted_key_is_reported_as_signature_invalid() {
+    let config = SignatureConfig {
+        trusted_key: Some(
+            "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\ninvalid\n-----END PGP PUBLIC KEY BLOCK-----"
+                .into(),
+        ),
+        ..SignatureConfig::default()
+    };
+    let (findings, hard) = verify_gts_bundle(&minimal_unsigned_gts_bytes(), &config).unwrap();
+    assert!(hard);
+    assert!(findings.iter().any(|finding| {
+        finding.code == codes::SIGNATURE_INVALID
+            && finding.message.contains("cannot load trusted key")
+    }));
+}
+
+#[test]
 fn missing_key_file_returns_error() {
     let result = read_armored_key("/nonexistent/key.asc");
     assert!(result.is_err());
