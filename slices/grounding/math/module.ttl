@@ -14881,7 +14881,7 @@ math:erPole a logic:Formula ; logic:relation logic:termIn ;
 # sugar fits the literal-vs-pole-vs-absent case analysis. Each pole branch is an
 # existential (logic:exists) requiring the value to be present and equal to the pole
 # (the singleton logic:termIn membership committed by math:erPole above), the finite
-# branch requires the value to be a literal (logic:termIsLiteral, as math:erLiteral),
+# branch requires the value to be a literal (logic:termIsLiteral),
 # and the no-limit branch forbids any value (logic:not over an existential, as
 # math:cdNot). The max-one math:limitResultValue cardinality makes "the value is P"
 # and "some value is P" coincide, so the existential is exact.
