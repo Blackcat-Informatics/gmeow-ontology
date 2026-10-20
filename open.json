@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1761,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1761-classify-extracted-test-modules-outside",
+  "branch": "paudley/1761-classify-extracted-test-modules-outside",
+  "slug": "classify-extracted-test-modules-outside",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1761-classify-extracted-test-modules-outside/.stage/classify-extracted-test-modules-outside",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "dd6a125a6c343f89e172c11b0cbf028c01125b3d",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1761-classify-extracted-test-modules-outside",
+    "branch:paudley/1761-classify-extracted-test-modules-outside",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1761-classify-extracted-test-modules-outside/.stage/classify-extracted-test-modules-outside",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1761-classify-extracted-test-modules-outside/.stage/classify-extracted-test-modules-outside/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T02:36:58-0600"
+}
