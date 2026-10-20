@@ -139,6 +139,32 @@ episode, or chapter of a serial. Both are out-of-universe, rights-bearing
 Manifestations, held strictly apart from any in-universe narrative frame they source
 (linked via `gmeow:sourceFor`).
 
+## Identifiers, extent and decoded content
+
+`gmeow:identifier` applies to a `gmeow:MediaObject`: the current canonical chain
+is `MediaObject` → `Manifestation` → `CreativeWork`. Media manifestations are
+already creative works in the WEMI model; the identifier property is not what
+creates that classification. Keep the abstract work, its expression, the
+manifestation and any physical carrier distinct.
+
+For an entity outside that hierarchy, use the existing generic
+[`gmeow:hasIdentifier`](../organization/docs.md) with a `gmeow:Identifier` record
+carrying `gmeow:identifierScheme` and `gmeow:identifierValue`. Do not use the
+work-scoped literal property merely to store an application record ID.
+
+`gmeow:extent` is a human-readable size or duration, such as "635 pages",
+"47 minutes" or "2.3 MB". It is not a typed byte-count property, and its lexical
+form is not a numeric contract. Record an exact encoded length as an
+[observation or measurement](../observations/docs.md) of the specific artifact:
+the result is a `math:Quantity` with `math:quantityValue`, `math:hasDimension`
+and an explicit applicable `gmeow:unit`. Keep the measured serialization/version
+and provenance so that re-encoding is not mistaken for a change of abstract work.
+
+[`gmeow:BodyValue`](../../extensions/email/docs.md#decoded-content-in-chat-and-other-transports)
+is a decoded information object, not a literal string and not a physical or
+encoded carrier. A media attachment and its decoded content can therefore be
+different nodes without duplicating the abstract work.
+
 ## Solver layer & alignment
 
 Pixel-space computation — orientation transforms, colourspace conversion, derived

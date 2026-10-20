@@ -12,6 +12,90 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "question text"
+msgstr "texte de la question"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The literal wording of a question, carrying its language tag and any RDF 1.2 base direction. Distinct from a naming label and from the answerhood condition that individuates the Question. Non-functional: several co-equal wordings or languages may describe the same question."
+msgstr "La formulation littérale d’une question, avec sa balise de langue et son éventuelle direction de base RDF 1.2. Elle se distingue d’un libellé de nommage et de la condition de réponse qui individue la Question. Non fonctionnelle : plusieurs formulations ou langues de même rang peuvent décrire la même question."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:keys gmeow:questionText 'Where are the keys?'@en ."
+msgstr "ex:keys gmeow:questionText 'Où sont les clés ?'@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every supplied wording must be a language-tagged literal; ordinary and directional language strings are both admitted. No wording is preferred, and a question need not have a recorded wording to exist."
+msgstr "Toute formulation fournie doit être un littéral muni d’une balise de langue ; les chaînes linguistiques ordinaires et directionnelles sont admises. Aucune formulation n’est préférée, et une question peut exister sans formulation enregistrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a naming label as the sole content slot, treating wording equality as question identity, or replacing several wordings with a preferred one."
+msgstr "Éviter d’utiliser un libellé de nommage comme unique emplacement du contenu, de confondre l’égalité des formulations avec l’identité des questions, ou de remplacer plusieurs formulations par une formulation préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach each original wording with its language and direction intact. Use rdfs:label separately for a short name; retain attribution and scope on the wording assertion when they matter."
+msgstr "Associer chaque formulation originale en conservant sa langue et sa direction. Utiliser séparément rdfs:label pour un nom court ; conserver l’attribution et la portée de l’assertion de formulation lorsqu’elles sont pertinentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a consumer records what an agent actually asks or holds open, independently of the name used to find that question."
+msgstr "Utiliser lorsqu’un consommateur enregistre ce qu’un agent demande effectivement ou maintient comme question ouverte, indépendamment du nom utilisé pour retrouver cette question."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Question Text Language Violation"
+msgstr "Violation de langue du texte de question"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a questionText value is not a literal with a language tag. The failure concerns the recorded wording, not whether the question has an answer or whether an agent remembers it."
+msgstr "L’échec signalé lorsqu’une valeur questionText n’est pas un littéral muni d’une balise de langue. Il concerne la formulation enregistrée, et non l’existence d’une réponse ou le souvenir qu’un agent en garde."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2004/02/skos/core#example"
+msgid "An untagged questionText value causes its subject to be marked with QuestionTextLanguageViolation."
+msgstr "Une valeur questionText sans balise de langue entraîne le marquage de son sujet par QuestionTextLanguageViolation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Plain strings, other typed literals and non-literal values fail; RDF 1.2 language strings with base direction remain valid."
+msgstr "Les chaînes simples, les autres littéraux typés et les valeurs non littérales échouent ; les chaînes linguistiques RDF 1.2 avec direction de base restent valides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting this marker merely because a question is unanswered or has several co-equal wordings."
+msgstr "Éviter d’asserter ce marqueur au seul motif qu’une question reste sans réponse ou possède plusieurs formulations de même rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the original wording value and the violated law, then supply the language actually observed without guessing a language or dropping base direction."
+msgstr "Examiner la valeur de formulation originale et la loi enfreinte, puis fournir la langue réellement observée sans la deviner ni supprimer la direction de base."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageViolation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify a wording record rejected by the native or projected language-presence law."
+msgstr "Utiliser pour identifier un enregistrement de formulation rejeté par la loi native ou projetée de présence d’une langue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Question text language constraint"
+msgstr "Contrainte de langue du texte de question"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every value carried by questionText must satisfy the native language-tag presence relation. This law preserves ordinary and directional language strings without requiring one global wording."
+msgstr "Chaque valeur portée par questionText doit satisfaire la relation native de présence d’une balise de langue. Cette loi préserve les chaînes linguistiques ordinaires et directionnelles sans imposer une formulation globale unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A tagged English wording passes; the same untagged lexical value is rejected."
+msgstr "Une formulation anglaise munie d’une balise est admise ; la même valeur lexicale sans balise est rejetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law applies to each supplied questionText value. It does not require a wording, identify questions by text or choose a preferred language."
+msgstr "La loi s’applique à chaque valeur questionText fournie. Elle n’impose pas de formulation, n’identifie pas les questions par leur texte et ne choisit pas de langue préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the language test with a string datatype check, which excludes language-tagged strings or admits untagged words."
+msgstr "Éviter de remplacer le test de langue par un contrôle du type chaîne, qui exclurait les chaînes munies d’une balise de langue ou admettrait des mots sans balise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Execute the canonical integrity formula or its generated validation projection and retain the offending subject, original value and law identity."
+msgstr "Exécuter la formule canonique d’intégrité ou sa projection de validation générée, et conserver le sujet fautif, la valeur originale et l’identité de la loi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuestionTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when validating consumer question records before exposing their wording as language-bearing content."
+msgstr "Utiliser pour valider les enregistrements de questions d’un consommateur avant d’exposer leur formulation comme contenu porteur d’une langue."
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "tenureInquirer is functional"

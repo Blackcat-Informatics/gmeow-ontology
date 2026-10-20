@@ -16,6 +16,8 @@ pub enum TermKindPredicate {
     BlankOrIri,
     /// A well-formed finite literal in the native RDF numeric value space.
     FiniteNumeric,
+    /// A literal with a nonempty native language tag, including base direction.
+    LanguageTagged,
 }
 
 impl TermKindPredicate {
@@ -38,6 +40,7 @@ impl TermKindPredicate {
             Self::Literal => "termIsLiteral",
             Self::BlankOrIri => "termIsBlankOrIri",
             Self::FiniteNumeric => "termIsFiniteNumeric",
+            Self::LanguageTagged => "termHasLang",
         }
     }
 
@@ -49,6 +52,7 @@ impl TermKindPredicate {
             "termIsLiteral" => Some(Self::Literal),
             "termIsBlankOrIri" => Some(Self::BlankOrIri),
             "termIsFiniteNumeric" => Some(Self::FiniteNumeric),
+            "termHasLang" => Some(Self::LanguageTagged),
             _ => None,
         }
     }
@@ -61,6 +65,10 @@ impl TermKindPredicate {
             Self::Literal => value.is_literal(),
             Self::BlankOrIri => value.is_blank() || value.is_iri(),
             Self::FiniteNumeric => super::FiniteNumericLiteral::try_from(value.clone()).is_ok(),
+            Self::LanguageTagged => matches!(
+                value,
+                purrdf::TermValue::Literal { language: Some(tag), .. } if !tag.is_empty()
+            ),
         }
     }
 }

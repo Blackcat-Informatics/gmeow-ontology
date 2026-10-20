@@ -74,8 +74,9 @@ const LOGIC_TERM_REGEX: &str = "https://blackcatinformatics.ca/logic/termRegex";
 /// mirrors [`LOGIC_TERM_REGEX`] but matches against the value's LANGUAGE TAG (`LANG(x)`) rather than
 /// its lexical form (`STR(x)`) — the term the private-use language-tag convention needs.
 const LOGIC_TERM_LANG_MATCHES: &str = "https://blackcatinformatics.ca/logic/termLangMatches";
-/// The `logic:` language-tag presence relation `termHasLang(x)`, lowered to a unary SPARQL
-/// `FILTER ( LANG(x) != "" )` (negated: `LANG(x) = ""`). The companion to [`LOGIC_TERM_LANG_MATCHES`]:
+/// The `logic:` language-tag presence relation `termHasLang(x)`, lowered to a total SPARQL
+/// literal-and-language test (negated: non-literal OR empty language tag).
+/// The companion to [`LOGIC_TERM_LANG_MATCHES`]:
 /// it restricts a language-tag check to genuinely TAGGED literals, so a plain / typed literal (whose
 /// `LANG` is the empty string) is never swept into a tag-pattern violation.
 const LOGIC_TERM_HAS_LANG: &str = "https://blackcatinformatics.ca/logic/termHasLang";
@@ -1119,7 +1120,10 @@ fn unary_nodekind_exprs(pred: &str, x: &str) -> Option<(String, String)> {
             format!("( isIRI({x}) || isBlank({x}) )"),
             format!("!( isIRI({x}) || isBlank({x}) )"),
         )),
-        LOGIC_TERM_HAS_LANG => Some((format!("LANG({x}) != \"\""), format!("LANG({x}) = \"\""))),
+        LOGIC_TERM_HAS_LANG => Some((
+            format!("(isLiteral({x}) && LANG({x}) != \"\")"),
+            format!("(!isLiteral({x}) || LANG({x}) = \"\")"),
+        )),
         _ => None,
     }
 }

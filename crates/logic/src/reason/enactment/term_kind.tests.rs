@@ -102,6 +102,52 @@ fn finite_numeric_intrinsic_runs_through_the_native_integrity_gate() {
 }
 
 #[test]
+fn question_wording_language_guard_runs_through_native_integrity() {
+    let law = r#"
+        ex:KindLaw a logic:Constraint ; logic:integrity ex:all ;
+            logic:formalizes gmeow:questionText ; gmeow:enforcesFailureClass ex:BadMetadata .
+        ex:all a logic:Formula ;
+            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                     [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+            logic:forall ex:implies .
+        ex:implies a logic:Formula ; logic:antecedent ex:path ; logic:consequent ex:tagged .
+        ex:path a logic:Formula ; logic:relation gmeow:questionText ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                           [ logic:termIndex 1 ; logic:termVariable "value" ] .
+        ex:tagged a logic:Formula ; logic:relation logic:termHasLang ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+    "#;
+    for (value, valid) in [
+        ("\"Where?\"@en", true),
+        ("\"Où ?\"@fr", true),
+        ("\"Where?\"@x-gmeow-english", true),
+        ("\"Where?\"@en--ltr", true),
+        ("\"أين؟\"@ar--rtl", true),
+        ("\"Where?\"", false),
+        (
+            "\"Where?\"^^<http://www.w3.org/2001/XMLSchema#string>",
+            false,
+        ),
+        ("42", false),
+        ("ex:wording", false),
+        ("_:wording", false),
+        ("<<(ex:s ex:p ex:o)>>", false),
+    ] {
+        let actual = authored_findings(law, &format!("ex:bad gmeow:questionText {value} ."), 1);
+        assert_eq!(actual, if valid { vec![] } else { bad_record() }, "{value}");
+    }
+    assert!(
+        authored_findings(
+            law,
+            "ex:good gmeow:questionText \"Where?\"@en, \"Où ?\"@fr .",
+            1,
+        )
+        .is_empty()
+    );
+    assert!(authored_findings(law, "ex:open a gmeow:Question .", 1).is_empty());
+}
+
+#[test]
 fn iri_kind_enforces_native_values_and_exact_law_identity() {
     assert_eq!(
         findings(

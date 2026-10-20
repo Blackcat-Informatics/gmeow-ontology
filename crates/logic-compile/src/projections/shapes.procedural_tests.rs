@@ -1477,6 +1477,62 @@ fn flagged_over(shapes_ttl: &str, data: &str) -> Vec<String> {
 }
 
 #[test]
+fn question_wording_language_projection_is_total_on_non_literals() {
+    let tagged = Formula::atom(
+        tiri("https://blackcatinformatics.ca/logic/termHasLang"),
+        vec![tvar("value")],
+    )
+    .unwrap();
+    let law = ConstraintIr::new(
+        "https://ex/wording-language",
+        Formula::Forall {
+            vars: vec!["this".into(), "value".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(atom(
+                    "https://blackcatinformatics.ca/gmeow/questionText",
+                    tvar("this"),
+                    tvar("value"),
+                )),
+                Box::new(tagged),
+            )),
+        },
+        ShaclSeverity::Violation,
+        None,
+    )
+    .unwrap();
+    let program = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![law]);
+    let shapes = project_procedural_constraints(&program);
+    for (value, valid) in [
+        ("\"Where?\"@en", true),
+        ("\"Où ?\"@fr", true),
+        ("\"Where?\"@x-gmeow-english", true),
+        ("\"Where?\"@en--ltr", true),
+        ("\"أين؟\"@ar--rtl", true),
+        ("\"Where?\"", false),
+        (
+            "\"Where?\"^^<http://www.w3.org/2001/XMLSchema#string>",
+            false,
+        ),
+        ("42", false),
+        ("<https://ex/wording>", false),
+        ("_:wording", false),
+        (
+            "<<( <https://ex/s> <https://ex/p> <https://ex/o> )>>",
+            false,
+        ),
+    ] {
+        let data = format!(
+            "<https://ex/focus> <https://blackcatinformatics.ca/gmeow/questionText> {value} ."
+        );
+        assert_eq!(
+            flagged_over_turtle(&shapes, &data).len(),
+            usize::from(!valid),
+            "{value}"
+        );
+    }
+}
+
+#[test]
 fn finite_numeric_projection_preserves_exact_values_and_refuses_nonfinite_terms() {
     let finite = Formula::atom(
         tiri("https://blackcatinformatics.ca/logic/termIsFiniteNumeric"),
