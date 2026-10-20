@@ -38,9 +38,23 @@ define_diag_kind! {
     failure_class = "https://blackcatinformatics.ca/gmeow/SnapshotInputRefusal";
 }
 
+define_diag_kind! {
+    /// Existing bytes cannot supply a complete native append state.
+    pub struct AppendAdmission { cause: std::sync::Arc<purrdf::gts::reader::AppendError> }
+    code = "gts-profile.append-admission";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "GTS append input admission: {}", cause;
+    failure_class = "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation";
+    source = failure => Some(failure.cause.as_ref());
+}
+
 /// The complete GTS-profile diagnostic-code catalog, in registration order.
-pub const GTS_PROFILE_DIAG_CODES: &[&str] =
-    &[Profile::CODE, Archive::CODE, SnapshotAdmission::CODE];
+pub const GTS_PROFILE_DIAG_CODES: &[&str] = &[
+    Profile::CODE,
+    Archive::CODE,
+    SnapshotAdmission::CODE,
+    AppendAdmission::CODE,
+];
 
 define_diag_kind! {
     /// A required native artifact has no unique authenticated archive member.
@@ -57,6 +71,7 @@ pub fn register_all() -> Vec<Code> {
         Profile::register(),
         Archive::register(),
         SnapshotAdmission::register(),
+        AppendAdmission::register(),
     ]
 }
 

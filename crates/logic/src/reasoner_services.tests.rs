@@ -449,7 +449,7 @@ fn a_class_role_refusal_keeps_its_source_in_recorded_and_unrecorded_services() {
 
 #[test]
 fn native_service_cancellation_is_an_execution_diagnostic_with_its_original_cause() {
-    let error = map_entail_err(EntailError::RoleHierarchy(
+    let error = map_entail_err(EntailError::<std::convert::Infallible>::RoleHierarchy(
         purrdf::entail::RoleHierarchyError::Stopped,
     ));
     let failure = error.downcast_ref::<crate::error::DlService>().unwrap();

@@ -72,6 +72,12 @@ fn profile_error(message: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+fn append_error(cause: purrdf::gts::reader::AppendError) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(error::AppendAdmission {
+        cause: std::sync::Arc::new(cause),
+    })
+}
+
 fn map<'a>(value: &'a Value, context: &str) -> gmeow_errors::Result<&'a [(Value, Value)]> {
     match value {
         Value::Map(entries) => Ok(entries),
@@ -687,7 +693,7 @@ pub fn store_writer(
     medium: &StoreMedium,
 ) -> gmeow_errors::Result<GmeowGtsWriter> {
     if !existing.is_empty() {
-        let state = purrdf::gts::reader::segment_append_state(existing).map_err(profile_error)?;
+        let state = purrdf::gts::reader::segment_append_state(existing).map_err(append_error)?;
         if state.dicts.contains_key(&medium.dictionary) {
             let inner =
                 Writer::appending(existing).map_err(|err| profile_error(err.to_string()))?;
@@ -737,7 +743,7 @@ pub fn segment_dictionaries(
     bytes: &[u8],
 ) -> gmeow_errors::Result<std::collections::BTreeMap<String, Vec<u8>>> {
     Ok(purrdf::gts::reader::segment_append_state(bytes)
-        .map_err(profile_error)?
+        .map_err(append_error)?
         .dicts)
 }
 
@@ -754,7 +760,7 @@ pub fn store_tail_pins(existing: &[u8], dictionary: &str) -> gmeow_errors::Resul
     if existing.is_empty() {
         return Ok(false);
     }
-    let state = purrdf::gts::reader::segment_append_state(existing).map_err(profile_error)?;
+    let state = purrdf::gts::reader::segment_append_state(existing).map_err(append_error)?;
     Ok(state.dicts.contains_key(dictionary))
 }
 

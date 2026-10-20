@@ -210,8 +210,12 @@ fn world_scoped(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
         vec![source],
         purrdf::ViewLimits::default(),
     )
-    .and_then(|view| view.materialize());
-    routed.map_err(|e| {
+    .map_err(|e| {
+        Diag::of_kind(LogicReasoning {
+            detail: format!("constructing the merged graph's reasoner view: {e}"),
+        })
+    })?;
+    routed.materialize().map_err(|e| {
         Diag::of_kind(LogicReasoning {
             detail: format!("re-scoping the merged graph into the reasoner world: {e}"),
         })

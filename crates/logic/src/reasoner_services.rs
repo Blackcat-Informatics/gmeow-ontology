@@ -50,9 +50,7 @@ fn map_entail_err<E: std::error::Error + Send + Sync + 'static>(
 ) -> gmeow_errors::Diag {
     let kind = match &error {
         EntailError::Unsatisfiable => DlServiceFailureKind::NoModel,
-        EntailError::Parse(_) | EntailError::MalformedList(_) | EntailError::OwlSyntax(_) => {
-            DlServiceFailureKind::Malformed
-        }
+        EntailError::Parse(_) | EntailError::MalformedList(_) => DlServiceFailureKind::Malformed,
         EntailError::RoleHierarchy(role) => {
             use purrdf::entail::RoleHierarchyError;
             match role.classification() {
