@@ -128,6 +128,7 @@ BANNED_ANY_EDGE: dict[str, str] = {
     "blake3": "purrdf_hash::blake3",
     "sha1": "purrdf_hash::sha1::Sha1",
     "serde_yml": "purrdf_lex::yaml",
+    "jsonschema": "purrdf_jsonschema::{Registry, Schema}",
 }
 
 # Removed as a direct dependency of every workspace member, while a direct
