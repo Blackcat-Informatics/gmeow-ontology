@@ -1,0 +1,33 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nFive questions about how a claim's life ends or changes. They need\nGMEOW's judgment more than new terms:\n1. erasure, against the \"suppression, never erasure\" doctrine;\n2. a receipt for a deletion made before the store existed, where the\n   two consumers currently disagree;\n3. succession against correction;\n4. the default of an absent modal force;\n5. retraction encoded twice.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumers\n\n- **memetics**: the memory adapter for a companion agent. Revision is\n  suppression; removal is a governed purge, never a silent expiry. It is\n  migrating an archive that includes historical repairs which removed\n  and rewrote claims before any of this doctrine existed.\n- **katamari**: the governed store. A delete removes exactly the object\n  named, and references to it dangle (its ADR-0047 47.10, which retired\n  an earlier purge/expunge split). No record of a deletion may survive\n  the purge (its ADR-0014).\n\n## 1. Erasure and the forget request (both)\n\n**Today.**\n- Every slice says \"suppression, never erasure\". The doctrine comes\n  from #234's identity-over-history model: `displayable false` retains\n  the bytes and never displays them.\n- The nearest terms are `gmeow:hasDataSubject` and `gmeow:actionDelete`\n  (`core/rights`).\n\n**Gap.**\n- Both consumers must be able to remove data for real. A person can ask\n  to be forgotten, and a governed purge must actually delete.\n- The vocabulary has no way to state a forget request, and the doctrine\n  as written forbids what both stores must do.\n\n**Proposal.**\n- Doctrine: suppression remains the default for revision.\n  - Erasure is a separate, governed act. It removes exactly the object\n    named; references to it dangle, and a dangling reference answers\n    \"gone\".\n  - The doctrine text says so, rather than \"never erasure\".\n- A term for the forget request: what it covers, who asked, and under\n  which right.\n  - In katamari, the request's own record is purged together with what\n    it covers. The term is for the request in flight, not a lasting\n    record.\n\n**Open question.** How should the slices that state \"never erasure\"\n(names, gender, software identity) word the exception without weakening\n#234's model for ordinary revision?\n\n## 2. A receipt for a deletion made before the store (the consumers disagree)\n\n**memetics' position.**\n- The archive it is migrating contains historical repairs. Before any\n  governed store existed, a maintenance process removed some claims and\n  rewrote others, and recorded a receipt: reason, count, which claims.\n- That receipt is history of the archive, not a deletion inside the new\n  store.\n- memetics minted `gmeow:ExpunctionReceipt` (a `gmeow:Activity`), with\n  its reason, a removed count and the identifiers removed, plus\n  `gmeow:ClaimRewrite` for the rewrites.\n\n**katamari's position.**\n- A tombstone, \"this was purged\", is not a candidate. Its store forbids\n  any record of a deletion surviving purge.\n- Vocabulary for one would exist to be misused.\n- A dangling reference is already its own observation.\n\n**Ask.** Does GMEOW want a term for a historical deletion receipt at all,\ngiven the tombstone risk? If yes, how should it be fenced so it cannot\nbe used for deletions inside a governed store? For example: it is\ndocumented as describing an act outside the graph's own history, and\ncarries no identifier of what was removed. If no, memetics will keep its\nhistorical receipts as source evidence outside the migrated stores.\n\n## 3. Succession against correction (katamari)\n\n**Today.** \"Bob became Janet\" (succession: both were true, at different\ntimes) and \"Bob was never Bob\" (correction: the earlier claim was wrong)\nboth reach for `gmeow:displayable false` (`names`, `gender` slices).\nThey are not told apart.\n\n**Why it matters.** A store answering \"what was true then?\" must keep\nthe succession's earlier truth, and must not keep the corrected claim's.\n\n**Proposal.** Distinguish them, for example with a succession relation\nbetween name usages (with a time) beside suppression for correction.\nkatamari models this as a `succeed` claim operation.\n\n## 4. The default of an absent modal force (katamari)\n\n**Today.** `gmeow:claimModalForce` (`core/standpoint`) has a `howToUse`\nreading an absent force as `gmeow:modalForceNecessary`. That is odd for\na plain observation: \"this message was sent\" is not necessary.\n\n**Proposal.** An absent modal force reads as unspecified, as GMEOW\nalready does for standpoints. katamari has adopted this reading.\n\n## 5. Retraction encoded twice (katamari)\n\n**Today.** `gmeow:AssertoricForce` (`core/standpoint`) includes\n`gmeow:assertoricRetract`, while retraction is also a lifecycle act on\nthe claim.\n\n**Proposal.** One canonical encoding. katamari encodes retraction only as\nthe act, and refuses the force value as non-canonical. Should\n`assertoricRetract` be deprecated, or documented as the speech-act\nreading only?\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-10T10:12:34Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZK3g",
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnBobWQ",
+      "name": "normative",
+      "description": "Normative stack: teleology, deontics, evaluation, risk, registers, affect",
+      "color": "8250DF"
+    }
+  ],
+  "milestone": null,
+  "number": 1815,
+  "state": "OPEN",
+  "title": "Claim lifecycle doctrine: erasure and forget requests, historical deletion receipts, succession vs correction, modal force default, retraction (consumers: memetics, katamari)",
+  "updatedAt": "2026-10-10T10:12:34Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1815"
+}

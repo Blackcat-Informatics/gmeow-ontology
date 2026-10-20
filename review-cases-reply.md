@@ -1,0 +1,5 @@
+Addressed the missing coverage from the outside-diff review: the independently authored native fixture now rejects a blank right reference and a literal requester, and positively accepts a typed anonymous requester. Matching source conformance fixtures are registered for all three cases. The existing named-agent success and target/right IRI controls remain.
+
+The proposed requester IRI constraint is not part of the production contract and is not adopted. requestingAgent has range Agent; named or anonymous agents can fill that role. Only requestedErasureTarget and requestUnderRight require named IRIs. The doctrine now states this distinction explicitly, with consuming authorization policy remaining separate. Requiring a global requester IRI here would add an identity restriction that the issue did not request (Principles 7, 9 and 17).
+
+The source-derived conformance judgments remain registered for the authenticated hosted producer; no test rebuilds the corpus. The earlier seven-test run passed, and the affected native request test plus strict Clippy are being rerun for these added controls.

@@ -1,0 +1,32 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1815-claim-lifecycle-doctrine-erasure-and 72ce6f22f] feat: define governed claim lifecycle and erasure doctrine
+ 38 files changed, 1323 insertions(+), 39 deletions(-)
+ create mode 100644 docs/claim-lifecycle.md
+ create mode 100644 slices/core/rights/examples/forget-request.ttl
+ create mode 100644 slices/core/rights/tests/conformance-fixtures/forget-request.ttl
+ create mode 100644 slices/core/rights/tests/counter-examples/forget-blank-target.ttl
+ create mode 100644 slices/core/rights/tests/counter-examples/forget-literal-right.ttl
+ create mode 100644 slices/core/rights/tests/counter-examples/forget-literal-target.ttl
+ create mode 100644 slices/core/rights/tests/counter-examples/forget-missing-requester.ttl
+ create mode 100644 slices/core/rights/tests/counter-examples/forget-missing-right.ttl
+ create mode 100644 slices/core/rights/tests/counter-examples/forget-missing-target.ttl
+ create mode 100644 slices/core/rights/tests/example-conformance.ttl
+ create mode 100644 slices/core/standpoint/examples/claim-lifecycle.ttl

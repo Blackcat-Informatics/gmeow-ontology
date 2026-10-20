@@ -1,0 +1,84 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(absent_modal_force_stays_unspecified_through_gmn) | test(explicit_necessary_and_speech_act_survive_without_lifecycle_invention) | test(lifecycle_relations_keep_standpoint_and_effective_time_through_gmn) | test(forget_request_requires_roles_and_named_references_without_granting_permission)' --no-tests=fail
+    Blocking waiting for file lock on build directory
+   Compiling ring v0.17.14
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/logic)
+   Compiling typst-eval v0.13.1
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/lang-bridge)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/gmn-cost-matrix)
+   Compiling rustls-webpki v0.103.15
+   Compiling typst v0.13.1
+   Compiling rustls v0.23.46
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/bench-engines)
+   Compiling ureq v3.3.0
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/validate)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 15m 31s
+────────────
+ Nextest run ID 0d65470d-83a3-4486-bee4-187dfc0049a6 with nextest profile: ci
+    Starting 4 tests across 225 binaries (7713 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.031s] (1/4) gmeow-lang-bridge::gmn1_roundtrip absent_modal_force_stays_unspecified_through_gmn
+        PASS [   0.007s] (2/4) gmeow-lang-bridge::gmn1_roundtrip explicit_necessary_and_speech_act_survive_without_lifecycle_invention
+        PASS [   0.018s] (3/4) gmeow-lang-bridge::gmn1_roundtrip lifecycle_relations_keep_standpoint_and_effective_time_through_gmn
+        FAIL [   0.231s] (4/4) gmeow-pipeline stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission
+  stdout ───
+
+    running 1 test
+    test stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission ... FAILED
+
+    failures:
+
+    failures:
+        stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 995 filtered out; finished in 0.20s
+
+  stderr ───
+
+    thread 'stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission' (2578656) panicked at crates/pipeline/src/stages/compile_logic/validation_fixtures.tests.rs:119:77:
+    called `Result::unwrap()` on an `Err` value: Invalid("node _:gts_00000000000000000000000001 has more than one distinct value for <http://www.w3.org/ns/shacl#nodeKind>; only one is allowed")
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+────────────
+     Summary [   0.375s] 4 tests run: 3 passed, 1 failed, 7713 skipped
+        FAIL [   0.231s] (4/4) gmeow-pipeline stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission
+  stdout ───
+
+    running 1 test
+    test stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission ... FAILED
+
+    failures:
+
+    failures:
+        stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 995 filtered out; finished in 0.20s
+
+  stderr ───
+
+    thread 'stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission' (2578656) panicked at crates/pipeline/src/stages/compile_logic/validation_fixtures.tests.rs:119:77:
+    called `Result::unwrap()` on an `Err` value: Invalid("node _:gts_00000000000000000000000001 has more than one distinct value for <http://www.w3.org/ns/shacl#nodeKind>; only one is allowed")
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:713: nextest-synthetic] Error 100

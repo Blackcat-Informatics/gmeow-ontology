@@ -1,0 +1,8 @@
+{
+  "issue": 1815,
+  "branch": "paudley/1815-claim-lifecycle-doctrine-erasure-and",
+  "base": "origin/main",
+  "commits": [],
+  "files": [],
+  "adrs_touched": []
+}

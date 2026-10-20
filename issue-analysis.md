@@ -1,0 +1,1 @@
+All five questions are in scope. The owning slices are rights and standpoint. Principle 10 must be explicitly amended, not silently contradicted. No storage operation or automatic destructive inference is authorized by a vocabulary assertion.

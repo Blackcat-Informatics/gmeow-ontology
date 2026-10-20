@@ -1,0 +1,129 @@
+{
+  "issue": 1815,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "Claim lifecycle doctrine: erasure and forget requests, historical deletion receipts, succession vs correction, modal force default, retraction (consumers: memetics, katamari)",
+  "state": "OPEN",
+  "adrs": [
+    {
+      "id": "ADR-0047",
+      "path": null,
+      "title": "",
+      "files": [],
+      "history": []
+    },
+    {
+      "id": "ADR-0014",
+      "path": null,
+      "title": "",
+      "files": [],
+      "history": []
+    }
+  ],
+  "linked_issues": {
+    "234": "feat(software): identity over immutable history \u2014 suppression, not erasure (the .mailmap model)",
+    "47": "[term] Projects, software, git & verifiable provenance \u2014 the maximal superset (de-conflate DOAP; AI/agent contributors; identity over immutable history)"
+  },
+  "link_relations": {
+    "234": "mentions",
+    "47": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1336,
+      "title": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+      "state": "OPEN"
+    },
+    {
+      "number": 1704,
+      "title": "Agentic modal kernel epic: intent algebra, deontic work graphs, choreography-as-projection, LTLf temporal operators",
+      "state": "OPEN"
+    },
+    {
+      "number": 1638,
+      "title": "[term] Durable work orchestration, plan refinement, decision support, and external-effect saga vocabulary",
+      "state": "OPEN"
+    },
+    {
+      "number": 743,
+      "title": "H9 \u2014 slice-quality: prose\u2194axiom harvest-coverage axis + coverage report (per-slice harvest sweep \u2192 background uplift lane)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 766,
+      "title": "META-EPIC: Typed compositional meta-semantics \u2014 orthogonal canonical axes, generated surfaces",
+      "state": "CLOSED"
+    },
+    {
+      "number": 734,
+      "title": "epic: Harvest the ontology's prose constraints into enforced full-FOL logic: axioms",
+      "state": "CLOSED"
+    },
+    {
+      "number": 258,
+      "title": "feat(organization): realize the W3C-ORG depth the alignment already presumes \u2014 Posts, Sites, org typing, multi-org change events, legal identity",
+      "state": "CLOSED"
+    },
+    {
+      "number": 263,
+      "title": "feat(expertise): deepen the Skill/Credential stub \u2014 SkillProficiency (generalizing the languages rating pattern), temporal + endorsement standpoint, credential issuance via attestation",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1311,
+      "title": "logic: conjecture / anti-conjecture library \u2014 first-class candidate formulas, KB testing, persisted refutation witnesses",
+      "state": "CLOSED"
+    },
+    {
+      "number": 739,
+      "title": "H5 \u2014 Definitional axioms: deception / standpoint / falsehood family",
+      "state": "CLOSED"
+    },
+    {
+      "number": 582,
+      "title": "feat(inquiry): Questions as the erotetic content sibling of Proposition/Goal (new core slice)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1026,
+      "title": "docs: per-term changelog, stability, profile membership, citation/DOI from release evidence",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1642,
+      "title": "slice-quality: close the last 4 axis floors and adjudicate 5 projection ceilings left by the #1442 relocations",
+      "state": "CLOSED"
+    },
+    {
+      "number": 791,
+      "title": "docs(logic): DESIGN-FIRST \u2014 author the logic design spec NOW; implementation conforms to it",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "model-ownership": 1,
+    "unsupported-consequent": 1,
+    "none": 41,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/1815-claim-lifecycle-doctrine-erasure-and"
+  },
+  "coverage": [
+    "issue #1815 + 0 comment(s) via github",
+    "link crawl: 2 issue(s) within 2 hop(s) of `#N` references",
+    "ADR-0047 cited by the issue but no file in docs/adr/",
+    "ADR-0014 cited by the issue but no file in docs/adr/",
+    "ADRs: 2 cited; 0 resolved on disk",
+    "forge search on ['Claim', 'lifecycle', 'doctrine:']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1815 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1815: 0",
+    "requirement candidates: 10 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 2 path(s) (0 on disk), 7 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

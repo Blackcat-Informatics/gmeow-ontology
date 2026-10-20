@@ -1,0 +1,47 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(absent_modal_force_stays_unspecified_through_gmn) | test(explicit_necessary_and_speech_act_survive_without_lifecycle_invention) | test(lifecycle_relations_keep_standpoint_and_effective_time_through_gmn) | test(forget_request_requires_roles_and_named_references_without_granting_permission) | test(conjunctive_node_kind) | test(disjoint_node_kinds)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 13m 14s
+────────────
+ Nextest run ID d36448a1-4796-4b25-8d79-7158ec137660 with nextest profile: ci
+    Starting 7 tests across 225 binaries (7713 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.007s] (1/7) gmeow-logic-compile ir::validation::tests::disjoint_node_kinds_dominate_value_sets_inside_qualified_shapes
+        PASS [   0.007s] (2/7) gmeow-lang-bridge::gmn1_roundtrip explicit_necessary_and_speech_act_survive_without_lifecycle_invention
+        PASS [   0.007s] (3/7) gmeow-lang-bridge::gmn1_roundtrip lifecycle_relations_keep_standpoint_and_effective_time_through_gmn
+        PASS [   0.007s] (4/7) gmeow-logic-compile ir::validation::tests::conjunctive_node_kind_facets_preserve_every_pair_and_supply_order
+        PASS [   0.009s] (5/7) gmeow-lang-bridge::gmn1_roundtrip absent_modal_force_stays_unspecified_through_gmn
+        PASS [   0.106s] (6/7) gmeow-logic-compile projections::shapes::tests::conjunctive_node_kinds_emit_loadable_shapes_and_preserve_optional_absence
+        PASS [   0.144s] (7/7) gmeow-pipeline stages::compile_logic::validation_fixtures::tests::forget_request_requires_roles_and_named_references_without_granting_permission
+────────────
+     Summary [   0.237s] 7 tests run: 7 passed, 7713 skipped

@@ -1,0 +1,1 @@
+Reuse Activity, wasAssociatedWith and supersedes. Existing Rule/Permission/Duty represent policy, not a request occurrence. Keep ordinary suppression guards. The modality codec preserves supplied qualifiers; no native modal defaulting implementation was found. Remove the stale reference to a nonexistent standalone modality projection file.

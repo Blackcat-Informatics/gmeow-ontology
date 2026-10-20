@@ -1,0 +1,57 @@
+{
+  "paths": [
+    {
+      "ref": "core/rights",
+      "path": "/home/paudley/Active/gmeow-ontology/core/rights",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "core/standpoint",
+      "path": "/home/paudley/Active/gmeow-ontology/core/standpoint",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2090
+    },
+    {
+      "name": "a631f73",
+      "files": 0
+    },
+    {
+      "name": "names",
+      "files": 1687
+    },
+    {
+      "name": "gender",
+      "files": 73
+    },
+    {
+      "name": "succeed",
+      "files": 160
+    },
+    {
+      "name": "howToUse",
+      "files": 295
+    },
+    {
+      "name": "assertoricRetract",
+      "files": 3
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

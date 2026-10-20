@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1815,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and",
+  "branch": "paudley/1815-claim-lifecycle-doctrine-erasure-and",
+  "slug": "claim-lifecycle-doctrine-erasure-and",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/.stage/claim-lifecycle-doctrine-erasure-and",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "5e9be8ae1893ff76bf76e2bac6f213d7acce614f",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and",
+    "branch:paudley/1815-claim-lifecycle-doctrine-erasure-and",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/.stage/claim-lifecycle-doctrine-erasure-and",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1815-claim-lifecycle-doctrine-erasure-and/.stage/claim-lifecycle-doctrine-erasure-and/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T12:11:11-0600"
+}
