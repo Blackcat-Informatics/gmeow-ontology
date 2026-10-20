@@ -1,0 +1,21 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 2cd52bb8eefdd6f05477c796a8fef3983b42a1f6
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1877
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1877
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 2aecea137f97f9b26408c828a76b54c57f5b3c31
+GhpRsq-Head-Ref: paudley/1814-term-narrative-and-affect-epistemic
+GhpRsq-Head-OID: 2cd52bb8eefdd6f05477c796a8fef3983b42a1f6
+GhpRsq-Result-Tree: e7a1be35c63014323ce1168971decb19d148d4bc
+GhpRsq-Result-Commit: 7586e941e254936de0a293e9bfd598b71b03dda0
+GhpRsq-Parent-Hashes: 2cd52bb8eefdd6f05477c796a8fef3983b42a1f6
+GhpRsq-Squash-Notes-SHA256: d4916f29132c77998058bcbeec827c2e67cc1f92bce46b00a6d71f7e3f167ea9
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Tree: f740990a603fa1594cf6263b5a2408f83ceb1914
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1877/stage
+GhpRsq-Stage-Files: 26
