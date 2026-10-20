@@ -99,6 +99,55 @@ fn canonical_numeric_data_ranges_validate_the_generated_union() {
     }
 }
 
+/// Canonical property ranges must constrain values, including their language and
+/// stated time precision, through the generated validation surface.
+#[test]
+fn language_literal_projection_and_calendar_precision_use_generated_ranges() {
+    let prefixes = "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix g: <https://blackcatinformatics.ca/gmeow/> .\n\
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
+    let source = format!(
+        "{prefixes}\n\
+         g:words a logic:DatatypeProperty ; logic:range [\n\
+             logic:unionOf (rdf:langString rdf:dirLangString) ] .\n\
+         g:when a logic:DatatypeProperty ; logic:range [\n\
+             logic:unionOf (xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear) ] .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:words ;\n\
+             logic:closureValue logic:ClosedWorldClosure .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:when ;\n\
+             logic:closureValue logic:ClosedWorldClosure ."
+    );
+    let source = parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(&source).unwrap();
+    assert_eq!(shapes.len(), 2, "both selected property ranges are emitted");
+    let mut wire = String::from("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
+    for shape in &shapes {
+        wire.push_str(
+            &gmeow_logic_compile::projections::shapes::project_validation_shape_shacl(shape),
+        );
+    }
+    for (property, value, expected) in [
+        ("words", "\"hello\"@en", true),
+        ("words", "\"canonical prose\"@x-gmeow-english", true),
+        ("words", "\"مرحبا\"@ar--rtl", true),
+        ("words", "\"hello\"@en--ltr", true),
+        ("words", "\"untagged\"", false),
+        ("words", "42", false),
+        ("words", "<urn:resource>", false),
+        ("when", "\"2026-10-10T09:00:00Z\"^^xsd:dateTime", true),
+        ("when", "\"2026-10-10\"^^xsd:date", true),
+        ("when", "\"2026-10\"^^xsd:gYearMonth", true),
+        ("when", "\"2026\"^^xsd:gYear", true),
+        ("when", "\"2026\"", false),
+        ("when", "2026", false),
+        ("when", "<urn:period>", false),
+    ] {
+        let data = format!("{prefixes}<urn:record> g:{property} {value} .");
+        assert_eq!(shacl_conforms(&wire, &data), expected, "{property} {value}");
+    }
+}
+
 /// The gmeow namespace table used by both the schema compiler and the JSON-LD
 /// projector — identical to the corpus sweep's, so CURIE compaction matches
 /// production exactly.
