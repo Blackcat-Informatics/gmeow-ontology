@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "65d5b4691e7c8c43b6ae4f6215b54d3bb40921fb",
+  "headRefName": "paudley/1776-deps-replace-serde-serde-json-with",
+  "headRefOid": "7fa33f6114241d34e6a1fb2218545cf289241849",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1933,
+  "state": "OPEN",
+  "title": "refactor: use native JSON for medium winner tables",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1933"
+}

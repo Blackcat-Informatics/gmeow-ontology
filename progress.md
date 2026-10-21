@@ -1,0 +1,5 @@
+PR #1932 landed the complete native agreement-tally record family: actual producer, dashboard reader and authenticated typed-reader compilation now share the native codec. Sorted keys, declared field order, pretty bytes, trailing newline, omitted empty maps, unsigned counts and missing/null behavior are covered. Typed records now deliberately require objects. Rate arithmetic uses wider intermediates, and all displayed aggregates refuse overflow with actionable identity.
+
+All 17 focused authored-data controls passed, along with strict prebuild, helper ownership, source admission, formatting, lint and normal signed commit/push hooks. Independent source review is clear; merge candidate and signed Stage archive were verified and the completed worktree was cleaned.
+
+Principles 4 and 7. This parent stays open: authenticated corpus, installed consumers, remaining Serde families and full qualification are still outstanding. The recorded campaign exception applies to local corpus/full-gate runs and waiting for CI.
