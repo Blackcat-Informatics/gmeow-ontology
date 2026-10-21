@@ -1345,8 +1345,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-math",
  "purrdf",
- "serde",
- "serde_json",
+ "purrdf-lex",
 ]
 
 [[package]]
@@ -1443,6 +1442,7 @@ dependencies = [
  "purrdf",
  "purrdf-ed25519",
  "purrdf-hash",
+ "purrdf-lex",
  "serde",
  "serde_json",
  "tempfile",
