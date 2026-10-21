@@ -7,7 +7,10 @@ use std::collections::BTreeSet;
 
 use gmeow_lang_bridge::{Gmn1Document, GmnDictionary, gmn1_read, resolve_operator_forms};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::{
+    Object, Value,
+    record::{DecodeError, FromJson, Record, ToJson},
+};
 
 use super::{Gmn1Primer, PrimerError, Reader, build_primer_with_dictionary};
 
@@ -17,7 +20,7 @@ pub const SOURCE: &str = "slices/grounding/lang/examples/gmn-heldout-emission-ta
 pub const ARTIFACT: &str = "gmn-primer-teachability.json";
 
 /// The exact shipped card and each held-out document's observed reader outcome.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Observations {
     pub primer: Gmn1Primer,
     pub tasks: Vec<HeldoutTask>,
@@ -25,13 +28,61 @@ pub struct Observations {
 
 /// Constructs are derived from the document and the full operator alphabet, independently
 /// of the budget-limited primer. An omitted primer row cannot hide an exercised operator.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct HeldoutTask {
     pub label: String,
     pub document: String,
     pub sigils: BTreeSet<String>,
     pub operator_glyphs: BTreeSet<String>,
     pub ast_error: Option<String>,
+}
+
+impl ToJson for Observations {
+    /// Preserve the primer before the ordered held-out task array.
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("primer", self.primer.to_json())
+            .with("tasks", self.tasks.to_json())
+            .into()
+    }
+}
+
+impl FromJson for Observations {
+    /// Decode an authenticated observation without producing any primer or task.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "primer observation object")?;
+        Ok(Self {
+            primer: fields.required("primer")?,
+            tasks: fields.required("tasks")?,
+        })
+    }
+}
+
+impl ToJson for HeldoutTask {
+    /// Preserve declaration order, sorted string sets and explicit null errors.
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("label", self.label.to_json())
+            .with("document", self.document.to_json())
+            .with("sigils", self.sigils.to_json())
+            .with("operator_glyphs", self.operator_glyphs.to_json())
+            .with("ast_error", self.ast_error.to_json())
+            .into()
+    }
+}
+
+impl FromJson for HeldoutTask {
+    /// Decode string arrays into the existing sorted/deduplicated set owners.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "held-out primer task object")?;
+        Ok(Self {
+            label: fields.required("label")?,
+            document: fields.required("document")?,
+            sigils: fields.required("sigils")?,
+            operator_glyphs: fields.required("operator_glyphs")?,
+            ast_error: fields.optional("ast_error")?,
+        })
+    }
 }
 
 /// Observe the actual reader against the selected bundle's prepared native dictionary,

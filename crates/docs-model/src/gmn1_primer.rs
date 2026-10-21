@@ -40,6 +40,11 @@ use gmeow_lang_bridge::{GmnDictionary, resolve_operator_forms};
 use gmeow_logic_compile::ingest::{ns_to_prefix, sssom_id};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
+use purrdf_lex::json::{
+    Object, Value,
+    record::{DecodeError, FromJson, Record, ToJson, Within as _},
+};
+
 use crate::llms::{self, LlmsSection, estimate_tokens};
 
 pub mod teachability;
@@ -72,7 +77,7 @@ impl std::error::Error for PrimerError {}
 /// The kind of graph source a primer row traces to — the falsifiable "no hand-authored prose"
 /// witness the graph-derived test reads: every emitted content line carries one of these, so a
 /// line that traced to nothing (invented prose) could not be constructed here.
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PrimerRowSource {
     /// A `gmeow:GmnSigilRole` individual — keyed by its CURIE.
     Sigil { curie: String },
@@ -85,7 +90,7 @@ pub enum PrimerRowSource {
 /// One graph-derived primer row: the rendered one-line body plus its source provenance and its
 /// deterministic sort key (the CURIE). Rows are ordered by `(group, sort_curie)` so the whole
 /// card is byte-stable regardless of dataset iteration order.
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug)]
 struct PrimerRow {
     /// The CURIE sort key within the group (sigils and the repair loop are emitted before
     /// operators so they always fit the budget whole; within each group rows sort by this key).
@@ -98,7 +103,7 @@ struct PrimerRow {
 
 /// The built GMN-1 primer: the graph-derived rows that fit the token budget, the rendered
 /// section for the `llms.txt`-family surfaces, and the elision accounting.
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Gmn1Primer {
     /// Every graph-derived row, in emission order, that fit the budget.
     rows: Vec<PrimerRow>,
@@ -109,6 +114,119 @@ pub struct Gmn1Primer {
     elided_operators: usize,
     /// The total operator rows the graph offered (the elision denominator).
     total_operators: usize,
+}
+
+impl ToJson for PrimerRowSource {
+    /// Emit one external Pascal tag and declaration-order variant fields.
+    fn to_json(&self) -> Value {
+        let (tag, fields) = match self {
+            Self::Sigil { curie } => ("Sigil", Object::new().with("curie", curie.to_json())),
+            Self::Operator { curie, glyph } => (
+                "Operator",
+                Object::new()
+                    .with("curie", curie.to_json())
+                    .with("glyph", glyph.to_json()),
+            ),
+            Self::Repair { curie } => ("Repair", Object::new().with("curie", curie.to_json())),
+        };
+        Object::new().with(tag, fields).into()
+    }
+}
+
+impl FromJson for PrimerRowSource {
+    /// Require exactly one recognized external tag, retaining duplicate checks.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut variant = Record::new(value, "externally tagged PrimerRowSource object")?;
+        for name in ["Sigil", "Operator", "Repair"] {
+            variant.raw(name)?;
+        }
+        let object = value.as_object().expect("Record admitted an object");
+        if object.len() != 1 {
+            return Err(DecodeError::invalid_value(
+                value,
+                "exactly one PrimerRowSource variant member",
+            ));
+        }
+        let (tag, payload) = object.iter().next().expect("one variant member");
+        let mut fields = Record::new(payload, "primer source variant object")
+            .map_err(|error| error.within(tag))?;
+        let result = match tag.as_str() {
+            "Sigil" => fields.required("curie").map(|curie| Self::Sigil { curie }),
+            "Operator" => (|| {
+                Ok(Self::Operator {
+                    curie: fields.required("curie")?,
+                    glyph: fields.required("glyph")?,
+                })
+            })(),
+            "Repair" => fields.required("curie").map(|curie| Self::Repair { curie }),
+            other => {
+                return Err(DecodeError::unknown_variant(
+                    other,
+                    &["Sigil", "Operator", "Repair"],
+                ));
+            }
+        };
+        result.map_err(|error| error.within(tag))
+    }
+}
+
+impl ToJson for PrimerRow {
+    /// Preserve row declaration order and its typed source witness.
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("sort_curie", self.sort_curie.to_json())
+            .with("body", self.body.to_json())
+            .with("source", self.source.to_json())
+            .into()
+    }
+}
+
+impl FromJson for PrimerRow {
+    /// Decode required row fields without admitting duplicate known members.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "primer row object")?;
+        Ok(Self {
+            sort_curie: fields.required("sort_curie")?,
+            body: fields.required("body")?,
+            source: fields.required("source")?,
+        })
+    }
+}
+
+impl ToJson for Gmn1Primer {
+    /// Emit rows, intro and exact unsigned counters in declaration order.
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("rows", self.rows.to_json())
+            .with("intro", self.intro.to_json())
+            .with("elided_operators", self.elided_operators.to_json())
+            .with("total_operators", self.total_operators.to_json())
+            .into()
+    }
+}
+
+impl FromJson for Gmn1Primer {
+    /// Decode stored rows and strict unsigned counter tokens without reconstruction.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "GMN primer object")?;
+        let counter = |value: &Value| {
+            value
+                .as_u64()
+                .and_then(|number| usize::try_from(number).ok())
+                .ok_or_else(|| {
+                    DecodeError::invalid_value(
+                        value,
+                        "an unsigned integer token within usize range",
+                    )
+                })
+        };
+        Ok(Self {
+            rows: fields.required("rows")?,
+            intro: fields.required("intro")?,
+            elided_operators: fields.required_with("elided_operators", counter)?,
+            total_operators: fields.required_with("total_operators", counter)?,
+        })
+    }
 }
 
 impl Gmn1Primer {
@@ -575,3 +693,7 @@ pub fn build_primer_with_dictionary(
 #[path = "gmn1_primer.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "gmn1_primer.json.tests.rs"]
+mod json_tests;

@@ -428,21 +428,14 @@ impl Bundle {
     /// emitting a `python_model` link, so a class the emitter never gave a `$defs`
     /// entry never gets a fabricated one. Empty when the bundle carries no
     /// `schemas-archive` rep (the
-    /// wheel-only-install contract) or the schema declares no `$defs`.
+    /// wheel-only-install contract) or the decoded JSON has no object-valued `$defs`.
+    /// This extracts keys rather than validating the schema. Native free-form JSON
+    /// retains arbitrary numeric lexemes and uses recursive last-member-wins objects.
     pub fn modeled_def_keys(&self) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
         let Some(schema_bytes) = self.schema()? else {
             return Ok(BTreeSet::new());
         };
-        let parsed: serde_json::Value = serde_json::from_slice(&schema_bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleJson {
-                message: format!("gmeow.schema.json: {e}"),
-            })
-        })?;
-        Ok(parsed
-            .get("$defs")
-            .and_then(|v| v.as_object())
-            .map(|d| d.keys().cloned().collect())
-            .unwrap_or_default())
+        modeled_def_keys_from_json(&schema_bytes)
     }
 
     /// The bundled term-`Card` JSON Schema (`card.schema.json`) — the
@@ -551,22 +544,44 @@ impl Bundle {
         let Some(raw) = self.blob_by_rep(REP_DENIED)? else {
             return Ok(None);
         };
-        let rows: Vec<Vec<String>> = serde_json::from_slice(&raw).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleJson {
-                message: e.to_string(),
+        denied_cells_from_json(&raw).map(Some)
+    }
+}
+
+/// Extract only object-valued `$defs` keys, preserving the existing empty-shape
+/// policy. The native owner resolves every duplicate name last, recursively;
+/// unused values are not interpreted as numeric identities or schema verdicts.
+fn modeled_def_keys_from_json(raw: &[u8]) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+    let parsed = purrdf_lex::json::record::read_document(raw).map_err(|e| {
+        gmeow_errors::Diag::of_kind(BundleJson {
+            message: format!("gmeow.schema.json: {e}"),
+        })
+    })?;
+    Ok(parsed
+        .get("$defs")
+        .and_then(|value| value.as_object())
+        .map(|definitions| definitions.keys().cloned().collect())
+        .unwrap_or_default())
+}
+
+/// Decode the selected refusal rows as strings, then enforce the existing exact
+/// triple width. Row order, duplicates and decoded string contents are retained.
+fn denied_cells_from_json(raw: &[u8]) -> Result<DeniedCells, gmeow_errors::Diag> {
+    let rows: Vec<Vec<String>> = purrdf_lex::json::record::from_slice(raw).map_err(|e| {
+        gmeow_errors::Diag::of_kind(BundleJson {
+            message: e.to_string(),
+        })
+    })?;
+    let mut out = Vec::with_capacity(rows.len());
+    for row in rows {
+        let [a, b, c] = <[String; 3]>::try_from(row).map_err(|bad| {
+            gmeow_errors::Diag::of_kind(BundleJson {
+                message: format!("denied-cells row is not a 3-tuple: {bad:?}"),
             })
         })?;
-        let mut out = Vec::with_capacity(rows.len());
-        for row in rows {
-            let [a, b, c] = <[String; 3]>::try_from(row).map_err(|bad| {
-                gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleJson {
-                    message: format!("denied-cells row is not a 3-tuple: {bad:?}"),
-                })
-            })?;
-            out.push((a, b, c));
-        }
-        Ok(Some(out))
+        out.push((a, b, c));
     }
+    Ok(out)
 }
 
 /// The blob-DAG integrity law over a folded bundle, computed by
@@ -925,3 +940,7 @@ pub fn bundled_denied_cells(snapshot: &[u8]) -> Result<Option<DeniedCells>, gmeo
 #[path = "bundle_blobs.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[path = "bundle_blobs/json.tests.rs"]
+#[cfg(test)]
+mod json_tests;
