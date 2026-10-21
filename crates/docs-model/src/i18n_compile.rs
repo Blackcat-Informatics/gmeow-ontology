@@ -17,6 +17,7 @@ use gmeow_errors::{
 use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use purrdf_hash::sha1::Sha1;
+use purrdf_lex::json::{self, record::ToJson};
 use regex::Regex;
 
 use crate::error::{
@@ -102,9 +103,7 @@ impl I18nLintReport {
                 Grade::new(severity, category, standpoint),
                 message,
             )
-            .with_focus(
-                serde_json::to_string(&(rule, subjects)).expect("catalog identities serialize"),
-            ),
+            .with_focus(json::write_compact(&(rule, subjects).to_json())),
             path,
         ));
     }
