@@ -975,7 +975,10 @@ fn vocab(prefix: &str, ns: &[&str], dc: u64) -> crate::model::ProjectionVocabula
         prefix: prefix.to_owned(),
         namespaces: ns.iter().map(|s| (*s).to_owned()).collect(),
         subsumed_by: "s".to_owned(),
-        owner: "s".to_owned(),
+        owners: crate::model::GroundingOwners::new([
+            crate::model::GroundingOwners::LOGIC.to_owned()
+        ])
+        .unwrap(),
         count_kind: crate::model::CountKind::TypedAxiom,
         default_ceiling: dc,
         preservation: "p".to_owned(),
@@ -1016,4 +1019,83 @@ fn registry_ratchet_reds_on_weakening_and_silent_on_strengthening() {
         registry_ratchet_monotonicity("module.ttl", &base, &stronger).is_empty(),
         "strengthening must not red"
     );
+}
+
+#[test]
+fn owner_set_registry_ratchet_rejects_expansion_and_replacement() {
+    use crate::model::GroundingOwners;
+    let original = vocab("value", &["https://schema.org/value"], 0);
+    for owners in [
+        vec![GroundingOwners::LOGIC, GroundingOwners::MATH],
+        vec![GroundingOwners::MATH],
+    ] {
+        let mut changed = original.clone();
+        changed.owners = GroundingOwners::new(owners.into_iter().map(str::to_owned)).unwrap();
+        let violations = registry_ratchet_monotonicity(
+            "rubric.ttl",
+            std::slice::from_ref(&original),
+            &[changed],
+        );
+        assert!(
+            violations
+                .iter()
+                .any(|message| message.contains("grounding-owner set EXPANDED")
+                    && message.contains(GroundingOwners::MATH)),
+            "{violations:?}"
+        );
+    }
+    let mut shared = original.clone();
+    shared.owners = GroundingOwners::new([
+        GroundingOwners::MATH.to_owned(),
+        GroundingOwners::LOGIC.to_owned(),
+    ])
+    .unwrap();
+    assert!(
+        registry_ratchet_monotonicity("rubric.ttl", &[], std::slice::from_ref(&shared)).is_empty()
+    );
+    assert!(
+        registry_ratchet_monotonicity("rubric.ttl", std::slice::from_ref(&shared), &[original])
+            .is_empty()
+    );
+    let mut reordered = shared.clone();
+    reordered.owners = GroundingOwners::new([
+        GroundingOwners::LOGIC.to_owned(),
+        GroundingOwners::MATH.to_owned(),
+        GroundingOwners::LOGIC.to_owned(),
+    ])
+    .unwrap();
+    assert!(registry_ratchet_monotonicity("rubric.ttl", &[shared], &[reordered]).is_empty());
+}
+
+#[test]
+fn owner_set_registry_ratchet_rejects_every_recognizer_change() {
+    use crate::model::CountKind;
+    for initial in [
+        CountKind::TypedAxiom,
+        CountKind::Shape,
+        CountKind::StructuralAxiom,
+        CountKind::NonRdfSurface,
+    ] {
+        let mut original = vocab("guard", &["https://example.org/guard#"], 0);
+        original.count_kind = initial;
+        for replacement in [
+            CountKind::TypedAxiom,
+            CountKind::Shape,
+            CountKind::StructuralAxiom,
+            CountKind::NonRdfSurface,
+        ] {
+            let mut changed = original.clone();
+            changed.count_kind = replacement;
+            let violations = registry_ratchet_monotonicity(
+                "rubric.ttl",
+                std::slice::from_ref(&original),
+                &[changed],
+            );
+            assert_eq!(
+                violations.is_empty(),
+                initial == replacement,
+                "{violations:?}"
+            );
+        }
+    }
 }

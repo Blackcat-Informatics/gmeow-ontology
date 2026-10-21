@@ -453,9 +453,9 @@ gmeow:ProjectionVocabulary
     rdfs:label "Projection Vocabulary"@x-gmeow-english ;
     skos:definition "A guarded, logic:-subsumable lossy-projection surface the projection-vocabulary ratchet caps. Per Principle 17, OWL, SHACL, gUFO, BFO, DOLCE, and the alignment stack (SSSOM, EDOAL, FnO) are generated lossy projections of logic:; each such surface is named here once, ontology-resident and data-driven, rather than hardcoded in Rust. It carries the vocabulary's namespace(s), the logic: core it is subsumed by, how its hand-authored constructs are recognized (gmeow:vocabularyCountKind), the default ceiling a slice with no explicit commitment is held to, its loss-ledger preservation judgment, and the by-reference alignment predicates the ratchet exempts. It is NOT a gmeow:ProjectionCeilingCommitment (that is the per-(slice,vocabulary) ratchet cell) and NOT a gmeow:Slice: it is the guarded vocab itself, the dogfooded guard list the gate's shared counter iterates."@x-gmeow-english ;
     skos:example "gmeow:projVocab-sh a gmeow:ProjectionVocabulary ; gmeow:vocabularyPrefix \"sh\" ; gmeow:vocabularyNamespace \"http://www.w3.org/ns/shacl#\"^^xsd:anyURI ; gmeow:vocabularyCountKind \"countKindShape\" ; gmeow:vocabularyDefaultCeiling 0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid hardcoding the guarded registry. Require each guarded projection vocabulary to have at least one gmeow:vocabularyNamespace and exactly one gmeow:vocabularyOwner from a grounding slice. The quantitative RDFS budget counts subsumption, not property signatures; this is not permission to author semantic signatures outside logic:. OWL authoring is checked by projection purity, not by a numeric ceiling or reason-verify alone."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hardcoding the guarded registry. Require at least one vocabularyNamespace and a nonempty vocabularyOwner set containing only grounding slices. A shared owner set does not ground arbitrary external assertions. The quantitative RDFS budget counts subsumption, not property signatures; OWL authoring remains subject to projection purity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one gmeow:ProjectionVocabulary per logic:-subsumable projection surface the ratchet guards, giving it a gmeow:vocabularyPrefix, one or more gmeow:vocabularyNamespace values, a gmeow:vocabularySubsumedBy back to the logic: core, a gmeow:vocabularyCountKind, a gmeow:vocabularyDefaultCeiling, a gmeow:vocabularyPreservation, and any gmeow:vocabularyAlignmentPredicate the by-reference carve-out exempts; the gate's shared counter reads it to decide what to count and what to exempt."@x-gmeow-english ;
+    gmeow:howToUse "Declare each guarded surface once with its prefix, namespace stems, explicit grounding-owner set, logic: subsumer, count kind, default ceiling, preservation judgment and alignment predicates. The shared counter admits only complete grounding bridges at declared owner boundaries. Existing guards cannot gain owners or change recognizers."@x-gmeow-english ;
     gmeow:useWhen "Use to register, as data, a hand-authored projection vocabulary whose ungrounded residue the ratchet gate measures — never to hardcode a vocab list in Rust."@x-gmeow-english .
 
 gmeow:ProjectionCeilingCommitment
@@ -515,12 +515,27 @@ gmeow:vocabularyOwner
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary owner"@x-gmeow-english ;
     rdfs:range gmeow:Slice ;
-    skos:definition "The single grounding slice — logic:, math:, or lang: — that OWNS a guarded projection vocabulary: the one boundary-authority slice at whose mapping/projection boundary this vocabulary's external terms may be hand-authored. Every OTHER slice must reference the grounding-vocabulary term the owner already authored rather than mint the external term afresh, so the external surface has exactly one authoring home and the ratchet can locate ungrounded second-source authoring by whether it sits outside the owner. It is DISTINCT from gmeow:vocabularySubsumedBy, which names the logic: core the vocabulary is a Principle-17 lossy projection OF (the preservation witness): a vocabulary is always subsumed by logic:, but may be OWNED by whichever grounding slice — logic: (foundational alignment), math: (quantity/unit/formula surfaces), or lang: (lexical/linguistic surfaces) — carries its external boundary. It is NOT gmeow:vocabularyPrefix or gmeow:vocabularyNamespace (those identify the vocabulary) and NOT gmeow:ceilingSlice (that is a per-ceiling subject slice): it is the one grounding slice that holds the vocabulary's authoring authority."@x-gmeow-english ;
+    skos:definition "A grounding slice holding declared external-authoring authority for a guarded projection vocabulary. Each vocabulary has an explicit nonempty set drawn only from logic:, math:, and lang:. A cross-domain surface may name multiple owners when their canonical grounding terms carry distinct meanings; this grants no exemption to arbitrary external assertions. Only complete validated grounding correspondences receive the existing owner-boundary exemption. This authority set is distinct from vocabularySubsumedBy, the logic: projection-direction witness. Adding an owner to an existing guard is forbidden by the registry ratchet."@x-gmeow-english ;
     skos:example "gmeow:projVocab-qudt gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math> ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one owner per vocabulary (it is functional and singular) and avoid pointing it at a non-grounding slice — only the logic:, math:, and lang: grounding slices may own a projection vocabulary; a domain slice authoring an owned vocabulary's external term directly is the very second-source authoring the ratchet exists to catch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid domain-slice owners, missing authority sets, and adding an owner to an existing guard. Naming an owner never grounds a raw external axiom, a template atom, or an incomplete correspondence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert one gmeow:vocabularyOwner from the gmeow:ProjectionVocabulary to the single grounding slice (logic:, math:, or lang:) at whose projection boundary the vocabulary's external terms are authored; other slices reference the owner's grounding-vocabulary term instead of re-authoring the external term."@x-gmeow-english ;
-    gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the one grounding slice that owns its external authoring boundary — the boundary-authority owner, distinct from the Principle-17 logic: subsumer."@x-gmeow-english .
+    gmeow:howToUse "Assert one vocabularyOwner edge for each actual grounding owner when declaring a new guarded surface. Every value must name the logic:, math:, or lang: slice. Existing singleton declarations retain their meaning; membership has no preferred owner and existing owner sets may only shrink."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the exact grounding-owner set at a projection boundary, including a genuinely shared external surface. Keep each canonical grounding term with its semantic owner and every other slice outside that authority set."@x-gmeow-english .
+
+# Owner membership is required and restricted, without a singleton maximum.
+gmeow:ProjectionVocabulary logic:subClassOf [
+    a logic:Restriction ;
+    logic:onProperty gmeow:vocabularyOwner ;
+    logic:allValuesFrom [ logic:oneOf (
+        <https://blackcatinformatics.ca/gmeow/slices/logic>
+        <https://blackcatinformatics.ca/gmeow/slices/math>
+        <https://blackcatinformatics.ca/gmeow/slices/lang>
+    ) ]
+] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:ProjectionVocabulary ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vocabularyOwner" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:vocabularyCountKind
     a logic:DatatypeProperty ;
@@ -744,11 +759,10 @@ gmeow:relocationDate
 # ratchet gate guards — the dogfooded, data-driven guard list the
 # shared residue counter iterates, never a hardcoded Rust list.
 #
-# Every vocabulary carries a gmeow:vocabularyOwner: the ONE
-# grounding slice (logic:, math:, or lang:) at whose
-# mapping/projection boundary its external terms may be authored;
-# every other slice must reference the owner's grounding-vocabulary
-# term instead of re-authoring the external term. This is DISTINCT
+# Every vocabulary carries a nonempty set of gmeow:vocabularyOwner
+# grounding slices (logic:, math:, or lang:). Complete grounding bridges
+# receive the existing exemption only at those declared boundaries;
+# other slices consume the canonical grounding terms instead. This is DISTINCT
 # from gmeow:vocabularySubsumedBy — the Principle-17 witness that
 # the surface is a projection OF logic: — which stays pointed at the
 # logic: core for every vocabulary. Ownership is boundary authority;
@@ -3543,21 +3557,6 @@ gmeow:vocabularyDefaultCeilingFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyDefaultCeiling, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularyDefaultCeiling and nothing else. It is not a definition of gmeow:vocabularyDefaultCeiling (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-gmeow:vocabularyOwnerFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
-    rdfs:label "vocabularyOwner is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
-    logic:characterizes gmeow:vocabularyOwner ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:vocabularyOwner ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vocabularyOwner names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularyOwner and nothing else. It is not a definition of gmeow:vocabularyOwner (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vocabularyPrefixFunctionality
     a logic:NamedIndividual ,

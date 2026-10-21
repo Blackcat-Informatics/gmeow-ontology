@@ -132,13 +132,25 @@ msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctional
 msgid "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "在规范载体上断言 gmeow:vocabularyDefaultCeiling 是函数性的:每个 gmeow:ProjectionVocabulary 恰好携带一个针对缺乏明确承诺切片的空案例默认上限,若存在第二个默认值,每个未列出的切片都将受制于一个含糊的回退值,并重新打开「全新词汇」漏洞。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "vocabularyOwner is functional"
-msgstr "vocabularyOwner 具有函数性"
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A grounding slice holding declared external-authoring authority for a guarded projection vocabulary. Each vocabulary has an explicit nonempty set drawn only from logic:, math:, and lang:. A cross-domain surface may name multiple owners when their canonical grounding terms carry distinct meanings; this grants no exemption to arbitrary external assertions. Only complete validated grounding correspondences receive the existing owner-boundary exemption. This authority set is distinct from vocabularySubsumedBy, the logic: projection-direction witness. Adding an owner to an existing guard is forbidden by the registry ratchet."
+msgstr "持有受管投影词汇外部著录权限的基础切片。每个词汇具有显式非空的所有者集合，成员仅可来自 logic:、math: 和 lang:。跨领域表面可在各所有者的规范基础术语承载不同含义时指定多个所有者；这不豁免任意外部断言。只有完整且经过验证的基础对应关系才享有现有的所有者边界豁免。该权限集合不同于表示 logic: 投影方向的 vocabularySubsumedBy。注册表棘轮禁止向现有守卫添加所有者。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:vocabularyOwner 是函数性的:每个 gmeow:ProjectionVocabulary 恰好有一个基础切片(logic:、math: 或 lang:)持有其外部著录权威,若存在第二个所有者,外部术语将拥有两个著录归属地,从而破坏所有者边界本应强制执行的「防第二来源」棘轮机制。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid domain-slice owners, missing authority sets, and adding an owner to an existing guard. Naming an owner never grounds a raw external axiom, a template atom, or an incomplete correspondence."
+msgstr "避免指定领域切片为所有者、遗漏权限集合，或向现有守卫添加所有者。指定所有者绝不会为原始外部公理、模板原子或不完整的对应关系提供基础。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert one vocabularyOwner edge for each actual grounding owner when declaring a new guarded surface. Every value must name the logic:, math:, or lang: slice. Existing singleton declarations retain their meaning; membership has no preferred owner and existing owner sets may only shrink."
+msgstr "声明新的受管表面时，为每个实际基础所有者断言一条 vocabularyOwner 边。每个值必须指向 logic:、math: 或 lang: 切片。现有单所有者声明的含义保持不变；集合成员没有优先所有者，现有集合只能缩小。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare the exact grounding-owner set at a projection boundary, including a genuinely shared external surface. Keep each canonical grounding term with its semantic owner and every other slice outside that authority set."
+msgstr "用于声明投影边界上的确切基础所有者集合，包括确实共享的外部表面。每个规范基础术语仍归其语义所有者，其他所有切片均不具有该权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare each guarded surface once with its prefix, namespace stems, explicit grounding-owner set, logic: subsumer, count kind, default ceiling, preservation judgment and alignment predicates. The shared counter admits only complete grounding bridges at declared owner boundaries. Existing guards cannot gain owners or change recognizers."
+msgstr "每个受管表面只声明一次，提供前缀、命名空间词干、显式基础所有者集合、logic: 涵摄者、计数种类、默认上限、保持性判断和对齐谓词。共享计数器仅在声明的所有者边界接纳完整基础桥。现有守卫不得新增所有者或更换识别器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "vocabularyPrefix is functional"
@@ -404,22 +416,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctional
 msgid "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."
 msgstr "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:vocabularyOwner names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:vocabularyOwner 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."
-msgstr "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:vocabularyPrefix names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "当原生一致性门必须强制 gmeow:vocabularyPrefix 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
@@ -527,10 +523,6 @@ msgstr "范围：该记录仅承载关于 gmeow:vocabularyCountKind 的一项完
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyDefaultCeiling and nothing else. It is not a definition of gmeow:vocabularyDefaultCeiling (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:vocabularyDefaultCeiling 的一项完整性义务，别无其他。它不是 gmeow:vocabularyDefaultCeiling 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyOwner and nothing else. It is not a definition of gmeow:vocabularyOwner (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:vocabularyOwner 的一项完整性义务，别无其他。它不是 gmeow:vocabularyOwner 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyPrefix and nothing else. It is not a definition of gmeow:vocabularyPrefix (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -771,5 +763,5 @@ msgid "Freshness and integrity are separate obligations that this one class cove
 msgstr "新鲜性与完整性是两项各自独立的义务，本单一类之所以同时覆盖，是因为二者以相同方式使记录不可读：指纹追问该记录是否描述这棵树，内容摘要追问该记录是否即评分者所写，而仅覆盖输入的见证只能回答前者。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid hardcoding the guarded registry. Require each guarded projection vocabulary to have at least one gmeow:vocabularyNamespace and exactly one gmeow:vocabularyOwner from a grounding slice. The quantitative RDFS budget counts subsumption, not property signatures; this is not permission to author semantic signatures outside logic:. OWL authoring is checked by projection purity, not by a numeric ceiling or reason-verify alone."
-msgstr "避免硬编码受管注册表。每个受管投影词汇必须具有至少一个 gmeow:vocabularyNamespace，以及恰好一个来自基础层切片的 gmeow:vocabularyOwner。RDFS 定量预算计数涵摄关系，而非属性签名；这不允许在 logic: 之外编写语义签名。OWL 编写由投影纯度检查约束，而非由数值上限或单独的 reason-verify 约束。"
+msgid "Avoid hardcoding the guarded registry. Require at least one vocabularyNamespace and a nonempty vocabularyOwner set containing only grounding slices. A shared owner set does not ground arbitrary external assertions. The quantitative RDFS budget counts subsumption, not property signatures; OWL authoring remains subject to projection purity."
+msgstr "避免硬编码受管注册表。至少要求一个 vocabularyNamespace，以及仅含基础切片的非空 vocabularyOwner 集合。共享所有者集合不会为任意外部断言提供基础。RDFS 定量预算计数涵摄而非属性签名；OWL 著录仍受投影纯度约束。"

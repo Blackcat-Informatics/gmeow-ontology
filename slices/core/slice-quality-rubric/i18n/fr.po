@@ -1360,13 +1360,25 @@ msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctional
 msgid "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "Affirme sur le porteur canonique que gmeow:vocabularyDefaultCeiling est fonctionnelle : chaque gmeow:ProjectionVocabulary porte exactement un plafond par défaut pour le cas vide, destiné aux tranches dépourvues d'engagement explicite, de sorte qu'un second défaut laisserait chaque tranche non répertoriée soumise à un repli ambigu et rouvrirait la faille du vocabulaire net-nouveau. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "vocabularyOwner is functional"
-msgstr "vocabularyOwner est fonctionnelle"
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A grounding slice holding declared external-authoring authority for a guarded projection vocabulary. Each vocabulary has an explicit nonempty set drawn only from logic:, math:, and lang:. A cross-domain surface may name multiple owners when their canonical grounding terms carry distinct meanings; this grants no exemption to arbitrary external assertions. Only complete validated grounding correspondences receive the existing owner-boundary exemption. This authority set is distinct from vocabularySubsumedBy, the logic: projection-direction witness. Adding an owner to an existing guard is forbidden by the registry ratchet."
+msgstr "Une tranche de fondation détenant une autorité déclarée de rédaction externe pour un vocabulaire de projection surveillé. Chaque vocabulaire possède un ensemble explicite non vide composé uniquement de logic:, math: et lang:. Une surface transversale peut nommer plusieurs propriétaires lorsque leurs termes canoniques de fondation portent des significations distinctes ; cela n’exempte aucune assertion externe arbitraire. Seules les correspondances de fondation complètes et validées bénéficient de l’exemption existante à la frontière du propriétaire. Cet ensemble d’autorités est distinct de vocabularySubsumedBy, le témoin de direction de projection logic:. Le cliquet du registre interdit l’ajout d’un propriétaire à une garde existante."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:vocabularyOwner est fonctionnelle : chaque gmeow:ProjectionVocabulary possède exactement une tranche de fondation (logic:, math: ou lang:) détenant son autorité de rédaction externe, de sorte qu'un second propriétaire donnerait aux termes externes deux foyers de rédaction et déjouerait précisément le verrou anti-seconde-source que la frontière de propriété est censée faire respecter. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid domain-slice owners, missing authority sets, and adding an owner to an existing guard. Naming an owner never grounds a raw external axiom, a template atom, or an incomplete correspondence."
+msgstr "Éviter les propriétaires de tranches métier, les ensembles d’autorités absents et l’ajout d’un propriétaire à une garde existante. Nommer un propriétaire ne fonde jamais un axiome externe brut, un atome de gabarit ou une correspondance incomplète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert one vocabularyOwner edge for each actual grounding owner when declaring a new guarded surface. Every value must name the logic:, math:, or lang: slice. Existing singleton declarations retain their meaning; membership has no preferred owner and existing owner sets may only shrink."
+msgstr "Lors de la déclaration d’une nouvelle surface surveillée, affirmer une arête vocabularyOwner pour chaque propriétaire de fondation réel. Chaque valeur doit nommer la tranche logic:, math: ou lang:. Les déclarations existantes à propriétaire unique conservent leur sens ; aucun membre n’est privilégié et les ensembles existants ne peuvent que diminuer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwner|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare the exact grounding-owner set at a projection boundary, including a genuinely shared external surface. Keep each canonical grounding term with its semantic owner and every other slice outside that authority set."
+msgstr "Utiliser pour déclarer l’ensemble exact des propriétaires de fondation à une frontière de projection, y compris pour une surface externe réellement partagée. Conserver chaque terme canonique de fondation chez son propriétaire sémantique et toute autre tranche hors de cet ensemble d’autorités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare each guarded surface once with its prefix, namespace stems, explicit grounding-owner set, logic: subsumer, count kind, default ceiling, preservation judgment and alignment predicates. The shared counter admits only complete grounding bridges at declared owner boundaries. Existing guards cannot gain owners or change recognizers."
+msgstr "Déclarer chaque surface surveillée une seule fois avec son préfixe, ses racines d’espaces de noms, son ensemble explicite de propriétaires de fondation, son subsumant logic:, son mode de comptage, son plafond par défaut, son jugement de préservation et ses prédicats d’alignement. Le compteur partagé n’admet que les ponts de fondation complets aux frontières déclarées. Une garde existante ne peut gagner de propriétaire ni changer de reconnaisseur."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "vocabularyPrefix is functional"
@@ -1632,22 +1644,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctional
 msgid "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."
 msgstr "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:vocabularyOwner names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:vocabularyOwner nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsqu'une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."
-msgstr "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:vocabularyPrefix names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:vocabularyPrefix nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
@@ -1755,10 +1751,6 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyDefaultCeiling and nothing else. It is not a definition of gmeow:vocabularyDefaultCeiling (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:vocabularyDefaultCeiling, et rien d'autre. Ce n'est pas une définition de gmeow:vocabularyDefaultCeiling (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyOwner and nothing else. It is not a definition of gmeow:vocabularyOwner (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:vocabularyOwner, et rien d'autre. Ce n'est pas une définition de gmeow:vocabularyOwner (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularyPrefix and nothing else. It is not a definition of gmeow:vocabularyPrefix (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -2181,5 +2173,5 @@ msgid "Select external-sacred; provide the foreign module, manifest, documentati
 msgstr "Choisir external-sacred et fournir le module externe, son manifeste, sa documentation et ses imports déclarés."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid hardcoding the guarded registry. Require each guarded projection vocabulary to have at least one gmeow:vocabularyNamespace and exactly one gmeow:vocabularyOwner from a grounding slice. The quantitative RDFS budget counts subsumption, not property signatures; this is not permission to author semantic signatures outside logic:. OWL authoring is checked by projection purity, not by a numeric ceiling or reason-verify alone."
-msgstr "Éviter de coder le registre protégé en dur. Chaque vocabulaire de projection protégé doit avoir au moins un gmeow:vocabularyNamespace et exactement un gmeow:vocabularyOwner appartenant à une tranche de fondation. Le budget quantitatif RDFS compte la subsomption, pas les signatures de propriétés ; cela ne permet pas d’écrire des signatures sémantiques hors de logic:. La rédaction OWL est contrôlée par la pureté des projections, et non par un plafond numérique ou par reason-verify seul."
+msgid "Avoid hardcoding the guarded registry. Require at least one vocabularyNamespace and a nonempty vocabularyOwner set containing only grounding slices. A shared owner set does not ground arbitrary external assertions. The quantitative RDFS budget counts subsumption, not property signatures; OWL authoring remains subject to projection purity."
+msgstr "Éviter de coder le registre surveillé en dur. Exiger au moins un vocabularyNamespace et un ensemble vocabularyOwner non vide ne contenant que des tranches de fondation. Un ensemble partagé de propriétaires ne fonde aucune assertion externe arbitraire. Le budget RDFS quantitatif compte la subsomption, non les signatures de propriétés ; la rédaction OWL reste soumise à la pureté des projections."

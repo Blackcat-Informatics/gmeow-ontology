@@ -23,7 +23,10 @@ fn alignment_vocab(prefix: &str, ns: &str) -> ProjectionVocabulary {
         prefix: prefix.to_owned(),
         namespaces: vec![ns.to_owned()],
         subsumed_by: LOGIC_NS.to_owned(),
-        owner: LOGIC_NS.to_owned(),
+        owners: crate::model::GroundingOwners::new([
+            crate::model::GroundingOwners::LOGIC.to_owned()
+        ])
+        .unwrap(),
         count_kind: CountKind::TypedAxiom,
         default_ceiling: 0,
         preservation: "SoundUnderApproximation".to_owned(),
@@ -32,6 +35,117 @@ fn alignment_vocab(prefix: &str, ns: &str) -> ProjectionVocabulary {
             "http://www.w3.org/2002/07/owl#equivalentClass".to_owned(),
         ],
         counted_predicates: Vec::new(),
+    }
+}
+
+#[test]
+fn owner_set_native_bridge_requires_membership_and_complete_envelope() {
+    use crate::model::GroundingOwners;
+    let dataset = grounding_cell_ds();
+    let mut vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+    vocab.owners = GroundingOwners::new([
+        GroundingOwners::MATH.to_owned(),
+        GroundingOwners::LANG.to_owned(),
+    ])
+    .unwrap();
+    for owner in [GroundingOwners::LANG, GroundingOwners::MATH] {
+        assert_eq!(residue_for_surface(&dataset, &vocab, owner), 0);
+    }
+    // The neutral API has no implicit Logic owner or first-member preference.
+    assert_eq!(residue(&dataset, &vocab), 0);
+    assert_eq!(
+        residue_for_surface(&dataset, &vocab, GroundingOwners::LOGIC),
+        1
+    );
+    let raw = ds_of(
+        "gmeow:MyKind gufo:mediates gmeow:Other . \
+        gmeow:atom gmeow:tPred gufo:Kind .",
+    );
+    for owner in [GroundingOwners::LANG, GroundingOwners::MATH] {
+        assert_eq!(residue_for_surface(&raw, &vocab, owner), 2);
+    }
+    let incomplete = ds_of(
+        r#"gmeow:MyKind skos:exactMatch gufo:Kind {|
+        a logic:GroundingCorrespondence ; gmeow:sssomFile "test.sssom.tsv" ;
+        logic:sourceEndpoint gmeow:MyKind ; logic:targetEndpoint gufo:Kind
+    |} ."#,
+    );
+    for owner in [GroundingOwners::LANG, GroundingOwners::MATH] {
+        assert_eq!(residue_for_surface(&incomplete, &vocab, owner), 1);
+    }
+}
+
+#[test]
+fn owner_set_node_bridge_preserves_exact_validation_boundary() {
+    use crate::model::GroundingOwners;
+    let source = r#"gmeow:Cell a gmeow:ProjectionMapping, logic:GroundingCorrespondence ;
+        gmeow:justification gmeow:ManualMappingCuration ;
+        logic:sourceEndpoint gmeow:MyKind ; logic:targetEndpoint gufo:Kind ;
+        logic:morphismClass logic:BridgeView ;
+        logic:morphismKind logic:CommitmentShiftingBridge ;
+        logic:preservationKind logic:ValidationOnly ;
+        gmeow:hasMappingPattern [ gmeow:anchor "s" ;
+            gmeow:edoalSource gmeow:MyKind ; gmeow:edoalSourceKind "class" ;
+            gmeow:atom ( [ gmeow:subjectVar "s" ;
+                gmeow:predicate <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+                gmeow:objectValue gmeow:MyKind ] ) ] ;
+        gmeow:hasBinding [ gmeow:profile "test" ; gmeow:relation "<=" ;
+            gmeow:toClass gufo:Kind ] ."#;
+    let dataset = ds_of(source);
+    let mut vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+    vocab.owners = GroundingOwners::new([
+        GroundingOwners::LOGIC.to_owned(),
+        GroundingOwners::MATH.to_owned(),
+    ])
+    .unwrap();
+    for owner in [GroundingOwners::LOGIC, GroundingOwners::MATH] {
+        assert_eq!(residue_for_surface(&dataset, &vocab, owner), 0);
+    }
+    assert_eq!(
+        residue_for_surface(&dataset, &vocab, GroundingOwners::LANG),
+        2
+    );
+    let broken = ds_of(&source.replace("gmeow:justification gmeow:ManualMappingCuration ;", ""));
+    for owner in [GroundingOwners::LOGIC, GroundingOwners::MATH] {
+        assert_eq!(residue_for_surface(&broken, &vocab, owner), 2);
+    }
+}
+
+#[test]
+fn owner_set_relocation_distinguishes_shared_boundary_from_foreign_surface() {
+    use crate::model::GroundingOwners;
+    let dataset = grounding_cell_ds();
+    let mut vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+    vocab.owners = GroundingOwners::new([
+        GroundingOwners::LOGIC.to_owned(),
+        GroundingOwners::MATH.to_owned(),
+    ])
+    .unwrap();
+    let anchor = format!("{GMEOW}MyKind");
+    for (destination, expected) in [
+        (
+            GroundingOwners::MATH,
+            RelocationReason::BridgeExemptBothSides,
+        ),
+        (
+            GroundingOwners::LANG,
+            RelocationReason::ExemptionShiftOwnerBoundary,
+        ),
+    ] {
+        let reasons = relocation_reasons(
+            &dataset,
+            GroundingOwners::LOGIC,
+            &dataset,
+            destination,
+            &vocab,
+        );
+        assert_eq!(
+            reasons
+                .get(&anchor)
+                .map(|values| values.iter().copied().collect::<Vec<_>>()),
+            Some(vec![expected]),
+            "{reasons:?}"
+        );
     }
 }
 
@@ -169,8 +283,11 @@ fn validated_cell_on_non_owner_surface_still_counts() {
             |} .
             "#,
     );
-    let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#"); // owner = LOGIC_NS
-    assert_eq!(residue_for_surface(&ds, &vocab, LOGIC_NS), 0); // on owner: exempt
+    let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#");
+    assert_eq!(
+        residue_for_surface(&ds, &vocab, crate::model::GroundingOwners::LOGIC),
+        0
+    );
     assert_eq!(
         residue_for_surface(
             &ds,
@@ -347,7 +464,10 @@ fn aliased_namespace_construct_counted() {
             "http://gufo.example.org/aliased#".to_owned(),
         ],
         subsumed_by: LOGIC_NS.to_owned(),
-        owner: LOGIC_NS.to_owned(),
+        owners: crate::model::GroundingOwners::new([
+            crate::model::GroundingOwners::LOGIC.to_owned()
+        ])
+        .unwrap(),
         count_kind: CountKind::TypedAxiom,
         default_ceiling: 0,
         preservation: "SoundUnderApproximation".to_owned(),
@@ -368,7 +488,10 @@ fn non_rdf_surface_vocab_is_structurally_zero() {
         prefix: "datalog".to_owned(),
         namespaces: vec!["https://blackcatinformatics.ca/datalog/".to_owned()],
         subsumed_by: LOGIC_NS.to_owned(),
-        owner: LOGIC_NS.to_owned(),
+        owners: crate::model::GroundingOwners::new([
+            crate::model::GroundingOwners::LOGIC.to_owned()
+        ])
+        .unwrap(),
         count_kind: CountKind::NonRdfSurface,
         default_ceiling: 0,
         preservation: "SoundUnderApproximation".to_owned(),
@@ -415,14 +538,15 @@ fn residue_count_is_exactly_the_construct_sets_length() {
             "#,
     );
     let vocab = shacl_vocab();
-    let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+    let constructs =
+        residue_constructs_for_surface(&ds, &vocab, crate::model::GroundingOwners::LOGIC);
     assert_eq!(constructs.len(), 3, "gmeow:S + its two nested blocks");
     assert!(
         constructs.iter().all(|c| !c.grounded && !c.is_bridge),
         "the residue set holds only ungrounded, non-bridge constructs"
     );
     assert_eq!(
-        residue_for_surface(&ds, &vocab, &vocab.owner),
+        residue_for_surface(&ds, &vocab, crate::model::GroundingOwners::LOGIC),
         constructs.len() as u64,
         "the count MUST be the construct set's `.len()` projection"
     );
@@ -437,7 +561,8 @@ fn residue_count_is_exactly_the_construct_sets_length() {
 fn named_subject_anchors_on_its_own_term_iri() {
     let ds = ds_of("gmeow:S a sh:NodeShape .");
     let vocab = shacl_vocab();
-    let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+    let constructs =
+        residue_constructs_for_surface(&ds, &vocab, crate::model::GroundingOwners::LOGIC);
     assert_eq!(constructs.len(), 1);
     assert_eq!(
         constructs[0].witness,
@@ -455,7 +580,8 @@ fn structural_axiom_anchors_on_the_subject_term_not_the_whole_triple() {
     let mut vocab = alignment_vocab("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
     vocab.count_kind = CountKind::StructuralAxiom;
     vocab.counted_predicates = vec!["http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned()];
-    let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+    let constructs =
+        residue_constructs_for_surface(&ds, &vocab, crate::model::GroundingOwners::LOGIC);
     assert_eq!(constructs.len(), 1);
     assert!(
         constructs[0].key.contains("_:"),
@@ -480,7 +606,8 @@ fn blank_subject_anchors_on_its_nearest_named_sh_ancestor() {
             "#,
     );
     let vocab = shacl_vocab();
-    let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+    let constructs =
+        residue_constructs_for_surface(&ds, &vocab, crate::model::GroundingOwners::LOGIC);
     assert_eq!(constructs.len(), 3, "gmeow:S + two nested blank shapes");
     let anchored = Witness::Anchored(format!("{GMEOW}S"));
     assert!(
@@ -506,7 +633,8 @@ fn blank_subject_without_named_ancestor_is_non_relocatable() {
     // relocation-invariant identity to carry, so it must NOT be forgivable.
     let ds = ds_of("[] sh:path gmeow:p ; sh:minCount 1 .");
     let vocab = shacl_vocab();
-    let constructs = residue_constructs_for_surface(&ds, &vocab, &vocab.owner);
+    let constructs =
+        residue_constructs_for_surface(&ds, &vocab, crate::model::GroundingOwners::LOGIC);
     assert_eq!(constructs.len(), 1);
     assert_eq!(constructs[0].witness, Witness::NonRelocatable);
     assert!(!constructs[0].witness.is_relocatable());
@@ -520,7 +648,7 @@ fn a_non_relocatable_construct_carries_no_relocation_warrant() {
     let vocab = shacl_vocab();
     let reasons = relocation_reasons(
         &source,
-        &vocab.owner,
+        crate::model::GroundingOwners::LOGIC,
         &destination,
         "https://blackcatinformatics.ca/gmeow/slices/kernel",
         &vocab,
@@ -561,10 +689,19 @@ fn reason_code_exemption_shift_owner_boundary() {
     let destination = grounding_cell_ds();
     let vocab = alignment_vocab("gufo", "https://w3id.org/gufo#"); // owner = LOGIC_NS
     let dest_surface = "https://blackcatinformatics.ca/gmeow/slices/kernel";
-    assert_eq!(residue_for_surface(&source, &vocab, &vocab.owner), 0);
+    assert_eq!(
+        residue_for_surface(&source, &vocab, crate::model::GroundingOwners::LOGIC),
+        0
+    );
     assert_eq!(residue_for_surface(&source, &vocab, dest_surface), 1);
 
-    let reasons = relocation_reasons(&source, &vocab.owner, &destination, dest_surface, &vocab);
+    let reasons = relocation_reasons(
+        &source,
+        crate::model::GroundingOwners::LOGIC,
+        &destination,
+        dest_surface,
+        &vocab,
+    );
     let anchor = format!("{GMEOW}MyKind");
     assert_eq!(
         reasons
@@ -637,10 +774,19 @@ fn reason_code_grounding_orphaned() {
     let destination = ds_of("gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .");
     let vocab = shacl_vocab();
     let to = "https://blackcatinformatics.ca/gmeow/slices/kernel";
-    assert_eq!(residue_for_surface(&source, &vocab, &vocab.owner), 0);
+    assert_eq!(
+        residue_for_surface(&source, &vocab, crate::model::GroundingOwners::LOGIC),
+        0
+    );
     assert_eq!(residue_for_surface(&destination, &vocab, to), 1);
 
-    let reasons = relocation_reasons(&source, &vocab.owner, &destination, to, &vocab);
+    let reasons = relocation_reasons(
+        &source,
+        crate::model::GroundingOwners::LOGIC,
+        &destination,
+        to,
+        &vocab,
+    );
     assert_eq!(
         reasons
             .get(&format!("{GMEOW}S"))
@@ -673,7 +819,7 @@ fn grounding_that_travels_with_its_axiom_is_not_orphaned() {
     let vocab = shacl_vocab();
     let reasons = relocation_reasons(
         &source,
-        &vocab.owner,
+        crate::model::GroundingOwners::LOGIC,
         &destination,
         "https://blackcatinformatics.ca/gmeow/slices/kernel",
         &vocab,

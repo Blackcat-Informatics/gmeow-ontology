@@ -6509,7 +6509,7 @@ pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
                 println!(
                     "  {:<10} owner={:<66} {:<24} default-ceiling {}",
                     v.prefix,
-                    v.owner,
+                    v.owners.iter().collect::<Vec<_>>().join(","),
                     v.count_kind.as_local(),
                     v.default_ceiling
                 );
@@ -6531,7 +6531,7 @@ pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
                     v.namespaces.join(","),
                     v.count_kind.as_local(),
                     v.default_ceiling,
-                    v.owner
+                    v.owners.iter().collect::<Vec<_>>().join(",")
                 );
             }
             for c in &ceilings {

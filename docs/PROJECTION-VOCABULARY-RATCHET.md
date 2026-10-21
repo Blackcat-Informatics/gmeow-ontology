@@ -104,15 +104,28 @@ current commitment by its canonical-grounding and ownership route. No nonzero
 cell is accepted as permanent ungrounded authoring, and no ceiling or axis floor
 is raised by this decision.
 
-Each guarded vocabulary carries a `gmeow:vocabularyOwner` — the one grounding slice
-(`logic:`, `math:`, or `lang:`) at whose mapping boundary its external terms may be
-authored; every other slice must reference the owner's grounding-vocabulary term.
+Each guarded vocabulary carries an explicit, nonempty set of
+`gmeow:vocabularyOwner` values drawn only from the `logic:`, `math:`, and `lang:`
+grounding slices. A shared external surface may have multiple real grounding
+owners; each canonical source term still belongs to its semantic owner. Membership
+grants only the existing exemption for a complete validated grounding correspondence,
+never blanket permission to author raw external axioms or template atoms. Singleton
+declarations retain their existing meaning. Missing owners, non-IRI objects and
+domain-slice owners fail admission rather than disappearing from the set.
 
-A vocabulary is guarded here only when it HAS such a single owner. Two of the
+The registry meta-ratchet rejects any new owner on an existing guard, including an
+owner replacement. Removing an owner strengthens its boundary. It also rejects every
+change of count kind: different recognizers have no proven strength ordering. New
+guards may declare their complete owner set initially; no existing configuration or
+ceiling changes merely because the reader supports sets. Owner-neutral measurement
+APIs remain explicitly neutral and never choose a preferred owner.
+
+A vocabulary is guarded here only when its selected surface has declared grounding
+authority. Two of the
 process-model surfaces the grounding kernel bridges onto — PROV-O and schema.org —
 do not: they are general publication vocabularies that ~60 domain slices align to as
 ordinary, first-class by-reference correspondence records (Principle 5, "MORE is
-always BETTER"), with no one grounding slice as their authoring home. The kernel's
+always BETTER"), without a complete kernel-owned publication boundary. The kernel's
 `logic:Plan`/`logic:Enactment` rows onto them are grounding correspondences because
 their SUBJECTS are kernel terms, which is a fact about the source endpoint and does
 not make `logic:` the catalog owner. Registering either as a guarded vocabulary owned

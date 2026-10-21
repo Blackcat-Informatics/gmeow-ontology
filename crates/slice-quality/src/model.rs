@@ -257,6 +257,53 @@ impl CountKind {
     }
 }
 
+/// Explicit, nonempty grounding-owner authority for a guarded vocabulary.
+/// The private set prevents invalid manually assembled descriptors and never
+/// selects a preferred owner.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GroundingOwners(std::collections::BTreeSet<String>);
+
+impl GroundingOwners {
+    /// Canonical logical grounding slice.
+    pub const LOGIC: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+    /// Canonical mathematical grounding slice.
+    pub const MATH: &str = "https://blackcatinformatics.ca/gmeow/slices/math";
+    /// Canonical linguistic grounding slice.
+    pub const LANG: &str = "https://blackcatinformatics.ca/gmeow/slices/lang";
+
+    /// Admit the complete authority set, deduplicating identical RDF assertions.
+    ///
+    /// # Errors
+    /// Rejects an empty set or any value outside the three grounding slices.
+    pub fn new(owners: impl IntoIterator<Item = String>) -> gmeow_errors::Result<Self> {
+        let owners: std::collections::BTreeSet<_> = owners.into_iter().collect();
+        if owners.is_empty() {
+            return Err(crate::rubric::rubric_err(
+                "vocabularyOwner requires a nonempty grounding-owner set",
+            ));
+        }
+        for owner in &owners {
+            if !matches!(owner.as_str(), Self::LOGIC | Self::MATH | Self::LANG) {
+                return Err(crate::rubric::rubric_err(format!(
+                    "vocabularyOwner must name a grounding slice (logic, math or lang), found <{owner}>"
+                )));
+            }
+        }
+        Ok(Self(owners))
+    }
+
+    /// Whether this exact authoring surface holds declared grounding authority.
+    #[must_use]
+    pub fn contains(&self, surface_iri: &str) -> bool {
+        self.0.contains(surface_iri)
+    }
+
+    /// Every declared owner, in deterministic IRI order, without a preferred member.
+    pub fn iter(&self) -> impl Iterator<Item = &str> {
+        self.0.iter().map(String::as_str)
+    }
+}
+
 /// A guarded `logic:`-subsumable projection vocabulary — a `gmeow:ProjectionVocabulary`
 /// individual. Per Principle 17, OWL, SHACL, gUFO, BFO, DOLCE, and the alignment stack
 /// (SSSOM, EDOAL, FnO) are generated lossy projections of `logic:`; each guarded vocab
@@ -275,13 +322,10 @@ pub struct ProjectionVocabulary {
     /// The `logic:` core IRI this vocabulary is a generated lossy projection of
     /// (`gmeow:vocabularySubsumedBy`) — the Principle 17 subsumption witness.
     pub subsumed_by: String,
-    /// The single grounding-slice IRI (logic:, math:, or lang:) that OWNS this
-    /// vocabulary (`gmeow:vocabularyOwner`) — the one boundary at which its external
-    /// terms may be authored. Every other slice must reference the owner's
-    /// grounding-vocabulary term instead; authoring the external term outside the
-    /// owner's mapping boundary is ungrounded second-source residue. Distinct from
-    /// [`Self::subsumed_by`] (the projection-direction witness, always the logic: core).
-    pub owner: String,
+    /// The explicit nonempty grounding-owner set (`gmeow:vocabularyOwner`). Only
+    /// complete validated grounding bridges on a declared owner surface receive
+    /// the existing boundary exemption; arbitrary authoring remains residue.
+    pub owners: GroundingOwners,
     /// How authored constructs are recognized in this vocab's surface.
     pub count_kind: CountKind,
     /// For [`CountKind::StructuralAxiom`], the predicate-IRI allowlist a triple's

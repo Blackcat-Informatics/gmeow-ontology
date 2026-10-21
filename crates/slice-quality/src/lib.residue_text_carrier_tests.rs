@@ -27,7 +27,10 @@ fn gufo_vocab() -> ProjectionVocabulary {
         prefix: "gufo".to_owned(),
         namespaces: vec!["https://w3id.org/gufo#".to_owned()],
         subsumed_by: LOGIC_NS.to_owned(),
-        owner: LOGIC_NS.to_owned(),
+        owners: crate::model::GroundingOwners::new([
+            crate::model::GroundingOwners::LOGIC.to_owned()
+        ])
+        .unwrap(),
         count_kind: CountKind::TypedAxiom,
         default_ceiling: 0,
         preservation: "SoundUnderApproximation".to_owned(),
@@ -56,13 +59,52 @@ fn grounding_cell() -> Vec<String> {
 }
 
 #[test]
+fn owner_set_text_carrier_preserves_shared_boundary_and_foreign_shift() {
+    use crate::model::GroundingOwners;
+    let texts = grounding_cell();
+    let mut vocab = gufo_vocab();
+    vocab.owners = GroundingOwners::new([
+        GroundingOwners::LANG.to_owned(),
+        GroundingOwners::MATH.to_owned(),
+    ])
+    .unwrap();
+    for owner in [GroundingOwners::LANG, GroundingOwners::MATH] {
+        assert_eq!(residue_over_texts(&texts, &vocab, owner).unwrap(), 0);
+    }
+    assert_eq!(residue_over_texts(&texts, &vocab, KERNEL).unwrap(), 1);
+    let shared = relocation_reasons_over_texts(
+        &texts,
+        GroundingOwners::LANG,
+        &texts,
+        GroundingOwners::MATH,
+        &vocab,
+    )
+    .unwrap();
+    assert!(
+        shared
+            .values()
+            .any(|reasons| reasons.contains(&RelocationReason::BridgeExemptBothSides))
+    );
+    let foreign =
+        relocation_reasons_over_texts(&texts, GroundingOwners::LANG, &texts, KERNEL, &vocab)
+            .unwrap();
+    assert!(
+        foreign
+            .values()
+            .any(|reasons| reasons.contains(&RelocationReason::ExemptionShiftOwnerBoundary))
+    );
+}
+
+#[test]
 fn count_over_texts_is_the_construct_sets_length() {
     let texts = text("gmeow:A a sh:NodeShape . gmeow:B a sh:NodeShape .");
     let vocab = crate::counting::shacl_vocab();
-    let constructs = residue_constructs_over_texts(&texts, &vocab, &vocab.owner).unwrap();
+    let constructs =
+        residue_constructs_over_texts(&texts, &vocab, crate::model::GroundingOwners::LOGIC)
+            .unwrap();
     assert_eq!(constructs.len(), 2);
     assert_eq!(
-        residue_over_texts(&texts, &vocab, &vocab.owner).unwrap(),
+        residue_over_texts(&texts, &vocab, crate::model::GroundingOwners::LOGIC).unwrap(),
         constructs.len() as u64
     );
 }
@@ -74,7 +116,10 @@ fn base_bytes_can_be_measured_at_a_destination_surface() {
     // existing `surface_iri` parameter is all it takes to see that.
     let base = grounding_cell();
     let vocab = gufo_vocab();
-    assert_eq!(residue_over_texts(&base, &vocab, &vocab.owner).unwrap(), 0);
+    assert_eq!(
+        residue_over_texts(&base, &vocab, crate::model::GroundingOwners::LOGIC).unwrap(),
+        0
+    );
     assert_eq!(residue_over_texts(&base, &vocab, KERNEL).unwrap(), 1);
 }
 
@@ -83,8 +128,14 @@ fn relocation_reasons_over_texts_names_the_owner_boundary_shift() {
     let base = grounding_cell();
     let working = grounding_cell();
     let vocab = gufo_vocab();
-    let reasons =
-        relocation_reasons_over_texts(&base, &vocab.owner, &working, KERNEL, &vocab).unwrap();
+    let reasons = relocation_reasons_over_texts(
+        &base,
+        crate::model::GroundingOwners::LOGIC,
+        &working,
+        KERNEL,
+        &vocab,
+    )
+    .unwrap();
     let codes: Vec<&str> = reasons
         .values()
         .flat_map(|set| set.iter().map(|r| r.code()))
@@ -101,8 +152,14 @@ fn relocation_reasons_over_texts_names_an_orphaned_grounding() {
     );
     let working = text("gmeow:S a sh:NodeShape ; logic:formalizes logic:sAxiom .");
     let vocab = crate::counting::shacl_vocab();
-    let reasons =
-        relocation_reasons_over_texts(&base, &vocab.owner, &working, KERNEL, &vocab).unwrap();
+    let reasons = relocation_reasons_over_texts(
+        &base,
+        crate::model::GroundingOwners::LOGIC,
+        &working,
+        KERNEL,
+        &vocab,
+    )
+    .unwrap();
     assert_eq!(
         reasons
             .get("https://blackcatinformatics.ca/gmeow/S")
@@ -117,7 +174,8 @@ fn a_broken_base_surface_hard_fails_rather_than_measuring_zero() {
     let broken = vec!["this is not turtle {{{".to_owned()];
     let vocab = crate::counting::shacl_vocab();
     assert!(
-        residue_constructs_over_texts(&broken, &vocab, &vocab.owner).is_err(),
+        residue_constructs_over_texts(&broken, &vocab, crate::model::GroundingOwners::LOGIC)
+            .is_err(),
         "an unparsable surface must HARD FAIL, never silently score as clean"
     );
 }
