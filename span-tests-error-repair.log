@@ -1,0 +1,29 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(json_span_) | test(=ingest::tests::adapter_yields_spans_for_turtle_subject) | test(=ingest::tests::adapter_retains_document_base_with_source_positions) | test(=ingest::tests::span_index_interns_path_once_per_file) | test(=ingest::tests::source_span_maps_onto_location) | test(=ingest::tests::enrich_fills_focus_location_from_span) | test(=error::tests::every_pipeline_code_interns_with_no_collision)' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 15s
+────────────
+ Nextest run ID 8c842598-225e-458c-a79b-b95e845cc79b with nextest profile: ci
+    Starting 14 tests across 226 binaries (8065 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.006s] ( 1/14) gmeow-pipeline ingest::tests::enrich_fills_focus_location_from_span
+        PASS [   0.006s] ( 2/14) gmeow-pipeline ingest::json::tests::json_span_duplicate_subject_is_last_wins_and_duplicate_path_slots_stay_distinct
+        PASS [   0.006s] ( 3/14) gmeow-pipeline ingest::tests::source_span_maps_onto_location
+        PASS [   0.006s] ( 4/14) gmeow-pipeline ingest::json::tests::json_span_literal_bytes_pin_subject_path_and_field_order_without_lf
+        PASS [   0.006s] ( 5/14) gmeow-pipeline ingest::tests::adapter_retains_document_base_with_source_positions
+        PASS [   0.006s] ( 6/14) gmeow-pipeline ingest::json::tests::json_span_path_bounds_have_nested_pointer_and_no_empty_fallback
+        PASS [   0.006s] ( 7/14) gmeow-pipeline ingest::tests::span_index_interns_path_once_per_file
+        PASS [   0.006s] ( 8/14) gmeow-pipeline ingest::json::tests::json_span_actual_product_reader_recovers_complete_shared_paths
+        PASS [   0.006s] ( 9/14) gmeow-pipeline ingest::json::tests::json_span_record_required_null_duplicate_and_unknown_policy
+        PASS [   0.006s] (10/14) gmeow-pipeline ingest::json::tests::json_span_writer_path_reference_conversion_is_checked_on_host_boundary
+        PASS [   0.006s] (11/14) gmeow-pipeline ingest::json::tests::json_span_unsigned_fields_refuse_coercion_and_preserve_width_boundaries
+        PASS [   0.006s] (12/14) gmeow-pipeline error::tests::every_pipeline_code_interns_with_no_collision
+        PASS [   0.006s] (13/14) gmeow-pipeline ingest::tests::adapter_yields_spans_for_turtle_subject
+        PASS [   0.006s] (14/14) gmeow-pipeline ingest::json::tests::json_span_actual_product_reader_refuses_missing_corrupt_and_bad_bounds
+────────────
+     Summary [   0.047s] 14 tests run: 14 passed, 8065 skipped
