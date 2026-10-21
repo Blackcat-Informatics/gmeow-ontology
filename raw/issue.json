@@ -1,0 +1,70 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\nPurRDF 3.0 removed serde from every public type and made `purrdf_lex::json` (with `ToJson`/`FromJson` records and `json_record!`) the substrate's one RFC 8259 JSON home. GMEOW still carries its own JSON stack on `serde`/`serde_json`: ~1,370 `serde_json::` uses across ~340 files and ~210 files deriving `Serialize`/`Deserialize`. Under the \"where GMEOW and PurRDF conflict in functionality, PurRDF wins\" doctrine adopted with the 3.0 upgrade, this is a second JSON implementation.\n\nThe 3.0 upgrade crossed the boundary only where PurRDF types meet GMEOW serde (e.g. `docs-model`'s `purrdf_json` serde adapters for `ArtifactRole`/`SliceTier`, YAML instances crossing to `serde_json` through text in `validate::instance`, the research-object `OfflineJsonLdContext`).\n\n## Scope\n\n- Replace `serde_json::Value` and serde derives with `purrdf_lex::json::Value` and `ToJson`/`FromJson` (`json_record!`) crate by crate, in dependency order.\n- Retire the boundary shims added for 3.0 (`docs-model` `purrdf_json`, JSON-text crossings in `validate::instance` and the YAML tests).\n- Remove `serde`/`serde_json` from the workspace graph when the last use goes.\n\n## Acceptance\n\n- No `serde`/`serde_json` in any GMEOW manifest; `cargo tree -i serde_json` is empty for workspace members.\n- Every committed JSON artifact and golden is byte-identical, or each difference is traced to a documented `purrdf_lex::json` rule (lexeme-preserving numbers, member order).\n- `make check` passes.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABeBMjDA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Bounded delivery under #1776\n\nPrinciples4 and7 govern the single substrate JSON owner, exact evidence bytes and hard-failing admission. This unit uses the existing optimized queue and focused review/qualification; no Stage review panel or repeated portfolio intake applies.\n\nMigrate only gmeow-perf-evidence's sample, acceptance and JUnit JSON boundary to the pinned purrdf_lex::json owner. Preserve sorted, last-wins free-form objects through record::read_document and sorted_last_wins; use Object and ToJson for construction. Preserve atomic publication, synchronization, terminal newline and temporary-file cleanup, including non-UTF-8 path refusals. Retain finite/nonnegative observation checks and strict integer selectors.\n\nDocument and test the owner's intentional numeric differences: parsed number lexemes survive publication, paired identities use exact decimal equality, and huge valid number lexemes must still fail finite observation admission. Add external, pure tests with literal legacy byte expectations and existing cache/proof/refusal controls. No corpus, model execution or host-probing tests.\n\nScope: crates/perf-evidence manifest/source/external tests and docs/rust-test-performance.md. Remove only this crate's serde_json dependency; root owns lock resolution. Full #1776 remains open.\n\nSource-only implementation: root owns formatting, builds, focused Make qualification and all delivery operations. No commits or posts from this lane. Qualification proposed: make nextest-synthetic NEXTEST_FILTER='package(gmeow-perf-evidence)', then applicable root-owned gates.\n",
+      "createdAt": "2026-10-21T06:19:38Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1776#issuecomment-6309487372",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABeBp4Jw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Bounded transcode JSON migration\n\nPrinciples 4 and 7 govern the single JSON substrate, deterministic report contracts and hard-failing static owner invariants. Refs #1776; the completed perf-evidence unit is PR1904 and the full parent remains open.\n\nReplace serde/serde_json only in gmeow-transcode with the pinned purrdf_lex::json record/value/writer owners. Preserve RealizedLoss and MatrixEntry declaration-order members, loss-ledger row ownership, codec filtering, and the existing newline distinction (realized loss has none; matrix outputs have one). Free-form substrate matrix parsing keeps sorted last-wins objects. Infallible owner serialization removes silent empty-array failure fallbacks.\n\nScope: crates/transcode/Cargo.toml, src/lib.rs, src/lib.tests.rs. Add pure literal byte, ledger merge/order, filtering and refusal controls. Keep the generated-artifact drift test intact for separate producer-qualified acceptance. Preserve public String-returning callers; no downstream migration or generic JSON shim. Root owns formatting, qualification, lock resolution and delivery. Full JSON campaign remains open.\n",
+      "createdAt": "2026-10-21T06:52:21Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1776#issuecomment-6309967911",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-02T16:33:08Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 1776,
+  "state": "OPEN",
+  "title": "deps: replace serde/serde_json with purrdf_lex::json (PurRDF owns JSON)",
+  "updatedAt": "2026-10-21T06:52:21Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1776"
+}

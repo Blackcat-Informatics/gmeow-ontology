@@ -1,0 +1,7 @@
+# Integrated prerequisites and candidate coverage
+
+The checkout fast-forwarded landed1907 with affect/Cargo/caller source preserved. The genuine qualified JSON macro owner is now present; final actual complete source recipe passed. Final helpers-hygiene and strict prebuild Clippy passed with the finite-recovery repair and original debt unchanged. All38package controls executed and passed, including actionable subject/predicate refusals for nonfinite recovered scores/thresholds. No model/corpus operation or gate configuration change.
+
+The fresh base-only1908 delta consists solely of crates/pipeline/src/stages/math_producers.rs and its external formatter tests. No affect source/input, called interface or JSON schema changed. Its pure failure formatter cannot change these record or recovery paths. Reusing final focused results against the conflict-free candidate adds no unverified runtime interaction. Installed/embedded CLI and authenticated conformance execution remain explicitly unrun. Final candidate must be recomputed after the normal follow-up commit/push; no routine base synchronization is required.
+
+Final source/documentation commits and normal pushes are complete. Fresh fetch and merge-tree after the last commit produced a clean candidate recorded in candidate-tree.txt. Seven final Rust documentation comments changed no executable body or asserted outcome; final formatting and actual recipe passed again. All38runtime tests and strict lint remain applicable.

@@ -1,0 +1,9 @@
+# Review dispositions and remaining acceptance
+
+Independent source review covers native Record decoding, concrete CLI ingest/recover and three conformance decode callers, duplicate/unknown/optional handling, finite typed numbers and ordered output. The documented object/string admission adopts the native owner; no adapter or compatibility engine was introduced. All38pure tests and strict prebuild lint pass; actual installed/embedded CLI and authenticated corpus execution remain unrun.
+
+Final caller review found recovered nonfinite RDF fields could reach generic JSON null output. The finite guard now covers both score and threshold before successful capture; separate independent focused review confirms actual CLI routing. Its requested actionable subject/predicate assertions passed. The source gap is resolved, not waived.
+
+Complete final paginated PR1909 capture:0formal reviews,0inline comments,0review threads (both pagination levels exhausted),4issue comments. Bot6312570270 contains7informational LGTM notes on initial files and an earlier aggregate docstring coverage75.86percent report. Seven manual codec/recovery functions now carry meaningful contracts; documentation remediation6312989919 records this, with final formatting/source recipe and normal hooks passed. The hosted metric is not claimed rerun. Informational LGTM is not formal approval. Bot review of newer commits remains processing under the recorded exception.
+
+Own progress6312657410 recorded the recovery hold; result6312873727 resolves it after38passing controls. All substantive raw feedback and metadata are retained with decorative-only projection documented. No unresolved source correctness or identified documentation gap remains. Hosted pending/failing metrics use the explicit campaign exception; full1776/corpus/installed/browser/full-gate acceptance remains open.

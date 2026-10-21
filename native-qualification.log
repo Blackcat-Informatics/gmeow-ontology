@@ -1,0 +1,51 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-affect-ingest)' --no-tests=fail
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/affect-ingest)
+    Finished `test` profile [optimized] target(s) in 4.82s
+────────────
+ Nextest run ID fc79d38b-9c6d-49a1-b663-ff7f6e314c00 with nextest profile: ci
+    Starting 38 tests across 1 binary (225 binaries skipped)
+        PASS [   0.009s] ( 1/38) gmeow-affect-ingest tests::f64_decimal_lexical_is_always_a_valid_xsd_decimal
+        PASS [   0.015s] ( 2/38) gmeow-affect-ingest tests::hard_fail_calibrated_without_calibration
+        PASS [   0.019s] ( 3/38) gmeow-affect-ingest tests::hard_fail_activation_mismatch
+        PASS [   0.017s] ( 4/38) gmeow-affect-ingest tests::json_optional_members_accept_absent_or_null_and_omit_none
+        PASS [   0.019s] ( 5/38) gmeow-affect-ingest tests::json_all_committed_captures_use_native_object_and_string_forms
+        PASS [   0.021s] ( 6/38) gmeow-affect-ingest tests::multilabel_two_crossings_no_guard_no_decision
+        PASS [   0.023s] ( 7/38) gmeow-affect-ingest tests::non_normalized_softmax_over_exclusive_set_hard_fails
+        PASS [   0.023s] ( 8/38) gmeow-affect-ingest tests::run_scoped_mints_no_decision
+        PASS [   0.026s] ( 9/38) gmeow-affect-ingest tests::ambiguous_argmax_on_exact_tie
+        PASS [   0.026s] (10/38) gmeow-affect-ingest tests::json_threshold_tags_maps_and_score_vocabulary_preserve_their_wire_forms
+        PASS [   0.027s] (11/38) gmeow-affect-ingest tests::argmax_decision_recorded_faithfully_below_threshold
+        PASS [   0.027s] (12/38) gmeow-affect-ingest tests::argmax_round_trip_with_decision_is_identity
+        PASS [   0.026s] (13/38) gmeow-affect-ingest tests::concluded_when_nothing_crosses_threshold
+        PASS [   0.025s] (14/38) gmeow-affect-ingest tests::json_native_record_and_enum_admission_refuses_incidental_serde_forms
+        PASS [   0.026s] (15/38) gmeow-affect-ingest tests::produce_is_idempotent
+        PASS [   0.027s] (16/38) gmeow-affect-ingest tests::produce_emits_run_all_labels_and_a_mapped_claim
+        PASS [   0.027s] (17/38) gmeow-affect-ingest tests::missing_label_set_decision_hard_fails
+        PASS [   0.027s] (18/38) gmeow-affect-ingest tests::exclusivity_violation_on_two_crossings
+        PASS [   0.030s] (19/38) gmeow-affect-ingest tests::round_trip_recover_produce_is_identity
+        PASS [   0.030s] (20/38) gmeow-affect-ingest tests::hard_fail_duplicate_label
+        PASS [   0.030s] (21/38) gmeow-affect-ingest tests::round_trip_multi_target
+        PASS [   0.030s] (22/38) gmeow-affect-ingest tests::json_numeric_admission_is_finite_and_typed_with_canonical_binary64_output
+        PASS [   0.030s] (23/38) gmeow-affect-ingest tests::json_capture_preserves_literal_bytes_and_real_put_get_round_trip
+        PASS [   0.031s] (24/38) gmeow-affect-ingest tests::json_unknown_members_are_ignored_but_known_duplicates_are_refused
+        PASS [   0.031s] (25/38) gmeow-affect-ingest tests::hard_fail_unregistered_label
+        PASS [   0.035s] (26/38) gmeow-affect-ingest tests::config_loads_labels_and_only_closematch_emotiontypes
+        PASS [   0.019s] (27/38) gmeow-affect-ingest tests::zeroshot_hard_fails_without_template_or_candidates
+        PASS [   0.023s] (28/38) gmeow-affect-ingest tests::sample_fixture_deserializes_with_28_labels
+        PASS [   0.022s] (29/38) gmeow-affect-ingest tests::sssom_correspondences_route_only_closematch_emotiontypes
+        PASS [   0.025s] (30/38) gmeow-affect-ingest tests::single_score_argmax_decision_has_no_margin
+        PASS [   0.022s] (31/38) gmeow-affect-ingest tests::zeroshot_run_scoped_round_trips_and_routes_no_claim
+        PASS [   0.043s] (32/38) gmeow-affect-ingest tests::hard_fail_missing_revision
+        PASS [   0.043s] (33/38) gmeow-affect-ingest tests::hard_fail_incomplete_when_return_all_scores
+        PASS [   0.043s] (34/38) gmeow-affect-ingest tests::json_recovery_refuses_nonfinite_scores_and_thresholds_before_export
+        PASS [   0.043s] (35/38) gmeow-affect-ingest tests::hard_fail_invalid_and_duplicate_target_iri
+        PASS [   0.030s] (36/38) gmeow-affect-ingest tests::score_semantics_decision_rule_mismatch_hard_fails
+        PASS [   0.045s] (37/38) gmeow-affect-ingest tests::recover_hard_fails_on_missing_required_triple
+        PASS [   0.043s] (38/38) gmeow-affect-ingest tests::hard_fail_score_out_of_range_and_nan
+────────────
+     Summary [   0.048s] 38 tests run: 38 passed, 0 skipped

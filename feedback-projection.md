@@ -1,0 +1,1 @@
+Complete paginated REST and GraphQL feedback retained in raw. Only decorative CodeRabbit marker comments and review-stack metadata blocks are projected out; substantive bodies, IDs, URLs, seven LGTM notes, docstring report and pagination remain. Both thread pageInfo levels exhausted.
