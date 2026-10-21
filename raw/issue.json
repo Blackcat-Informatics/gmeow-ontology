@@ -1,0 +1,27 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nFour questions about who a claim is from, who may read it, and what\nidentifies a node:\n1. address identity;\n2. policy findings;\n3. a vantage bound to a consumer key, with signer kept apart from\n   observer;\n4. reader-relative disclosure.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumers\n\n- **katamari**: the governed RDF 1.2 store. Writes are consumer-signed.\n  An admission policy judges each write, and a reader sees a view\n  shaped by what it may know.\n- **memetics**: the memory adapter for a companion agent.\n  - One rule is absolute: only she speaks as herself. Code must never\n    write a claim in her first person.\n  - Its admission never refuses a write. It records findings about the\n    writing code, which go to the operator.\n\n## 1. What identifies an address node (katamari)\n\n**Today.** `gmeow:addressValue` (`core/contacts`) is functional but not\na key, so two address nodes with equal normalized values never collapse.\n\n**Proposal.** Declare it a key (`owl:hasKey`) on `gmeow:EmailAddress`.\nOr document that identity derives from the normalized value. katamari's\nstarting default is the latter.\n\n## 2. Policy findings (both)\n\n**Today.** Nothing specific.\n\n**Use case.** A store's admission policy judges a write and finds\nsomething:\n- a serialized record inside a literal;\n- an untagged string written by code;\n- code naming the companion as the speaker.\n\nThe finding is itself a claim, from the policy's vantage, about another\nclaim.\n- memetics records such findings as conditions on the writing code.\n- katamari records policy findings at the store.\n\n**Proposed terms.**\n- `gmeow:PolicyFinding`, a sub-kind of `gmeow:Observation`: its vantage\n  the policy (named and versioned), its observed feature the judged\n  claim, and its result a finding kind.\n- `gmeow:violatesPolicy` / `gmeow:findingKind` with a value vocabulary\n  the policy defines.\n\n**Open question.** Is this a special case of `logic:` constraint\nviolation reports (SHACL validation results as RDF)? If so, the consumers\nwould map onto it and only need the vantage binding.\n\n## 3. Vantage bound to a consumer key; signer apart from observer (both)\n\n**Today.** `gmeow:vantage` (`core/observations`) names who observed. It\nhas no binding to the key that signed the write, and no distinction\nbetween who signed and who observed.\n\n**Use case.**\n- The store must check that a claim asserting a vantage was signed by a\n  key bound to that vantage.\n- That check is how \"only she speaks as herself\" is enforced at the\n  store, not just by convention.\n- A migration or a refiner may sign a claim whose observer is someone\n  else (re-expressing what she wrote, with a derivation link), so the\n  signer and the observer must be separable.\n\n**Proposed terms.**\n- `gmeow:boundToKey`: a vantage or agent to a key identifier (per\n  #1807 item 2's identifier typing).\n- `gmeow:signedBy`: on the claim, distinct from `gmeow:vantage`.\n\n## 4. Reader-relative disclosure (katamari)\n\n**Today.** `hasSensitivity`, `hasDisclosurePolicy`, `coarsenTo` and\n`displayable` (kernel slice) exist. Two forms of withholding are not\ntold apart:\n- **visible redaction**: \"there is something here you may not see\";\n- **non-acknowledgement**: nothing indicates anything was withheld.\n\n**Ask.** Is that distinction wanted in the disclosure vocabulary? A\nreader-relative view must know which form a policy calls for. The ADR\non katamari's side is not yet written; this is raised early so GMEOW's\nmodel can inform it.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-10T10:12:36Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZK3g",
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    }
+  ],
+  "milestone": null,
+  "number": 1816,
+  "state": "OPEN",
+  "title": "Identity, vantage and policy: address identity, policy findings, vantage bound to a key, reader-relative disclosure (consumers: katamari, memetics)",
+  "updatedAt": "2026-10-10T10:12:36Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1816"
+}

@@ -1,0 +1,13 @@
+# Acceptance and review
+
+All four model questions map to source: address identity to the guide and contacts link; policy findings to PolicyFinding, the existing observation roles and quoted worked claim; vantage authentication to boundToKey and the existing signature/certification spine; reader disclosure to DisclosureDecision, disclosureReader and explicit outcome individuals. The guide includes refiner derivation, recording-only admission and private decision-record handling. No external repository changes are part of this ontology issue.
+
+Executed source audit: eight unique declarations, 56 exact English fields, 112 nonempty exact French/Chinese pairs with unique contexts, existing local guide links and exclusively logic-native new semantic axioms. All passed. git diff --check passed. Normal signed commit hooks passed, including Markdown, spelling, secrets and reference policy. Rust code did not change; no compiled Rust result is claimed for these ontology changes.
+
+Two exact-row competencies and two structural controls are authored for the explicit producer-owned slice-specification lane. They have NOT run locally. No corpus construction, local optimized producer, synchronization or full gate ran. Hosted projection, translation and complete corpus acceptance remain unverified under the explicit CI waiver; the waiver does not establish a test pass. External signature verification and reader-view enforcement are consumer responsibilities described by the model, not implemented consumer code.
+
+Local requirements review: source matches the four questions, uses existing owners, retains RDF 1.2 quoted content without asserting it, and introduces no alternate signer model or global email equality. New outcomes are open value-vocabulary individuals. No detector, ratchet, dependency, compilation profile or gate was changed. The attestation documentation correction follows its actual source range. Independent local review is unavailable; this is self-review.
+
+Push succeeded and PR 1891 is open. Fresh paginated review submissions and inline comments are empty; the full thread page is empty and not truncated. The bot conversation notice is processing-only. Source status is clean separately from selected untracked Stage records. The fetched main has no source delta from the branch base; merge-tree produced a clean candidate recorded in integration-tree.txt. The assessed source therefore covers this integration without conflict. Hosted checks and automated review remain pending and do not block the authorized merge.
+
+Latest pre-merge refresh: hosted helpers and lint passed; producer, prebuild and automated review remain pending. The check command returned pending state. Reviews and inline comments are still empty.

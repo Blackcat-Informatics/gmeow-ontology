@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1816,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1816-identity-vantage-and-policy-address",
+  "branch": "paudley/1816-identity-vantage-and-policy-address",
+  "slug": "identity-vantage-and-policy-address",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1816-identity-vantage-and-policy-address/.stage/identity-vantage-and-policy-address",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "fef4b48cbc4356f0274cd674a63785ca3ec97d36",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1816-identity-vantage-and-policy-address",
+    "branch:paudley/1816-identity-vantage-and-policy-address",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1816-identity-vantage-and-policy-address/.stage/identity-vantage-and-policy-address",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1816-identity-vantage-and-policy-address/.stage/identity-vantage-and-policy-address/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T19:21:25-0600"
+}

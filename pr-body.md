@@ -1,0 +1,7 @@
+Closes #1816.
+
+Model policy findings and reader-relative disclosure through the existing observation spine. Findings retain the versioned policy, judged RDF 1.2 claim and policy-owned kind; disclosure decisions retain the reader and explicit release, visible-redaction or non-acknowledgement result. Author the missing vantage-to-key relation while reusing signature, signer, key and certification owners. Explain store-relative address identity and keep refiner signing separate from observer attribution. Principles 4, 9, 10, 12, 17 and 19.
+
+Eight terms include complete English coats and paired French/Chinese catalogs. Add private worked records, two exact-row competencies and two structural controls. The guide explains recording-only admission, native constraint evidence, authorized key bindings and the complete outward non-acknowledgement boundary. Correct the attestation guide to name the actual CryptographicKey range.
+
+Normal signed commit hooks passed, including spelling, Markdown, secrets and tracker-reference checks. Focused source checks passed for declarations, all 56 English fields, 112 catalog pairs, unique contexts, links and logic-native semantic authoring. Diff hygiene passed. Corpus competencies, generated projection/translation qualification and external consumer execution have not run locally; no local producer, synchronization or full gate ran. The user instructed sequential merges while ignoring CI. This delivers the GMEOW model and guidance; it does not claim an external store has implemented its policy boundary.
