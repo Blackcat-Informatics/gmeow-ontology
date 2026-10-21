@@ -72,6 +72,8 @@ pub mod math_dimension;
 // rejected expression, all decided over the ONE `math:` expression lowering
 // (`crate::physical::lower::math_expression_structural_keys`). Runs alongside
 // `math_dimension` in the same reason-verify pass.
+/// Financial role/frame admission around the shared native exact math owner.
+pub mod finance_evaluation;
 /// Explicit profile-selected arithmetic lowered to the native numeric owner.
 pub mod math_evaluation;
 pub mod math_expression;

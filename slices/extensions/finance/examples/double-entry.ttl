@@ -1,3 +1,4 @@
+@prefix math: <https://blackcatinformatics.ca/math/> .
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
@@ -21,8 +22,9 @@ ex:invoice a gmeow:Invoice ;
     gmeow:invoiceAmount    ex:amount ;
     gmeow:invoiceStatus    gmeow:invoiceStatusSent .
 
-ex:amount a gmeow:MonetaryAmount ;
-    gmeow:monetaryValue "5000.00"^^xsd:decimal ;
+ex:amount a gmeow:MonetaryAmount , math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "5000.00"^^xsd:decimal ;
     gmeow:currency      gmeow:referenceFrameCAD .
 
 # --- The same fact as a balanced double-entry journal: debit AR, credit Revenue.

@@ -1,3 +1,4 @@
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:      <https://blackcatinformatics.ca/gmeow/examples/finance/> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
@@ -14,10 +15,20 @@ ex:aliceHolding
     a gmeow:Holding ;
     gmeow:holdingAgent ex:alice ;
     gmeow:holdingAsset ex:acmeStock ;
-    gmeow:holdingQuantity "10.0"^^xsd:decimal ;
+    gmeow:holdingQuantity ex:shareCount ;
     gmeow:holdingCostBasis ex:costBasis .
 
 ex:costBasis
-    a gmeow:MonetaryAmount ;
-    gmeow:monetaryValue "1000.00"^^xsd:decimal ;
+    a gmeow:MonetaryAmount , math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "1000.00"^^xsd:decimal ;
     gmeow:currency gmeow:referenceFrameUSD .
+
+ex:shareCount a gmeow:HoldingAssetQuantity , math:Quantity ;
+    math:quantityValue "10.0"^^xsd:decimal ; math:hasDimension math:dimensionless ;
+    gmeow:countedAsset ex:acmeStock ; gmeow:hasReferenceFrame ex:shareCountFrame .
+ex:shareCountFrame a gmeow:ReferenceFrame ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ; gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:hasAxis gmeow:axisScalar ; gmeow:requiresHost false .

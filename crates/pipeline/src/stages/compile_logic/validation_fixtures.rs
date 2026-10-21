@@ -30,12 +30,16 @@ const SH_HEADER: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n";
 #[derive(Debug, Serialize, Deserialize)]
 struct ValidationFixtures {
     modules: BTreeMap<String, Result<ModuleProduct, gmeow_errors::RecordedDiag>>,
+    /// Exact authored examples selected and read by the producer before tests.
+    inputs: BTreeMap<String, Vec<u8>>,
     cases: Vec<CaseObservation>,
     diagnostics_migration: Result<migration::Agreement, gmeow_errors::RecordedDiag>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ModuleProduct {
+    /// Authenticated producer-selected native source for installed-caller contract tests.
+    source_rdf: String,
     diagnostics: Vec<Diagnostic>,
     shapes: Vec<ShapeProduct>,
     procedural_shacl: String,
@@ -58,6 +62,7 @@ pub(super) fn input_files(root: &Path) -> impl Iterator<Item = PathBuf> + '_ {
     selection::CASES
         .iter()
         .map(|(_, input)| root.join(input))
+        .chain(selection::INPUTS.iter().map(|input| root.join(input)))
         .chain(std::iter::once(root.join(migration::LEGACY_PATH)))
 }
 
@@ -66,6 +71,16 @@ pub(super) fn record(
     root: &Path,
     artifacts: &mut BTreeMap<String, Vec<u8>>,
 ) -> gmeow_errors::Result<()> {
+    let inputs = selection::INPUTS
+        .iter()
+        .map(|path| {
+            std::fs::read(root.join(path))
+                .map(|bytes| ((*path).to_owned(), bytes))
+                .map_err(|error| {
+                    super::stage_err(format!("read selected validation input {path}: {error}"))
+                })
+        })
+        .collect::<gmeow_errors::Result<BTreeMap<_, _>>>()?;
     let mut modules = BTreeMap::new();
     let mut plans = BTreeMap::new();
     for &module in selection::MODULES {
@@ -122,6 +137,7 @@ pub(super) fn record(
         .and_then(|product| migration::record(root, product).map_err(super::record_failure));
     let fixtures = ValidationFixtures {
         modules,
+        inputs,
         cases,
         diagnostics_migration,
     };
@@ -147,7 +163,17 @@ fn compile_module(source: &PreparedLogicSource) -> gmeow_errors::Result<ModulePr
             ir,
         })
         .collect();
+    let source_rdf = String::from_utf8(
+        purrdf::serialize_dataset(
+            source.dataset(),
+            "application/trig",
+            purrdf::SerializeGraph::Dataset,
+        )
+        .map_err(|error| super::stage_err(format!("serialize validation owner source: {error}")))?,
+    )
+    .map_err(|error| super::stage_err(format!("validation owner RDF is not UTF-8: {error}")))?;
     Ok(ModuleProduct {
+        source_rdf,
         diagnostics,
         shapes,
         procedural_shacl: project_procedural_constraints(&program),

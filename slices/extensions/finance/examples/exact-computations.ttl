@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix m: <https://blackcatinformatics.ca/math/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# The installed caller resolves both recipes and signatures from its own bundle.
+# No answer is asserted. Evaluate either named calculation with --subject.
+<urn:finance:interest> a g:SimpleInterestCalculation ;
+    g:vantage <urn:finance:alice> ; g:observedFeature <urn:finance:account> ;
+    g:observationMethod g:methodSimpleInterest ;
+    g:calculationExpression <urn:gmeow:finance:simple:recipe> ;
+    g:calculationPeriodBasis <urn:finance:contract-year> ;
+    g:principalAmount <urn:finance:opening> ;
+    g:interestRate <urn:finance:rate> ; g:interestPeriodCount <urn:finance:periods> .
+
+<urn:finance:return> a g:HoldingPeriodReturnCalculation ;
+    g:vantage <urn:finance:alice> ; g:observedFeature <urn:finance:account> ;
+    g:observationMethod g:methodHoldingPeriodReturn ;
+    g:calculationExpression <urn:gmeow:finance:return:recipe> ;
+    g:calculationPeriodBasis <urn:finance:contract-year> ;
+    g:openingAmount <urn:finance:opening> ; g:closingAmount <urn:finance:closing> .
+
+<urn:finance:alice> a g:Entity .
+<urn:finance:account> a g:Entity .
+<urn:finance:opening> a g:MonetaryAmount ;
+    m:quantityValue 1000.00 ; m:hasDimension m:dimensionless ; g:currency g:referenceFrameUSD .
+<urn:finance:closing> a g:MonetaryAmount ;
+    m:quantityValue 1200.00 ; m:hasDimension m:dimensionless ; g:currency g:referenceFrameUSD .
+<urn:finance:rate> a g:FinancialPeriodRate ;
+    m:quantityValue 0.05 ; m:hasDimension m:dimensionless ; g:hasReferenceFrame <urn:finance:contract-year> .
+<urn:finance:periods> a g:FinancialPeriodCount ;
+    m:quantityValue 2.0 ; m:hasDimension m:dimensionless ; g:hasReferenceFrame <urn:finance:contract-year> .
+<urn:finance:contract-year> a g:ReferenceFrame ;
+    rdfs:label "one contractual interest period"@en ;
+    g:determinacyModel g:determinacyCrisp ; g:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmTemporal ;
+    g:hasAxis g:axisScalar ; g:requiresHost false .

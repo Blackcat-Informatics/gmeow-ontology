@@ -117,11 +117,14 @@ in `examples/blood-pressure.ttl`.
 
 ### gmeow:MonetaryAmount
 
-Promoted to core in the dependency refactor: money is frame-relative quantity
-machinery, not finance-domain. `gmeow:monetaryValue` carries the decimal;
-`gmeow:currency` (⊑ `hasReferenceFrame`, functional) names the currency frame — a value
-without its currency is ill-formed (Principle 11). Canonical superset of
-schema:MonetaryAmount and the FIBO monetary amount.
+Money is a shared abstract `math:Quantity` value object. `math:quantityValue`
+carries its one exact decimal magnitude, and `math:hasDimension` is explicitly
+`math:dimensionless`. `gmeow:currency` names one complete scalar currency
+ReferenceFrame. Money is not an enduring Entity, and currency is not an eighth
+SI dimension. The same physical dimension alone does not authorize a financial
+operation across different currencies. Employment, aggregation and finance keep
+the existing MonetaryAmount IRI and amount roles. Observation context belongs to
+the observing claim; a mathematical amount does not itself become the observer.
 
 ## The evaluative-primitive vocabulary
 

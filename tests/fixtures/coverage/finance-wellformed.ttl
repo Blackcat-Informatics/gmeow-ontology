@@ -1,3 +1,4 @@
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:      <https://blackcatinformatics.ca/gmeow/examples/finance/> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
@@ -14,8 +15,9 @@ ex:chequingAccount
     gmeow:accountBalance ex:balanceCAD .
 
 ex:balanceCAD
-    a gmeow:MonetaryAmount ;
-    gmeow:monetaryValue "1234.56"^^xsd:decimal ;
+    a gmeow:MonetaryAmount , math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "1234.56"^^xsd:decimal ;
     gmeow:currency gmeow:referenceFrameCAD .
 
 # A multi-currency fintech wallet (non-functional accountCurrency).
@@ -29,11 +31,13 @@ ex:multiCurrencyWallet
     gmeow:accountBalance ex:balanceEUR .
 
 ex:balanceUSD
-    a gmeow:MonetaryAmount ;
-    gmeow:monetaryValue "500.00"^^xsd:decimal ;
+    a gmeow:MonetaryAmount , math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "500.00"^^xsd:decimal ;
     gmeow:currency gmeow:referenceFrameUSD .
 
 ex:balanceEUR
-    a gmeow:MonetaryAmount ;
-    gmeow:monetaryValue "750.00"^^xsd:decimal ;
+    a gmeow:MonetaryAmount , math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "750.00"^^xsd:decimal ;
     gmeow:currency gmeow:referenceFrameEUR .

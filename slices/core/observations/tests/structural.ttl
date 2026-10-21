@@ -133,12 +133,12 @@ ex:saRetiredQuantityAliasesAbsent a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK {
-    VALUES ?legacy { gmeow:Quantity gmeow:ScalarQuantity gmeow:MeasuredValue gmeow:quantityValue }
+    VALUES ?legacy { gmeow:Quantity gmeow:ScalarQuantity gmeow:MeasuredValue gmeow:quantityValue gmeow:monetaryValue gmeow:monetaryValueFunctionality }
     { ?legacy ?predicate ?object }
     UNION { ?subject ?legacy ?object }
     UNION { ?subject ?predicate ?legacy }
 }""" ;
-    gmeow:saRationale "The observation-local Quantity, ScalarQuantity, MeasuredValue, and quantityValue authorities are retired; consumers use math:Quantity and math:quantityValue." .
+    gmeow:saRationale "The observation-local Quantity, ScalarQuantity, MeasuredValue, quantityValue, and monetaryValue authorities are retired; consumers use math:Quantity and math:quantityValue." .
 
 # --- 10. isResultOf is the inverse of observationResult (MUST) --------------
 ex:saIsResultOfInverseObservationResult a gmeow:StructuralAssertion ;

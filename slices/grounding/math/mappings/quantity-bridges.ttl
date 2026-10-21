@@ -11,6 +11,7 @@
 @prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
 @prefix loinc:   <http://loinc.org/rdf/> .
 @prefix qudt:    <http://qudt.org/schema/qudt/> .
+@prefix schema:  <https://schema.org/> .
 
 # Quantity and numeric-value grounding is authored once by the math: owner.
 # Observation-domain mappings retain the acts, roles, result edges, units,
@@ -18,6 +19,19 @@
 # The SOSA / OM / IVOA / LOINC rows continue to fan out into the generated
 # gmeow-observations.sssom.tsv consumer grouping. That derived file grouping does
 # not change canonical row ownership, which remains this math: catalog.
+
+math:quantityValue skos:relatedMatch schema:value {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "The canonical numeric magnitude supplies the value of a monetary amount. Schema.org value also admits nonnumeric values, so this is a validation-only bridge rather than property equivalence." ;
+    logic:sourceEndpoint math:quantityValue ;
+    logic:targetEndpoint schema:value ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
 math:Quantity skos:relatedMatch sosa:Result {|
     a logic:GroundingCorrespondence ;

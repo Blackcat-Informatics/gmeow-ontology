@@ -1,3 +1,4 @@
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:      <https://blackcatinformatics.ca/gmeow/examples/finance/> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
@@ -15,6 +16,7 @@ ex:invoice001
     gmeow:invoiceStatus gmeow:invoiceStatusSent .
 
 ex:invoiceAmount
-    a gmeow:MonetaryAmount ;
-    gmeow:monetaryValue "500.00"^^xsd:decimal ;
+    a gmeow:MonetaryAmount , math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "500.00"^^xsd:decimal ;
     gmeow:currency gmeow:referenceFrameCAD .

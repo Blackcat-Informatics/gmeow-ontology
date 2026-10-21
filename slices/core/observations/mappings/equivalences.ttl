@@ -559,12 +559,6 @@ gmeow:MonetaryAmount skos:closeMatch schema:MonetaryAmount {|
     gmeow:comment "a quantity of money; GMEOW makes the currency frame explicit via ReferenceFrame"
 |} .
 
-gmeow:monetaryValue skos:closeMatch schema:value {|
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "the numeric value of a monetary amount"
-|} .
 
 gmeow:currency skos:closeMatch schema:currency {|
     gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
