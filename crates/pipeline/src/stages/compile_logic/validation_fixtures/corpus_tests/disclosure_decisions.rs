@@ -9,6 +9,7 @@ use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
+/// Check independent A-Box data against the retained producer-selected shape bytes.
 fn assert_case(product: &super::ShapeProduct, name: &str, body: &str, expected: bool) {
     let shapes = parse_shapes(&product.shacl, None).expect("producer-authored disclosure shape");
     let input = format!(
@@ -23,6 +24,7 @@ fn assert_case(product: &super::ShapeProduct, name: &str, body: &str, expected: 
     assert_eq!(report.results.is_empty(), expected, "{name}: {report:?}");
 }
 
+/// Require local typed fields while retaining ordinary and separate decision multiplicity.
 #[test]
 fn disclosure_decisions_require_one_typed_reader_and_outcome_locally() {
     let product = super::module("slices/core/observations/module.ttl")
