@@ -64,7 +64,7 @@ fn adapter_retains_document_base_with_source_positions() {
 }
 
 /// Minimal-allocation shape: many subjects from ONE file share ONE path `Arc`
-/// (interned once), both in the live index and after a serde round-trip.
+/// (interned once), both in the live index and after a native JSON round-trip.
 #[test]
 fn span_index_interns_path_once_per_file() {
     let turtle = concat!(
@@ -86,9 +86,9 @@ fn span_index_interns_path_once_per_file() {
         "all subjects of one file must share one interned path Arc"
     );
 
-    // The interning survives a serde round-trip (one Arc per distinct path).
-    let json = serde_json::to_vec(&index).expect("serialize");
-    let round: SpanIndex = serde_json::from_slice(&json).expect("deserialize");
+    // The interning survives a native JSON round-trip (one Arc per distinct path).
+    let json = index.to_json_bytes().expect("serialize");
+    let round: SpanIndex = purrdf_lex::json::record::from_slice(&json).expect("deserialize");
     let ra = round.lookup("https://example.test/a").expect("a");
     let rb = round.lookup("https://example.test/b").expect("b");
     let rc = round.lookup("https://example.test/c").expect("c");

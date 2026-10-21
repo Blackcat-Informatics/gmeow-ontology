@@ -20,7 +20,7 @@
 //! [`SourceSpan`]. The path is interned ONCE per source file: every subject a file
 //! contributes shares a single `Arc<str>` path (a cheap ref-count bump, never a
 //! fresh `String` per entry), and the line/column/byte-offset ride by value (`Copy`).
-//! The on-the-wire form ([`SpanIndex`]'s `serde` impl) preserves that interning — it
+//! The native JSON wire form ([`SpanIndex::to_json_bytes`]) preserves that interning — it
 //! serializes a per-file path table plus `(subject, path-id, line, column, offset)`
 //! rows and re-interns one `Arc<str>` per path on the way back, so a round-trip
 //! through the by-reference blob lane keeps the one-Arc-per-file shape.
@@ -29,8 +29,6 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use purrdf::{ParseOptions, ParseOutcome, RdfDataset, SpanTable, parse_dataset_with};
-use serde::de::Error as _;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// One authored subject's source position: the interned source path plus the
 /// 1-based line/column and byte offset where the subject was FIRST asserted.
@@ -161,79 +159,7 @@ impl SpanIndex {
     }
 }
 
-// ── minimal-allocation wire form ────────────────────────────────────────────────
-//
-// Serializing `SourceSpan` directly would need `serde`'s `rc` feature and would
-// duplicate every file's path string per subject (and lose sharing on the way back).
-// Instead the wire carries a per-file path TABLE and `(subject, path-id, …)` rows, so
-// one `Arc<str>` per distinct path is re-interned on deserialize.
-
-#[derive(Serialize, Deserialize)]
-struct SpanEntryWire {
-    subject: String,
-    path_id: u32,
-    line: u64,
-    column: u32,
-    byte_offset: u64,
-}
-
-#[derive(Serialize, Deserialize)]
-struct SpanIndexWire {
-    paths: Vec<String>,
-    entries: Vec<SpanEntryWire>,
-}
-
-impl Serialize for SpanIndex {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut paths: Vec<String> = Vec::new();
-        let mut entries: Vec<SpanEntryWire> = Vec::with_capacity(self.by_subject.len());
-        for (subject, span) in &self.by_subject {
-            let path_str: &str = span.path.as_ref();
-            let path_id = match paths.iter().position(|p| p == path_str) {
-                Some(i) => i,
-                None => {
-                    paths.push(path_str.to_owned());
-                    paths.len() - 1
-                }
-            };
-            entries.push(SpanEntryWire {
-                subject: subject.clone(),
-                path_id: path_id as u32,
-                line: span.line,
-                column: span.column,
-                byte_offset: span.byte_offset,
-            });
-        }
-        SpanIndexWire { paths, entries }.serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for SpanIndex {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let wire = SpanIndexWire::deserialize(deserializer)?;
-        // Re-intern one Arc<str> per distinct path so all subjects of a file share it.
-        let interned: Vec<Arc<str>> = wire.paths.iter().map(|p| Arc::from(p.as_str())).collect();
-        let mut by_subject = BTreeMap::new();
-        for entry in wire.entries {
-            let path = interned
-                .get(entry.path_id as usize)
-                .ok_or_else(|| {
-                    D::Error::custom(format!("span path_id {} out of range", entry.path_id))
-                })?
-                .clone();
-            by_subject.insert(
-                entry.subject,
-                SourceSpan {
-                    path,
-                    line: entry.line,
-                    column: entry.column,
-                    byte_offset: entry.byte_offset,
-                },
-            );
-        }
-        Ok(SpanIndex { by_subject })
-    }
-}
+mod json;
 
 /// The result of one ingestion: the frozen dataset and the source-span contribution
 /// the adapter tracked for this input (empty when the adapter/format carries none).

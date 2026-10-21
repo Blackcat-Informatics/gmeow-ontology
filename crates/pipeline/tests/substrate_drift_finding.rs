@@ -119,7 +119,7 @@ fn run_and_capture_shacl_nq() -> String {
         .expect("disagreeing A-Box parses");
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
-    let span_blob = serde_json::to_vec(&SpanIndex::new()).expect("encode span index");
+    let span_blob = SpanIndex::new().to_json_bytes().expect("encode span index");
     let bundle = bundle_from_artifacts_over_with_rep_blob(
         provenance,
         artifacts,

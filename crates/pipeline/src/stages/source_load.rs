@@ -629,12 +629,7 @@ impl Stage for SourceLoadStage {
             started.elapsed().as_millis(),
         ));
         let started = Instant::now();
-        let span_blob = serde_json::to_vec(&span_index).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: self.id().to_owned(),
-                message: format!("encode source-span table blob: {e}"),
-            })
-        })?;
+        let span_blob = span_index.to_json_bytes()?;
         let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
             dataset,
             artifacts,

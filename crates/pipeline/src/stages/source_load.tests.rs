@@ -62,7 +62,7 @@ fn fixed_policy_emits_source_and_root_suppresses_imports_through_the_fold() {
     // Fold the built index into a product bundle exactly as `run` does, then read it
     // back through the `span_index()` accessor (the folded product, not the live index).
     let index = build_source_span_index(root).expect("build span index");
-    let blob = serde_json::to_vec(&index).expect("encode");
+    let blob = index.to_json_bytes().expect("encode");
     let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
         Arc::new(RdfDataset::union(&[]).unwrap()),
         BTreeMap::new(),
