@@ -1,0 +1,33 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(json_finding_) | test(json_cached_findings_) | test(json_ndjson_) | (package(gmeow-validate) & (test(complete_findings_are_bound_to_implementation_kind_and_input_context) | test(corrupt_cached_findings_fail_instead_of_becoming_an_empty_verdict)))' --no-tests=fail
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/logic-compile)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/math)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/cli-core)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/music)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/math-lift)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-import)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gts-profile)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/xtask)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/query-wasm)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/helper-census)
+error[E0433]: cannot find type `Finding` in this scope
+  --> crates/cli-core/src/lib.tests.rs:57:24
+   |
+57 |     failed.add_finding(Finding::new(gmeow_errors::Severity::Error, "x", "boom"));
+   |                        ^^^^^^^ use of undeclared type `Finding`
+   |
+   = note: struct `crate::ndjson::tests::Finding` exists but is inaccessible
+help: consider importing this struct
+   |
+ 4 + use gmeow_errors::Finding;
+   |
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `gmeow-cli-core` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:717: nextest-synthetic] Error 101

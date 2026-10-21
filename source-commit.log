@@ -1,0 +1,28 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...............................................................Passed
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1776-deps-replace-serde-serde-json-with 74e8c3e6b] fix: use native findings for cache replay and NDJSON
+ 13 files changed, 811 insertions(+), 44 deletions(-)
+ create mode 100644 crates/cli-core/src/ndjson.rs
+ create mode 100644 crates/cli-core/src/ndjson/tests.rs
+ create mode 100644 crates/errors/FINDING-JSON.md
+ create mode 100644 crates/errors/src/model/json.rs
+ create mode 100644 crates/errors/src/model/json/tests.rs
+ create mode 100644 crates/validate/src/cache/json.rs
+ create mode 100644 crates/validate/src/cache/json/tests.rs
