@@ -47,6 +47,7 @@ use purrdf::{
     NativeRdfFormat, RdfDataset, SerializeGraph, SerializeOptions, StatementLayer, TermId,
     dataset_from_bytes, import_gts_events, serialize_dataset_to_format, serialize_dataset_with,
 };
+use purrdf_lex::json::{self, Value, record::ToJson as _};
 
 /// gmeow's bundled YAML-LD schema. purrdf is namespace-neutral and would stamp its
 /// own `purrdf.schema.json` header; the consumer's schema is gmeow's, so the YAML-LD
@@ -206,7 +207,7 @@ impl Codec {
 
 /// A loss event that actually occurred during transcoding, with a runtime count
 /// attached to the static contract entry.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone)]
 pub struct RealizedLoss {
     /// The stable loss code (e.g. `"named-graph-dropped"`).
     pub code: String,
@@ -220,6 +221,14 @@ pub struct RealizedLoss {
     /// but no items were actually present in this particular dataset).
     pub count: u64,
 }
+
+purrdf_lex::json_record!(impl ToJson for RealizedLoss {
+    "code" => code,
+    "from" => from,
+    "to" => to,
+    "note" => note,
+    "count" => count,
+});
 
 /// The bytes produced by a transcode operation together with any losses
 /// realized against the static loss contract.
@@ -611,6 +620,7 @@ fn realize_losses(
 /// loss serialization projects from — keyed per **R1** by the `from␟to` codec
 /// pair, then read back (already sorted) and serialized. The JSON is produced
 /// FROM the ledger, never straight off the `Vec<RealizedLoss>`.
+/// Record members retain declaration order; this report has no terminal newline.
 pub fn realized_loss_json(losses: &[RealizedLoss]) -> String {
     let mut store = gmeow_logic_compile::loss_ledger::LossLedger::new();
     for loss in losses {
@@ -627,12 +637,12 @@ pub fn realized_loss_json(losses: &[RealizedLoss]) -> String {
             count: row.count,
         })
         .collect();
-    serde_json::to_string_pretty(&rows).unwrap_or_else(|_| "[]".to_owned())
+    json::write_pretty(&rows.to_json())
 }
 
 /// One row of the supported-transcode matrix: a `from → to` pair the engine
 /// accepts, with the static loss codes the conversion declares.
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug)]
 struct MatrixEntry {
     from: &'static str,
     to: &'static str,
@@ -642,6 +652,13 @@ struct MatrixEntry {
     loss_codes: Vec<String>,
 }
 
+purrdf_lex::json_record!(impl ToJson for MatrixEntry {
+    "from" => from,
+    "to" => to,
+    "lossy" => lossy,
+    "loss_codes" => loss_codes,
+});
+
 /// Render the supported-transcode matrix as deterministic, pretty JSON.
 ///
 /// Enumerates every `from → to` pair the engine accepts — `from` is any
@@ -649,6 +666,7 @@ struct MatrixEntry {
 /// static [`pair_loss_ledger`] loss codes. Sorted by `(from, to)` so the
 /// committed `generated/transcode-matrix.json` artifact is byte-stable; a drift
 /// test re-derives and compares it.
+/// Record members retain declaration order and the document ends in a newline.
 pub fn transcode_matrix_json() -> String {
     let mut entries: Vec<MatrixEntry> = Vec::new();
     for &from in Codec::all() {
@@ -675,7 +693,7 @@ pub fn transcode_matrix_json() -> String {
         }
     }
     entries.sort_by(|a, b| a.from.cmp(b.from).then(a.to.cmp(b.to)));
-    let mut json = serde_json::to_string_pretty(&entries).unwrap_or_else(|_| "[]".to_owned());
+    let mut json = json::write_pretty(&entries.to_json());
     json.push('\n');
     json
 }
@@ -685,18 +703,27 @@ pub fn transcode_matrix_json() -> String {
 /// purrdf owns the shared loss vocabulary and may expose additional projection
 /// codecs. The GMEOW CLI's committed matrix must describe its own accepted surface,
 /// so rows whose source or target is absent from [`Codec::all`] are excluded.
+/// Free-form objects retain their last duplicate member and sort keys recursively;
+/// the document ends in a newline.
 pub fn transcode_loss_matrix_json() -> String {
+    supported_loss_matrix_json(&purrdf::loss_matrix_json())
+}
+
+fn supported_loss_matrix_json(source: &str) -> String {
     let supported: HashSet<&str> = Codec::all().iter().map(|codec| codec.name()).collect();
-    let mut entries: Vec<serde_json::Value> = serde_json::from_str(&purrdf::loss_matrix_json())
+    let document = json::record::read_document(source.as_bytes())
         .expect("purrdf static transcode-loss matrix must be valid JSON");
+    let mut entries = document
+        .as_array()
+        .expect("purrdf static transcode-loss matrix must be a JSON array")
+        .to_vec();
     entries.retain(|entry| {
-        let from = entry.get("from").and_then(serde_json::Value::as_str);
-        let to = entry.get("to").and_then(serde_json::Value::as_str);
+        let from = entry.get("from").and_then(Value::as_str);
+        let to = entry.get("to").and_then(Value::as_str);
         from.is_some_and(|name| supported.contains(name))
             && to.is_some_and(|name| supported.contains(name))
     });
-    let mut json = serde_json::to_string_pretty(&entries)
-        .expect("filtered transcode-loss matrix must serialize");
+    let mut json = json::write_pretty(&Value::Array(entries));
     json.push('\n');
     json
 }

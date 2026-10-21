@@ -2023,8 +2023,7 @@ dependencies = [
  "gmeow-gts-profile",
  "gmeow-logic-compile",
  "purrdf",
- "serde",
- "serde_json",
+ "purrdf-lex",
 ]
 
 [[package]]

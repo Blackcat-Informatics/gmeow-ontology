@@ -297,6 +297,143 @@ fn every_codec_name_accepted_by_canonical_codec_name() {
 // ── transcode matrix drift gate ───────────────────────────────────────────
 
 #[test]
+fn json_realized_loss_preserves_literal_record_bytes_and_ledger_aggregation() {
+    let loss = |code: &str, from: &str, count: u64, note: &str| RealizedLoss {
+        code: code.to_owned(),
+        from: from.to_owned(),
+        to: "turtle".to_owned(),
+        note: note.to_owned(),
+        count,
+    };
+    let rows = [
+        loss("z", "trig", 0, "zero"),
+        loss("a", "trig", 2, "é\n\"quoted\"\\tail"),
+        loss("b", "ntriples", u64::MAX, "maximum"),
+        loss("a", "trig", 3, "é\n\"quoted\"\\tail"),
+    ];
+    let expected = r#"[
+  {
+    "code": "b",
+    "from": "ntriples",
+    "to": "turtle",
+    "note": "maximum",
+    "count": 18446744073709551615
+  },
+  {
+    "code": "a",
+    "from": "trig",
+    "to": "turtle",
+    "note": "é\n\"quoted\"\\tail",
+    "count": 5
+  },
+  {
+    "code": "z",
+    "from": "trig",
+    "to": "turtle",
+    "note": "zero",
+    "count": 0
+  }
+]"#;
+    assert_eq!(realized_loss_json(&rows), expected);
+    let reordered = [
+        rows[3].clone(),
+        rows[2].clone(),
+        rows[1].clone(),
+        rows[0].clone(),
+    ];
+    assert_eq!(realized_loss_json(&reordered), expected);
+    assert_eq!(realized_loss_json(&[]), "[]");
+}
+
+#[test]
+fn json_matrix_records_preserve_literal_field_order() {
+    let entry = MatrixEntry {
+        from: "trig",
+        to: "turtle",
+        lossy: true,
+        loss_codes: vec!["a".to_owned(), "b".to_owned()],
+    };
+    assert_eq!(
+        json::write_pretty(&vec![entry].to_json()),
+        r#"[
+  {
+    "from": "trig",
+    "to": "turtle",
+    "lossy": true,
+    "loss_codes": [
+      "a",
+      "b"
+    ]
+  }
+]"#
+    );
+    let rendered = transcode_matrix_json();
+    assert!(rendered.ends_with('\n'));
+    assert!(!rendered.ends_with("\n\n"));
+    let document = json::read(&rendered).unwrap();
+    let rows = document.as_array().unwrap();
+    assert!(!rows.is_empty());
+    let pairs = rows
+        .iter()
+        .map(|row| {
+            assert_eq!(
+                row.as_object()
+                    .unwrap()
+                    .keys()
+                    .map(String::as_str)
+                    .collect::<Vec<_>>(),
+                vec!["from", "to", "lossy", "loss_codes"]
+            );
+            let codes = row["loss_codes"].as_array().unwrap();
+            assert!(
+                codes
+                    .windows(2)
+                    .all(|pair| pair[0].as_str().unwrap() <= pair[1].as_str().unwrap())
+            );
+            (row["from"].as_str().unwrap(), row["to"].as_str().unwrap())
+        })
+        .collect::<Vec<_>>();
+    assert!(pairs.windows(2).all(|pair| pair[0] < pair[1]));
+}
+
+#[test]
+fn json_free_form_loss_matrix_keeps_sorted_last_wins_objects_and_newline() {
+    let source = r#"[
+      {"z":{"z":false,"a":null},"to":"turtle","from":"not-supported","from":"trig","n":1.2300e+2},
+      {"from":"trig","to":"not-supported"},
+      {"from":"not-supported","to":"turtle"},
+      {"from":null,"to":"turtle"}
+    ]"#;
+    assert_eq!(
+        supported_loss_matrix_json(source),
+        concat!(
+            "[\n",
+            "  {\n",
+            "    \"from\": \"trig\",\n",
+            "    \"n\": 1.2300e+2,\n",
+            "    \"to\": \"turtle\",\n",
+            "    \"z\": {\n      \"a\": null,\n      \"z\": false\n    }\n",
+            "  }\n",
+            "]\n",
+        )
+    );
+    // Retaining the parsed numeric lexeme is the JSON owner's explicit rule.
+    assert_eq!(supported_loss_matrix_json("[]"), "[]\n");
+}
+
+#[test]
+#[should_panic(expected = "purrdf static transcode-loss matrix must be valid JSON")]
+fn json_static_loss_matrix_refuses_malformed_owner_data() {
+    supported_loss_matrix_json("not JSON");
+}
+
+#[test]
+#[should_panic(expected = "purrdf static transcode-loss matrix must be a JSON array")]
+fn json_static_loss_matrix_refuses_non_array_owner_data() {
+    supported_loss_matrix_json("{}");
+}
+
+#[test]
 fn transcode_matrix_is_deterministic() {
     assert_eq!(transcode_matrix_json(), transcode_matrix_json());
 }
@@ -304,15 +441,16 @@ fn transcode_matrix_is_deterministic() {
 #[test]
 fn transcode_loss_matrix_contains_only_supported_codecs() {
     let supported: HashSet<&str> = Codec::all().iter().map(|codec| codec.name()).collect();
-    let rows: Vec<serde_json::Value> =
-        serde_json::from_str(&transcode_loss_matrix_json()).expect("valid matrix JSON");
+    let document = json::record::read_document(transcode_loss_matrix_json().as_bytes())
+        .expect("valid matrix JSON");
+    let rows = document.as_array().expect("matrix JSON array");
     assert!(rows.iter().all(|row| {
         row.get("from")
-            .and_then(serde_json::Value::as_str)
+            .and_then(Value::as_str)
             .is_some_and(|name| supported.contains(name))
             && row
                 .get("to")
-                .and_then(serde_json::Value::as_str)
+                .and_then(Value::as_str)
                 .is_some_and(|name| supported.contains(name))
     }));
 }
