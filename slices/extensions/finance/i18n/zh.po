@@ -980,3 +980,60 @@ msgstr "要求每个受约束的金融输入满足已声明的 return-currency-m
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding names one exact HoldingAssetQuantity object, whose magnitude, asset identity and count frame remain explicit. Competing holdings remain standpoint-indexed statements. This characteristic is reasoned from its canonical carrier, not restated on a shape surface."
 msgstr "在规范载体上声明 gmeow:holdingQuantity 为函数性属性：一个持仓指定一个精确 HoldingAssetQuantity 对象，且其数值、资产标识和计数参考系保持明确。相互竞争的持仓仍是按立场标定的声明。该特性从规范载体推理得出，而不是在形状表面上重复断言。"
+
+
+msgctxt "urn:gmeow:finance:simple:principal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal parameter"
+msgstr "单利本金参数"
+
+msgctxt "urn:gmeow:finance:simple:principal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required MonetaryAmount input slot of methodSimpleInterest, supplied through principalAmount and associated with the principal mathematical symbol. It names the parameter definition, not the bound amount or its numeric value."
+msgstr "methodSimpleInterest 所需的 MonetaryAmount 输入参数，通过 principalAmount 提供，并关联本金数学符号。它标识参数定义，而非所绑定的金额或其数值。"
+
+msgctxt "urn:gmeow:finance:simple:rate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest rate parameter"
+msgstr "单利利率参数"
+
+msgctxt "urn:gmeow:finance:simple:rate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required FinancialPeriodRate input slot of methodSimpleInterest, supplied through interestRate and associated with the rate mathematical symbol. Its quantity must use the same explicit period basis as the period count and calculation."
+msgstr "methodSimpleInterest 所需的 FinancialPeriodRate 输入参数，通过 interestRate 提供，并关联利率数学符号。其数量必须与期间数量和计算使用同一显式期间基准。"
+
+msgctxt "urn:gmeow:finance:simple:count|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count parameter"
+msgstr "单利期间数量参数"
+
+msgctxt "urn:gmeow:finance:simple:count|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required FinancialPeriodCount input slot of methodSimpleInterest, supplied through interestPeriodCount and associated with the period-count mathematical symbol. The bound quantity counts periods on the rate's explicit basis; it is distinct from the parameter and symbol definitions."
+msgstr "methodSimpleInterest 所需的 FinancialPeriodCount 输入参数，通过 interestPeriodCount 提供，并关联期间数量数学符号。绑定的数量按利率的显式基准计算期间数，与参数定义和符号定义相区分。"
+
+msgctxt "urn:gmeow:finance:return:opening|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount parameter"
+msgstr "持有期收益期初金额参数"
+
+msgctxt "urn:gmeow:finance:return:opening|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required opening MonetaryAmount input slot of methodHoldingPeriodReturn, supplied through openingAmount. Its mathematical symbol occurs in both the subtraction and denominator of (closing-opening)/opening; the bound opening amount must be nonzero and share the closing amount's currency."
+msgstr "methodHoldingPeriodReturn 所需的期初 MonetaryAmount 输入参数，通过 openingAmount 提供。其数学符号同时出现在 (closing-opening)/opening 的减法和分母中；绑定的期初金额必须非零，并与期末金额使用同一货币。"
+
+msgctxt "urn:gmeow:finance:return:closing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount parameter"
+msgstr "持有期收益期末金额参数"
+
+msgctxt "urn:gmeow:finance:return:closing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required closing MonetaryAmount input slot of methodHoldingPeriodReturn, supplied through closingAmount and associated with the closing mathematical symbol. The bound amount must share the opening amount's currency; this slot does not perform currency conversion."
+msgstr "methodHoldingPeriodReturn 所需的期末 MonetaryAmount 输入参数，通过 closingAmount 提供，并关联期末金额数学符号。绑定的金额必须与期初金额使用同一货币；此参数不执行货币兑换。"
+
+msgctxt "urn:gmeow:finance:simple:result|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest amount result slot"
+msgstr "单利金额结果槽"
+
+msgctxt "urn:gmeow:finance:simple:result|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The MonetaryAmount output slot of methodSimpleInterest, returned through observationResult. Native execution derives the interest amount P*r*n in the principal's currency; this slot defines the result role rather than asserting an amount."
+msgstr "methodSimpleInterest 的 MonetaryAmount 输出槽，通过 observationResult 返回。原生执行以本金货币推导利息金额 P*r*n；此槽定义结果角色，而非断言金额。"
+
+msgctxt "urn:gmeow:finance:return:result|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return ratio result slot"
+msgstr "持有期收益比率结果槽"
+
+msgctxt "urn:gmeow:finance:return:result|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FinancialReturnRatio output slot of methodHoldingPeriodReturn, returned through observationResult. Native execution derives (closing-opening)/opening on the calculation's explicit period basis; this slot defines the result role rather than asserting a ratio."
+msgstr "methodHoldingPeriodReturn 的 FinancialReturnRatio 输出槽，通过 observationResult 返回。原生执行按计算的显式期间基准推导 (closing-opening)/opening；此槽定义结果角色，而非断言比率。"

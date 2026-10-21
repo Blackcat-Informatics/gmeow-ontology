@@ -1761,6 +1761,42 @@ gmeow:methodSimpleInterest logic:inputParameters <urn:gmeow:finance:simple:input
 <urn:gmeow:finance:return:result> a logic:CallResult ; logic:parameterPredicate gmeow:observationResult ; logic:parameterValueType gmeow:FinancialReturnRatio .
 gmeow:methodHoldingPeriodReturn logic:inputParameters <urn:gmeow:finance:return:inputs:0> ; logic:outputParameters <urn:gmeow:finance:return:outputs:0> ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> .
 
+# Authored interface-slot metadata, shared by the canonical caller and FnO view.
+<urn:gmeow:finance:simple:principal>
+    rdfs:label "simple interest principal parameter"@x-gmeow-english ;
+    skos:definition "The required MonetaryAmount input slot of methodSimpleInterest, supplied through principalAmount and associated with the principal mathematical symbol. It names the parameter definition, not the bound amount or its numeric value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+
+<urn:gmeow:finance:simple:rate>
+    rdfs:label "simple interest rate parameter"@x-gmeow-english ;
+    skos:definition "The required FinancialPeriodRate input slot of methodSimpleInterest, supplied through interestRate and associated with the rate mathematical symbol. Its quantity must use the same explicit period basis as the period count and calculation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+
+<urn:gmeow:finance:simple:count>
+    rdfs:label "simple interest period count parameter"@x-gmeow-english ;
+    skos:definition "The required FinancialPeriodCount input slot of methodSimpleInterest, supplied through interestPeriodCount and associated with the period-count mathematical symbol. The bound quantity counts periods on the rate's explicit basis; it is distinct from the parameter and symbol definitions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+
+<urn:gmeow:finance:return:opening>
+    rdfs:label "holding-period return opening amount parameter"@x-gmeow-english ;
+    skos:definition "The required opening MonetaryAmount input slot of methodHoldingPeriodReturn, supplied through openingAmount. Its mathematical symbol occurs in both the subtraction and denominator of (closing-opening)/opening; the bound opening amount must be nonzero and share the closing amount's currency."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+
+<urn:gmeow:finance:return:closing>
+    rdfs:label "holding-period return closing amount parameter"@x-gmeow-english ;
+    skos:definition "The required closing MonetaryAmount input slot of methodHoldingPeriodReturn, supplied through closingAmount and associated with the closing mathematical symbol. The bound amount must share the opening amount's currency; this slot does not perform currency conversion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+
+<urn:gmeow:finance:simple:result>
+    rdfs:label "simple interest amount result slot"@x-gmeow-english ;
+    skos:definition "The MonetaryAmount output slot of methodSimpleInterest, returned through observationResult. Native execution derives the interest amount P*r*n in the principal's currency; this slot defines the result role rather than asserting an amount."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+
+<urn:gmeow:finance:return:result>
+    rdfs:label "holding-period return ratio result slot"@x-gmeow-english ;
+    skos:definition "The FinancialReturnRatio output slot of methodHoldingPeriodReturn, returned through observationResult. Native execution derives (closing-opening)/opening on the calculation's explicit period basis; this slot defines the result role rather than asserting a ratio."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+
 <urn:gmeow:finance:constraint:FinancialPeriodRate-frame> a logic:Constraint ; logic:onClass gmeow:FinancialPeriodRate ; logic:formalizes gmeow:FinancialPeriodRate ; logic:integrity <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:forall> ; logic:message "Financial quantity/frame contract violated: FinancialPeriodRate-frame." ; rdfs:label "FinancialPeriodRate-frame contract"@x-gmeow-english ; skos:definition "Requires the declared FinancialPeriodRate-frame relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:implication> .
 <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:guard> ; logic:consequent <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:consequent> .
