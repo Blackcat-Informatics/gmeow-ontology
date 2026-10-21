@@ -1358,8 +1358,8 @@ dependencies = [
  "gmeow-logic",
  "purrdf",
  "purrdf-hash",
+ "purrdf-lex",
  "rayon",
- "serde_json",
  "tempfile",
 ]
 
