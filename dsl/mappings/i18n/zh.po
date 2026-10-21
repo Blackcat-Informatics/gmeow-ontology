@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Translation owner: https://blackcatinformatics.ca/gmeow/mapping-dsl
+msgid ""
+msgstr ""
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|rdfs:label"
+msgid "template predicate from correspondence"
+msgstr "由对应关系确定的模板谓词"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|skos:definition"
+msgid "Selects the named native grounding correspondence that supplies a template predicate and its mandatory source-property and literal-preservation obligations; mutually exclusive with tPred."
+msgstr "选择提供模板谓词的具名原生奠基对应关系，并同时选择其必需源属性和字面量保留义务；与 tPred 互斥。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|skos:example"
+msgid "ex:atom gmeow:tSubj \"record\" ; gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ; gmeow:tObj \"value\" ."
+msgstr "ex:atom gmeow:tSubj \"record\" ; gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ; gmeow:tObj \"value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|gmeow:useWhen"
+msgid "Use when the output predicate is justified by a selected owned native correspondence rather than authored as an independent external target."
+msgstr "当输出谓词由所选的所属原生对应关系证明，而非独立编写的外部目标时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|gmeow:avoidWhen"
+msgid "Avoid combining this selector with tPred, constant objects, optional witnesses or an unresolved catalog alias."
+msgstr "不要将此选择器与 tPred、常量对象、可选见证或未解析的目录别名组合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|gmeow:howToUse"
+msgid "Name exactly one admitted correspondence and bind the template subject and object to the same mandatory source atom."
+msgstr "指定恰好一个已准入对应关系，并将模板主体和对象绑定到同一个必需源原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|rdfs:label"
+msgid "catalog family — schema.org value"
+msgstr "目录族 — schema.org value"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|skos:definition"
+msgid "The schema.org value-prefix publication surface shared by literal and numeric magnitudes; the prefix also includes valueReference and other suffix terms."
+msgstr "由字面量和数值大小共享的 schema.org value 前缀发布表面；该前缀也包含 valueReference 和其他后缀术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|skos:example"
+msgid "gmeow:catalogFamily-schema-value gmeow:catalogTargetMinimum 2 ."
+msgstr "gmeow:catalogFamily-schema-value gmeow:catalogTargetMinimum 2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|gmeow:useWhen"
+msgid "Use to classify the Lang literal-value and Math quantity-value grounding bridges in the closed catalog inventory."
+msgstr "用于在封闭目录清单中归类 Lang 字面量值和 Math 数量值的奠基桥接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|gmeow:avoidWhen"
+msgid "Avoid extending this family to all schema.org terms or exempting its rows from the value-prefix guard."
+msgstr "不要将此目录族扩展到所有 schema.org 术语，也不要使其记录免受 value 前缀保护。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|gmeow:howToUse"
+msgid "Match target IRIs by the declared prefix, require both owned bridges, and apply the shared zero-default value guard."
+msgstr "按声明的前缀匹配目标 IRI，要求两个所属桥接，并应用默认上限为零的共享 value 保护。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|rdfs:label"
+msgid "TemplateAtom predicate requiredness constraint"
+msgstr "TemplateAtom 谓词必需约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|skos:definition"
+msgid "A closed-world integrity constraint: every gmeow:TemplateAtom (a subject of gmeow:tSubj) selects exactly one target mode, raw gmeow:tPred or admitted gmeow:tPredFromCorrespondence; each selected path is functional."
+msgstr "一项封闭世界完整性约束：每个 gmeow:TemplateAtom，即 gmeow:tSubj 的主体，必须选择恰好一种目标模式：原始 gmeow:tPred 或已准入的 gmeow:tPredFromCorrespondence；每个所选路径均为函数式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|logic:message"
+msgid "TemplateAtom requires exactly one of tPred or tPredFromCorrespondence (IRI)"
+msgstr "TemplateAtom 必须在 tPred 和 tPredFromCorrespondence 中恰选一个（IRI）"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|rdfs:label"
+msgid "selected template predicate is functional"
+msgstr "所选模板谓词为函数式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|skos:definition"
+msgid "The selected target mode names at most one native correspondence per template atom; the target-choice constraint separately requires exactly one target mode."
+msgstr "所选目标模式为每个模板原子指定至多一个原生对应关系；目标选择约束另外要求恰好一种目标模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|skos:example"
+msgid "ex:atom gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ."
+msgstr "ex:atom gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:useWhen"
+msgid "Use to derive the single-selector invariant for the selected target mode."
+msgstr "用于派生所选目标模式的单一选择器不变式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:avoidWhen"
+msgid "Avoid weakening this assertion to admit two correspondence aliases on one template atom; separate output atoms express separate targets."
+msgstr "不要削弱此断言以允许同一模板原子具有两个对应关系别名；不同目标应由不同输出原子表达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:howToUse"
+msgid "Retain this canonical assertion with the target-choice constraint; the generated validation surface enforces both selector functionality and exclusive target mode."
+msgstr "将此规范断言与目标选择约束一并保留；生成的验证表面同时强制选择器的函数性及目标模式的互斥性。"

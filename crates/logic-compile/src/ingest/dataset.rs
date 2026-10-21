@@ -447,6 +447,30 @@ impl<'a> DslView<'a> {
         out
     }
 
+    /// Strict selected collection admission through the native collection owner.
+    /// Missing heads, ambiguous fields, cycles and decorated nil are errors.
+    pub fn rdf_list_strict(&self, head: &DslTerm) -> gmeow_errors::Result<Vec<DslTerm>> {
+        use purrdf::{DatasetView, GraphMatch};
+        let head = self.subject_id(head).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::GetLeg {
+                detail: "selected RDF collection head must be a named or blank resource".to_owned(),
+            })
+        })?;
+        self.ds
+            .rdf_list_strict(head, GraphMatch::Default)
+            .map(|members| {
+                members
+                    .into_iter()
+                    .map(|member| self.term_of(member))
+                    .collect()
+            })
+            .map_err(|error| {
+                gmeow_errors::Diag::of_kind(crate::error::GetLeg {
+                    detail: format!("malformed selected RDF collection: {error}"),
+                })
+            })
+    }
+
     /// Stream default-graph reifier bindings in native table order. The selected
     /// alignment cells are sorted at their IR boundary; unrelated quoted statements
     /// never require owned records or a whole-source sorting/materialization pass.

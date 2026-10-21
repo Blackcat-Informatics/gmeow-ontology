@@ -24,8 +24,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::{Diag, ResultExt};
-use purrdf::sparql::NativeSparqlEngine;
-use purrdf::{RdfQuad, RdfTerm, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult};
+use purrdf::{RdfQuad, RdfTerm, SerializeGraph, SparqlResult};
 
 use crate::error::Projection;
 use crate::transform::{CellInput, TransformReportNative};
@@ -189,7 +188,7 @@ fn retag_term(term: &mut RdfTerm, tag_map: &TagMap) {
 /// N-Triples.
 ///
 /// The Rust port of `projections.project_graph`. The CONSTRUCT is evaluated by the
-/// native [`NativeSparqlEngine`] over the source (ontology + instance data). The
+/// native [`purrdf::sparql::NativeSparqlEngine`] over the source (ontology + instance data). The
 /// projection-boundary retag maps every internal `x-gmeow-*` literal tag to its
 /// public BCP-47 form via `tag_map` (empty = none), so consumer parsers read the
 /// projected text as the real language.
@@ -199,7 +198,7 @@ fn retag_term(term: &mut RdfTerm, tag_map: &TagMap) {
 /// * `tag_map` — internal→public language-tag remap for emitted literals.
 pub fn project_graph(
     source_nt: &str,
-    query: &str,
+    program: &crate::projection_execution::PreparedProjectionProfile,
     tag_map: &TagMap,
 ) -> gmeow_errors::Result<String> {
     let source_quads = flat_quads_from_nt(source_nt)?;
@@ -208,17 +207,7 @@ pub fn project_graph(
             message: format!("source dataset build failed: {e}"),
         })
     })?;
-    let engine = NativeSparqlEngine::new();
-    let result = engine
-        .query(
-            &ds,
-            SparqlRequest {
-                query,
-                base_iri: None,
-                substitutions: &[],
-            },
-        )
-        .with_ctx(|| "projection query evaluation failed")?;
+    let result = program.execute(&ds)?;
     let SparqlResult::Graph(triples) = result else {
         return Err(Diag::of_kind(Projection {
             message: "projection query did not return a graph".to_owned(),
@@ -573,8 +562,9 @@ pub struct MaximalInputs {
     pub cells: Vec<CellInput>,
     /// The saturation refusal set (the alignment-lint ERROR rows), as CURIE triples.
     pub denied: Vec<(String, String, String)>,
-    /// The compiled projection CONSTRUCT queries, `(profile_name, query_text)`.
-    pub projection_queries: Vec<(String, String)>,
+    /// Explicitly selected native profile capabilities, already admitted against
+    /// the required catalog. Raw query archives are never executable substitutes.
+    pub projection_programs: Vec<crate::projection_execution::PreparedProjectionProfile>,
 }
 
 /// The result of a full transpile: the up-projection account, the pure-GMEOW draft,
@@ -639,7 +629,7 @@ pub fn transpile_graph(
         &maximal_inputs.ontology_nt,
         &maximal_inputs.cells,
         &maximal_inputs.denied,
-        &maximal_inputs.projection_queries,
+        &maximal_inputs.projection_programs,
         internal_tag_map,
     )?;
 

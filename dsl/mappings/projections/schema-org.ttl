@@ -1131,7 +1131,7 @@ gmeow:mapSchemaIdentifierRecord a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "idrEnt" ; gmeow:tPred schema:identifier ; gmeow:tObj "idrRec" ]
             [ gmeow:tSubj "idrRec" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:PropertyValue ]
             [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:propertyID ; gmeow:tObj "idrScheme" ]
-            [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:value ; gmeow:tObj "idrValue" ]
+            [ gmeow:tSubj "idrRec" ; gmeow:tPredFromCorrespondence <https://blackcatinformatics.ca/lang/literalValueSchemaBridge> ; gmeow:tObj "idrValue" ]
             [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:url ; gmeow:tObj "idrUrl" ]
             [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:name ; gmeow:tObj "idrName" ] ) ] .
 
@@ -1712,7 +1712,7 @@ gmeow:mapSchemaExifData a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "exImg" ; gmeow:tPred schema:exifData ; gmeow:tObj "exTag" ]
             [ gmeow:tSubj "exTag" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:PropertyValue ]
             [ gmeow:tSubj "exTag" ; gmeow:tPred schema:propertyID ; gmeow:tObj "exId" ]
-            [ gmeow:tSubj "exTag" ; gmeow:tPred schema:value ; gmeow:tObj "exVal" ]
+            [ gmeow:tSubj "exTag" ; gmeow:tPredFromCorrespondence <https://blackcatinformatics.ca/lang/literalValueSchemaBridge> ; gmeow:tObj "exVal" ]
             [ gmeow:tSubj "exTag" ; gmeow:tPred schema:name ; gmeow:tObj "exName" ] ) ] .
 
 # Contact affordances: that an agent CAN be reached via a contact point

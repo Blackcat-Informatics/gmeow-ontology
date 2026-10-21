@@ -65,6 +65,7 @@ pub mod loader;
 pub mod mapping_purity;
 pub mod medium;
 pub mod node;
+pub mod projection_execution;
 pub mod projection_profiles;
 pub mod projections;
 pub mod provenance;

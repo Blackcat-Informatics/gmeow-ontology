@@ -841,14 +841,7 @@ fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
         // A malformed shapes.ttl surfaces as a validation error on another gate, not here.
         return AxisScore::clean(1.0);
     };
-    let constructs = counting::enumerate(
-        &ds,
-        &counting::shacl_vocab(),
-        counting::CountMode::Historical,
-        // Historical (advisory) scope does no bridge/owner subtraction, so the surface
-        // IRI is unused here.
-        "",
-    );
+    let constructs = counting::historical_shapes(&ds);
     if constructs.is_empty() {
         return AxisScore::clean(1.0);
     }

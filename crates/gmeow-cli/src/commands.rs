@@ -5140,27 +5140,17 @@ fn project_data_file(
     tag_map: &gmeow_pipeline::projections::TagMap,
 ) -> i32 {
     // The compiled CONSTRUCT for this profile, from the bundle's query archive.
-    let queries = match gmeow_pipeline::bundle_blobs::bundled_queries(BUNDLE_GTS) {
-        Ok(q) => q,
+    let program = match gmeow_pipeline::projection_execution::PreparedProjectionProfile::from_bundle(
+        BUNDLE_GTS, profile,
+    ) {
+        Ok(program) => program,
         Err(e) => {
             return fail(
                 reporter,
-                "gmeow-cli.project.queries",
-                format!("cannot read bundled queries: {e}"),
+                "gmeow-cli.project.profile-program",
+                format!("cannot admit required projection profile {profile}: {e}"),
             );
         }
-    };
-    let want = format!("{profile}.rq");
-    let query = queries
-        .iter()
-        .find(|(k, _)| k.ends_with(&want))
-        .map(|(_, v)| String::from_utf8_lossy(v).into_owned());
-    let Some(query) = query else {
-        return fail(
-            reporter,
-            "gmeow-cli.project.no-query",
-            format!("no bundled CONSTRUCT query for profile {profile}"),
-        );
     };
 
     // source_nt = the bundle ontology base graph + the user's instance data.
@@ -5208,7 +5198,7 @@ fn project_data_file(
     };
     let source_nt = format!("{ontology_nt}\n{instance_nt}");
 
-    match gmeow_pipeline::projections::project_graph(&source_nt, &query, tag_map) {
+    match gmeow_pipeline::projections::project_graph(&source_nt, &program, tag_map) {
         Ok(nt) => match nt_to_turtle(&nt) {
             Ok(ttl) => {
                 let target = out.join(format!("{profile}.ttl"));
@@ -5443,22 +5433,10 @@ fn assemble_transpile_inputs() -> gmeow_errors::Result<(
     })?;
     let ontology_nt = quads_to_nt(&base)?;
 
-    let projection_queries: Vec<(String, String)> = bundle_blobs::bundled_queries(BUNDLE_GTS)
-        .map_err(|e| {
-            Diag::of_kind(crate::error::BundleReadFailed {
-                detail: format!("cannot read bundled queries: {e}"),
-            })
-        })?
-        .into_iter()
-        .filter(|(k, _)| k.ends_with(".rq"))
-        .map(|(k, v)| {
-            let stem = Path::new(&k)
-                .file_stem()
-                .map(|s| s.to_string_lossy().into_owned())
-                .unwrap_or(k);
-            (stem, String::from_utf8_lossy(&v).into_owned())
-        })
-        .collect();
+    let projection_programs = gmeow_pipeline::projection_execution::prepared_from_bundle(
+        BUNDLE_GTS,
+        gmeow_logic_compile::projections::get_leg::PROFILES,
+    )?;
     let denied = bundle_blobs::bundled_denied_cells(BUNDLE_GTS)
         .map_err(|e| {
             Diag::of_kind(crate::error::BundleReadFailed {
@@ -5477,7 +5455,7 @@ fn assemble_transpile_inputs() -> gmeow_errors::Result<(
         ontology_nt,
         cells: Vec::new(),
         denied,
-        projection_queries,
+        projection_programs,
     };
     Ok((up_inputs, maximal_inputs))
 }
@@ -6551,7 +6529,11 @@ pub fn slice_projection_ceilings(reporter: &dyn Reporter, format: &str) -> i32 {
 pub fn slice_projection_debt(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
     let result = gmeow_slice_quality::ceilings_from_gts(BUNDLE_GTS)
         .and_then(|governance| {
-            gmeow_slice_quality::projection_debt::measure_slice_debt(dir, &governance)
+            let grounding =
+                gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_bundle(
+                    BUNDLE_GTS,
+                )?;
+            gmeow_slice_quality::projection_debt::measure_slice_debt(dir, &governance, &grounding)
         })
         .and_then(|rows| {
             gmeow_slice_quality::projection_debt::render_projection_debt(&rows, format)

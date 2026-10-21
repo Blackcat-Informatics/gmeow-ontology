@@ -544,7 +544,7 @@ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
     for dir in COMPETENCY_QUERY_ROOTS
         .iter()
         .map(|r| r.trim_end_matches('/'))
-        .chain(["shapes", "i18n"])
+        .chain(["shapes", "i18n", "dsl/mappings/i18n"])
     {
         collect_files(&root.join(dir), &mut files);
     }
@@ -554,6 +554,8 @@ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
         "docs/four-boxes.md",
         "metadata/gmeow-self.ttl",
         "dsl/mappings/mapping-sets.ttl",
+        "dsl/mappings/vocabulary.ttl",
+        "dsl/mappings/catalog-families.ttl",
         "generated/catalog/constraint-catalog.nq",
         "generated/catalog/term-content-manifest.nq",
     ] {

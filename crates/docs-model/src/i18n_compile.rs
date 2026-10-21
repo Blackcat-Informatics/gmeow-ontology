@@ -116,7 +116,7 @@ fn at_source(diag: Diag, path: &Path) -> Diag {
 }
 
 #[track_caller]
-fn source_io_error(path: &Path, operation: &str, error: std::io::Error) -> Diag {
+pub(crate) fn source_io_error(path: &Path, operation: &str, error: std::io::Error) -> Diag {
     at_source(
         Diag::new(
             FileIo::register(),
@@ -740,6 +740,7 @@ pub fn authored_turtle_files(root: &Path) -> Result<Vec<PathBuf>> {
             }
         }
     }
+    paths.extend(crate::ontology_catalogs::mapping_dsl_sources(root)?);
     paths.sort();
     Ok(paths)
 }
@@ -752,7 +753,7 @@ fn optional_metadata(path: &Path) -> Result<Option<fs::Metadata>> {
     }
 }
 
-fn directory_entries(path: &Path) -> Result<Vec<PathBuf>> {
+pub(crate) fn directory_entries(path: &Path) -> Result<Vec<PathBuf>> {
     fs::read_dir(path)
         .map_err(|error| source_io_error(path, "read directory", error))?
         .map(|entry| {
@@ -763,7 +764,7 @@ fn directory_entries(path: &Path) -> Result<Vec<PathBuf>> {
         .collect()
 }
 
-fn slice_directories(root: &Path) -> Result<Vec<PathBuf>> {
+pub(crate) fn slice_directories(root: &Path) -> Result<Vec<PathBuf>> {
     let mut slices = Vec::new();
     for group in directory_entries(&root.join("slices"))? {
         if !fs::metadata(&group)
@@ -787,20 +788,10 @@ fn slice_directories(root: &Path) -> Result<Vec<PathBuf>> {
 
 /// Selected slice catalogs, sorted; absent i18n directories declare no catalogs.
 pub fn collect_po_paths(root: &Path) -> Result<Vec<PathBuf>> {
-    let mut paths = Vec::new();
-    for slice in slice_directories(root)? {
-        let i18n = slice.join("i18n");
-        if optional_metadata(&i18n)?.is_none() {
-            continue;
-        }
-        for path in directory_entries(&i18n)? {
-            if path.extension().and_then(|s| s.to_str()) == Some("po") {
-                paths.push(path);
-            }
-        }
-    }
-    paths.sort();
-    Ok(paths)
+    Ok(crate::ontology_catalogs::discover(root)?
+        .into_iter()
+        .map(|source| source.path)
+        .collect())
 }
 
 fn current_english_values_from_rows(
@@ -1253,22 +1244,40 @@ pub struct CatalogExportEntry {
 
 pub fn iter_po_catalogs(root: &Path) -> Result<Vec<CatalogExportEntry>> {
     let mut out = Vec::new();
-    for path in collect_po_paths(root)? {
-        let text = fs::read_to_string(&path)?;
-        let language = language_from_po(&text)?.unwrap_or_default();
-        let slice_dir = path.parent().and_then(Path::parent);
-        let slice = path
-            .parent()
-            .and_then(Path::parent)
-            .and_then(Path::file_name)
-            .and_then(|s| s.to_str())
-            .unwrap_or("")
-            .to_owned();
-        let slice_path = slice_dir
-            .and_then(|p| p.strip_prefix(root).ok())
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_default();
-        for entry in parse_po(&text, true)? {
+    for source in crate::ontology_catalogs::discover(root)? {
+        let text = std::str::from_utf8(&source.content).map_err(|error| {
+            source_io_error(
+                &source.path,
+                "read UTF-8 catalog",
+                std::io::Error::other(error),
+            )
+        })?;
+        let language = language_from_po(text)?.unwrap_or_default();
+        // Historical slice columns remain unchanged for slice owners. A DSL
+        // catalog names its actual ontology, never an invented slice slug.
+        let slice = if source.owner_iri == crate::ontology_catalogs::MAPPING_DSL_OWNER {
+            source.owner_iri.clone()
+        } else {
+            source
+                .owner_path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .unwrap_or("")
+                .to_owned()
+        };
+        let slice_path = source
+            .owner_path
+            .strip_prefix(root)
+            .map_err(|error| {
+                source_io_error(
+                    &source.owner_path,
+                    "resolve catalog owner",
+                    std::io::Error::other(error),
+                )
+            })?
+            .to_string_lossy()
+            .to_string();
+        for entry in parse_po(text, true)? {
             let Some((term, predicate)) = entry.msgctxt.split_once('|') else {
                 continue;
             };

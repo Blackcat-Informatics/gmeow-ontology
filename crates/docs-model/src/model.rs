@@ -349,6 +349,8 @@ const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOw
 /// An error building the documentation model.
 #[derive(Debug)]
 pub enum DocsError {
+    /// Required ontology-owned translation inputs could not be admitted.
+    TranslationCatalog(gmeow_errors::Diag),
     /// A test-facing corpus consumer could not find the exact authenticated model
     /// produced before the test process started. Tests may not rebuild it on a miss.
     FixtureUnavailable(String),
@@ -429,6 +431,7 @@ pub enum DocsError {
 impl std::fmt::Display for DocsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            DocsError::TranslationCatalog(error) => write!(f, "translation catalog: {error}"),
             DocsError::FixtureUnavailable(msg) => {
                 write!(f, "documentation corpus fixture unavailable: {msg}")
             }
@@ -2122,6 +2125,20 @@ impl DocsModel {
         ownership: &OwnershipReport,
         central_mapping_sets: &[DocMappingSet],
     ) -> Result<Self, DocsError> {
+        Self::from_catalog_and_sources(
+            catalog,
+            ownership,
+            central_mapping_sets,
+            &crate::ontology_catalogs::from_slice_catalog(catalog),
+        )
+    }
+
+    fn from_catalog_and_sources(
+        catalog: &SliceCatalog,
+        ownership: &OwnershipReport,
+        central_mapping_sets: &[DocMappingSet],
+        translation_sources: &[crate::ontology_catalogs::OntologyCatalogSource],
+    ) -> Result<Self, DocsError> {
         // ── Slices ──────────────────────────────────────────────────────────
         // `from_record` hard-fails on a markdown-document defect (invalid UTF-8 or a
         // normalized-path collision) — propagated here rather than silently skipped.
@@ -2132,68 +2149,8 @@ impl DocsModel {
             .collect::<Result<Vec<_>, _>>()?;
         slices.sort_by(|a, b| a.iri.cmp(&b.iri));
 
-        // ── Terms (parsed from each slice's module.ttl) ─────────────────────
-        let mut terms: Vec<DocTerm> = Vec::new();
-        // `logic:formalizes` back-references, collected while modules are parsed.
-        let mut formalizes_edges: Vec<(String, String)> = Vec::new();
-        for record in catalog.records() {
-            let owner = &record.manifest.slice_iri;
-            for artifact in &record.artifacts {
-                if artifact.role != ArtifactRole::Module {
-                    continue;
-                }
-                // A module that fails to parse is a hard fault — the same lenient
-                // parser the slice catalog already validated it with is used here,
-                // so this should never fail; surface it loudly with full context.
-                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
-                    panic!("module.ttl for slice {owner} failed to parse: {e}")
-                });
-                terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
-                formalizes_edges.extend(extract_formalizes(&store));
-            }
-        }
-
-        // ── PathShape example terms (design/LOGIC-PATHS.md) ─────────────────
-        // A `logic:PathShape` is a first-class reusable by-name term, but its
-        // authored INSTANCES live in worked-example artifacts, not module.ttl, so
-        // the module-only scan above misses them. Lift them here — BEFORE the
-        // related-terms / profile-membership passes below — so an example
-        // PathShape term participates in those passes exactly like a module term
-        // (and its `property-path:<iri>` projection-loss row joins its page). This
-        // is a small independent parse of each Example artifact; the reuse loop
-        // further down re-parses for the DocExample / loss / worked-instance scans.
-        for record in catalog.records() {
-            let owner = &record.manifest.slice_iri;
-            for artifact in &record.artifacts {
-                if artifact.role != ArtifactRole::Example {
-                    continue;
-                }
-                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
-                    continue;
-                };
-                terms.extend(extract_path_shape_terms(
-                    &store,
-                    owner,
-                    record.manifest.tier.as_ref(),
-                ));
-            }
-        }
-        // A foreign module can redeclare a class without defining it. Use the
-        // ownership analysis already supplied by the caller to distinguish that
-        // reference from its canonical documentation entry. Unvalidated claims
-        // stay visible for diagnosis; never resolve a real conflict by order.
-        let validated_owners: BTreeMap<_, _> = ownership
-            .ownership
-            .values()
-            .filter(|record| matches!(record.status, OwnershipStatus::Validated))
-            .map(|record| (record.term.as_str(), record.declared_owner.as_str()))
-            .collect();
-        terms.retain(|term| {
-            validated_owners
-                .get(term.iri.as_str())
-                .is_none_or(|owner| *owner == term.owner_slice.as_str())
-        });
-        terms.sort_by(|a, b| a.iri.cmp(&b.iri));
+        // The docs renderer and its typed rendering corpus share this exact selection.
+        let (mut terms, formalizes_edges) = documented_terms(catalog, ownership);
 
         // Bidirectional related terms: if A lists B, ensure B lists A. The
         // forward edges were collected per-term in `extract_terms`; here we mirror
@@ -2538,7 +2495,7 @@ impl DocsModel {
         let (recipes, learning_paths) = extract_guides(catalog);
 
         // ── Translations (built from each slice's i18n/<lang>.po catalogs) ──────
-        let translations = Translations::from_catalog(catalog);
+        let translations = Translations::from_ontology_catalogs(catalog, translation_sources);
         let available_languages = i18n::available_languages(&translations);
 
         let model = Self {
@@ -2690,7 +2647,14 @@ impl DocsModel {
         let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let central_sets = read_central_mapping_sets(root)?;
-        let mut model = Self::from_catalog(&catalog, &ownership, &central_sets)?;
+        let translation_sources = crate::ontology_catalogs::for_repository(root, &catalog)
+            .map_err(DocsError::TranslationCatalog)?;
+        let mut model = Self::from_catalog_and_sources(
+            &catalog,
+            &ownership,
+            &central_sets,
+            &translation_sources,
+        )?;
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
         // Concept DOI for the per-term citation block: the `dcterms:identifier` on
         // the `gmeow:Work` subject of the self-description.
@@ -3273,6 +3237,87 @@ fn grounding_namespace(owner_slice: &str) -> Option<&'static str> {
     } else {
         None
     }
+}
+
+/// Exact term-page inventory selected by the documentation model. This reuses
+/// module terms, the explicit PathShape example exception and validated ownership;
+/// it does not build or enrich a second DocsModel.
+pub fn documented_term_iris(
+    catalog: &SliceCatalog,
+    ownership: &OwnershipReport,
+) -> BTreeSet<String> {
+    documented_terms(catalog, ownership)
+        .0
+        .into_iter()
+        .map(|term| term.iri)
+        .collect()
+}
+
+fn documented_terms(
+    catalog: &SliceCatalog,
+    ownership: &OwnershipReport,
+) -> (Vec<DocTerm>, Vec<(String, String)>) {
+    let mut terms: Vec<DocTerm> = Vec::new();
+    // `logic:formalizes` back-references, collected while modules are parsed.
+    let mut formalizes_edges: Vec<(String, String)> = Vec::new();
+    for record in catalog.records() {
+        let owner = &record.manifest.slice_iri;
+        for artifact in &record.artifacts {
+            if artifact.role != ArtifactRole::Module {
+                continue;
+            }
+            // A module that fails to parse is a hard fault — the same lenient
+            // parser the slice catalog already validated it with is used here,
+            // so this should never fail; surface it loudly with full context.
+            let store = parse_turtle_lenient(&artifact.content)
+                .unwrap_or_else(|e| panic!("module.ttl for slice {owner} failed to parse: {e}"));
+            terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
+            formalizes_edges.extend(extract_formalizes(&store));
+        }
+    }
+
+    // ── PathShape example terms (design/LOGIC-PATHS.md) ─────────────────
+    // A `logic:PathShape` is a first-class reusable by-name term, but its
+    // authored INSTANCES live in worked-example artifacts, not module.ttl, so
+    // the module-only scan above misses them. Lift them here — BEFORE the
+    // related-terms / profile-membership passes below — so an example
+    // PathShape term participates in those passes exactly like a module term
+    // (and its `property-path:<iri>` projection-loss row joins its page). This
+    // is a small independent parse of each Example artifact; the reuse loop
+    // further down re-parses for the DocExample / loss / worked-instance scans.
+    for record in catalog.records() {
+        let owner = &record.manifest.slice_iri;
+        for artifact in &record.artifacts {
+            if artifact.role != ArtifactRole::Example {
+                continue;
+            }
+            let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                continue;
+            };
+            terms.extend(extract_path_shape_terms(
+                &store,
+                owner,
+                record.manifest.tier.as_ref(),
+            ));
+        }
+    }
+    // A foreign module can redeclare a class without defining it. Use the
+    // ownership analysis already supplied by the caller to distinguish that
+    // reference from its canonical documentation entry. Unvalidated claims
+    // stay visible for diagnosis; never resolve a real conflict by order.
+    let validated_owners: BTreeMap<_, _> = ownership
+        .ownership
+        .values()
+        .filter(|record| matches!(record.status, OwnershipStatus::Validated))
+        .map(|record| (record.term.as_str(), record.declared_owner.as_str()))
+        .collect();
+    terms.retain(|term| {
+        validated_owners
+            .get(term.iri.as_str())
+            .is_none_or(|owner| *owner == term.owner_slice.as_str())
+    });
+    terms.sort_by(|a, b| a.iri.cmp(&b.iri));
+    (terms, formalizes_edges)
 }
 
 /// Whether a module subject is a documentable-term subject for a slice: any

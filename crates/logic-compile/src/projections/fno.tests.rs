@@ -69,6 +69,8 @@ fn lower_fno_extracts_nested_collection_atoms() {
     .expect("parse onto");
     let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
         &DslView::new(&dsl),
+        &DslView::new(&onto),
+        &[],
     )
     .expect("admit mappings");
     let nt = lower_fno(&DslView::new(&dsl), &DslView::new(&onto), &analysis)
@@ -153,6 +155,8 @@ fn fno_abox_individuals_carry_full_structural_annotations() {
 
     let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
         &DslView::new(&dsl),
+        &DslView::new(&onto),
+        &[],
     )
     .expect("admit mappings");
     let catalog = lower_fno(&DslView::new(&dsl), &DslView::new(&onto), &analysis)
@@ -332,8 +336,11 @@ fn lower_callable_fixture(source: &str) -> gmeow_errors::Result<FnoLowering> {
         purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).expect("synthetic source");
     let onto = purrdf::parse_dataset(b"", "text/turtle", None).expect("empty ontology");
     let view = DslView::new(&dsl);
-    let (_, analysis) =
-        super::super::correspondence_frontend::transpile_correspondences_indexed(&view)?;
+    let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
+        &view,
+        &view,
+        &[],
+    )?;
     lower_fno(&view, &DslView::new(&onto), &analysis)
 }
 
@@ -619,8 +626,11 @@ fn lower_callable_views(
     let ontology = purrdf::parse_dataset(ontology_source.as_bytes(), "text/turtle", None)
         .expect("synthetic ontology view");
     let view = DslView::new(&dsl);
-    let (_, analysis) =
-        super::super::correspondence_frontend::transpile_correspondences_indexed(&view)?;
+    let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
+        &view,
+        &view,
+        &[],
+    )?;
     lower_fno(&view, &DslView::new(&ontology), &analysis)
 }
 

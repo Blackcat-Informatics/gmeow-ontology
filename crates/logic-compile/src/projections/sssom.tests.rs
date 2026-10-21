@@ -130,8 +130,12 @@ gmeow:Foo skos:exactMatch gmeow:Bar {|
     // Build the materialized correspondence lookup from the same view, exactly as the
     // pipeline stage does, so the ledger gate consumes the materialized typed relation.
     let (_program, lookup) =
-        crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)
-            .expect("transpile lookup");
+        crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+            &view,
+            &view,
+            &[],
+        )
+        .expect("transpile lookup");
     let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
     let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
     assert!(tsv.contains("# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo"));
@@ -192,8 +196,12 @@ gmeow:mapActionReproduce a gmeow:ProjectionMapping ;
     let ds = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse projection ttl");
     let view = DslView::new(&ds);
     let (_program, lookup) =
-        crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)
-            .expect("transpile lookup");
+        crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+            &view,
+            &view,
+            &[],
+        )
+        .expect("transpile lookup");
 
     let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
     let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
@@ -229,7 +237,11 @@ fn transpile_and_lower(
     let ds = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse native ttl");
     let view = DslView::new(&ds);
     let (program, lookup) =
-        crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)?;
+        crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+            &view,
+            &view,
+            &[],
+        )?;
     let lowering = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup)?;
     Ok((program, lowering))
 }
@@ -514,8 +526,12 @@ fn native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries() {
     }
     // The full typed correspondence reader consumes these same admitted cells.
     let (program, _) =
-        crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)
-            .unwrap();
+        crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+            &view,
+            &view,
+            &[],
+        )
+        .unwrap();
     assert_eq!(program.correspondences.len(), 2);
     assert!(program.correspondences.iter().all(|correspondence| {
         correspondence.preservation == Some(crate::ir::PreservationKind::SoundUnder)
@@ -653,8 +669,12 @@ gmeow:mapLossyName a gmeow:ProjectionMapping ;
     let ds = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse projection ttl");
     let view = DslView::new(&ds);
     let (_program, lookup) =
-        crate::projections::correspondence_frontend::transpile_correspondences_indexed(&view)
-            .expect("transpile lookup");
+        crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+            &view,
+            &view,
+            &[],
+        )
+        .expect("transpile lookup");
     let err = match lower_sssom(&view, "0.1.0", "2026-06-03", &lookup) {
         Ok(_) => panic!("overclaim should be rejected"),
         Err(err) => err,

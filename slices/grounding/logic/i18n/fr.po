@@ -23112,3 +23112,315 @@ msgstr "Éviter pour la division symbolique, l’arithmétique flottante IEEE ou
 msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind both numeric inputs in positive source premises and provide a result variable or bound exact value; retain the selected relation in the plan and proof identity."
 msgstr "Lier les deux entrées numériques dans des prémisses sources positives et fournir une variable de résultat ou une valeur exacte liée ; conserver la relation sélectionnée dans l’identité du plan et de la preuve."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|rdfs:label"
+msgid "Projection Profile Program"
+msgstr "Programme de profil de projection"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|skos:definition"
+msgid "A content-identified selected projection with one native forward program, its complete required input checks and the exact admitted grounding-catalog identity. It records executable obligations, not a successful execution verdict."
+msgstr "Une projection sélectionnée identifiée par son contenu, avec un programme natif de sortie, tous ses contrôles d’entrée requis et l’identité exacte du catalogue de fondation admis. Elle porte des obligations exécutables, pas un verdict de réussite."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|skos:example"
+msgid "SELECT ?record WHERE { ?record a logic:ProjectionProfileProgram . }"
+msgstr "SELECT ?record WHERE { ?record a logic:ProjectionProfileProgram . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|gmeow:useWhen"
+msgid "Use for the selected profile product shipped with its canonical correspondence program."
+msgstr "À utiliser pour le produit de profil sélectionné livré avec son programme canonique de correspondances."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|gmeow:avoidWhen"
+msgid "Avoid treating supplied query text or a matching product hash as proof that required checks are complete."
+msgstr "Ne considérez pas le texte de requête fourni ou un condensat correspondant comme preuve que tous les contrôles requis sont présents."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|gmeow:howToUse"
+msgid "Reconstruct its forward body and check roster from retained binding programs, validate the required catalog, then preflight every check before any construction."
+msgstr "Reconstruisez son corps de sortie et la liste des contrôles à partir des programmes de liaison conservés, validez le catalogue requis puis exécutez tous les contrôles avant toute construction."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|rdfs:label"
+msgid "Projection Binding Program"
+msgstr "Programme de liaison de projection"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|skos:definition"
+msgid "The realized native acquisition body of one mapping binding: one source pattern, output template, profile order and exact selected-correspondence roster, retained independently of profile check transport."
+msgstr "Le corps natif réalisé d’une liaison de correspondance : un motif source, un modèle de sortie, un ordre dans le profil et la liste exacte des correspondances sélectionnées, conservés indépendamment du transport des contrôles."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|skos:example"
+msgid "SELECT ?record WHERE { ?record a logic:ProjectionBindingProgram . }"
+msgstr "SELECT ?record WHERE { ?record a logic:ProjectionBindingProgram . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|gmeow:useWhen"
+msgid "Use to retain the actual acquisition body named by a compiled correspondence getLeg."
+msgstr "À utiliser pour conserver le corps d’acquisition réel nommé par le getLeg d’une correspondance compilée."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|gmeow:avoidWhen"
+msgid "Avoid sharing a selected roster between sibling bindings merely because their mapping or profile names match."
+msgstr "Ne partagez pas une liste de sélections entre liaisons voisines au seul motif que leur correspondance ou leur profil porte le même nom."
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|gmeow:howToUse"
+msgid "Bind the canonical source pattern, template and selections into this body’s identity; derive forward execution and checks from that same body."
+msgstr "Liez le motif source canonique, le modèle et les sélections à l’identité de ce corps ; dérivez l’exécution et les contrôles de ce même corps."
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|rdfs:label"
+msgid "Correspondence Source"
+msgstr "Source de correspondance"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|skos:definition"
+msgid "The named reifier retaining an original source alignment and its exact compiled correspondence identity; owned grounding sources additionally retain their physical artifact owner, path and digest."
+msgstr "Le réifiant nommé qui conserve un alignement source original et l’identité exacte de sa correspondance compilée ; les sources de fondation propriétaires conservent aussi propriétaire, chemin et condensat de leur artefact physique."
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|skos:example"
+msgid "SELECT ?record WHERE { ?record a logic:CorrespondenceSource . }"
+msgstr "SELECT ?record WHERE { ?record a logic:CorrespondenceSource . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|gmeow:useWhen"
+msgid "Use to carry the authored alias through native RDF publication and catalog reconstruction."
+msgstr "À utiliser pour conserver l’alias rédigé lors de la publication RDF native et de la reconstruction du catalogue."
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|gmeow:avoidWhen"
+msgid "Avoid granting ownership from an alias namespace or an isDefinedBy annotation alone."
+msgstr "N’accordez pas de propriété sur la seule base de l’espace de noms d’un alias ou d’une annotation isDefinedBy."
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|gmeow:howToUse"
+msgid "Retain the exact reified proposition and compiled identity, then verify any physical source record against the required original artifact."
+msgstr "Conservez la proposition réifiée exacte et l’identité compilée, puis vérifiez tout enregistrement de source physique avec l’artefact original requis."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|rdfs:label"
+msgid "has projection program"
+msgstr "a pour programme de projection"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|skos:definition"
+msgid "Connects a canonical correspondence program to a selected projection profile product whose forward query and complete check roster are reconstructed from that program’s binding bodies."
+msgstr "Relie un programme canonique de correspondances à un produit de profil dont la requête de sortie et tous les contrôles sont reconstruits à partir de ses corps de liaison."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:hasProjectionProgram ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:hasProjectionProgram ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|gmeow:useWhen"
+msgid "Use to publish the required executable products of a correspondence program."
+msgstr "À utiliser pour publier les produits exécutables requis d’un programme de correspondances."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|gmeow:avoidWhen"
+msgid "Avoid attaching a profile from a different catalog or omitting a profile demanded by the binding inventory."
+msgstr "N’attachez pas un profil issu d’un autre catalogue et n’omettez pas un profil requis par l’inventaire des liaisons."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|gmeow:howToUse"
+msgid "Point to the content IRI of each admitted profile; preparation checks the complete inventory before execution."
+msgstr "Pointez vers l’IRI de contenu de chaque profil admis ; la préparation vérifie l’inventaire complet avant l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|rdfs:label"
+msgid "has projection binding"
+msgstr "a pour liaison de projection"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|skos:definition"
+msgid "Connects a correspondence program to the realized body of one source binding, retaining independent evidence for required profile checks."
+msgstr "Relie un programme de correspondances au corps réalisé d’une liaison source, conservant une preuve indépendante des contrôles requis du profil."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:hasProjectionBinding ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:hasProjectionBinding ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|gmeow:useWhen"
+msgid "Use to publish every realized acquisition binding, including bindings with no selected literal target."
+msgstr "À utiliser pour publier chaque liaison d’acquisition réalisée, y compris celles sans cible littérale sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|gmeow:avoidWhen"
+msgid "Avoid reconstructing this membership from the transported profile’s check list."
+msgstr "Ne reconstruisez pas cette appartenance à partir de la liste de contrôles transportée par le profil."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|gmeow:howToUse"
+msgid "Retain one content-addressed binding body per compiled correspondence and preserve the declared profile order."
+msgstr "Conservez un corps de liaison adressé par contenu par correspondance compilée et préservez l’ordre déclaré du profil."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|rdfs:label"
+msgid "has correspondence source"
+msgstr "a pour source de correspondance"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|skos:definition"
+msgid "Connects a correspondence program to an original named source reifier, preserving the alias-to-canonical-correspondence link in shipped native RDF."
+msgstr "Relie un programme de correspondances à un réifiant source nommé original, conservant le lien entre alias et correspondance canonique dans le RDF natif livré."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:hasCorrespondenceSource ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:hasCorrespondenceSource ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|gmeow:useWhen"
+msgid "Use when the original alignment alias must remain resolvable by installed consumers."
+msgstr "À utiliser lorsque les consommateurs installés doivent pouvoir résoudre l’alias de l’alignement original."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|gmeow:avoidWhen"
+msgid "Avoid replacing the named source with an unverified local alias hash."
+msgstr "Ne remplacez pas la source nommée par un condensat d’alias local non vérifié."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|gmeow:howToUse"
+msgid "Retain the named reifier and its source records alongside the canonical correspondence graph."
+msgstr "Conservez le réifiant nommé et ses enregistrements sources avec le graphe canonique des correspondances."
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|rdfs:label"
+msgid "compiled correspondence"
+msgstr "correspondance compilée"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|skos:definition"
+msgid "Names the canonical native correspondence produced from one original reified source alignment, with the same admitted endpoints, match predicate and source grouping."
+msgstr "Nomme la correspondance native canonique produite à partir d’un alignement source réifié, avec les mêmes extrémités admises, prédicat de correspondance et groupe source."
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:compiledCorrespondence ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:compiledCorrespondence ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|gmeow:useWhen"
+msgid "Use to resolve a selected authored reifier to its actual native correspondence owner."
+msgstr "À utiliser pour résoudre un réifiant rédigé sélectionné vers sa véritable correspondance native."
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|gmeow:avoidWhen"
+msgid "Avoid accepting a correspondence with only a similar label or matching target."
+msgstr "N’acceptez pas une correspondance sur la seule base d’un libellé similaire ou d’une cible identique."
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|gmeow:howToUse"
+msgid "Recompute the native correspondence identity from the admitted envelope and require this exact IRI."
+msgstr "Recalculez l’identité de la correspondance native depuis l’enveloppe admise et exigez cette IRI exacte."
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|rdfs:label"
+msgid "source match predicate"
+msgstr "prédicat de correspondance source"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|skos:definition"
+msgid "Retains the predicate of the original reified alignment proposition, such as skos:relatedMatch, separately from its compiled correspondence role."
+msgstr "Conserve le prédicat de la proposition d’alignement réifiée originale, par exemple skos:relatedMatch, séparément de son rôle de correspondance compilée."
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:sourceMatchPredicate ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:sourceMatchPredicate ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|gmeow:useWhen"
+msgid "Use to verify that a published alias still denotes the original alignment proposition."
+msgstr "À utiliser pour vérifier qu’un alias publié désigne toujours la proposition d’alignement originale."
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|gmeow:avoidWhen"
+msgid "Avoid substituting the eventual output predicate for the alignment predicate."
+msgstr "Ne substituez pas le prédicat de sortie final au prédicat d’alignement."
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|gmeow:howToUse"
+msgid "Compare this predicate and both endpoints against the exact native reified triple."
+msgstr "Comparez ce prédicat et les deux extrémités au triplet natif réifié exact."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|rdfs:label"
+msgid "grounding source owner"
+msgstr "propriétaire de la source de fondation"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|skos:definition"
+msgid "The actual canonical grounding ontology whose mapping-role artifact supplied a named source; authority is verified from the selected physical artifact, not asserted by the measured surface."
+msgstr "L’ontologie canonique de fondation dont l’artefact de correspondance a fourni une source nommée ; cette autorité est vérifiée depuis l’artefact physique sélectionné, jamais affirmée par la surface mesurée."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:groundingSourceOwner ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:groundingSourceOwner ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|gmeow:useWhen"
+msgid "Use with the exact source path and digest to retain physical authoring ownership."
+msgstr "À utiliser avec le chemin et le condensat exacts de la source pour conserver sa propriété physique."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|gmeow:avoidWhen"
+msgid "Avoid accepting a domain mapping as a grounding source merely because it names a kernel owner."
+msgstr "N’acceptez pas une correspondance de domaine comme source de fondation au seul motif qu’elle nomme un propriétaire du noyau."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|gmeow:howToUse"
+msgid "Require the owner to match the admitted Lang, Math or Logic mapping artifact boundary."
+msgstr "Exigez que le propriétaire corresponde à la frontière admise de l’artefact de correspondance Lang, Math ou Logic."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|rdfs:label"
+msgid "grounding source path"
+msgstr "chemin de la source de fondation"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|skos:definition"
+msgid "The normalized repository-relative path of the exact owned Turtle mapping artifact retained in the shipped cells archive."
+msgstr "Le chemin normalisé relatif au dépôt de l’artefact Turtle propriétaire exact conservé dans l’archive des cellules livrée."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:groundingSourcePath ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:groundingSourcePath ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|gmeow:useWhen"
+msgid "Use to select the required original artifact from the authenticated archive."
+msgstr "À utiliser pour sélectionner l’artefact original requis dans l’archive authentifiée."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|gmeow:avoidWhen"
+msgid "Avoid absolute paths, parent traversal or selecting a duplicate archive member."
+msgstr "Évitez les chemins absolus, les remontées de répertoire et la sélection d’un membre d’archive dupliqué."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|gmeow:howToUse"
+msgid "Resolve the exact named member with the shared strict archive reader and verify its owner and digest."
+msgstr "Résolvez le membre nommé exact avec le lecteur d’archive strict partagé puis vérifiez son propriétaire et son condensat."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|rdfs:label"
+msgid "grounding source digest"
+msgstr "condensat de la source de fondation"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|skos:definition"
+msgid "The SHA-256 content identity of the complete original owned mapping artifact bytes, including the exact source alignment envelope."
+msgstr "L’identité de contenu SHA-256 des octets complets de l’artefact de correspondance propriétaire original, y compris son enveloppe d’alignement exacte."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:groundingSourceDigest ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:groundingSourceDigest ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|gmeow:useWhen"
+msgid "Use to bind a retained named source to its original authenticated artifact bytes."
+msgstr "À utiliser pour lier une source nommée conservée aux octets de son artefact original authentifié."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|gmeow:avoidWhen"
+msgid "Avoid hashing only an alias, a selected field or a reconstructed serialization."
+msgstr "Ne calculez pas ce condensat sur le seul alias, un champ sélectionné ou une sérialisation reconstruite."
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|gmeow:howToUse"
+msgid "Hash the required original archive member and require equality before admitting its correspondence source record."
+msgstr "Calculez le condensat du membre original requis et exigez l’égalité avant d’admettre son enregistrement source."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|rdfs:label"
+msgid "projection program content"
+msgstr "contenu du programme de projection"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|skos:definition"
+msgid "Lossless rdf:JSON transport of an admitted selected profile product; its fields are validated against independent native binding bodies and the required grounding catalog."
+msgstr "Transport sans perte en rdf:JSON d’un produit de profil sélectionné admis ; ses champs sont vérifiés avec les corps natifs de liaison indépendants et le catalogue de fondation requis."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:projectionProgramContent ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:projectionProgramContent ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|gmeow:useWhen"
+msgid "Use to ship the exact native profile record in the correspondence graph."
+msgstr "À utiliser pour livrer l’enregistrement natif exact du profil dans le graphe des correspondances."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|gmeow:avoidWhen"
+msgid "Avoid treating valid JSON syntax or a self-consistent hash as sufficient admission."
+msgstr "Ne considérez pas une syntaxe JSON valide ou un condensat cohérent comme une admission suffisante."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|gmeow:howToUse"
+msgid "Decode one untagged rdf:JSON record, verify its content IRI, then reconstruct every required check from admitted native bodies."
+msgstr "Décodez un enregistrement rdf:JSON sans étiquette de langue, vérifiez son IRI de contenu puis reconstruisez chaque contrôle requis depuis les corps natifs admis."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|rdfs:label"
+msgid "projection binding content"
+msgstr "contenu de la liaison de projection"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|skos:definition"
+msgid "Lossless rdf:JSON transport of a realized binding’s canonical source pattern, output template and exact per-binding selected support, independently retained from profile products."
+msgstr "Transport sans perte en rdf:JSON du motif source canonique, du modèle de sortie et du support sélectionné exact d’une liaison réalisée, conservé indépendamment des produits de profil."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:projectionBindingContent ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:projectionBindingContent ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:useWhen"
+msgid "Use to retain the body that determines both forward execution and the mandatory check roster."
+msgstr "À utiliser pour conserver le corps qui détermine à la fois l’exécution et tous les contrôles obligatoires."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:avoidWhen"
+msgid "Avoid accepting a narrowed source pattern without changing its body and correspondence identities."
+msgstr "N’acceptez pas un motif source restreint sans modifier les identités du corps et de la correspondance."
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:howToUse"
+msgid "Decode one untagged rdf:JSON binding record and validate its body identity, canonical getLeg link and every selected dependency."
+msgstr "Décodez un enregistrement de liaison rdf:JSON sans étiquette de langue et validez l’identité du corps, son lien getLeg canonique et chaque dépendance sélectionnée."

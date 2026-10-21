@@ -2355,3 +2355,27 @@ msgstr "Évaluer un corpus logique externe qui n’adopte pas l’inventaire de 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Do not use this profile to waive documentation, competency or box-role measurements."
 msgstr "Ne pas utiliser ce profil pour dispenser des mesures de documentation, de compétence ou de rôle de boîte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|rdfs:label"
+msgid "schema.org value projection vocabulary"
+msgstr "vocabulaire de projection schema.org value"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|skos:definition"
+msgid "The schema.org value-prefix projection boundary shared by Lang literal values and Math numeric magnitudes; suffix terms such as valueReference are included and ungrounded authoring has zero default allowance."
+msgstr "La frontière de projection du préfixe schema.org value partagée par les littéraux Lang et les grandeurs numériques Math ; elle inclut les termes suffixés comme valueReference et n’accorde aucune marge par défaut aux assertions non fondées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|skos:example"
+msgid "gmeow:projVocab-schema-value gmeow:vocabularyNamespace \"https://schema.org/value\"^^xsd:anyURI ."
+msgstr "gmeow:projVocab-schema-value gmeow:vocabularyNamespace \"https://schema.org/value\"^^xsd:anyURI ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:useWhen"
+msgid "Use to count raw value-prefix targets and validated selected target occurrences against the shared grounding boundary."
+msgstr "À utiliser pour compter les cibles brutes du préfixe value et les occurrences sélectionnées validées selon la frontière de fondation partagée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:avoidWhen"
+msgid "Avoid treating this prefix as only the exact value IRI or importing catalog triples into the measured surface."
+msgstr "Ne réduisez pas ce préfixe à la seule IRI value et n’importez pas les triplets du catalogue dans la surface mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:howToUse"
+msgid "Admit selectors against the separate owned catalog before namespace filtering; retain only their validated virtual target witnesses in the surface count."
+msgstr "Admettez les sélecteurs avec le catalogue propriétaire séparé avant le filtrage des espaces de noms ; ne comptez que leurs témoins virtuels de cible validés."

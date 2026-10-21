@@ -14,6 +14,8 @@
 //! the pipeline still uses for cache keys. If those two ever diverge, the in-memory
 //! scorer and the disk scorer would union the same slice's documents differently.
 
+mod common;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -115,6 +117,7 @@ fn a_hand_built_file_map_scores_end_to_end() {
         ScoringEnv::Bundle(std::sync::Arc::new(
             gmeow_lang_bridge::GmnDictionary::default(),
         )),
+        common::grounding(),
     )
     .expect("an in-memory slice scores");
 
@@ -175,6 +178,7 @@ fn a_map_without_a_manifest_hard_fails_naming_manifest_ttl() {
         ScoringEnv::Bundle(std::sync::Arc::new(
             gmeow_lang_bridge::GmnDictionary::default(),
         )),
+        common::grounding(),
     );
     let Err(err) = scored else {
         panic!("scoring a manifest-less map must hard-fail, never produce a report");

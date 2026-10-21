@@ -249,6 +249,11 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
 fn write_test_po(root: &Path, name: &str, body: &str) {
     let path = root.join("slices/core/test/i18n").join(name);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
+    fs::write(
+        root.join("slices/core/test/manifest.ttl"),
+        "<urn:authored:test-owner> a <https://blackcatinformatics.ca/gmeow/Slice> .",
+    )
+    .unwrap();
     fs::write(path, body).unwrap();
 }
 
@@ -279,6 +284,11 @@ fn xliff_export_uses_actual_slice_path() {
     let (_tmp, root) = test_root("xliff-slice-path");
     let po_path = root.join("slices/extensions/example/i18n/fr.po");
     fs::create_dir_all(po_path.parent().unwrap()).unwrap();
+    fs::write(
+        root.join("slices/extensions/example/manifest.ttl"),
+        "<urn:authored:example-owner> a <https://blackcatinformatics.ca/gmeow/Slice> .",
+    )
+    .unwrap();
     fs::write(
         &po_path,
         po_body(&[(

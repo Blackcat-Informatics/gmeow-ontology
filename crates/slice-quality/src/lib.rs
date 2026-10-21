@@ -38,6 +38,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_lang_bridge::GmnDictionary;
+use gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog;
 use purrdf::RdfDataset;
 // rayon is a native-only dependency: wasm32 has no threads (GitHub Pages serves
 // no COOP/COEP headers, so `SharedArrayBuffer` is unavailable), and the browser
@@ -789,7 +790,9 @@ fn assessment_artifacts_inner(
     }
 
     let mut aggregate = gmeow_errors::Report::new("slice-quality");
-    let scored = score_slices_with_rubric_timed(repo_root, &dirs, &rubric, catalog_bytes);
+    let grounding = gmeow_validate::grounding_catalog::load(repo_root)?;
+    let scored =
+        score_slices_with_rubric_timed(repo_root, &dirs, &rubric, catalog_bytes, &grounding);
     let mut slice_timings = Vec::with_capacity(scored.len());
     // The per-slice blocks are accumulated first because the corpus header carries a
     // digest OVER them (`report::corpus_content_digest`): the header cannot be written
@@ -844,8 +847,9 @@ pub fn score_slices_with_rubric(
     repo_root: &Path,
     dirs: &[PathBuf],
     rubric: &Rubric,
+    grounding: &GroundingCatalog,
 ) -> Vec<gmeow_errors::Result<report::SliceReport>> {
-    score_slices_with_rubric_timed(repo_root, dirs, rubric, None)
+    score_slices_with_rubric_timed(repo_root, dirs, rubric, None, grounding)
         .into_iter()
         .map(|(result, _timing)| result)
         .collect()
@@ -856,6 +860,7 @@ fn score_slices_with_rubric_timed(
     dirs: &[PathBuf],
     rubric: &Rubric,
     catalog_bytes: Option<&[u8]>,
+    grounding: &GroundingCatalog,
 ) -> Vec<(gmeow_errors::Result<report::SliceReport>, SliceScoreTiming)> {
     doc_maturity::prime_repo_facts(repo_root, catalog_bytes);
     let score = |dir: &PathBuf| {
@@ -866,6 +871,7 @@ fn score_slices_with_rubric_timed(
             ScoringEnv::Repo {
                 slice_dir: dir.clone(),
             },
+            grounding,
         );
         let probes = result.as_ref().map_or_else(
             |_| score::ReasonerProbeCounts::default(),
@@ -1076,11 +1082,14 @@ fn collect_mapping_ttls(
 pub fn measure_repo_residues(
     repo_root: &Path,
     vocabularies: &[ProjectionVocabulary],
+    grounding: &GroundingCatalog,
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
-    Ok(measure_repo_residue_constructs(repo_root, vocabularies)?
-        .into_iter()
-        .map(|(key, constructs)| (key, constructs.len() as u64))
-        .collect())
+    Ok(
+        measure_repo_residue_constructs(repo_root, vocabularies, grounding)?
+            .into_iter()
+            .map(|(key, constructs)| (key, constructs.len() as u64))
+            .collect(),
+    )
 }
 
 /// The CONSTRUCT SET behind [`measure_repo_residues`] — the same single sweep, keyed
@@ -1094,13 +1103,14 @@ pub fn measure_repo_residues(
 pub fn measure_repo_residue_constructs(
     repo_root: &Path,
     vocabularies: &[ProjectionVocabulary],
+    grounding: &GroundingCatalog,
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), Vec<counting::Construct>>> {
     let mut out = std::collections::BTreeMap::new();
     for dir in discover_slice_dirs(&repo_root.join("slices")) {
         let slice_iri = report::slice_iri_of(&dir)?;
         let paths = ratchet_surface_paths(&dir)?;
         for (prefix, constructs) in
-            measure_surface_residue_constructs(&paths, &slice_iri, vocabularies)?
+            measure_surface_residue_constructs(&paths, &slice_iri, vocabularies, grounding)?
         {
             out.insert((slice_iri.clone(), prefix), constructs);
         }
@@ -1109,9 +1119,12 @@ pub fn measure_repo_residue_constructs(
     // under any slice — measure it once, attributed to the DSL surface IRI, so it is
     // guarded rather than silently missed.
     let dsl_paths = ratchet_dsl_surface_paths(repo_root)?;
-    for (prefix, constructs) in
-        measure_surface_residue_constructs(&dsl_paths, DSL_MAPPING_SURFACE_IRI, vocabularies)?
-    {
+    for (prefix, constructs) in measure_surface_residue_constructs(
+        &dsl_paths,
+        DSL_MAPPING_SURFACE_IRI,
+        vocabularies,
+        grounding,
+    )? {
         out.insert((DSL_MAPPING_SURFACE_IRI.to_owned(), prefix), constructs);
     }
     Ok(out)
@@ -1138,6 +1151,7 @@ pub fn measure_surface_residue_constructs(
     paths: &[PathBuf],
     surface_iri: &str,
     vocabularies: &[ProjectionVocabulary],
+    grounding: &GroundingCatalog,
 ) -> gmeow_errors::Result<std::collections::BTreeMap<String, Vec<counting::Construct>>> {
     let mut out = std::collections::BTreeMap::new();
     if paths.is_empty() {
@@ -1145,8 +1159,9 @@ pub fn measure_surface_residue_constructs(
     }
     let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
     let ds = dataset_from_paths(&path_refs)?;
+    let surface = counting::AdmittedProjectionSurface::admit(&ds, grounding)?;
     for vocab in vocabularies {
-        let constructs = counting::residue_constructs_for_surface(&ds, vocab, surface_iri);
+        let constructs = counting::residue_constructs_for_surface(&surface, vocab, surface_iri);
         if !constructs.is_empty() {
             out.insert(vocab.prefix.clone(), constructs);
         }
@@ -1189,10 +1204,12 @@ pub fn residue_constructs_over_texts(
     texts: &[String],
     vocab: &ProjectionVocabulary,
     surface_iri: &str,
+    grounding: &GroundingCatalog,
 ) -> gmeow_errors::Result<Vec<counting::Construct>> {
     let ds = residue_dataset_from_texts(texts)?;
+    let surface = counting::AdmittedProjectionSurface::admit(&ds, grounding)?;
     Ok(counting::residue_constructs_for_surface(
-        &ds,
+        &surface,
         vocab,
         surface_iri,
     ))
@@ -1207,8 +1224,9 @@ pub fn residue_over_texts(
     texts: &[String],
     vocab: &ProjectionVocabulary,
     surface_iri: &str,
+    grounding: &GroundingCatalog,
 ) -> gmeow_errors::Result<u64> {
-    Ok(residue_constructs_over_texts(texts, vocab, surface_iri)?.len() as u64)
+    Ok(residue_constructs_over_texts(texts, vocab, surface_iri, grounding)?.len() as u64)
 }
 
 /// Parse and union owned TTL `texts` into one frozen dataset — the shared reader behind
@@ -1235,11 +1253,16 @@ pub fn relocation_reasons_over_texts(
     destination_texts: &[String],
     destination_surface_iri: &str,
     vocab: &ProjectionVocabulary,
+    source_grounding: &GroundingCatalog,
+    destination_grounding: &GroundingCatalog,
 ) -> gmeow_errors::Result<
     std::collections::BTreeMap<String, std::collections::BTreeSet<counting::RelocationReason>>,
 > {
     let source = residue_dataset_from_texts(source_texts)?;
     let destination = residue_dataset_from_texts(destination_texts)?;
+    let source = counting::AdmittedProjectionSurface::admit(&source, source_grounding)?;
+    let destination =
+        counting::AdmittedProjectionSurface::admit(&destination, destination_grounding)?;
     Ok(counting::relocation_reasons(
         &source,
         source_surface_iri,
@@ -1270,6 +1293,8 @@ pub fn relocation_reasons_for_surfaces(
     destination_paths: &[PathBuf],
     destination_surface_iri: &str,
     vocab: &ProjectionVocabulary,
+    source_grounding: &GroundingCatalog,
+    destination_grounding: &GroundingCatalog,
 ) -> gmeow_errors::Result<
     std::collections::BTreeMap<String, std::collections::BTreeSet<counting::RelocationReason>>,
 > {
@@ -1277,6 +1302,9 @@ pub fn relocation_reasons_for_surfaces(
     let dst_refs: Vec<&Path> = destination_paths.iter().map(PathBuf::as_path).collect();
     let source = dataset_from_paths(&src_refs)?;
     let destination = dataset_from_paths(&dst_refs)?;
+    let source = counting::AdmittedProjectionSurface::admit(&source, source_grounding)?;
+    let destination =
+        counting::AdmittedProjectionSurface::admit(&destination, destination_grounding)?;
     Ok(counting::relocation_reasons(
         &source,
         source_surface_iri,
@@ -1306,9 +1334,15 @@ pub struct BundleStandards {
     profile: profile::QualityProfile,
     rubric_identity: String,
     source: Arc<RdfDataset>,
+    grounding: Arc<GroundingCatalog>,
 }
 
 impl BundleStandards {
+    /// The mandatory catalog admitted from the same authenticated bundle bytes
+    /// as this standard. Surface-local declarations cannot augment it.
+    pub fn grounding_catalog(&self) -> &GroundingCatalog {
+        &self.grounding
+    }
     /// Flatten the bundle + load the [`MeasurementStandard`] AND the shared `gmn1`
     /// dictionary ONCE.
     ///
@@ -1334,6 +1368,7 @@ impl BundleStandards {
                 detail: format!("cannot flatten gmeow.gts bundle: {e}"),
             })
         })?;
+        let grounding = Arc::new(GroundingCatalog::from_bundle(bundle_gts)?);
         Self::from_dataset(
             ds,
             format!(
@@ -1341,6 +1376,7 @@ impl BundleStandards {
                 purrdf_hash::hex::encode(purrdf_hash::blake3::hash(bundle_gts).as_bytes())
             ),
             profile_key,
+            grounding,
         )
     }
 
@@ -1350,6 +1386,7 @@ impl BundleStandards {
         ds: Arc<RdfDataset>,
         rubric_identity: String,
         profile_key: &str,
+        grounding: Arc<GroundingCatalog>,
     ) -> gmeow_errors::Result<Self> {
         let standard = rubric::load_rubric(&ds)?.standard;
         let profile = profile::QualityProfile::load(&ds, &standard, profile_key)?;
@@ -1373,6 +1410,7 @@ impl BundleStandards {
             profile,
             rubric_identity,
             source: ds,
+            grounding,
         })
     }
 
@@ -1388,7 +1426,12 @@ impl BundleStandards {
     /// # Errors
     /// Rejects unknown/malformed profiles and missing newly selected capabilities.
     pub fn select_profile(&self, key: &str) -> gmeow_errors::Result<Self> {
-        Self::from_dataset(self.source.clone(), self.rubric_identity.clone(), key)
+        Self::from_dataset(
+            self.source.clone(),
+            self.rubric_identity.clone(),
+            key,
+            self.grounding.clone(),
+        )
     }
 }
 
@@ -1409,8 +1452,13 @@ pub fn score_external_slice_from_files(
     files: &std::collections::BTreeMap<String, Vec<u8>>,
 ) -> gmeow_errors::Result<report::SliceReport> {
     let (dataset, imports) = profile::prepare_inputs(files, &std.source)?;
-    let mut report =
-        report::score_slice_files_with_dataset(files, &std.standard, std.scoring_env(), &dataset)?;
+    let mut report = report::score_slice_files_with_dataset(
+        files,
+        &std.standard,
+        std.scoring_env(),
+        &dataset,
+        &std.grounding,
+    )?;
     report.profile = Some(profile::ProfileAssessment::new(
         &std.profile,
         &std.rubric_identity,
@@ -1501,3 +1549,10 @@ mod parallel_tests;
 /// different destination surface), and the relocation reason codes derived from it.
 #[cfg(test)]
 mod residue_text_carrier_tests;
+
+#[path = "lib.test_support.rs"]
+#[cfg(test)]
+mod test_support;
+
+#[cfg(test)]
+pub(crate) use test_support::independent_grounding_catalog;

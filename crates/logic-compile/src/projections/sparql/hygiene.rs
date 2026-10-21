@@ -110,6 +110,21 @@ struct Scope {
     prefix: String,
 }
 
+fn binding_scope(key: &str) -> Scope {
+    use sha2::{Digest, Sha256};
+    let digest = purrdf_hash::hex::encode(&Sha256::digest(key.as_bytes()));
+    Scope {
+        prefix: format!("m{digest}"),
+    }
+}
+
+/// The same native variable identity used by a binding's lowered forward body.
+pub(crate) fn binding_variable(key: &str, variable: &str) -> String {
+    let mut variable = Variable::new(variable);
+    binding_scope(key).variable(&mut variable);
+    variable.as_str().to_owned()
+}
+
 impl Scope {
     fn variable(&self, value: &mut Variable) {
         *value = Variable::new(format!(
@@ -270,11 +285,7 @@ fn triple_has_variable(triple: &TriplePattern) -> bool {
 /// owned result is shared by its isolated law and its profile query. Template
 /// blanks remain templates; a fresh branch-bound predicate guards ground rows.
 pub(super) fn admit(mut leg: LoweredLeg, key: &str) -> gmeow_errors::Result<LoweredLeg> {
-    use sha2::{Digest, Sha256};
-    let digest = purrdf_hash::hex::encode(&Sha256::digest(key.as_bytes()));
-    let scope = Scope {
-        prefix: format!("m{digest}"),
-    };
+    let scope = binding_scope(key);
     scope.pattern(&mut leg.pattern)?;
     let mut guards = BTreeMap::new();
     for triple in &mut leg.template {

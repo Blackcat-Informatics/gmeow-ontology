@@ -3,52 +3,95 @@
 
 use super::*;
 
-/// Minimal query fixture for unit-testing the manifest projection seam. It is not
-/// compiled from repository mappings and therefore cannot rebuild the corpus.
-const TEST_DCAT_QUERY: &[u8] = br#"
-PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX dcat: <http://www.w3.org/ns/dcat#>
-PREFIX spdx: <http://spdx.org/rdf/terms#>
-CONSTRUCT {
-  ?corpus a dcat:Dataset ; dcat:distribution ?doc .
-  ?doc a dcat:Distribution ; dcat:downloadURL ?url ; spdx:checksum ?checksum .
-  ?checksum a spdx:Checksum ; spdx:checksumValue ?digest .
-}
-WHERE {
-  ?corpus gmeow:corpusMember ?doc .
-  ?doc gmeow:contentDigest ?digest .
-  OPTIONAL { ?doc gmeow:sourceLocation ?url }
-  BIND(IRI(CONCAT(STR(?doc), "-checksum")) AS ?checksum)
-}
+/// Independently authored user DSL for this distribution seam. It contains
+/// only the tiny fixture behavior below; no canonical source is loaded.
+const TEST_DCAT_MAPPING: &str = r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
+<urn:distribution-fixture:publish> a gm:ProjectionMapping ;
+    gm:hasMappingPattern [ gm:anchor "collection" ; gm:atom (
+        [ gm:subjectVar "collection" ; gm:predicate gm:corpusMember ; gm:objectVar "member" ]
+        [ gm:subjectVar "member" ; gm:predicate gm:contentDigest ; gm:objectVar "hash" ]
+        [ gm:optionalGroup ( [ gm:subjectVar "member" ; gm:predicate gm:sourceLocation ; gm:objectVar "location" ] ) ] ) ;
+        gm:mint [ gm:bindVar "digestRecord" ; gm:bindExpr [ gm:exprOp gm:opIri ; gm:exprArgs (
+            [ gm:exprOp gm:opConcat ; gm:exprArgs (
+                [ gm:exprOp gm:opStr ; gm:exprArgs ( [ gm:exprVar "member" ] ) ] "-checksum" ) ] ) ] ] ] ;
+    gm:hasBinding [ gm:profile "dcat" ; gm:relation "<=" ; gm:templateAtoms (
+        [ gm:tSubj "collection" ; gm:tPred rdf:type ; gm:tObjValue dcat:Dataset ]
+        [ gm:tSubj "collection" ; gm:tPred dcat:distribution ; gm:tObj "member" ]
+        [ gm:tSubj "member" ; gm:tPred rdf:type ; gm:tObjValue dcat:Distribution ]
+        [ gm:tSubj "member" ; gm:tPred dcat:downloadURL ; gm:tObj "location" ]
+        [ gm:tSubj "member" ; gm:tPred spdx:checksum ; gm:tObj "digestRecord" ]
+        [ gm:tSubj "digestRecord" ; gm:tPred rdf:type ; gm:tObjValue spdx:Checksum ]
+        [ gm:tSubj "digestRecord" ; gm:tPred spdx:checksumValue ; gm:tObj "hash" ] ) ] .
 "#;
 
-/// Build only a tiny synthetic transport fixture around [`TEST_DCAT_QUERY`].
-fn synthetic_gts_with_dcat_query() -> Vec<u8> {
-    let archive =
-        purrdf::ustar::write_archive(&[("dcat.rq".to_string(), TEST_DCAT_QUERY.to_vec())])
-            .expect("tar the synthetic queries archive");
-    let builder = purrdf::gts_compose::SnapshotBuilder::new();
-    // gmeow-test-input: synthetic-only
-    {
-        let emission = gmeow_gts_profile::emit_gmeow_gts(
-            builder,
-            vec![purrdf::gts_compose::BlobRow {
-                data: archive,
-                media_type: "application/x-tar".to_string(),
-                rep: crate::bundle_blobs::REP_QUERIES.to_string(),
-            }],
-            Vec::new(),
-            None,
-            &gmeow_gts_profile::baseline_medium_plan(),
-        )
-        .expect("frame the synthetic GTS snapshot");
-        assert!(
-            emission.ingestion.declarations_omitted.is_empty(),
-            "unexpected GMEOW fixture graph omissions: {:?}",
-            emission.ingestion.declarations_omitted
-        );
-        emission.bytes
+/// Build only the typed native product and original transport for the authored
+/// fixture. Missing-product controls retain the same valid catalog boundary.
+fn synthetic_dcat_transport(include_query_product: bool) -> Vec<u8> {
+    use gmeow_logic_compile::{
+        ingest::DslView,
+        projections::{correspondence, correspondence_frontend, sparql},
+    };
+    let dataset = purrdf::parse_dataset(TEST_DCAT_MAPPING.as_bytes(), "text/turtle", None).unwrap();
+    let view = DslView::new(&dataset);
+    let (program, analysis) =
+        correspondence_frontend::transpile_correspondences_indexed(&view, &view, &[]).unwrap();
+    let lowered = sparql::lower_sparql(&view, &analysis, &["dcat"]).unwrap();
+    let profiles: Vec<_> = lowered.profiles.values().cloned().collect();
+    let program = program
+        .with_projection_bindings(lowered.bindings)
+        .unwrap()
+        .with_projection_profiles(profiles.clone())
+        .unwrap();
+    let native = correspondence::project_correspondence_dataset(&program).unwrap();
+    // This fixture has no native source reifiers; every native quad is retained
+    // in its required named correspondence graph.
+    assert!(program.native_sources.is_empty());
+    let quads: Vec<_> = native
+        .owned_quads()
+        .map(|quad| {
+            quad.in_graph(purrdf::RdfTerm::iri(
+                "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws",
+            ))
+        })
+        .collect();
+    let native = purrdf::dataset_from_quads(&quads).unwrap();
+    let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
+    builder.add_dataset(&native).unwrap();
+    let mut blobs = vec![purrdf::gts_compose::BlobRow {
+        data: purrdf::ustar::write_archive(&[]).unwrap(),
+        media_type: "application/x-tar".to_owned(),
+        rep: "cells-archive".to_owned(),
+    }];
+    if include_query_product {
+        blobs.push(purrdf::gts_compose::BlobRow {
+            data: purrdf::ustar::write_archive(&[(
+                "dcat.projection.json".to_owned(),
+                profiles[0].to_bytes(),
+            )])
+            .unwrap(),
+            media_type: "application/x-tar".to_owned(),
+            rep: "queries-archive".to_owned(),
+        });
     }
+    // gmeow-test-input: synthetic-only
+    let emission = gmeow_gts_profile::emit_gmeow_gts(
+        builder,
+        blobs,
+        Vec::new(),
+        None,
+        &gmeow_gts_profile::baseline_medium_plan(),
+    )
+    .expect("frame independent typed DCAT transport");
+    assert!(emission.ingestion.declarations_omitted.is_empty());
+    emission.bytes
+}
+
+fn synthetic_gts_with_dcat_query() -> Vec<u8> {
+    synthetic_dcat_transport(true)
 }
 
 fn sample_entries() -> Vec<DistributionEntry> {
@@ -179,37 +222,14 @@ fn manifest_carries_a_checksum_and_catalog_link_per_entry() {
 
 #[test]
 fn manifest_fails_closed_without_a_bundled_dcat_query() {
-    // A snapshot carrying SOME unrelated blob (so `Bundle::from_snapshot` itself
-    // succeeds) but no `queries-archive` blob at all — `bundled_queries` legitimately
-    // returns an empty map (the "wheel-only-install" contract), and this module must
-    // still hard-fail rather than silently build an empty manifest.
-    let builder = purrdf::gts_compose::SnapshotBuilder::new();
-    // gmeow-test-input: synthetic-only
-    let gts_bytes = {
-        let emission = gmeow_gts_profile::emit_gmeow_gts(
-            builder,
-            vec![purrdf::gts_compose::BlobRow {
-                data: b"unrelated".to_vec(),
-                media_type: "application/octet-stream".to_string(),
-                rep: "not-queries".to_string(),
-            }],
-            Vec::new(),
-            None,
-            &gmeow_gts_profile::baseline_medium_plan(),
-        )
-        .expect("frame a GTS snapshot with no queries-archive blob");
-        assert!(
-            emission.ingestion.declarations_omitted.is_empty(),
-            "unexpected GMEOW fixture graph omissions: {:?}",
-            emission.ingestion.declarations_omitted
-        );
-        emission.bytes
-    };
+    // Keep a valid independent native catalog and cells archive while withholding
+    // the selected typed query archive. No other missing dependency masks refusal.
+    let gts_bytes = synthetic_dcat_transport(false);
     let err = build_docs_distribution_manifest(&sample_entries(), &[], &gts_bytes)
         .expect_err("a bundle with no queries-archive blob must hard-fail");
     assert!(
-        format!("{err}").contains("dcat.rq"),
-        "failure must name the missing dcat.rq: {err}"
+        format!("{err}").contains("dcat.projection.json"),
+        "failure must name the required typed DCAT product: {err}"
     );
 }
 

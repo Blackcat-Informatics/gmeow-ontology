@@ -1721,6 +1721,7 @@ name = "gmeow-logic-compile"
 version = "0.3.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-ns",
  "gmeow-term-arena",
  "insta",
@@ -1957,6 +1958,7 @@ version = "0.3.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-build-inputs",
+ "gmeow-bundle-import",
  "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",

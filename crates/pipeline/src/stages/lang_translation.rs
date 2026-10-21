@@ -41,10 +41,10 @@ use std::path::Path;
 use sha2::{Digest, Sha256};
 
 use gmeow_docs::i18n_compile::{language_from_po, live_translation_target, parse_po};
+use gmeow_docs::ontology_catalogs::OntologyCatalogSource;
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
-use purrdf::slice::{ArtifactRole, SliceCatalog};
 
 use gmeow_ns::LANG_NS;
 use gmeow_ns::LOGIC_NS;
@@ -95,14 +95,8 @@ struct Unit {
 /// [`parse_po`] (which keeps EVERY entry, including untranslated gaps), types each
 /// `msgctxt = "<term-iri>|<predicate-curie>"` entry as a `lang:TranslationUnit`.
 pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::Diag> {
-    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-mappings".to_string(),
-                message: format!("lang-translation slice catalog: {e}"),
-            })
-        })?;
-    build_corpus_from_catalog(&catalog)
+    let sources = gmeow_docs::ontology_catalogs::discover(root)?;
+    build_corpus_from_sources(&sources)
 }
 
 /// Build the live translation corpus from an ALREADY-DISCOVERED slice catalog.
@@ -111,58 +105,53 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::
 /// corpus over the same tree, discovers and parses the whole slice tree ONCE and shares it
 /// rather than paying the full-corpus discovery twice. The body is unchanged; only the catalog
 /// now arrives by reference.
-pub fn build_corpus_from_catalog(
-    catalog: &SliceCatalog,
+pub fn build_corpus_from_sources(
+    sources: &[OntologyCatalogSource],
 ) -> Result<LangTranslationCorpus, gmeow_errors::Diag> {
     let mut units: Vec<Unit> = Vec::new();
-    for record in catalog.records() {
-        for artifact in &record.artifacts {
-            if artifact.role != ArtifactRole::TranslationCatalog {
+    for source in sources {
+        // A translation catalog is required input: invalid UTF-8 is a HARD FAIL, never
+        // a silent lossy repair that would corrupt the surface text it carries.
+        let text = std::str::from_utf8(&source.content).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!(
+                    "lang-translation: translation catalog '{}' is not valid UTF-8: {e}",
+                    source.path.display()
+                ),
+            })
+        })?;
+        let lang = language_from_po(text)?.unwrap_or_default();
+        let lang = lang.trim().to_string();
+        // A catalog with no BCP-47 language header, or the English carrier itself,
+        // is not a translation crossing.
+        if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
+            continue;
+        }
+        for entry in &parse_po(text, false)? {
+            // The header entry (empty msgctxt) is not a crossing; a malformed
+            // msgctxt without the `<term-iri>|<predicate>` separator is skipped.
+            if entry.msgctxt.is_empty() {
                 continue;
             }
-            // A translation catalog is required input: invalid UTF-8 is a HARD FAIL, never
-            // a silent lossy repair that would corrupt the surface text it carries.
-            let text = std::str::from_utf8(&artifact.content).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!(
-                        "lang-translation: translation catalog '{}' is not valid UTF-8: {e}",
-                        artifact.logical_path
-                    ),
-                })
-            })?;
-            let lang = language_from_po(text)?.unwrap_or_default();
-            let lang = lang.trim().to_string();
-            // A catalog with no BCP-47 language header, or the English carrier itself,
-            // is not a translation crossing.
-            if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
+            if !entry.msgctxt.contains('|') {
                 continue;
             }
-            for entry in &parse_po(text, false)? {
-                // The header entry (empty msgctxt) is not a crossing; a malformed
-                // msgctxt without the `<term-iri>|<predicate>` separator is skipped.
-                if entry.msgctxt.is_empty() {
-                    continue;
-                }
-                if !entry.msgctxt.contains('|') {
-                    continue;
-                }
-                // Resolve the target surface's script now (fallible): an unknown catalog
-                // language HARD-FAILS rather than minting a materially-underspecified surface.
-                let tgt_script = script_for_lang(&lang)?;
-                // A machine-seeded `#, fuzzy` entry is not a reviewed translation: treat it as
-                // not-yet-live (untranslated / English fallback) so unreviewed content never
-                // surfaces as a live translation crossing in the gmeow.gts projection — the
-                // empty target makes it byte-identical to an untranslated entry. The
-                // fuzzy-gating lives in the shared `live_translation_target` policy.
-                units.push(build_unit(
-                    &entry.msgctxt,
-                    &entry.msgid,
-                    live_translation_target(entry),
-                    &lang,
-                    tgt_script,
-                ));
-            }
+            // Resolve the target surface's script now (fallible): an unknown catalog
+            // language HARD-FAILS rather than minting a materially-underspecified surface.
+            let tgt_script = script_for_lang(&lang)?;
+            // A machine-seeded `#, fuzzy` entry is not a reviewed translation: treat it as
+            // not-yet-live (untranslated / English fallback) so unreviewed content never
+            // surfaces as a live translation crossing in the gmeow.gts projection — the
+            // empty target makes it byte-identical to an untranslated entry. The
+            // fuzzy-gating lives in the shared `live_translation_target` policy.
+            units.push(build_unit(
+                &entry.msgctxt,
+                &entry.msgid,
+                live_translation_target(entry),
+                &lang,
+                tgt_script,
+            ));
         }
     }
 

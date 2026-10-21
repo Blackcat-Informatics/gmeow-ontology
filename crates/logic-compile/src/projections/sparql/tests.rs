@@ -30,7 +30,7 @@ fn compile(source: &str, ontology: &str) -> SparqlLowering {
     let onto = dataset(ontology);
     let dsl = DslView::new(&dsl);
     let onto = DslView::new(&onto);
-    let (_, lookup) = transpile_correspondences_indexed(&dsl).unwrap();
+    let (_, lookup) = transpile_correspondences_indexed(&dsl, &onto, &[]).unwrap();
     lower_cells(
         lookup.projection_cells(),
         &suppression_vocab(&onto),
@@ -42,7 +42,10 @@ fn compile(source: &str, ontology: &str) -> SparqlLowering {
 
 fn source_legs<'a>(lowered: &'a SparqlLowering, source: &str, cell: &str) -> &'a MappingLegs {
     let source = dataset(source);
-    let cells = projections(&DslView::new(&source)).unwrap();
+    let view = DslView::new(&source);
+    let catalog =
+        crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view).unwrap();
+    let cells = projections(&view, &catalog).unwrap();
     let cell = cells.iter().find(|value| value.iri == cell).unwrap();
     &lowered.legs[&binding_key(cell, &cell.bindings[0])]
 }
@@ -403,8 +406,12 @@ fn complete_source_and_binding_identity_prevents_report_relation_and_law_aliases
     );
     let source = dataset(&source);
     let view = DslView::new(&source);
-    let cells = projections(&view).unwrap();
-    let (correspondences, lookup) = transpile_correspondences_indexed(&view).unwrap();
+    let cells = projections(
+        &view,
+        &crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view).unwrap(),
+    )
+    .unwrap();
+    let (correspondences, lookup) = transpile_correspondences_indexed(&view, &view, &[]).unwrap();
     let lowered = lower_cells(&cells, &SuppressionVocab::empty(), &lookup, &["test"]).unwrap();
     assert_eq!(correspondences.correspondences.len(), 3);
     assert_eq!(lookup.binding_keys().len(), 3);
@@ -470,7 +477,10 @@ fn complete_source_and_binding_identity_prevents_report_relation_and_law_aliases
 #[test]
 fn semantic_binding_key_retains_full_native_literal_evidence_and_leg_polarity() {
     let source = dataset(SIMPLE);
-    let cell = projections(&DslView::new(&source)).unwrap().remove(0);
+    let view = DslView::new(&source);
+    let catalog =
+        crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view).unwrap();
+    let cell = projections(&view, &catalog).unwrap().remove(0);
     let baseline = binding_key(&cell, &cell.bindings[0]);
     let mut binding = cell.bindings[0].clone();
     binding.mnemomorphic = false;
@@ -640,7 +650,10 @@ fn helper_inventory_includes_templates_nested_atoms_predicate_variables_and_expr
   gm:templateAtoms ([gm:tSubj "s"; gm:tPred <urn:view>; gm:tObj "kindClass"])].
 "#,
     );
-    let cell = projections(&DslView::new(&source)).unwrap().remove(0);
+    let view = DslView::new(&source);
+    let catalog =
+        crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view).unwrap();
+    let cell = projections(&view, &catalog).unwrap().remove(0);
     let names = HelperNames::for_binding(&cell, &cell.bindings[0]);
     let allocated = [
         &names.class,

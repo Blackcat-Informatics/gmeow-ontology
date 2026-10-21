@@ -72,7 +72,7 @@ fn class_cell(
         iri: "https://blackcatinformatics.ca/gmeow/example/mlModelCell".to_owned(),
         label: String::new(),
         pattern,
-        bindings: vec![binding],
+        bindings: vec![binding.into()],
         grounding: None,
     }
 }

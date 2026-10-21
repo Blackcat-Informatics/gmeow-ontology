@@ -257,6 +257,9 @@ impl CorrespondenceProgram {
             compositions,
             preservation,
             leg_programs,
+            native_sources,
+            projection_profiles,
+            projection_bindings,
         } = self;
 
         let mut rebuilt = Vec::with_capacity(correspondences.len());
@@ -341,7 +344,10 @@ impl CorrespondenceProgram {
         Ok((
             CorrespondenceProgram::new(rebuilt, preservation)
                 .with_leg_programs(legs)
-                .with_compositions(compositions),
+                .with_compositions(compositions)
+                .with_native_sources(native_sources)?
+                .with_projection_bindings(projection_bindings)?
+                .with_projection_profiles(projection_profiles)?,
             outcomes,
         ))
     }

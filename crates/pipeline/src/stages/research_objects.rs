@@ -1362,7 +1362,8 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), gmeow_errors::Diag> {
 /// logical (repo-relative) path.
 pub fn render_research_objects(
     root: &Path,
-    dcat_rq: &str,
+    dcat_program: &[u8],
+    correspondence_laws: &[u8],
     scores_ttl: &[u8],
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let store = load_instance_graph(root, scores_ttl)?;
@@ -1429,7 +1430,7 @@ pub fn render_research_objects(
     }
 
     // DCAT: CONSTRUCT over the whole composed ontology + the worked-example A-Box.
-    let dcat = render_dcat(root, dcat_rq, scores_ttl)?;
+    let dcat = render_dcat(root, dcat_program, correspondence_laws, scores_ttl)?;
     out.insert(p("lillith.dcat.ttl"), dcat.into_bytes());
 
     // DataCite XML — purrdf project_datacite.
@@ -1461,12 +1462,12 @@ pub fn render_research_objects(
     Ok(out)
 }
 
-/// Build the DCAT store (whole ontology + example A-Box), run `dcat.rq`, serialize.
-/// `dcat_rq` is the CONSTRUCT query text, threaded in from the consumed stage-mappings
-/// product (`generated/queries/dcat.rq`) — never re-read off disk (the stale-disk-fold class).
+/// Admit the exact typed DCAT product against this run's native correspondence
+/// catalog and original ontology, then execute over the worked-example A-Box.
 fn render_dcat(
     root: &Path,
-    dcat_rq: &str,
+    dcat_program: &[u8],
+    correspondence_laws: &[u8],
     scores_ttl: &[u8],
 ) -> Result<String, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
@@ -1478,6 +1479,27 @@ fn render_dcat(
         let bytes = std::fs::read(&module)?;
         parsed.push(parse_into(&bytes, &module.display().to_string())?);
     }
+    let ontology_refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+    let ontology = RdfDataset::union(&ontology_refs)?;
+    let native = purrdf::parse_dataset(correspondence_laws, "application/n-triples", None)?;
+    let catalog =
+        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_program(
+            gmeow_logic_compile::projections::correspondence::parse_correspondence(&native)?,
+            &gmeow_logic_compile::ingest::DslView::new(&ontology),
+            &gmeow_validate::grounding_catalog::discover(root)?,
+        )?;
+    let product =
+        gmeow_logic_compile::projections::profile_program::ProjectionProfileProgram::from_bytes(
+            dcat_program,
+            &catalog,
+        )?;
+    if product.payload.profile != "dcat" {
+        return Err(ro_err(
+            "selected DCAT product has a different profile".to_owned(),
+        ));
+    }
+    let prepared =
+        crate::projection_execution::PreparedProjectionProfile::prepare(&product, &catalog)?;
     // The worked-example A-Box (scores.ttl rides in from the consumed evals product).
     for (label, _name, bytes) in example_inputs(root, scores_ttl)? {
         parsed.push(parse_into(&bytes, label)?);
@@ -1485,7 +1507,7 @@ fn render_dcat(
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
     let dataset = Arc::new(RdfDataset::union(&refs)?);
 
-    let graph = match native_query::query(&dataset, dcat_rq)? {
+    let graph = match prepared.execute(&dataset)? {
         SparqlResult::Graph(graph) => graph,
         _ => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
@@ -1524,9 +1546,8 @@ fn render_dcat(
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
-/// The committed path of the DCAT CONSTRUCT query — a `stage-mappings` product artifact
-/// (a generated projection), consumed from that product, never re-read off disk.
-const DCAT_QUERY_PATH: &str = "generated/queries/dcat.rq";
+/// Required typed product, consumed from this run's mappings stage.
+const DCAT_QUERY_PATH: &str = "generated/queries/dcat.projection.json";
 
 /// The `research-objects` export-leaf stage.
 pub struct ResearchObjectsStage {
@@ -1593,10 +1614,15 @@ impl Stage for ResearchObjectsStage {
         }
         files.push(root.join("ontology").join("gmeow.ttl"));
         files.extend(module_files(root)?);
+        files.extend(
+            gmeow_validate::grounding_catalog::discover(root)?
+                .iter()
+                .map(|source| root.join(&source.identity().path)),
+        );
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        // The generated DCAT CONSTRUCT query, sourced from THIS run's stage-mappings
+        // The typed DCAT capability, sourced from THIS run's stage-mappings
         // product (fail-closed: a missing artifact is a hard error, never a disk fallback).
         let dcat_rq = input
             .upstream
@@ -1611,12 +1637,16 @@ impl Stage for ResearchObjectsStage {
                     ),
                 })
             })?;
-        let dcat_rq = std::str::from_utf8(dcat_rq).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: self.id().to_owned(),
-                message: format!("{DCAT_QUERY_PATH} is not utf-8: {e}"),
-            })
-        })?;
+        let correspondence_laws = input
+            .upstream
+            .get("stage-mappings")
+            .and_then(|product| product.artifact(super::carrier::CORRESPONDENCE_LAWS_PATH))
+            .ok_or_else(|| {
+                ro_err(
+                    "missing native correspondence catalog in this run's mappings product"
+                        .to_owned(),
+                )
+            })?;
         // `generated/evals/scores.ttl` from THIS run's stage-export-evals product
         // (fail-closed: a missing artifact is a hard error, never a disk fallback of the
         // git-ignored generated tree).
@@ -1635,7 +1665,7 @@ impl Stage for ResearchObjectsStage {
             })?;
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
-            render_research_objects(input.root, dcat_rq, scores_ttl)?,
+            render_research_objects(input.root, dcat_rq, correspondence_laws, scores_ttl)?,
         )))
     }
 }

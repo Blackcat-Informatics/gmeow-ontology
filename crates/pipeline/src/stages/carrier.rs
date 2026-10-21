@@ -3591,7 +3591,9 @@ fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow
     let catalog =
         purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
             .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
-    let translations = gmeow_docs::Translations::from_catalog(&catalog);
+    let translation_sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;
+    let translations =
+        gmeow_docs::Translations::from_ontology_catalogs(&catalog, &translation_sources);
     let langs: Vec<String> = translations.languages().to_vec();
     if langs.is_empty() {
         return Ok(());

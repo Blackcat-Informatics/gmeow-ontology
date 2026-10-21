@@ -370,6 +370,7 @@ gmeow:identifierUrl
 
 gmeow:identifierValue
     a logic:DatatypeProperty ;
+    logic:subPropertyOf <https://blackcatinformatics.ca/lang/literalValue> ;
     rdfs:domain gmeow:Identifier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifier value"@x-gmeow-english ;

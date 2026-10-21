@@ -34,9 +34,9 @@
 //! [`crate::stages::distribution_catalog::dist_iri`]) — so the release-time instance
 //! references the exact same carrier-time schema subject, never a re-minted IRI — each
 //! carrying its rendered tree's `gmeow:contentDigest` + `gmeow:sourceLocation`. The
-//! instance graph is projected to DCAT/SPDX through the bundle's compiled `dcat.rq`
+//! instance graph is projected to DCAT/SPDX through the bundle's admitted `dcat.projection.json` product
 //! CONSTRUCT via the single projection authority ([`crate::projections::project_graph`]).
-//! No-optionality: a missing `dcat.rq` or a projection failure is a HARD FAIL, never a
+//! No-optionality: a missing `dcat.projection.json` or a projection failure is a HARD FAIL, never a
 //! silently empty manifest.
 
 use std::collections::BTreeMap;
@@ -267,7 +267,7 @@ pub struct DistributionEntry {
 }
 
 /// Producer-owned fixture for exercising the consumer verification verb over the
-/// real bundled `dcat.rq` projection without rebuilding that manifest in a test.
+/// real bundled typed DCAT projection without rebuilding that manifest in a test.
 pub mod consumer_verification_fixture {
     use super::{BTreeMap, Diag, DistributionEntry};
 
@@ -361,15 +361,12 @@ fn emit_member(lines: &mut Vec<String>, member: String, entry: &DistributionEntr
     ));
 }
 
-/// Build the release-time DCAT distribution manifest: the [`release_instance_ntriples`]
-/// graph for `entries`, projected through the bundle's compiled `dcat.rq` CONSTRUCT
-/// (folded into `gts_bytes`'s `queries-archive` blob — [`crate::bundle_blobs::bundled_queries`])
-/// via the single projection authority ([`project_graph`]). Returns the projected
-/// N-Triples.
+/// Build the release-time DCAT distribution manifest from the release instance
+/// graph and the bundle’s typed `dcat.projection.json` product. Native catalog
+/// admission and every required input check precede the CONSTRUCT.
 ///
-/// No-optionality: a `gts_bytes` snapshot with no bundled `dcat.rq` (the key
-/// `dcat.rq`, or any `…/dcat.rq`) is a HARD FAIL — never a silently empty or partial
-/// manifest.
+/// The structural native correspondence graph, original owned cells and exact
+/// query archive member are mandatory; missing or duplicate inputs fail closed.
 pub fn build_docs_distribution_manifest(
     entries: &[DistributionEntry],
     sub_asset_entries: &[DistributionEntry],
@@ -377,24 +374,12 @@ pub fn build_docs_distribution_manifest(
 ) -> Result<String, Diag> {
     let instance_nt = release_instance_ntriples(entries, sub_asset_entries);
 
-    let queries = crate::bundle_blobs::bundled_queries(gts_bytes)
-        .map_err(|e| err(format!("load the bundled projection queries: {e}")))?;
-    let dcat_rq_bytes = queries
-        .iter()
-        .find(|(key, _)| key.as_str() == "dcat.rq" || key.ends_with("/dcat.rq"))
-        .map(|(_, bytes)| bytes)
-        .ok_or_else(|| {
-            err(
-                "bundled dcat.rq projection query is missing — cannot build the release \
-                 distribution manifest",
-            )
-        })?;
-    let dcat_rq = std::str::from_utf8(dcat_rq_bytes)
-        .map_err(|e| err(format!("bundled dcat.rq is not valid UTF-8: {e}")))?;
+    let program =
+        crate::projection_execution::PreparedProjectionProfile::from_bundle(gts_bytes, "dcat")?;
 
-    project_graph(&instance_nt, dcat_rq, &TagMap::default()).map_err(|e| {
+    project_graph(&instance_nt, &program, &TagMap::default()).map_err(|e| {
         err(format!(
-            "project the release distribution instance through dcat.rq: {e}"
+            "project the release distribution instance through the admitted DCAT projection profile: {e}"
         ))
     })
 }

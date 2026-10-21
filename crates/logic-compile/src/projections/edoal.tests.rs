@@ -54,28 +54,31 @@ fn bridge_cell_emitting_equivalence_fails_the_lowering() {
             edoal_source_kind: Some("class".to_owned()),
             edoal_path: false,
         },
-        bindings: vec![ProfileBinding {
-            profile: "schema-org".to_owned(),
-            to_predicate: None,
-            to_class: Some(format!("{gm}Bar")),
-            template_atoms: Vec::new(),
-            value_class_map: Vec::new(),
-            // The EDOAL relation symbol is the equivalence token `=` …
-            relation: "=".to_owned(),
-            transform: None,
-            confidence: None,
-            lossy_drops: Vec::new(),
-            edoal_target: None,
-            edoal_target_kind: Some("class".to_owned()),
-            // … but the correspondence is authored as a by-reference BridgeView.
-            morphism_class: Some(MorphismClass::BridgeView),
-            ingest_claim: None,
-            ingest_residue: Vec::new(),
-            mnemomorphic: false,
-            emit_sssom: false,
-            sssom_predicate: None,
-            sssom_file: None,
-        }],
+        bindings: vec![
+            ProfileBinding {
+                profile: "schema-org".to_owned(),
+                to_predicate: None,
+                to_class: Some(format!("{gm}Bar")),
+                template_atoms: Vec::new(),
+                value_class_map: Vec::new(),
+                // The EDOAL relation symbol is the equivalence token `=` …
+                relation: "=".to_owned(),
+                transform: None,
+                confidence: None,
+                lossy_drops: Vec::new(),
+                edoal_target: None,
+                edoal_target_kind: Some("class".to_owned()),
+                // … but the correspondence is authored as a by-reference BridgeView.
+                morphism_class: Some(MorphismClass::BridgeView),
+                ingest_claim: None,
+                ingest_residue: Vec::new(),
+                mnemomorphic: false,
+                emit_sssom: false,
+                sssom_predicate: None,
+                sssom_file: None,
+            }
+            .into(),
+        ],
         grounding: None,
     };
     let tag_map = BTreeMap::new();
@@ -148,26 +151,29 @@ fn predicate_cell(
             edoal_source_kind: source_kind.map(str::to_owned),
             edoal_path: false,
         },
-        bindings: vec![ProfileBinding {
-            profile: "sioc".to_owned(),
-            to_predicate: Some(target.to_owned()),
-            to_class: None,
-            template_atoms: Vec::new(),
-            value_class_map: Vec::new(),
-            relation: "<=".to_owned(),
-            transform: None,
-            confidence: None,
-            lossy_drops: Vec::new(),
-            edoal_target: None,
-            edoal_target_kind: target_kind.map(str::to_owned),
-            morphism_class: None,
-            ingest_claim: None,
-            ingest_residue: Vec::new(),
-            mnemomorphic: false,
-            emit_sssom: false,
-            sssom_predicate: None,
-            sssom_file: None,
-        }],
+        bindings: vec![
+            ProfileBinding {
+                profile: "sioc".to_owned(),
+                to_predicate: Some(target.to_owned()),
+                to_class: None,
+                template_atoms: Vec::new(),
+                value_class_map: Vec::new(),
+                relation: "<=".to_owned(),
+                transform: None,
+                confidence: None,
+                lossy_drops: Vec::new(),
+                edoal_target: None,
+                edoal_target_kind: target_kind.map(str::to_owned),
+                morphism_class: None,
+                ingest_claim: None,
+                ingest_residue: Vec::new(),
+                mnemomorphic: false,
+                emit_sssom: false,
+                sssom_predicate: None,
+                sssom_file: None,
+            }
+            .into(),
+        ],
         grounding: None,
     }
 }
@@ -396,26 +402,29 @@ fn templated_cell(
             edoal_source_kind: None,
             edoal_path: false,
         },
-        bindings: vec![ProfileBinding {
-            profile: "owl-time".to_owned(),
-            to_predicate: Some(to_predicate.to_owned()),
-            to_class: None,
-            template_atoms,
-            value_class_map: Vec::new(),
-            relation: "<=".to_owned(),
-            transform: None,
-            confidence: None,
-            lossy_drops: Vec::new(),
-            edoal_target: None,
-            edoal_target_kind: None,
-            morphism_class: None,
-            ingest_claim: None,
-            ingest_residue: Vec::new(),
-            mnemomorphic: false,
-            emit_sssom: false,
-            sssom_predicate: None,
-            sssom_file: None,
-        }],
+        bindings: vec![
+            ProfileBinding {
+                profile: "owl-time".to_owned(),
+                to_predicate: Some(to_predicate.to_owned()),
+                to_class: None,
+                template_atoms,
+                value_class_map: Vec::new(),
+                relation: "<=".to_owned(),
+                transform: None,
+                confidence: None,
+                lossy_drops: Vec::new(),
+                edoal_target: None,
+                edoal_target_kind: None,
+                morphism_class: None,
+                ingest_claim: None,
+                ingest_residue: Vec::new(),
+                mnemomorphic: false,
+                emit_sssom: false,
+                sssom_predicate: None,
+                sssom_file: None,
+            }
+            .into(),
+        ],
         grounding: None,
     };
     (cell, onto_ds)
@@ -524,7 +533,10 @@ fn mapping_cell_identity_retains_full_owner_and_each_same_profile_binding() {
  gm:hasMappingPattern [gm:anchor "s"];
  gm:hasBinding [gm:profile "test"; gm:toClass <urn:A>; gm:relation "="].
 "#);
-    let cells = projections(&DslView::new(&dataset)).unwrap();
+    let view = DslView::new(&dataset);
+    let catalog =
+        crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view).unwrap();
+    let cells = projections(&view, &catalog).unwrap();
     let mut output = Nt::new();
     let mut ids = std::collections::BTreeSet::new();
     for cell in &cells {

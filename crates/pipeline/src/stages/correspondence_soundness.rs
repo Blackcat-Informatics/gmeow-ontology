@@ -595,9 +595,21 @@ pub fn lint_correspondence_soundness(
     // authority. Scoped so the view's borrow of `dsl` ends before `cells` (owned, no
     // lifetime) outlives it.
     let dsl = merge_dsl(root, catalog.as_ref())?;
+    let owned = match &catalog {
+        Some(catalog) => gmeow_validate::grounding_catalog::owned_sources(root, catalog),
+        None => gmeow_validate::grounding_catalog::discover(root),
+    }
+    .map_err(|e| SliceError::Parse(e.to_string()))?;
+    let selected_catalog =
+        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_sources(
+            &owned,
+            &DslView::new(&ontology),
+        )
+        .map_err(|e| SliceError::Parse(e.to_string()))?;
     let cells: Vec<ProjectionCell> = {
         let dsl_view = DslView::new(&dsl);
-        get_leg::projections(&dsl_view).map_err(|e| SliceError::Parse(e.to_string()))?
+        get_leg::projections(&dsl_view, &selected_catalog)
+            .map_err(|e| SliceError::Parse(e.to_string()))?
     };
 
     // Scope the ontology view so its borrow of `ontology` ends before `ontology` is moved

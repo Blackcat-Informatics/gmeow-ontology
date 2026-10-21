@@ -273,6 +273,7 @@ fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
     }
     files.sort();
     let mut witness_cache: BTreeMap<PathBuf, BTreeSet<PathBuf>> = BTreeMap::new();
+    let mut grounding_catalog = None;
     for path in files {
         let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
         if path.extension().is_some_and(|ext| ext == "shex") {
@@ -299,6 +300,34 @@ fn check_projection_purity(root: &Path, report: &mut RepoStaticReport) {
                 continue;
             }
         };
+        // Selected correspondence references are mandatory capability inputs,
+        // even when this source contains no OWL/shape namespace occurrence.
+        let view = gmeow_logic_compile::ingest::DslView::new(&ds);
+        if !view
+            .quads_with_predicate(
+                gmeow_logic_compile::projections::grounding_catalog::SELECTED_TARGET,
+            )
+            .is_empty()
+        {
+            if grounding_catalog.is_none() {
+                match crate::grounding_catalog::load(root) {
+                    Ok(catalog) => grounding_catalog = Some(catalog),
+                    Err(error) => {
+                        report.error(format!(
+                            "{rel}: required selected projection catalog: {error}"
+                        ));
+                        continue;
+                    }
+                }
+            }
+            if let Some(catalog) = grounding_catalog.as_ref()
+                && let Err(error) =
+                    gmeow_logic_compile::projections::get_leg::projections(&view, catalog)
+            {
+                report.error(format!("{rel}: invalid selected projection: {error}"));
+                continue;
+            }
+        }
         let backing = ProjectionBacking::new(&ds);
         check_compute_constructs(&ds, &rel, &backing, report);
         check_migrated_constraint_constructs(&ds, &rel, &backing, report);
@@ -343,7 +372,7 @@ fn check_owl_constructs(
         .any(|quad| matches!(ds.resolve(quad.p), TermRef::Iri(p) if p.starts_with(OWL)))
     {
         let view = gmeow_logic_compile::ingest::DslView::new(ds);
-        match gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(&view) {
+        match gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(&view, &view, &[]) {
             Ok((_, analysis)) => {
                 for cell in analysis.alignment_cells() {
                     if let (Some(s), Some(p), Some(o)) = (

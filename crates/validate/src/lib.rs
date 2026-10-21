@@ -41,6 +41,8 @@ pub mod codes;
 pub mod data_validate;
 pub mod error;
 pub mod findings;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod grounding_catalog;
 pub mod gufo;
 // The loop-closure enrichment join (correspondence of a validation Report against
 // the documentation projection). Pure serde over the wasm-clean Finding/Report model

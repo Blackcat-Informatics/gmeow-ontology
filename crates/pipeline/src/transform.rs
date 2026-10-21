@@ -11,7 +11,7 @@
 //! Oxigraph-free: the transient triple stores are flat
 //! [`purrdf::RdfDataset`]s built from owned [`RdfQuad`] streams and pattern-queried
 //! through the native [`DatasetView`]; the projection CONSTRUCT runs through
-//! [`NativeSparqlEngine`]. The deterministic Skolem IRI minting, the content-addressed
+//! [`purrdf::sparql::NativeSparqlEngine`]. The deterministic Skolem IRI minting, the content-addressed
 //! reifier hash, and every committed N-Triples / GTS byte are preserved exactly: the
 //! canonical labels come from the SAME RDFC-1.0 canonicalizer and the term tokens come
 //! from the native term renderer, which is byte-identical to oxigraph's N-Triples term
@@ -20,7 +20,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, OnceLock};
 
-use purrdf::sparql::{NativeSparqlEngine, PreparedQuery, QueryOptions};
 use purrdf::{
     DatasetView, GraphMatch, NativeRdfFormat, RdfDataset, RdfLiteral, RdfQuad, RdfTerm,
     SparqlResult, TermId, TermRef, TermValue,
@@ -349,11 +348,11 @@ pub fn transform_nt(
     ontology_nt: &str,
     cells: &[CellInput],
     denied: &[(String, String, String)],
-    projection_queries: &[(String, String)],
+    projection_programs: &[crate::projection_execution::PreparedProjectionProfile],
     tag_map: &TagMap,
 ) -> gmeow_errors::Result<TransformReportNative> {
     let source = purrdf::parse_dataset(raw_nt.as_bytes(), "application/n-triples", None)?;
-    TransformProgram::prepare(ontology_nt, cells, denied, projection_queries, tag_map)?
+    TransformProgram::prepare(ontology_nt, cells, denied, projection_programs, tag_map)?
         .execute_default_graph(&source)?
         .into_text()
 }
@@ -365,7 +364,7 @@ pub struct TransformProgram {
     class_edges: EdgeMap,
     property_edges: EdgeMap,
     vocab: SuppressionVocab,
-    projections: Vec<(String, Arc<PreparedQuery>)>,
+    projections: Vec<crate::projection_execution::PreparedProjectionProfile>,
     tag_map: TagMap,
 }
 
@@ -375,23 +374,14 @@ impl TransformProgram {
         ontology_nt: &str,
         cells: &[CellInput],
         denied: &[(String, String, String)],
-        projection_queries: &[(String, String)],
+        projection_programs: &[crate::projection_execution::PreparedProjectionProfile],
         tag_map: &TagMap,
     ) -> gmeow_errors::Result<Self> {
         let ontology = parse_graph(ontology_nt.as_bytes())?;
         let denied = denied.iter().cloned().collect();
         let (class_edges, property_edges) = build_strong_edges(cells, &ontology, &denied)?;
         let vocab = suppression_vocab(&ontology)?;
-        let engine = NativeSparqlEngine::new();
-        let projections = projection_queries
-            .iter()
-            .map(|(name, query)| {
-                engine
-                    .prepare_query(query, None)
-                    .map(|query| (name.clone(), query))
-                    .with_ctx(|| format!("prepare projection {name}"))
-            })
-            .collect::<gmeow_errors::Result<_>>()?;
+        let projections = projection_programs.to_vec();
         Ok(Self {
             ontology,
             class_edges,
@@ -717,7 +707,7 @@ fn cell_annotations(cell: &Cell) -> Vec<AnnotationKey> {
 fn projection_derived(
     abox: &Graph,
     onto: &Graph,
-    projection_queries: &[(String, Arc<PreparedQuery>)],
+    projection_programs: &[crate::projection_execution::PreparedProjectionProfile],
     suppressed: &BTreeSet<String>,
 ) -> gmeow_errors::Result<BTreeMap<TripleKey, DerivedTriple>> {
     let projection_input = projection_input_graph(abox, onto)?;
@@ -732,12 +722,12 @@ fn projection_derived(
         .filter_map(|s| s.strip_prefix('<').and_then(|s| s.strip_suffix('>')))
         .collect();
     let mut derived: BTreeMap<TripleKey, DerivedTriple> = BTreeMap::new();
-    let engine = NativeSparqlEngine::new();
-    for (name, query) in projection_queries {
-        let alignment = format!("{GM}projections/{name}");
-        let result = engine
-            .query_prepared(&projection_input.ds, query, &[], QueryOptions::EMPTY)
-            .with_ctx(|| format!("projection query evaluation failed for {name}"))?;
+    let admitted =
+        crate::projection_execution::admit_all(projection_programs, &projection_input.ds)?;
+    for program in admitted {
+        let name = program.profile().to_owned();
+        let alignment = program.identity().to_owned();
+        let result = program.execute()?;
         let SparqlResult::Graph(triples) = result else {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Transform {
                 message: format!("projection query {name} did not return a graph"),

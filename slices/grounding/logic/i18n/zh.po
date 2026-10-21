@@ -23112,3 +23112,315 @@ msgstr "不用于符号除法、IEEE 浮点运算或需要有理数结果的计�
 msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind both numeric inputs in positive source premises and provide a result variable or bound exact value; retain the selected relation in the plan and proof identity."
 msgstr "在正向来源前提中绑定两个数值输入，并提供结果变量或已绑定精确值；在计划和证明标识中保留所选关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|rdfs:label"
+msgid "Projection Profile Program"
+msgstr "投影配置程序"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|skos:definition"
+msgid "A content-identified selected projection with one native forward program, its complete required input checks and the exact admitted grounding-catalog identity. It records executable obligations, not a successful execution verdict."
+msgstr "由内容标识的所选投影，包含一个原生正向程序、全部必需输入检查及已准入奠基目录的精确身份。它记录可执行义务，而非执行成功的结论。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|skos:example"
+msgid "SELECT ?record WHERE { ?record a logic:ProjectionProfileProgram . }"
+msgstr "SELECT ?record WHERE { ?record a logic:ProjectionProfileProgram . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|gmeow:useWhen"
+msgid "Use for the selected profile product shipped with its canonical correspondence program."
+msgstr "用于随规范对应关系程序一起交付的所选配置产物。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|gmeow:avoidWhen"
+msgid "Avoid treating supplied query text or a matching product hash as proof that required checks are complete."
+msgstr "不要把所提供的查询文本或匹配的产物摘要视为必需检查完整的证明。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionProfileProgram|gmeow:howToUse"
+msgid "Reconstruct its forward body and check roster from retained binding programs, validate the required catalog, then preflight every check before any construction."
+msgstr "从保留的绑定程序重建正向主体和检查清单，验证必需目录，并在任何构造之前完成全部检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|rdfs:label"
+msgid "Projection Binding Program"
+msgstr "投影绑定程序"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|skos:definition"
+msgid "The realized native acquisition body of one mapping binding: one source pattern, output template, profile order and exact selected-correspondence roster, retained independently of profile check transport."
+msgstr "一个映射绑定已实现的原生获取主体，包含源模式、输出模板、配置内顺序及精确的所选对应关系清单，独立于配置检查的传输记录而保留。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|skos:example"
+msgid "SELECT ?record WHERE { ?record a logic:ProjectionBindingProgram . }"
+msgstr "SELECT ?record WHERE { ?record a logic:ProjectionBindingProgram . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|gmeow:useWhen"
+msgid "Use to retain the actual acquisition body named by a compiled correspondence getLeg."
+msgstr "用于保留编译后对应关系的 getLeg 所命名的实际获取主体。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|gmeow:avoidWhen"
+msgid "Avoid sharing a selected roster between sibling bindings merely because their mapping or profile names match."
+msgstr "不要仅因映射或配置名称相同，就让同级绑定共享所选清单。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ProjectionBindingProgram|gmeow:howToUse"
+msgid "Bind the canonical source pattern, template and selections into this body’s identity; derive forward execution and checks from that same body."
+msgstr "将规范源模式、模板和选择项纳入主体身份，并从同一主体推导正向执行和检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|rdfs:label"
+msgid "Correspondence Source"
+msgstr "对应关系源记录"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|skos:definition"
+msgid "The named reifier retaining an original source alignment and its exact compiled correspondence identity; owned grounding sources additionally retain their physical artifact owner, path and digest."
+msgstr "保留原始源对齐及其精确编译对应关系身份的具名重述实体；所属奠基源还保留其物理制品的所有者、路径和摘要。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|skos:example"
+msgid "SELECT ?record WHERE { ?record a logic:CorrespondenceSource . }"
+msgstr "SELECT ?record WHERE { ?record a logic:CorrespondenceSource . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|gmeow:useWhen"
+msgid "Use to carry the authored alias through native RDF publication and catalog reconstruction."
+msgstr "用于在原生 RDF 发布和目录重建过程中保留原始别名。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|gmeow:avoidWhen"
+msgid "Avoid granting ownership from an alias namespace or an isDefinedBy annotation alone."
+msgstr "不要仅根据别名的命名空间或 isDefinedBy 注释授予所属权限。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CorrespondenceSource|gmeow:howToUse"
+msgid "Retain the exact reified proposition and compiled identity, then verify any physical source record against the required original artifact."
+msgstr "保留精确的重述命题和编译身份，并依据必需的原始制品核验物理源记录。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|rdfs:label"
+msgid "has projection program"
+msgstr "具有投影程序"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|skos:definition"
+msgid "Connects a canonical correspondence program to a selected projection profile product whose forward query and complete check roster are reconstructed from that program’s binding bodies."
+msgstr "将规范对应关系程序连接到所选投影配置产物，其正向查询和完整检查清单由该程序的绑定主体重建。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:hasProjectionProgram ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:hasProjectionProgram ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|gmeow:useWhen"
+msgid "Use to publish the required executable products of a correspondence program."
+msgstr "用于发布对应关系程序所必需的可执行产物。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|gmeow:avoidWhen"
+msgid "Avoid attaching a profile from a different catalog or omitting a profile demanded by the binding inventory."
+msgstr "不要附加来自不同目录的配置，也不要遗漏绑定清单所要求的配置。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionProgram|gmeow:howToUse"
+msgid "Point to the content IRI of each admitted profile; preparation checks the complete inventory before execution."
+msgstr "指向每个已准入配置的内容 IRI；准备阶段在执行前检查完整清单。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|rdfs:label"
+msgid "has projection binding"
+msgstr "具有投影绑定"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|skos:definition"
+msgid "Connects a correspondence program to the realized body of one source binding, retaining independent evidence for required profile checks."
+msgstr "将对应关系程序连接到一个源绑定的已实现主体，保留配置必需检查的独立依据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:hasProjectionBinding ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:hasProjectionBinding ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|gmeow:useWhen"
+msgid "Use to publish every realized acquisition binding, including bindings with no selected literal target."
+msgstr "用于发布每个已实现的获取绑定，包括没有所选字面量目标的绑定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|gmeow:avoidWhen"
+msgid "Avoid reconstructing this membership from the transported profile’s check list."
+msgstr "不要从所传输配置的检查列表反推此成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasProjectionBinding|gmeow:howToUse"
+msgid "Retain one content-addressed binding body per compiled correspondence and preserve the declared profile order."
+msgstr "为每个编译对应关系保留一个按内容寻址的绑定主体，并保持已声明的配置顺序。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|rdfs:label"
+msgid "has correspondence source"
+msgstr "具有对应关系源"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|skos:definition"
+msgid "Connects a correspondence program to an original named source reifier, preserving the alias-to-canonical-correspondence link in shipped native RDF."
+msgstr "将对应关系程序连接到原始具名源重述实体，在交付的原生 RDF 中保留别名到规范对应关系的链接。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:hasCorrespondenceSource ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:hasCorrespondenceSource ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|gmeow:useWhen"
+msgid "Use when the original alignment alias must remain resolvable by installed consumers."
+msgstr "当安装后的消费者必须仍能解析原始对齐别名时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|gmeow:avoidWhen"
+msgid "Avoid replacing the named source with an unverified local alias hash."
+msgstr "不要使用未经核验的本地别名摘要替换具名源。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasCorrespondenceSource|gmeow:howToUse"
+msgid "Retain the named reifier and its source records alongside the canonical correspondence graph."
+msgstr "将具名重述实体及其源记录与规范对应关系图一并保留。"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|rdfs:label"
+msgid "compiled correspondence"
+msgstr "编译后的对应关系"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|skos:definition"
+msgid "Names the canonical native correspondence produced from one original reified source alignment, with the same admitted endpoints, match predicate and source grouping."
+msgstr "命名从一个原始重述源对齐产生的规范原生对应关系，其已准入端点、匹配谓词和源分组保持一致。"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:compiledCorrespondence ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:compiledCorrespondence ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|gmeow:useWhen"
+msgid "Use to resolve a selected authored reifier to its actual native correspondence owner."
+msgstr "用于将所选原始重述实体解析到实际的原生对应关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|gmeow:avoidWhen"
+msgid "Avoid accepting a correspondence with only a similar label or matching target."
+msgstr "不要仅因标签相似或目标相同就接受某个对应关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/compiledCorrespondence|gmeow:howToUse"
+msgid "Recompute the native correspondence identity from the admitted envelope and require this exact IRI."
+msgstr "从已准入封装重新计算原生对应关系身份，并要求此精确 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|rdfs:label"
+msgid "source match predicate"
+msgstr "源匹配谓词"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|skos:definition"
+msgid "Retains the predicate of the original reified alignment proposition, such as skos:relatedMatch, separately from its compiled correspondence role."
+msgstr "保留原始重述对齐命题的谓词，例如 skos:relatedMatch，与其编译后的对应关系角色分开记录。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:sourceMatchPredicate ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:sourceMatchPredicate ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|gmeow:useWhen"
+msgid "Use to verify that a published alias still denotes the original alignment proposition."
+msgstr "用于核验已发布别名仍指称原始对齐命题。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|gmeow:avoidWhen"
+msgid "Avoid substituting the eventual output predicate for the alignment predicate."
+msgstr "不要把最终输出谓词替换为对齐谓词。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sourceMatchPredicate|gmeow:howToUse"
+msgid "Compare this predicate and both endpoints against the exact native reified triple."
+msgstr "将此谓词及两个端点与精确的原生重述三元组进行比较。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|rdfs:label"
+msgid "grounding source owner"
+msgstr "奠基源所有者"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|skos:definition"
+msgid "The actual canonical grounding ontology whose mapping-role artifact supplied a named source; authority is verified from the selected physical artifact, not asserted by the measured surface."
+msgstr "其映射角色制品提供具名源的实际规范奠基本体；权限根据所选物理制品核验，不由被测表面自行断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:groundingSourceOwner ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:groundingSourceOwner ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|gmeow:useWhen"
+msgid "Use with the exact source path and digest to retain physical authoring ownership."
+msgstr "与精确的源路径和摘要一起使用，以保留物理编写归属。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|gmeow:avoidWhen"
+msgid "Avoid accepting a domain mapping as a grounding source merely because it names a kernel owner."
+msgstr "不要仅因领域映射指定了内核所有者，就将其作为奠基源接受。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceOwner|gmeow:howToUse"
+msgid "Require the owner to match the admitted Lang, Math or Logic mapping artifact boundary."
+msgstr "要求所有者与已准入的 Lang、Math 或 Logic 映射制品边界一致。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|rdfs:label"
+msgid "grounding source path"
+msgstr "奠基源路径"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|skos:definition"
+msgid "The normalized repository-relative path of the exact owned Turtle mapping artifact retained in the shipped cells archive."
+msgstr "保留在交付单元归档中的精确所属 Turtle 映射制品的规范化仓库相对路径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:groundingSourcePath ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:groundingSourcePath ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|gmeow:useWhen"
+msgid "Use to select the required original artifact from the authenticated archive."
+msgstr "用于从经过认证的归档中选择必需的原始制品。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|gmeow:avoidWhen"
+msgid "Avoid absolute paths, parent traversal or selecting a duplicate archive member."
+msgstr "避免绝对路径、父目录遍历和选择重复归档成员。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourcePath|gmeow:howToUse"
+msgid "Resolve the exact named member with the shared strict archive reader and verify its owner and digest."
+msgstr "使用共享严格归档读取器解析精确具名成员，并核验其所有者和摘要。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|rdfs:label"
+msgid "grounding source digest"
+msgstr "奠基源摘要"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|skos:definition"
+msgid "The SHA-256 content identity of the complete original owned mapping artifact bytes, including the exact source alignment envelope."
+msgstr "完整原始所属映射制品字节的 SHA-256 内容身份，包括精确的源对齐封装。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:groundingSourceDigest ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:groundingSourceDigest ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|gmeow:useWhen"
+msgid "Use to bind a retained named source to its original authenticated artifact bytes."
+msgstr "用于将保留的具名源绑定到其原始、经过认证的制品字节。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|gmeow:avoidWhen"
+msgid "Avoid hashing only an alias, a selected field or a reconstructed serialization."
+msgstr "不要只对别名、所选字段或重建后的序列化计算此摘要。"
+
+msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|gmeow:howToUse"
+msgid "Hash the required original archive member and require equality before admitting its correspondence source record."
+msgstr "对必需的原始归档成员计算摘要，并在准入其对应关系源记录之前要求摘要相等。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|rdfs:label"
+msgid "projection program content"
+msgstr "投影程序内容"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|skos:definition"
+msgid "Lossless rdf:JSON transport of an admitted selected profile product; its fields are validated against independent native binding bodies and the required grounding catalog."
+msgstr "已准入所选配置产物的无损 rdf:JSON 传输；其字段依据独立原生绑定主体和必需奠基目录进行验证。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:projectionProgramContent ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:projectionProgramContent ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|gmeow:useWhen"
+msgid "Use to ship the exact native profile record in the correspondence graph."
+msgstr "用于在对应关系图中交付精确的原生配置记录。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|gmeow:avoidWhen"
+msgid "Avoid treating valid JSON syntax or a self-consistent hash as sufficient admission."
+msgstr "不要将有效 JSON 语法或自洽摘要视为充分准入依据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionProgramContent|gmeow:howToUse"
+msgid "Decode one untagged rdf:JSON record, verify its content IRI, then reconstruct every required check from admitted native bodies."
+msgstr "解码一个无语言标记的 rdf:JSON 记录，核验其内容 IRI，然后从已准入原生主体重建每个必需检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|rdfs:label"
+msgid "projection binding content"
+msgstr "投影绑定内容"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|skos:definition"
+msgid "Lossless rdf:JSON transport of a realized binding’s canonical source pattern, output template and exact per-binding selected support, independently retained from profile products."
+msgstr "已实现绑定的规范源模式、输出模板及精确逐绑定所选支持的无损 rdf:JSON 传输，独立于配置产物保留。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|skos:example"
+msgid "SELECT ?value WHERE { ?record logic:projectionBindingContent ?value . }"
+msgstr "SELECT ?value WHERE { ?record logic:projectionBindingContent ?value . }"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:useWhen"
+msgid "Use to retain the body that determines both forward execution and the mandatory check roster."
+msgstr "用于保留同时决定正向执行和必需检查清单的主体。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:avoidWhen"
+msgid "Avoid accepting a narrowed source pattern without changing its body and correspondence identities."
+msgstr "不要在主体和对应关系身份不变的情况下接受缩窄的源模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:howToUse"
+msgid "Decode one untagged rdf:JSON binding record and validate its body identity, canonical getLeg link and every selected dependency."
+msgstr "解码一个无语言标记的 rdf:JSON 绑定记录，并验证其主体身份、规范 getLeg 链接及每项所选依赖。"

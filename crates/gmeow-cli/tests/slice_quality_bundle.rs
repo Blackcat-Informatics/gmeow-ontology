@@ -384,6 +384,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
         ScoringEnv::Repo {
             slice_dir: slice_dir.clone(),
         },
+        std.grounding_catalog(),
     )
     .expect("repo score");
 

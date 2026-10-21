@@ -6,7 +6,7 @@ use crate::ir::CorrespondenceRelation;
 use crate::projections::correspondence::{extract_correspondences, project_correspondence};
 
 fn transpile_correspondences(view: &DslView) -> gmeow_errors::Result<CorrespondenceProgram> {
-    transpile_correspondences_indexed(view).map(|(program, _)| program)
+    transpile_correspondences_indexed(view, view, &[]).map(|(program, _)| program)
 }
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -31,7 +31,7 @@ fn same_assertion_keeps_each_declared_morphism_and_overclaim_gate() {
         );
         let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
         let view = DslView::new(&dataset);
-        let (program, analysis) = transpile_correspondences_indexed(&view).unwrap();
+        let (program, analysis) = transpile_correspondences_indexed(&view, &view, &[]).unwrap();
         assert_eq!(program.correspondences.len(), 2);
         for cell in analysis.alignment_cells() {
             let expected = if cell.sssom_file == "bridge.sssom.tsv" {
@@ -491,7 +491,7 @@ fn grounding_term_bridge_cannot_surface_exact_match() {
 
     let dsl = term_grounding_dsl(SKOS_EXACT_MATCH, true);
     let view = DslView::new(&dsl);
-    let (_program, lookup) = transpile_correspondences_indexed(&view)
+    let (_program, lookup) = transpile_correspondences_indexed(&view, &view, &[])
         .expect("the typed bridge materializes before the dialect gate");
     let err = match lower_sssom(&view, "test", "2026-01-01", &lookup) {
         Err(err) => err,
@@ -701,7 +701,7 @@ fn bridge_cell_surfacing_equivalence_fails_end_to_end() {
     // ── The RED case: the authored bridge cell flows through transpile + both lowerings. ─
     let dsl = projection_bridge_dsl(true);
     let dsl_view = DslView::new(&dsl);
-    let (_program, lookup) = transpile_correspondences_indexed(&dsl_view)
+    let (_program, lookup) = transpile_correspondences_indexed(&dsl_view, &dsl_view, &[])
         .expect("the bridge cell transpiles to a typed correspondence (BridgeView)");
 
     // `*Lowering` Ok types are not `Debug`, so match the `Result` rather than `expect_err`.
@@ -712,7 +712,8 @@ fn bridge_cell_surfacing_equivalence_fails_end_to_end() {
     assert!(edoal_err.message().contains("bridge"), "{edoal_err}");
     assert!(edoal_err.message().contains("Principle 5"), "{edoal_err}");
 
-    let sparql_err = match lower_sparql(&onto_view, &lookup) {
+    let sparql_err = match lower_sparql(&onto_view, &lookup, crate::projections::get_leg::PROFILES)
+    {
         Err(e) => e,
         Ok(_) => panic!("a BridgeView surfacing `=` must hard-fail the SPARQL lowering"),
     };
@@ -729,8 +730,9 @@ fn bridge_cell_surfacing_equivalence_fails_end_to_end() {
     // RED case fails SOLELY because the gate consumes the authored BridgeView class.
     let ctrl_dsl = projection_bridge_dsl(false);
     let ctrl_view = DslView::new(&ctrl_dsl);
-    let (_ctrl_program, ctrl_lookup) = transpile_correspondences_indexed(&ctrl_view)
-        .expect("the control equivalence cell transpiles");
+    let (_ctrl_program, ctrl_lookup) =
+        transpile_correspondences_indexed(&ctrl_view, &ctrl_view, &[])
+            .expect("the control equivalence cell transpiles");
     lower_edoal(&onto_view, &ctrl_lookup)
         .expect("a genuine equivalence binding passes the EDOAL gate");
 }
@@ -781,15 +783,19 @@ fn mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input() {
             .remove(0)
             .confidence
             .unwrap();
-        let projection = projections(&view)
-            .unwrap()
-            .remove(0)
-            .bindings
-            .remove(0)
-            .confidence
-            .unwrap();
+        let projection = projections(
+            &view,
+            &crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view).unwrap(),
+        )
+        .unwrap()
+        .remove(0)
+        .bindings
+        .remove(0)
+        .source
+        .confidence
+        .unwrap();
         assert_eq!(alignment, projection);
-        let (program, _) = transpile_correspondences_indexed(&view).unwrap();
+        let (program, _) = transpile_correspondences_indexed(&view, &view, &[]).unwrap();
         assert_eq!(program.correspondences.len(), 2);
         assert!(
             program
@@ -815,6 +821,11 @@ fn mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input() {
         let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
         let view = DslView::new(&dataset);
         assert!(equivalence_cells(&view).is_err(), "alignment {value}");
-        assert!(projections(&view).is_err(), "projection {value}");
+        assert!(
+            crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view)
+                .and_then(|catalog| projections(&view, &catalog))
+                .is_err(),
+            "projection {value}"
+        );
     }
 }

@@ -360,55 +360,62 @@ impl Translations {
     /// only by asking for a repo-anchored model, and on a target with no filesystem
     /// that request must fail with the REAL I/O error rather than vanish from the API.
     pub fn from_catalog(catalog: &SliceCatalog) -> Self {
+        Self::from_ontology_catalogs(
+            catalog,
+            &crate::ontology_catalogs::from_slice_catalog(catalog),
+        )
+    }
+
+    /// Index an explicit admitted ontology-catalog inventory. The slice catalog
+    /// supplies the existing language-tag registry; it cannot hide DSL inputs.
+    pub fn from_ontology_catalogs(
+        catalog: &SliceCatalog,
+        sources: &[crate::ontology_catalogs::OntologyCatalogSource],
+    ) -> Self {
         use crate::i18n_compile::{expand_predicate, language_from_po, parse_po};
 
         let mut by_key: BTreeMap<(String, String, String), TranslatedValue> = BTreeMap::new();
         let mut langs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
 
-        for record in catalog.records() {
-            let owner = &record.manifest.slice_iri;
-            for artifact in &record.artifacts {
-                if artifact.role != ArtifactRole::TranslationCatalog {
+        for source in sources {
+            let owner = &source.owner_iri;
+            // A present translation catalog is required input: a malformed one is a
+            // HARD FAIL, never a silent skip that would drop measured coverage. Invalid
+            // UTF-8 is a hard fail too — `from_utf8_lossy` would silently substitute
+            // replacement chars and let a corrupt catalog parse with altered translations.
+            let text = std::str::from_utf8(&source.content).unwrap_or_else(|e| {
+                panic!("i18n catalog for ontology {owner} is not valid UTF-8: {e}")
+            });
+            let language = language_from_po(text).unwrap_or_else(|e| {
+                panic!("i18n catalog for ontology {owner} failed to parse: {e}")
+            });
+            let Some(language) = language else {
+                continue;
+            };
+            if language.is_empty() || language.eq_ignore_ascii_case("en") {
+                continue;
+            }
+            let entries = parse_po(text, false).unwrap_or_else(|e| {
+                panic!("i18n catalog for ontology {owner} failed to parse: {e}")
+            });
+            langs.insert(language.clone());
+            for entry in &entries {
+                if entry.msgctxt.is_empty()
+                    || !translation_has_integrity(&language, &entry.msgid, &entry.msgstr)
+                {
                     continue;
                 }
-                // A present translation catalog is required input: a malformed one is a
-                // HARD FAIL, never a silent skip that would drop measured coverage. Invalid
-                // UTF-8 is a hard fail too — `from_utf8_lossy` would silently substitute
-                // replacement chars and let a corrupt catalog parse with altered translations.
-                let text = std::str::from_utf8(&artifact.content).unwrap_or_else(|e| {
-                    panic!("i18n catalog for slice {owner} is not valid UTF-8: {e}")
-                });
-                let language = language_from_po(text).unwrap_or_else(|e| {
-                    panic!("i18n catalog for slice {owner} failed to parse: {e}")
-                });
-                let Some(language) = language else {
+                let Some((term_iri, predicate)) = entry.msgctxt.split_once('|') else {
                     continue;
                 };
-                if language.is_empty() || language.eq_ignore_ascii_case("en") {
-                    continue;
-                }
-                let entries = parse_po(text, false).unwrap_or_else(|e| {
-                    panic!("i18n catalog for slice {owner} failed to parse: {e}")
-                });
-                langs.insert(language.clone());
-                for entry in &entries {
-                    if entry.msgctxt.is_empty()
-                        || !translation_has_integrity(&language, &entry.msgid, &entry.msgstr)
-                    {
-                        continue;
-                    }
-                    let Some((term_iri, predicate)) = entry.msgctxt.split_once('|') else {
-                        continue;
-                    };
-                    let predicate = expand_predicate(predicate);
-                    by_key.insert(
-                        (term_iri.to_string(), predicate, language.clone()),
-                        TranslatedValue {
-                            value: entry.msgstr.clone(),
-                            fuzzy: entry.fuzzy,
-                        },
-                    );
-                }
+                let predicate = expand_predicate(predicate);
+                by_key.insert(
+                    (term_iri.to_string(), predicate, language.clone()),
+                    TranslatedValue {
+                        value: entry.msgstr.clone(),
+                        fuzzy: entry.fuzzy,
+                    },
+                );
             }
         }
 

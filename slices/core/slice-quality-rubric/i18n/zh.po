@@ -1125,3 +1125,27 @@ msgstr "评估不采用 GMEOW 的 GMN 记法清单的外部逻辑语料。"
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Do not use this profile to waive documentation, competency or box-role measurements."
 msgstr "不要用此配置豁免文档、能力问题或盒角色测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|rdfs:label"
+msgid "schema.org value projection vocabulary"
+msgstr "schema.org value 投影词汇"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|skos:definition"
+msgid "The schema.org value-prefix projection boundary shared by Lang literal values and Math numeric magnitudes; suffix terms such as valueReference are included and ungrounded authoring has zero default allowance."
+msgstr "由 Lang 字面量值和 Math 数值大小共享的 schema.org value 前缀投影边界；包含 valueReference 等后缀术语，对未奠基编写的默认额度为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|skos:example"
+msgid "gmeow:projVocab-schema-value gmeow:vocabularyNamespace \"https://schema.org/value\"^^xsd:anyURI ."
+msgstr "gmeow:projVocab-schema-value gmeow:vocabularyNamespace \"https://schema.org/value\"^^xsd:anyURI ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:useWhen"
+msgid "Use to count raw value-prefix targets and validated selected target occurrences against the shared grounding boundary."
+msgstr "用于按照共享奠基边界计数原始 value 前缀目标及经过验证的所选目标出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:avoidWhen"
+msgid "Avoid treating this prefix as only the exact value IRI or importing catalog triples into the measured surface."
+msgstr "不要将此前缀视为仅匹配 value 的精确 IRI，也不要把目录三元组导入被测表面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:howToUse"
+msgid "Admit selectors against the separate owned catalog before namespace filtering; retain only their validated virtual target witnesses in the surface count."
+msgstr "在命名空间筛选之前，使用独立的所属目录准入选择器；表面计数仅保留其经过验证的虚拟目标见证。"

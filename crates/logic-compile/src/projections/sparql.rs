@@ -6,6 +6,7 @@
 
 mod hygiene;
 pub(crate) use hygiene::HelperNames;
+pub(crate) use hygiene::binding_variable;
 pub(super) mod native;
 
 use crate::ingest::{DslTerm, DslView};
@@ -13,7 +14,7 @@ use crate::loss_ledger::LossLedger;
 use crate::projections::correspondence_frontend::CorrespondenceAnalysis;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
-    Item, MappingPattern, PROFILES, ProfileBinding, ProjectionCell, RDF_TYPE, binding_key,
+    Item, MappingPattern, ProfileBinding, ProjectionBinding, ProjectionCell, RDF_TYPE, binding_key,
 };
 use crate::projections::{ProjectionResult, correspondence_result};
 use native::{bgp, error, expr_var, extend, filter, iri, join, named, optional, triple, var};
@@ -59,6 +60,10 @@ pub struct MappingLegs {
 pub struct SparqlLowering {
     /// Forward profile query artifacts.
     pub queries: BTreeMap<String, String>,
+    /// Explicit profile capabilities; `.rq` remains a presentation view only.
+    pub profiles: BTreeMap<String, super::profile_program::ProjectionProfileProgram>,
+    /// Independently retained native get-leg bodies for exact reconstruction.
+    pub bindings: Vec<super::profile_program::ProjectionBindingProgram>,
     /// Inverse profile query artifacts.
     pub put_queries: BTreeMap<String, String>,
     /// Exactly one set of attributed loss rows per binding and dialect.
@@ -73,12 +78,13 @@ pub struct SparqlLowering {
 pub fn lower_sparql(
     onto: &DslView,
     lookup: &CorrespondenceAnalysis,
+    profiles: &[&str],
 ) -> gmeow_errors::Result<SparqlLowering> {
     lower_cells(
         lookup.projection_cells(),
         &suppression_vocab(onto),
         lookup,
-        PROFILES,
+        profiles,
     )
 }
 
@@ -100,15 +106,16 @@ pub(super) fn lower_cells(
     }
     let mut result = SparqlLowering {
         queries: BTreeMap::new(),
+        profiles: BTreeMap::new(),
+        bindings: Vec::new(),
         put_queries: BTreeMap::new(),
         ledger: Vec::new(),
         legs: BTreeMap::new(),
         loss: LossLedger::new(),
     };
     for profile in profiles {
-        let mut get = native::LegBuilder::default();
+        let mut profile_order = 0;
         let mut put = native::LegBuilder::default();
-        let mut drops = Vec::new();
         let mut any_claim = false;
         for cell in cells {
             for binding in cell
@@ -133,15 +140,31 @@ pub(super) fn lower_cells(
                     lower_get(cell, binding, vocab, &mut guard_index, &names)?,
                     &key,
                 )?;
-                get.push(&lowered.template, &lowered.pattern);
-                let mut own_get = native::LegBuilder::default();
-                own_get.push(&lowered.template, &lowered.pattern);
-                let mut own_put = native::LegBuilder::default();
-                for drop in &binding.lossy_drops {
-                    if !drops.contains(drop) {
-                        drops.push(drop.clone());
-                    }
+                if !binding.selected_templates.is_empty() && !lowered.residue.is_empty() {
+                    return Err(error(format!(
+                        "{}: selected literal projection requires complete source-pattern lowering: {:?}",
+                        cell.iri, lowered.residue
+                    )));
                 }
+                let binding_iri = lookup
+                    .binding_keys()
+                    .iter()
+                    .find_map(|(iri, binding)| (binding == &key).then_some(iri))
+                    .ok_or_else(|| error("projection lost its canonical binding correspondence"))?;
+                let realized = super::profile_program::ProjectionBindingProgram::new(
+                    cell,
+                    binding,
+                    binding_iri.clone(),
+                    profile_order,
+                    &lowered.pattern,
+                    &lowered.template,
+                )?;
+                let (template, pattern) = realized.body()?;
+                result.bindings.push(realized);
+                profile_order += 1;
+                let mut own_get = native::LegBuilder::default();
+                own_get.push(&template, &pattern);
+                let mut own_put = native::LegBuilder::default();
                 let mut residue = binding
                     .lossy_drops
                     .iter()
@@ -188,16 +211,18 @@ pub(super) fn lower_cells(
                 );
             }
         }
-        let get = get
-            .finish()
-            .ok_or_else(|| error(format!("no bindings for profile {profile:?}")))?;
-        let drops = if drops.is_empty() {
-            ".".into()
-        } else {
-            format!("; drops: {}.", drops.join("; "))
-        };
-        result.queries.insert(format!("{profile}.rq"), format!(
-            "# Projection: GMEOW → pure {profile}. {GENERATED_BANNER}\n# Lossy and directional by design{drops}\n{}", native::emit(get)?));
+        let program = super::profile_program::profile_from_bindings(
+            profile,
+            &result.bindings,
+            lookup.native_catalog_identity(),
+        )?;
+        // The public view is rendered from the same realized body as execution.
+        result
+            .queries
+            .insert(format!("{profile}.rq"), program.payload.forward.clone());
+        result
+            .profiles
+            .insert(format!("{profile}.projection.json"), program);
         if let Some(put) = put.finish() {
             result.put_queries.insert(
                 format!("{profile}.put.rq"),
@@ -256,7 +281,7 @@ pub(super) struct LoweredLeg {
 
 fn lower_get(
     cell: &ProjectionCell,
-    binding: &ProfileBinding,
+    binding: &ProjectionBinding,
     vocab: &SuppressionVocab,
     guard_index: &mut usize,
     names: &HelperNames,
@@ -320,6 +345,15 @@ fn lower_get(
             .value
             .as_ref()
             .ok_or_else(|| error("language retag requires a value variable"))?;
+        if binding
+            .selected_templates
+            .iter()
+            .any(|selected| selected.object_variable == *value)
+        {
+            return Err(error(
+                "selected literal bridge cannot replace its source value through language retagging",
+            ));
+        }
         pattern = apply_retag(pattern, value, retag, names)?;
         variables.insert(value.clone(), names.final_value.clone());
     }

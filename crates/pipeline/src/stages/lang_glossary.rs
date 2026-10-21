@@ -54,11 +54,11 @@ use gmeow_docs::i18n_compile::{
     authored_turtle_files, collect_po_paths, declared_homograph_sources, is_candidate_translation,
     language_from_po, parse_po,
 };
+use gmeow_docs::ontology_catalogs::OntologyCatalogSource;
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_validate::distinctiveness::skeleton;
-use purrdf::slice::{ArtifactRole, SliceCatalog};
 
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 
@@ -141,20 +141,35 @@ pub fn build_corpus(root: &Path) -> Result<LangGlossaryCorpus, gmeow_errors::Dia
     })
 }
 
+/// Derive both required glossary products from one admitted owner/artifact
+/// inventory and one entry derivation in the production mappings operation.
+pub fn build_products_from_sources(
+    root: &Path,
+    sources: &[OntologyCatalogSource],
+) -> Result<(LangGlossaryCorpus, GlossaryLoweringCorpus), gmeow_errors::Diag> {
+    let entries = build_entries_from_sources(root, "stage-mappings", sources)?;
+    Ok((
+        LangGlossaryCorpus {
+            ntriples: emit_ntriples(&entries),
+        },
+        build_lowering_from_entries(&entries),
+    ))
+}
+
 /// Fold every reviewed `.po` catalog pair under `root` into the sorted list of term-grain
 /// [`Entry`] records — the SINGLE derivation both the N-Triples corpus ([`emit_ntriples`])
 /// and the human-readable table ([`render_glossary_table`]) project. Each invocation
 /// currently discovers its own catalog; sharing the derivation is not shared execution.
 fn build_entries(root: &Path, stage: &str) -> Result<Vec<Entry>, gmeow_errors::Diag> {
-    let catalog = crate::node::measure_stage_phase(stage, "discover-slice-catalog", || {
-        SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-    })
-    .map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-mappings".to_string(),
-            message: format!("lang-glossary slice catalog: {e}"),
-        })
-    })?;
+    let sources = gmeow_docs::ontology_catalogs::discover(root)?;
+    build_entries_from_sources(root, stage, &sources)
+}
+
+fn build_entries_from_sources(
+    root: &Path,
+    stage: &str,
+    sources: &[OntologyCatalogSource],
+) -> Result<Vec<Entry>, gmeow_errors::Diag> {
     // The ontology-resident homograph escape — the SAME loader the make i18n-lint gate
     // consults (One Canonical Source), read from authored TTL only.
     let homographs = crate::node::measure_stage_phase(stage, "read-homographs", || {
@@ -162,75 +177,70 @@ fn build_entries(root: &Path, stage: &str) -> Result<Vec<Entry>, gmeow_errors::D
     })?;
 
     let mut entries: Vec<Entry> = Vec::new();
-    for record in catalog.records() {
-        let slice_iri = record.manifest.slice_iri.clone();
-        for artifact in &record.artifacts {
-            if artifact.role != ArtifactRole::TranslationCatalog {
+    for source in sources {
+        let slice_iri = source.owner_iri.clone();
+        // A translation catalog is required input: invalid UTF-8 is a HARD FAIL,
+        // never a silent lossy repair.
+        let text = std::str::from_utf8(&source.content).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!(
+                    "lang-glossary: translation catalog '{}' is not valid UTF-8: {e}",
+                    source.path.display()
+                ),
+            })
+        })?;
+        let lang = language_from_po(text)?.unwrap_or_default();
+        let lang = lang.trim().to_string();
+        // The English carrier catalog (or a header-less file) is not a glossary.
+        if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
+            continue;
+        }
+        for entry in &parse_po(text, false)? {
+            // Only reviewed (non-fuzzy, present) pairs are AGREED terminology; the
+            // header entry and malformed msgctxts are not crossings.
+            if entry.msgctxt.is_empty() || !entry.msgctxt.contains('|') {
                 continue;
             }
-            // A translation catalog is required input: invalid UTF-8 is a HARD FAIL,
-            // never a silent lossy repair.
-            let text = std::str::from_utf8(&artifact.content).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!(
-                        "lang-glossary: translation catalog '{}' is not valid UTF-8: {e}",
-                        artifact.logical_path
-                    ),
-                })
-            })?;
-            let lang = language_from_po(text)?.unwrap_or_default();
-            let lang = lang.trim().to_string();
-            // The English carrier catalog (or a header-less file) is not a glossary.
-            if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
+            if !is_candidate_translation(entry) {
                 continue;
             }
-            for entry in &parse_po(text, false)? {
-                // Only reviewed (non-fuzzy, present) pairs are AGREED terminology; the
-                // header entry and malformed msgctxts are not crossings.
-                if entry.msgctxt.is_empty() || !entry.msgctxt.contains('|') {
-                    continue;
-                }
-                if !is_candidate_translation(entry) {
-                    continue;
-                }
-                let (term, predicate) = entry.msgctxt.split_once('|').unwrap();
-                let src_skel = skeleton(&entry.msgid);
-                // Homograph split: a declared homograph rides a per-term concept (its
-                // distinct senses stay distinct); every other source shares one concept
-                // per source skeleton.
-                let concept_key = if homographs.contains(&src_skel) {
-                    format!("{src_skel}\u{1f}{term}")
-                } else {
-                    src_skel.clone()
-                };
-                entries.push(Entry {
-                    glossary_iri: example(
-                        "glossary",
-                        &digest16("glossary", &format!("{slice_iri}\u{1f}{lang}")),
-                    ),
-                    slice_iri: slice_iri.clone(),
-                    lang: lang.clone(),
-                    entry_iri: example(
-                        "glossary-entry",
-                        &digest16("entry", &format!("{}\u{1f}{lang}", entry.msgctxt)),
-                    ),
-                    term: term.to_string(),
-                    predicate: predicate.to_string(),
-                    source: entry.msgid.clone(),
-                    translation: entry.msgstr.clone(),
-                    concept_iri: example("glossary-concept", &digest16("concept", &concept_key)),
-                    // The Frege-triangle sense: keyed by (term, source-skeleton) and
-                    // language-independent, so distinct terms sharing one source mint
-                    // distinct senses that both evoke the one concept (synonymy derived),
-                    // while one term's renderings across languages share one sense.
-                    sense_iri: example(
-                        "glossary-sense",
-                        &digest16("sense", &format!("{term}\u{1f}{src_skel}")),
-                    ),
-                    unit_iri: crate::stages::lang_translation::unit_iri(&entry.msgctxt, &lang),
-                });
-            }
+            let (term, predicate) = entry.msgctxt.split_once('|').unwrap();
+            let src_skel = skeleton(&entry.msgid);
+            // Homograph split: a declared homograph rides a per-term concept (its
+            // distinct senses stay distinct); every other source shares one concept
+            // per source skeleton.
+            let concept_key = if homographs.contains(&src_skel) {
+                format!("{src_skel}\u{1f}{term}")
+            } else {
+                src_skel.clone()
+            };
+            entries.push(Entry {
+                glossary_iri: example(
+                    "glossary",
+                    &digest16("glossary", &format!("{slice_iri}\u{1f}{lang}")),
+                ),
+                slice_iri: slice_iri.clone(),
+                lang: lang.clone(),
+                entry_iri: example(
+                    "glossary-entry",
+                    &digest16("entry", &format!("{}\u{1f}{lang}", entry.msgctxt)),
+                ),
+                term: term.to_string(),
+                predicate: predicate.to_string(),
+                source: entry.msgid.clone(),
+                translation: entry.msgstr.clone(),
+                concept_iri: example("glossary-concept", &digest16("concept", &concept_key)),
+                // The Frege-triangle sense: keyed by (term, source-skeleton) and
+                // language-independent, so distinct terms sharing one source mint
+                // distinct senses that both evoke the one concept (synonymy derived),
+                // while one term's renderings across languages share one sense.
+                sense_iri: example(
+                    "glossary-sense",
+                    &digest16("sense", &format!("{term}\u{1f}{src_skel}")),
+                ),
+                unit_iri: crate::stages::lang_translation::unit_iri(&entry.msgctxt, &lang),
+            });
         }
     }
 

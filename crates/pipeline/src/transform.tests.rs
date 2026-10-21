@@ -58,8 +58,14 @@ fn prepared_transform_preserves_projected_provenance_across_independent_inputs()
         "name".to_owned(),
         format!("CONSTRUCT {{ ?s <{GM}writtenRep> ?name }} WHERE {{ ?s <{GM}fullName> ?name }}"),
     )];
-    let program = TransformProgram::prepare("", &[], &[], &projections, &tags)
-        .expect("prepare GMEOW projection");
+    let program = TransformProgram::prepare(
+        "",
+        &[],
+        &[],
+        &crate::projection_execution::tests::prepare_queries(&projections),
+        &tags,
+    )
+    .expect("prepare GMEOW projection");
     for name in ["Ada", "Grace"] {
         let source =
             format!("<https://example.org/{name}> <{GM}fullName> \"{name}\"@x-gmeow-english .");
@@ -88,7 +94,10 @@ fn prepared_transform_preserves_projected_provenance_across_independent_inputs()
             purrdf::gts::flattened_dataset_from_bytes(&result.gts_bytes).expect("complete GTS");
         let quads = purrdf::flat_rdf_quads_from_dataset(&bundle);
         assert!(quads.iter().any(|quad| quad.predicate == GM_MAPPED_FROM
-            && quad.object == RdfTerm::iri(format!("{GM}projections/name"))));
+            && quad.object
+                == RdfTerm::iri(
+                    crate::projection_execution::tests::prepare_queries(&projections)[0].identity()
+                )));
         assert!(quads.iter().any(|quad| quad.predicate == RDF_REIFIES && matches!(
                 &quad.object, RdfTerm::Triple(triple) if triple.predicate == format!("{GM}writtenRep") && triple.object == public_name
             )), "provenance must refer to the published assertion");
@@ -96,7 +105,15 @@ fn prepared_transform_preserves_projected_provenance_across_independent_inputs()
         assert!(!text.base_plus_derived_nt.contains("x-gmeow"));
         assert_eq!(
             text,
-            transform_nt(&source, "", &[], &[], &projections, &tags).expect("consumer adapter")
+            transform_nt(
+                &source,
+                "",
+                &[],
+                &[],
+                &crate::projection_execution::tests::prepare_queries(&projections),
+                &tags
+            )
+            .expect("consumer adapter")
         );
     }
 }
@@ -586,7 +603,10 @@ fn projection_derived_excludes_onto_only_catalog_forms_but_keeps_abox_derived_on
         &ontology_nt,
         &[],
         &[],
-        &[("catalog-forms".to_owned(), FULL_NAME_QUERY.to_owned())],
+        &crate::projection_execution::tests::prepare_queries(&[(
+            "catalog-forms".to_owned(),
+            FULL_NAME_QUERY.to_owned(),
+        )]),
         &TagMap::new(),
     )
     .unwrap();

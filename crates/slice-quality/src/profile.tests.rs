@@ -5,6 +5,7 @@
 
 use super::*;
 use crate::{BundleStandards, score_external_slice_from_files};
+use gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog;
 use purrdf::{DatasetView, GraphMatch};
 
 const PREFIXES: &str = r#"
@@ -46,6 +47,8 @@ ex:external a gmeow:QualityMeasurementProfile ; gmeow:qualityProfileKey "externa
 
 fn standards(source: &str, key: &str) -> gmeow_errors::Result<BundleStandards> {
     let dataset = crate::dataset_from_documents(&[("independent-rubric.ttl", source.as_bytes())])?;
+    let grounding =
+        GroundingCatalog::from_sources(&[], &gmeow_logic_compile::ingest::DslView::new(&dataset))?;
     BundleStandards::from_dataset(
         dataset,
         format!(
@@ -53,6 +56,7 @@ fn standards(source: &str, key: &str) -> gmeow_errors::Result<BundleStandards> {
             purrdf_hash::hex::encode(purrdf_hash::blake3::hash(source.as_bytes()).as_bytes())
         ),
         key,
+        std::sync::Arc::new(grounding),
     )
 }
 
@@ -76,6 +80,199 @@ fn owner_set_standalone_standard_admits_complete_sets_and_refuses_bad_members() 
         .err()
         .expect("invalid owner must refuse the selected standard");
     assert!(error.message().contains("vocabularyOwner"), "{error}");
+}
+
+#[test]
+fn projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection() {
+    let standard = standards(&model(), "external-sacred").unwrap();
+    let input = selected_projection_files();
+    let error = score_external_slice_from_files(&standard, &input)
+        .err()
+        .expect("required selected catalog alias must be admitted before scoring")
+        .to_string();
+    assert!(error.contains("requiredOwnedBridge"), "{error}");
+}
+
+fn selected_projection_files() -> BTreeMap<String, Vec<u8>> {
+    let mut input = files();
+    input.insert(
+        "mappings/selected.ttl".into(),
+        format!(
+            r#"{PREFIXES}
+ex:projection a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [ gmeow:anchor "s" ; gmeow:atom (
+        [ gmeow:subjectVar "s" ; gmeow:predicate ex:value ; gmeow:objectVar "v" ] ) ] ;
+    gmeow:hasBinding [ gmeow:profile "authored" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "s" ;
+            gmeow:tPredFromCorrespondence ex:requiredOwnedBridge ; gmeow:tObj "v" ] ) ] .
+"#
+        )
+        .into_bytes(),
+    );
+    input
+}
+
+fn selected_projection_standard() -> BundleStandards {
+    let source = format!(
+        r#"{PREFIXES}
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+lang:literalValue a logic:DatatypeProperty ; logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> .
+ex:value a logic:DatatypeProperty ; logic:subPropertyOf lang:literalValue .
+lang:literalValue skos:relatedMatch <https://schema.org/value> .
+ex:requiredOwnedBridge a logic:GroundingCorrespondence ;
+    rdf:reifies <<(lang:literalValue skos:relatedMatch <https://schema.org/value>)>> ;
+    gmeow:sssomFile "independent-score.tsv" ; gmeow:justification ex:curation ;
+    logic:sourceEndpoint lang:literalValue ; logic:targetEndpoint <https://schema.org/value> ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+"#
+    );
+    let ontology =
+        crate::dataset_from_documents(&[("authored-owner.ttl", source.as_bytes())]).unwrap();
+    let owned = gmeow_logic_compile::projections::grounding_catalog::OwnedGroundingSource::new(
+        crate::model::GroundingOwners::LANG,
+        "slices/grounding/lang/mappings/independent-score.ttl",
+        source.as_bytes(),
+    )
+    .unwrap();
+    let catalog = GroundingCatalog::from_sources(
+        &[owned],
+        &gmeow_logic_compile::ingest::DslView::new(&ontology),
+    )
+    .unwrap();
+    let mut standard = standards(&model(), "external-sacred").unwrap();
+    standard.grounding = std::sync::Arc::new(catalog);
+    standard
+}
+
+#[test]
+fn projection_literal_standalone_valid_mapping_admission_preserves_axis_inventory_and_directory_parity()
+ {
+    let standard = selected_projection_standard();
+    let baseline = score_external_slice_from_files(&standard, &files()).unwrap();
+    let mut input = selected_projection_files();
+    let mapping = input.remove("mappings/selected.ttl").unwrap();
+    input.insert("mappings/nested/selected.ttl".into(), mapping);
+    let scored = score_external_slice_from_files(&standard, &input).unwrap();
+    let grade_keys = |report: &crate::report::SliceReport| {
+        report
+            .assessment
+            .grades
+            .iter()
+            .map(|grade| (grade.axis_iri.clone(), grade.score.to_bits()))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(grade_keys(&scored), grade_keys(&baseline));
+    let root = tempfile::tempdir().unwrap();
+    for (path, bytes) in &input {
+        let path = root.path().join(path);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, bytes).unwrap();
+    }
+    let from_directory = crate::score_external_slice(&standard, root.path()).unwrap();
+    assert_eq!(grade_keys(&scored), grade_keys(&from_directory));
+    assert_eq!(
+        scored.profile.unwrap().corpus_identity,
+        from_directory.profile.unwrap().corpus_identity
+    );
+}
+
+#[test]
+fn projection_literal_standalone_mapping_refusals_cover_file_directory_and_standard_entrypoints() {
+    let missing = standards(&model(), "external-sacred").unwrap();
+    let valid = selected_projection_standard();
+    for (standard, missing_alias) in [(&missing, false), (&valid, true)] {
+        let mut input = selected_projection_files();
+        if missing_alias {
+            let source = String::from_utf8(input.remove("mappings/selected.ttl").unwrap()).unwrap();
+            input.insert(
+                "mappings/selected.ttl".into(),
+                source
+                    .replace("requiredOwnedBridge", "unknownOwnedBridge")
+                    .into_bytes(),
+            );
+        }
+        assert!(score_external_slice_from_files(standard, &input).is_err());
+        assert!(
+            crate::report::score_slice_files_with_standard(
+                &input,
+                &standard.standard,
+                standard.scoring_env(),
+                &standard.grounding
+            )
+            .is_err()
+        );
+        let root = tempfile::tempdir().unwrap();
+        for (path, bytes) in &input {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(path, bytes).unwrap();
+        }
+        assert!(crate::score_external_slice(standard, root.path()).is_err());
+        assert!(
+            crate::report::score_slice_with_standard(
+                root.path(),
+                &standard.standard,
+                standard.scoring_env(),
+                &standard.grounding
+            )
+            .is_err()
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn projection_literal_directory_scoring_refuses_linked_selected_files_subtrees_and_dangling_links()
+{
+    let standard = selected_projection_standard();
+    for kind in ["file", "directory", "dangling"] {
+        let root = tempfile::tempdir().unwrap();
+        for (path, bytes) in selected_projection_files() {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(path, bytes).unwrap();
+        }
+        let selected = root.path().join("mappings/selected.ttl");
+        let link = if kind == "directory" {
+            let directory = root.path().join("mappings");
+            let target = root.path().join("authored-mapping-inputs");
+            std::fs::rename(&directory, &target).unwrap();
+            std::os::unix::fs::symlink(&target, &directory).unwrap();
+            directory
+        } else {
+            let target = root.path().join("authored-mapping-input.ttl");
+            if kind == "file" {
+                std::fs::rename(&selected, &target).unwrap();
+            } else {
+                std::fs::remove_file(&selected).unwrap();
+            }
+            std::os::unix::fs::symlink(&target, &selected).unwrap();
+            selected
+        };
+        for error in [
+            crate::score_external_slice(&standard, root.path())
+                .err()
+                .expect("external directory scorer must refuse symbolic links"),
+            crate::report::score_slice_with_standard(
+                root.path(),
+                &standard.standard,
+                standard.scoring_env(),
+                &standard.grounding,
+            )
+            .err()
+            .expect("public standard directory scorer must refuse symbolic links"),
+        ] {
+            let error = error.to_string();
+            assert!(error.contains("symbolic links"), "{kind}: {error}");
+            assert!(
+                error.contains(&link.display().to_string()),
+                "{kind}: {error}"
+            );
+        }
+    }
 }
 
 fn files() -> BTreeMap<String, Vec<u8>> {

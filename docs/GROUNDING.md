@@ -258,3 +258,43 @@ magnitudes, rates, scores, or statistical claims grounds them in `math:`
 (`math:Quantity`, dimensions, and the statistics vocabulary) rather than
 minting bare numerics. A quantitative slice with no `math:` reference is
 carrying an ungrounded number.
+
+## Selected literal projection contracts
+
+`lang:literalValue` carries a complete RDF literal: lexical form, datatype,
+language and direction. Domain properties may specialize this carrier without
+moving their ownership, domain or cardinality into Lang. The named
+`lang:literalValueSchemaBridge` is an owned native correspondence to
+`schema:value`; its `ValidationOnly` judgment does not equate numeric, textual
+or domain-specific meanings.
+
+A mapping template may select that correspondence with
+`gmeow:tPredFromCorrespondence` instead of `gmeow:tPred`. Exactly one target mode
+is required. Selection admits the actual named correspondence, its canonical
+native content identity, original owned mapping artifact and exact source-property
+premises. The template subject and object must be the variables of one strictly
+admitted mandatory source atom. An unresolved alias, conflicting mode, malformed
+witness or missing source specialization fails before lowering or residue
+classification. A domain mapping cannot supply grounding authority by redeclaring
+a valid-looking correspondence.
+
+The native correspondence graph retains each binding's realized source body and
+selected dependency roster. The typed `<profile>.projection.json` product derives
+its forward CONSTRUCT and required SELECT checks from that same body. Transport
+reconstruction checks those independent binding premises; changing a product and
+its check list together cannot remove an obligation. Native content, catalog,
+binding and program identities bind the actual content and original source
+identities. `.rq` files remain human-readable views, not executable fallback inputs.
+
+All selected profiles in an operation preflight their matched subject/value rows
+against the same immutable input before any CONSTRUCT runs. A nonliteral,
+unbound or malformed value is an actionable refusal, never a filter, coercion or
+partial projection. Valid literals retain their RDF components unchanged.
+Installed consumers require the structural correspondence graph and exact bounded
+members of the authenticated cells and query archives; missing or duplicate
+required members fail closed.
+
+Authored fixture controls exercise these boundaries without producing the
+repository corpus. They do not establish generated-bundle, installed-consumer,
+whole-repository ratchet or full production acceptance; those require their
+separately selected authenticated producer outputs.

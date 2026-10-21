@@ -337,7 +337,14 @@ pub(crate) fn build_archive_blobs(
     // regenerate — the committed generated/queries/*.rq are not written until the
     // post-run reconcile returns, so a disk read here would tar the stale committed set
     // (the same stale-disk-fold trap the mappings archive above avoids).
-    let queries = members_basename_from_artifacts(mappings_artifacts, "generated/queries/", ".rq");
+    let mut queries =
+        members_basename_from_artifacts(mappings_artifacts, "generated/queries/", ".rq");
+    queries.extend(members_basename_from_artifacts(
+        mappings_artifacts,
+        "generated/queries/",
+        ".projection.json",
+    ));
+    queries.sort_by(|a, b| a.0.cmp(&b.0));
     // Fail closed, mirroring the mappings guard above: an empty match means the
     // stage-mappings product keyed its `.rq` under an unexpected prefix (or emitted
     // none), which would silently fold an EMPTY queries archive. A missing required

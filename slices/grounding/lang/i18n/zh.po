@@ -538,8 +538,8 @@ msgid "Glossary"
 msgstr "术语表"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|skos:definition"
-msgid "One slice's terminology glossary for one target language: the term-grain view of that slice's translation catalog, gathering a gmeow:GlossaryEntry per localizable literal the slice authors. A glossary is scoped by exactly one gmeow:glossarySlice and exactly one gmeow:glossaryLanguage, and holds zero or more entries through gmeow:glossaryEntry. It is a DERIVED object — projected from the slice's i18n/*.po catalog, never hand-authored — so it can never drift from the catalog that is its one canonical source. Within one glossary the term↔translation relation is a single-valued function per sense: no gmeow:glossaryConcept reads back as two divergent gmeow:glossaryTranslation values (lang:GlossaryTermConsistencyConstraint, the functional-dependency dual of the GMN alias bijection)."
-msgstr "某个切片面向一种目标语言的术语表：该切片翻译目录的术语粒度视图，为该切片所撰写的每个可本地化字面量收集一个 gmeow:GlossaryEntry。一个术语表恰好由一个 gmeow:glossarySlice 和一个 gmeow:glossaryLanguage 限定，并通过 gmeow:glossaryEntry 容纳零个或多个条目。它是一个派生对象——从该切片的 i18n/*.po 目录投影而来，绝不手工撰写——因而永远不会偏离作为其唯一规范来源的目录。在一个术语表内，术语↔翻译关系是按义项的单值函数：任何 gmeow:glossaryConcept 都不会回读为两个相异的 gmeow:glossaryTranslation 值（lang:GlossaryTermConsistencyConstraint，即 GMN 别名双射的函数依赖对偶）。"
+msgid "One owning ontology’s terminology glossary for one target language, derived from its actual translation catalog. The owner may be a slice ontology or the explicitly registered mapping DSL. Exactly one glossarySlice names that ontology and one glossaryLanguage names the language; glossaryEntry gathers the derived entries. The catalog remains the sole source. Within a glossary the term-to-translation relation is single-valued per sense: GlossaryTermConsistencyConstraint refuses divergent glossaryTranslation values for one glossaryConcept."
+msgstr "某个所属本体面向一种目标语言的术语表，派生自其实际翻译目录。所有者可以是切片本体，也可以是明确注册的映射 DSL。恰好一个 glossarySlice 指定该本体，恰好一个 glossaryLanguage 指定语言；glossaryEntry 汇集派生条目。目录仍是唯一来源。同一术语表中，每个词义的术语到译文关系为单值：GlossaryTermConsistencyConstraint 拒绝同一个 glossaryConcept 对应不同的 glossaryTranslation 值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/GlossaryEntry|rdfs:label"
 msgid "Glossary Entry"
@@ -550,12 +550,12 @@ msgid "One term-grain binding in a glossary: relates one term's English source l
 msgstr "术语表中一条术语粒度的绑定：它把一个术语的英文源字面量（gmeow:glossarySource）针对某一术语（gmeow:glossaryTerm）上的某一谓词（gmeow:glossaryPredicate），关联到其目标语言渲染（gmeow:glossaryTranslation），并承载 OntoLex 弗雷格三角——一个通过 lang:evokes 唤起条目 lang:LexicalConcept（gmeow:glossaryConcept）的 lang:Sense（gmeow:glossarySense）——以及通过 gmeow:glossaryUnit（一个其 logic:Correspondence 持有诚实 logic:preservationKind 的 lang:TranslationUnit）承载的转换法则主干。一个 gmeow:Glossary 通过 gmeow:glossaryEntry 容纳零个或多个条目。投影赋予同一概念的两个相异术语携带两个相异的义项，二者都唤起该概念，因此同义性是派生的（两个义项唤起一个概念），而非扁平地断言。一致性不变式陈述于 gmeow:glossaryConcept 之上，因此投影赋予同一概念的两个条目必须在其翻译上一致；而一个已声明的同形异义词（lang:DeclaredTerminologyHomograph）被投影到相异的概念上（其义项唤起相异的概念），可合理地对各自作出不同渲染。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|rdfs:label"
-msgid "glossary slice"
-msgstr "术语表切片"
+msgid "glossary ontology"
+msgstr "术语表本体"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|skos:definition"
-msgid "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's OWL Ontology IRI."
-msgstr "一个 gmeow:Glossary 所汇集术语归属的切片。函数性：每个术语表恰好对应一个切片。定义域 gmeow:Glossary，值域为该切片的 OWL Ontology IRI。"
+msgid "The owning ontology whose actual translation catalog a Glossary projects: a slice ontology or the explicitly registered mapping DSL. Functional: exactly one owning ontology per glossary."
+msgstr "Glossary 所投影的实际翻译目录的所属本体：切片本体或明确注册的映射 DSL。该属性为函数式：每个术语表恰好对应一个所属本体。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|rdfs:label"
 msgid "glossary language"
@@ -578,8 +578,8 @@ msgid "glossary term"
 msgstr "术语表术语"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryTerm|skos:definition"
-msgid "The GMEOW term (class, property, or individual IRI) whose localizable literal a glossary entry renders. Functional: exactly one term per entry. Domain gmeow:GlossaryEntry, range any GMEOW term (deliberately unconstrained — a glossary renders across the whole slice vocabulary, not one rdf:type)."
-msgstr "一个术语表条目所渲染的可本地化字面量所属的 GMEOW 术语（类、属性或个体 IRI）。函数性：每个条目恰好一个术语。定义域 gmeow:GlossaryEntry，值域为任意 GMEOW 术语（刻意不加约束——术语表在整个切片词汇上进行渲染，而非某一个 rdf:type）。"
+msgid "The GMEOW term (class, property, or individual IRI) whose localizable literal a glossary entry renders. Functional: exactly one term per entry. Domain gmeow:GlossaryEntry, range any GMEOW term: a glossary covers its owning ontology’s vocabulary without restricting entries to one rdf:type."
+msgstr "术语表条目所渲染的可本地化字面量对应的 GMEOW 术语（类、属性或个体 IRI）。函数性：每个条目恰好一个术语。定义域为 gmeow:GlossaryEntry，值域为任意 GMEOW 术语：术语表覆盖其所属本体的词汇，不将条目限制为某一种 rdf:type。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryPredicate|rdfs:label"
 msgid "glossary predicate"
@@ -2452,3 +2452,80 @@ msgstr "变量种类"
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortVariable|skos:definition"
 msgid "The variable sort: a bindable first-order variable, the sort a binder operator (quantifier or modal) binds. The specialized bindable counterpart of the term sort."
 msgstr "变量种类：一个可绑定的一阶变量，即绑定算子（量词或模态）所绑定的种类。项种类的专门化可绑定对应物。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValue|rdfs:label"
+msgid "literal value"
+msgstr "字面量值"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValue|skos:definition"
+msgid "A complete RDF literal carried by a sign or value-bearing record, retaining lexical form, datatype, language and direction without numeric interpretation or a domain-specific subject restriction."
+msgstr "符号或值记录所承载的完整 RDF 字面量，保留词法形式、数据类型、语言和方向，不作数值解释，也不限定主体的应用领域。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValue|skos:example"
+msgid "ex:record lang:literalValue \"0042\" ."
+msgstr "ex:record lang:literalValue \"0042\" ."
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValue|gmeow:useWhen"
+msgid "Use as the common literal carrier specialized by identifier codes and EXIF tag values."
+msgstr "用作标识符代码和 EXIF 标签值所特化的通用字面量载体。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValue|gmeow:avoidWhen"
+msgid "Avoid replacing a domain property with this carrier or interpreting its lexical form as a numeric magnitude."
+msgstr "不要以此载体替换领域属性，也不要将其词法形式解释为数值大小。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValue|gmeow:howToUse"
+msgid "Specialize this property with logic:subPropertyOf while preserving the domain property and its complete RDF literal object."
+msgstr "使用 logic:subPropertyOf 特化此属性，同时保留领域属性及其完整的 RDF 字面量对象。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValueSchemaBridge|rdfs:label"
+msgid "literal value schema.org bridge"
+msgstr "字面量值到 schema.org 的桥接"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValueSchemaBridge|skos:definition"
+msgid "The named validation-only publication bridge from lang:literalValue to schema.org value, preserving complete literals without asserting property equivalence."
+msgstr "从 lang:literalValue 到 schema.org value 的具名发布桥接，仅用于验证，保留完整字面量，不断言属性等价。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValueSchemaBridge|skos:example"
+msgid "ex:atom gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ."
+msgstr "ex:atom gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ."
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValueSchemaBridge|gmeow:useWhen"
+msgid "Select this bridge for a template whose mandatory source atom uses a declared literalValue specialization."
+msgstr "当模板的必需源原子使用已声明的 literalValue 特化属性时，选择此桥接。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValueSchemaBridge|gmeow:avoidWhen"
+msgid "Avoid selecting this bridge for optional source values, IRI objects or numeric conversions."
+msgstr "不要为可选源值、IRI 对象或数值转换选择此桥接。"
+
+msgctxt "https://blackcatinformatics.ca/lang/literalValueSchemaBridge|gmeow:howToUse"
+msgid "Resolve the named reifier through the owned catalog and reject any matched nonliteral before executing the projection."
+msgstr "通过所属目录解析具名重述实体，并在执行投影前拒绝任何匹配的非字面量对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|gmeow:howToUse"
+msgid "Query the derived graph/lang-glossary-corpus for one glossary per owning ontology and language. The owner comes from its actual manifest or the explicit mapping-DSL registration, never from a fabricated slice."
+msgstr "查询派生的 graph/lang-glossary-corpus 图；每个所属本体和语言对应一个术语表。所有者来自实际清单或明确的映射 DSL 注册，绝不能来自伪造的切片。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|gmeow:useWhen"
+msgid "Use to expose an owning ontology’s reviewed terminology as a queryable object with cross-entry consistency checks."
+msgstr "用于将所属本体经过审阅的术语公开为可查询对象，并检查不同条目之间的一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|gmeow:howToUse"
+msgid "Name exactly one actual catalog-owning ontology, using its manifest identity or the canonical mapping-DSL ontology IRI."
+msgstr "指定恰好一个实际拥有目录的本体，使用其清单身份或规范映射 DSL 本体 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|gmeow:useWhen"
+msgid "Use to scope terminology to its actual ontology owner without treating a non-slice ontology as a Slice."
+msgstr "用于将术语限定到其实际所属本体，而不把非切片本体当作 Slice。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossarySliceFunctionality|skos:definition"
+msgid "The canonical functional-property assertion for glossarySlice: a glossary projects exactly one owning ontology’s translation catalog. Slice ontologies and the explicitly registered mapping DSL use the same unchanged single-owner obligation; this carrier is not a second definition or an authored shape."
+msgstr "glossarySlice 的规范函数式属性断言：一个术语表投影恰好一个所属本体的翻译目录。切片本体和明确注册的映射 DSL 使用同一项不变的单一所有者义务；此载体不是第二份定义，也不是手写形状。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Glossary|gmeow:avoidWhen"
+msgid "Avoid hand-authoring a gmeow:Glossary or its entries in an ontology source — the glossary is a projection of the actual owning ontology’s i18n/*.po catalogs. A second hand-maintained copy is a forbidden source of truth. Keep one gmeow:glossaryLanguage per glossary."
+msgstr "不要在本体源文件中手工编写 gmeow:Glossary 或其条目：术语表是其实际所属本体的 i18n/*.po 目录的投影。第二份手工维护的副本属于被禁止的真值来源。每个术语表只保留一个 gmeow:glossaryLanguage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|gmeow:avoidWhen"
+msgid "Avoid pointing it at an entry projected for a different owning ontology or target language."
+msgstr "不要指向为其他所属本体或目标语言投影的条目。"

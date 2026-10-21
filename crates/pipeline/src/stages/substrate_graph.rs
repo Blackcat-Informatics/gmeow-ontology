@@ -583,10 +583,10 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
 /// edge. Deterministic: `project_graph` freeze-sorts its output.
 pub fn build_substrate_sbom_projection(
     root: &Path,
-    spdx_rq: &str,
+    program: &crate::projection_execution::PreparedProjectionProfile,
 ) -> Result<String, gmeow_errors::Diag> {
     let abox = build_substrate_projection(root)?;
-    crate::projections::project_graph(&abox, spdx_rq, &crate::projections::TagMap::default())
+    crate::projections::project_graph(&abox, program, &crate::projections::TagMap::default())
 }
 
 fn stage_err(msg: &str) -> gmeow_errors::Diag {

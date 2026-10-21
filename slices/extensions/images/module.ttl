@@ -274,6 +274,7 @@ gmeow:exifTagId
 
 gmeow:exifTagValue
     a logic:DatatypeProperty ;
+    logic:subPropertyOf <https://blackcatinformatics.ca/lang/literalValue> ;
     rdfs:domain gmeow:ExifTag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF tag value"@x-gmeow-english ;

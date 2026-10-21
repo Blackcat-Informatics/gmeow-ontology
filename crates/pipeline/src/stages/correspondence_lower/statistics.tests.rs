@@ -26,7 +26,7 @@ fn statistics_preserve_membership_when_correspondences_deduplicate() {
     )
     .unwrap();
     let view = DslView::new(&dataset);
-    let (program, analysis) = transpile_correspondences_indexed(&view).unwrap();
+    let (program, analysis) = transpile_correspondences_indexed(&view, &view, &[]).unwrap();
     assert_eq!(program.correspondences.len(), 1);
     let rows = gmeow_logic_compile::projections::sssom::lower_sssom(
         &view,

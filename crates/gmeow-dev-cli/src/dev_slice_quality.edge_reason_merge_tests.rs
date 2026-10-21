@@ -86,8 +86,16 @@ fn two_declarations_on_one_edge_both_survive_the_merge() {
     )
     .unwrap();
 
+    let empty = purrdf::parse_dataset(b"", "text/turtle", None).unwrap();
+    let grounding =
+        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_sources(
+            &[],
+            &gmeow_logic_compile::ingest::DslView::new(&empty),
+        )
+        .unwrap();
     let base = BaseMeasurement {
         tree: Some(BaseSurfaces { tmp: base_tmp }),
+        grounding: Some(grounding.clone()),
         dirs: std::collections::BTreeMap::from([(FROM.to_owned(), "rel/src".to_owned())]),
         constructs: std::collections::BTreeMap::new(),
     };
@@ -98,8 +106,14 @@ fn two_declarations_on_one_edge_both_survive_the_merge() {
     let vocab = gmeow_slice_quality::counting::shacl_vocab();
     let slices: Vec<(&Path, String)> = vec![(dest_root.path.as_path(), TO.to_owned())];
 
-    let out = derive_edge_reasons(&base, &declarations, std::slice::from_ref(&vocab), &slices)
-        .expect("both fixture surfaces parse");
+    let out = derive_edge_reasons(
+        &base,
+        &declarations,
+        std::slice::from_ref(&vocab),
+        &slices,
+        &grounding,
+    )
+    .expect("both fixture surfaces parse");
 
     let edge = out
         .get(&(FROM.to_owned(), TO.to_owned(), "sh".to_owned()))

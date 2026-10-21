@@ -172,3 +172,31 @@ about whether a rewrite preserved the sense, and the model holds both.
   must be preserved as such.
 - **No silent normalization of variants.** Locale variants (en-US/en-GB) are varieties with
   renderings, not noise to collapse; collapsing is a declared map like any other.
+
+## Explicit catalog ownership and documentation output
+
+Translation inputs retain their actual owning ontology and original catalog
+artifact bytes. Slice catalogs use their manifest identity; the mapping DSL uses
+its explicitly registered ontology and two required canonical sources
+(`dsl/mappings/vocabulary.ttl` and `catalog-families.ttl`). A partially present
+registered owner is an error. Unregistered directories acquire no catalog
+authority, and a DSL ontology is never fabricated as a Slice.
+
+The shared inventory feeds native PO decoding, lint, import/export, carrier
+translations, glossary derivation and reviewed-coverage inputs. The historical
+`gmeow:glossarySlice` IRI names the actual ontology owner for both slices and the
+mapping DSL. Discovery reuses an operation's existing SliceCatalog where supplied;
+PO-only operations read only relevant manifest owner metadata and registered DSL
+sources, not every example or design artifact.
+
+Documentation rendering has an additional explicit selection: its page IRIs come
+from the actual DocsModel module-term selection, the named PathShape example
+exception and validated ownership retention. Catalog-only entries remain genuine
+translation units and glossary entries without claiming nonexistent rendered
+pages. Catalog language availability remains shared. Missing required catalog or
+page inventory fails rather than silently selecting an empty output. No DSL term
+page feature is implied by admitting DSL translations.
+
+New authored controls cover this source-selection contract without rendering or
+producing a corpus. Full generated carrier, reviewed-golden and multilingual
+documentation acceptance remains a separate authenticated producer/consumer step.

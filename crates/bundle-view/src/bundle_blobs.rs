@@ -47,7 +47,7 @@ pub use reasoned_gates::REASONED_GATES_MEMBER;
 
 /// tar of `generated/mappings/*.sssom.tsv` (the SSSOM lift maps).
 pub const REP_MAPPINGS: &str = "mappings-archive";
-/// tar of `generated/queries/*.rq` (the compiled projection queries).
+/// tar of `generated/queries/*.rq` views and `*.projection.json` typed products.
 pub const REP_QUERIES: &str = "queries-archive";
 /// tar of the cell/projection TTL sources, keyed by repo-relative path.
 pub const REP_CELLS: &str = "cells-archive";

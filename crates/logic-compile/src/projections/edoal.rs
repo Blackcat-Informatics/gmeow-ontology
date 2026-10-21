@@ -26,7 +26,7 @@ use crate::loss_ledger::LossLedger;
 use crate::projections::correspondence_frontend::CorrespondenceAnalysis;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
-    Atom, MappingPattern, PROFILES, ProfileBinding, ProjectionCell, curie, local,
+    Atom, MappingPattern, PROFILES, ProfileBinding, ProjectionBinding, ProjectionCell, curie, local,
 };
 use crate::projections::{ProjectionResult, correspondence_result};
 
@@ -630,7 +630,7 @@ fn edoal_cells(
     nt: &mut Nt,
     onto: &DslView,
     cell: &ProjectionCell,
-    b: &ProfileBinding,
+    b: &ProjectionBinding,
     en: &str,
 ) -> gmeow_errors::Result<Vec<String>> {
     let pattern = &cell.pattern;
@@ -747,7 +747,7 @@ fn edoal_cells(
 fn make_cell(
     nt: &mut Nt,
     cell: &ProjectionCell,
-    b: &ProfileBinding,
+    b: &ProjectionBinding,
     entity1: String,
     entity2: String,
     label: &str,
