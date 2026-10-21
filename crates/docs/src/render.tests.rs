@@ -5,6 +5,76 @@ use super::*;
 use crate::model::DocTermStability;
 
 #[test]
+fn navigation_template_native_values_preserve_empty_and_unicode_strings() {
+    let empty = nav_item("", "", "");
+    assert_eq!(empty.get_attr("label").unwrap().as_str(), Some(""));
+    assert_eq!(empty.get_attr("href").unwrap().as_str(), Some("index.html"));
+    let item = nav_item("../", "café/🧪", "Élan \"<&> 🐈");
+    assert_eq!(
+        item.get_attr("label").unwrap().as_str(),
+        Some("Élan \"<&> 🐈")
+    );
+    assert_eq!(
+        item.get_attr("href").unwrap().as_str(),
+        Some("../café/🧪/index.html")
+    );
+}
+
+#[test]
+fn navigation_template_native_shell_keeps_nested_links_and_language_fallback() {
+    // Authored in-memory model; no repository corpus or fixture producer.
+    let html = to_html_lang(&tiny_model(), &Page::Term("foo".to_owned()), "fr");
+    let (_, navigation) = html
+        .split_once("<nav class=\"site-nav\" aria-label=\"Primary\">")
+        .unwrap();
+    let (navigation, _) = navigation.split_once("</nav>").unwrap();
+    assert_eq!(
+        navigation,
+        concat!(
+            "\n      <a href=\"../../index.html\">Home</a>",
+            "\n      <a href=\"../../slices/index.html\">Slices</a>",
+            "\n      <a href=\"../../classes/index.html\">Classes</a>",
+            "\n      <a href=\"../../properties/index.html\">Properties</a>",
+            "\n      <a href=\"../../concerns/index.html\">Concerns</a>",
+            "\n      <a href=\"../../linkages/index.html\">Linkages</a>",
+            "\n      <a href=\"../../logic/index.html\">Logic & Reasoning</a>",
+            "\n      <a href=\"../../examples/index.html\">Examples</a>",
+            "\n      <a href=\"../../external-ontologies/index.html\">External</a>",
+            "\n      <a href=\"../../recipes/index.html\">Recipes</a>",
+            "\n      <a href=\"../../learning-paths/index.html\">Learning paths</a>",
+            "\n      <a href=\"../../getting-started/index.html\">Getting started</a>",
+            "\n      <a href=\"../../about/index.html\">About</a>",
+            "\n    ",
+        )
+    );
+    assert!(html.contains("<html lang=\"fr\">"));
+    assert!(html.contains("<title>gmeow:Foo · Demo</title>"));
+    assert!(html.contains("href=\"../../assets/gmeow.css\""));
+    assert!(html.contains("A foo"));
+    assert!(html.contains("Demo · version test"));
+    // The existing Minijinja environment strips the template's final newline.
+    assert!(html.ends_with("</footer>\n</body>\n</html>"));
+}
+
+#[test]
+fn navigation_template_native_playground_stays_last_when_selected() {
+    let model = tiny_model();
+    let base = to_html(&model, &Page::Landing);
+    assert!(!base.contains("href=\"sparql/index.html\">SPARQL</a>"));
+    let exec = ExecutableDocsData {
+        playground_trig: b"<urn:s> <urn:p> <urn:o> .".to_vec(),
+        ..Default::default()
+    };
+    let live = to_html_lang_exec(&model, &Page::Landing, "english", &exec);
+    let (_, navigation) = live
+        .split_once("<nav class=\"site-nav\" aria-label=\"Primary\">")
+        .unwrap();
+    let (navigation, _) = navigation.split_once("</nav>").unwrap();
+    assert_eq!(navigation.matches("<a href=").count(), 14);
+    assert!(navigation.ends_with("<a href=\"about/index.html\">About</a>\n      <a href=\"sparql/index.html\">SPARQL</a>\n    "));
+}
+
+#[test]
 fn health_renders_undecided_native_reasoning_without_positive_claims() {
     let mut model = tiny_model();
     model.reasoning = Some(crate::model::ReasoningVerdict {

@@ -24,7 +24,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
 use gmeow_docs_model::slug::short_iri_digest;
-use minijinja::{Environment, context};
+use minijinja::{Environment, Value as TemplateValue};
 use pulldown_cmark::{Options, Parser, html as cmark_html};
 use purrdf_lex::json::record::ToJson;
 use purrdf_lex::json::{self, Object, Value};
@@ -6693,17 +6693,17 @@ pub(crate) fn to_html_lang_exec_with_map(
     let tmpl = shell_env()
         .get_template("shell")
         .expect("shell template registered");
-    tmpl.render(context! {
-        site_title => model.title,
-        site_version => model.version,
-        page_title => page.title(model),
-        css_href => format!("{root}{CSS_PATH}"),
-        root_href => root,
-        nav => nav,
-        body => body_html,
-        page_lang => page_lang,
-        body_scripts => body_scripts,
-    })
+    tmpl.render(TemplateValue::from_iter([
+        ("site_title", TemplateValue::from(&model.title)),
+        ("site_version", TemplateValue::from(&model.version)),
+        ("page_title", TemplateValue::from(page.title(model))),
+        ("css_href", TemplateValue::from(format!("{root}{CSS_PATH}"))),
+        ("root_href", TemplateValue::from(root)),
+        ("nav", TemplateValue::from_iter(nav)),
+        ("body", TemplateValue::from(body_html)),
+        ("page_lang", TemplateValue::from(page_lang)),
+        ("body_scripts", TemplateValue::from(body_scripts)),
+    ]))
     .expect("shell template renders")
 }
 
@@ -6733,19 +6733,15 @@ fn rewrite_internal_links(html: &str) -> String {
         .replace("index.md#", "index.html#")
 }
 
-/// A nav menu entry (label + resolved href), used as a pre-sorted minijinja
-/// loop input.
-#[derive(serde::Serialize)]
-struct NavItem {
-    label: String,
-    href: String,
-}
-
-fn nav_item(root: &str, dir: &str, label: &str) -> NavItem {
-    NavItem {
-        label: label.to_string(),
-        href: format!("{root}{}", join(dir, "index.html")),
-    }
+/// Native template map used in the navigation's fixed sequence order.
+fn nav_item(root: &str, dir: &str, label: &str) -> TemplateValue {
+    TemplateValue::from_iter([
+        ("label", TemplateValue::from(label)),
+        (
+            "href",
+            TemplateValue::from(format!("{root}{}", join(dir, "index.html"))),
+        ),
+    ])
 }
 
 // ── Localization ────────────────────────────────────────────────────────────────
