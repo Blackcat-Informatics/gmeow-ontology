@@ -326,7 +326,7 @@ ex:RequiredShape a sh:NodeShape ;
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
     let span_index = crate::ingest::SpanIndex::new();
-    let span_blob = serde_json::to_vec(&span_index).expect("encode span index");
+    let span_blob = span_index.to_json_bytes().expect("encode span index");
     let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
         dataset,
         artifacts,
@@ -453,7 +453,7 @@ fn run_full_stage_with_reason(base_nq: &str, shapes: &str, reason_nq: &[u8]) -> 
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(BASE_GRAPH_PATH.to_string(), base_nq.as_bytes().to_vec());
     let span_index = crate::ingest::SpanIndex::new();
-    let span_blob = serde_json::to_vec(&span_index).expect("encode span index");
+    let span_blob = span_index.to_json_bytes().expect("encode span index");
     let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
         dataset,
         artifacts,
@@ -781,8 +781,9 @@ fn stage_validate_hard_fails_without_the_reasoned_upstream() {
     let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
-    let span_blob =
-        serde_json::to_vec(&crate::ingest::SpanIndex::new()).expect("encode span index");
+    let span_blob = crate::ingest::SpanIndex::new()
+        .to_json_bytes()
+        .expect("encode span index");
     let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
         dataset,
         artifacts,

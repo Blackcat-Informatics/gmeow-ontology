@@ -280,6 +280,20 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A source-span path reference exceeds its fixed u32 wire width. The primary
+    /// message retains the offending index and the original conversion is causal
+    /// evidence, so ordinary CLI display remains actionable without verbose frames.
+    pub struct SpanPathIdOverflow {
+        index: usize,
+        cause: std::num::TryFromIntError
+    }
+    code = "pipeline.spans.path-id-overflow";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "encode source-span path ID {}: exceeds u32", index;
+    source = failure => Some(&failure.cause);
+}
+
+define_diag_kind! {
     /// A stage reached for `stage-source-load`'s source-span table AFTER the
     /// drop-after-last-consumer point stripped it — i.e. a stage later than the last
     /// declared span-table consumer tried to read spans that no longer exist. The blob
@@ -464,6 +478,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     Release::CODE,
     EvalSchema::CODE,
     MetaFold::CODE,
+    SpanPathIdOverflow::CODE,
     SpanTableConsumedAfterDrop::CODE,
     DocsMeasure::CODE,
     DocsDistribution::CODE,
@@ -514,6 +529,7 @@ pub fn register_all() -> Vec<Code> {
         Release::register(),
         EvalSchema::register(),
         MetaFold::register(),
+        SpanPathIdOverflow::register(),
         SpanTableConsumedAfterDrop::register(),
         DocsMeasure::register(),
         DocsDistribution::register(),

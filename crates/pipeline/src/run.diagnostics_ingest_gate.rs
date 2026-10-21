@@ -61,7 +61,7 @@ fn source_load_product_with_spans() -> StageProduct {
         "https://example.test/thing",
         crate::ingest::SourceSpan::new(Arc::from(FIXTURE_SPAN_PATH), 12, 3, 200),
     );
-    let span_blob = serde_json::to_vec(&spans).expect("encode span index");
+    let span_blob = spans.to_json_bytes().expect("encode span index");
     let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
         purrdf::parse_dataset(source, "application/n-quads", None).expect("native source fixture"),
         source_artifacts,
