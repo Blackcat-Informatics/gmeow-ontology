@@ -86,7 +86,12 @@ ex:trust1
     gmeow:trustee ex:bob ;
     gmeow:trustLevel "marginal" ;
     gmeow:introducerDepth 1 ;
-    gmeow:introducerAmount 60 .
+    gmeow:introducerAmount ex:introducerWeight .
+
+ex:introducerWeight a gmeow:IntroducerWeight ;
+    <https://blackcatinformatics.ca/math/quantityValue> 60 ;
+    <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> ;
+    gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame .
 
 # The messaging-trust ↔ trust seam: a signature wired to the key that made it.
 ex:sig1

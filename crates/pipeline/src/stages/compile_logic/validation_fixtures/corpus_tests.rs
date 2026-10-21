@@ -13,6 +13,7 @@ mod quality_assessments;
 mod risk_grounding;
 mod shape_migration_equivalence;
 mod substrate_reconciliation;
+mod trust_grounding;
 
 fn fixtures() -> &'static ValidationFixtures {
     static FIXTURES: OnceLock<ValidationFixtures> = OnceLock::new();

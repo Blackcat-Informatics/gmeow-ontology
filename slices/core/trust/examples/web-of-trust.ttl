@@ -42,4 +42,10 @@ ex:trust a gmeow:TrustAssertion ;
     gmeow:trustor         ex:alice ;
     gmeow:trustee         ex:bob ;
     gmeow:trustLevel      "full" ;
-    gmeow:introducerDepth 1 .
+    gmeow:introducerDepth 1 ;
+    gmeow:introducerAmount ex:weight .
+
+ex:weight a gmeow:IntroducerWeight ;
+    <https://blackcatinformatics.ca/math/quantityValue> 120 ;
+    <https://blackcatinformatics.ca/math/hasDimension> <https://blackcatinformatics.ca/math/dimensionless> ;
+    gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame .

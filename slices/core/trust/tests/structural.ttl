@@ -159,3 +159,26 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "Vantage bindings accept a named standpoint without equating it with its signing agent; key entities remain distinct from short identifiers and rotated bindings can coexist." .
+
+ex:saIntroducerWeightHasOneMagnitudeOwner a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { g:introducerAmount a l:ObjectProperty ; l:range g:IntroducerWeight .
+      g:IntroducerWeight l:subClassOf m:Quantity .
+      g:introducerDepth rdfs:range <http://www.w3.org/2001/XMLSchema#integer> . }
+""" ;
+    gmeow:saRationale "The amount uses the canonical quantity owner while depth retains its algorithmic integer role." .
+ex:saNoScalarIntroducerAmount a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK { { VALUES ?kind { l:DatatypeProperty <http://www.w3.org/2002/07/owl#DatatypeProperty> } g:introducerAmount a ?kind }
+      UNION { g:introducerAmount (l:range|rdfs:range) xsd:integer }
+      UNION { ?r l:onProperty g:introducerAmount ; l:allValuesFrom xsd:integer } }
+""" ;
+    gmeow:saRationale "Retirement forbids the bare integer amount path instead of silently retaining a second magnitude representation." .

@@ -432,3 +432,115 @@ msgstr "不要从签名者推断观察者身份，不要接受不可信绑定，
 msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference a CryptographicKey, retain dated and attributed binding evidence, and check it against the verified signature and selected policy; reuse Certification for an agent-key attestation."
 msgstr "引用 CryptographicKey，保留带日期及归属的绑定证据，并按所选策略与已验证签名核对；代理与密钥的认证复用 Certification。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "introducer amount"
+msgstr "介绍者信任量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact OpenPGP trust-signature weight a trustor assigns to a trustee as an introducer, carried by a dimensionless math:Quantity in the declared OpenPGP amount frame. It is a protocol input, not a probability, epistemic confidence or computed validity."
+msgstr "信任方赋予受信方作为介绍者的精确 OpenPGP 信任签名权重，以声明的 OpenPGP 信任量参考框架中的无量纲 math:Quantity 承载。这是协议输入，不是概率、认识置信度或计算所得的有效性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an OpenPGP introducer weight alongside the unchanged categorical trustLevel and integer introducerDepth."
+msgstr "用于记录 OpenPGP 介绍者权重，并保留类别型 trustLevel 和整数 introducerDepth。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not supply a bare literal, normalize 60 or 120 into a probability, or use this amount for the integer chain-depth limit."
+msgstr "不要提供裸字面量，不要将 60 或 120 归一化为概率，也不要把该信任量用作整数链深度限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the assertion to one IntroducerWeight. Preserve the integer magnitude and its OpenPGP reference frame; downstream validity computations read math:quantityValue through this role."
+msgstr "将断言指向一个 IntroducerWeight。保留整数数值及其 OpenPGP 参考框架；下游有效性计算通过此角色读取 math:quantityValue。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property remains optional and functional on one held trust assertion. Different trustors and differently attributed claims remain separate."
+msgstr "该属性在单个持有的信任断言上仍是可选且函数性的。不同信任方和不同来源归属的声明保持分离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:t1 gmeow:introducerAmount ex:w . ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+msgstr "ex:t1 gmeow:introducerAmount ex:w . ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Introducer Weight"
+msgstr "介绍者权重"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact integer OpenPGP introducer amount in the inclusive range zero through 255. A specialization of math:Quantity whose physical dimension is dimensionless and whose reference frame preserves the trust-signature scale."
+msgstr "零到 255 闭区间内的精确整数 OpenPGP 介绍者信任量。它是 math:Quantity 的特化，物理维度为无量纲，参考框架保留信任签名的量表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the numeric protocol input of an OpenPGP trust assertion."
+msgstr "用于 OpenPGP 信任断言的数值协议输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for calibrated occurrence probabilities, epistemic confidence, categorical owner-trust or chain-depth limits."
+msgstr "不要用于校准的发生概率、认识置信度、类别型所有者信任或链深度限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare one integer math:quantityValue, math:hasDimension math:dimensionless and gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame, then reference this quantity through introducerAmount."
+msgstr "声明一个整数 math:quantityValue、math:hasDimension math:dimensionless 以及 gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame，再通过 introducerAmount 引用该量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The protocol amount is exact and needs no decimal approximation or parallel magnitude property. It is disjoint from ProbabilityValue even when its number is zero or one; the same number may occur on separate weight and probability objects. Supplying no introducerAmount on a trust assertion remains legal."
+msgstr "协议信任量是精确的，不需要小数近似或并行的数值属性。即使数值为零或一，它也与 ProbabilityValue 不相交；同一数值可以出现在不同的权重对象和概率对象上。信任断言仍可不提供 introducerAmount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w a gmeow:IntroducerWeight ; math:quantityValue 60 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+msgstr "ex:w a gmeow:IntroducerWeight ; math:quantityValue 60 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OpenPGP introducer amount frame"
+msgstr "OpenPGP 介绍者信任量参考框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The OpenPGP trust-signature amount scale: an unsigned octet from zero through 255; values below 120 denote partial trust and values at least 120 complete trust. The recommended emitted values are 60 and 120, retained without normalization."
+msgstr "OpenPGP 信任签名的信任量量表：零到 255 的无符号八位组；低于 120 表示部分信任，至少 120 表示完全信任。建议输出值为 60 和 120，保持原值而不归一化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the protocol interpretation of an introducer weight."
+msgstr "用于保留介绍者权重的协议含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not read this trust-signature input as a probability frame or a global verdict about the trustee."
+msgstr "不要把此信任签名输入解读为概率参考框架或针对受信方的全局裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name this frame from an IntroducerWeight through hasReferenceFrame. Validity propagation remains a separate procedure over held trust assertions."
+msgstr "从 IntroducerWeight 通过 hasReferenceFrame 指定此参考框架。有效性传播仍是针对持有的信任断言的独立过程。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The frame fixes the scale, not the trustor, source, certification level or evidence warrant; those roles retain their own identities."
+msgstr "该参考框架确定量表，不确定信任方、来源、认证级别或证据支持；这些角色保留各自的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+msgstr "ex:w gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Introducer weight range constraint"
+msgstr "介绍者权重范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical closed interval for the OpenPGP trust-signature amount octet. Integer typing and required presence belong to the IntroducerWeight axioms; this constraint enforces the numeric bounds."
+msgstr "OpenPGP 信任签名信任量八位组的规范闭区间。整数类型和必需存在性由 IntroducerWeight 公理规定；本约束实施数值边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Validate declared introducer amounts against their protocol frame."
+msgstr "根据协议参考框架验证声明的介绍者信任量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not apply unit-interval probability bounds or compute trust propagation here."
+msgstr "不要应用单位区间概率边界，也不要在此计算信任传播。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate the quantity through its generated constraints; preserve valid values 60 and 120 exactly."
+msgstr "通过生成的约束验证该量；精确保留有效值 60 和 120。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The generated validation surface enforces this canonical law. No native failure marker or validity result is claimed."
+msgstr "生成的验证表面执行此规范定律。不声称提供本机失败标记或有效性结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ."
+msgstr "ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ."

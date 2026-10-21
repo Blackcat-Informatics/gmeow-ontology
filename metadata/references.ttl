@@ -13608,3 +13608,13 @@ repo:README.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/qudt-metre-codec-reference> a gmeow:Selector ;
     gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-PROJECTIONS.md" .
+
+<https://datatracker.ietf.org/doc/html/rfc9580> a gmeow:CreativeWork ;
+    rdfs:label "RFC 9580: OpenPGP"@en ;
+    gmeow:bibliographicCitation "Wouters et al. RFC 9580: OpenPGP. IETF, July 2024. Section 5.2.3.21 defines trust-signature amount semantics." ;
+    gmeow:sourceLocation "https://datatracker.ietf.org/doc/html/rfc9580#section-5.2.3.21" .
+<https://blackcatinformatics.ca/gmeow/references/citation/openpgp-introducer-weight> a gmeow:CitationAct ;
+    rdfs:label "OpenPGP introducer amount frame"@en ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/trust/docs.md> ;
+    gmeow:citedEntity <https://datatracker.ietf.org/doc/html/rfc9580> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .

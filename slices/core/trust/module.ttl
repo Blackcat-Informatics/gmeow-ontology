@@ -3,6 +3,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
@@ -237,17 +238,18 @@ gmeow:holdsKey
     gmeow:useWhen "Use to record that an agent holds a cryptographic key — the holder-to-key edge that a signature's gmeow:signingKey and a certification's gmeow:certifiedKey both reference."@x-gmeow-english .
 
 gmeow:introducerAmount
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:TrustAssertion ;
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TrustAssertion ;
+    logic:range gmeow:IntroducerWeight ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducer amount"@x-gmeow-english ;
-    rdfs:range xsd:integer ;
-    skos:definition "The trust-signature amount/weight the trustor assigns to the trustee as an introducer."@x-gmeow-english ;
-    skos:example "ex:t1 gmeow:introducerAmount 120 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for how many introducer levels to follow (that is gmeow:introducerDepth) and avoid using it to compute validity in OWL — it is a declared input weight, not a reasoner-derived score."@x-gmeow-english ;
+    skos:definition "The exact OpenPGP trust-signature weight a trustor assigns to a trustee as an introducer, carried by a dimensionless math:Quantity in the declared OpenPGP amount frame. It is a protocol input, not a probability, epistemic confidence or computed validity."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:introducerAmount ex:w . ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not supply a bare literal, normalize 60 or 120 into a probability, or use this amount for the integer chain-depth limit."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set the amount as xsd:integer on the gmeow:TrustAssertion alongside gmeow:introducerDepth and gmeow:trustLevel; the projection-layer metric combines them, leaving the logical core free of trust arithmetic."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the weight a trustor assigns to a trustee as an introducer — the OpenPGP trust-signature amount a projection metric accumulates toward a validity threshold."@x-gmeow-english .
+    gmeow:howToUse "Point the assertion to one IntroducerWeight. Preserve the integer magnitude and its OpenPGP reference frame; downstream validity computations read math:quantityValue through this role."@x-gmeow-english ;
+    skos:scopeNote "The property remains optional and functional on one held trust assertion. Different trustors and differently attributed claims remain separate."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an OpenPGP introducer weight alongside the unchanged categorical trustLevel and integer introducerDepth."@x-gmeow-english .
 
 gmeow:introducerDepth
     a logic:DatatypeProperty ;
@@ -707,3 +709,62 @@ gmeow:boundToKey
     gmeow:useWhen "Use to state the vantage-to-key binding checked by a consumer admission policy."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring observer identity from the signer, accepting an untrusted binding or treating key possession alone as authorization."@x-gmeow-english ;
     gmeow:howToUse "Reference a CryptographicKey, retain dated and attributed binding evidence, and check it against the verified signature and selected policy; reuse Certification for an agent-key attestation."@x-gmeow-english .
+
+# OpenPGP amount is an exact protocol octet, independent of probability and confidence.
+gmeow:IntroducerWeight
+    a logic:Class , logic:AbstractIndividualType ;
+    logic:disjointWith math:ProbabilityValue ;
+    logic:subClassOf math:Quantity ,
+        [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:integer ] ,
+        [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:hasValue math:dimensionless ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] ,
+        [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:hasValue gmeow:openPgpIntroducerAmountFrame ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "Introducer Weight"@x-gmeow-english ;
+    skos:definition "An exact integer OpenPGP introducer amount in the inclusive range zero through 255. A specialization of math:Quantity whose physical dimension is dimensionless and whose reference frame preserves the trust-signature scale."@x-gmeow-english ;
+    gmeow:useWhen "Use for the numeric protocol input of an OpenPGP trust assertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for calibrated occurrence probabilities, epistemic confidence, categorical owner-trust or chain-depth limits."@x-gmeow-english ;
+    gmeow:howToUse "Declare one integer math:quantityValue, math:hasDimension math:dimensionless and gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame, then reference this quantity through introducerAmount."@x-gmeow-english ;
+    skos:scopeNote "The protocol amount is exact and needs no decimal approximation or parallel magnitude property. It is disjoint from ProbabilityValue even when its number is zero or one; the same number may occur on separate weight and probability objects. Supplying no introducerAmount on a trust assertion remains legal."@x-gmeow-english ;
+    skos:example "ex:w a gmeow:IntroducerWeight ; math:quantityValue 60 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+[ a logic:ClosureEntry ; logic:onClass gmeow:IntroducerWeight ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TrustAssertion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:introducerAmount ; logic:allValuesFrom gmeow:IntroducerWeight ] .
+
+gmeow:openPgpIntroducerAmountFrame
+    a logic:NamedIndividual , gmeow:ReferenceFrame ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:requiresHost false ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "OpenPGP introducer amount frame"@x-gmeow-english ;
+    skos:definition "The OpenPGP trust-signature amount scale: an unsigned octet from zero through 255; values below 120 denote partial trust and values at least 120 complete trust. The recommended emitted values are 60 and 120, retained without normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the protocol interpretation of an introducer weight."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not read this trust-signature input as a probability frame or a global verdict about the trustee."@x-gmeow-english ;
+    gmeow:howToUse "Name this frame from an IntroducerWeight through hasReferenceFrame. Validity propagation remains a separate procedure over held trust assertions."@x-gmeow-english ;
+    skos:scopeNote "The frame fixes the scale, not the trustor, source, certification level or evidence warrant; those roles retain their own identities."@x-gmeow-english ;
+    skos:example "ex:w gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:IntroducerWeightRangeConstraint
+    a logic:ValueRangeConstraint ;
+    logic:onClass gmeow:IntroducerWeight ; logic:valuePath math:quantityValue ;
+    logic:minInclusiveBound 0 ; logic:maxInclusiveBound 255 ;
+    logic:formalizes gmeow:IntroducerWeight ;
+    logic:message "An OpenPGP introducer weight must preserve an integer amount in the inclusive range zero through 255." ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "Introducer weight range constraint"@x-gmeow-english ;
+    skos:definition "The canonical closed interval for the OpenPGP trust-signature amount octet. Integer typing and required presence belong to the IntroducerWeight axioms; this constraint enforces the numeric bounds."@x-gmeow-english ;
+    gmeow:useWhen "Validate declared introducer amounts against their protocol frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not apply unit-interval probability bounds or compute trust propagation here."@x-gmeow-english ;
+    gmeow:howToUse "Validate the quantity through its generated constraints; preserve valid values 60 and 120 exactly."@x-gmeow-english ;
+    skos:scopeNote "The generated validation surface enforces this canonical law. No native failure marker or validity result is claimed."@x-gmeow-english ;
+    skos:example "ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .

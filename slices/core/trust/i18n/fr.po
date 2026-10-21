@@ -432,3 +432,115 @@ msgstr "Éviter de déduire l'observateur du signataire, d'accepter une liaison 
 msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference a CryptographicKey, retain dated and attributed binding evidence, and check it against the verified signature and selected policy; reuse Certification for an agent-key attestation."
 msgstr "Référencer une CryptographicKey, conserver les preuves datées et attribuées du lien et les confronter à la signature vérifiée et à la politique choisie ; réutiliser Certification pour une attestation agent-clé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "introducer amount"
+msgstr "montant d’introducteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact OpenPGP trust-signature weight a trustor assigns to a trustee as an introducer, carried by a dimensionless math:Quantity in the declared OpenPGP amount frame. It is a protocol input, not a probability, epistemic confidence or computed validity."
+msgstr "Le poids exact de signature de confiance OpenPGP qu’un agent de confiance attribue à un autre comme introducteur, porté par une math:Quantity sans dimension dans le référentiel OpenPGP déclaré. C’est une entrée du protocole, pas une probabilité, une confiance épistémique ou une validité calculée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an OpenPGP introducer weight alongside the unchanged categorical trustLevel and integer introducerDepth."
+msgstr "À utiliser pour enregistrer un poids d’introducteur OpenPGP à côté du trustLevel catégoriel et de l’introducerDepth entier inchangés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not supply a bare literal, normalize 60 or 120 into a probability, or use this amount for the integer chain-depth limit."
+msgstr "Ne fournissez pas de littéral nu, ne normalisez pas 60 ou 120 en probabilité et n’utilisez pas ce montant comme limite entière de profondeur de chaîne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the assertion to one IntroducerWeight. Preserve the integer magnitude and its OpenPGP reference frame; downstream validity computations read math:quantityValue through this role."
+msgstr "Reliez l’assertion à un IntroducerWeight. Conservez la magnitude entière et son référentiel OpenPGP ; les calculs de validité en aval lisent math:quantityValue par ce rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property remains optional and functional on one held trust assertion. Different trustors and differently attributed claims remain separate."
+msgstr "La propriété reste facultative et fonctionnelle sur une assertion de confiance tenue. Les agents de confiance et les affirmations d’attributions différentes restent séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:t1 gmeow:introducerAmount ex:w . ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+msgstr "ex:t1 gmeow:introducerAmount ex:w . ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Introducer Weight"
+msgstr "Poids d’introducteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact integer OpenPGP introducer amount in the inclusive range zero through 255. A specialization of math:Quantity whose physical dimension is dimensionless and whose reference frame preserves the trust-signature scale."
+msgstr "Un montant exact entier d’introducteur OpenPGP compris entre zéro et 255 inclus. Une spécialisation de math:Quantity dont la dimension physique est sans dimension et dont le référentiel préserve l’échelle des signatures de confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the numeric protocol input of an OpenPGP trust assertion."
+msgstr "À utiliser pour l’entrée numérique du protocole d’une assertion de confiance OpenPGP."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for calibrated occurrence probabilities, epistemic confidence, categorical owner-trust or chain-depth limits."
+msgstr "Ne l’utilisez pas pour des probabilités d’occurrence calibrées, la confiance épistémique, la confiance catégorielle du propriétaire ou les limites de profondeur de chaîne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare one integer math:quantityValue, math:hasDimension math:dimensionless and gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame, then reference this quantity through introducerAmount."
+msgstr "Déclarez une math:quantityValue entière, math:hasDimension math:dimensionless et gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame, puis référencez cette quantité par introducerAmount."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The protocol amount is exact and needs no decimal approximation or parallel magnitude property. It is disjoint from ProbabilityValue even when its number is zero or one; the same number may occur on separate weight and probability objects. Supplying no introducerAmount on a trust assertion remains legal."
+msgstr "Le montant du protocole est exact et ne nécessite ni approximation décimale ni propriété de magnitude parallèle. Il est disjoint de ProbabilityValue même si sa valeur est zéro ou un ; le même nombre peut figurer sur des objets de poids et de probabilité distincts. Une assertion de confiance peut toujours omettre introducerAmount."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeight|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w a gmeow:IntroducerWeight ; math:quantityValue 60 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+msgstr "ex:w a gmeow:IntroducerWeight ; math:quantityValue 60 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OpenPGP introducer amount frame"
+msgstr "Référentiel du montant d’introducteur OpenPGP"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The OpenPGP trust-signature amount scale: an unsigned octet from zero through 255; values below 120 denote partial trust and values at least 120 complete trust. The recommended emitted values are 60 and 120, retained without normalization."
+msgstr "L’échelle du montant des signatures de confiance OpenPGP : un octet non signé de zéro à 255 ; les valeurs inférieures à 120 indiquent une confiance partielle et celles d’au moins 120 une confiance complète. Les valeurs d’émission recommandées sont 60 et 120, conservées sans normalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the protocol interpretation of an introducer weight."
+msgstr "À utiliser pour conserver l’interprétation protocolaire d’un poids d’introducteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not read this trust-signature input as a probability frame or a global verdict about the trustee."
+msgstr "Ne lisez pas cette entrée de signature de confiance comme un référentiel probabiliste ou un verdict global sur l’agent de confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name this frame from an IntroducerWeight through hasReferenceFrame. Validity propagation remains a separate procedure over held trust assertions."
+msgstr "Nommez ce référentiel depuis un IntroducerWeight via hasReferenceFrame. La propagation de validité reste une procédure séparée sur les assertions de confiance tenues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The frame fixes the scale, not the trustor, source, certification level or evidence warrant; those roles retain their own identities."
+msgstr "Le référentiel fixe l’échelle, pas l’agent de confiance, la source, le niveau de certification ou la valeur probante ; ces rôles conservent leurs identités propres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openPgpIntroducerAmountFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+msgstr "ex:w gmeow:hasReferenceFrame gmeow:openPgpIntroducerAmountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Introducer weight range constraint"
+msgstr "Contrainte d’intervalle du poids d’introducteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical closed interval for the OpenPGP trust-signature amount octet. Integer typing and required presence belong to the IntroducerWeight axioms; this constraint enforces the numeric bounds."
+msgstr "L’intervalle fermé canonique de l’octet du montant de signature de confiance OpenPGP. Le typage entier et la présence obligatoire relèvent des axiomes d’IntroducerWeight ; cette contrainte impose les bornes numériques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Validate declared introducer amounts against their protocol frame."
+msgstr "Validez les montants d’introducteur déclarés par rapport à leur référentiel protocolaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not apply unit-interval probability bounds or compute trust propagation here."
+msgstr "N’appliquez pas de bornes probabilistes d’intervalle unité et ne calculez pas ici la propagation de confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate the quantity through its generated constraints; preserve valid values 60 and 120 exactly."
+msgstr "Validez la quantité par ses contraintes générées ; conservez exactement les valeurs valides 60 et 120."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The generated validation surface enforces this canonical law. No native failure marker or validity result is claimed."
+msgstr "La surface de validation générée impose cette loi canonique. Aucun marqueur d’échec natif ni résultat de validité n’est revendiqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntroducerWeightRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ."
+msgstr "ex:w a gmeow:IntroducerWeight ; math:quantityValue 120 ."
