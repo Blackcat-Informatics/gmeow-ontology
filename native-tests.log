@@ -1,0 +1,30 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) and test(json_bench_cost_)' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 40s
+────────────
+ Nextest run ID 6ce823f5-b176-4469-91c7-1d4286dc5678 with nextest profile: ci
+    Starting 15 tests across 25 binaries (1110 tests and 202 binaries skipped)
+        PASS [   0.008s] ( 1/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_schema_cardinality_nonvacuity_and_case_identity_are_required
+        PASS [   0.008s] ( 2/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_numeric_tokens_keep_u64_u32_i128_endpoints_and_signed_zero
+        PASS [   0.008s] ( 3/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_ruleparallel_and_gap_refusals_remain_live
+        PASS [   0.008s] ( 4/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_fragment_count_has_exactly_one_applicable_measurement
+        PASS [   0.008s] ( 5/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_empty_identity_or_comparison_evidence_cannot_claim_held
+        PASS [   0.008s] ( 6/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_malformed_trailing_missing_and_positional_documents_fail_closed
+        PASS [   0.008s] ( 7/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_all_five_fragment_profiles_admit_actual_optional_boundaries
+        PASS [   0.008s] ( 8/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_simple_ledger_has_complete_literal_bytes
+        PASS [   0.008s] ( 9/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_plan_and_provenance_profiles_keep_absence_distinct_from_zero
+        PASS [   0.008s] (10/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_ledger_corpora_cover_exactly_the_selected_case_inventory
+        PASS [   0.008s] (11/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_native_records_keep_known_duplicates_and_ignore_unknowns
+        PASS [   0.008s] (12/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_tuple_arity_types_bounds_and_nested_pointers_are_exact
+        PASS [   0.008s] (13/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_simple_soak_has_complete_literal_framed_digest_bytes
+        PASS [   0.008s] (14/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_selected_incremental_evidence_never_defaults_to_zero_or_false
+        PASS [   0.008s] (15/15) gmeow-pipeline stages::bench::cost_json_tests::json_bench_cost_sort_order_is_independent_of_record_and_ledger_input_order
+────────────
+     Summary [   0.023s] 15 tests run: 15 passed, 1110 skipped

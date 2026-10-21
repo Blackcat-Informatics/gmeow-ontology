@@ -1,0 +1,56 @@
+{
+  "baseRefOid": "b4165c0b6679b039992cc357c5ed176328ac6f3a",
+  "headRefOid": "72e3278a02d93b331098aeaa5f41f90b4053edcd",
+  "mergeable": "MERGEABLE",
+  "number": 1921,
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39615694514/job/119275982704",
+      "name": "producer-build",
+      "startedAt": "2026-10-21T14:18:13Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39615694514/job/119275981866",
+      "name": "helpers",
+      "startedAt": "2026-10-21T14:18:14Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T14:19:16Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39615694514/job/119275982382",
+      "name": "lint",
+      "startedAt": "2026-10-21T14:18:13Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39615694514/job/119275982259",
+      "name": "rust-prebuild",
+      "startedAt": "2026-10-21T14:18:14Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "StatusContext",
+      "context": "CodeRabbit",
+      "startedAt": "2026-10-21T14:18:15Z",
+      "state": "PENDING",
+      "targetUrl": ""
+    }
+  ]
+}

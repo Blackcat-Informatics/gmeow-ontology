@@ -1,0 +1,1 @@
+PR1921 fresh state: lint completed SUCCESS; producer-build/helpers/rust-prebuild in progress; automated review pending. Actual state in pr-state.json. Retained CI exception applies. Local15authored+2existing report tests, strict prebuild Clippy, helpers, source admission, formatting and normal commit/push hooks PASS.
