@@ -222,7 +222,7 @@ pub struct RealizedLoss {
     pub count: u64,
 }
 
-purrdf_lex::json_record!(impl ToJson for RealizedLoss {
+::purrdf_lex::json_record!(impl ToJson for RealizedLoss {
     "code" => code,
     "from" => from,
     "to" => to,
@@ -652,7 +652,7 @@ struct MatrixEntry {
     loss_codes: Vec<String>,
 }
 
-purrdf_lex::json_record!(impl ToJson for MatrixEntry {
+::purrdf_lex::json_record!(impl ToJson for MatrixEntry {
     "from" => from,
     "to" => to,
     "lossy" => lossy,

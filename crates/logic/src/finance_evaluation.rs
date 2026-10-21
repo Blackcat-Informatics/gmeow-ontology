@@ -45,11 +45,6 @@ const PROCEDURAL_PRODUCTS: &[&str] = &[
     "https://blackcatinformatics.ca/math/ArgumentSlotIndexNonNegativeConstraintProceduralConstraintShape",
 ];
 
-fn failure(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Result {
-        detail: format!("{PROFILE}: {}", detail.into()),
-    })
-}
 fn atom(subject: &str, predicate: &str, object: &str) -> Formula {
     Formula::Atom {
         relation: Term::Iri(predicate.into()),
@@ -93,9 +88,10 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
                     .iter()
                     .any(|target| matches!(target, Target::Class(iri) if iri.as_str() == class))
         }) {
-            return Err(failure(format!(
-                "authenticated owner lacks required generated shape target {class}"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("authenticated owner lacks required generated shape target {class}"),
+            ));
         }
     }
     for identity in PROCEDURAL_PRODUCTS {
@@ -105,7 +101,7 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
                 && !shape.targets.is_empty()
                 && shape.constraints.iter().any(|constraint| matches!(constraint, Constraint::Sparql { .. }))
         }) {
-            return Err(failure(format!("authenticated owner lacks active required procedural product {identity}")));
+            return Err(crate::error::profile_result(PROFILE, format!("authenticated owner lacks active required procedural product {identity}")));
         }
     }
     Ok(())
@@ -115,13 +111,17 @@ fn validate(records: &Records, shapes: &Shapes, phase: &str) -> gmeow_errors::Re
     // The shared logic projection owner supplies the complete structural reader view.
     // Canonical axioms remain present; no independent classifier is implemented.
     let data = records.dataset(true)?;
-    let report = validate_dataset(&data, shapes)
-        .map_err(|error| failure(format!("{phase} validation: {error}")))?;
+    let report = validate_dataset(&data, shapes).map_err(|error| {
+        crate::error::profile_result(PROFILE, format!("{phase} validation: {error}"))
+    })?;
     if !report.results.is_empty() {
-        return Err(failure(format!(
-            "{phase} violates the authenticated owner projections: {:?}",
-            report.results
-        )));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            format!(
+                "{phase} violates the authenticated owner projections: {:?}",
+                report.results
+            ),
+        ));
     }
     Ok(())
 }
@@ -131,9 +131,10 @@ fn scalar_frame(records: &Records, frame: &str, realm: &str) -> gmeow_errors::Re
     if records.reference(frame, &format!("{G}frameKind"))? != format!("{G}frameKindScalar")
         || records.reference(frame, &format!("{G}frameRealm"))? != format!("{G}{realm}")
     {
-        return Err(failure(format!(
-            "{frame} requires scalar kind and {realm}; no frame conversion is implicit"
-        )));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            format!("{frame} requires scalar kind and {realm}; no frame conversion is implicit"),
+        ));
     }
     // Cardinality/datatype/axis/hosting/determinacy obligations are also checked
     // against the complete actual ReferenceFrame projection, not a reduced copy.
@@ -141,7 +142,10 @@ fn scalar_frame(records: &Records, frame: &str, realm: &str) -> gmeow_errors::Re
         records.one(frame, &format!("{G}{property}"))?;
     }
     if records.values(frame, &format!("{G}hasAxis")).len() != 1 {
-        return Err(failure(format!("{frame} requires exactly one axis")));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            format!("{frame} requires exactly one axis"),
+        ));
     }
     Ok(())
 }
@@ -160,7 +164,10 @@ fn signature(owner: &Records, method: String) -> gmeow_errors::Result<Signature>
     ]
     .contains(&method)
     {
-        return Err(failure(format!("unsupported financial method {method}")));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            format!("unsupported financial method {method}"),
+        ));
     }
     owner.require_type(&method, &format!("{L}CallableSignature"))?;
     owner.require_type(&method, &format!("{G}ObservationMethod"))?;
@@ -172,12 +179,16 @@ fn signature(owner: &Records, method: String) -> gmeow_errors::Result<Signature>
         owner.require_type(&parameter, &format!("{L}CallParameter"))?;
         let required = owner.one(&parameter, &format!("{L}parameterRequired"))?;
         let Term::Literal(required) = required else {
-            return Err(failure("parameterRequired requires explicit true boolean"));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                "parameterRequired requires explicit true boolean",
+            ));
         };
         let value = purrdf::xsd::parse_by_iri(&required.lexical_form, required.datatype_iri())
-            .map_err(|error| failure(error.to_string()))?;
+            .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?;
         if !matches!(value, Some(purrdf::xsd::XsdValue::Boolean(true))) {
-            return Err(failure(
+            return Err(crate::error::profile_result(
+                PROFILE,
                 "every selected financial input must be explicitly required",
             ));
         }
@@ -186,7 +197,8 @@ fn signature(owner: &Records, method: String) -> gmeow_errors::Result<Signature>
         let symbol = owner.reference(&parameter, &format!("{M}hasMathematicalSymbol"))?;
         owner.require_type(&symbol, &format!("{M}MathematicalSymbol"))?;
         if !roles.insert(role.clone()) || !symbols.insert(symbol.clone()) {
-            return Err(failure(
+            return Err(crate::error::profile_result(
+                PROFILE,
                 "conflicting role or symbol in authenticated callable signature",
             ));
         }
@@ -194,13 +206,17 @@ fn signature(owner: &Records, method: String) -> gmeow_errors::Result<Signature>
     }
     let outputs = owner.list(&owner.reference(&method, &format!("{L}outputParameters"))?)?;
     let [output] = outputs.as_slice() else {
-        return Err(failure("financial signature requires exactly one output"));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "financial signature requires exactly one output",
+        ));
     };
     owner.require_type(output, &format!("{L}CallResult"))?;
     if owner.reference(output, &format!("{L}parameterPredicate"))?
         != format!("{G}observationResult")
     {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "financial output must use the canonical observationResult role",
         ));
     }
@@ -211,7 +227,10 @@ fn signature(owner: &Records, method: String) -> gmeow_errors::Result<Signature>
     ]
     .contains(&result_type)
     {
-        return Err(failure("unsupported financial result type"));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "unsupported financial result type",
+        ));
     }
     Ok(Signature {
         method,
@@ -236,7 +255,8 @@ fn check_request(
         .count()
         != 1
     {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "request requires exactly one supported concrete financial calculation type",
         ));
     }
@@ -255,9 +275,12 @@ fn check_request(
             break;
         }
         if !allowed.contains(predicate) {
-            return Err(failure(format!(
-                "unsupported or precomputed request role {predicate}; only the selected signature and observation context are admitted"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "unsupported or precomputed request role {predicate}; only the selected signature and observation context are admitted"
+                ),
+            ));
         }
     }
     for property in [
@@ -298,9 +321,12 @@ fn bind_inputs(
                 .values(value_type, predicate)
                 .contains(&Term::Iri(format!("{M}Quantity")))
         }) {
-            return Err(failure(format!(
-                "authenticated owner does not ground {value_type} directly in math:Quantity"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "authenticated owner does not ground {value_type} directly in math:Quantity"
+                ),
+            ));
         }
         classes.insert(value_type.clone());
         if value_type == &format!("{G}MonetaryAmount") {
@@ -308,23 +334,28 @@ fn bind_inputs(
             scalar_frame(records, &currency, "frameRealmCurrency")?;
             for frame in records.values(&quantity, &format!("{G}hasReferenceFrame")) {
                 if frame != &Term::Iri(currency.clone()) {
-                    return Err(failure(format!(
-                        "{quantity}: currency conflicts with explicit reference frame"
-                    )));
+                    return Err(crate::error::profile_result(
+                        PROFILE,
+                        format!("{quantity}: currency conflicts with explicit reference frame"),
+                    ));
                 }
             }
             currencies.insert(currency);
         } else {
             if records.reference(&quantity, &format!("{G}hasReferenceFrame"))? != period {
-                return Err(failure(format!(
-                    "{quantity}: rate/count period basis differs from calculationPeriodBasis"
-                )));
+                return Err(crate::error::profile_result(
+                    PROFILE,
+                    format!(
+                        "{quantity}: rate/count period basis differs from calculationPeriodBasis"
+                    ),
+                ));
             }
         }
         bindings.insert(symbol.clone(), quantity);
     }
     if currencies.len() != 1 {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "financial money inputs must share exactly one explicit currency frame",
         ));
     }
@@ -334,7 +365,7 @@ fn bind_inputs(
         currency: currencies
             .into_iter()
             .next()
-            .ok_or_else(|| failure("missing admitted currency"))?,
+            .ok_or_else(|| crate::error::profile_result(PROFILE, "missing admitted currency"))?,
     })
 }
 
@@ -353,7 +384,10 @@ fn admit(
     request: &str,
 ) -> gmeow_errors::Result<Admission> {
     if owner.identity.is_empty() {
-        return Err(failure("authenticated owner identity is required"));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "authenticated owner identity is required",
+        ));
     }
     require_shapes(owner.shapes)?;
     let trusted = Records::read(owner.dataset, true)?;
@@ -362,7 +396,8 @@ fn admit(
     if records.0.iter().any(|((subject, predicate), values)| {
         subject == &retired || predicate == &retired || values.contains(&Term::Iri(retired.clone()))
     }) {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "retired monetaryValue declaration or usage; use canonical math:quantityValue on MonetaryAmount",
         ));
     }
@@ -400,12 +435,15 @@ fn admit(
     validate(&records, owner.shapes, "input")?;
     let effective = records.dataset(false)?;
     let selected = crate::math_expression::analysis::structural_key_at(&effective, &expression)
-        .map_err(|error| failure(error.to_string()))?;
+        .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?;
     let canonical =
         crate::math_expression::analysis::structural_key_at(owner.dataset, &signature.recipe)
-            .map_err(|error| failure(format!("authenticated recipe: {error}")))?;
+            .map_err(|error| {
+                crate::error::profile_result(PROFILE, format!("authenticated recipe: {error}"))
+            })?;
     if selected != canonical {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "selected expression differs from the authenticated method recipe, operators, slot topology or symbol roles",
         ));
     }
@@ -456,7 +494,10 @@ pub fn evaluate(
             .quantity
             .rsplit(':')
             .next()
-            .ok_or_else(|| failure("missing prepared result identity"))?
+            .ok_or_else(|| crate::error::profile_result(
+                PROFILE,
+                "missing prepared result identity"
+            ))?
     ));
     let Formula::Implies(_, head) = &mut prepared.program.formulas[0] else {
         unreachable!("shared arithmetic preparation yields one implication")
@@ -496,7 +537,8 @@ pub fn evaluate(
             && row.predicate == format!("{G}observationResult")
             && row.object == TermValue::iri(&evaluation.quantity)
     }) {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "native execution did not derive the requested observationResult",
         ));
     }

@@ -998,6 +998,303 @@ fn tracing_selection(root: &Path, alias: &str) -> ProductionSelection {
     selected
 }
 
+const JSON_REVISION: &str = "0123456789abcdef0123456789abcdef01234567";
+
+fn json_selection(root: &Path, alias: &str) -> ProductionSelection {
+    let source = format!("git+https://github.com/Blackcat-Informatics/purrdf?rev={JSON_REVISION}");
+    write(
+        root,
+        "Cargo.lock",
+        &format!(
+            "version=4\n[[package]]\nname='purrdf-lex'\nversion='3.0.0'\nsource='{source}#{JSON_REVISION}'\n"
+        ),
+    );
+    let mut selected = selection();
+    selected.units.push(UnitSelection {
+        package: format!("{source}#purrdf-lex@3.0.0"),
+        manifest: None,
+        source: None,
+        target: "purrdf_lex".into(),
+        ..selected.units[0].clone()
+    });
+    selected.units[0].dependencies.push(1);
+    selected.units[0]
+        .dependency_names
+        .push(alias.replace('-', "_"));
+    selected
+}
+
+fn json_declaration(alias: &str) -> String {
+    format!(
+        "{alias}={{package='purrdf-lex',git='https://github.com/Blackcat-Informatics/purrdf',rev='{JSON_REVISION}',version='3'}}"
+    )
+}
+
+#[test]
+fn pinned_json_macros_bind_alias_package_revision_and_nested_inputs() {
+    for (alias, inherited, nested) in [
+        ("purrdf-lex", false, false),
+        ("lex-codec", true, false),
+        ("codec", false, true),
+    ] {
+        let binding = alias.replace('-', "_");
+        let call = format!(
+            "::{binding}::json_record!(impl ToJson for Record {{ include_str!(\"label.txt\") => value }}); ::{binding}::json_string_enum!(Mode {{ One => \"one\" }});"
+        );
+        let source = if nested {
+            format!("fn definitions() {{ quote! {{ {call} }}; }}")
+        } else {
+            call
+        };
+        let root = fixture(&format!(
+            "{source}\n#[cfg(test)] #[path=\"checks.rs\"] mod checks;"
+        ));
+        let declaration = json_declaration(alias);
+        write(
+            root.path(),
+            "Cargo.toml",
+            &format!("[workspace]\nmembers=['crate']\n[workspace.dependencies]\n{declaration}\n"),
+        );
+        let dependency = if inherited {
+            format!("{alias}={{workspace=true}}")
+        } else {
+            declaration
+        };
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            &format!(
+                "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{dependency}\n"
+            ),
+        );
+        write(root.path(), "crate/src/label.txt", "first input");
+        write(root.path(), "crate/src/checks.rs", "fn check() {}\n");
+        let selected = json_selection(root.path(), alias);
+        let first = InputInventory::collect(root.path(), &selected).unwrap();
+        assert!(first.files.contains_key("crate/src/label.txt"));
+        let excluded =
+            gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]).unwrap();
+        assert!(excluded.contains("crate/src/checks.rs"));
+        write(root.path(), "crate/src/label.txt", "second input");
+        assert_ne!(
+            first,
+            InputInventory::collect(root.path(), &selected).unwrap()
+        );
+    }
+}
+
+#[test]
+fn pinned_json_macro_revision_changes_require_matching_selection_and_identity() {
+    let root = fixture("::purrdf_lex::json_string_enum!(Mode { One => \"one\" });");
+    let manifest = format!(
+        "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{}\n",
+        json_declaration("purrdf-lex")
+    );
+    write(root.path(), "crate/Cargo.toml", &manifest);
+    let mut selected = json_selection(root.path(), "purrdf-lex");
+    let first = InputInventory::collect(root.path(), &selected).unwrap();
+    let new_revision = "abcdef0123456789abcdef0123456789abcdef01";
+    let lock = std::fs::read_to_string(root.path().join("Cargo.lock")).unwrap();
+    write(
+        root.path(),
+        "Cargo.lock",
+        &lock.replace(JSON_REVISION, new_revision),
+    );
+    assert!(InputInventory::collect(root.path(), &selected).is_err());
+    write(
+        root.path(),
+        "crate/Cargo.toml",
+        &manifest.replace(JSON_REVISION, new_revision),
+    );
+    selected.units[1].package = selected.units[1]
+        .package
+        .replace(JSON_REVISION, new_revision);
+    let second = InputInventory::collect(root.path(), &selected).unwrap();
+    assert_ne!(first.packages, second.packages);
+    assert_ne!(first.selection, second.selection);
+}
+
+#[test]
+fn pinned_json_macros_refuse_unproven_paths_shadowing_and_opaque_inputs() {
+    for source in [
+        "purrdf_lex::json_record!(impl ToJson for Record { 'x' => value });",
+        "json_record!(impl ToJson for Record { 'x' => value });",
+        "::other::purrdf_lex::json_record!(impl ToJson for Record {});",
+        "mod purrdf_lex { pub use std::include_str as json_record; } purrdf_lex::json_record!(\"hidden.txt\");",
+        "extern crate self as purrdf_lex; ::purrdf_lex::json_record!(impl ToJson for Record {});",
+        "::purrdf_lex::json_record!(impl ToJson for Record {}); extern crate self as purrdf_lex;",
+        "::purrdf_lex::json_record!(impl ToJson for Record { unknown_input!() => value });",
+        "::purrdf_lex::json_record!(impl ToJson for Record { include_str!(\"missing.txt\") => value });",
+        "::purrdf_lex::json_record!(impl ToJson for Record { {mod hidden; 'x'} => value });",
+        "quote! { ::purrdf_lex::json_string_enum!(Mode { extern crate self as purrdf_lex; }); }",
+        "::purrdf_lex::json_string_enum!(Mode { ${concat(One)} => \"one\" });",
+    ] {
+        let root = fixture(source);
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            &format!(
+                "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{}\n",
+                json_declaration("purrdf-lex")
+            ),
+        );
+        let selected = json_selection(root.path(), "purrdf-lex");
+        assert!(
+            InputInventory::collect(root.path(), &selected).is_err(),
+            "{source}"
+        );
+        let portable =
+            gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"]);
+        if source.contains("include_str!(\"missing.txt\")") {
+            // This query owns module declarations, not embedded data existence.
+            // The authenticated inventory above must still refuse missing bytes.
+            assert!(portable.is_ok(), "portable module ownership {source}");
+        } else {
+            assert!(portable.is_err(), "portable {source}");
+        }
+    }
+}
+
+fn json_mutated_declaration(mutation: &str) -> String {
+    let mut declaration = json_declaration("purrdf-lex");
+    match mutation {
+        "local" => declaration = "purrdf-lex={path='../fake'}".into(),
+        "package" => declaration = declaration.replace("package='purrdf-lex'", "package='fake'"),
+        "malformed-package" => {
+            declaration = declaration.replace("package='purrdf-lex'", "package=17")
+        }
+        "malformed-version" => declaration = declaration.replace("version='3'", "version=17"),
+        "repository" => {
+            declaration = declaration.replace(
+                "github.com/Blackcat-Informatics/purrdf",
+                "example.invalid/purrdf",
+            )
+        }
+        "floating" => declaration = declaration.replace(&format!(",rev='{JSON_REVISION}'"), ""),
+        "branch" => {
+            declaration = declaration.replace(&format!("rev='{JSON_REVISION}'"), "branch='main'")
+        }
+        "alias-collision" => declaration.push_str("\npurrdf_lex={package='fake',path='../fake'}"),
+        "missing-workspace" => declaration = "purrdf-lex={workspace=true}".into(),
+        _ => {}
+    }
+    declaration
+}
+
+fn json_mutated_policy(root: &Path, mutation: &str, selected: &mut ProductionSelection) {
+    if mutation == "lock-object" {
+        let lock = std::fs::read_to_string(root.join("Cargo.lock")).unwrap();
+        write(
+            root,
+            "Cargo.lock",
+            &lock.replace(
+                &format!("#{JSON_REVISION}"),
+                "#abcdef0123456789abcdef0123456789abcdef01",
+            ),
+        );
+    }
+    if mutation == "patch" {
+        write(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers=['crate']\n[patch.'https://github.com/Blackcat-Informatics/purrdf']\npurrdf-lex={path='fake'}\n",
+        );
+    }
+    if mutation == "malformed-patch" {
+        write(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers=['crate']\n[patch.'https://github.com/Blackcat-Informatics/purrdf']\nfake={package=17,path='fake'}\n",
+        );
+    }
+    if mutation == "malformed-replace" {
+        write(
+            root,
+            "Cargo.toml",
+            "replace=17\n[workspace]\nmembers=['crate']\n",
+        );
+    }
+    if mutation == "source-replacement" {
+        write(
+            root,
+            ".cargo/config.toml",
+            "[source.crates-io]\nreplace-with='replacement'\n[source.replacement]\ndirectory='vendor'\n",
+        );
+        selected.policy_files.push(".cargo/config.toml".into());
+    }
+}
+
+#[test]
+fn pinned_json_macros_refuse_fake_floating_patched_and_conflicting_packages() {
+    let source = "::purrdf_lex::json_record!(impl ToJson for Record {});";
+    for mutation in [
+        "local",
+        "package",
+        "repository",
+        "floating",
+        "branch",
+        "lock-object",
+        "patch",
+        "target",
+        "edition",
+        "unselected",
+        "alias-collision",
+        "source-replacement",
+        "malformed-package",
+        "malformed-patch",
+        "malformed-version",
+        "malformed-replace",
+        "missing-workspace",
+        "selected-alias",
+    ] {
+        let root = fixture(source);
+        let declaration = json_mutated_declaration(mutation);
+        let extra = if mutation == "target" {
+            "\n[target.'cfg(unix)'.dependencies]\npurrdf-lex={path='../fake'}\n"
+        } else {
+            ""
+        };
+        let edition = if mutation == "edition" {
+            "2015"
+        } else {
+            "2024"
+        };
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            &format!(
+                "[package]\nname='example'\nversion='1.0.0'\nedition='{edition}'\n[dependencies]\n{declaration}\n{extra}"
+            ),
+        );
+        let mut selected = json_selection(root.path(), "purrdf-lex");
+        if mutation == "local" {
+            selected.units[1].manifest = Some("crate/Cargo.toml".into());
+        }
+        if mutation == "edition" {
+            selected.units[0].edition = "2015".into();
+        }
+        if mutation == "unselected" {
+            selected.units[0].dependencies.clear();
+            selected.units[0].dependency_names.clear();
+        }
+        if mutation == "selected-alias" {
+            selected.units[0].dependency_names[0] = "other".into();
+        }
+        json_mutated_policy(root.path(), mutation, &mut selected);
+        assert!(
+            InputInventory::collect(root.path(), &selected).is_err(),
+            "{mutation}"
+        );
+        if !["unselected", "selected-alias"].contains(&mutation) {
+            assert!(
+                gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
+                    .is_err(),
+                "portable {mutation}"
+            );
+        }
+    }
+}
+
 #[test]
 fn renamed_tracing_spans_follow_selected_package_identity() {
     for nested in [false, true] {
