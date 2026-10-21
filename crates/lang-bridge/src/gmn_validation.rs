@@ -3,22 +3,47 @@
 
 //! Target-independent GMN validation verdicts over an explicitly supplied dictionary.
 
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::record::{DecodeError, FromJson, Record, ToJson};
+use purrdf_lex::json::{Object, Value};
 
 use crate::{Gmn1Document, GmnDictionary, gmn1_read};
 
 /// Public GMN validator result, retaining the codec's exact failure class and detail.
 /// Field order preserves the canonical JSON emitted by the browser wrapper.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GmnValidationVerdict {
     /// Whether the document resolved completely against the selected dictionary.
     pub conformant: bool,
     /// Codec diagnostic, present only when validation failed.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
     /// Full typed language failure IRI, present only when validation failed.
-    #[serde(rename = "failureClass", skip_serializing_if = "Option::is_none")]
     pub failure_class: Option<String>,
+}
+
+impl ToJson for GmnValidationVerdict {
+    /// Emit declaration-order members, omitting absent diagnostic strings.
+    fn to_json(&self) -> Value {
+        let mut object = Object::new().with("conformant", self.conformant);
+        if let Some(detail) = &self.detail {
+            object.insert("detail", detail.to_json());
+        }
+        if let Some(failure_class) = &self.failure_class {
+            object.insert("failureClass", failure_class.to_json());
+        }
+        Value::from(object)
+    }
+}
+
+impl FromJson for GmnValidationVerdict {
+    /// Admit an object with a required boolean, nullable strings and ignored unknown fields.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut record = Record::new(value, "a GMN validation verdict object")?;
+        Ok(Self {
+            conformant: record.required("conformant")?,
+            detail: record.optional("detail")?,
+            failure_class: record.optional("failureClass")?,
+        })
+    }
 }
 
 /// Validate a document using the caller's already prepared dictionary.
@@ -43,3 +68,7 @@ pub fn validate_gmn_document(
         },
     }
 }
+
+#[cfg(test)]
+#[path = "gmn_validation.tests.rs"]
+mod tests;

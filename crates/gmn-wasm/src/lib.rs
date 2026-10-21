@@ -152,7 +152,7 @@ mod tests {
             "pipeline/source-glyph-legend.json",
         )
         .expect("browser source legend has an authenticated producer selection");
-        let legend: serde_json::Value = serde_json::from_slice(&bytes).expect("source legend JSON");
+        let legend = purrdf_lex::json::record::read_document(&bytes).expect("source legend JSON");
         let rows = legend.as_array().expect("source legend is an array");
         assert!(!rows.is_empty(), "the source registry must contain glyphs");
         let mut glyphs = BTreeSet::new();

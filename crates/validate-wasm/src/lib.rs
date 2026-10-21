@@ -40,6 +40,9 @@
 
 use std::sync::OnceLock;
 
+use purrdf_lex::json;
+use purrdf_lex::json::record::ToJson;
+
 use gmeow_lang_bridge::{
     Gmn1Document, GmnDictionary,
     gmn_validation::validate_gmn_document,
@@ -115,7 +118,7 @@ pub fn gmn_validate(bytes: &[u8]) -> Result<String, JsError> {
 /// Marshal the same typed verdict the producer observes over its native dictionary.
 fn gmn_verdict_json(text: &str, dictionary: &GmnDictionary) -> String {
     let verdict = validate_gmn_document(&Gmn1Document::from_text(text), dictionary);
-    serde_json::to_string(&verdict).expect("GMN verdict contains only JSON scalars")
+    json::write_compact(&verdict.to_json())
 }
 
 /// The validator version (the crate's SemVer), exposed to JS as `version()`.
@@ -201,8 +204,8 @@ mod gmn_tests {
     const FROZEN_UNKNOWN_GLYPH: &str =
         "slices/grounding/lang/tests/gmn1-vectors/negative-codec/neg-uncovered-term.gmn";
 
-    fn verdict(path: &str) -> serde_json::Value {
-        static OBSERVATIONS: OnceLock<serde_json::Value> = OnceLock::new();
+    fn verdict(path: &str) -> json::Value {
+        static OBSERVATIONS: OnceLock<json::Value> = OnceLock::new();
         let observed = OBSERVATIONS.get_or_init(|| {
             let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
             let bytes = gmeow_action_cache::selection::source_artifacts::load(
@@ -211,7 +214,7 @@ mod gmn_tests {
                 "pipeline/wasm-gmn-verdicts.json",
             )
             .expect("browser GMN verdicts have an authenticated producer selection");
-            serde_json::from_slice(&bytes).expect("produced GMN verdict JSON")
+            json::record::read_document(&bytes).expect("produced GMN verdict JSON")
         });
         observed
             .get(path)
@@ -224,7 +227,7 @@ mod gmn_tests {
         let verdict = verdict(FROZEN_POSITIVE);
         assert_eq!(
             verdict["conformant"],
-            serde_json::Value::Bool(true),
+            json::Value::Bool(true),
             "the frozen positive vector must validate against the embedded codebook, got {verdict}"
         );
     }
@@ -238,14 +241,12 @@ mod gmn_tests {
         let verdict = verdict(FROZEN_UNKNOWN_GLYPH);
         assert_eq!(
             verdict["conformant"],
-            serde_json::Value::Bool(false),
+            json::Value::Bool(false),
             "a document naming an unbound/uncovered term must be REJECTED, got {verdict}"
         );
         assert_eq!(
             verdict["failureClass"],
-            serde_json::Value::String(
-                "https://blackcatinformatics.ca/lang/GmnUncoveredTerm".to_owned()
-            ),
+            json::Value::String("https://blackcatinformatics.ca/lang/GmnUncoveredTerm".to_owned()),
             "the rejection must be the codebook-resolution class GmnUncoveredTerm (not a \
              grammar/syntax class), proving the embedded codebook was actually consulted: {verdict}"
         );
@@ -266,11 +267,11 @@ mod gmn_tests {
             "{\"conformant\":true}"
         );
         let negative = gmn_verdict_json("@synthetic_unknown_sigil{}", &dictionary);
-        let verdict: serde_json::Value = serde_json::from_str(&negative).expect("verdict JSON");
-        assert_eq!(verdict["conformant"], false);
+        let verdict = json::record::read_document(negative.as_bytes()).expect("verdict JSON");
+        assert_eq!(verdict["conformant"], json::Value::Bool(false));
         assert_eq!(
             verdict["failureClass"],
-            "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar"
+            json::Value::from("https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar")
         );
         assert!(
             !verdict["detail"]

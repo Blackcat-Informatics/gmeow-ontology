@@ -36,16 +36,15 @@ gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 # Native codebook hydration and its original-source digest are owned by lang-bridge;
 # this shim has no authored RDF parser or duplicate source-digest implementation.
 # The `gmn_validate` verdict is marshalled as a canonical JSON object
-# (`{conformant, failureClass?, detail?}`) at the JS boundary — the same serde surface
-# the Tier-1 `validate` Report crosses on. wasm-pure.
-serde_json.workspace = true
+# (`{conformant, detail?, failureClass?}`) through the shared native record owner.
+purrdf-lex.workspace = true
 # Pinned once in the workspace: the CLI that generates the JS bindings must match the
 # library version byte-for-byte, and one CLI serves every wasm crate in the build.
 # `make wasm-pkg` and the CI Node lane install the matching `wasm-bindgen-cli`.
 wasm-bindgen.workspace = true
 # Host-target unit tests parse the `gmn_validate` JSON verdict back to assert the exact
 # `conformant` flag + `failureClass` IRI (the load-bearing unknown-glyph rejection); they
-# reuse the `serde_json` dependency above (a normal dep is already in scope for tests).
+# reuse the native JSON dependency above (a normal dep is already in scope for tests).
 
 [dev-dependencies]
 # Corpus-backed host contracts only read compact, producer-selected source verdicts.
