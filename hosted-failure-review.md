@@ -1,0 +1,7 @@
+# Hosted fixture-prefix failure and source diagnosis
+
+Full completed job log119512155296 from run39680683409 (PR1934 exactsource d42fc820d) captured losslessly with gh api logs; terminal escapes retained, no content truncation. Source recipe/prebuild/producer/helpers/lint passed, but selected fixture production failed at22:48:58Z on missing native correspondence catalog. The log records cache candidate-not-found and actual stage-mappings execution; no stale-cache speculation.
+
+Root source reviewed research_objects.rs1640 artifact lookup and mappings.rs1465 namedgraph construction; independent source investigator confirmed StageProduct::artifact reads byte lookaside only and carrier path fanout occurs later. Exact defect is wrong-lane consumer. The repair must use existing producer_graph from same-run upstream and native parse_correspondence; retain owned-source/ontology catalog admission and authenticated product restore identity. No extra serialization, duplicated byte artifact, disk fallback, altered policies or cache clearing. See plan.md. Full production acceptance remains failed until hosted descendant proves it repaired.
+
+Generation(a)119512155321 also completedFAIL2026-10-21T23:02:46Z, exact same missing-catalog error; fullhostlog retained hosted-generation-a.log. No ONNX parity graph frame in that output; no fixture change authorized by this evidence. Generation(b) remains running.

@@ -1,0 +1,137 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(research_catalog_) | test(projection_literal_catalog_native_rdf_roundtrip_keeps_exact_support)' --no-tests=fail
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/errors)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-form)
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/build-inputs)
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/license)
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cost-measure)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/ns)
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/test-batch-macros)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/foundation-corpus)
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/perf-evidence)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/query-wasm)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math-lift)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cli-core)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/helper-census)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/xtask)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/music)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect-ingest)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 12s
+────────────
+ Nextest run ID 7e89d467-c004-4e49-abe9-9b7800a4f869 with nextest profile: ci
+    Starting 4 tests across 226 binaries (8067 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.006s] (1/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_byte_bait_cannot_replace_required_named_graph
+        FAIL [   0.006s] (2/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission
+  stdout ───
+
+    running 1 test
+    test stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission ... FAILED
+
+    failures:
+
+    failures:
+        stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1075 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission' (841719) panicked at crates/pipeline/src/stages/research_objects.catalog.tests.rs:38:62:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value", context: [], antecedents: [], source: Some(Correspondence { detail: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/correspondence.rs", line: 1066, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.007s] (3/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program
+  stdout ───
+
+    running 1 test
+    test stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program ... FAILED
+
+    failures:
+
+    failures:
+        stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1075 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program' (841716) panicked at crates/pipeline/src/stages/research_objects.catalog.tests.rs:38:62:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value", context: [], antecedents: [], source: Some(Correspondence { detail: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/correspondence.rs", line: 1066, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.008s] (4/4) gmeow-pipeline projection_execution::tests::projection_literal_catalog_native_rdf_roundtrip_keeps_exact_support
+────────────
+     Summary [   0.044s] 4 tests run: 2 passed, 2 failed, 8067 skipped
+        FAIL [   0.006s] (2/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission
+  stdout ───
+
+    running 1 test
+    test stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission ... FAILED
+
+    failures:
+
+    failures:
+        stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1075 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission' (841719) panicked at crates/pipeline/src/stages/research_objects.catalog.tests.rs:38:62:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value", context: [], antecedents: [], source: Some(Correspondence { detail: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/correspondence.rs", line: 1066, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.007s] (3/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program
+  stdout ───
+
+    running 1 test
+    test stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program ... FAILED
+
+    failures:
+
+    failures:
+        stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1075 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program' (841716) panicked at crates/pipeline/src/stages/research_objects.catalog.tests.rs:38:62:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value", context: [], antecedents: [], source: Some(Correspondence { detail: "<https://blackcatinformatics.ca/logic/correspondence-program> <https://blackcatinformatics.ca/logic/hasPreservation> requires one canonical logic value" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/correspondence.rs", line: 1066, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:717: nextest-synthetic] Error 100

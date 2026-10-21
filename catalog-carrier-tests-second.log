@@ -1,0 +1,19 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(research_catalog_) | test(projection_literal_catalog_native_rdf_roundtrip_keeps_exact_support)' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 43s
+────────────
+ Nextest run ID ce5e3abf-4956-4e72-a0c6-63b62959834c with nextest profile: ci
+    Starting 4 tests across 226 binaries (8067 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.135s] (1/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_byte_bait_cannot_replace_required_named_graph
+        PASS [   0.185s] (2/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_graph_without_byte_artifact_reaches_native_admission
+        PASS [   0.209s] (3/4) gmeow-pipeline stages::research_objects::catalog_tests::research_catalog_authenticated_restore_preserves_graph_and_native_program
+        PASS [   0.216s] (4/4) gmeow-pipeline projection_execution::tests::projection_literal_catalog_native_rdf_roundtrip_keeps_exact_support
+────────────
+     Summary [   0.256s] 4 tests run: 4 passed, 8067 skipped
