@@ -40,6 +40,54 @@ fn governance(count: u64) -> GovernanceFloors {
 }
 
 #[test]
+fn owner_set_installed_debt_reader_uses_every_declared_boundary() {
+    use crate::model::GroundingOwners;
+    let directory = source();
+    let mut policy = governance(0);
+    policy.ceilings.clear();
+    let descriptor = &mut policy.vocabularies[0];
+    descriptor.prefix = "gufo".into();
+    descriptor.namespaces = vec!["https://w3id.org/gufo#".into()];
+    descriptor.count_kind = CountKind::TypedAxiom;
+    descriptor.owners = GroundingOwners::new([
+        GroundingOwners::MATH.to_owned(),
+        GroundingOwners::LANG.to_owned(),
+    ])
+    .unwrap();
+    std::fs::write(
+        directory.path().join("module.ttl"),
+        format!(
+            r#"{PREFIXES}
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+        ex:Thing skos:relatedMatch <https://w3id.org/gufo#Kind> {{|
+            a logic:GroundingCorrespondence ; gmeow:sssomFile "tiny.sssom.tsv" ;
+            gmeow:justification ex:curation ; logic:sourceEndpoint ex:Thing ;
+            logic:targetEndpoint <https://w3id.org/gufo#Kind> ;
+            logic:morphismClass logic:BridgeView ;
+            logic:morphismKind logic:CommitmentShiftingBridge ;
+            logic:preservationKind logic:ValidationOnly
+        |}} ."#
+        ),
+    )
+    .unwrap();
+    for (surface, expected) in [
+        (GroundingOwners::LANG, 0),
+        (GroundingOwners::MATH, 0),
+        (GroundingOwners::LOGIC, 1),
+    ] {
+        std::fs::write(
+            directory.path().join("manifest.ttl"),
+            format!("{PREFIXES} <{surface}> a gmeow:Slice ."),
+        )
+        .unwrap();
+        let rows = measure_slice_debt(directory.path(), &policy).unwrap();
+        assert_eq!(rows[0].measured, expected, "{surface}");
+        assert_eq!(rows[0].ceiling, 0);
+    }
+}
+
+#[test]
 fn projection_debt_measures_recursive_authoring_only_without_a_checkout() {
     let directory = source();
     let root = directory.path();

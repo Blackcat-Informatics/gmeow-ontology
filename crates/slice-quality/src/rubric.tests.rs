@@ -391,10 +391,93 @@ const VOCAB_SH: &str = r#"gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
     gmeow:vocabularyPrefix "sh" ;
     gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#" ;
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
-    gmeow:vocabularyOwner gmeow:sliceLogic ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindShape" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
+
+#[test]
+fn owner_set_loads_every_owner_in_deterministic_order() {
+    let body = format!(
+        "{VOCAB_SH}\ngmeow:projVocab-sh gmeow:vocabularyOwner \
+        <https://blackcatinformatics.ca/gmeow/slices/math>, \
+        <https://blackcatinformatics.ca/gmeow/slices/lang>, \
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ."
+    );
+    let rubric = load(&rubric_with(&body)).unwrap();
+    assert_eq!(
+        rubric.floors.vocabularies[0]
+            .owners
+            .iter()
+            .collect::<Vec<_>>(),
+        vec![
+            GroundingOwners::LANG,
+            GroundingOwners::LOGIC,
+            GroundingOwners::MATH
+        ]
+    );
+    assert!(GroundingOwners::new(Vec::new()).is_err());
+}
+
+#[test]
+fn owner_set_rejects_every_invalid_or_missing_object() {
+    let valid = "gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;";
+    for invalid in [
+        "",
+        "gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/finance> ;",
+        "gmeow:vocabularyOwner <https://blackcatinformatics.ca/logic/> ;",
+        "gmeow:vocabularyOwner \"logic\" ;",
+        "gmeow:vocabularyOwner [] ;",
+        "gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic>, \"bad\" ;",
+        "gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic>, [] ;",
+        "gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic>, <https://foreign.example/owner> ;",
+    ] {
+        let body = VOCAB_SH.replace(valid, invalid);
+        let error = load(&rubric_with(&body)).unwrap_err();
+        assert!(
+            error.message().contains("vocabularyOwner"),
+            "{invalid}: {error}"
+        );
+        assert!(error.message().contains("projVocab-sh"), "{error}");
+    }
+}
+
+#[test]
+fn owner_set_canonical_restriction_derives_required_unbounded_value_set() {
+    use gmeow_logic_compile::ir::ConstraintComponent;
+    // Shape derivation validates GMEOW authoring namespaces, not foreign classes.
+    let source = r#"@prefix g: <https://blackcatinformatics.ca/gmeow/testing/owner-set/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        g:Vocabulary a logic:Class ; logic:subClassOf [ a logic:Restriction ;
+            logic:onProperty g:owner ; logic:allValuesFrom [ logic:oneOf (
+                <https://blackcatinformatics.ca/gmeow/slices/logic>
+                <https://blackcatinformatics.ca/gmeow/slices/math>
+                <https://blackcatinformatics.ca/gmeow/slices/lang> ) ] ] .
+        [ a logic:ClosureEntry ; logic:onClass g:Vocabulary ;
+            logic:closureKey "https://blackcatinformatics.ca/gmeow/testing/owner-set/owner" ;
+            logic:closureValue logic:ClosedWorldClosure ] ."#;
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(&dataset).unwrap();
+    let properties: Vec<_> = shapes
+        .iter()
+        .flat_map(|shape| &shape.properties)
+        .filter(|property| {
+            property.path == "https://blackcatinformatics.ca/gmeow/testing/owner-set/owner"
+        })
+        .collect();
+    assert!(
+        properties
+            .iter()
+            .any(|property| property.min_count == Some(1))
+    );
+    assert!(
+        properties
+            .iter()
+            .all(|property| property.max_count.is_none())
+    );
+    assert!(properties.iter().flat_map(|property| &property.components)
+        .any(|component| matches!(component, ConstraintComponent::In(values) if values.len() == 3)));
+}
 
 #[test]
 fn projection_vocabulary_and_ceiling_load() {
@@ -443,7 +526,7 @@ fn vocabulary_with_unknown_count_kind_hard_fails() {
     gmeow:vocabularyPrefix "sh" ;
     gmeow:vocabularyNamespace "http://www.w3.org/ns/shacl#" ;
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
-    gmeow:vocabularyOwner gmeow:sliceLogic ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindBogus" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
@@ -460,7 +543,7 @@ fn vocabulary_with_no_namespace_hard_fails() {
     let body = r#"gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
     gmeow:vocabularyPrefix "sh" ;
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;
-    gmeow:vocabularyOwner gmeow:sliceLogic ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:vocabularyCountKind "countKindShape" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."#;
@@ -479,7 +562,7 @@ gmeow:projVocab-sh2 a gmeow:ProjectionVocabulary ;\n\
     gmeow:vocabularyPrefix \"sh\" ;\n\
     gmeow:vocabularyNamespace \"http://example.org/other#\" ;\n\
     gmeow:vocabularySubsumedBy gmeow:sliceLogic ;\n\
-    gmeow:vocabularyOwner gmeow:sliceLogic ;\n\
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;\n\
     gmeow:vocabularyCountKind \"countKindShape\" ;\n\
     gmeow:vocabularyDefaultCeiling 0 ;\n\
     gmeow:vocabularyPreservation gmeow:presSoundUnder ."

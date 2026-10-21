@@ -1315,7 +1315,8 @@ pub fn ceiling_conservation(
 /// the working registry is WEAKER than base along any axis:
 /// - the vocabulary is DELETED (base-only) — a guard silently dropped;
 /// - a `gmeow:vocabularyNamespace` was REMOVED (the match surface narrowed);
-/// - the `count_kind` was WEAKENED to the non-counting `NonRdfSurface`;
+/// - the `count_kind` was CHANGED (different recognizers have no proven ordering);
+/// - the grounding-owner set was EXPANDED (more surfaces receive exemptions);
 /// - a `StructuralAxiom` `counted_predicate` was REMOVED (fewer axioms counted);
 /// - the `default_ceiling` was RAISED (more free headroom for unlisted slices);
 /// - the `alignment_predicate` exemption set was EXPANDED (more bridges waved through).
@@ -1328,7 +1329,6 @@ pub fn registry_ratchet_monotonicity(
     base: &[crate::model::ProjectionVocabulary],
     working: &[crate::model::ProjectionVocabulary],
 ) -> Vec<String> {
-    use crate::model::CountKind;
     let by_prefix = |vs: &[crate::model::ProjectionVocabulary]| {
         vs.iter()
             .map(|v| (v.prefix.clone(), v.clone()))
@@ -1352,11 +1352,19 @@ pub fn registry_ratchet_monotonicity(
                 ));
             }
         }
-        if b.count_kind != CountKind::NonRdfSurface && w.count_kind == CountKind::NonRdfSurface {
+        if b.count_kind != w.count_kind {
             violations.push(format!(
-                "{file_label}: guarded vocabulary {} count-kind WEAKENED to countKindNonRdfSurface — it now counts nothing",
-                b.prefix
+                "{file_label}: guarded vocabulary {} count-kind CHANGED {:?} → {:?} — different recognizers have no proven strength ordering",
+                b.prefix, b.count_kind, w.count_kind
             ));
+        }
+        for owner in w.owners.iter() {
+            if !b.owners.contains(owner) {
+                violations.push(format!(
+                    "{file_label}: guarded vocabulary {} grounding-owner set EXPANDED — <{owner}> added; a new authoring boundary receives bridge exemptions",
+                    b.prefix
+                ));
+            }
         }
         for cp in &b.counted_predicates {
             if !w.counted_predicates.contains(cp) {

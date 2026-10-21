@@ -326,7 +326,7 @@ struct AlignmentBridges {
     all: BTreeSet<(TermId, TermId, TermId)>,
     /// The subset carrying a complete grounding envelope
     /// (`is_native_validated_grounding_term_cell`): exempt ONLY on the vocabulary's
-    /// owner surface (the C1e owner boundary).
+    /// declared owner surfaces (the C1e owner boundary).
     grounding: BTreeSet<(TermId, TermId, TermId)>,
 }
 
@@ -351,25 +351,32 @@ impl AlignmentBridges {
     }
 }
 
-/// Whether the enumerated triple `(subject, predicate, object)` is a by-reference
-/// alignment/bridge link exempt from the ungrounded residue on `surface_iri`. Three
-/// frontends are recognized:
-///
-/// * a NATIVE grounding correspondence (complete envelope on the reifier) — exempt
-///   ONLY on the vocabulary's owner surface (C1e: an external grounding term has one
-///   authoring home);
-/// * any OTHER native alignment cell base triple with at least one EXTERNAL endpoint —
-///   a first-class correspondence record, exempt on every surface (an internal
-///   `gmeow`-to-`gmeow` cell stays in the residue as a genuine second source);
-/// * the node-authored `ProjectionMapping` frontend (not migrated) — its flat
-///   `logic:targetEndpoint`, or the sole `toClass`/`toPredicate`/`edoalTarget` binding
-///   target of a validated mapping, on the owner surface with an external object.
+/// Real authoring-boundary measurement versus the explicit owner-neutral API.
+#[derive(Clone, Copy)]
+enum OwnerBoundary<'a> {
+    Surface(&'a str),
+    Neutral,
+}
+
+impl OwnerBoundary<'_> {
+    fn admits(self, vocab: &ProjectionVocabulary) -> bool {
+        match self {
+            Self::Surface(surface) => vocab.owners.contains(surface),
+            Self::Neutral => true,
+        }
+    }
+}
+
+/// Existing bridge recognition, with grounding authority checked by set membership.
+/// Native complete envelopes and validated node/binding target edges retain their
+/// exact validation requirements. Ordinary structural alignment keeps its distinct
+/// owner-independent policy; this does not exempt arbitrary template atoms.
 fn is_bridge_exempt(
     ds: &RdfDataset,
     subject: TermId,
     predicate: TermId,
     object: TermId,
-    surface_iri: &str,
+    boundary: OwnerBoundary<'_>,
     vocab: &ProjectionVocabulary,
     bridges: &AlignmentBridges,
 ) -> bool {
@@ -377,7 +384,7 @@ fn is_bridge_exempt(
         |t: TermId| matches!(ds.resolve(t), TermRef::Iri(iri) if !iri.starts_with(GMEOW));
     let triple = (subject, predicate, object);
     if bridges.grounding.contains(&triple) {
-        return surface_iri == vocab.owner;
+        return boundary.admits(vocab);
     }
     // An ordinary (non-grounding) native alignment cell is a first-class correspondence
     // record only where the counted surface is the STRUCTURAL rdfs taxonomy: a domain
@@ -391,9 +398,9 @@ fn is_bridge_exempt(
     {
         return true;
     }
-    // The node-authored ProjectionMapping frontend is exempt only on the owner surface
+    // The node-authored ProjectionMapping frontend is exempt only at a declared owner
     // when its target edge points at an external object.
-    if surface_iri != vocab.owner || !external(object) {
+    if !boundary.admits(vocab) || !external(object) {
         return false;
     }
     let Some(predicate_iri) = (match ds.resolve(predicate) {
@@ -435,10 +442,19 @@ pub fn enumerate(
     mode: CountMode,
     surface_iri: &str,
 ) -> Vec<Construct> {
+    enumerate_at(ds, vocab, mode, OwnerBoundary::Surface(surface_iri))
+}
+
+fn enumerate_at(
+    ds: &RdfDataset,
+    vocab: &ProjectionVocabulary,
+    mode: CountMode,
+    boundary: OwnerBoundary<'_>,
+) -> Vec<Construct> {
     match vocab.count_kind {
         CountKind::Shape => enumerate_shape(ds, mode),
-        CountKind::TypedAxiom => enumerate_typed_axiom(ds, vocab, mode, surface_iri),
-        CountKind::StructuralAxiom => enumerate_structural_axiom(ds, vocab, mode, surface_iri),
+        CountKind::TypedAxiom => enumerate_typed_axiom(ds, vocab, mode, boundary),
+        CountKind::StructuralAxiom => enumerate_structural_axiom(ds, vocab, mode, boundary),
         CountKind::NonRdfSurface => Vec::new(),
     }
 }
@@ -453,7 +469,7 @@ fn enumerate_structural_axiom(
     ds: &RdfDataset,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
-    surface_iri: &str,
+    boundary: OwnerBoundary<'_>,
 ) -> Vec<Construct> {
     if mode == CountMode::Historical {
         return Vec::new();
@@ -481,7 +497,7 @@ fn enumerate_structural_axiom(
         let grounded = resolvable_grounding(ds, q.s);
         // A structural axiom is exempt only when it is the target edge of a native
         // alignment correspondence. Raw hand-authored structural triples never are.
-        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, surface_iri, vocab, &bridges);
+        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, boundary, vocab, &bridges);
         let witness = anchors.witness(ds, q.s);
         out.push(Construct {
             key,
@@ -573,7 +589,7 @@ fn enumerate_typed_axiom(
     ds: &RdfDataset,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
-    surface_iri: &str,
+    boundary: OwnerBoundary<'_>,
 ) -> Vec<Construct> {
     if mode == CountMode::Historical {
         return Vec::new();
@@ -619,8 +635,8 @@ fn enumerate_typed_axiom(
         // any other external-facing alignment cell) or the target edge of a validated
         // ProjectionMapping. A raw hand-authored rdfs/owl edge remains second-source
         // residue. C1e strict owner boundary: the grounding-correspondence exemption
-        // applies ONLY on the vocabulary's OWNER surface.
-        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, surface_iri, vocab, &bridges);
+        // applies ONLY on a declared grounding-owner surface.
+        let is_bridge = is_bridge_exempt(ds, q.s, q.p, q.o, boundary, vocab, &bridges);
         let witness = anchors.witness(ds, q.s);
         out.push(Construct {
             key,
@@ -647,7 +663,15 @@ pub fn residue_constructs_for_surface(
     vocab: &ProjectionVocabulary,
     surface_iri: &str,
 ) -> Vec<Construct> {
-    let mut out = enumerate(ds, vocab, CountMode::FullResidue, surface_iri);
+    residue_constructs_at(ds, vocab, OwnerBoundary::Surface(surface_iri))
+}
+
+fn residue_constructs_at(
+    ds: &RdfDataset,
+    vocab: &ProjectionVocabulary,
+    boundary: OwnerBoundary<'_>,
+) -> Vec<Construct> {
+    let mut out = enumerate_at(ds, vocab, CountMode::FullResidue, boundary);
     out.retain(|c| !c.grounded && !c.is_bridge);
     out
 }
@@ -664,13 +688,13 @@ pub fn residue_for_surface(
     residue_constructs_for_surface(ds, vocab, surface_iri).len() as u64
 }
 
-/// The ungrounded residue measured AS IF on the vocabulary's own owner surface — the
+/// The ungrounded residue measured without an authoring-boundary restriction — the
 /// owner-agnostic view where a validated correspondence cell is exemptible. Callers
 /// that know the real surface (the gate/seed) use [`residue_for_surface`] so the
-/// strict owner boundary is enforced; this wrapper is for owner-neutral contexts.
+/// strict owner boundary is enforced; this wrapper is explicitly owner-neutral.
 #[must_use]
 pub fn residue(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> u64 {
-    residue_for_surface(ds, vocab, &vocab.owner)
+    residue_constructs_at(ds, vocab, OwnerBoundary::Neutral).len() as u64
 }
 
 // -----------------------------------------------------------------------------
@@ -683,7 +707,7 @@ pub fn residue(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> u64 {
 /// Residue is a function of `(dataset, surface_iri)`, not of the construct alone, and
 /// two of that function's inputs genuinely change under relocation:
 ///
-/// * [`is_bridge_exempt`] returns exempt IFF `surface_iri == vocab.owner` for a
+/// * [`is_bridge_exempt`] returns exempt IFF the surface belongs to `vocab.owners` for a
 ///   grounding correspondence, so a construct crossing the owner boundary has residue
 ///   CREATED or DESTROYED with no authoring at all
 ///   ([`Self::ExemptionShiftOwnerBoundary`] / [`Self::BridgeExemptBothSides`]);
@@ -802,7 +826,7 @@ pub fn relocation_reasons(
 #[must_use]
 #[allow(clippy::cast_precision_loss)]
 pub fn grounded_fraction(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> f64 {
-    let constructs = enumerate(ds, vocab, CountMode::Historical, &vocab.owner);
+    let constructs = enumerate_at(ds, vocab, CountMode::Historical, OwnerBoundary::Neutral);
     if constructs.is_empty() {
         return 1.0;
     }
@@ -822,7 +846,10 @@ pub fn shacl_vocab() -> ProjectionVocabulary {
         prefix: "sh".to_owned(),
         namespaces: vec!["http://www.w3.org/ns/shacl#".to_owned()],
         subsumed_by: LOGIC_NS.to_owned(),
-        owner: LOGIC_NS.to_owned(),
+        owners: crate::model::GroundingOwners::new([
+            crate::model::GroundingOwners::LOGIC.to_owned()
+        ])
+        .expect("canonical singleton grounding owner"),
         count_kind: CountKind::Shape,
         default_ceiling: 0,
         preservation: "SoundUnderApproximation".to_owned(),

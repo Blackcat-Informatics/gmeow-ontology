@@ -51,8 +51,8 @@ pub use lint::{
 };
 pub use model::{
     Axis, AxisFloorCommitment, AxisGrade, CeilingRelocation, ContextScope, CountKind, Exemption,
-    GovernanceFloors, MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary,
-    Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
+    GovernanceFloors, GroundingOwners, MeasurementStandard, ProjectionCeilingCommitment,
+    ProjectionVocabulary, Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
 pub use score::ScoringEnv;
 
@@ -1177,7 +1177,7 @@ pub fn slice_iri_of_dir(slice_dir: &Path) -> gmeow_errors::Result<String> {
 /// slice's bytes AS IF they sat at a DIFFERENT (destination) surface is exactly this
 /// one call with the destination IRI — no second API. That matters because residue is
 /// NOT conserved under relocation: `counting::is_bridge_exempt` is exempt only when
-/// `surface_iri == vocab.owner`, so crossing the owner boundary creates or destroys
+/// the surface belongs to `vocab.owners`, so crossing that boundary creates or destroys
 /// residue with no authoring at all. See [`counting::RelocationReason`] and
 /// [`relocation_reasons_over_texts`].
 ///

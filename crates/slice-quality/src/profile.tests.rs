@@ -56,6 +56,28 @@ fn standards(source: &str, key: &str) -> gmeow_errors::Result<BundleStandards> {
     )
 }
 
+#[test]
+fn owner_set_standalone_standard_admits_complete_sets_and_refuses_bad_members() {
+    let registry = r#"ex:guard a gmeow:ProjectionVocabulary ;
+        gmeow:vocabularyPrefix "test" ; gmeow:vocabularyNamespace "https://example.org/test#" ;
+        gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+        gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/math>,
+            <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+        gmeow:vocabularyDefaultCeiling 0 ; gmeow:vocabularyPreservation logic:ValidationOnly ."#;
+    let source = format!("{}{registry}", model());
+    let standard = standards(&source, "external-sacred").unwrap();
+    score_external_slice_from_files(&standard, &files()).unwrap();
+    let malformed = source.replace(
+        "<https://blackcatinformatics.ca/gmeow/slices/lang> ;",
+        "\"not an owner\" ;",
+    );
+    let error = standards(&malformed, "external-sacred")
+        .err()
+        .expect("invalid owner must refuse the selected standard");
+    assert!(error.message().contains("vocabularyOwner"), "{error}");
+}
+
 fn files() -> BTreeMap<String, Vec<u8>> {
     BTreeMap::from([
         (

@@ -9,13 +9,13 @@
 //! axis is a slice edit, never a code change. A malformed rubric (an axis with no
 //! producer, a threshold with no tier) is a hard error, never a silent skip.
 
-use purrdf::RdfDataset;
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 
 use crate::graph::{all_iris, all_lits, g, id, instances_of, label_of, one_iri, one_lit};
 use crate::model::{
     Axis, AxisFloorCommitment, CeilingRelocation, ContextScope, CountKind, Exemption,
-    GovernanceFloors, MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary,
-    Rubric, SliceTierFloorCommitment, Threshold, Tier,
+    GovernanceFloors, GroundingOwners, MeasurementStandard, ProjectionCeilingCommitment,
+    ProjectionVocabulary, Rubric, SliceTierFloorCommitment, Threshold, Tier,
 };
 
 /// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
@@ -374,17 +374,22 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
                     "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularySubsumedBy"
                 ))
             })?;
-        // Every guarded vocabulary is owned by exactly one grounding slice (logic:,
-        // math:, or lang:) — the only boundary at which its external terms may be
-        // authored. A missing owner cannot drive the owner-boundary enforcement, so it
-        // is a hard fail, never a silent default (.goals no-optionality).
-        let owner = vocab_owner_p
-            .and_then(|p| one_iri(ds, sid, p))
-            .ok_or_else(|| {
-                rubric_err(format!(
-                    "projection vocabulary {iri} ({prefix}) has no gmeow:vocabularyOwner"
-                ))
-            })?;
+        // Inspect every object: filtering to IRIs would discard malformed owners
+        // beside a valid assertion and silently grant a partial authority set.
+        let mut owner_values = Vec::new();
+        if let Some(predicate) = vocab_owner_p {
+            for quad in ds.quads_for_pattern(Some(sid), Some(predicate), None, GraphMatch::Any) {
+                let TermRef::Iri(owner) = ds.resolve(quad.o) else {
+                    return Err(rubric_err(format!(
+                        "projection vocabulary {iri} ({prefix}) vocabularyOwner must be an IRI naming a grounding slice"
+                    )));
+                };
+                owner_values.push(owner.to_owned());
+            }
+        }
+        let owners = GroundingOwners::new(owner_values).map_err(|error| {
+            rubric_err(format!("projection vocabulary {iri} ({prefix}): {error}"))
+        })?;
         let count_kind_local = vocab_countkind_p
             .and_then(|p| one_lit(ds, sid, p))
             .ok_or_else(|| {
@@ -451,7 +456,7 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
                 prefix,
                 namespaces,
                 subsumed_by,
-                owner,
+                owners,
                 count_kind,
                 default_ceiling,
                 preservation,
