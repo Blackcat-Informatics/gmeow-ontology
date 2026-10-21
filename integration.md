@@ -1,0 +1,7 @@
+# Integration assessment
+
+Actual PR1935 head6ba6693612ba9dd119848fc2b760af2e11067a12, base4fd171f99fac11b11f73d3abae36ec34266f167b. Fresh fetch completed; git merge-tree --write-tree --no-messages origin/main HEAD exit0, candidate59e2e88e6461e2e63a9de201940d53a0eb8c3e95. No branch sync, candidate checkout or combined-tree execution.
+
+Independent source review compared the base delta to unit base186c4ce0e and found only an independent REP_QUERIES documentation hunk in shared source. The projection/catalog owners introduce no competing diagnostic implementation or changed native JSON API. Keep all three additive lock edges. No specific uncovered combined behavior requires execution: reuse PR1934 independently qualified closure plus this unit29 focused controls/strict/helpers/source/lint/hooks, with the combined candidate explicitly unexecuted. See integration-source-review.md and validation.md.
+
+Final exact-head hosted lintSUCCESS; helpers/prebuild/producerIN_PROGRESS and CodeRabbitPENDING in39684595556, not failures or acceptance. Full feedback refreshed immediately before preflight:0formal/0inline/0threads; processing conversation6327675361 unchanged at22:11:25Z. User explicitly reconfirmed sequential merges ignoring CI and no local corpus/producer/full gate. Parent1776/full authenticated/shipped/installed/excluded embedded acceptance remains open. Refresh before ghprsq; compare its actual result once.

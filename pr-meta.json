@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "4fd171f99fac11b11f73d3abae36ec34266f167b",
+  "headRefName": "paudley/1776-deps-replace-serde-serde-json-with",
+  "headRefOid": "6ba6693612ba9dd119848fc2b760af2e11067a12",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1935,
+  "state": "OPEN",
+  "title": "fix: use native diagnostic-node JSON for cache replay",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1935"
+}

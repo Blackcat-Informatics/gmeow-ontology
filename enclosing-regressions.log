@@ -1,0 +1,22 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-errors) & (test(recorded_rejection_preserves_causal_closure_and_live_source_at_the_boundary) | test(typed_citations_survive_join_projection_and_replay) | test(fresh_and_replayed_ledger_are_byte_identical_and_carry_no_arena_ref) | test(node_contradicting_its_pinned_digest_is_a_hard_fail) | test(named_graph_identity_survives_merge_replay_and_every_projection) | test(graph_replay_refuses_relative_or_malformed_identity_without_normalizing) | test(native_source_preserves_explicit_domain_semantics_and_original_anchor) | test(native_subjects_remain_distinct_from_the_stage_location_through_replay) | test(native_presentation_remains_typed_until_cause_lowering) | test(declared_failure_class_survives_the_recorded_diagnostic_and_finding))' --no-tests=fail
+    Finished `test` profile [optimized] target(s) in 0.61s
+────────────
+ Nextest run ID e9dec055-46f5-4fa3-86b5-bee9ba070bfd with nextest profile: ci
+    Starting 10 tests across 1 binary (138 tests and 226 binaries skipped)
+        PASS [   0.003s] ( 1/10) gmeow-errors rdf::tests::native_source_preserves_explicit_domain_semantics_and_original_anchor
+        PASS [   0.003s] ( 2/10) gmeow-errors ledger::tests::fresh_and_replayed_ledger_are_byte_identical_and_carry_no_arena_ref
+        PASS [   0.003s] ( 3/10) gmeow-errors ledger::tests::typed_citations_survive_join_projection_and_replay
+        PASS [   0.003s] ( 4/10) gmeow-errors ledger::tests::node_contradicting_its_pinned_digest_is_a_hard_fail
+        PASS [   0.003s] ( 5/10) gmeow-errors project::tests::graph_replay_refuses_relative_or_malformed_identity_without_normalizing
+        PASS [   0.003s] ( 6/10) gmeow-errors ledger::tests::recorded_rejection_preserves_causal_closure_and_live_source_at_the_boundary
+        PASS [   0.003s] ( 7/10) gmeow-errors rdf::tests::native_presentation_remains_typed_until_cause_lowering
+        PASS [   0.003s] ( 8/10) gmeow-errors rdf::tests::native_subjects_remain_distinct_from_the_stage_location_through_replay
+        PASS [   0.003s] ( 9/10) gmeow-errors diag::tests::declared_failure_class_survives_the_recorded_diagnostic_and_finding
+        PASS [   0.003s] (10/10) gmeow-errors project::tests::named_graph_identity_survives_merge_replay_and_every_projection
+────────────
+     Summary [   0.004s] 10 tests run: 10 passed, 138 skipped

@@ -1,0 +1,15 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-bundle-view) & test(json_diag_)' --no-tests=fail
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-view)
+    Finished `test` profile [optimized] target(s) in 4.83s
+────────────
+ Nextest run ID 08892666-7261-48fa-9f27-af302ed89820 with nextest profile: ci
+    Starting 2 tests across 1 binary (22 tests and 226 binaries skipped)
+        PASS [   0.003s] (1/2) gmeow-bundle-view bundle_blobs::diag_json_tests::json_diag_bundle_vector_preserves_native_node_provenance_for_ledger_replay
+        PASS [   0.004s] (2/2) gmeow-bundle-view bundle_blobs::diag_json_tests::json_diag_bundle_vector_empty_is_distinct_from_stage_contribution_tuple
+────────────
+     Summary [   0.004s] 2 tests run: 2 passed, 22 skipped
