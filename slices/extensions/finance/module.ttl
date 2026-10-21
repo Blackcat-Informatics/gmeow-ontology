@@ -1,3 +1,5 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -467,13 +469,18 @@ gmeow:holdingPeriod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingQuantity
-    a logic:DatatypeProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding quantity"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    skos:definition "The quantity of the asset held, as an xsd:decimal. Functional: a holding has exactly one quantity at a given point in time (competing standpoint-indexed quantities coexist as separate statements). It is a count of asset units and is not a monetary amount — value is gmeow:holdingCostBasis."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
+    logic:range gmeow:HoldingAssetQuantity ;
+    skos:definition "The exact HoldingAssetQuantity value of units of the holdingAsset at the holding's time or interval. It is an object carrying canonical magnitude, dimension, countedAsset and count frame; monetary cost remains holdingCostBasis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox  ;
+    skos:example "ex:holding gmeow:holdingQuantity ex:shares . ex:shares a gmeow:HoldingAssetQuantity ; math:quantityValue 10.0 ; math:hasDimension math:dimensionless ; gmeow:countedAsset ex:stock ; gmeow:hasReferenceFrame ex:shareCountFrame ."@x-gmeow-english  ;
+    gmeow:useWhen "Use for exact whole or fractional asset-unit holdings, including signed positions."@x-gmeow-english  ;
+    gmeow:avoidWhen "Avoid a bare decimal, a MonetaryAmount in the count role, or a count whose countedAsset differs from holdingAsset."@x-gmeow-english  ;
+    gmeow:howToUse "Link one quantity object and preserve its exact decimal magnitude, explicit dimension, complete scalar mathematical count frame and matching countedAsset; preserve the holding's agent, asset, period and cost basis."@x-gmeow-english  ;
+    skos:scopeNote "Scope: asset-unit counts; this property is functional on the quantity object, not a global selection between standpoint-indexed holdings."@x-gmeow-english .
 
 gmeow:iban
     a logic:DatatypeProperty ;
@@ -1064,7 +1071,7 @@ logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
 <https://blackcatinformatics.ca/gmeow/FinancialTransaction> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/transactionAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
 <https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingAgent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
 <https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingAsset> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Asset> ] .
-<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingQuantity> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Holding> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/holdingQuantity> ; logic:allValuesFrom gmeow:HoldingAssetQuantity ] .
 <https://blackcatinformatics.ca/gmeow/Invoice> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/invoiceAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
 <https://blackcatinformatics.ca/gmeow/LedgerAccount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/ledgerAccountType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/LedgerAccountType> ] .
 <https://blackcatinformatics.ca/gmeow/Order> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/orderAmount> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
@@ -1177,14 +1184,14 @@ gmeow:JournalEntryBalanceConstraint
     rdfs:label "Journal entry balance constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: for each gmeow:JournalEntry, within every currency bucket the sum of debit-posting amounts must equal the sum of credit-posting amounts. Partitions the entry's postings by gmeow:postingDirection (debit vs credit), reads each posting's amount via gmeow:postingAmount then gmeow:monetaryValue and its currency via gmeow:postingAmount then gmeow:currency, and asserts the two partition-sums are equal per currency."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: for each gmeow:JournalEntry, within every currency bucket the sum of debit-posting amounts must equal the sum of credit-posting amounts. Partitions the entry's postings by gmeow:postingDirection (debit vs credit), reads each posting's amount via gmeow:postingAmount then math:quantityValue and its currency via gmeow:postingAmount then gmeow:currency, and asserts the two partition-sums are equal per currency."@x-gmeow-english ;
     logic:onClass gmeow:JournalEntry ;
     logic:balancePostingPredicate gmeow:journalEntryPostings ;
     logic:balancePartitionPredicate gmeow:postingDirection ;
     logic:balanceDebitValue gmeow:postingDirectionDebit ;
     logic:balanceCreditValue gmeow:postingDirectionCredit ;
     logic:balanceAmountNodePredicate gmeow:postingAmount ;
-    logic:balanceValuePredicate gmeow:monetaryValue ;
+    logic:balanceValuePredicate math:quantityValue ;
     logic:balanceGroupPredicate gmeow:currency ;
     logic:severity "Violation" ;
     logic:message "The sum of debit postings must equal the sum of credit postings for each currency in a JournalEntry." ;
@@ -1281,7 +1288,7 @@ gmeow:holdingQuantityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingQuantity is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding names one exact HoldingAssetQuantity object, whose magnitude, asset identity and count frame remain explicit. Competing holdings remain standpoint-indexed statements. This characteristic is reasoned from its canonical carrier, not restated on a shape surface."@x-gmeow-english ;
     logic:characterizes gmeow:holdingQuantity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:holdingQuantity ;
@@ -1426,3 +1433,443 @@ gmeow:walletSchemeFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:walletScheme and nothing else. It is not a definition of gmeow:walletScheme (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:walletSchemeFunctionality logic:characterizes gmeow:walletScheme ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Exact financial quantity roles and explicitly selected computational methods.
+
+gmeow:HoldingAssetQuantity
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "asset count quantity"@x-gmeow-english ;
+    skos:definition "An exact dimensionless quantity of units of one explicitly identified Asset. The countedAsset and a complete scalar reference frame distinguish shares of different assets; it is not a money value."@x-gmeow-english ;
+    skos:example "ex:shares a gmeow:HoldingAssetQuantity ; math:quantityValue 10.0 ; math:hasDimension math:dimensionless ; gmeow:countedAsset ex:stock ; gmeow:hasReferenceFrame ex:shareCountFrame ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holding's exact count of units of a specific asset."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid monetary cost, unnamed assets and substituting shares of another asset."@x-gmeow-english ;
+    gmeow:howToUse "Link it through holdingQuantity; match countedAsset to holdingAsset and declare the scalar mathematical count frame."@x-gmeow-english .
+
+gmeow:FinancialPeriodRate
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "financial rate per explicit period"@x-gmeow-english ;
+    skos:definition "An exact dimensionless fractional rate per one explicitly named period-basis reference frame. Its magnitude is a fraction, not a percentage number, and can be negative; it is not a probability or an inverse-time SI quantity."@x-gmeow-english ;
+    skos:example "ex:rate a gmeow:FinancialPeriodRate ; math:quantityValue 0.05 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a fractional interest rate per explicitly defined financial period."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the percentage number 5 for five percent, probability typing and implicit annualization."@x-gmeow-english ;
+    gmeow:howToUse "Supply the decimal fraction through interestRate; use the same period frame as the count and calculation."@x-gmeow-english .
+
+gmeow:FinancialPeriodCount
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "count of explicit financial periods"@x-gmeow-english ;
+    skos:definition "An exact dimensionless count of periods on an explicit period-basis reference frame. A fractional count is allowed; the count and rate in simple interest must name the same basis, with no implied conversion between calendar years and days."@x-gmeow-english ;
+    skos:example "ex:periods a gmeow:FinancialPeriodCount ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a nonnegative, possibly fractional number of the declared financial periods."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid negative counts, bare durations and silently converting days to contract years."@x-gmeow-english ;
+    gmeow:howToUse "Link through interestPeriodCount and match its frame to interestRate and calculationPeriodBasis."@x-gmeow-english .
+
+gmeow:FinancialReturnRatio
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "holding-period financial return ratio"@x-gmeow-english ;
+    skos:definition "An exact dimensionless fractional holding-period return, computed as closing value minus opening value divided by that same nonzero opening value. Both amounts must share a currency frame; the result records the explicitly selected period basis and is not annualized or a probability."@x-gmeow-english ;
+    skos:example "ex:computedReturn a gmeow:FinancialReturnRatio ; math:quantityValue 0.2 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:holdingPeriod ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the derived fractional gain or loss over the stated holding period."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid probability typing, automatic annualization and asserting the answer as calculation input."@x-gmeow-english ;
+    gmeow:howToUse "Read it from the return calculation's derived observationResult; retain its period frame and native proof."@x-gmeow-english .
+
+gmeow:SimpleInterestCalculation
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "simple interest calculation"@x-gmeow-english ;
+    skos:definition "A standpoint-indexed Measurement that requests exact simple interest from principalAmount, interestRate and interestPeriodCount using the canonical methodSimpleInterest recipe. The period-basis frame must agree across rate, count and calculation; observationResult is derived with its currency and native proof."@x-gmeow-english ;
+    skos:example "ex:interest a gmeow:SimpleInterestCalculation ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:account ; gmeow:observationMethod gmeow:methodSimpleInterest ; gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ; gmeow:calculationPeriodBasis ex:contractYear ; gmeow:principalAmount ex:principal ; gmeow:interestRate ex:rate ; gmeow:interestPeriodCount ex:periods ."@x-gmeow-english ;
+    gmeow:useWhen "Use to request principal times fractional rate times period count with observation context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid compound interest, mixed period bases and preasserted observationResult inputs."@x-gmeow-english ;
+    gmeow:howToUse "Provide the three typed quantities, matching period basis and authenticated simple recipe; evaluate the named request."@x-gmeow-english .
+
+gmeow:HoldingPeriodReturnCalculation
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "holding-period return calculation"@x-gmeow-english ;
+    skos:definition "A standpoint-indexed Measurement requesting exact holding-period return from openingAmount and closingAmount through methodHoldingPeriodReturn. A zero opening value or incompatible currency frames is invalid. The explicitly based FinancialReturnRatio and observationResult link are derived, never asserted as input."@x-gmeow-english ;
+    skos:example "ex:return a gmeow:HoldingPeriodReturnCalculation ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:portfolio ; gmeow:observationMethod gmeow:methodHoldingPeriodReturn ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> ; gmeow:calculationPeriodBasis ex:holdingPeriod ; gmeow:openingAmount ex:opening ; gmeow:closingAmount ex:closing ."@x-gmeow-english ;
+    gmeow:useWhen "Use to request the fractional change between opening and closing money values."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a zero opening amount, different currencies and an annualized-return claim."@x-gmeow-english ;
+    gmeow:howToUse "Supply two MonetaryAmounts in one currency and the explicit period; evaluate the authenticated return recipe."@x-gmeow-english .
+
+gmeow:countedAsset
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "counted asset"@x-gmeow-english ;
+    skos:definition "The specific Asset whose units a HoldingAssetQuantity counts. It must equal the holdingAsset when the quantity fills holdingQuantity; counts of different asset identities cannot be substituted solely because both are physically dimensionless."@x-gmeow-english ;
+    skos:example "ex:shares gmeow:countedAsset ex:acmeStock ."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the asset whose units a holding quantity counts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming the holder, monetary cost basis or a merely similar asset."@x-gmeow-english ;
+    gmeow:howToUse "Set one Asset on HoldingAssetQuantity, equal to the enclosing holding's holdingAsset."@x-gmeow-english .
+
+gmeow:principalAmount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "principal amount"@x-gmeow-english ;
+    skos:definition "The existing MonetaryAmount used as principal in a SimpleInterestCalculation. Its exact canonical numeric value and explicit currency are inputs, not a precomputed interest result."@x-gmeow-english ;
+    skos:example "ex:interest gmeow:principalAmount ex:principal . ex:principal a gmeow:MonetaryAmount ; math:quantityValue 1000.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the money quantity multiplied by rate and period count in simple interest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a bare decimal, accrued interest or the final principal-plus-interest total."@x-gmeow-english ;
+    gmeow:howToUse "Link the calculation to one complete MonetaryAmount; keep its currency on that input quantity."@x-gmeow-english .
+
+gmeow:interestRate
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "interest rate"@x-gmeow-english ;
+    skos:definition "The FinancialPeriodRate input to simple interest. A magnitude of 0.05 means five percent per one period of its explicit basis; it is not 5, an annualization default or a probability."@x-gmeow-english ;
+    skos:example "ex:interest gmeow:interestRate ex:rate . ex:rate a gmeow:FinancialPeriodRate ; math:quantityValue 0.05 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the required fractional rate input of a SimpleInterestCalculation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking a probability, a literal percentage or the calculated interest amount."@x-gmeow-english ;
+    gmeow:howToUse "Link one FinancialPeriodRate; match its explicit frame to the calculation's period basis."@x-gmeow-english .
+
+gmeow:interestPeriodCount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "interest period count"@x-gmeow-english ;
+    skos:definition "The FinancialPeriodCount multiplier in simple interest. Its reference frame must be the same explicit period basis as interestRate and calculationPeriodBasis."@x-gmeow-english ;
+    skos:example "ex:interest gmeow:interestPeriodCount ex:periods . ex:periods a gmeow:FinancialPeriodCount ; math:quantityValue 2.0 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the required period-count multiplier of simple interest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking the interest rate, a raw duration or a count in a different period basis."@x-gmeow-english ;
+    gmeow:howToUse "Link one nonnegative FinancialPeriodCount using the same frame as interestRate and calculationPeriodBasis."@x-gmeow-english .
+
+gmeow:openingAmount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "opening monetary amount"@x-gmeow-english ;
+    skos:definition "The nonzero opening MonetaryAmount used as both subtrahend and denominator of holding-period return; the same quantity identity is used in both AST positions."@x-gmeow-english ;
+    skos:example "ex:return gmeow:openingAmount ex:opening . ex:opening a gmeow:MonetaryAmount ; math:quantityValue 1000.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the initial money value and denominator of holding-period return."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid zero, a different currency from closingAmount or separate denominator inputs."@x-gmeow-english ;
+    gmeow:howToUse "Link one nonzero MonetaryAmount; the recipe reuses its symbol for subtraction and division."@x-gmeow-english .
+
+gmeow:closingAmount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "closing monetary amount"@x-gmeow-english ;
+    skos:definition "The closing MonetaryAmount of holding-period return. Its currency frame must exactly match openingAmount before subtraction and division are admitted."@x-gmeow-english ;
+    skos:example "ex:return gmeow:closingAmount ex:closing . ex:closing a gmeow:MonetaryAmount ; math:quantityValue 1200.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the terminal money value in a holding-period return request."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the profit alone, a computed return ratio or implicit currency conversion."@x-gmeow-english ;
+    gmeow:howToUse "Link one MonetaryAmount in openingAmount's currency; the recipe subtracts opening before dividing."@x-gmeow-english .
+
+gmeow:calculationExpression
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "calculation expression"@x-gmeow-english ;
+    skos:definition "The canonical ApplicationExpression recipe of a financial method, or the selected source expression of a financial calculation. The installed caller requires structural identity with its authenticated method recipe, including operator topology and symbol identities."@x-gmeow-english ;
+    skos:example "ex:interest gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ."@x-gmeow-english ;
+    gmeow:useWhen "Use to select the mathematical AST matching the declared financial method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a formula string, an answer quantity or an arbitrary well-typed expression."@x-gmeow-english ;
+    gmeow:howToUse "Reference the authenticated method recipe or an AST with identical operators, slot topology and mathematical symbols."@x-gmeow-english .
+
+gmeow:calculationPeriodBasis
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "calculation period basis"@x-gmeow-english ;
+    skos:definition "The explicit scalar temporal ReferenceFrame defining one financial period for this calculation and its derived return. It declares a shared basis identity, never an implicit duration conversion or a currency frame."@x-gmeow-english ;
+    skos:example "ex:interest gmeow:calculationPeriodBasis ex:contractYear . ex:rate gmeow:hasReferenceFrame ex:contractYear . ex:periods gmeow:hasReferenceFrame ex:contractYear ."@x-gmeow-english ;
+    gmeow:useWhen "Use to state which explicit financial period the calculation and its return concern."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a currency frame, an undeclared calendar convention or implicit day-to-year conversion."@x-gmeow-english ;
+    gmeow:howToUse "Name one complete scalar temporal ReferenceFrame; reuse its identity on rate and count inputs."@x-gmeow-english .
+
+gmeow:methodSimpleInterest
+    a gmeow:ObservationMethod , logic:CallableSignature ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "exact simple interest method"@x-gmeow-english ;
+    skos:definition "The exact-decimal computational observation method and callable signature for simple interest P*r*n. Its separately identified canonical AST and parameter definitions are read from the installed authenticated owner, and native execution derives a MonetaryAmount result."@x-gmeow-english ;
+    skos:example "ex:interest gmeow:observationMethod gmeow:methodSimpleInterest ; gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ."@x-gmeow-english ;
+    gmeow:useWhen "Use to select the installed exact-decimal principal-times-rate-times-count method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid compound interest, replacing the authenticated signature or asserting a precomputed answer."@x-gmeow-english ;
+    gmeow:howToUse "Select it through observationMethod; bind actual quantities through principalAmount, interestRate and interestPeriodCount, not through symbol definitions."@x-gmeow-english .
+
+gmeow:methodHoldingPeriodReturn
+    a gmeow:ObservationMethod , logic:CallableSignature ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "exact holding-period return method"@x-gmeow-english ;
+    skos:definition "The exact-decimal computational observation method and callable signature for (closing-opening)/opening. The recipe repeats the opening symbol, requires one currency for both money inputs and derives a FinancialReturnRatio on the explicit period basis; nonterminating decimal quotients fail without rounding."@x-gmeow-english ;
+    skos:example "ex:return gmeow:observationMethod gmeow:methodHoldingPeriodReturn ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> ."@x-gmeow-english ;
+    gmeow:useWhen "Use to select the installed exact-decimal closing-minus-opening over opening method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid annualization, currency conversion and silently rounding a nonterminating quotient."@x-gmeow-english ;
+    gmeow:howToUse "Select it through observationMethod; bind money through openingAmount and closingAmount while retaining distinct signature, symbol and quantity identities."@x-gmeow-english .
+
+# Canonical exact quantity profiles and financial method input/output contracts.
+gmeow:HoldingAssetQuantity logic:subClassOf math:Quantity .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:decimal ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingAssetQuantity ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingAssetQuantity ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:hasValue math:dimensionless ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingAssetQuantity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialPeriodRate logic:subClassOf math:Quantity .
+gmeow:FinancialPeriodRate logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:decimal ] .
+gmeow:FinancialPeriodRate logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialPeriodRate ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialPeriodRate logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+gmeow:FinancialPeriodRate logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialPeriodRate ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialPeriodRate logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:hasValue math:dimensionless ] .
+gmeow:FinancialPeriodRate logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+gmeow:FinancialPeriodRate logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialPeriodRate ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialPeriodCount logic:subClassOf math:Quantity .
+gmeow:FinancialPeriodCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:decimal ] .
+gmeow:FinancialPeriodCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialPeriodCount ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialPeriodCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+gmeow:FinancialPeriodCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialPeriodCount ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialPeriodCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:hasValue math:dimensionless ] .
+gmeow:FinancialPeriodCount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+gmeow:FinancialPeriodCount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialPeriodCount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialReturnRatio logic:subClassOf math:Quantity .
+gmeow:FinancialReturnRatio logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:decimal ] .
+gmeow:FinancialReturnRatio logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialReturnRatio ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialReturnRatio logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+gmeow:FinancialReturnRatio logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialReturnRatio ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:FinancialReturnRatio logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:hasValue math:dimensionless ] .
+gmeow:FinancialReturnRatio logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+gmeow:FinancialReturnRatio logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FinancialReturnRatio ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:countedAsset ; logic:allValuesFrom gmeow:Asset ] .
+gmeow:HoldingAssetQuantity logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:countedAsset ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingAssetQuantity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/countedAsset" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:countedAsset logic:domain gmeow:HoldingAssetQuantity ; logic:range gmeow:Asset .
+gmeow:FinancialPeriodRate logic:disjointWith math:ProbabilityValue .
+gmeow:FinancialReturnRatio logic:disjointWith math:ProbabilityValue .
+<urn:gmeow:finance:constraint:nonnegative-period-count> a logic:ValueRangeConstraint ; logic:onClass gmeow:FinancialPeriodCount ; logic:valuePath math:quantityValue ; logic:minInclusiveBound 0 ; logic:formalizes gmeow:FinancialPeriodCount ; logic:message "A financial period count must be nonnegative." ; rdfs:label "nonnegative financial period count"@x-gmeow-english ; skos:definition "Requires an exact period count to be nonnegative; negative rates remain valid."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+gmeow:SimpleInterestCalculation logic:subClassOf gmeow:Measurement .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:principalAmount ; logic:allValuesFrom gmeow:MonetaryAmount ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:principalAmount ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/principalAmount" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:interestRate ; logic:allValuesFrom gmeow:FinancialPeriodRate ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:interestRate ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/interestRate" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:interestPeriodCount ; logic:allValuesFrom gmeow:FinancialPeriodCount ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:interestPeriodCount ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/interestPeriodCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationPeriodBasis ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationPeriodBasis ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationExpression ; logic:allValuesFrom math:ApplicationExpression ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationExpression ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SimpleInterestCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/calculationExpression" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:hasValue gmeow:methodSimpleInterest ] .
+gmeow:SimpleInterestCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:MonetaryAmount ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf gmeow:Measurement .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openingAmount ; logic:allValuesFrom gmeow:MonetaryAmount ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openingAmount ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/openingAmount" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:closingAmount ; logic:allValuesFrom gmeow:MonetaryAmount ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:closingAmount ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/closingAmount" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationPeriodBasis ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationPeriodBasis ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationExpression ; logic:allValuesFrom math:ApplicationExpression ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:calculationExpression ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/calculationExpression" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:hasValue gmeow:methodHoldingPeriodReturn ] .
+gmeow:HoldingPeriodReturnCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:FinancialReturnRatio ] .
+gmeow:principalAmount logic:range gmeow:MonetaryAmount .
+gmeow:interestRate logic:range gmeow:FinancialPeriodRate .
+gmeow:interestPeriodCount logic:range gmeow:FinancialPeriodCount .
+gmeow:openingAmount logic:range gmeow:MonetaryAmount .
+gmeow:closingAmount logic:range gmeow:MonetaryAmount .
+gmeow:calculationPeriodBasis logic:range gmeow:ReferenceFrame .
+gmeow:calculationExpression logic:range math:ApplicationExpression .
+<urn:gmeow:finance:simple:principal> a logic:CallParameter ; logic:parameterPredicate gmeow:principalAmount ; logic:parameterValueType gmeow:MonetaryAmount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:principal:symbol> .
+<urn:gmeow:finance:simple:principal:symbol> a math:MathematicalSymbol .
+<urn:gmeow:finance:simple:principal:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:principal:symbol> .
+<urn:gmeow:finance:simple:rate> a logic:CallParameter ; logic:parameterPredicate gmeow:interestRate ; logic:parameterValueType gmeow:FinancialPeriodRate ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:rate:symbol> .
+<urn:gmeow:finance:simple:rate:symbol> a math:MathematicalSymbol .
+<urn:gmeow:finance:simple:rate:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:rate:symbol> .
+<urn:gmeow:finance:simple:count> a logic:CallParameter ; logic:parameterPredicate gmeow:interestPeriodCount ; logic:parameterValueType gmeow:FinancialPeriodCount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:count:symbol> .
+<urn:gmeow:finance:simple:count:symbol> a math:MathematicalSymbol .
+<urn:gmeow:finance:simple:count:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:count:symbol> .
+<urn:gmeow:finance:simple:principal-rate> a math:ApplicationExpression ; math:operator math:Multiplication ; math:argumentSlot <urn:gmeow:finance:simple:principal-rate:0>, <urn:gmeow:finance:simple:principal-rate:1> .
+<urn:gmeow:finance:simple:principal-rate:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:simple:principal:expression> .
+<urn:gmeow:finance:simple:principal-rate:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:simple:rate:expression> .
+<urn:gmeow:finance:simple:recipe> a math:ApplicationExpression ; math:operator math:Multiplication ; math:argumentSlot <urn:gmeow:finance:simple:recipe:0>, <urn:gmeow:finance:simple:recipe:1> .
+<urn:gmeow:finance:simple:recipe:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:simple:principal-rate> .
+<urn:gmeow:finance:simple:recipe:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:simple:count:expression> .
+<urn:gmeow:finance:return:opening> a logic:CallParameter ; logic:parameterPredicate gmeow:openingAmount ; logic:parameterValueType gmeow:MonetaryAmount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:return:opening:symbol> .
+<urn:gmeow:finance:return:opening:symbol> a math:MathematicalSymbol .
+<urn:gmeow:finance:return:opening:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:return:opening:symbol> .
+<urn:gmeow:finance:return:closing> a logic:CallParameter ; logic:parameterPredicate gmeow:closingAmount ; logic:parameterValueType gmeow:MonetaryAmount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:return:closing:symbol> .
+<urn:gmeow:finance:return:closing:symbol> a math:MathematicalSymbol .
+<urn:gmeow:finance:return:closing:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:return:closing:symbol> .
+<urn:gmeow:finance:return:difference> a math:ApplicationExpression ; math:operator math:Subtraction ; math:argumentSlot <urn:gmeow:finance:return:difference:0>, <urn:gmeow:finance:return:difference:1> .
+<urn:gmeow:finance:return:difference:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:return:closing:expression> .
+<urn:gmeow:finance:return:difference:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:return:opening:expression> .
+<urn:gmeow:finance:return:recipe> a math:ApplicationExpression ; math:operator math:Division ; math:argumentSlot <urn:gmeow:finance:return:recipe:0>, <urn:gmeow:finance:return:recipe:1> .
+<urn:gmeow:finance:return:recipe:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:return:difference> .
+<urn:gmeow:finance:return:recipe:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:return:opening:expression> .
+<urn:gmeow:finance:simple:inputs:0> rdf:first <urn:gmeow:finance:simple:principal> ; rdf:rest <urn:gmeow:finance:simple:inputs:1> .
+<urn:gmeow:finance:simple:inputs:1> rdf:first <urn:gmeow:finance:simple:rate> ; rdf:rest <urn:gmeow:finance:simple:inputs:2> .
+<urn:gmeow:finance:simple:inputs:2> rdf:first <urn:gmeow:finance:simple:count> ; rdf:rest rdf:nil .
+<urn:gmeow:finance:simple:outputs:0> rdf:first <urn:gmeow:finance:simple:result> ; rdf:rest rdf:nil .
+<urn:gmeow:finance:simple:result> a logic:CallResult ; logic:parameterPredicate gmeow:observationResult ; logic:parameterValueType gmeow:MonetaryAmount .
+gmeow:methodSimpleInterest logic:inputParameters <urn:gmeow:finance:simple:inputs:0> ; logic:outputParameters <urn:gmeow:finance:simple:outputs:0> ; gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> .
+<urn:gmeow:finance:return:inputs:0> rdf:first <urn:gmeow:finance:return:opening> ; rdf:rest <urn:gmeow:finance:return:inputs:1> .
+<urn:gmeow:finance:return:inputs:1> rdf:first <urn:gmeow:finance:return:closing> ; rdf:rest rdf:nil .
+<urn:gmeow:finance:return:outputs:0> rdf:first <urn:gmeow:finance:return:result> ; rdf:rest rdf:nil .
+<urn:gmeow:finance:return:result> a logic:CallResult ; logic:parameterPredicate gmeow:observationResult ; logic:parameterValueType gmeow:FinancialReturnRatio .
+gmeow:methodHoldingPeriodReturn logic:inputParameters <urn:gmeow:finance:return:inputs:0> ; logic:outputParameters <urn:gmeow:finance:return:outputs:0> ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> .
+
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame> a logic:Constraint ; logic:onClass gmeow:FinancialPeriodRate ; logic:formalizes gmeow:FinancialPeriodRate ; logic:integrity <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:forall> ; logic:message "Financial quantity/frame contract violated: FinancialPeriodRate-frame." ; rdfs:label "FinancialPeriodRate-frame contract"@x-gmeow-english ; skos:definition "Requires the declared FinancialPeriodRate-frame relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:implication> .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:guard> ; logic:consequent <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:consequent> .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:g0>, <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:g1> .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:guard>, <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:t0>, <urn:gmeow:finance:constraint:FinancialPeriodRate-frame:t1> .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:FinancialPeriodRate ] .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:g1> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:t0> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmTemporal ] .
+<urn:gmeow:finance:constraint:FinancialPeriodRate-frame:t1> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame> a logic:Constraint ; logic:onClass gmeow:FinancialPeriodCount ; logic:formalizes gmeow:FinancialPeriodCount ; logic:integrity <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:forall> ; logic:message "Financial quantity/frame contract violated: FinancialPeriodCount-frame." ; rdfs:label "FinancialPeriodCount-frame contract"@x-gmeow-english ; skos:definition "Requires the declared FinancialPeriodCount-frame relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:implication> .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:guard> ; logic:consequent <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:consequent> .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:g0>, <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:g1> .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:guard>, <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:t0>, <urn:gmeow:finance:constraint:FinancialPeriodCount-frame:t1> .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:FinancialPeriodCount ] .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:g1> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:t0> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmTemporal ] .
+<urn:gmeow:finance:constraint:FinancialPeriodCount-frame:t1> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame> a logic:Constraint ; logic:onClass gmeow:FinancialReturnRatio ; logic:formalizes gmeow:FinancialReturnRatio ; logic:integrity <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:forall> ; logic:message "Financial quantity/frame contract violated: FinancialReturnRatio-frame." ; rdfs:label "FinancialReturnRatio-frame contract"@x-gmeow-english ; skos:definition "Requires the declared FinancialReturnRatio-frame relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:implication> .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:guard> ; logic:consequent <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:consequent> .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:g0>, <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:g1> .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:guard>, <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:t0>, <urn:gmeow:finance:constraint:FinancialReturnRatio-frame:t1> .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:FinancialReturnRatio ] .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:g1> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:t0> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmTemporal ] .
+<urn:gmeow:finance:constraint:FinancialReturnRatio-frame:t1> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame> a logic:Constraint ; logic:onClass gmeow:HoldingAssetQuantity ; logic:formalizes gmeow:HoldingAssetQuantity ; logic:integrity <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:forall> ; logic:message "Financial quantity/frame contract violated: HoldingAssetQuantity-frame." ; rdfs:label "HoldingAssetQuantity-frame contract"@x-gmeow-english ; skos:definition "Requires the declared HoldingAssetQuantity-frame relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:implication> .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:guard> ; logic:consequent <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:consequent> .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:g0>, <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:g1> .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:guard>, <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:t0>, <urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:t1> .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:HoldingAssetQuantity ] .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:g1> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:t0> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmMathematical ] .
+<urn:gmeow:finance:constraint:HoldingAssetQuantity-frame:t1> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+
+<urn:gmeow:finance:constraint:holding-asset-count> a logic:Constraint ; logic:onClass gmeow:Holding ; logic:formalizes gmeow:Holding ; logic:integrity <urn:gmeow:finance:constraint:holding-asset-count:forall> ; logic:message "Financial quantity/frame contract violated: holding-asset-count." ; rdfs:label "holding-asset-count contract"@x-gmeow-english ; skos:definition "Requires the declared holding-asset-count relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:holding-asset-count:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "quantity" ], [ logic:termIndex 2 ; logic:termVariable "asset" ] ; logic:forall <urn:gmeow:finance:constraint:holding-asset-count:implication> .
+<urn:gmeow:finance:constraint:holding-asset-count:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:holding-asset-count:guard> ; logic:consequent <urn:gmeow:finance:constraint:holding-asset-count:consequent> .
+<urn:gmeow:finance:constraint:holding-asset-count:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:holding-asset-count:g0>, <urn:gmeow:finance:constraint:holding-asset-count:g1>, <urn:gmeow:finance:constraint:holding-asset-count:g2> .
+<urn:gmeow:finance:constraint:holding-asset-count:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:holding-asset-count:guard>, <urn:gmeow:finance:constraint:holding-asset-count:t0> .
+<urn:gmeow:finance:constraint:holding-asset-count:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Holding ] .
+<urn:gmeow:finance:constraint:holding-asset-count:g1> a logic:Formula ; logic:relation gmeow:holdingQuantity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "quantity" ] .
+<urn:gmeow:finance:constraint:holding-asset-count:g2> a logic:Formula ; logic:relation gmeow:holdingAsset ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "asset" ] .
+<urn:gmeow:finance:constraint:holding-asset-count:t0> a logic:Formula ; logic:relation gmeow:countedAsset ; logic:argument [ logic:termIndex 0 ; logic:termVariable "quantity" ], [ logic:termIndex 1 ; logic:termVariable "asset" ] .
+
+<urn:gmeow:finance:constraint:simple-interestRate-basis> a logic:Constraint ; logic:onClass gmeow:SimpleInterestCalculation ; logic:formalizes gmeow:SimpleInterestCalculation ; logic:integrity <urn:gmeow:finance:constraint:simple-interestRate-basis:forall> ; logic:message "Financial quantity/frame contract violated: simple-interestRate-basis." ; rdfs:label "simple-interestRate-basis contract"@x-gmeow-english ; skos:definition "Requires the declared simple-interestRate-basis relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "quantity" ], [ logic:termIndex 2 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:simple-interestRate-basis:implication> .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:simple-interestRate-basis:guard> ; logic:consequent <urn:gmeow:finance:constraint:simple-interestRate-basis:consequent> .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:simple-interestRate-basis:g0>, <urn:gmeow:finance:constraint:simple-interestRate-basis:g1>, <urn:gmeow:finance:constraint:simple-interestRate-basis:g2> .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:simple-interestRate-basis:guard>, <urn:gmeow:finance:constraint:simple-interestRate-basis:t0> .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:SimpleInterestCalculation ] .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:g1> a logic:Formula ; logic:relation gmeow:interestRate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "quantity" ] .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:g2> a logic:Formula ; logic:relation gmeow:calculationPeriodBasis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:simple-interestRate-basis:t0> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "quantity" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis> a logic:Constraint ; logic:onClass gmeow:SimpleInterestCalculation ; logic:formalizes gmeow:SimpleInterestCalculation ; logic:integrity <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:forall> ; logic:message "Financial quantity/frame contract violated: simple-interestPeriodCount-basis." ; rdfs:label "simple-interestPeriodCount-basis contract"@x-gmeow-english ; skos:definition "Requires the declared simple-interestPeriodCount-basis relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "quantity" ], [ logic:termIndex 2 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:implication> .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:guard> ; logic:consequent <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:consequent> .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:g0>, <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:g1>, <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:g2> .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:guard>, <urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:t0> .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:SimpleInterestCalculation ] .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:g1> a logic:Formula ; logic:relation gmeow:interestPeriodCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "quantity" ] .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:g2> a logic:Formula ; logic:relation gmeow:calculationPeriodBasis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:simple-interestPeriodCount-basis:t0> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "quantity" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+
+<urn:gmeow:finance:constraint:return-currency-match> a logic:Constraint ; logic:onClass gmeow:HoldingPeriodReturnCalculation ; logic:formalizes gmeow:HoldingPeriodReturnCalculation ; logic:integrity <urn:gmeow:finance:constraint:return-currency-match:forall> ; logic:message "Financial quantity/frame contract violated: return-currency-match." ; rdfs:label "return-currency-match contract"@x-gmeow-english ; skos:definition "Requires the declared return-currency-match relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
+<urn:gmeow:finance:constraint:return-currency-match:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "opening" ], [ logic:termIndex 2 ; logic:termVariable "closing" ], [ logic:termIndex 3 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:return-currency-match:implication> .
+<urn:gmeow:finance:constraint:return-currency-match:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:return-currency-match:guard> ; logic:consequent <urn:gmeow:finance:constraint:return-currency-match:consequent> .
+<urn:gmeow:finance:constraint:return-currency-match:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:return-currency-match:g0>, <urn:gmeow:finance:constraint:return-currency-match:g1>, <urn:gmeow:finance:constraint:return-currency-match:g2>, <urn:gmeow:finance:constraint:return-currency-match:g3> .
+<urn:gmeow:finance:constraint:return-currency-match:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:return-currency-match:guard>, <urn:gmeow:finance:constraint:return-currency-match:t0> .
+<urn:gmeow:finance:constraint:return-currency-match:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:HoldingPeriodReturnCalculation ] .
+<urn:gmeow:finance:constraint:return-currency-match:g1> a logic:Formula ; logic:relation gmeow:openingAmount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "opening" ] .
+<urn:gmeow:finance:constraint:return-currency-match:g2> a logic:Formula ; logic:relation gmeow:closingAmount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "closing" ] .
+<urn:gmeow:finance:constraint:return-currency-match:g3> a logic:Formula ; logic:relation gmeow:currency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "opening" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:return-currency-match:t0> a logic:Formula ; logic:relation gmeow:currency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "closing" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+
+gmeow:HoldingAssetQuantity skos:scopeNote "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."@x-gmeow-english .
+
+gmeow:FinancialPeriodRate skos:scopeNote "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."@x-gmeow-english .
+
+gmeow:FinancialPeriodCount skos:scopeNote "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."@x-gmeow-english .
+
+gmeow:FinancialReturnRatio skos:scopeNote "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."@x-gmeow-english .
+
+gmeow:SimpleInterestCalculation skos:scopeNote "Scope: the selected simple-interest or holding-period-return recipe with mandatory observation context and exact input admission."@x-gmeow-english .
+
+gmeow:HoldingPeriodReturnCalculation skos:scopeNote "Scope: the selected simple-interest or holding-period-return recipe with mandatory observation context and exact input admission."@x-gmeow-english .
+
+gmeow:countedAsset skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:principalAmount skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:interestRate skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:interestPeriodCount skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:openingAmount skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:closingAmount skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:calculationExpression skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:calculationPeriodBasis skos:scopeNote "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."@x-gmeow-english .
+
+gmeow:methodSimpleInterest skos:scopeNote "Scope: finite exact-decimal execution. Method/signature, AST, parameter definitions and bound quantity values have distinct identities; unsupported results fail."@x-gmeow-english .
+
+gmeow:methodHoldingPeriodReturn skos:scopeNote "Scope: finite exact-decimal execution. Method/signature, AST, parameter definitions and bound quantity values have distinct identities; unsupported results fail."@x-gmeow-english .

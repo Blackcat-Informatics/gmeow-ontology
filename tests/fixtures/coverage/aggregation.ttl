@@ -26,7 +26,8 @@ ex:avgIncome a gmeow:SpatialAggregation ;
     gmeow:observedFeature ex:cityRegion ;
     gmeow:aggregationFunction gmeow:aggAverage ;
     gmeow:observationResult [
-        a gmeow:MonetaryAmount ;
-        gmeow:monetaryValue "45000.50"^^xsd:decimal ;
+        a gmeow:MonetaryAmount , math:Quantity ;
+    math:hasDimension math:dimensionless ;
+        math:quantityValue "45000.50"^^xsd:decimal ;
         gmeow:currency gmeow:referenceFrameUSD
     ] .

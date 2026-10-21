@@ -8,6 +8,7 @@ use std::sync::OnceLock;
 
 mod diagnostics_migration;
 mod disclosure_decisions;
+mod finance_grounding;
 mod procedural_constraints;
 mod quality_assessments;
 mod risk_grounding;

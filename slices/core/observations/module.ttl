@@ -102,23 +102,24 @@ gmeow:Measurement
     gmeow:useWhen "Use when an observation assigns a value to its feature — a dating, a coordinate fix, a scalar reading — so the claim inherits the observation roles while signalling it is a quantified/qualified measurement carrying unit, uncertainty, and determinacy."@x-gmeow-english .
 
 gmeow:MonetaryAmount
-    a logic:Kind ,
+    a logic:AbstractIndividualType ,
         logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Monetary Amount"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Entity ,
+    logic:subClassOf math:Quantity ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:currency ;
             logic:someValuesFrom gmeow:ReferenceFrame ;
         ] ;
-    skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
-    skos:example "ex:price a gmeow:MonetaryAmount ; gmeow:monetaryValue 19.99 ; gmeow:currency ex:usd ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a unit-bearing physical quantity (use math:Quantity with math:quantityValue and gmeow:unit) and avoid stating a bare amount without gmeow:currency — a value without its currency frame is ill-formed (Principle 11)."@x-gmeow-english ;
+    skos:definition "An exact decimal quantity of money with physical dimension math:dimensionless and one explicit currency ReferenceFrame. It is an abstract math:Quantity value, not an enduring Entity. The shared amount owner serves prices, balances, payments and compensation; identical physical dimensions do not authorize currency conversion."@x-gmeow-english ;
+    skos:example "ex:price a gmeow:MonetaryAmount ; math:quantityValue 19.99 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid bare monetary literals, a parallel finance amount class, physical unit values, and arithmetic combining different currencies without an explicit conversion contract."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the amount, set gmeow:monetaryValue (xsd:decimal) and the required gmeow:currency reference frame; the generated frame-relativity shape (gmeow:requiresFrame) enforces exactly the currency the amount is denominated in."@x-gmeow-english ;
+    gmeow:howToUse "Type the existing value MonetaryAmount; provide exactly one decimal math:quantityValue, math:hasDimension math:dimensionless, and a complete scalar currency frame through gmeow:currency. Keep observation context on the observing claim."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:currency ;
-    gmeow:useWhen "Use for any quantity of money — a price, salary, fee, balance — so the amount always travels with its currency frame; consumed by employment, agreements, and finance alike (it lives on the measurement spine, not in a finance silo)."@x-gmeow-english .
+    gmeow:useWhen "Use for an exact price, salary, fee, payment or balance whose currency must travel with its mathematical magnitude."@x-gmeow-english  ;
+    skos:scopeNote "Scope: the shared observations value owner and canonical math magnitude; currency remains a reference frame, never an eighth SI dimension."@x-gmeow-english .
 
 gmeow:Observation
     a logic:Kind ,
@@ -447,19 +448,6 @@ gmeow:methodSurvey
     rdfs:label "survey"@x-gmeow-english ;
     skos:definition "A systematic survey or census procedure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:monetaryValue
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:MonetaryAmount ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    rdfs:label "monetary value"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    skos:definition "The numeric value of a monetary amount as an xsd:decimal. Functional: a MonetaryAmount has exactly one numeric value."@x-gmeow-english ;
-    skos:example "ex:price gmeow:monetaryValue 19.99 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid stating it without the gmeow:currency frame (a bare amount is ill-formed, Principle 11), avoid it for unit-bearing physical quantities (math:quantityValue), and avoid two values — it is functional."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Put the amount here as xsd:decimal and name the currency frame with gmeow:currency; consumers read magnitude and currency together, and the frame-relativity shape rejects an amount missing its currency."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:MonetaryAmount — the decimal that, paired with gmeow:currency, is a well-formed money value."@x-gmeow-english .
 
 gmeow:observationEvent
     a logic:ObjectProperty ;
@@ -1000,10 +988,10 @@ logic:comRubAtom a logic:Formula ; logic:relation gmeow:assessmentRubric ;
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Measurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
-<https://blackcatinformatics.ca/gmeow/MonetaryAmount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/monetaryValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/MonetaryAmount> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/math/quantityValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
 <https://blackcatinformatics.ca/gmeow/Observation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedAt> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#dateTime> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Measurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationMethod" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/monetaryValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/quantityValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # The quantity value/unit well-formedness formerly enforced on the retired quantity aliases is
 # now carried by the sole quantity authority math:Quantity (its cardinality axioms plus
@@ -1015,7 +1003,7 @@ gmeow:Observation logic:subClassOf
 
 # gmeow:MonetaryAmountHasValueShape — every MonetaryAmount carries exactly one value.
 gmeow:MonetaryAmount logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:monetaryValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+    [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 # gmeow:CoreObservationMethodShape multi-target restorations: gmeow:SensoryObservation and
 # gmeow:StandpointClaim already carry the max-qualified exactly-one method antecedent (here and
@@ -1095,21 +1083,6 @@ gmeow:dimensionFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:dimension, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:dimension and nothing else. It is not a definition of gmeow:dimension (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:dimensionFunctionality logic:characterizes gmeow:dimension ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-gmeow:monetaryValueFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    rdfs:label "monetaryValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:monetaryValue is functional: a gmeow:MonetaryAmount has exactly one numeric value — a single xsd:decimal amount. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
-    logic:characterizes gmeow:monetaryValue ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:monetaryValue ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:monetaryValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:monetaryValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:monetaryValue and nothing else. It is not a definition of gmeow:monetaryValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:monetaryValueFunctionality logic:characterizes gmeow:monetaryValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:observationMethodFunctionality
     a logic:NamedIndividual ,
@@ -1553,3 +1526,22 @@ gmeow:disclosureNonAcknowledgement
     gmeow:useWhen "Use when the policy withholds the existence of the protected claim as well as its content."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid exposing the private decision, counts or provenance links that reveal the hidden claim."@x-gmeow-english ;
     gmeow:howToUse "Keep the decision on the policy side and apply non-acknowledgement to every reader-visible surface, including errors and pagination."@x-gmeow-english .
+
+# Monetary magnitude and physical dimension share the mathematical value owner.
+gmeow:MonetaryAmount logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:hasValue math:dimensionless ] ,
+    [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] ,
+    [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:currency ; logic:allValuesFrom gmeow:ReferenceFrame ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:currency ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MonetaryAmount ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+<urn:gmeow:finance:constraint:currency-realm> a logic:Constraint ; logic:onClass gmeow:MonetaryAmount ; logic:formalizes gmeow:MonetaryAmount ; logic:integrity <urn:gmeow:finance:constraint:currency-realm:forall> ; logic:message "Financial quantity/frame contract violated: currency-realm." ; rdfs:label "currency-realm contract"@x-gmeow-english ; skos:definition "Requires the declared currency-realm relation for each guarded financial input; the complete frame profile remains owned by places."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
+<urn:gmeow:finance:constraint:currency-realm:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall <urn:gmeow:finance:constraint:currency-realm:implication> .
+<urn:gmeow:finance:constraint:currency-realm:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:constraint:currency-realm:guard> ; logic:consequent <urn:gmeow:finance:constraint:currency-realm:consequent> .
+<urn:gmeow:finance:constraint:currency-realm:guard> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:currency-realm:g0>, <urn:gmeow:finance:constraint:currency-realm:g1> .
+<urn:gmeow:finance:constraint:currency-realm:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:constraint:currency-realm:guard>, <urn:gmeow:finance:constraint:currency-realm:t0>, <urn:gmeow:finance:constraint:currency-realm:t1> .
+<urn:gmeow:finance:constraint:currency-realm:g0> a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:MonetaryAmount ] .
+<urn:gmeow:finance:constraint:currency-realm:g1> a logic:Formula ; logic:relation gmeow:currency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:constraint:currency-realm:t0> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmCurrency ] .
+<urn:gmeow:finance:constraint:currency-realm:t1> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .

@@ -69,14 +69,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/dimensionFunctionality|http://www.
 msgid "Asserts on the canonical carrier that gmeow:dimension is functional: a gmeow:Magnitude is a magnitude of exactly one generic quality — a single frame-independent quality kind such as pressure, length, or mass. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "Affirme sur le porteur canonique que gmeow:dimension est fonctionnelle : une gmeow:Magnitude est une grandeur d'exactement une qualité générique — un unique type de qualité indépendant du repère, tel que la pression, la longueur ou la masse. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "monetaryValue is functional"
-msgstr "monetaryValue est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:monetaryValue is functional: a gmeow:MonetaryAmount has exactly one numeric value — a single xsd:decimal amount. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:monetaryValue est fonctionnelle : un gmeow:MonetaryAmount possède exactement une valeur numérique — un montant xsd:decimal unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/observationMethodFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "observationMethod is functional"
 msgstr "observationMethod est fonctionnelle"
@@ -188,22 +180,6 @@ msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes g
 msgctxt "https://blackcatinformatics.ca/gmeow/dimensionFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:dimensionFunctionality logic:characterizes gmeow:dimension ."
 msgstr "gmeow:dimensionFunctionality logic:characterizes gmeow:dimension ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:monetaryValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:monetaryValue nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:monetaryValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:monetaryValue, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:monetaryValueFunctionality logic:characterizes gmeow:monetaryValue ."
-msgstr "gmeow:monetaryValueFunctionality logic:characterizes gmeow:monetaryValue ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/observationMethodFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:observationMethod names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -408,10 +384,6 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/dimensionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:dimension and nothing else. It is not a definition of gmeow:dimension (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:dimension, et rien d'autre. Ce n'est pas une définition de gmeow:dimension (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:monetaryValue and nothing else. It is not a definition of gmeow:monetaryValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:monetaryValue, et rien d'autre. Ce n'est pas une définition de gmeow:monetaryValue (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/observationMethodFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:observationMethod and nothing else. It is not a definition of gmeow:observationMethod (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -1000,3 +972,39 @@ msgstr "Éviter d'exposer la décision privée, les décomptes ou les liens de p
 msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the decision on the policy side and apply non-acknowledgement to every reader-visible surface, including errors and pagination."
 msgstr "Garder la décision côté politique et appliquer la non-reconnaissance à toute surface visible au lecteur, y compris erreurs et pagination."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MonetaryAmount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Monetary Amount"
+msgstr "Montant monétaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MonetaryAmount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact decimal quantity of money with physical dimension math:dimensionless and one explicit currency ReferenceFrame. It is an abstract math:Quantity value, not an enduring Entity. The shared amount owner serves prices, balances, payments and compensation; identical physical dimensions do not authorize currency conversion."
+msgstr "Une quantité décimale exacte d’argent, de dimension physique math:dimensionless, avec un unique ReferenceFrame monétaire explicite. C’est une valeur abstraite math:Quantity, non une Entity persistante. Ce propriétaire commun sert les prix, soldes, paiements et rémunérations ; des dimensions physiques identiques n’autorisent pas la conversion monétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MonetaryAmount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:price a gmeow:MonetaryAmount ; math:quantityValue 19.99 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+msgstr "ex:price a gmeow:MonetaryAmount ; math:quantityValue 19.99 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MonetaryAmount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an exact price, salary, fee, payment or balance whose currency must travel with its mathematical magnitude."
+msgstr "À utiliser pour un prix, salaire, frais, paiement ou solde exact dont la devise accompagne la grandeur mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MonetaryAmount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bare monetary literals, a parallel finance amount class, physical unit values, and arithmetic combining different currencies without an explicit conversion contract."
+msgstr "Éviter les littéraux monétaires nus, une classe monétaire parallèle, les valeurs d’unités physiques et les opérations sur des devises différentes sans contrat explicite de conversion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MonetaryAmount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the existing value MonetaryAmount; provide exactly one decimal math:quantityValue, math:hasDimension math:dimensionless, and a complete scalar currency frame through gmeow:currency. Keep observation context on the observing claim."
+msgstr "Typer la valeur existante MonetaryAmount ; fournir exactement un math:quantityValue décimal, math:hasDimension math:dimensionless et un repère monétaire scalaire complet par gmeow:currency. Garder le contexte d’observation sur l’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MonetaryAmount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the shared observations value owner and canonical math magnitude; currency remains a reference frame, never an eighth SI dimension."
+msgstr "Portée : le propriétaire commun des valeurs d’observation et la grandeur mathématique canonique ; la devise reste un repère, jamais une huitième dimension SI."
+
+msgctxt "urn:gmeow:finance:constraint:currency-realm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "currency-realm contract"
+msgstr "contrat currency-realm"
+
+msgctxt "urn:gmeow:finance:constraint:currency-realm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared currency-realm relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "Impose la relation déclarée currency-realm pour chaque entrée financière gardée ; le profil complet du repère reste sous l’autorité de places."

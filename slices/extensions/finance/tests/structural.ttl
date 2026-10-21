@@ -1,3 +1,4 @@
+@prefix math: <https://blackcatinformatics.ca/math/> .
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
@@ -13,10 +14,10 @@
 # logic:QualityValue, logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_monetary_amount_is_entity -- gmeow:MonetaryAmount is defined in
+#   monetary_amount_is_canonical_quantity -- gmeow:MonetaryAmount is defined in
 #     a cross-slice module, not the finance module; a scopeModule cell
 #     would silently miss it.
-#   test_monetary_value_is_functional -- gmeow:monetaryValue is a
+#   test_monetary_value_is_functional -- math:quantityValue is a
 #     cross-slice property (MonetaryAmount layer); same reason.
 #   test_currency_is_functional -- gmeow:currency is a cross-slice
 #     property; same reason.
@@ -380,3 +381,16 @@ ASK {
     gmeow:walletScheme a owl:ObjectProperty .
 }""" ;
     gmeow:saRationale "gmeow:walletScheme MUST be an owl:ObjectProperty -- a wallet's blockchain scheme is a reified object value." .
+
+ex:saNoRetiredMonetaryScalar a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+ASK { { g:monetaryValue ?p ?o } UNION { ?s g:monetaryValue ?o } UNION { ?s ?p g:monetaryValue } }""" ;
+    gmeow:saRationale "Finance uses the sole math:quantityValue owner; retired monetary scalar declaration and use are forbidden." .
+ex:saHoldingQuantityIsObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { g:holdingQuantity a owl:ObjectProperty ; rdfs:range g:HoldingAssetQuantity . }""" ;
+    gmeow:saRationale "Holding counts are framed mathematical quantity objects with a counted asset, never bare decimal literals." .

@@ -11,7 +11,9 @@ use std::path::{Path, PathBuf};
 use gmeow_cli_core::Reporter;
 
 use crate::commands::{fail, fail_code};
-use crate::{AffectCommands, BUNDLE_GTS, ClassifyMetric, MathCommands, MusicCommands};
+use crate::{
+    AffectCommands, BUNDLE_GTS, ClassifyMetric, FinanceCommands, MathCommands, MusicCommands,
+};
 
 /// The canonical core-affect metric profile — the default `gmeow affect classify`
 /// vantage (bipolar [-1, 1] PAD, `gmeow:coreAffectGram`).
@@ -441,6 +443,73 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
                 Err(e) => fail(reporter, "gmeow-cli.affect.recover", format!("Error: {e}")),
             }
         }
+    }
+}
+
+/// Admit installed financial contracts and publish derived results with native proof.
+pub(crate) fn finance(reporter: &dyn Reporter, command: &FinanceCommands) -> i32 {
+    let FinanceCommands::Evaluate {
+        source,
+        subject,
+        out,
+    } = command;
+    let result = (|| -> gmeow_errors::Result<()> {
+        let bytes = read_source_bytes(source)?;
+        let input = purrdf::parse_dataset(&bytes, "text/turtle", None)?;
+        // Both recipes/signatures and the generated validation products come
+        // from this exact authenticated installed snapshot, never a checkout.
+        let bundle = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(BUNDLE_GTS)?;
+        let owner = bundle.dataset()?;
+        let mut shapes_text = String::new();
+        for (path, bytes) in bundle.shapes()? {
+            shapes_text.push_str(std::str::from_utf8(&bytes).map_err(|error| {
+                gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
+                    detail: format!("invalid bundled shape {path}: {error}"),
+                })
+            })?);
+            shapes_text.push('\n');
+        }
+        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_text, None).map_err(|error| {
+            gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
+                detail: format!("invalid complete bundled financial projections: {error}"),
+            })
+        })?;
+        let identity = format!(
+            "blake3:{}",
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(BUNDLE_GTS).as_bytes())
+        );
+        let evaluation = gmeow_logic::finance_evaluation::evaluate(
+            &input,
+            gmeow_logic::finance_evaluation::FinanceOwner {
+                dataset: &owner,
+                shapes: &shapes,
+                identity: &identity,
+            },
+            subject,
+        )?;
+        let mut turtle = gmeow_logic::reason::artifacts::build_inferred_closure_ttl(
+            &evaluation.result,
+            None,
+            &[],
+        )?;
+        turtle.push_str(&gmeow_logic::result_rdf::project_reasoning_result(
+            &evaluation.result,
+        )?);
+        let output = math_output_path(out)?;
+        write_math_bytes(&output, turtle.as_bytes())?;
+        Ok(())
+    })();
+    match result {
+        Ok(()) => 0,
+        Err(diag) => gmeow_cli_core::emit_and_exit(
+            reporter,
+            diag.with_context("gmeow finance evaluate")
+                .with_location(gmeow_errors::Location {
+                    path: Some(source.display().to_string()),
+                    ..gmeow_errors::Location::default()
+                }),
+            "gmeow",
+        ),
     }
 }
 

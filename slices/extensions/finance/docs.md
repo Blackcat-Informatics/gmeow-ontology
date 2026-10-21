@@ -23,8 +23,8 @@ This document covers **all phases** (A–D) of the design.
    (`ReferenceFrame` individual). ISO 4217 codes are an **open value vocabulary**
    of individuals, never subclasses. DL-clean.
 3. **Double-entry as structure**: `LedgerAccount`, `JournalEntry ⊑ Event`,
-   `Posting ⊑ gufo:Relator` (account × amount × debit/credit). Balance
-   (Σ debits = Σ credits) enforced by **SHACL, not OWL**.
+   `Posting ⊑ logic:Relator` (account × amount × debit/credit). Balance
+   (Σ debits = Σ credits) authored in canonical `logic:` and enforced by its generated validation projection.
 4. **Loans are `Agreement`s; invoices are `Document`s; ownership is `rights`;
    banks are `Organization`s; wallets hold `trust` keys** — reuse, don't duplicate.
 5. **Sensitive: P9/P10 + provenance.** Reversed/voided transactions are
@@ -34,31 +34,31 @@ This document covers **all phases** (A–D) of the design.
    covers the 80% case; promote to a `Holding` relator when cost-basis, period,
    or provenance matters.
 
-## gUFO grounding
+## Canonical grounding
 
-| GMEOW term | gUFO category | Parent |
+| GMEOW term | Canonical category | Parent |
 |---|---|---|
-| `FinancialAccount` | `gufo:Kind` | `InformationObject` |
-| `MonetaryAmount` | `gufo:Kind` | `Entity` |
-| `FinancialAccountType` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `TransactionType` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `TransactionStatus` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `FinancialTransaction` | `gufo:EventType` | `Event` |
-| `LedgerAccount` | `gufo:Kind` | `InformationObject` |
-| `JournalEntry` | `gufo:EventType` | `Event` |
-| `Posting` | `gufo:Kind` | `gufo:Relator` |
-| `PostingDirection` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `LedgerAccountType` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `Payment` | `gufo:EventType` | `FinancialTransaction` |
-| `Invoice` | `gufo:SubKind` | `Document` |
-| `InvoiceStatus` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `Order` | `gufo:SubKind` | `Agreement` |
-| `OrderStatus` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `Asset` | `gufo:Kind` | `Entity` |
-| `AssetType` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
-| `Holding` | `gufo:Kind` | `gufo:Relator` |
-| `CryptoWallet` | `gufo:SubKind` | `FinancialAccount` |
-| `WalletScheme` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
+| `FinancialAccount` | `logic:Kind` | `InformationObject` |
+| `MonetaryAmount` | `logic:AbstractIndividualType` | `math:Quantity` |
+| `FinancialAccountType` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `TransactionType` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `TransactionStatus` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `FinancialTransaction` | `logic:EventType` | `Event` |
+| `LedgerAccount` | `logic:Kind` | `InformationObject` |
+| `JournalEntry` | `logic:EventType` | `Event` |
+| `Posting` | `logic:Kind` | `logic:Relator` |
+| `PostingDirection` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `LedgerAccountType` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `Payment` | `logic:EventType` | `FinancialTransaction` |
+| `Invoice` | `logic:SubKind` | `Document` |
+| `InvoiceStatus` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `Order` | `logic:SubKind` | `Agreement` |
+| `OrderStatus` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `Asset` | `logic:Kind` | `Entity` |
+| `AssetType` | `logic:AbstractIndividualType` | `logic:QualityValue` |
+| `Holding` | `logic:Kind` | `logic:Relator` |
+| `CryptoWallet` | `logic:SubKind` | `FinancialAccount` |
+| `WalletScheme` | `logic:AbstractIndividualType` | `logic:QualityValue` |
 
 ## Reuse map
 
@@ -97,7 +97,7 @@ This document covers **all phases** (A–D) of the design.
 | `FinancialAccount` | `schema:BankAccount` | `skos:closeMatch` |
 | `FinancialAccount` | `schema:DepositAccount` | `skos:relatedMatch` |
 | `MonetaryAmount` | `schema:MonetaryAmount` | `skos:closeMatch` |
-| `monetaryValue` | `schema:value` | `skos:closeMatch` |
+| `math:quantityValue` | `schema:value` | `skos:relatedMatch` |
 | `currency` | `schema:currency` | `skos:closeMatch` |
 | `iban` | `schema:iban` | `skos:exactMatch` |
 | `accountBalance` | `schema:accountBalance` | `skos:closeMatch` |
@@ -122,32 +122,83 @@ is `skos:exactMatch` to the corresponding FIBO `ISO4217-CurrencyCodes` individua
 | ISO 20022 camt.053 | Standpoint metadata; GMEOW-specific relator structure | Bank statement accounts, entries, balances |
 | Ledger-CLI / GnuCash | Currency frames, provenance, standpoint | Double-entry postings, accounts, amounts |
 
-## SHACL validation
+## Canonical validation contracts
 
-| Shape | What it enforces |
+The following `logic:` contracts generate the SHACL view. These are contract
+names, rather than promises that legacy hand-authored shape IRIs remain public.
+
+| Contract | What it enforces |
 |---|---|
-| `MonetaryAmountHasCurrencyShape` | Every `MonetaryAmount` has exactly one `currency` |
-| `MonetaryAmountHasValueShape` | Every `MonetaryAmount` has exactly one `monetaryValue` |
-| `FinancialAccountShape` | Every `FinancialAccount` has ≥1 holder, ≤1 type, currencies are ReferenceFrames |
-| `TransactionHasPartiesShape` | Every `FinancialTransaction` has ≥1 participant |
-| `LedgerAccountShape` | Every `LedgerAccount` has ≥1 holder, exactly 1 type |
-| `JournalEntryHasPostingsShape` | Every `JournalEntry` has ≥2 postings |
-| `PostingShape` | Every `Posting` has exactly 1 journal entry, account, amount, direction |
-| `InvoiceShape` | Every `Invoice` has exactly 1 amount, ≥1 issuer, ≥1 recipient |
-| `OrderShape` | Every `Order` has exactly 1 amount, ≥1 buyer, ≥1 seller |
-| `HoldingShape` | Every `Holding` has exactly 1 agent, 1 asset, 1 quantity |
-| `CryptoWalletShape` | Every `CryptoWallet` has exactly 1 scheme |
+| `MonetaryAmount` | Exactly one exact decimal magnitude, dimensionless dimension and complete scalar currency frame |
+| `FinancialAccount` | ≥1 holder, ≤1 type, currencies are ReferenceFrames |
+| `FinancialTransaction` | ≥1 participant |
+| `LedgerAccount` | ≥1 holder, exactly 1 type |
+| `JournalEntry` | ≥2 postings; balanced separately within each currency |
+| `Posting` | Exactly 1 journal entry, account, amount and direction |
+| `Invoice` | Exactly 1 amount, ≥1 issuer and ≥1 recipient |
+| `Order` | Exactly 1 amount, ≥1 buyer and ≥1 seller |
+| `Holding` | Exactly 1 agent, asset and framed asset-count quantity |
+| `CryptoWallet` | Exactly 1 scheme |
 
-## Build order (phased)
+## Exact quantities and computation
 
-- **Phase A** (merged): `FinancialAccount`, `MonetaryAmount`, currency vocabulary,
-  basic mappings, SHACL, tests.
-- **Phase B**: `FinancialTransaction`, `LedgerAccount`, `JournalEntry`,
-  `Posting`, double-entry SHACL, transaction/ledger/posting mappings.
-- **Phase C**: `Payment`, `Invoice` (⊑ `Document`), `Order`, `Asset`,
-  `Holding` (⊑ `gufo:Relator`), invoice/order/asset/holding mappings.
-- **Phase D**: `CryptoWallet`, schema.org / OFX / ISO 20022 / ledger-CLI
-  projections, crypto mappings.
+The shared observations `MonetaryAmount` is an abstract `math:Quantity` with one
+exact decimal `math:quantityValue`, physical dimension `math:dimensionless`, and
+one explicit currency frame. Currency is not an SI base dimension. Monetary
+amounts in different currencies are not interchangeable in a financial operation
+merely because their physical dimensions match. Existing total order prices,
+invoice amounts, salaries, account balances and postings retain this shared owner.
+
+`holdingQuantity` names a `HoldingAssetQuantity`, with exact canonical magnitude,
+explicit dimension and scalar mathematical frame. Its `countedAsset` must equal
+`holdingAsset`; the object preserves fractional and signed positions. A count of
+one asset cannot substitute for a count of another. Cost basis remains a separate
+MonetaryAmount. Per-unit price computation is not supplied by the selected scalar
+finance profile; total monetary price roles remain supported.
+
+The installed command `gmeow finance evaluate SOURCE --subject CALCULATION
+--out RESULT` selects `finance-exact-decimal-v1`. It reads methods, callable
+signatures, recipes and full generated validation products from its authenticated
+embedded bundle; no repository recipe file or alternate evaluator is consulted.
+`examples/exact-computations.ttl` supplies two independently named requests.
+
+`SimpleInterestCalculation` uses the canonical P*r*n AST.
+`HoldingPeriodReturnCalculation` uses (closing-opening)/opening, repeating the
+same opening symbol. A request declares its method, source expression, vantage,
+observed feature and explicit scalar temporal `calculationPeriodBasis`.
+`FinancialPeriodRate` and `FinancialPeriodCount` use that same basis frame;
+0.05 means five percent per one explicitly defined period, not the number 5.
+There is no implicit conversion of calendar years to days. Signed rates and
+returns are permitted; they are not probabilities or confidence values.
+
+The caller checks exact role cardinality, complete quantity/frame/observation
+profiles, currency equality, period-basis equality and structural identity with
+the authenticated recipe before arithmetic. Source expressions with wrong
+operators, topology, symbol roles or slot indexes fail. Extra, conflicting or
+precomputed request result roles fail. Retired monetaryValue declaration/use is
+rejected. A missing imported owner, shape, signature or recipe fails closed.
+
+All arithmetic lowers into the shared native math program. Quantity membership
+of an amount typed only MonetaryAmount is a required native premise derived from
+the original input type and authenticated owned subclass axiom, never an asserted
+input patch. One execution derives the fresh value, appropriate financial type,
+currency or period frame, and the observationResult edge, with ordinary native
+proof and ReasoningResult. Inputs, source admissions, full signature/recipe,
+profile and owner identity enter the result identity. Exact division by zero or
+a nonterminating decimal quotient fails without rounding. Generic RDF division
+and the standalone math command keep their existing semantics. Compound interest,
+implicit currency conversion and unselected financial recipes are unsupported.
+
+The native program consumes an explicit operation-contract projection of the
+authenticated owner: named callable parameters/lists, recipe nodes/slots/symbols,
+named subclass premises, and scalar frame/category facts. Anonymous declarative
+restrictions and quoted metadata are not silently treated as native executable
+facts. Their admission obligations remain mandatory through the complete actual
+generated owner shapes, including required active procedural products. Required
+operation fields with anonymous or quoted objects fail closed. The result proves
+the selected arithmetic and financial result roles; it does not claim a complete
+native reasoning verdict for the whole imported ontology. Changing any byte of
+the authenticated owner identity changes the prepared financial result identity.
 
 ## Terms
 

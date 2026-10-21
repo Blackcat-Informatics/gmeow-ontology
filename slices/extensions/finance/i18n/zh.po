@@ -57,10 +57,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http:
 msgid "holdingQuantity is functional"
 msgstr "holdingQuantity 具有函数性"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:holdingQuantity 是函数性的:一项持仓恰好有一个数量——即在给定时间点持有该资产的单一 xsd:decimal 数值,相互竞争的数字则作为按立场索引的独立陈述保留。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "invoiceAmount is functional"
 msgstr "invoiceAmount 具有函数性"
@@ -432,3 +428,555 @@ msgstr "范围：该记录仅承载关于 gmeow:transactionAmount 的一项完�
 msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:walletScheme and nothing else. It is not a definition of gmeow:walletScheme (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:walletScheme 的一项完整性义务，别无其他。它不是 gmeow:walletScheme 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingAssetQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "asset count quantity"
+msgstr "资产单位数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingAssetQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact dimensionless quantity of units of one explicitly identified Asset. The countedAsset and a complete scalar reference frame distinguish shares of different assets; it is not a money value."
+msgstr "某个明确标识资产的精确无量纲单位数量。countedAsset 和完整标量参考系区分不同资产的单位；它不是货币金额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingAssetQuantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shares a gmeow:HoldingAssetQuantity ; math:quantityValue 10.0 ; math:hasDimension math:dimensionless ; gmeow:countedAsset ex:stock ; gmeow:hasReferenceFrame ex:shareCountFrame ."
+msgstr "ex:shares a gmeow:HoldingAssetQuantity ; math:quantityValue 10.0 ; math:hasDimension math:dimensionless ; gmeow:countedAsset ex:stock ; gmeow:hasReferenceFrame ex:shareCountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingAssetQuantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holding's exact count of units of a specific asset."
+msgstr "用于持仓中特定资产的精确单位数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingAssetQuantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid monetary cost, unnamed assets and substituting shares of another asset."
+msgstr "避免表示货币成本、未标识资产或替代为另一资产的份额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingAssetQuantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link it through holdingQuantity; match countedAsset to holdingAsset and declare the scalar mathematical count frame."
+msgstr "通过 holdingQuantity 关联；使 countedAsset 与 holdingAsset 一致，并声明数学标量计数参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodRate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "financial rate per explicit period"
+msgstr "按明确期间计的金融比率"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodRate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact dimensionless fractional rate per one explicitly named period-basis reference frame. Its magnitude is a fraction, not a percentage number, and can be negative; it is not a probability or an inverse-time SI quantity."
+msgstr "以明确命名的期间基准参考系为一个期间的精确无量纲分数比率。其数值是分数而非百分数，并可为负；它不是概率，也不是 SI 时间倒数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodRate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rate a gmeow:FinancialPeriodRate ; math:quantityValue 0.05 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+msgstr "ex:rate a gmeow:FinancialPeriodRate ; math:quantityValue 0.05 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodRate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a fractional interest rate per explicitly defined financial period."
+msgstr "用于每个明确金融期间的分数形式利率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodRate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid the percentage number 5 for five percent, probability typing and implicit annualization."
+msgstr "百分之五不要写成 5；避免概率类型和隐式年化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodRate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the decimal fraction through interestRate; use the same period frame as the count and calculation."
+msgstr "通过 interestRate 提供十进制分数；与期间数量和计算使用同一期间参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "count of explicit financial periods"
+msgstr "明确金融期间的数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact dimensionless count of periods on an explicit period-basis reference frame. A fractional count is allowed; the count and rate in simple interest must name the same basis, with no implied conversion between calendar years and days."
+msgstr "按明确期间基准参考系计量的精确无量纲期间数量。允许分数期间；单利中的期间数量和比率必须使用相同基准，不隐含历年与天之间的换算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:periods a gmeow:FinancialPeriodCount ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+msgstr "ex:periods a gmeow:FinancialPeriodCount ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a nonnegative, possibly fractional number of the declared financial periods."
+msgstr "用于声明的金融期间的非负数量，可为小数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid negative counts, bare durations and silently converting days to contract years."
+msgstr "避免负数、裸时长以及默默将天转换为合同年。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link through interestPeriodCount and match its frame to interestRate and calculationPeriodBasis."
+msgstr "通过 interestPeriodCount 关联，并使其参照系与 interestRate 和 calculationPeriodBasis 一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialReturnRatio|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period financial return ratio"
+msgstr "持有期金融收益比率"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialReturnRatio|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact dimensionless fractional holding-period return, computed as closing value minus opening value divided by that same nonzero opening value. Both amounts must share a currency frame; the result records the explicitly selected period basis and is not annualized or a probability."
+msgstr "持有期间的精确无量纲分数收益率，按期末金额减期初金额，再除以同一非零期初金额计算。两个金额须使用相同货币参考系；结果记录明确选择的期间基准，不作年化，也不是概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialReturnRatio|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:computedReturn a gmeow:FinancialReturnRatio ; math:quantityValue 0.2 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:holdingPeriod ."
+msgstr "ex:computedReturn a gmeow:FinancialReturnRatio ; math:quantityValue 0.2 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:holdingPeriod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialReturnRatio|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the derived fractional gain or loss over the stated holding period."
+msgstr "用于所述持有期间推导出的分数形式收益或损失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialReturnRatio|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid probability typing, automatic annualization and asserting the answer as calculation input."
+msgstr "避免概率类型、自动年化以及将答案作为计算输入断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialReturnRatio|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read it from the return calculation's derived observationResult; retain its period frame and native proof."
+msgstr "从收益计算推导的 observationResult 读取；保留其期间参照系和原生证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SimpleInterestCalculation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest calculation"
+msgstr "单利计算"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SimpleInterestCalculation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A standpoint-indexed Measurement that requests exact simple interest from principalAmount, interestRate and interestPeriodCount using the canonical methodSimpleInterest recipe. The period-basis frame must agree across rate, count and calculation; observationResult is derived with its currency and native proof."
+msgstr "按立场标定的测量请求，使用规范 methodSimpleInterest 配方，根据 principalAmount、interestRate 和 interestPeriodCount 计算精确单利。比率、期间数量和计算的期间基准参考系须一致；observationResult 连同货币及原生证明一起推导。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SimpleInterestCalculation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interest a gmeow:SimpleInterestCalculation ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:account ; gmeow:observationMethod gmeow:methodSimpleInterest ; gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ; gmeow:calculationPeriodBasis ex:contractYear ; gmeow:principalAmount ex:principal ; gmeow:interestRate ex:rate ; gmeow:interestPeriodCount ex:periods ."
+msgstr "ex:interest a gmeow:SimpleInterestCalculation ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:account ; gmeow:observationMethod gmeow:methodSimpleInterest ; gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ; gmeow:calculationPeriodBasis ex:contractYear ; gmeow:principalAmount ex:principal ; gmeow:interestRate ex:rate ; gmeow:interestPeriodCount ex:periods ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SimpleInterestCalculation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to request principal times fractional rate times period count with observation context."
+msgstr "用于带观测上下文请求本金乘以分数利率再乘以期间数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SimpleInterestCalculation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid compound interest, mixed period bases and preasserted observationResult inputs."
+msgstr "避免复利、混用期间基准及预先断言的 observationResult 输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SimpleInterestCalculation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Provide the three typed quantities, matching period basis and authenticated simple recipe; evaluate the named request."
+msgstr "提供三个已定型数量、一致的期间基准及经认证的单利配方；求值该命名请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingPeriodReturnCalculation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return calculation"
+msgstr "持有期收益计算"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingPeriodReturnCalculation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A standpoint-indexed Measurement requesting exact holding-period return from openingAmount and closingAmount through methodHoldingPeriodReturn. A zero opening value or incompatible currency frames is invalid. The explicitly based FinancialReturnRatio and observationResult link are derived, never asserted as input."
+msgstr "按立场标定的测量请求，使用 methodHoldingPeriodReturn，根据 openingAmount 和 closingAmount 计算精确持有期收益。期初值为零或货币参考系不兼容时无效。带明确基准的 FinancialReturnRatio 及 observationResult 链接由推导产生，不作为输入断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingPeriodReturnCalculation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:return a gmeow:HoldingPeriodReturnCalculation ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:portfolio ; gmeow:observationMethod gmeow:methodHoldingPeriodReturn ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> ; gmeow:calculationPeriodBasis ex:holdingPeriod ; gmeow:openingAmount ex:opening ; gmeow:closingAmount ex:closing ."
+msgstr "ex:return a gmeow:HoldingPeriodReturnCalculation ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:portfolio ; gmeow:observationMethod gmeow:methodHoldingPeriodReturn ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> ; gmeow:calculationPeriodBasis ex:holdingPeriod ; gmeow:openingAmount ex:opening ; gmeow:closingAmount ex:closing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingPeriodReturnCalculation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to request the fractional change between opening and closing money values."
+msgstr "用于请求期初与期末货币价值之间的分数变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingPeriodReturnCalculation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a zero opening amount, different currencies and an annualized-return claim."
+msgstr "避免期初金额为零、不同货币及年化收益声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingPeriodReturnCalculation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply two MonetaryAmounts in one currency and the explicit period; evaluate the authenticated return recipe."
+msgstr "提供同一货币的两个 MonetaryAmount 和明确期间；求值经认证的收益配方。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/countedAsset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counted asset"
+msgstr "所计量资产"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/countedAsset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The specific Asset whose units a HoldingAssetQuantity counts. It must equal the holdingAsset when the quantity fills holdingQuantity; counts of different asset identities cannot be substituted solely because both are physically dimensionless."
+msgstr "HoldingAssetQuantity 所计量单位对应的具体 Asset。当数量用于 holdingQuantity 时，该资产须等于 holdingAsset；不能仅因不同资产的数量都物理无量纲而互相替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/countedAsset|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shares gmeow:countedAsset ex:acmeStock ."
+msgstr "ex:shares gmeow:countedAsset ex:acmeStock ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/countedAsset|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the asset whose units a holding quantity counts."
+msgstr "用于标识持仓数量所计数单位对应的资产。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/countedAsset|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid naming the holder, monetary cost basis or a merely similar asset."
+msgstr "避免指向持有人、货币成本基础或仅仅相似的资产。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/countedAsset|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set one Asset on HoldingAssetQuantity, equal to the enclosing holding's holdingAsset."
+msgstr "在 HoldingAssetQuantity 上设置一个 Asset，与所属持仓的 holdingAsset 相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/principalAmount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "principal amount"
+msgstr "本金金额"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/principalAmount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing MonetaryAmount used as principal in a SimpleInterestCalculation. Its exact canonical numeric value and explicit currency are inputs, not a precomputed interest result."
+msgstr "SimpleInterestCalculation 中作为本金的既有 MonetaryAmount。其精确规范数值和明确货币是输入，而不是预先算好的利息结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/principalAmount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interest gmeow:principalAmount ex:principal . ex:principal a gmeow:MonetaryAmount ; math:quantityValue 1000.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+msgstr "ex:interest gmeow:principalAmount ex:principal . ex:principal a gmeow:MonetaryAmount ; math:quantityValue 1000.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/principalAmount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the money quantity multiplied by rate and period count in simple interest."
+msgstr "用于单利中与利率和期间数量相乘的货币数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/principalAmount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a bare decimal, accrued interest or the final principal-plus-interest total."
+msgstr "避免裸小数、累计利息或最终本息总额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/principalAmount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the calculation to one complete MonetaryAmount; keep its currency on that input quantity."
+msgstr "将计算关联到一个完整的 MonetaryAmount；在该输入数量上保留货币。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestRate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interest rate"
+msgstr "利率"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestRate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FinancialPeriodRate input to simple interest. A magnitude of 0.05 means five percent per one period of its explicit basis; it is not 5, an annualization default or a probability."
+msgstr "单利计算的 FinancialPeriodRate 输入。数值 0.05 表示按明确基准的一个期间计百分之五，不是 5，不隐含默认年化，也不是概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestRate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interest gmeow:interestRate ex:rate . ex:rate a gmeow:FinancialPeriodRate ; math:quantityValue 0.05 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+msgstr "ex:interest gmeow:interestRate ex:rate . ex:rate a gmeow:FinancialPeriodRate ; math:quantityValue 0.05 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestRate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the required fractional rate input of a SimpleInterestCalculation."
+msgstr "用于 SimpleInterestCalculation 必需的分数利率输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestRate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking a probability, a literal percentage or the calculated interest amount."
+msgstr "避免关联概率、百分数文字值或计算出的利息金额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestRate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one FinancialPeriodRate; match its explicit frame to the calculation's period basis."
+msgstr "关联一个 FinancialPeriodRate；使其明确参照系与计算的期间基准一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestPeriodCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interest period count"
+msgstr "计息期间数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestPeriodCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FinancialPeriodCount multiplier in simple interest. Its reference frame must be the same explicit period basis as interestRate and calculationPeriodBasis."
+msgstr "单利计算中的 FinancialPeriodCount 乘数。其参考系必须与 interestRate 和 calculationPeriodBasis 的明确期间基准相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestPeriodCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interest gmeow:interestPeriodCount ex:periods . ex:periods a gmeow:FinancialPeriodCount ; math:quantityValue 2.0 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+msgstr "ex:interest gmeow:interestPeriodCount ex:periods . ex:periods a gmeow:FinancialPeriodCount ; math:quantityValue 2.0 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:contractYear ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestPeriodCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the required period-count multiplier of simple interest."
+msgstr "用于单利中必需的期间数量乘数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestPeriodCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking the interest rate, a raw duration or a count in a different period basis."
+msgstr "避免关联利率、原始时长或采用不同期间基准的数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestPeriodCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one nonnegative FinancialPeriodCount using the same frame as interestRate and calculationPeriodBasis."
+msgstr "关联一个非负 FinancialPeriodCount，使用与 interestRate 和 calculationPeriodBasis 相同的参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openingAmount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opening monetary amount"
+msgstr "期初货币金额"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openingAmount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonzero opening MonetaryAmount used as both subtrahend and denominator of holding-period return; the same quantity identity is used in both AST positions."
+msgstr "持有期收益计算中作为被减数和分母的非零期初 MonetaryAmount；两个 AST 位置使用同一数量标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openingAmount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:return gmeow:openingAmount ex:opening . ex:opening a gmeow:MonetaryAmount ; math:quantityValue 1000.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+msgstr "ex:return gmeow:openingAmount ex:opening . ex:opening a gmeow:MonetaryAmount ; math:quantityValue 1000.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openingAmount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the initial money value and denominator of holding-period return."
+msgstr "用于持有期收益的初始货币价值和分母。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openingAmount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid zero, a different currency from closingAmount or separate denominator inputs."
+msgstr "避免零、与 closingAmount 不同的货币或单独的分母输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openingAmount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one nonzero MonetaryAmount; the recipe reuses its symbol for subtraction and division."
+msgstr "关联一个非零 MonetaryAmount；配方在减法和除法中复用其符号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closingAmount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "closing monetary amount"
+msgstr "期末货币金额"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closingAmount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closing MonetaryAmount of holding-period return. Its currency frame must exactly match openingAmount before subtraction and division are admitted."
+msgstr "持有期收益计算的期末 MonetaryAmount。在允许减法和除法前，其货币参考系须与 openingAmount 完全相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closingAmount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:return gmeow:closingAmount ex:closing . ex:closing a gmeow:MonetaryAmount ; math:quantityValue 1200.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+msgstr "ex:return gmeow:closingAmount ex:closing . ex:closing a gmeow:MonetaryAmount ; math:quantityValue 1200.00 ; math:hasDimension math:dimensionless ; gmeow:currency gmeow:referenceFrameUSD ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closingAmount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the terminal money value in a holding-period return request."
+msgstr "用于持有期收益请求中的最终货币价值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closingAmount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid the profit alone, a computed return ratio or implicit currency conversion."
+msgstr "避免仅表示利润、计算出的收益比率或隐式货币转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closingAmount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one MonetaryAmount in openingAmount's currency; the recipe subtracts opening before dividing."
+msgstr "关联一个与 openingAmount 同货币的 MonetaryAmount；配方先减去期初价值再除法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "calculation expression"
+msgstr "计算表达式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical ApplicationExpression recipe of a financial method, or the selected source expression of a financial calculation. The installed caller requires structural identity with its authenticated method recipe, including operator topology and symbol identities."
+msgstr "金融方法的规范 ApplicationExpression 配方，或金融计算所选的来源表达式。安装后的调用程序要求其与已认证方法配方结构相同，包括运算符拓扑和符号标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interest gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ."
+msgstr "ex:interest gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to select the mathematical AST matching the declared financial method."
+msgstr "用于选择与声明的金融方法匹配的数学 AST。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a formula string, an answer quantity or an arbitrary well-typed expression."
+msgstr "避免公式字符串、答案数量或任意类型正确的表达式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the authenticated method recipe or an AST with identical operators, slot topology and mathematical symbols."
+msgstr "引用经认证的方法配方，或运算符、槽位拓扑和数学符号均相同的 AST。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "calculation period basis"
+msgstr "计算期间基准"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit scalar temporal ReferenceFrame defining one financial period for this calculation and its derived return. It declares a shared basis identity, never an implicit duration conversion or a currency frame."
+msgstr "明确的标量时间 ReferenceFrame，用于定义该计算及其推导收益的一个金融期间。它声明共享基准标识，不作隐含时长换算，也不是货币参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interest gmeow:calculationPeriodBasis ex:contractYear . ex:rate gmeow:hasReferenceFrame ex:contractYear . ex:periods gmeow:hasReferenceFrame ex:contractYear ."
+msgstr "ex:interest gmeow:calculationPeriodBasis ex:contractYear . ex:rate gmeow:hasReferenceFrame ex:contractYear . ex:periods gmeow:hasReferenceFrame ex:contractYear ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state which explicit financial period the calculation and its return concern."
+msgstr "用于说明计算及其收益对应哪个明确金融期间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a currency frame, an undeclared calendar convention or implicit day-to-year conversion."
+msgstr "避免货币参照系、未声明的日历约定或隐式日年换算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name one complete scalar temporal ReferenceFrame; reuse its identity on rate and count inputs."
+msgstr "指定一个完整的时间标量 ReferenceFrame；在利率和数量输入上复用其标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodSimpleInterest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact simple interest method"
+msgstr "精确单利方法"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodSimpleInterest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact-decimal computational observation method and callable signature for simple interest P*r*n. Its separately identified canonical AST and parameter definitions are read from the installed authenticated owner, and native execution derives a MonetaryAmount result."
+msgstr "采用精确十进制计算单利 P*r*n 的计算观测方法和可调用签名。其独立标识的规范 AST 与参数定义从已安装且已认证的所有者读取；原生执行推导 MonetaryAmount 结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodSimpleInterest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interest gmeow:observationMethod gmeow:methodSimpleInterest ; gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ."
+msgstr "ex:interest gmeow:observationMethod gmeow:methodSimpleInterest ; gmeow:calculationExpression <urn:gmeow:finance:simple:recipe> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodSimpleInterest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to select the installed exact-decimal principal-times-rate-times-count method."
+msgstr "用于选择已安装的精确十进制本金乘利率乘期间数量方法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodSimpleInterest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid compound interest, replacing the authenticated signature or asserting a precomputed answer."
+msgstr "避免复利、替换经认证的签名或断言预先计算的答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodSimpleInterest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select it through observationMethod; bind actual quantities through principalAmount, interestRate and interestPeriodCount, not through symbol definitions."
+msgstr "通过 observationMethod 选择；通过 principalAmount、interestRate 和 interestPeriodCount 绑定实际数量，而非通过符号定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodHoldingPeriodReturn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact holding-period return method"
+msgstr "精确持有期收益方法"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodHoldingPeriodReturn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact-decimal computational observation method and callable signature for (closing-opening)/opening. The recipe repeats the opening symbol, requires one currency for both money inputs and derives a FinancialReturnRatio on the explicit period basis; nonterminating decimal quotients fail without rounding."
+msgstr "采用精确十进制计算 (期末-期初)/期初 的计算观测方法和可调用签名。配方重复使用期初符号，要求两个货币输入使用同一货币，并按明确期间基准推导 FinancialReturnRatio；无限小数商直接失败而不舍入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodHoldingPeriodReturn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:return gmeow:observationMethod gmeow:methodHoldingPeriodReturn ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> ."
+msgstr "ex:return gmeow:observationMethod gmeow:methodHoldingPeriodReturn ; gmeow:calculationExpression <urn:gmeow:finance:return:recipe> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodHoldingPeriodReturn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to select the installed exact-decimal closing-minus-opening over opening method."
+msgstr "用于选择已安装的精确十进制方法：期末减期初，再除以期初。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodHoldingPeriodReturn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid annualization, currency conversion and silently rounding a nonterminating quotient."
+msgstr "避免年化、货币转换及默默舍入无限小数商。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodHoldingPeriodReturn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select it through observationMethod; bind money through openingAmount and closingAmount while retaining distinct signature, symbol and quantity identities."
+msgstr "通过 observationMethod 选择；通过 openingAmount 和 closingAmount 绑定金额，同时保持签名、符号和数量标识彼此独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding quantity"
+msgstr "持有数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact HoldingAssetQuantity value of units of the holdingAsset at the holding's time or interval. It is an object carrying canonical magnitude, dimension, countedAsset and count frame; monetary cost remains holdingCostBasis."
+msgstr "在持有时点或期间内，holdingAsset 单位的精确 HoldingAssetQuantity 值。它是携带规范数值、维度、countedAsset 和计数参考系的对象；货币成本仍由 holdingCostBasis 表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:holding gmeow:holdingQuantity ex:shares . ex:shares a gmeow:HoldingAssetQuantity ; math:quantityValue 10.0 ; math:hasDimension math:dimensionless ; gmeow:countedAsset ex:stock ; gmeow:hasReferenceFrame ex:shareCountFrame ."
+msgstr "ex:holding gmeow:holdingQuantity ex:shares . ex:shares a gmeow:HoldingAssetQuantity ; math:quantityValue 10.0 ; math:hasDimension math:dimensionless ; gmeow:countedAsset ex:stock ; gmeow:hasReferenceFrame ex:shareCountFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for exact whole or fractional asset-unit holdings, including signed positions."
+msgstr "用于精确的整数或分数资产单位持仓，包括带符号的头寸。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a bare decimal, a MonetaryAmount in the count role, or a count whose countedAsset differs from holdingAsset."
+msgstr "避免裸十进制数、将 MonetaryAmount 用于计数角色，或 countedAsset 与 holdingAsset 不同的计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one quantity object and preserve its exact decimal magnitude, explicit dimension, complete scalar mathematical count frame and matching countedAsset; preserve the holding's agent, asset, period and cost basis."
+msgstr "链接一个数量对象，并保留其精确十进制数值、明确维度、完整数学标量计数参考系及相符的 countedAsset；同时保留持有者、资产、期间和成本基础。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: asset-unit counts; this property is functional on the quantity object, not a global selection between standpoint-indexed holdings."
+msgstr "范围：资产单位数量；该属性对数量对象是函数性的，并不在按立场标定的持仓之间作全局选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingAssetQuantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."
+msgstr "范围：具有明确标识及参考系的精确金融数量；似然与置信度保留各自语义所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodRate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."
+msgstr "范围：具有明确标识及参考系的精确金融数量；似然与置信度保留各自语义所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialPeriodCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."
+msgstr "范围：具有明确标识及参考系的精确金融数量；似然与置信度保留各自语义所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FinancialReturnRatio|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: exact financial quantities with explicit identity and frame; likelihood and confidence keep their own semantic owners."
+msgstr "范围：具有明确标识及参考系的精确金融数量；似然与置信度保留各自语义所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SimpleInterestCalculation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the selected simple-interest or holding-period-return recipe with mandatory observation context and exact input admission."
+msgstr "范围：所选单利或持有期收益配方，必须提供观测上下文并精确验证输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HoldingPeriodReturnCalculation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the selected simple-interest or holding-period-return recipe with mandatory observation context and exact input admission."
+msgstr "范围：所选单利或持有期收益配方，必须提供观测上下文并精确验证输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/countedAsset|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/principalAmount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestRate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interestPeriodCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openingAmount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closingAmount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calculationPeriodBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this financial input, frame or recipe role; its presence alone asserts no computed financial result."
+msgstr "范围：该金融输入、参考系或配方角色；仅有此角色不表示已经算出金融结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodSimpleInterest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: finite exact-decimal execution. Method/signature, AST, parameter definitions and bound quantity values have distinct identities; unsupported results fail."
+msgstr "范围：有限精确十进制执行。方法与签名、AST、参数定义和绑定数量值具有不同标识；不支持的结果会失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodHoldingPeriodReturn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: finite exact-decimal execution. Method/signature, AST, parameter definitions and bound quantity values have distinct identities; unsupported results fail."
+msgstr "范围：有限精确十进制执行。方法与签名、AST、参数定义和绑定数量值具有不同标识；不支持的结果会失败。"
+
+msgctxt "urn:gmeow:finance:constraint:nonnegative-period-count|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "nonnegative financial period count"
+msgstr "非负金融期间数量"
+
+msgctxt "urn:gmeow:finance:constraint:nonnegative-period-count|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires an exact period count to be nonnegative; negative rates remain valid."
+msgstr "要求精确期间数量为非负；负比率仍然有效。"
+
+msgctxt "urn:gmeow:finance:constraint:FinancialPeriodRate-frame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "FinancialPeriodRate-frame contract"
+msgstr "FinancialPeriodRate-frame 契约"
+
+msgctxt "urn:gmeow:finance:constraint:FinancialPeriodRate-frame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared FinancialPeriodRate-frame relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 FinancialPeriodRate-frame 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "urn:gmeow:finance:constraint:FinancialPeriodCount-frame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "FinancialPeriodCount-frame contract"
+msgstr "FinancialPeriodCount-frame 契约"
+
+msgctxt "urn:gmeow:finance:constraint:FinancialPeriodCount-frame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared FinancialPeriodCount-frame relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 FinancialPeriodCount-frame 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "urn:gmeow:finance:constraint:FinancialReturnRatio-frame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "FinancialReturnRatio-frame contract"
+msgstr "FinancialReturnRatio-frame 契约"
+
+msgctxt "urn:gmeow:finance:constraint:FinancialReturnRatio-frame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared FinancialReturnRatio-frame relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 FinancialReturnRatio-frame 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "urn:gmeow:finance:constraint:HoldingAssetQuantity-frame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "HoldingAssetQuantity-frame contract"
+msgstr "HoldingAssetQuantity-frame 契约"
+
+msgctxt "urn:gmeow:finance:constraint:HoldingAssetQuantity-frame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared HoldingAssetQuantity-frame relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 HoldingAssetQuantity-frame 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "urn:gmeow:finance:constraint:holding-asset-count|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-asset-count contract"
+msgstr "holding-asset-count 契约"
+
+msgctxt "urn:gmeow:finance:constraint:holding-asset-count|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared holding-asset-count relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 holding-asset-count 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "urn:gmeow:finance:constraint:simple-interestRate-basis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple-interestRate-basis contract"
+msgstr "simple-interestRate-basis 契约"
+
+msgctxt "urn:gmeow:finance:constraint:simple-interestRate-basis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared simple-interestRate-basis relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 simple-interestRate-basis 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "urn:gmeow:finance:constraint:simple-interestPeriodCount-basis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple-interestPeriodCount-basis contract"
+msgstr "simple-interestPeriodCount-basis 契约"
+
+msgctxt "urn:gmeow:finance:constraint:simple-interestPeriodCount-basis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared simple-interestPeriodCount-basis relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 simple-interestPeriodCount-basis 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "urn:gmeow:finance:constraint:return-currency-match|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "return-currency-match contract"
+msgstr "return-currency-match 契约"
+
+msgctxt "urn:gmeow:finance:constraint:return-currency-match|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the declared return-currency-match relation for each guarded financial input; the complete frame profile remains owned by places."
+msgstr "要求每个受约束的金融输入满足已声明的 return-currency-match 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding names one exact HoldingAssetQuantity object, whose magnitude, asset identity and count frame remain explicit. Competing holdings remain standpoint-indexed statements. This characteristic is reasoned from its canonical carrier, not restated on a shape surface."
+msgstr "在规范载体上声明 gmeow:holdingQuantity 为函数性属性：一个持仓指定一个精确 HoldingAssetQuantity 对象，且其数值、资产标识和计数参考系保持明确。相互竞争的持仓仍是按立场标定的声明。该特性从规范载体推理得出，而不是在形状表面上重复断言。"

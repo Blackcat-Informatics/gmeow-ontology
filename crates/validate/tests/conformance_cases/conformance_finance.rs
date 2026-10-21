@@ -36,29 +36,29 @@ fn finance(#[case] case: Case) {
 // ── Cross-slice TBox assertions ───────────────────────────────────────────────
 
 #[gmeow_test_batch_macros::batch_test]
-fn monetary_amount_is_entity() {
+fn monetary_amount_is_canonical_quantity() {
     let g = GraphStore::ontology();
     assert!(g.has(
         Some(&format!("{GMEOW}MonetaryAmount")),
         Some(RDFS_SUBCLASS_OF),
-        Some(&format!("{GMEOW}Entity")),
+        Some("https://blackcatinformatics.ca/math/Quantity"),
     ));
     assert!(g.has(
         Some(&format!("{GMEOW}MonetaryAmount")),
         Some(RDF_TYPE),
-        Some(&format!("{LOGIC}Kind")),
+        Some(&format!("{LOGIC}AbstractIndividualType")),
     ));
 }
 
 #[gmeow_test_batch_macros::batch_test]
-fn monetary_value_is_functional() {
+fn monetary_value_has_one_canonical_owner() {
     let g = GraphStore::ontology();
-    let iri = format!("{GMEOW}monetaryValue");
-    assert!(g.has(Some(&iri), Some(RDF_TYPE), Some(OWL_DATATYPE_PROPERTY)));
-    assert!(
-        g.is_functional_carrier(&iri),
-        "gmeow:monetaryValue must carry a logic: functionalProperty characteristic"
-    );
+    assert!(g.has(
+        Some("https://blackcatinformatics.ca/math/quantityValue"),
+        Some(RDF_TYPE),
+        Some(OWL_DATATYPE_PROPERTY)
+    ));
+    assert!(!g.has(Some(&format!("{GMEOW}monetaryValue")), None, None));
 }
 
 #[gmeow_test_batch_macros::batch_test]

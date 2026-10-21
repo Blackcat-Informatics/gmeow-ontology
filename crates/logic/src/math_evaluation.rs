@@ -130,6 +130,7 @@ fn read_source(dataset: &RdfDataset) -> gmeow_errors::Result<Source> {
 struct Lowering<'a> {
     source: &'a Source,
     bindings: &'a BTreeMap<String, String>,
+    quantity_classes: &'a BTreeSet<String>,
     used: BTreeSet<String>,
     visited: BTreeSet<String>,
     premises: Vec<Formula>,
@@ -191,7 +192,20 @@ impl Lowering<'_> {
             .get(&symbol)
             .ok_or_else(|| failure(format!("missing --bind {symbol}=QUANTITY")))?
             .clone();
-        require_type(self.source, &quantity, &iri("Quantity"))?;
+        if !objects(self.source, &quantity, TYPE).contains(&named(&iri("Quantity"))) {
+            if !self
+                .quantity_classes
+                .iter()
+                .any(|class| objects(self.source, &quantity, TYPE).contains(&named(class)))
+            {
+                return Err(failure(format!(
+                    "{quantity} requires Quantity type or an explicitly admitted owned subclass"
+                )));
+            }
+            // This is a native body obligation, never an asserted input type.
+            self.premises
+                .push(atom(TYPE, named(&quantity), named(&iri("Quantity"))));
+        }
         if reference(self.source, &quantity, &iri("hasDimension"))? != iri("dimensionless") {
             return Err(failure(format!(
                 "{quantity} is dimensioned; this profile supports only explicitly dimensionless quantities"
@@ -356,22 +370,24 @@ fn validate_quantity_result(
     Ok(())
 }
 
-/// Lower and execute the explicitly selected exact-scalar profile.
+/// Prepare the explicitly selected exact-scalar profile without executing it.
 ///
 /// # Errors
 /// Rejects malformed ASTs, binding ambiguity, unsupported dimensions or values,
 /// division by zero, and nonterminating decimal quotients. It never rounds.
-pub fn evaluate(
+pub fn prepare(
     dataset: &RdfDataset,
     root: &str,
     bindings: &BTreeMap<String, String>,
-) -> gmeow_errors::Result<Evaluation> {
+    context: &EvaluationContext,
+) -> gmeow_errors::Result<PreparedEvaluation> {
     crate::math_expression::analysis::structural_key_at(dataset, root)
         .map_err(|error| failure(error.to_string()))?;
     let source = read_source(dataset)?;
     let mut lowering = Lowering {
         source: &source,
         bindings,
+        quantity_classes: &context.quantity_classes,
         used: BTreeSet::new(),
         visited: BTreeSet::new(),
         premises: vec![],
@@ -384,9 +400,25 @@ pub fn evaluate(
             "unused binding: every selected symbol must occur in the root expression",
         ));
     }
-    let identity =
+    let identity = if context.identity.is_empty()
+        && context.premises.is_empty()
+        && context.quantity_classes.is_empty()
+    {
         serde_json::to_vec(&(PROFILE, root, bindings, &lowering.premises, &lowering.calls))
-            .map_err(|error| failure(error.to_string()))?;
+            .map_err(|error| failure(error.to_string()))?
+    } else {
+        serde_json::to_vec(&(
+            PROFILE,
+            root,
+            bindings,
+            &lowering.premises,
+            &lowering.calls,
+            &context.identity,
+            &context.premises,
+            &context.quantity_classes,
+        ))
+        .map_err(|error| failure(error.to_string()))?
+    };
     let digest = format!("{:x}", Sha256::digest(identity));
     let quantity = format!("urn:gmeow:math-evaluation:quantity:{digest}");
     if source.keys().any(|(subject, _)| subject == &quantity)
@@ -400,6 +432,7 @@ pub fn evaluate(
         ));
     }
     let mut antecedent = lowering.premises;
+    antecedent.extend(context.premises.clone());
     antecedent.extend(lowering.calls);
     let head = Formula::And(vec![
         atom(TYPE, named(&quantity), named(&iri("Quantity"))),
@@ -420,6 +453,36 @@ pub fn evaluate(
         Box::new(Formula::And(antecedent)),
         Box::new(head),
     )]);
+    Ok(PreparedEvaluation { quantity, program })
+}
+
+/// Additional admitted premises bound before the result identity is selected.
+#[derive(Default)]
+pub struct EvaluationContext {
+    /// Selected caller contract and authenticated owner identity.
+    pub identity: String,
+    /// Positive source premises admitted by that caller.
+    pub premises: Vec<Formula>,
+    /// Caller-admitted subclasses; native Quantity membership remains a required premise.
+    pub quantity_classes: BTreeSet<String>,
+}
+
+/// Native arithmetic program for a caller that adds its admitted result roles.
+pub struct PreparedEvaluation {
+    /// Fresh quantity identity bound to the selected source and context.
+    pub quantity: String,
+    /// Canonical native program; domain callers may append derived conclusions.
+    pub program: LogicProgram,
+}
+
+/// Execute a prepared program once through the normal native owner.
+///
+/// # Errors
+/// Returns source admission, arithmetic, proof and result-completeness failures.
+pub fn execute_prepared(
+    dataset: &RdfDataset,
+    prepared: PreparedEvaluation,
+) -> gmeow_errors::Result<Evaluation> {
     let input = crate::reason::prepare_reasoning_input(dataset)?;
     let domains = SelectedDomains::new([SelectedLogicalWorld::new(
         LogicalGraph::Default,
@@ -427,10 +490,28 @@ pub fn evaluate(
         format!("urn:gmeow:profile:{PROFILE}"),
         *input.ingress_contract(),
     )?])?;
-    let result = crate::reason::reason_program(&program, input, &domains)?;
+    let result = crate::reason::reason_program(&prepared.program, input, &domains)?;
     result.validate_native_closure()?;
-    validate_quantity_result(&result, &quantity)?;
-    Ok(Evaluation { quantity, result })
+    validate_quantity_result(&result, &prepared.quantity)?;
+    Ok(Evaluation {
+        quantity: prepared.quantity,
+        result,
+    })
+}
+
+/// Execute the standalone exact scalar profile without domain extensions.
+///
+/// # Errors
+/// Rejects malformed inputs, unsupported selections and non-exact results.
+pub fn evaluate(
+    dataset: &RdfDataset,
+    root: &str,
+    bindings: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Evaluation> {
+    execute_prepared(
+        dataset,
+        prepare(dataset, root, bindings, &EvaluationContext::default())?,
+    )
 }
 
 #[cfg(test)]

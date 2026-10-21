@@ -3,6 +3,8 @@
 
 //! Exact standalone module and counterexample selections owned by the producer.
 
+pub(super) const INPUTS: &[&str] = &["slices/extensions/finance/examples/exact-computations.ttl"];
+
 pub(super) const MODULES: &[&str] = &[
     "slices/core/attestation/module.ttl",
     super::migration::MODULE,
@@ -17,6 +19,7 @@ pub(super) const MODULES: &[&str] = &[
     "slices/core/standpoint/module.ttl",
     "slices/core/trust/module.ttl",
     "slices/extensions/risk/module.ttl",
+    "slices/extensions/finance/module.ttl",
     "slices/grounding/lang/module.ttl",
     "slices/grounding/math/module.ttl",
 ];

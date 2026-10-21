@@ -328,6 +328,11 @@ pub enum Commands {
         #[command(subcommand)]
         command: MathCommands,
     },
+    /// Exact financial calculations with authenticated recipes and native proof.
+    Finance {
+        #[command(subcommand)]
+        command: FinanceCommands,
+    },
     /// Conjecture-and-refutation tools over the `logic:` engine.
     Conjecture {
         #[command(subcommand)]
@@ -1478,6 +1483,22 @@ pub enum AffectCommands {
     },
 }
 
+/// Financial computations admitted against authenticated installed owner contracts.
+#[derive(Debug, Subcommand)]
+pub enum FinanceCommands {
+    /// Derive exact simple interest or holding-period return from a complete financial contract.
+    Evaluate {
+        /// User Turtle input; '-' reads standard input. No checkout is needed.
+        source: PathBuf,
+        /// Named financial calculation with complete observation context.
+        #[arg(long)]
+        subject: String,
+        /// Required derived result and native proof output.
+        #[arg(long)]
+        out: PathBuf,
+    },
+}
+
 /// The `gmeow math` nested subcommands (native `gmeow_math_lift` ingestion bridges).
 ///
 /// Each leaf is one of the three shipped `math:` ingestion bridges. Every one reads a REAL
@@ -1749,6 +1770,7 @@ pub fn run() -> i32 {
         Commands::Music { command } => passthrough::music(reporter, &command),
         Commands::Affect { command } => passthrough::affect(reporter, &command),
         Commands::Math { command } => passthrough::math(reporter, &command),
+        Commands::Finance { command } => passthrough::finance(reporter, &command),
         Commands::Conjecture { command } => match command {
             ConjectureCommands::Test {
                 formula,
