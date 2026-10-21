@@ -344,3 +344,31 @@ depth bar cannot silently regress, and no test rebuilds the corpus to prove it.
 | Each competency reference is a registered, green question with an existing query file | cached slice-spec producer verdict | — |
 | Each counter-example raises exactly its class and each worked example is clean | cached slice-spec producer verdict | — |
 | Each native producer emits its authenticated graph and every pinned fixture agrees | `stage-math-producers` plus read-only `conformance_math_producers` | — |
+
+### Tensor type descriptors and admitted values
+
+`math:expressionValueSpace` explicitly interprets an ExpressionType descriptor as
+the Set of mathematical values it admits. The descriptor and Set remain separate
+objects. A tensor value space reflects its structured element format and shape
+in the declared symbolic context; it is distinct from the natural-number domain
+of an extent and the parameter-vector space of a trained model. The seam is
+optional for general types, and does not read or validate tensor payload members.
+
+ONNX input and initializer free declarations name that Set as `variableDomain`.
+Equal structural types share their descriptor and value space in one lift. A
+source input type or initializer header establishes the authoritative leaf
+domain; compatible later annotations retain their own type metadata without
+replacing it. Conflicting element formats, known ranks, concrete extents or
+symbolic equalities among annotations of the same expression are refused.
+These are local source-metadata checks, not whole-graph shape inference or
+operator-schema execution. Unknown rank and unstated extents may be
+compatibly refined; the original declaration keeps its admitted domain.
+Legacy input declarations repeating initializer names are checked after the
+header establishes the identity and domain.
+
+Shape and type identities use tagged, byte-length-framed structural keys,
+including axis count and a separate unknown-rank tag. Rendered labels are not
+identity: symbolic `3` differs from concrete 3, symbolic `?` differs from an
+unstated extent, and delimiters inside symbol names cannot change the axis family.
+These repairs preserve typed metadata independently of display spelling and
+payload omission.

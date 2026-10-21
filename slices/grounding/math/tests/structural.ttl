@@ -1446,3 +1446,17 @@ ASK { m:RationalProbabilityRangeConstraint a l:Constraint ;
   l:formalizes m:ProbabilityValue ; g:enforcesFailureClass m:ProbabilityOutOfBounds ;
   l:integrity ?law . ?law l:forall ?body . }""" ;
     gmeow:saRationale "Exact probability bounds have one mathematical law shared by native marker and generated validation owners; no decimal approximation substitutes for a rational pair." .
+
+ex:saExpressionValueSpaceIsExplicit a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+ASK {
+ m:expressionValueSpace a l:ObjectProperty ; l:domain m:ExpressionType ; l:range m:Set .
+ m:ExpressionType l:subClassOf [ l:onProperty m:expressionValueSpace ; l:allValuesFrom m:Set ],
+     [ l:onProperty m:expressionValueSpace ; l:maxQualifiedCardinality 1 ; l:onClass m:Set ] .
+ FILTER NOT EXISTS { m:ExpressionType l:subClassOf m:Set }
+ FILTER NOT EXISTS { m:TensorElementType l:subClassOf m:Set }
+ FILTER NOT EXISTS { [] a l:ClosureEntry ; l:onClass m:ExpressionType ; l:closureKey "https://blackcatinformatics.ca/math/expressionValueSpace" ; l:closureValue l:ClosedWorldClosure }
+}""" ;
+    gmeow:saRationale "Explicit value-space interpretation retains distinct descriptor and Set identities without universally requiring or silently promoting general types to Sets." .
