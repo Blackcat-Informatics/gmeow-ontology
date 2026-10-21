@@ -69,6 +69,85 @@ fn malformed_constraints_remain_visible_in_the_record() {
 }
 
 #[test]
+fn result_contract_checks_presence_and_every_value_without_cross_record_leaks() {
+    // Independently authored synthetic law: no repository module or corpus is loaded.
+    let product = compile(
+        r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <urn:result-contract:> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:contract a logic:Constraint ; logic:integrity [ a logic:Formula ;
+          logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                  [ logic:termIndex 1 ; logic:termVariable "result" ] ;
+          logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+              [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ],
+              [ a logic:Formula ; logic:relation ex:result ; logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+              [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                  [ a logic:Formula ; logic:relation ex:value ; logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ],
+                  [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri ex:Value ] ] ] ],
+              [ a logic:Formula ; logic:not [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                  [ a logic:Formula ; logic:relation ex:value ; logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "other" ] ],
+                  [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ; logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termIri ex:Value ] ] ] ] ] ] ] ] ] .
+        "#,
+    );
+    assert!(product.diagnostics.is_empty(), "{:?}", product.diagnostics);
+    assert!(
+        product
+            .procedural_shacl
+            .contains("contractProceduralConstraintShape")
+    );
+    let shapes = parse_shapes(&product.procedural_shacl, None).unwrap();
+    for (name, body, valid) in [
+        ("typed value", "ex:result ex:value ex:good .", true),
+        ("missing value", "", false),
+        ("untyped value", "ex:result ex:value ex:bad .", false),
+        (
+            "valid plus malformed extra",
+            "ex:result ex:value ex:good, ex:bad .",
+            false,
+        ),
+        ("literal value", "ex:result ex:value 1 .", false),
+        (
+            "neighbor cannot supply missing value",
+            "ex:other a ex:Report ; ex:result ex:otherResult . ex:otherResult ex:value ex:good .",
+            false,
+        ),
+        (
+            "one good result cannot conceal another",
+            "ex:result ex:value ex:good . ex:report ex:result ex:emptyResult .",
+            false,
+        ),
+    ] {
+        let input = format!(
+            "@prefix ex: <urn:result-contract:> . ex:good a ex:Value . ex:report a ex:Report ; ex:result ex:result . {body}"
+        );
+        let data = purrdf::parse_dataset(input.as_bytes(), "text/turtle", None).unwrap();
+        let report = validate_dataset(&data, &shapes).unwrap();
+        assert_eq!(report.results.is_empty(), valid, "{name}: {report:?}");
+        if !valid {
+            assert!(
+                report
+                    .results
+                    .iter()
+                    .any(|finding| finding.focus_node.to_string().contains("report")),
+                "{name}: {report:?}"
+            );
+        }
+    }
+}
+
+#[test]
 fn forget_request_requires_roles_and_named_references_without_granting_permission() {
     // Independently authored, tiny input: this never loads or produces the corpus.
     let prefixes = "@prefix logic: <https://blackcatinformatics.ca/logic/> .

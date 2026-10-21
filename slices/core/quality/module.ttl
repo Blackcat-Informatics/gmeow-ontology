@@ -4,6 +4,41 @@
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+gmeow:QuantitativeQualityAssessment
+    a logic:SubKind , logic:Class ;
+    logic:subClassOf gmeow:QualityAssessment ,
+        [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom math:Quantity ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
+    rdfs:label "Quantitative Quality Assessment"@x-gmeow-english ;
+    skos:definition "A quality assessment whose results are dimensioned quantities. Each result is a math:Quantity with its own physical or dimensionless dimension; the assessment remains an observation, distinct from the quantities it reports."@x-gmeow-english ;
+    gmeow:useWhen "Use for measured quality magnitudes such as positional error, temporal error or a completeness ratio."@x-gmeow-english ;
+    gmeow:avoidWhen "Use the base QualityAssessment for categorical conformance verdicts and AggregateQualityAssessment for estimated aggregate scores."@x-gmeow-english ;
+    gmeow:howToUse "Provide at least one observationResult typed math:Quantity, with math:hasDimension and the measured math:quantityValue. Keep units, frames, method and vantage on the ordinary observation substrate."@x-gmeow-english ;
+    skos:scopeNote "QualityDimension remains an open vocabulary of individuals. No fixed physical dimension is imposed on a broad ISO quality category, and multiple results and dimension classifications remain permitted."@x-gmeow-english ;
+    skos:example "ex:assessment a gmeow:QuantitativeQualityAssessment ; gmeow:observationResult ex:ratio . ex:ratio a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.985 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AggregateQualityAssessment
+    a logic:SubKind , logic:Class ;
+    logic:subClassOf gmeow:QualityAssessment ,
+        [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom math:Estimate ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
+    rdfs:label "Aggregate Quality Assessment"@x-gmeow-english ;
+    skos:definition "A quality assessment reporting estimated aggregate scores as math:Estimate results. Every estimate names its target and estimator and carries dimensioned quantity values; the assessment, result, procedure and target remain distinct objects."@x-gmeow-english ;
+    gmeow:useWhen "Use for an aggregate quality score produced by a declared estimator over data."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a direct quality measurement or a categorical verdict. An aggregate assessment is never itself a math:Estimate."@x-gmeow-english ;
+    gmeow:howToUse "Link observationResult to each math:Estimate; provide math:estimateValue quantities, typed math:Estimator procedures through math:estimator, and math:estimatesEstimand or math:estimatedParameter targets."@x-gmeow-english ;
+    skos:scopeNote "Each aggregate result retains its own estimator, target and dimensioned values. Coexisting results are not paired with dimension classifications by a Cartesian assumption."@x-gmeow-english ;
+    skos:example "ex:assessment a gmeow:AggregateQualityAssessment ; gmeow:observationResult ex:estimate . ex:estimate a math:Estimate ; math:estimateValue ex:score ; math:estimator ex:procedure ; math:estimatedParameter ex:meanCompleteness ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QuantitativeQualityAssessment ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AggregateQualityAssessment ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:QualityAssessment
     a logic:SubKind ,
@@ -118,9 +153,36 @@ gmeow:qualityDimensionTopologicalConsistency
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Cross-cutting data-quality layer refining confidence and provenance across every realm. Quality assessments are reified observations about ISO 19157 dimensions (positional accuracy, temporal accuracy, thematic accuracy, completeness, logical consistency, topological consistency) plus lineage. Aligns W3C DQV and GeoDCAT-AP by reference; quality-metric computation lives in the solver layer (Principle 12).
 
-QualityAssessment reuses the universal Observation stack: the assessed entity is the observedFeature, the quality result is the observationResult (typically a math:Quantity), and the assessment method is the observationMethod. This keeps the quality layer thin and consistent with every other GMEOW claim construct."""@x-gmeow-english ;
+QualityAssessment reuses the universal Observation stack: the assessed entity is the observedFeature, the quality result is the observationResult (a math:Quantity, a math:Estimate, or a categorical verdict), and the assessment method is the observationMethod. QuantitativeQualityAssessment and AggregateQualityAssessment select the corresponding required mathematical result contracts without narrowing categorical assessments."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
     rdfs:label "GMEOW Data Quality Module"@x-gmeow-english ;
     skos:definition "The GMEOW Data Quality Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Aggregate obligations are scoped to the held assessment and each of its results.
+# Anonymous formula nodes keep the law in one canonical integrity tree.
+# Malformed-value witnesses have distinct names from presence witnesses so their
+# scopes remain separate in the generated SPARQL validation view.
+gmeow:AggregateQualityResultsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
+    rdfs:label "Aggregate quality results constraint"@x-gmeow-english ;
+    skos:definition "Every result of an aggregate quality assessment carries at least one quantity value, at least one estimator procedure and an estimand or parameter target. Every supplied value and procedure has the required mathematical type; one valid value cannot conceal a malformed extra value."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the mathematical result contract of every aggregate quality assessment."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not apply this aggregate contract to categorical quality verdicts or direct measured quantities."@x-gmeow-english ;
+    gmeow:howToUse "Author complete math:Estimate results on AggregateQualityAssessment observations. The native integrity tree and its generated validation projection enforce the same scoped obligation."@x-gmeow-english ;
+    skos:scopeNote "The mathematical quantity owner enforces dimensions. This law adds no quality-specific quantity, estimator or target vocabulary and never equates a result with its assessment."@x-gmeow-english ;
+    skos:example "ex:estimate math:estimateValue ex:score ; math:estimator ex:procedure ; math:estimatedParameter ex:meanCompleteness . ex:score a math:Quantity . ex:procedure a math:Estimator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:AggregateQualityAssessment ;
+    logic:message "Every aggregate quality result requires typed quantity values, typed estimator procedures and an estimand or parameter target." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:AggregateQualityAssessment ] ],
+[ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:estimateValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ],
+[ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri math:Quantity ] ] ] ],
+[ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "invalidValue" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:estimateValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "invalidValue" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "invalidValue" ], [ logic:termIndex 1 ; logic:termIri math:Quantity ] ] ] ] ] ],
+[ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "estimator" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:estimator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "estimator" ] ],
+[ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "estimator" ], [ logic:termIndex 1 ; logic:termIri math:Estimator ] ] ] ],
+[ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "invalidEstimator" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:estimator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "invalidEstimator" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "invalidEstimator" ], [ logic:termIndex 1 ; logic:termIri math:Estimator ] ] ] ] ] ],
+[ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "target" ] ; logic:exists [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation math:estimatesEstimand ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ],
+[ a logic:Formula ; logic:relation math:estimatedParameter ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] ] ] ] .

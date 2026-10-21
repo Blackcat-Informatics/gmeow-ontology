@@ -8,10 +8,8 @@
 # Quality is migrated, so the class stereotypes are logic: (logic:SubKind,
 # logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
-# The whole-ontology Principle-9 "no primary/preferred selector anywhere" sweep
-# (test_no_preferred_or_primary_term_is_declared) is NOT migrated here: it sweeps
-# the entire merged graph's subject set, so a quality-module-scoped cell would
-# silently narrow it — it is retained as a dynamic-set sweep in pytest.
+# The whole-ontology Principle-9 selector sweep belongs to the native conformance
+# suite; these module-scoped cells do not narrow that repository-wide obligation.
 #
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -101,3 +99,32 @@ ASK {
     gmeow:qualityDimensionLineage              a gmeow:QualityDimension .
 }""" ;
     gmeow:saRationale "All seven ISO 19157 + lineage dimension seeds MUST be present as gmeow:QualityDimension individuals." .
+
+ex:saQuantitativeResultContract a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+  g:QuantitativeQualityAssessment rdfs:subClassOf g:QualityAssessment ;
+    rdfs:subClassOf [ owl:onProperty g:observationResult ; owl:allValuesFrom m:Quantity ] .
+  g:AggregateQualityAssessment rdfs:subClassOf g:QualityAssessment ;
+    rdfs:subClassOf [ owl:onProperty g:observationResult ; owl:allValuesFrom m:Estimate ] .
+  ?directClosure a l:ClosureEntry ; l:onClass g:QuantitativeQualityAssessment ;
+    l:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; l:closureValue l:ClosedWorldClosure .
+  ?aggregateClosure a l:ClosureEntry ; l:onClass g:AggregateQualityAssessment ;
+    l:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; l:closureValue l:ClosedWorldClosure .
+}""" ;
+    gmeow:saRationale "Quantitative and aggregate quality select required mathematical result contracts while sharing the ordinary quality-observation owner." .
+
+ex:saCategoricalQualityIsNotUniversallyQuantitative a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { g:QualityAssessment rdfs:subClassOf [ owl:onProperty g:observationResult ; owl:allValuesFrom ?mathematicalResultKind ] . }""" ;
+    gmeow:saRationale "The base quality assessment must still admit categorical verdicts; magnitude-only contracts belong to explicit subkinds." .

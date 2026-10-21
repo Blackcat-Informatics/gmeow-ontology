@@ -1,0 +1,94 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuantitativeQualityAssessment|rdfs:label"
+msgid "Quantitative Quality Assessment"
+msgstr "定量质量评估"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuantitativeQualityAssessment|skos:definition"
+msgid "A quality assessment whose results are dimensioned quantities. Each result is a math:Quantity with its own physical or dimensionless dimension; the assessment remains an observation, distinct from the quantities it reports."
+msgstr "结果为有量纲量的质量评估。每个结果都是具有自身物理量纲或无量纲维度的 math:Quantity；评估仍是观察，与其报告的量相互独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuantitativeQualityAssessment|gmeow:useWhen"
+msgid "Use for measured quality magnitudes such as positional error, temporal error or a completeness ratio."
+msgstr "用于测得的质量大小，例如位置误差、时间误差或完整性比率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuantitativeQualityAssessment|gmeow:avoidWhen"
+msgid "Use the base QualityAssessment for categorical conformance verdicts and AggregateQualityAssessment for estimated aggregate scores."
+msgstr "分类符合性结论使用基本的 QualityAssessment；估计的聚合分数使用 AggregateQualityAssessment。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuantitativeQualityAssessment|gmeow:howToUse"
+msgid "Provide at least one observationResult typed math:Quantity, with math:hasDimension and the measured math:quantityValue. Keep units, frames, method and vantage on the ordinary observation substrate."
+msgstr "提供至少一个类型为 math:Quantity 的 observationResult，并给出 math:hasDimension 和测得的 math:quantityValue。单位、参照系、方法和视角沿用普通观察基础结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuantitativeQualityAssessment|skos:scopeNote"
+msgid "QualityDimension remains an open vocabulary of individuals. No fixed physical dimension is imposed on a broad ISO quality category, and multiple results and dimension classifications remain permitted."
+msgstr "QualityDimension 仍是个体的开放词汇。宽泛的 ISO 质量类别不被赋予固定物理量纲，并且仍允许多个结果和多个维度分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuantitativeQualityAssessment|skos:example"
+msgid "ex:assessment a gmeow:QuantitativeQualityAssessment ; gmeow:observationResult ex:ratio . ex:ratio a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.985 ."
+msgstr "ex:assessment a gmeow:QuantitativeQualityAssessment ; gmeow:observationResult ex:ratio . ex:ratio a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.985 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityAssessment|rdfs:label"
+msgid "Aggregate Quality Assessment"
+msgstr "聚合质量评估"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityAssessment|skos:definition"
+msgid "A quality assessment reporting estimated aggregate scores as math:Estimate results. Every estimate names its target and estimator and carries dimensioned quantity values; the assessment, result, procedure and target remain distinct objects."
+msgstr "以 math:Estimate 结果报告估计聚合分数的质量评估。每个估计都指明目标和估计量，并携带有量纲的量值；评估、结果、过程和目标保持为不同对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityAssessment|gmeow:useWhen"
+msgid "Use for an aggregate quality score produced by a declared estimator over data."
+msgstr "用于由声明的估计量根据数据产生的聚合质量分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityAssessment|gmeow:avoidWhen"
+msgid "Avoid for a direct quality measurement or a categorical verdict. An aggregate assessment is never itself a math:Estimate."
+msgstr "不用于直接质量测量或分类结论。聚合评估本身绝不是 math:Estimate。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityAssessment|gmeow:howToUse"
+msgid "Link observationResult to each math:Estimate; provide math:estimateValue quantities, typed math:Estimator procedures through math:estimator, and math:estimatesEstimand or math:estimatedParameter targets."
+msgstr "通过 observationResult 关联每个 math:Estimate；提供 math:estimateValue 量、经 math:estimator 关联且类型为 math:Estimator 的过程，以及 math:estimatesEstimand 或 math:estimatedParameter 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityAssessment|skos:scopeNote"
+msgid "Each aggregate result retains its own estimator, target and dimensioned values. Coexisting results are not paired with dimension classifications by a Cartesian assumption."
+msgstr "每个聚合结果保留自身的估计量、目标和有量纲值。不得假设通过笛卡尔积将并存结果与维度分类配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityAssessment|skos:example"
+msgid "ex:assessment a gmeow:AggregateQualityAssessment ; gmeow:observationResult ex:estimate . ex:estimate a math:Estimate ; math:estimateValue ex:score ; math:estimator ex:procedure ; math:estimatedParameter ex:meanCompleteness ."
+msgstr "ex:assessment a gmeow:AggregateQualityAssessment ; gmeow:observationResult ex:estimate . ex:estimate a math:Estimate ; math:estimateValue ex:score ; math:estimator ex:procedure ; math:estimatedParameter ex:meanCompleteness ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityResultsConstraint|rdfs:label"
+msgid "Aggregate quality results constraint"
+msgstr "聚合质量结果约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityResultsConstraint|skos:definition"
+msgid "Every result of an aggregate quality assessment carries at least one quantity value, at least one estimator procedure and an estimand or parameter target. Every supplied value and procedure has the required mathematical type; one valid value cannot conceal a malformed extra value."
+msgstr "聚合质量评估的每个结果至少携带一个量值、一个估计过程，以及待估量或参数目标。提供的每个值和过程都必须具有要求的数学类型；一个有效值不能掩盖额外的错误值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityResultsConstraint|gmeow:useWhen"
+msgid "Use to validate the mathematical result contract of every aggregate quality assessment."
+msgstr "用于验证每项聚合质量评估的数学结果契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityResultsConstraint|gmeow:avoidWhen"
+msgid "Do not apply this aggregate contract to categorical quality verdicts or direct measured quantities."
+msgstr "不将此聚合契约用于分类质量结论或直接测得的量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityResultsConstraint|gmeow:howToUse"
+msgid "Author complete math:Estimate results on AggregateQualityAssessment observations. The native integrity tree and its generated validation projection enforce the same scoped obligation."
+msgstr "为 AggregateQualityAssessment 观察编写完整的 math:Estimate 结果。原生完整性树及其生成的验证投影执行相同的作用域内义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityResultsConstraint|skos:scopeNote"
+msgid "The mathematical quantity owner enforces dimensions. This law adds no quality-specific quantity, estimator or target vocabulary and never equates a result with its assessment."
+msgstr "量纲由数学量的规范所有者执行。此定律不添加质量专用的量、估计量或目标词汇，也绝不将结果等同于评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AggregateQualityResultsConstraint|skos:example"
+msgid "ex:estimate math:estimateValue ex:score ; math:estimator ex:procedure ; math:estimatedParameter ex:meanCompleteness . ex:score a math:Quantity . ex:procedure a math:Estimator ."
+msgstr "ex:estimate math:estimateValue ex:score ; math:estimator ex:procedure ; math:estimatedParameter ex:meanCompleteness . ex:score a math:Quantity . ex:procedure a math:Estimator ."

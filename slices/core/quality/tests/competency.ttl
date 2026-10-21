@@ -29,3 +29,28 @@ ex:cqMissingDefinitionsShape a logic:ResultShape ;
         [ logic:columnVariable "class" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 .
+
+ex:cqAggregateRetainsProcedureValueAndTarget a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/aggregate-and-categorical.ttl" ;
+    gmeow:cqQuery """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+SELECT ?procedure ?dimension ?target WHERE {
+  ?assessment a g:AggregateQualityAssessment ; g:observationResult ?estimate .
+  ?estimate a m:Estimate ; m:estimateValue ?value ; m:estimator ?procedure ; m:estimatedParameter ?target .
+  ?procedure a m:Estimator . ?value a m:Quantity ; m:hasDimension ?dimension .
+}""" ;
+    gmeow:cqRationale "The held quality claim preserves its distinct estimate, declared procedure, dimensioned value and target without reducing the result to an ungrounded scalar." ;
+    gmeow:cqResultShape ex:aggregateResultShape ;
+    gmeow:cqExpectRow ex:aggregateResultRow .
+
+ex:aggregateResultShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+      [ logic:columnVariable "procedure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+      [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+      [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+ex:aggregateResultRow a gmeow:ExpectedRow ;
+    gmeow:rowCell
+      [ a gmeow:ExpectedCell ; gmeow:cellVar "procedure" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/quality/aggregate/sampleMean> ],
+      [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri <https://blackcatinformatics.ca/math/dimensionless> ],
+      [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/quality/aggregate/populationMeanCompleteness> ] .
