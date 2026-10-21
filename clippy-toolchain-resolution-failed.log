@@ -1,0 +1,8 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+cargo wrapper: real cargo not found at /home/paudley/stage/packages/rustup/active-toolchain/bin/cargo
+  (set CARGO_REAL to override, or run: update-stage apply --only rustup)
+make: *** [Makefile:289: clippy-prebuild] Error 127
