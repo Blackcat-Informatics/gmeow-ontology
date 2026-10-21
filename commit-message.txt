@@ -1,0 +1,7 @@
+refactor(docs): own reviewed-coverage producer in docs-model
+
+Keep the model-only golden producer out of the renderer package, share its
+canonical paths with the read-only consumer, and use the existing native
+compact writer. Preserve output scope, location and trailing newline.
+
+Principles 4 and 7. Refs #1656, #1776.

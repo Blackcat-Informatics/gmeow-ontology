@@ -1,0 +1,23 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2....................................(no files to check)Skipped
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1656-docs-coverage-and-translation-debt-on f266ebd12] refactor(docs): own reviewed-coverage producer in docs-model
+ 5 files changed, 10 insertions(+), 9 deletions(-)
+ rename crates/{docs => docs-model}/examples/refresh-reviewed-coverage-golden.rs (86%)
+ rename crates/{docs/tests/support/reviewed_coverage.rs => docs-model/src/reviewed_coverage/paths.rs} (66%)
