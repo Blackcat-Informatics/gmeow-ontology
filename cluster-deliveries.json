@@ -1,0 +1,27 @@
+[
+  {
+    "cluster": "quality",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1893",
+    "number": 1893
+  },
+  {
+    "cluster": "finance",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1894",
+    "number": 1894
+  },
+  {
+    "cluster": "risk",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1895",
+    "number": 1895
+  },
+  {
+    "cluster": "evidence-trust",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1896",
+    "number": 1896
+  },
+  {
+    "cluster": "model-serving",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1897",
+    "number": 1897
+  }
+]

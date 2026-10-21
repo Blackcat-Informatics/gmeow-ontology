@@ -1,0 +1,11 @@
+feat: ground quantitative and aggregate quality results
+
+Keep categorical assessments valid while selecting explicit mathematical result
+contracts for measured quantities and aggregate estimates. Preserve estimator,
+value and target ownership and validate scoped required/all-value obligations.
+
+Principles 4, 7, 9, 11, 17 and 19.
+
+Focused synthetic controls, source hygiene and strict producer-independent
+Clippy pass. Corpus/full-gate and installed acceptance remain unrun under the
+maintainer's explicit campaign exception.

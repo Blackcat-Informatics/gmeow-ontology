@@ -1,0 +1,137 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 24,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] **finance** \u2014 monetary amounts, rates and prices carry `math:Quantity` dimensions; interest/return computations reference `math:` operations.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 25,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] **risk** \u2014 risk scores/likelihoods ground in the probability layer (`Prior`/`Posterior` where Bayesian; never bare floats).",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 26,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] **quality** \u2014 quality metrics as dimensioned quantities; aggregate scores with declared estimators.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 27,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] **evidence / trust** \u2014 strength/confidence values ride the probability-vs-confidence never-conflate rule (P19): confidences stay `logic:confidence`, probabilities require a model.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 28,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [ ] **model-serving** \u2014 tensors/metrics ground in the linear-algebra layer (`TensorComputationGraph`, `math:LossFunction`).",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 29,
+      "rules": [
+        "checkbox"
+      ],
+      "text": "- [x] ~~**diagnostics** \u2014 extend the 3-ref toehold to graded-severity quantities.~~ **Struck: already grounded.**",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B7",
+      "line": 43,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- No inherently quantitative slice sits at `math:` 0.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B8",
+      "line": 44,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- Each grounded slice records `math:` in its manifest `gmeow:sliceDependsOn` set.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C1.1",
+      "line": 35,
+      "rules": [
+        "modal"
+      ],
+      "text": "That is the intended semantics stated in prose, in `skos:definition`, where nothing can enforce it. Turning it into an EL-safe `logic:` axiom in `module.ttl` \u2014 and recording `math:` in the manifest's `gmeow:sliceDependsOn` \u2014 is exactly the grounding this issue asks for, with the modelling decision already made and documented. No new ontology design is required, which is not true of finance (currency-as-dimension) or model-serving.",
+      "source": "comment 1",
+      "author": "paudley",
+      "date": "2026-09-05T03:44:35Z"
+    },
+    {
+      "id": "C2.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "> `quality` is the best first cluster \u2014 its commitment is already written, just not axiomatised \u2026 Turning it into an EL-safe `logic:` axiom in `module.ttl` \u2014 and recording `math:` in the manifest's `gmeow:sliceDependsOn` \u2014 is exactly the grounding this issue asks for, **with the modelling decision already made and documented. No new ontology design is required.**",
+      "source": "comment 2",
+      "author": "paudley",
+      "date": "2026-09-05T17:06:44Z"
+    },
+    {
+      "id": "C2.2",
+      "line": 49,
+      "rules": [
+        "scope-out"
+      ],
+      "text": "- **(c) Declare it out of scope** \u2014 accept that a quality *verdict* is not inherently dimensioned and that the grounding belongs to the `observations` stack it already reuses, which **is** grounded. Then `quality` legitimately sits at `math:` low and the acceptance criterion \"no inherently quantitative slice sits at `math:` 0\" needs its premise re-examined for this slice.",
+      "source": "comment 2",
+      "author": "paudley",
+      "date": "2026-09-05T17:06:44Z"
+    },
+    {
+      "id": "C2.3",
+      "line": 55,
+      "rules": [
+        "modal"
+      ],
+      "text": "- The suggested order **quality \u2192 finance \u2192 model-serving** should be dropped. `quality` is *harder* than I claimed because its grounding is conditional on a dimension, not universal on a class.",
+      "source": "comment 2",
+      "author": "paudley",
+      "date": "2026-09-05T17:06:44Z"
+    }
+  ],
+  "silent_comments": []
+}

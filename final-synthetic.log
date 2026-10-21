@@ -1,0 +1,15 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic-compile) & test(derive_some_values_from_uses_class_membership_under_approximation)) | (package(gmeow-pipeline) & test(result_contract_checks_presence_and_every_value_without_cross_record_leaks))' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1717-grounding-ground-the-six-quantitative/crates/pipeline)
+    Finished `test` profile [optimized] target(s) in 1m 55s
+────────────
+ Nextest run ID c3e951f1-5ca9-4b83-9192-6fbaf281a13c with nextest profile: ci
+    Starting 2 tests across 27 binaries (2122 tests and 199 binaries skipped)
+        PASS [   0.020s] (1/2) gmeow-pipeline stages::compile_logic::validation_fixtures::tests::result_contract_checks_presence_and_every_value_without_cross_record_leaks
+        PASS [   0.035s] (2/2) gmeow-logic-compile frontend::tests::derive_some_values_from_uses_class_membership_under_approximation
+────────────
+     Summary [   0.057s] 2 tests run: 2 passed, 2122 skipped

@@ -1,0 +1,108 @@
+{
+  "issue": 1717,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "grounding: ground the six quantitative slices in math: (finance, risk, quality, evidence/trust, model-serving, diagnostics)",
+  "state": "OPEN",
+  "adrs": [],
+  "linked_issues": {
+    "1439": "grounding: math-grounding axis + gmeow:Quantity \u2261 math:Quantity reconciliation (quantitative-slice sweep \u2192 background uplift lane)",
+    "1433": "EPIC: Grounding coherence & unity \u2014 tri-slice alignment program (logic:/lang:/math:)",
+    "1719": "docs(quality): state the magnitude/categorical split instead of hedging with \"typically\"",
+    "1427": "logic: shared content-addressed structured-term arena for logic:/lang:/math: (hash-consed term DAG, binder-aware)",
+    "1346": "math: runnable math-parse front-ends \u2014 executable R/ONNX/proof \u2192 math: lifters (RUNTIME, successor to BRIDGES)",
+    "1377": "pipeline/rust: GMN-1 projection via the lang PROJECTIONS registry \u2014 graph-derived writer/parser, round-trip gate, token metrics, training-corpus emitter (part of #1371)",
+    "1405": "FULL/MAXIMAL slice documentation standard: documentation slice, DocMaturity, coverage\u2192RDF, grounding-slice lift",
+    "1385": "feat(affect): nearest-prototype emotion classification on the math: geometry layer (competency Q9)",
+    "1717": "grounding: ground the six quantitative slices in math: (finance, risk, quality, evidence/trust, model-serving, diagnostics)"
+  },
+  "link_relations": {
+    "1439": "mentions",
+    "1433": "mentions",
+    "1719": "mentions",
+    "1427": "2-hop",
+    "1346": "2-hop",
+    "1377": "2-hop",
+    "1405": "2-hop",
+    "1385": "2-hop",
+    "1717": "2-hop"
+  },
+  "related": [
+    {
+      "number": 1336,
+      "title": "META-EPIC: unified diagnostic substrate \u2014 carrier-borne, RDF-context-bound graded witnesses for errors, warnings, advice, and events",
+      "state": "OPEN"
+    },
+    {
+      "number": 1439,
+      "title": "grounding: math-grounding axis + gmeow:Quantity \u2261 math:Quantity reconciliation (quantitative-slice sweep \u2192 background uplift lane)",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1255,
+      "title": "EPIC: Mathematics grounding layer (math:) \u2014 module implementation",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1265,
+      "title": "EPIC: Language grounding layer (lang:) \u2014 module implementation",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1558,
+      "title": "grounding/lang: migrate authored shapes and close slice conformance authority",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1589,
+      "title": "ontology: define embedding-projection semantics and a PurRDF .purremb profile",
+      "state": "CLOSED"
+    },
+    {
+      "number": 663,
+      "title": "feat(logic): gmeow:logic upper ontology \u2014 GMEOW-native first-class logic subsuming gUFO",
+      "state": "CLOSED"
+    },
+    {
+      "number": 775,
+      "title": "ME9 \u2014 typed/contextual mereology + revised holon rules",
+      "state": "CLOSED"
+    }
+  ],
+  "defect_classes": {
+    "none": 48,
+    "model-ownership": 1,
+    "unsupported-consequent": 1,
+    "missing-intrinsic-runtime": 3,
+    "https//blackcatinformatics.ca/gmeow/RecordedConsumerFailure": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [
+      {
+        "number": 1719,
+        "title": "docs(quality): state the magnitude/categorical split instead of hedging with \"typically\"",
+        "state": "CLOSED",
+        "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1719",
+        "this_stage": false
+      }
+    ],
+    "own_branch": "paudley/1717-grounding-ground-the-six-quantitative"
+  },
+  "coverage": [
+    "issue #1717 + 2 comment(s) via github",
+    "link crawl: 9 issue(s) within 2 hop(s) of `#N` references",
+    "forge search on ['grounding:', 'ground', 'quantitative']: 9 other item(s)",
+    "GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #1717 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #1717: 1",
+    "requirement candidates: 12 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 7 path(s) (5 on disk), 13 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ]
+}

@@ -1,0 +1,7 @@
+Parent: #1717. Blocks: #1717. This is one complete cluster from the original quantitative-grounding contract; the parent remains open until every remaining cluster and its production acceptance are complete.
+
+## Scope and acceptance
+
+Provide an explicit quantitative assessment contract whose results are dimensioned math:Quantity objects, and an aggregate assessment contract whose results retain math:Estimate, dimensioned values, declared math:Estimator procedures and estimate targets. Keep categorical quality verdicts valid on the base QualityAssessment; keep QualityDimension an open value vocabulary and keep multi-result/multi-dimension assessments legal. Do not impose a fixed physical dimension on broad ISO categories or conflate an assessment with an estimate. Reuse the observations/math substrate and authored logic: constraints, never a second shape source. Add real math artifact references and the matching manifest dependency, complete term coats/translations, examples, structural and competency coverage. Execute the actual produced quality and imported math validation projections against valid metric/aggregate/categorical/multivalued cases and missing or mistyped result/value/dimension/estimator/target controls. Full required gates and source-to-bundle consumer acceptance remain mandatory.
+
+Principles 4, 7, 9, 11, 17 and 19 govern this delivery. No requirement is waived by this decomposition. External repository implementation or model/service lifecycle actions require separate authorization.

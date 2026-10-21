@@ -1,0 +1,5 @@
+fix: preserve scoped quality obligations and inherited typing
+
+Keep aggregate obligations bound to their assessment/result with atomic existence and guarded supplied-value typing. Preserve alternative targets and the open-world assessedEntity contract. Extend independent projection controls and optional marker admission checks.
+
+Principles 4, 7, 9, 17 and 19.

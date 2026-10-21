@@ -1,0 +1,184 @@
+{
+  "paths": [
+    {
+      "ref": "slices/math",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/math",
+      "where": "repo",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "slices/core/observations/tests/structural.ttl:136",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/core/observations/tests/structural.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 463,
+      "licence": "SPDX: CC-BY-4.0",
+      "commits": [
+        "b81825fd4 feat(ontology): model policy findings and reader disclosure",
+        "f2955b0a0 feat: record encounters, attention requests and consultations (Principles 4, 7, 9, 11, 17)",
+        "74b08e87a Add source-bound refinement outcomes and reading patterns (Principles 4, 9, 19)",
+        "3894fba10 fix(1442): resolve the six non-grounding forbidden tier crossings",
+        "fe5ae1f6a fix(1442): resolve 7 forbidden crossings via gate-policy + term promotion",
+        "70aa6ca4e test(1579): re-point vacuous owl:FunctionalProperty competency asks to the logic: carrier",
+        "7b81beed3 test(1579): reconcile structural competency assertions with the functional deprecation",
+        "48aa8c6d8 fix(grounding): close final review gaps (Principles 4, 7, 17)",
+        "c152ef7c5 feat(grounding): close logic math lang authority gaps (#1555)",
+        "a3a66b195 purge(cleanup): retire migration/retention scaffolding, repoint gate citations, re-bless goldens"
+      ]
+    },
+    {
+      "ref": "slices/core/quality/module.ttl:121",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/core/quality/module.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 126,
+      "licence": "",
+      "commits": [
+        "767e3a91c feat(1682): flip every slice module.ttl from owl: to canonical logic: authoring",
+        "c152ef7c5 feat(grounding): close logic math lang authority gaps (#1555)",
+        "5fc0bd072 feat(1080): seed generic-quality vocab + disambiguate data quality",
+        "a69a2bfb4 feat(694): per-slice owl/gUFO\u2192logic: source retirement \u2014 first batch + logic:Disposition (#864)",
+        "f7a6eba09 feat(819): gmeow-rdf as the optimal IR & dataflow stream \u2014 loss flips, native SHACL-on-IR, Python\u2192Rust cutovers (#825)",
+        "4f38e8489 Enforce graph-box role coverage across ontology surfaces (#642)",
+        "6d6782fbe docs(slices): bring all core slices to Tier-1 documentation depth (#602)",
+        "e080a6311 feat(slices): per-term rdfs:isDefinedBy \u2192 owning-slice IRI (closes #329, Principles 7, 8, 15, 16) (#333)",
+        "b8f08fb51 feat(slices): the slice architecture \u2014 every module a slice, every generated artifact under one gated root (closes #287) (#328)"
+      ]
+    },
+    {
+      "ref": "examples/",
+      "path": "/home/paudley/Active/gmeow-ontology/examples",
+      "where": "not here; exists in sibling(s): biocode-2026-09-30, cf-config, llama-cpp-rs-logit-loom, purrassist, purrdf (+1 more)",
+      "exists": false,
+      "kind": "",
+      "lines": null,
+      "licence": "",
+      "commits": []
+    },
+    {
+      "ref": "slices/core/observations/tests/structural.ttl",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/core/observations/tests/structural.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 463,
+      "licence": "SPDX: CC-BY-4.0",
+      "commits": [
+        "b81825fd4 feat(ontology): model policy findings and reader disclosure",
+        "f2955b0a0 feat: record encounters, attention requests and consultations (Principles 4, 7, 9, 11, 17)",
+        "74b08e87a Add source-bound refinement outcomes and reading patterns (Principles 4, 9, 19)",
+        "3894fba10 fix(1442): resolve the six non-grounding forbidden tier crossings",
+        "fe5ae1f6a fix(1442): resolve 7 forbidden crossings via gate-policy + term promotion",
+        "70aa6ca4e test(1579): re-point vacuous owl:FunctionalProperty competency asks to the logic: carrier",
+        "7b81beed3 test(1579): reconcile structural competency assertions with the functional deprecation",
+        "48aa8c6d8 fix(grounding): close final review gaps (Principles 4, 7, 17)",
+        "c152ef7c5 feat(grounding): close logic math lang authority gaps (#1555)",
+        "a3a66b195 purge(cleanup): retire migration/retention scaffolding, repoint gate citations, re-bless goldens"
+      ]
+    },
+    {
+      "ref": "slices/grounding/math/module.ttl",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/grounding/math/module.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 16547,
+      "licence": "SPDX: CC-BY-4.0",
+      "commits": [
+        "da59fdeaa fix: retain projection output modes and admit expression requests",
+        "5b21f45d2 fix: preserve canonical math numbers and projection boundaries",
+        "3e2a0e559 Implement mathematical target codecs and preservation ledgers",
+        "f8824d0e9 fix: reject contradictory exact math projection judgments",
+        "0e09c13e7 docs: distinguish finite numeric and literal value branches",
+        "77bd7a3da fix: enforce finite numeric radial-field and measure values",
+        "eca80ae00 refactor: integrate pinned PurRDF APIs and native reasoning repairs",
+        "a794c70b3 fix(slices): qualify datatype-property counts by a data range, not owl:Thing",
+        "b10a1de8a feat(1682): complete owl:->logic: slice-authoring migration closeout",
+        "566b1302e docs(1682): correct stale OWL wording in slice constraint headers"
+      ]
+    },
+    {
+      "ref": "slices/core/quality/module.ttl",
+      "path": "/home/paudley/Active/gmeow-ontology/slices/core/quality/module.ttl",
+      "where": "repo",
+      "exists": true,
+      "kind": "file",
+      "lines": 126,
+      "licence": "",
+      "commits": [
+        "767e3a91c feat(1682): flip every slice module.ttl from owl: to canonical logic: authoring",
+        "c152ef7c5 feat(grounding): close logic math lang authority gaps (#1555)",
+        "5fc0bd072 feat(1080): seed generic-quality vocab + disambiguate data quality",
+        "a69a2bfb4 feat(694): per-slice owl/gUFO\u2192logic: source retirement \u2014 first batch + logic:Disposition (#864)",
+        "f7a6eba09 feat(819): gmeow-rdf as the optimal IR & dataflow stream \u2014 loss flips, native SHACL-on-IR, Python\u2192Rust cutovers (#825)",
+        "4f38e8489 Enforce graph-box role coverage across ontology surfaces (#642)",
+        "6d6782fbe docs(slices): bring all core slices to Tier-1 documentation depth (#602)",
+        "e080a6311 feat(slices): per-term rdfs:isDefinedBy \u2192 owning-slice IRI (closes #329, Principles 7, 8, 15, 16) (#333)",
+        "b8f08fb51 feat(slices): the slice architecture \u2014 every module a slice, every generated artifact under one gated root (closes #287) (#328)"
+      ]
+    }
+  ],
+  "identifiers": [
+    {
+      "name": "main",
+      "files": 2101
+    },
+    {
+      "name": "module.ttl",
+      "files": 559
+    },
+    {
+      "name": "Prior",
+      "files": 43
+    },
+    {
+      "name": "Posterior",
+      "files": 20
+    },
+    {
+      "name": "TensorComputationGraph",
+      "files": 29
+    },
+    {
+      "name": "affect",
+      "files": 237
+    },
+    {
+      "name": "observations",
+      "files": 492
+    },
+    {
+      "name": "diagnostics",
+      "files": 479
+    },
+    {
+      "name": "quality",
+      "files": 895
+    },
+    {
+      "name": "observationResult",
+      "files": 154
+    },
+    {
+      "name": "AbstractIndividualType",
+      "files": 172
+    },
+    {
+      "name": "QualityAssessment",
+      "files": 35
+    },
+    {
+      "name": "QualityDimension",
+      "files": 18
+    }
+  ],
+  "packages": [],
+  "urls": [],
+  "truncated": []
+}

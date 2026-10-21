@@ -1,0 +1,7 @@
+The quality cluster now has a bounded implementation: explicit quantitative assessments require math:Quantity results; aggregate assessments retain distinct math:Estimate results, declared math:Estimator procedures, dimensioned values and estimate targets. Base categorical and multivalued assessments remain legal, and broad ISO quality dimensions remain open individuals. The actual mathematical owners retain quantity/dimension semantics. Principles 4, 7, 9, 11, 17 and 19.
+
+The source includes complete new English/fr/zh term batches, worked magnitude/aggregate/categorical examples, structural and competency witnesses, producer selection of the quality module, and a read-only authenticated consumer of actual quality and imported math validation products. That consumer never produces its fixtures.
+
+One focused synthetic frontend/projection/runtime test passed all seven controls, including missing values, malformed extras and neighboring-record leakage; normal source hygiene passed. Independent static review identified two real projection/scope defects, both corrected and re-reviewed without an outstanding source finding. Strict producer-independent Clippy is running.
+
+The maintainer reconfirmed the existing campaign exception: no local corpus/full-gate production and sequential merges may ignore CI. Actual generated/corpus/native/installed acceptance remains unverified; this child and the parent remain open until their full contracts are accepted. This is implementation progress, not a full-gate or production-acceptance claim.
