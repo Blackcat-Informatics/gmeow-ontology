@@ -397,37 +397,34 @@ fn cache_path_for_context(root: &Path, context: &ActionContext) -> PathBuf {
 /// grade. The payload digest closes that: the key says WHICH INPUTS, the digest says WHAT
 /// WAS CACHED, and a warm read requires both.
 ///
-/// It is a fold over the payload's re-serialization rather than the raw file bytes, so it
-/// is invariant to JSON formatting while sensitive to every value a reader consumes.
+/// Callers supply their canonical payload re-serialization, rather than raw envelope
+/// bytes. The digest is invariant to envelope formatting while sensitive to every
+/// payload value a reader consumes. Each payload's existing codec owns those bytes.
 ///
 /// This is the single authority for every fixture envelope's digest, model and renderer
 /// artifacts alike — a second copy in the renderer crate is exactly the two-sources-of-truth
 /// defect the payload digest exists to catch.
 ///
-/// # Panics
-/// When `payload` will not serialize — a serde regression, never a runtime condition.
 #[must_use]
-pub fn payload_digest<T: Serialize>(label: &str, payload: &T) -> String {
-    let bytes = serde_json::to_vec(payload)
-        .unwrap_or_else(|e| panic!("serializing the {label} cache payload for its digest: {e}"));
+pub fn payload_digest(label: &str, canonical_payload: &[u8]) -> String {
     let mut hasher = Sha1::new();
     hasher.update(b"gmeow-docs-fixture-payload\x1f");
     hasher.update(label.as_bytes());
     hasher.update(b"\x1e");
-    hasher.update(&bytes);
+    hasher.update(canonical_payload);
     purrdf_hash::hex::encode(&hasher.finalize())
 }
 
-/// Hard-fail unless `payload` folds to the `declared` digest its envelope carries.
+/// Hard-fail unless the canonical payload bytes fold to the envelope's declared digest.
 ///
 /// An edited cache entry is corruption of the same class as an undeserializable one, and
 /// is treated identically: panic naming the file, never a silent rebuild that would mask
 /// it and never a quiet acceptance of the edited values.
 ///
 /// # Panics
-/// When the live fold of `payload` differs from `declared`.
-pub fn verify_payload<T: Serialize>(cache_path: &Path, label: &str, declared: &str, payload: &T) {
-    let live = payload_digest(label, payload);
+/// When the live fold of the canonical payload differs from `declared`.
+pub fn verify_payload(cache_path: &Path, label: &str, declared: &str, canonical_payload: &[u8]) {
+    let live = payload_digest(label, canonical_payload);
     assert!(
         live == declared,
         "tampered docs-fixture {label} cache at {}: it declares payload digest {declared} but \
@@ -460,6 +457,15 @@ struct CachedModelBody {
     ui_catalog: UiCatalog,
 }
 
+impl CachedModelBody {
+    /// Preserve the model's existing Serde payload bytes and serialization failure.
+    fn canonical_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(self).unwrap_or_else(|error| {
+            panic!("serializing the model cache payload for its digest: {error}")
+        })
+    }
+}
+
 impl CachedModel {
     fn from_model(model: &DocsModel) -> Self {
         let body = CachedModelBody {
@@ -469,14 +475,19 @@ impl CachedModel {
             ui_catalog: model.ui_catalog.clone(),
         };
         Self {
-            digest: payload_digest("model", &body),
+            digest: payload_digest("model", &body.canonical_bytes()),
             body,
         }
     }
 
     /// Reconstruct the model, first proving the envelope carries the payload it claims.
     fn into_model(self, cache_path: &Path) -> DocsModel {
-        verify_payload(cache_path, "model", &self.digest, &self.body);
+        verify_payload(
+            cache_path,
+            "model",
+            &self.digest,
+            &self.body.canonical_bytes(),
+        );
         let CachedModelBody {
             mut model,
             available_languages,

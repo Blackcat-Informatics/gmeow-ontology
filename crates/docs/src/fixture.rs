@@ -32,6 +32,10 @@ use gmeow_action_cache::{
     ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, STORE_FORMAT_VERSION,
     StoreLimits,
 };
+use purrdf_lex::json::{
+    self, Object, Value,
+    record::{DecodeError, FromJson, Record, ToJson},
+};
 use serde::{Deserialize, Serialize};
 
 use crate::mdbook::render_book;
@@ -210,7 +214,7 @@ fn load_selected_site(
             cache_path.display()
         )
     });
-    let cached: CachedSite = serde_json::from_slice(&entry.bytes).unwrap_or_else(|error| {
+    let cached: CachedSite = json::record::from_slice(&entry.bytes).unwrap_or_else(|error| {
         panic!(
             "corrupt docs-fixture {artifact} action cache at {}: docs payload JSON is corrupt: {error}",
             cache_path.display()
@@ -250,7 +254,7 @@ fn load_or_build_cached_site_in_store(
                 return Ok(None);
             };
             validate_render_receipt(artifact, language, model, &entry.receipt)?;
-            let cached: CachedSite = serde_json::from_slice(&entry.bytes).map_err(|error| {
+            let cached: CachedSite = json::record::from_slice(&entry.bytes).map_err(|error| {
                 ActionCacheError::message(format!(
                     "docs {artifact} payload JSON is corrupt: {error}"
                 ))
@@ -263,7 +267,7 @@ fn load_or_build_cached_site_in_store(
         || {
             let site = build();
             let cached = CachedSite::from_site(&site);
-            let bytes = serde_json::to_vec(&cached)?;
+            let bytes = json::record::to_vec(&cached);
             let receipt = store.publish(
                 &context,
                 cached.digest.clone(),
@@ -454,10 +458,30 @@ fn render_cache_path(root: &Path, context: &ActionContext) -> PathBuf {
 ///
 /// The digest is folded by [`payload_digest`] and checked by [`verify_payload`], the
 /// same two functions the model envelope uses.
-#[derive(Serialize, Deserialize)]
 struct CachedSite {
     digest: String,
     files: BTreeMap<String, String>,
+}
+
+impl ToJson for CachedSite {
+    /// Preserve digest/files declaration order and the file map's lexical order.
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("digest", self.digest.to_json())
+            .with("files", self.files.to_json())
+            .into()
+    }
+}
+
+impl FromJson for CachedSite {
+    /// Read strict envelope members; reconstruction still requires the payload guard.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "rendered-site cache envelope object")?;
+        Ok(Self {
+            digest: fields.required("digest")?,
+            files: fields.required("files")?,
+        })
+    }
 }
 
 impl CachedSite {
@@ -472,14 +496,19 @@ impl CachedSite {
             })
             .collect();
         Self {
-            digest: payload_digest("site", &files),
+            digest: payload_digest("site", &json::record::to_vec(&files)),
             files,
         }
     }
 
     /// Reconstruct the site, first proving the envelope carries the files it claims.
     fn into_site(self, cache_path: &Path) -> Site {
-        verify_payload(cache_path, "site", &self.digest, &self.files);
+        verify_payload(
+            cache_path,
+            "site",
+            &self.digest,
+            &json::record::to_vec(&self.files),
+        );
         Site {
             files: self
                 .files
@@ -499,3 +528,7 @@ use test_support::{book_cache_path, site_cache_path};
 #[path = "fixture.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "fixture.json.tests.rs"]
+mod json_tests;

@@ -18,7 +18,6 @@ path = "src/lib.rs"
 [dependencies]
 gmeow-action-cache = { path = "../action-cache" }
 serde.workspace = true
-serde_json.workspace = true
 regex.workspace = true
 # The project's canonical content-digest. Two uses: the committed query wasm
 # anti-rot gate recomputes the BLAKE3 of each vendored file against the committed
@@ -27,7 +26,7 @@ regex.workspace = true
 # the term content manifest's own `blake3:` digests). Pure-Rust and wasm-clean.
 purrdf.workspace = true
 purrdf-hash.workspace = true
-# Native JSON owns the private documentation search-index wire records.
+# Native JSON owns renderer JSON products and rendered-site cache envelopes.
 purrdf-lex.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 gmeow-ns = { path = "../ns" }
