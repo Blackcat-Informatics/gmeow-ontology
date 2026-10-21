@@ -804,3 +804,199 @@ msgstr "Enregistrer le jeton stable exact avec hasReferenceFrame et witnessedLoc
 msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when replay needs the environment state that was actually witnessed."
 msgstr "À employer lorsque la relecture exige l’état d’environnement effectivement observé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Policy finding"
+msgstr "Constat de politique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation by a named policy process about a judged claim, with a policy-defined finding as its result."
+msgstr "Une observation d'un processus de politique nommé sur une assertion évaluée, dont le résultat est un constat défini par cette politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:claim ; gmeow:observationResult ex:speakerMismatch ."
+msgstr "ex:constat a gmeow:PolicyFinding ; gmeow:vantage ex:politiqueV2 ; gmeow:observedFeature ex:assertion ; gmeow:observationResult ex:locuteurIncorrect ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A finding records the policy perspective; it neither asserts the judged claim nor mandates rejection of a write."
+msgstr "Le constat consigne le point de vue de la politique ; il n'affirme pas l'assertion évaluée et n'impose pas le refus d'une écriture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for admission, attribution or disclosure findings that must themselves retain provenance."
+msgstr "À utiliser pour les constats d'admission, d'attribution ou de divulgation dont la provenance doit être conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a policy result as an unattributed truth or silently substituting it for the original claim."
+msgstr "Éviter de traiter un résultat de politique comme une vérité sans attribution ou de le substituer silencieusement à l'assertion originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the versioned policy as vantage, the judged claim as observedFeature and an explicit finding kind as observationResult."
+msgstr "Nommer la politique versionnée comme vantage, l'assertion évaluée comme observedFeature et le type explicite de constat comme observationResult."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Disclosure decision"
+msgstr "Décision de divulgation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation of how a policy treats a particular claim for a particular reader."
+msgstr "Une observation de la manière dont une politique traite une assertion donnée pour un lecteur donné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:view a gmeow:DisclosureDecision ; gmeow:disclosureReader ex:reader ; gmeow:observedFeature ex:claim ; gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+msgstr "ex:vue a gmeow:DisclosureDecision ; gmeow:disclosureReader ex:lecteur ; gmeow:observedFeature ex:assertion ; gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The decision is private policy evidence, not automatically part of the reader view. Different readers and policy versions retain distinct decisions."
+msgstr "La décision est une preuve privée de politique, pas une partie automatique de la vue du lecteur. Des lecteurs et versions de politique différents conservent des décisions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an explicit reader-relative release or withholding outcome."
+msgstr "À utiliser pour consigner une décision explicite de diffusion ou de rétention relative au lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid leaking a hidden claim through its decision record or inferring an outcome from missing metadata."
+msgstr "Éviter de révéler une assertion cachée par sa décision ou de déduire un résultat de métadonnées absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind disclosureReader, observedFeature, policy vantage and a DisclosureOutcome through observationResult; apply the selected policy before emitting any reader-visible record."
+msgstr "Renseigner disclosureReader, observedFeature, le point de vue de politique et un DisclosureOutcome via observationResult ; appliquer la politique choisie avant toute émission visible au lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "disclosure reader"
+msgstr "lecteur de la divulgation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader principal for whom a disclosure decision was made."
+msgstr "Le principal lecteur pour lequel une décision de divulgation a été prise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:disclosureReader ex:alice ."
+msgstr "ex:decision gmeow:disclosureReader ex:alice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reader is separate from the claim observer, the signing agent and the policy vantage."
+msgstr "Le lecteur est distinct de l'observateur de l'assertion, de l'agent signataire et du point de vue de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind a decision to its explicitly selected reader."
+msgstr "À utiliser pour rattacher une décision à son lecteur explicitement choisi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using reader identity as observer attribution or as proof of authorization."
+msgstr "Éviter d'utiliser l'identité du lecteur comme attribution de l'observation ou comme preuve d'autorisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the reader Agent on the decision; retain separate decisions when another principal receives a different view."
+msgstr "Nommer l'Agent lecteur dans la décision ; conserver des décisions séparées lorsqu'un autre principal reçoit une vue différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Disclosure outcome"
+msgstr "Résultat de divulgation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit result of applying a disclosure policy for a reader, including release and distinct forms of withholding."
+msgstr "Un résultat explicite de l'application d'une politique de divulgation à un lecteur, incluant diffusion et formes distinctes de rétention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:disclosureVisibleRedaction a gmeow:DisclosureOutcome ."
+msgstr "gmeow:disclosureVisibleRedaction a gmeow:DisclosureOutcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An open result vocabulary, separate from sensitivity, policy posture and truth. No result is implied by absence."
+msgstr "Un vocabulaire ouvert de résultats, distinct de la sensibilité, de la posture de politique et de la vérité. L'absence n'implique aucun résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the individual-valued result of a DisclosureDecision."
+msgstr "À utiliser pour le résultat individuel d'une DisclosureDecision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the result as permission to bypass the selected reader policy."
+msgstr "Éviter de traiter le résultat comme une autorisation de contourner la politique choisie pour le lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an outcome individual through observationResult and preserve the reader and policy that produced it."
+msgstr "Référencer un individu de résultat via observationResult et conserver le lecteur et la politique qui l'ont produit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "released to reader"
+msgstr "diffusé au lecteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reader policy permits emitting the claim in its authorized projected form."
+msgstr "La politique choisie pour le lecteur permet l'émission de l'assertion sous sa forme projetée autorisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:observationResult gmeow:disclosureReleased ."
+msgstr "ex:decision gmeow:observationResult gmeow:disclosureReleased ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Release may still require coarsening or suppression of fields under the policy; it is not a public-release flag."
+msgstr "La diffusion peut encore exiger une généralisation ou la suppression de champs selon la politique ; ce n'est pas un indicateur de diffusion publique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when this reader may receive the policy-selected projection."
+msgstr "À utiliser lorsque ce lecteur peut recevoir la projection choisie par la politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extending one reader permission to other readers or the unprojected source."
+msgstr "Éviter d'étendre l'autorisation d'un lecteur à d'autres lecteurs ou à la source non projetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit only the authorized projection and retain the private decision with its reader and policy."
+msgstr "Émettre uniquement la projection autorisée et conserver la décision privée avec son lecteur et sa politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "visible redaction"
+msgstr "occultation visible"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Withhold the protected content while permitting an explicit indication that content was withheld."
+msgstr "Retenir le contenu protégé tout en permettant une indication explicite de cette rétention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:observationResult gmeow:disclosureVisibleRedaction ."
+msgstr "ex:decision gmeow:observationResult gmeow:disclosureVisibleRedaction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Acknowledgement itself is a disclosure and must be permitted for this reader."
+msgstr "L'indication d'existence est elle-même une divulgation et doit être autorisée pour ce lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader may know that protected content exists."
+msgstr "À utiliser lorsque le lecteur peut savoir qu'un contenu protégé existe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid when even existence, identifiers or result counts must remain hidden."
+msgstr "À éviter lorsque même l'existence, les identifiants ou les décomptes doivent rester cachés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit only the permitted redaction indicator; omit the protected content and any unauthorized metadata."
+msgstr "Émettre uniquement l'indicateur d'occultation autorisé ; omettre le contenu protégé et toute métadonnée non autorisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "non-acknowledgement"
+msgstr "non-reconnaissance d'existence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Withhold content without revealing to the reader that anything was withheld."
+msgstr "Retenir le contenu sans révéler au lecteur qu'une rétention a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+msgstr "ex:decision gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reader-visible graph contains no redaction marker, hidden-claim identifier or decision record that acknowledges the omission."
+msgstr "Le graphe visible au lecteur ne contient aucun marqueur d'occultation, identifiant d'assertion cachée ou décision révélant l'omission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the policy withholds the existence of the protected claim as well as its content."
+msgstr "À utiliser lorsque la politique retient l'existence de l'assertion protégée ainsi que son contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exposing the private decision, counts or provenance links that reveal the hidden claim."
+msgstr "Éviter d'exposer la décision privée, les décomptes ou les liens de provenance révélant l'assertion cachée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the decision on the policy side and apply non-acknowledgement to every reader-visible surface, including errors and pagination."
+msgstr "Garder la décision côté politique et appliquer la non-reconnaissance à toute surface visible au lecteur, y compris erreurs et pagination."

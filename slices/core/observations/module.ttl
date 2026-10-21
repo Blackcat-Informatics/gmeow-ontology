@@ -1435,3 +1435,98 @@ gmeow:witnessedAtHead
     gmeow:avoidWhen "Do not compare head tokens across different environments without their frame identities."@x-gmeow-english ;
     gmeow:howToUse "Record the exact stable token together with hasReferenceFrame and witnessedLocus."@x-gmeow-english ;
     gmeow:useWhen "Use when replay needs the environment state that was actually witnessed."@x-gmeow-english .
+
+
+gmeow:PolicyFinding
+    a logic:SubKind, logic:Class ;
+    logic:subClassOf gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Policy finding"@x-gmeow-english ;
+    skos:definition "An observation by a named policy process about a judged claim, with a policy-defined finding as its result."@x-gmeow-english ;
+    skos:example "ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:claim ; gmeow:observationResult ex:speakerMismatch ."@x-gmeow-english ;
+    skos:scopeNote "A finding records the policy perspective; it neither asserts the judged claim nor mandates rejection of a write."@x-gmeow-english ;
+    gmeow:useWhen "Use for admission, attribution or disclosure findings that must themselves retain provenance."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a policy result as an unattributed truth or silently substituting it for the original claim."@x-gmeow-english ;
+    gmeow:howToUse "Name the versioned policy as vantage, the judged claim as observedFeature and an explicit finding kind as observationResult."@x-gmeow-english .
+
+
+gmeow:DisclosureDecision
+    a logic:SubKind, logic:Class ;
+    logic:subClassOf gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Disclosure decision"@x-gmeow-english ;
+    skos:definition "An observation of how a policy treats a particular claim for a particular reader."@x-gmeow-english ;
+    skos:example "ex:view a gmeow:DisclosureDecision ; gmeow:disclosureReader ex:reader ; gmeow:observedFeature ex:claim ; gmeow:observationResult gmeow:disclosureNonAcknowledgement ."@x-gmeow-english ;
+    skos:scopeNote "The decision is private policy evidence, not automatically part of the reader view. Different readers and policy versions retain distinct decisions."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an explicit reader-relative release or withholding outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid leaking a hidden claim through its decision record or inferring an outcome from missing metadata."@x-gmeow-english ;
+    gmeow:howToUse "Bind disclosureReader, observedFeature, policy vantage and a DisclosureOutcome through observationResult; apply the selected policy before emitting any reader-visible record."@x-gmeow-english .
+
+
+gmeow:disclosureReader
+    a logic:ObjectProperty ;
+    logic:domain gmeow:DisclosureDecision ; logic:range gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "disclosure reader"@x-gmeow-english ;
+    skos:definition "The reader principal for whom a disclosure decision was made."@x-gmeow-english ;
+    skos:example "ex:decision gmeow:disclosureReader ex:alice ."@x-gmeow-english ;
+    skos:scopeNote "The reader is separate from the claim observer, the signing agent and the policy vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a decision to its explicitly selected reader."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using reader identity as observer attribution or as proof of authorization."@x-gmeow-english ;
+    gmeow:howToUse "Name the reader Agent on the decision; retain separate decisions when another principal receives a different view."@x-gmeow-english .
+
+
+gmeow:DisclosureOutcome
+    a logic:AbstractIndividualType, logic:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Disclosure outcome"@x-gmeow-english ;
+    skos:definition "An explicit result of applying a disclosure policy for a reader, including release and distinct forms of withholding."@x-gmeow-english ;
+    skos:example "gmeow:disclosureVisibleRedaction a gmeow:DisclosureOutcome ."@x-gmeow-english ;
+    skos:scopeNote "An open result vocabulary, separate from sensitivity, policy posture and truth. No result is implied by absence."@x-gmeow-english ;
+    gmeow:useWhen "Use for the individual-valued result of a DisclosureDecision."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the result as permission to bypass the selected reader policy."@x-gmeow-english ;
+    gmeow:howToUse "Reference an outcome individual through observationResult and preserve the reader and policy that produced it."@x-gmeow-english .
+
+
+gmeow:disclosureReleased
+    a gmeow:DisclosureOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "released to reader"@x-gmeow-english ;
+    skos:definition "The selected reader policy permits emitting the claim in its authorized projected form."@x-gmeow-english ;
+    skos:example "ex:decision gmeow:observationResult gmeow:disclosureReleased ."@x-gmeow-english ;
+    skos:scopeNote "Release may still require coarsening or suppression of fields under the policy; it is not a public-release flag."@x-gmeow-english ;
+    gmeow:useWhen "Use when this reader may receive the policy-selected projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extending one reader permission to other readers or the unprojected source."@x-gmeow-english ;
+    gmeow:howToUse "Emit only the authorized projection and retain the private decision with its reader and policy."@x-gmeow-english .
+
+
+gmeow:disclosureVisibleRedaction
+    a gmeow:DisclosureOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "visible redaction"@x-gmeow-english ;
+    skos:definition "Withhold the protected content while permitting an explicit indication that content was withheld."@x-gmeow-english ;
+    skos:example "ex:decision gmeow:observationResult gmeow:disclosureVisibleRedaction ."@x-gmeow-english ;
+    skos:scopeNote "Acknowledgement itself is a disclosure and must be permitted for this reader."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader may know that protected content exists."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when even existence, identifiers or result counts must remain hidden."@x-gmeow-english ;
+    gmeow:howToUse "Emit only the permitted redaction indicator; omit the protected content and any unauthorized metadata."@x-gmeow-english .
+
+
+gmeow:disclosureNonAcknowledgement
+    a gmeow:DisclosureOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "non-acknowledgement"@x-gmeow-english ;
+    skos:definition "Withhold content without revealing to the reader that anything was withheld."@x-gmeow-english ;
+    skos:example "ex:decision gmeow:observationResult gmeow:disclosureNonAcknowledgement ."@x-gmeow-english ;
+    skos:scopeNote "The reader-visible graph contains no redaction marker, hidden-claim identifier or decision record that acknowledges the omission."@x-gmeow-english ;
+    gmeow:useWhen "Use when the policy withholds the existence of the protected claim as well as its content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid exposing the private decision, counts or provenance links that reveal the hidden claim."@x-gmeow-english ;
+    gmeow:howToUse "Keep the decision on the policy side and apply non-acknowledgement to every reader-visible surface, including errors and pagination."@x-gmeow-english .

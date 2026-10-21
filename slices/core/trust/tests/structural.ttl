@@ -139,3 +139,23 @@ ASK {
     ?rec logic:characterizes ?prop ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:fingerprint, gmeow:keyId, gmeow:keyAlgorithm, and gmeow:keyMaterial MUST NOT be owl:FunctionalProperty — multi-source values must coexist without forcing a merge or inconsistency (evidence-centric design)." .
+
+
+<https://example.org/trust-record-tests/saVantageKeyBinding> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:boundToKey a owl:ObjectProperty ;
+        rdfs:domain logic:Individual ; rdfs:range gmeow:CryptographicKey .
+    gmeow:signedBy rdfs:domain gmeow:CryptographicSignature ; rdfs:range gmeow:Agent .
+    gmeow:signingKey rdfs:range gmeow:CryptographicKey .
+    FILTER NOT EXISTS {
+        ?record logic:characterizes gmeow:boundToKey ;
+            logic:characteristicSort logic:functionalProperty .
+    }
+}""" ;
+    gmeow:saRationale "Vantage bindings accept a named standpoint without equating it with its signing agent; key entities remain distinct from short identifiers and rotated bindings can coexist." .

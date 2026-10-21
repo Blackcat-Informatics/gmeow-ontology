@@ -27,6 +27,10 @@ contact half of the slice-dependency doctrine email split.
 
 ## Channels
 
+Address node identity is store-relative under an explicit normalization policy;
+the functional value is not a global key and never identifies its holders. See
+[address identity and reader disclosure](../../../docs/identity-and-disclosure.md).
+
 ### gmeow:ContactPoint
 
 A means of reaching an agent, attached via `hasContactPoint`. Three subkinds:

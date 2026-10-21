@@ -80,7 +80,7 @@ assertion is true.
 | Property | Domain | Range | Meaning |
 |---|---|---|---|
 | `gmeow:signedBy` | `CryptographicSignature` | `Agent` | The signing identity. |
-| `gmeow:signingKey` | `CryptographicSignature` | `rdfs:Literal` | The key that produced the signature. |
+| `gmeow:signingKey` | `CryptographicSignature` | `CryptographicKey` | The key entity that produced the signature. |
 | `gmeow:signatureAlgorithm` | `CryptographicSignature` | `rdfs:Literal` | Algorithm identifier. |
 
 ### Cross-cutting reuse (not redefined in this module)

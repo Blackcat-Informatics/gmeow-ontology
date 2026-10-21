@@ -404,3 +404,31 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/verificationStatusFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:verificationStatus and nothing else. It is not a definition of gmeow:verificationStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:verificationStatus, et rien d'autre. Ce n'est pas une définition de gmeow:verificationStatus (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bound to key"
+msgstr "lié à la clé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A claimed binding from an agent or standpoint to a cryptographic key used to authenticate that vantage under a relying policy."
+msgstr "Un lien affirmé entre un agent ou point de vue et une clé cryptographique servant à authentifier ce point de vue selon une politique de confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:observer gmeow:boundToKey ex:observerKey ."
+msgstr "ex:observateur gmeow:boundToKey ex:cleObservateur ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A binding assertion is evidence to evaluate, not self-granted authority. Keys are entities; short key identifiers are not unique bindings. Rotated and disputed bindings may coexist."
+msgstr "Une affirmation de liaison est une preuve à évaluer, pas une autorité autoaccordée. Les clés sont des entités ; les identifiants courts ne sont pas des liaisons uniques. Les liaisons renouvelées ou contestées peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the vantage-to-key binding checked by a consumer admission policy."
+msgstr "À utiliser pour exprimer le lien entre point de vue et clé vérifié par une politique d'admission consommatrice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring observer identity from the signer, accepting an untrusted binding or treating key possession alone as authorization."
+msgstr "Éviter de déduire l'observateur du signataire, d'accepter une liaison non fiable ou de confondre possession de clé et autorisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundToKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a CryptographicKey, retain dated and attributed binding evidence, and check it against the verified signature and selected policy; reuse Certification for an agent-key attestation."
+msgstr "Référencer une CryptographicKey, conserver les preuves datées et attribuées du lien et les confronter à la signature vérifiée et à la politique choisie ; réutiliser Certification pour une attestation agent-clé."
