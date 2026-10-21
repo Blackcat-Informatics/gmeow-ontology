@@ -66,7 +66,7 @@ fn an_edited_site_envelope_is_refused() {
     let _ = cached.into_site(Path::new("<in-memory>"));
 }
 
-/// **The write→read proof, across the real serde boundary.** An envelope written by
+/// **The write→read proof, across the real JSON codec boundary.** An envelope written by
 /// [`ActionStore`] and read back by the loader that serves warm hits must VERIFY.
 ///
 /// The in-memory `from_site(..).into_site(..)` round trip above cannot see this
