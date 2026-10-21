@@ -765,3 +765,363 @@ msgstr "新鲜性与完整性是两项各自独立的义务，本单一类之所
 msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid hardcoding the guarded registry. Require at least one vocabularyNamespace and a nonempty vocabularyOwner set containing only grounding slices. A shared owner set does not ground arbitrary external assertions. The quantitative RDFS budget counts subsumption, not property signatures; OWL authoring remains subject to projection purity."
 msgstr "避免硬编码受管注册表。至少要求一个 vocabularyNamespace，以及仅含基础切片的非空 vocabularyOwner 集合。共享所有者集合不会为任意外部断言提供基础。RDFS 定量预算计数涵摄而非属性签名；OWL 著录仍受投影纯度约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|rdfs:label"
+msgid "quality measurement profile"
+msgstr "质量测量配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|skos:definition"
+msgid "A named selection contract for a corpus-quality operation. It determines the applicable axis roster and target tier before required inputs are admitted; it is not a waiver of repository quality floors. It is not a measured outcome."
+msgstr "语料质量操作的具名选择约定。它在接纳必需输入之前确定适用的轴清单和目标层级；它不豁免仓库的质量下限，也不是测量结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|rdfs:label"
+msgid "quality axis applicability"
+msgstr "质量轴适用性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|skos:definition"
+msgid "One explicit exception to a quality measurement profile’s measured-by-default roster, binding one known axis to a deliberate not-applicable or unsupported disposition and a non-empty reason. It is not an axis grade."
+msgstr "质量测量配置中对默认必须测量规则的一项显式例外，将一个已知轴绑定到明确不适用或不支持的处置状态，并提供非空理由。它不是轴的评定等级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|rdfs:label"
+msgid "quality applicability"
+msgstr "质量适用性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|skos:definition"
+msgid "The closed status vocabulary used to select measurements: required measurement, deliberate not-applicability, or an explicitly unsupported operation. Missing inputs never select a status. It is not the passed/failed outcome vocabulary."
+msgstr "用于选择测量的封闭状态词汇：必须测量、明确不适用或显式不支持的操作。缺失输入绝不决定状态。它不是通过或未通过的结果词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|rdfs:label"
+msgid "required measurement"
+msgstr "必须测量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|skos:definition"
+msgid "The profile requires the axis and all declared capabilities. Its resulting grade is compared with the profile target tier to distinguish passed from failed. It is not evidence that the axis passed."
+msgstr "配置要求测量该轴，并具备所有已声明的能力。所得评定等级与配置的目标层级比较，以区分通过与未通过。此状态不是该轴已通过的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|rdfs:label"
+msgid "deliberately not applicable"
+msgstr "明确不适用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|skos:definition"
+msgid "The axis is outside the explicitly selected corpus profile. Its reason remains visible and it is excluded from the measured denominator; absence of a capability can never imply this disposition. It is not a missing-input recovery policy."
+msgstr "该轴不属于显式选定的语料配置范围。其理由保持可见，且该轴不计入测量分母；缺少某项能力绝不能推导出此处置状态。它不是缺失输入的恢复策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|rdfs:label"
+msgid "unsupported measurement"
+msgstr "不支持的测量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|skos:definition"
+msgid "A named requested measurement is outside the implementation fragment of this profile. It remains visible, makes the assessment incomplete, and cannot be presented as a passed axis or a complete roll-up. It is not deliberate non-applicability."
+msgstr "所请求的具名测量超出此配置的实现片段范围。它保持可见，使评估处于不完整状态，且不得被呈现为已通过的轴或完整汇总。它不同于明确不适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|rdfs:label"
+msgid "quality profile key"
+msgstr "质量测量配置键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|skos:definition"
+msgid "The unique explicit consumer-selection key of a quality measurement profile. It is not a localized display label."
+msgstr "质量测量配置供使用方显式选择的唯一键。它不是本地化的显示标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|rdfs:label"
+msgid "quality profile target tier"
+msgstr "质量测量配置目标层级"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|skos:definition"
+msgid "The known tier whose threshold each measured axis must meet to be classified as passed. It is not a replacement threshold or a repository floor."
+msgstr "每个受测轴必须达到其阈值才能被归为通过的已知层级。它不是替代阈值，也不是仓库下限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|rdfs:label"
+msgid "quality profile default applicability"
+msgstr "质量测量配置默认适用性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|skos:definition"
+msgid "The explicit measured-by-default rule over the canonical rubric axis roster. Non-measurement requires a separate axis-specific reason. It is not permission to omit unlisted axes."
+msgstr "针对规范评分标准轴清单的显式默认必须测量规则。不测量必须另有针对该轴的理由。它不允许省略未单独列出的轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|rdfs:label"
+msgid "quality profile applicability"
+msgstr "质量测量配置适用性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|skos:definition"
+msgid "An axis-specific applicability decision belonging to this profile. Duplicate or conflicting bindings are invalid. It is not an implicit selection inferred from files."
+msgstr "属于此配置的一项逐轴适用性决定。重复或冲突的绑定均无效。它不是从文件推断出的隐式选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|rdfs:label"
+msgid "quality applicability axis"
+msgstr "质量适用性所涉轴"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|skos:definition"
+msgid "The known rubric axis governed by this applicability decision. It is not a producer symbol or a free-text axis name."
+msgstr "此适用性决定所约束的已知评分标准轴。它不是生产者符号，也不是自由文本轴名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|rdfs:label"
+msgid "quality applicability status"
+msgstr "质量适用性状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|skos:definition"
+msgid "The explicit not-applicable or unsupported disposition for this axis; measured axes follow the profile default. It is not a numeric measurement or a passing grade."
+msgstr "此轴的显式不适用或不支持处置状态；受测轴遵循配置的默认规则。它不是数值测量，也不是通过的评定等级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|rdfs:label"
+msgid "quality applicability reason"
+msgstr "质量适用性理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|skos:definition"
+msgid "The mandatory non-empty explanation for excluding an axis or declaring it unsupported. It is not an authorization to skip a required input."
+msgstr "排除一个轴或声明其不受支持时必须提供的非空说明。它不授权跳过必需输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|rdfs:label"
+msgid "full quality profile"
+msgstr "完整质量测量配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|skos:definition"
+msgid "Every canonical rubric axis is selected and its inputs are mandatory; a missing dictionary or catalog is an operational failure, never a better grade. It is not a capability-dependent fallback."
+msgstr "选中规范评分标准的全部轴，且其输入均为必需；缺少词典或目录属于操作失败，绝不会带来更好的评定等级。它不是依能力是否可用而选择的后备方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|rdfs:label"
+msgid "external sacred corpus quality profile"
+msgstr "外部神圣语料质量测量配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|skos:definition"
+msgid "A selected operation for external logical corpora whose own documentation, module, manifest, competency and box-role criteria remain measurable. GMEOW-specific GMN dictionary coverage and glyph optimization are outside this corpus contract; foreign documentation is measured from its own files. It is not an exemption from general slice-quality measurements."
+msgstr "为外部逻辑语料选定的操作；这些语料自身的文档、模块、清单、能力问题和盒角色标准仍可测量。GMEOW 特有的 GMN 词典覆盖率和字形优化不属于此语料约定；外部文档依据其自身文件测量。它不豁免一般的切片质量测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind a unique key, target tier and measured default, then declare justified axis exceptions."
+msgstr "绑定唯一键、目标层级和默认必须测量的规则，再声明有充分理由的逐轴例外。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind one known axis, one exclusion status and a non-empty reason."
+msgstr "绑定一个已知轴、一个排除状态和一条非空理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use qualityMeasured, qualityNotApplicable or qualityUnsupported before scoring."
+msgstr "在评分之前使用 qualityMeasured、qualityNotApplicable 或 qualityUnsupported。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Admit required inputs, compute the grade and compare it with the profile target tier."
+msgstr "接纳必需输入，计算评定等级，再与配置的目标层级比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the axis and its reason visible while excluding it from the measured denominator."
+msgstr "将该轴排除在测量分母之外，同时保留该轴及其理由的可见性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain its reason and mark the assessment incomplete even when other axes pass."
+msgstr "保留其理由，并将评估标记为不完整，即使其他轴均已通过。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one plain string such as external-sacred to one profile."
+msgstr "为一个配置附加一个普通字符串，例如 external-sacred。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select an existing QualityTier from the same measurement standard."
+msgstr "从同一测量标准中选择已有的 QualityTier。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set qualityMeasured so later rubric axes remain required by default."
+msgstr "设为 qualityMeasured，使评分标准以后新增的轴仍默认必须测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each QualityAxisApplicability record from the selected profile."
+msgstr "从选定配置链接到每条 QualityAxisApplicability 记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the canonical QualityAxis IRI from the selected measurement standard."
+msgstr "使用选定测量标准中的规范 QualityAxis IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set qualityNotApplicable or qualityUnsupported and supply the matching reason."
+msgstr "设为 qualityNotApplicable 或 qualityUnsupported，并提供相应理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write one non-empty plain string that states the corpus boundary or implementation gap."
+msgstr "填写一个非空普通字符串，说明语料边界或实现缺口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select full and provide every required dictionary and catalog."
+msgstr "选择 full，并提供全部必需的词典和目录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select external-sacred; provide the foreign module, manifest, documentation and declared imports."
+msgstr "选择 external-sacred；提供外部模块、清单、文档及已声明的导入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile a gmeow:QualityMeasurementProfile ."
+msgstr "ex:profile a gmeow:QualityMeasurementProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Select a reproducible set of measurements for a declared corpus contract."
+msgstr "选择适用于已声明语料约定的一组可复现测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not create a profile merely to conceal a low score."
+msgstr "不要仅为掩盖低分而创建配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision a gmeow:QualityAxisApplicability ."
+msgstr "ex:decision a gmeow:QualityAxisApplicability ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record one justified departure from a profile’s measured default."
+msgstr "记录一项有充分理由的例外，偏离配置默认必须测量的规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not attach two applicability records for the same axis."
+msgstr "不要为同一个轴附加两条适用性记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:qualityMeasured a gmeow:QualityApplicability ."
+msgstr "gmeow:qualityMeasured a gmeow:QualityApplicability ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Type the closed vocabulary of measurement-selection dispositions."
+msgstr "为测量选择处置状态的封闭词汇赋予类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use a measurement outcome such as passed as an applicability value."
+msgstr "不要将已通过等测量结果用作适用性值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+msgstr "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Require an axis and every capability needed to measure it."
+msgstr "要求测量一个轴，并具备测量它所需的全部能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret a missing input as a zero score or an exclusion."
+msgstr "不要将缺失输入解释为零分或排除该轴的理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+msgstr "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Exclude an axis whose declared scope does not cover this corpus contract."
+msgstr "排除其已声明范围不涵盖此语料约定的轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer non-applicability from an unavailable implementation or missing file."
+msgstr "不要因实现不可用或文件缺失而推断不适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityUnsupported ."
+msgstr "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityUnsupported ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Expose a requested measurement outside the supported implementation fragment."
+msgstr "明确显示所请求的测量超出受支持实现片段的范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not present an unsupported axis as passed or the assessment as complete."
+msgstr "不要将不受支持的轴呈现为已通过，也不要将评估呈现为完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileKey \"external-sacred\" ."
+msgstr "ex:profile gmeow:qualityProfileKey \"external-sacred\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Give consumers an unambiguous explicit profile selector."
+msgstr "为使用方提供明确且无歧义的配置选择键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reuse a key across profiles or use translated prose as its value."
+msgstr "不要在多个配置间重复使用同一个键，也不要以翻译后的文字作为键值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileTargetTier gmeow:tierMaximal ."
+msgstr "ex:profile gmeow:qualityProfileTargetTier gmeow:tierMaximal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Declare the tier used to classify each measured axis as passed or failed."
+msgstr "声明用于判定每个受测轴通过或未通过的层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not point to an unknown tier or alter its thresholds through this property."
+msgstr "不要指向未知层级，也不要通过此属性改变其阈值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+msgstr "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Require every rubric axis unless the profile explicitly declares an exception."
+msgstr "要求测量评分标准的全部轴，除非配置显式声明例外。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not omit this field or default unknown axes to not applicable."
+msgstr "不要省略此字段，也不要将未知轴默认设为不适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileApplicability ex:decision ."
+msgstr "ex:profile gmeow:qualityProfileApplicability ex:decision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Attach a justified axis-specific exception to its owning profile."
+msgstr "将有充分理由的逐轴例外附加到其所属配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not share conflicting exceptions or duplicate an axis binding."
+msgstr "不要共享相互冲突的例外，也不要重复绑定同一个轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityAxis gmeow:axisGmn1Coverage ."
+msgstr "ex:decision gmeow:qualityApplicabilityAxis gmeow:axisGmn1Coverage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Identify the rubric measurement governed by an applicability decision."
+msgstr "标识适用性决定所约束的评分标准测量项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not point to an unknown axis or bind several axes in one record."
+msgstr "不要指向未知轴，也不要在一条记录中绑定多个轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+msgstr "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Distinguish deliberate non-applicability from an unsupported requested measurement."
+msgstr "区分明确不适用与不支持所请求的测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a score, passed outcome or arbitrary status IRI."
+msgstr "不要用分数、通过结果或任意状态 IRI 替代适用性状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityReason \"The corpus uses another notation contract.\" ."
+msgstr "ex:decision gmeow:qualityApplicabilityReason \"The corpus uses another notation contract.\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Explain why a declared axis is excluded or unsupported."
+msgstr "说明为何将已声明的轴排除或标为不受支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not supply an empty reason or blame a missing required capability."
+msgstr "不要提供空理由，也不要归咎于缺少必需能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:qualityProfileFull gmeow:qualityProfileKey \"full\" ."
+msgstr "gmeow:qualityProfileFull gmeow:qualityProfileKey \"full\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Measure every canonical axis under the complete GMEOW notation contract."
+msgstr "依据完整的 GMEOW 记法约定测量全部规范轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not choose this profile when deliberately requesting a different corpus contract."
+msgstr "若明确请求另一种语料约定，不要选择此配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:qualityProfileExternalSacred gmeow:qualityProfileKey \"external-sacred\" ."
+msgstr "gmeow:qualityProfileExternalSacred gmeow:qualityProfileKey \"external-sacred\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Assess an external logical corpus that does not adopt GMEOW’s GMN notation inventory."
+msgstr "评估不采用 GMEOW 的 GMN 记法清单的外部逻辑语料。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this profile to waive documentation, competency or box-role measurements."
+msgstr "不要用此配置豁免文档、能力问题或盒角色测量。"
