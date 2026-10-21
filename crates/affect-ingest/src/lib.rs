@@ -169,6 +169,7 @@ impl ThresholdPolicy {
 }
 
 impl FromJson for ThresholdPolicy {
+    /// Decode the selected policy branch, retaining native member error locations.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct ThresholdPolicy")?;
         let kind: String = fields.required("kind")?;
@@ -188,6 +189,7 @@ impl FromJson for ThresholdPolicy {
 }
 
 impl ToJson for ThresholdPolicy {
+    /// Emit the kind before its payload; per-label map keys retain sorted order.
     fn to_json(&self) -> Value {
         Value::from(match self {
             Self::Global { value } => Object::new().with("kind", "global").with("value", *value),
@@ -210,6 +212,7 @@ pub struct LabelScore {
 }
 
 impl FromJson for LabelScore {
+    /// Read a required label string and finite binary64 score from an object.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct LabelScore")?;
         Ok(Self {
@@ -233,6 +236,7 @@ pub struct TargetInput {
 }
 
 impl FromJson for TargetInput {
+    /// Read target and score fields; ingest admission owns IRI and registry checks.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct TargetInput")?;
         Ok(Self {
@@ -292,6 +296,7 @@ pub struct ClassifierRunCapture {
 }
 
 impl FromJson for ClassifierRunCapture {
+    /// Read capture evidence and nullable provenance; admission checks cross-field rules.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct ClassifierRunCapture")?;
         Ok(Self {
@@ -315,6 +320,7 @@ impl FromJson for ClassifierRunCapture {
 }
 
 impl ToJson for ClassifierRunCapture {
+    /// Emit required members in declaration order, then present optional provenance.
     fn to_json(&self) -> Value {
         let mut fields = Object::new()
             .with("model_identifier", self.model_identifier.to_json())
@@ -1664,6 +1670,7 @@ fn required_iri(index: &TripleIndex, s: &str, p: &str) -> Result<String, IngestE
     first_iri(index, s, p).ok_or_else(|| malformed(format!("{s} missing IRI {p}")))
 }
 
+/// Read a finite recovered number, naming its source field in every refusal.
 fn required_decimal(index: &TripleIndex, s: &str, p: &str) -> Result<f64, IngestError> {
     let value = required_literal(index, s, p)?
         .trim()
