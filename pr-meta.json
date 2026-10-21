@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "a2464734020ee9e50ec345fdd85cf091e90f1f27",
+  "headRefName": "dependabot/github_actions/taiki-e/install-action-2.87.28",
+  "headRefOid": "18cd5cd05defea8dc2679dacb20c6b21c7f68d0e",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1922,
+  "state": "OPEN",
+  "title": "build(deps): bump taiki-e/install-action from 2.87.26 to 2.87.28",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1922"
+}

@@ -1,0 +1,3 @@
+# Existing PR checkout
+
+Stagectl open created this exact canonical worktree from the existing remote bot head, with its normal issue branch. The CLI offers no existing-head selection option. Renamed only that fresh local scaffold branch to dependabot/github_actions/taiki-e/install-action-2.87.28 so ghprsq can resolve the actual existing PR1922. The original open.json remains an unaltered setup record; current PR metadata is retained separately. No source, history, host configuration or remote branch was changed by this selection. Assess the PR against origin/main, not the setup source-head base.

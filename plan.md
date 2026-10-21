@@ -1,0 +1,5 @@
+# Existing installer action delivery
+
+Review and deliver existing PR1922 through ghprsq, preserving its original bot head and all unrelated work. Scope is14full-SHA installer references in3workflows. Inspect the actual source diff, upstream primary comparison and complete PR feedback; reuse exact-head hosted source checks when applicable. No local corpus/full gate, host configuration or new implementation is needed. Independent review records changed manifest defaults and limits. Assess the fresh main delta and merge candidate, archive guarded evidence, verify landing, then inspect cleanup using stagectl.
+
+The missing configured github-actions label is verified against current forge metadata and unchanged Dependabot configuration. Restoring/applying that label addresses the bot configuration finding without changing source scope. Bot review-skipped status is not an approval; independent source review supplies the substantive review. Pending generation is visible under the recorded sequential merge ignoring CI exception. Principles4/7.

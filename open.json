@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1922,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1922-bump-taiki-e-install-action-from-2-87",
+  "branch": "paudley/1922-bump-taiki-e-install-action-from-2-87",
+  "slug": "bump-taiki-e-install-action-from-2-87",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1922-bump-taiki-e-install-action-from-2-87/.stage/bump-taiki-e-install-action-from-2-87",
+  "stage_tracked": true,
+  "base": "origin/dependabot/github_actions/taiki-e/install-action-2.87.28",
+  "base_oid": "18cd5cd05defea8dc2679dacb20c6b21c7f68d0e",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1922-bump-taiki-e-install-action-from-2-87",
+    "branch:paudley/1922-bump-taiki-e-install-action-from-2-87",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1922-bump-taiki-e-install-action-from-2-87/.stage/bump-taiki-e-install-action-from-2-87",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1922-bump-taiki-e-install-action-from-2-87/.stage/bump-taiki-e-install-action-from-2-87/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-21T09:26:23-0600"
+}

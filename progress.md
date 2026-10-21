@@ -1,0 +1,3 @@
+Reviewed the14installer action references and primary upstream changes. Workflow settings and explicit nextest/wasm-bindgen versions are preserved. Existing unversioned nextest installs select the newer manifest default; this is recorded in the review rather than treated as an unchanged installed version.
+
+The configured github-actions label was missing. It is now restored and applied to this PR, addressing the Dependabot configuration comment. Independent source review found no actionable issue; the automatic review-skipped status is not counted as approval. Hosted producer-build, helpers, lint and rust-prebuild passed; dependent generation remains pending under the recorded campaign exception. Principles4/7.

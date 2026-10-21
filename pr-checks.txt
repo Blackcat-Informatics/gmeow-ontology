@@ -1,0 +1,11 @@
+Source: final gh pr view1922 statusCheckRollup, retained pr-state.json
+SUCCESS producer-build
+SUCCESS helpers
+SUCCESS lint
+SUCCESS rust-prebuild
+IN_PROGRESS generation (a)
+IN_PROGRESS generation (b)
+IN_PROGRESS fixture-prefix
+SUCCESS CodeRabbit
+SUCCESS license/cla
+state: pending; recorded sequential merge ignoring CI exception applies.
