@@ -26,6 +26,8 @@ use std::sync::OnceLock;
 use gmeow_docs_model::slug::short_iri_digest;
 use minijinja::{Environment, context};
 use pulldown_cmark::{Options, Parser, html as cmark_html};
+use purrdf_lex::json::record::ToJson;
+use purrdf_lex::json::{self, Object, Value};
 
 use crate::badge;
 use crate::exec::ExecutableDocsData;
@@ -7518,9 +7520,8 @@ pub(crate) fn precompute_fixtures_by_curie(model: &DocsModel) -> FixturesByCurie
 }
 
 /// A single search record. Serialized as a deterministic JSON array element.
-#[derive(serde::Serialize)]
 struct SearchRecord {
-    /// The record kind (`term`, `slice`, `concern`, `mappingSet`).
+    /// The record kind (`term`, `slice`, `concern`, `mappingSet`, `document`).
     kind: &'static str,
     /// The CURIE for terms / mapping sets, else the IRI.
     id: String,
@@ -7531,16 +7532,46 @@ struct SearchRecord {
     /// The site-relative URL of the record's HTML page.
     url: String,
     /// Advisory prose facet (terms only); omitted from JSON when empty.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     advice: Vec<String>,
     /// Crosswalk facet — `tag:object` tokens (terms only); omitted when empty.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     alignments: Vec<String>,
     /// Documentation-coverage facet — machine keys of the dimensions a term is
     /// MISSING (terms only), so a client can filter under-documented terms; omitted
     /// from JSON when the term is fully covered.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     missing_coverage: Vec<&'static str>,
+}
+
+impl ToJson for SearchRecord {
+    /// Preserve declaration order, explicit nullable definition and omitted empty facets.
+    fn to_json(&self) -> Value {
+        let mut object = Object::new()
+            .with("kind", self.kind)
+            .with("id", self.id.to_json())
+            .with("label", self.label.to_json())
+            .with("definition", self.definition.to_json())
+            .with("url", self.url.to_json());
+        if !self.advice.is_empty() {
+            object.insert("advice", self.advice.to_json());
+        }
+        if !self.alignments.is_empty() {
+            object.insert("alignments", self.alignments.to_json());
+        }
+        if !self.missing_coverage.is_empty() {
+            object.insert("missing_coverage", self.missing_coverage.to_json());
+        }
+        Value::from(object)
+    }
+}
+
+/// Sort the complete record roster by URL/kind/ID and emit pretty JSON without a newline.
+fn search_records_json(mut records: Vec<SearchRecord>) -> String {
+    records.sort_by(|a, b| {
+        a.url
+            .cmp(&b.url)
+            .then_with(|| a.kind.cmp(b.kind))
+            .then_with(|| a.id.cmp(&b.id))
+    });
+    json::write_pretty(&records.to_json())
 }
 
 /// Build the deterministic `search-index.json`: one record per term, slice,
@@ -7633,14 +7664,7 @@ pub(crate) fn search_index_json_with_map(model: &DocsModel, doc_map: &SourceToPa
         }
     }
 
-    records.sort_by(|a, b| {
-        a.url
-            .cmp(&b.url)
-            .then_with(|| a.kind.cmp(b.kind))
-            .then_with(|| a.id.cmp(&b.id))
-    });
-    // serde_json with pretty printing is deterministic for a Vec.
-    serde_json::to_string_pretty(&records).expect("search records serialize")
+    search_records_json(records)
 }
 
 /// Local names of a list of IRIs, joined with `, ` — for compact one-line
@@ -8274,3 +8298,7 @@ fn local_name_vec(iris: &[String]) -> Vec<String> {
 #[path = "render.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[path = "render.search_index.tests.rs"]
+#[cfg(test)]
+mod search_index_tests;

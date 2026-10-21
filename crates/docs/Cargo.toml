@@ -27,6 +27,8 @@ regex.workspace = true
 # the term content manifest's own `blake3:` digests). Pure-Rust and wasm-clean.
 purrdf.workspace = true
 purrdf-hash.workspace = true
+# Native JSON owns the private documentation search-index wire records.
+purrdf-lex.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
