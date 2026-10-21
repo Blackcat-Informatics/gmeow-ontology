@@ -923,9 +923,8 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame
             .collect::<BTreeSet<_>>();
         let reifiers = dataset
             .reifier_quads()
-            .map(|quad| (quad.s, quad.o, quad.g))
-            .map(|(reifier, _, graph)| (reifier, graph))
-            .collect::<BTreeSet<_>>();
+            .map(|quad| claim_witness(dataset, quad.s).map(|reifier| (reifier, quad.g)))
+            .collect::<Result<BTreeSet<_>, _>>()?;
         let owner_property = format!("{GMEOW_NS}accordingTo");
         let status_property = format!("{GMEOW_NS}standpointSupportStatus");
         // Borrow only relevant derived annotation rows. Match their named world
@@ -937,16 +936,13 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame
             if axiom.predicate != owner_property && axiom.predicate != status_property {
                 continue;
             }
-            let (Some(reifier), Some(world)) = (
-                iri_id(dataset, &axiom.subject),
-                iri_id(dataset, &axiom.world),
-            ) else {
+            let Some(world) = iri_id(dataset, &axiom.world) else {
                 continue;
             };
             if !selected_worlds.contains(axiom.world.as_str()) {
                 continue;
             }
-            if !reifiers.contains(&(reifier, Some(world))) {
+            if !reifiers.contains(&(axiom.subject.clone(), Some(world))) {
                 continue;
             }
             let TermValue::Iri(value) = &axiom.object else {
@@ -958,7 +954,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame
                 ));
             }
             let candidates = derived
-                .entry((reifier, axiom.predicate.as_str(), Some(world)))
+                .entry((axiom.subject.clone(), axiom.predicate.as_str(), Some(world)))
                 .or_default();
             let selected = candidates.entry(value.clone()).or_insert(axiom);
             if axiom < *selected {
@@ -1011,7 +1007,8 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame
                 .into_iter()
                 .map(|value| iri(dataset, value).map(|value| (value, None)))
                 .collect::<Result<BTreeMap<_, _>, _>>()?;
-            if let Some(additional) = derived.get(&(subject, property, graph)) {
+            let witness = claim_witness(dataset, subject)?;
+            if let Some(additional) = derived.get(&(witness, property, graph)) {
                 for (value, axiom) in additional {
                     // An explicit source assertion is already a complete witness
                     // for this field. Do not attach a redundant derived receipt.
