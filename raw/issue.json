@@ -1,0 +1,68 @@
+{
+  "assignees": [
+    {
+      "id": "MDQ6VXNlcjUyNzU1NQ==",
+      "login": "paudley",
+      "name": "Patrick Audley",
+      "databaseId": 527555
+    }
+  ],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Drained from the local `.deficiencies` ledger (recorded 2026-07-14 under the math shape-grounding packet, and under #764, #1374, #1546). Re-verified against current `main`.\n\nBlocked by: #1530 \u2014 the slice authoring factory owns the machinery (briefs, fuzzy-gated two-stage translations, distinctiveness guard) that makes this authorable without producing gamed boilerplate.\nRelates to: #1642 (the four axis floors this debt currently caps).\n\n## Problem\n\nFour separate landings deliberately shipped vocabulary without its full documentation coat or translations, each with explicit approval at the time. The debt is now the binding constraint on several slice-quality axes, and nothing tracks burning it down.\n\n### 1. The math slice (the largest block)\n\nExcluded from the shape-grounding PR by explicit user direction (\"Everything but the translations, we'll punt those for now\"):\n\n- ~**691 uncoated terms** across 8 annotation fields.\n- ~**1,383 untranslated literals** across 2 languages.\n\nThe math slice therefore sits at tier Registered: translation coverage measures **0.41**, information coverage ~**0.60**. The floor was deliberately kept at 0.333 rather than pinned at 0.41, because the sanctioned coat authoring will expand the localizable denominator and a 0.41 pin would manufacture a guaranteed future gate red.\n\n### 2. GMN math-symbology terms in the lang slice\n\nThe GMN symbology plane added ~95 new sign-inventory terms to `slices/grounding/lang/module.ttl` (number-type classes, set/order operator families, the extended real line and its poles, and their Form/Denotation records). Only **19** received authored fr + cmn translations \u2014 the number sufficient to restore the lang `axisTranslationCoverage` floor after the additions widened the localizable set. **~76 carry English labels/definitions with no translation.**\n\nThe `.po` `msgctxt \"term|predicate\"` keys in `slices/grounding/lang/i18n/{fr,zh}.po` are the authoring seam.\n\n*Note:* the glyph-enrichment branch (PR 1626) is live in these same files and may absorb this.\n\n### 3. The abductive-schema family\n\nThe 14 `logic:` abductive-schema terms (`logic:AbductiveSchema`, `logic:AbductiveRepairStrategy`, the four `logic:Strategy*` individuals, `logic:repairsDiscipline`, `logic:repairStrategy`, `logic:completenessFormula`, and the five `*AbductiveSchema` instances) carry a full `rdfs:label` + `skos:definition` and complete fr/zh translations, but raised the coverage ratchet baseline by **+5 on each of nine facets**: `missing-example`, `missing-fixture-pair`, `missing-worked-instance`, `missing-usage-advice`, `missing-scope-note`, `missing-competency-rationale`, `missing-annotation-coat`, `missing-prose-quality`, `missing-test-reach`.\n\nThe vocabulary is fully functional and demonstrated (the abductive wing fires on the real `gmeow validate` CLI over an under-specified A-Box) \u2014 the shortfall is documentation completeness, not capability.\n\n### 4. The projection-ratchet registry\n\nAdding the registry (2 new `gmeow:` properties + ~154 vocab/ceiling individuals) raised `docs/missing-annotation-coat` by +1 and `docs/missing-competency-rationale` by +15. Recorded at the time as \"the annotation debt on the new terms is owed and should be burned down\".\n\n## Work\n\nPer family, author the missing dimensions in the term's own home. For the abductive family specifically: `gmeow:example` / worked-instance fixtures, usage advice, scope notes, and competency rationale.\n\n**Do not chase the ratchet number.** Every axis here is an objective intrinsic measure; the goal is real documentation of real terms, and the baseline burning down is the consequence, not the target.\n\n## Acceptance\n\n- The math slice's translation and information coverage rise on measured content, and its floors ratchet up behind them.\n- The GMN symbology terms carry fr + cmn.\n- The nine facets the abductive family regressed are covered for those 14 terms.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABLyfhRA",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "<!-- This is an auto-generated issue plan by CodeRabbit -->\n<details>\n<summary>\ud83d\udd17 Related PRs</summary>\n\nBlackcat-Informatics/gmeow-ontology#1318 - feat(lang): rendering, translation & paraphrase \u2014 translation as logic:Correspondence [merged]\nBlackcat-Informatics/gmeow-ontology#1479 - feat(lang,logic,mentation): GMN-1 lossless witness, Cyc lineage, factored security lattice, mentation coverage (Closes `#1475`) [merged]\nBlackcat-Informatics/gmeow-ontology#1486 - docs(lang): follow-through the landed graft framing; verify `#1440` acceptance [merged]\nBlackcat-Informatics/gmeow-ontology#1494 - feat(slice-quality): honest en+fr+cmn translation-coverage measure + re-anchorable floors [merged]\nBlackcat-Informatics/gmeow-ontology#1581 - feat(1534): fuzzy-gated translation coverage on one unified PO parser [merged]\nBlackcat-Informatics/gmeow-ontology#1619 - feat(1493): complete logic fr/cmn translation coverage; remove parquet export [merged]\n</details>\n\n---\n<details>\n<summary>\ud83d\udcdd Issue Planner</summary>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</details>\n\n\n---\n<details>\n<summary> \ud83e\uddea Issue enrichment is currently in open beta.</summary>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</details>\n\n\ud83d\udcac Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-07-27T00:19:08Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-5086110020",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2026-07-27T00:18:50Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1656,
+  "state": "OPEN",
+  "title": "docs-coverage and translation debt on recently minted vocabulary",
+  "updatedAt": "2026-09-04T23:28:39Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656"
+}

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1656,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1656-docs-coverage-and-translation-debt-on",
+  "branch": "paudley/1656-docs-coverage-and-translation-debt-on",
+  "slug": "docs-coverage-and-translation-debt-on",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1656-docs-coverage-and-translation-debt-on/.stage/docs-coverage-and-translation-debt-on",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "5ebea19d52d84181e8774daec18ae372eb5e6a44",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1656-docs-coverage-and-translation-debt-on",
+    "branch:paudley/1656-docs-coverage-and-translation-debt-on",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1656-docs-coverage-and-translation-debt-on/.stage/docs-coverage-and-translation-debt-on",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1656-docs-coverage-and-translation-debt-on/.stage/docs-coverage-and-translation-debt-on/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-21T10:53:09-0600"
+}

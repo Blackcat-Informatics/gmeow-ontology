@@ -1,0 +1,7 @@
+ci: expose reviewed translation golden refresh
+
+Run the existing explicit generator on an exact hosted source revision and
+publish its result for review without writing to the repository. Preserve
+failure status so an unsuccessful refresh cannot publish the old golden.
+
+Principles 4 and 7.

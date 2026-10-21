@@ -1,0 +1,5 @@
+PR #1927 adds a manual hosted path for the existing reviewed-translation golden generator. It checks out the dispatch source revision explicitly, runs the canonical Make target and uploads the produced JSON for review. Read-only permissions and disabled checkout credentials prevent source writes; a failed refresh cannot publish the old tracked golden.
+
+Repository lint, including Actions/YAML/security checks, independent source review and normal commit/push hooks passed. No local full catalog refresh, corpus construction, sync or full gate was run. This changes one workflow file and leaves the native generator and authenticated frozen-golden consumer unchanged.
+
+This enables the pending #1894/#1717 golden refresh after the whole canonical source and translations settle. Actual hosted generation, complete semantic diff review and a normal commit of produced bytes remain required. It does not claim content/facet completion, measured coverage improvement, floor ratcheting or completion of this issue. Principles 4 and 7.
