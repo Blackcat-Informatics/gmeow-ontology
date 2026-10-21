@@ -42,10 +42,6 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # (UnknownCodec / NonInvertibleSource / UndecodableInput / CodecError) rather
 # than borrowing the pipeline's, which is what lets it stand as a leaf.
 gmeow-errors = { path = "../errors" }
-# serde_json: the transcode/loss matrices (`transcode_matrix_json`,
-# `transcode_loss_matrix_json`, `realized_loss_json`) are emitted as JSON — the
-# shape the `gmeow convert --loss-report` CLI and the MCP `convert` tool both read.
-serde_json.workspace = true
-# serde derive: RealizedLoss and the matrix rows are Serialize so the loss ledger
-# round-trips through the JSON surfaces above without a hand-written encoder.
-serde.workspace = true
+# The substrate owns JSON values, records and deterministic output for the
+# transcode matrices and the CLI/MCP loss-report surfaces.
+purrdf-lex.workspace = true
