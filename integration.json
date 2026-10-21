@@ -1,0 +1,7 @@
+{
+  "base": "3fe37d90e62a995b4e1ec6182c40eb74ba261225",
+  "head": "00b7ccdc217e18c88386ffd8077d6863712b89cc",
+  "candidate_tree": "c127c119d1ba856a63f04ed81d51a0809db5e6e8",
+  "clean": true,
+  "base_delta": "none beyond qualified parent base"
+}

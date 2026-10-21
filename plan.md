@@ -1,0 +1,11 @@
+# ONNX tensor metadata repair
+
+Issue1902 is a complete metadata identity/domain unit under1897/1433. Principles4,5,7,17,19 require one canonical math owner, lossless source identity and explicit refusal. The broader model/tensor contract and its failed native cardinality regression remain uncommitted in the preserved1897 checkout under1803; this unit does not change that test or native/compiler owners.
+
+The existing ONNX production caller attaches tensor types from TypeProto and initializer headers. Replace rendered-label identity with framed element/known-rank/axis structural keys, and frame symbolic names inside shape keys. Preserve unknown rank, scalar rank zero, symbolic/concrete/unset arms and Unicode/delimiters. Keep display labels human-readable.
+
+Add the canonical optional expressionValueSpace relation from ExpressionType to a separate typed Set. ONNX leaf FreeVariableDeclaration uses the first input/header Set domain; extent symbols use naturalNumbers. Retain compatible subsequent descriptors and reject supplied local element/rank/concrete/symbolic-equality conflicts, including legacy initializer-input annotations. No graph inference, tensor payload evaluation or operator-signature invention.
+
+Reuse the two byte-identical Rust files already compiled and exercised by all59 ONNX lift tests in the1897 follow-up qualification. Seven source files transfer deliberately: those two Rust files, the expressionValueSpace module block and seven paired fields in each French/Chinese catalog, its structural assertion and bounded documentation. Generic rank/count/index/extent validation laws, model-serving profiles and failed native regression stay in1897. No donor source is deleted. Review all source and dependency deltas before reusing coverage; record any changed Rust coverage as invalidated.
+
+Run strict producer-independent prebuild Clippy and ordinary signed hooks. Preserve the current campaign exception: no local corpus/producer/full gate; sequential ghprsq merge without waiting for CI. Generated math-owner/slice/installed/full acceptance remains explicitly unrun. Capture feedback and candidate integration, publish, merge only with ghprsq, verify exact source/archive and clean only this completed owned checkout. The parent and native owners remain open.

@@ -1,0 +1,64 @@
+Evidence projection: original parent run executed63 cases; only59 ONNX lift cases are reused here. Original summary includes the two unrelated parent failures, retained below. No new execution is claimed.
+    Finished `test` profile [optimized] target(s) in 4m 19s
+ Nextest run ID f46d293c-0437-4d6e-8985-0a4733f3a058 with nextest profile: ci
+    Starting 63 tests across 225 binaries (7720 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+     Summary [   0.086s] 63 tests run: 61 passed, 2 failed, 7720 skipped
+        PASS [   0.005s] ( 1/63) gmeow-math-lift onnx::lift::tests::a_model_with_no_graph_is_unliftable
+        PASS [   0.005s] ( 2/63) gmeow-math-lift onnx::lift::tests::a_model_with_no_opset_import_is_unliftable
+        PASS [   0.005s] ( 3/63) gmeow-math-lift onnx::lift::tests::a_graph_with_no_node_is_unliftable_by_the_min_one_restriction
+        PASS [   0.005s] ( 4/63) gmeow-math-lift onnx::lift::tests::a_node_from_an_unimported_domain_refuses
+        PASS [   0.005s] ( 5/63) gmeow-math-lift onnx::lift::tests::a_sequence_typed_boundary_value_refuses_by_constructor_name
+        PASS [   0.006s] ( 6/63) gmeow-math-lift onnx::lift::tests::an_untyped_graph_output_refuses
+        PASS [   0.006s] ( 7/63) gmeow-math-lift onnx::lift::tests::an_unknown_element_type_code_refuses_rather_than_labelling_a_number
+        PASS [   0.006s] ( 8/63) gmeow-math-lift onnx::lift::tests::a_node_reading_an_undeclared_value_refuses_rather_than_minting_a_placeholder
+        PASS [   0.006s] ( 9/63) gmeow-math-lift onnx::lift::tests::conflicting_leaf_types_refuse_instead_of_replacing_a_domain
+        PASS [   0.006s] (10/63) gmeow-math-lift onnx::lift::tests::conflicting_legacy_input_cannot_replace_an_initializer_header_domain
+        PASS [   0.006s] (11/63) gmeow-math-lift onnx::lift::tests::a_negative_initializer_extent_refuses_rather_than_framing_a_nonsense_space
+        PASS [   0.010s] (12/63) gmeow-math-lift onnx::lift::tests::a_control_flow_subgraph_attribute_refuses_by_name
+        PASS [   0.010s] (13/63) gmeow-math-lift onnx::lift::tests::an_unknown_rank_names_no_shape_at_all_rather_than_an_empty_one
+        PASS [   0.010s] (14/63) gmeow-math-lift onnx::lift::tests::an_attribute_participates_in_the_operators_identity
+        PASS [   0.010s] (15/63) gmeow-math-lift onnx::lift::tests::a_repeated_subgraph_collapses_to_one_content_addressed_node
+        PASS [   0.010s] (16/63) gmeow-math-lift onnx::lift::tests::a_rank_zero_scalar_initializer_is_a_shape_with_no_axis_and_rank_zero
+        PASS [   0.010s] (17/63) gmeow-math-lift onnx::lift::tests::a_model_with_no_initializer_claims_no_payload_loss
+        PASS [   0.010s] (18/63) gmeow-math-lift onnx::lift::tests::an_absent_optional_input_leaves_the_surviving_slots_contiguous
+        PASS [   0.010s] (19/63) gmeow-math-lift onnx::lift::tests::a_model_with_no_initializer_emits_no_parameter_space_rather_than_an_unframed_one
+        PASS [   0.010s] (20/63) gmeow-math-lift onnx::lift::tests::a_metadata_entry_with_no_key_is_enumerated_as_residue_rather_than_dropped
+        PASS [   0.010s] (21/63) gmeow-math-lift onnx::lift::tests::compatible_symbolic_refinement_and_negative_source_extent_are_distinct
+        PASS [   0.010s] (22/63) gmeow-math-lift onnx::lift::tests::an_axis_the_producer_left_unset_counts_toward_the_rank_and_claims_no_extent
+        PASS [   0.010s] (23/63) gmeow-math-lift onnx::lift::tests::a_lifted_graph_carries_no_private_use_language_tag
+        PASS [   0.010s] (24/63) gmeow-math-lift onnx::lift::tests::every_codomain_node_carries_the_back_edge_the_native_lint_reads
+        PASS [   0.010s] (25/63) gmeow-math-lift onnx::lift::tests::compatible_type_refinement_keeps_the_authoritative_input_domain
+        PASS [   0.010s] (26/63) gmeow-math-lift onnx::lift::tests::a_multi_output_node_projects_each_result_distinctly
+        PASS [   0.010s] (27/63) gmeow-math-lift onnx::lift::tests::a_weight_tensor_and_its_slot_name_the_same_shape_object
+        PASS [   0.010s] (28/63) gmeow-math-lift onnx::lift::tests::a_symbolic_extent_is_one_shared_declaration_rather_than_two_equal_strings
+        PASS [   0.010s] (29/63) gmeow-math-lift onnx::lift::tests::each_operator_resolves_through_a_symbol_scoped_by_the_imported_opset
+        PASS [   0.010s] (30/63) gmeow-math-lift onnx::lift::tests::a_different_model_mints_a_different_run
+        PASS [   0.010s] (31/63) gmeow-math-lift onnx::lift::tests::distinct_structure_does_grow_the_graph
+        PASS [   0.011s] (32/63) gmeow-math-lift onnx::lift::tests::a_relift_of_the_same_source_is_byte_identical
+        PASS [   0.004s] (33/63) gmeow-math-lift onnx::lift::tests::the_committed_mlp_fixture_is_exactly_what_the_builder_emits
+        PASS [   0.004s] (34/63) gmeow-math-lift onnx::lift::tests::the_committed_fixture_is_a_real_decodable_onnx_model
+        PASS [   0.004s] (35/63) gmeow-math-lift onnx::lift::tests::two_constants_with_different_payloads_never_merge
+        PASS [   0.004s] (36/63) gmeow-math-lift onnx::lift::tests::the_truncated_fixture_is_a_wire_failure_with_a_byte_offset
+        PASS [   0.004s] (37/63) gmeow-math-lift onnx::lift::tests::the_boundary_values_carry_their_declared_tensor_types
+        PASS [   0.004s] (38/63) gmeow-math-lift onnx::lift::tests::every_node_is_a_computation_node_of_the_graph
+        PASS [   0.004s] (39/63) gmeow-math-lift onnx::lift::tests::tensor_leaf_domains_share_structural_types_and_keep_bool_and_string_distinct
+        PASS [   0.004s] (40/63) gmeow-math-lift onnx::lift::tests::the_committed_truncated_fixture_is_exactly_what_the_builder_emits
+        PASS [   0.004s] (41/63) gmeow-math-lift onnx::lift::tests::two_element_formats_are_two_terms
+        PASS [   0.005s] (42/63) gmeow-math-lift onnx::lift::tests::every_weight_tensor_is_framed_by_exactly_one_parameter_space_and_one_layer
+        PASS [   0.005s] (43/63) gmeow-math-lift onnx::lift::tests::every_shape_states_its_rank_including_the_scalar_case
+        PASS [   0.004s] (44/63) gmeow-math-lift onnx::lift::tests::the_provenance_lands_on_the_retained_source_witness
+        PASS [   0.005s] (45/63) gmeow-math-lift onnx::lift::tests::onnx_metadata_is_a_reified_key_value_pair_rather_than_prose
+        PASS [   0.005s] (46/63) gmeow-math-lift onnx::lift::tests::the_element_datatype_is_a_shared_term_not_a_fragment_of_a_label
+        PASS [   0.005s] (47/63) gmeow-math-lift onnx::lift::tests::the_matmul_node_resolves_to_the_declared_math_matrix_product_individual
+        PASS [   0.005s] (48/63) gmeow-math-lift onnx::lift::tests::the_argument_slots_are_contiguous_and_zero_based
+        PASS [   0.006s] (49/63) gmeow-math-lift onnx::lift::tests::every_tensor_extent_is_a_per_axis_node_carrying_its_own_index
+        PASS [   0.005s] (50/63) gmeow-math-lift onnx::lift::tests::the_parameter_space_carries_every_vector_space_obligation
+        PASS [   0.005s] (51/63) gmeow-math-lift onnx::lift::tests::the_mlp_fixture_lifts_every_expected_codomain_class
+        PASS [   0.006s] (52/63) gmeow-math-lift onnx::lift::tests::initializer_headers_and_inputs_share_their_admitted_value_space
+        PASS [   0.006s] (53/63) gmeow-math-lift onnx::lift::tests::no_tensor_payload_byte_reaches_the_graph
+        PASS [   0.006s] (54/63) gmeow-math-lift onnx::lift::tests::no_operator_is_typed_as_a_function_whose_domain_the_model_never_states
+        PASS [   0.003s] (55/63) gmeow-math-lift onnx::lift::tests::two_nodes_in_one_graph_never_collapse_into_one
+        PASS [   0.006s] (56/63) gmeow-math-lift onnx::lift::tests::the_declared_lossy_rung_enumerates_the_loss_it_declares
+        PASS [   0.006s] (57/63) gmeow-math-lift onnx::lift::tests::unknown_rank_and_scalar_value_spaces_remain_distinct
+        PASS [   0.007s] (58/63) gmeow-math-lift onnx::lift::tests::the_run_frame_travels_with_every_lift_at_the_crisp_rung
+        PASS [   0.008s] (59/63) gmeow-math-lift onnx::lift::tests::structural_tensor_keys_preserve_equal_labels_and_delimiter_symbols_in_both_orders

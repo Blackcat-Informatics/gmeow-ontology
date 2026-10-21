@@ -1,0 +1,3 @@
+# Complete PR1903 feedback inventory
+
+Paginated REST review submissions and inline comments both contain zero records. The paginated issue-comment surface contains one bot progress comment6309251239. GraphQL reviewThreads contains zero nodes and hasNextPage=false; no nested comment page is uncollected. These complete surfaces are retained under raw/. No substantive finding, formal review or approval is present. The bot is still processing changes. Root source review and its limitations are recorded in review.md/review-debt.md. Decorative-only evidence projection is documented separately; all substantive feedback remains intact.

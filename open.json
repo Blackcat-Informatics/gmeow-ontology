@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1902,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1902-preserve-onnx-tensor-metadata-identity",
+  "branch": "paudley/1902-preserve-onnx-tensor-metadata-identity",
+  "slug": "preserve-onnx-tensor-metadata-identity",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1902-preserve-onnx-tensor-metadata-identity/.stage/preserve-onnx-tensor-metadata-identity",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "3fe37d90e62a995b4e1ec6182c40eb74ba261225",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1902-preserve-onnx-tensor-metadata-identity",
+    "branch:paudley/1902-preserve-onnx-tensor-metadata-identity",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1902-preserve-onnx-tensor-metadata-identity/.stage/preserve-onnx-tensor-metadata-identity",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1902-preserve-onnx-tensor-metadata-identity/.stage/preserve-onnx-tensor-metadata-identity/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T23:56:06-0600"
+}

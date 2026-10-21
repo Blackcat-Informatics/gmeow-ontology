@@ -1,0 +1,5 @@
+# Evidence representation
+
+The reused runtime log selects original compilation/run metadata and all59 actual ONNX PASS records from the complete parent63-test run. It retains the original total summary, including its two parent failures, and labels the selection as reuse rather than another execution. The complete source log remains in the preserved1897 Stage directory; the exact qualified Rust source is committed in this delivery and compared in source-reuse.json. No test result or expected verdict is changed.
+
+Forge capture uses paginated REST review submissions, inline comments and issue comments, plus GraphQL review threads with outer and nested comment pageInfo. Every substantive body, author identifier, path, URL, page and thread state is retained. Only decorative coderabbit-* HTML markers and the promotional review_stack_entry_start/end HTML block are removed from selected evidence. Their removal preserves all review findings and is applied before normal content/credential guards. The bot comment currently reports review in progress, with no approval or substantive finding inferred.
