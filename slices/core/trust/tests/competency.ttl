@@ -76,7 +76,7 @@ ex:cqTrustAssertions a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/trust-assertions.rq" ;
     gmeow:cqRationale "GMEOW must model the aspects of a trust assertion: trustor, trustee, trustLevel, introducerDepth." ;
     gmeow:cqResultShape ex:cqTrustAssertionsShape ;
-    gmeow:cqExpectRow ex:taTrustor, ex:taTrustee, ex:taTrustLevel, ex:taIntroducerDepth .
+    gmeow:cqExpectRow ex:taTrustor, ex:taTrustee, ex:taTrustLevel, ex:taIntroducerDepth, ex:taIntroducerAmount .
 
 ex:cqTrustAssertionsShape a logic:ResultShape ;
     logic:declaresColumn
@@ -91,3 +91,19 @@ ex:taTrustLevel a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:trustLevel ] .
 ex:taIntroducerDepth a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:introducerDepth ] .
+
+ex:taIntroducerAmount a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueIri gmeow:introducerAmount ] .
+
+ex:cqIntroducerAmountScale a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+SELECT ?amount WHERE { ?assertion g:introducerAmount [ m:quantityValue ?amount ; g:hasReferenceFrame g:openPgpIntroducerAmountFrame ] . }""" ;
+    gmeow:cqDataFile "examples/web-of-trust.ttl" ;
+    gmeow:cqRationale "The existing trust assertion consumer reads the exact OpenPGP amount through the quantity, retaining 120 rather than normalizing it." ;
+    gmeow:cqResultShape ex:cqIntroducerAmountScaleShape ; gmeow:cqExpectRow ex:fullAmount .
+ex:cqIntroducerAmountScaleShape a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "amount" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:fullAmount a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "amount" ; gmeow:cellValueLiteral 120 ] .

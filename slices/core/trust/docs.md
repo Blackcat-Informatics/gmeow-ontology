@@ -15,7 +15,7 @@ property, `endorses` is neither symmetric nor transitive, and no property chain 
 A trust C because A trusts B and B trusts C — bounding exactly that is what trust-signature
 depth is *for*.
 
-The slice exercises the standpoint doctrine standpoint doctrine that governs every contested-fact
+The slice exercises the standpoint doctrine that governs every contested-fact
 slice: `accordingTo` (whose frame holds it) ⟂ `wasAttributedTo` (which source recorded it)
 ⟂ `confidence` (how sure we are) — three axes that never bridge (Principle 9). A
 `TrustAssertion` is already perspectival (its trustor is the frame holder), but the
@@ -81,7 +81,24 @@ whether S really asserted it.
 ### gmeow:introducerDepth · gmeow:introducerAmount
 
 The trust-signature parameters: how many levels of indirect introducers the trustor will
-follow, and with what weight. These are *inputs* to a Web-of-Trust validity computation
+follow, and with what weight. Depth remains an integer policy limit. Amount now
+points to an `IntroducerWeight`, a `math:Quantity` with one exact integer
+`math:quantityValue`, `math:dimensionless` and the explicit
+`openPgpIntroducerAmountFrame`. The amount remains optional on an assertion. The frame uses the existing scalar
+axis and frame kind, mathematical realm, crisp determinacy, one dimension and
+no hosting requirement; the places owner validates the full frame profile.
+
+[OpenPGP section 5.2.3.21](https://datatracker.ietf.org/doc/html/rfc9580#section-5.2.3.21)
+defines an amount octet from 0 through 255: values below 120 represent partial
+trust and values at least 120 complete trust, with 60 and 120 recommended for
+emission. These are protocol weights, preserved exactly; dividing by 120 or 255
+would invent a probability. `IntroducerWeight` is disjoint from
+`math:ProbabilityValue` even for the numbers 0 and 1. Separate weight and
+probability objects may legitimately carry the same number. Integer type, range, single magnitude, dimension
+and frame are authored as canonical `logic:` axioms and a range constraint;
+validation shapes are generated.
+
+These are *inputs* to a Web-of-Trust validity computation
 that happens in the projection layer — represent inputs and outputs, never compute the
 metric in OWL (Principle 12).
 
@@ -120,6 +137,17 @@ neither verifies signatures nor propagates their validity.
 
 ## Dependencies
 
-Depends on `accounts` (the OnlineAccount seam) and `kernel`. Consumed wherever identity
+Depends on `accounts` (the OnlineAccount seam), `kernel`, `places` (the reference-frame owner), and `math` (the canonical quantity and dimension owners). Consumed wherever identity
 must be vouched for: contacts, accounts, email wire-authentication, and the GTS packages'
 COSE attestation chain (Principle 14).
+
+## Evidence and confidence boundary
+
+Evidence classes, source tiers, coverage and independence remain categorical
+citation annotations. Categorical owner-trust and authority are separate from
+this numeric protocol input. Statement confidence stays on the existing
+`gmeow:confidence` annotation and canonical `logic:confidence` surface; neither
+an introducer weight nor a confidence annotation supplies a probability model.
+Actual probabilistic claims use the canonical probability layer with their
+model and event context. No evidence-specific numeric confidence property or
+probability conversion is introduced here.

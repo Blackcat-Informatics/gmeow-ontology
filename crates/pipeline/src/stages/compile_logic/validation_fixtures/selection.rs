@@ -15,6 +15,7 @@ pub(super) const MODULES: &[&str] = &[
     "slices/core/quality/module.ttl",
     "slices/core/rights/module.ttl",
     "slices/core/standpoint/module.ttl",
+    "slices/core/trust/module.ttl",
     "slices/extensions/risk/module.ttl",
     "slices/grounding/lang/module.ttl",
     "slices/grounding/math/module.ttl",
