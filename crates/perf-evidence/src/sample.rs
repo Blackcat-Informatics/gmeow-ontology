@@ -8,6 +8,7 @@
 //! protocol and median comparison live in docs/rust-test-performance.md.
 
 use crate::{PerfResult, write_json_atomic};
+use purrdf_lex::json::{self, Object, Value, record::ToJson as _};
 
 use std::collections::BTreeMap;
 use std::ffi::OsString;
@@ -53,24 +54,57 @@ struct Usage {
 }
 
 impl Usage {
-    fn delta(self, before: Self) -> serde_json::Value {
-        serde_json::json!({
-            "user_cpu_ms": self.user_us.saturating_sub(before.user_us) / 1_000,
-            "system_cpu_ms": self.system_us.saturating_sub(before.system_us) / 1_000,
-            "max_rss_kib": self.max_rss_kib,
-            "pre_sample_children_max_rss_kib": before.max_rss_kib,
-            "minor_faults": self.minor_faults.saturating_sub(before.minor_faults),
-            "major_faults": self.major_faults.saturating_sub(before.major_faults),
-            "filesystem_input_blocks": self.input_blocks.saturating_sub(before.input_blocks),
-            "filesystem_output_blocks": self.output_blocks.saturating_sub(before.output_blocks),
-            "voluntary_context_switches": self
-                .voluntary_context_switches
-                .saturating_sub(before.voluntary_context_switches),
-            "involuntary_context_switches": self
-                .involuntary_context_switches
-                .saturating_sub(before.involuntary_context_switches),
-            "scope": "waited command process tree via getrusage(RUSAGE_CHILDREN)",
-        })
+    fn delta(self, before: Self) -> Value {
+        Value::from(
+            Object::new()
+                .with(
+                    "user_cpu_ms",
+                    self.user_us.saturating_sub(before.user_us) / 1_000,
+                )
+                .with(
+                    "system_cpu_ms",
+                    self.system_us.saturating_sub(before.system_us) / 1_000,
+                )
+                .with("max_rss_kib", self.max_rss_kib.to_json())
+                .with(
+                    "pre_sample_children_max_rss_kib",
+                    before.max_rss_kib.to_json(),
+                )
+                .with(
+                    "minor_faults",
+                    (self.minor_faults.saturating_sub(before.minor_faults)).to_json(),
+                )
+                .with(
+                    "major_faults",
+                    (self.major_faults.saturating_sub(before.major_faults)).to_json(),
+                )
+                .with(
+                    "filesystem_input_blocks",
+                    (self.input_blocks.saturating_sub(before.input_blocks)).to_json(),
+                )
+                .with(
+                    "filesystem_output_blocks",
+                    (self.output_blocks.saturating_sub(before.output_blocks)).to_json(),
+                )
+                .with(
+                    "voluntary_context_switches",
+                    (self
+                        .voluntary_context_switches
+                        .saturating_sub(before.voluntary_context_switches))
+                    .to_json(),
+                )
+                .with(
+                    "involuntary_context_switches",
+                    (self
+                        .involuntary_context_switches
+                        .saturating_sub(before.involuntary_context_switches))
+                    .to_json(),
+                )
+                .with(
+                    "scope",
+                    "waited command process tree via getrusage(RUSAGE_CHILDREN)".to_json(),
+                ),
+        )
     }
 }
 
@@ -379,13 +413,22 @@ fn run(args: Args) -> PerfResult<i32> {
             };
             let bytes = fs::read(&path)
                 .map_err(|error| format!("read work telemetry {}: {error}", path.display()))?;
-            let value = serde_json::from_slice::<serde_json::Value>(&bytes)
+            let value = json::record::read_document(&bytes)
                 .map_err(|error| format!("parse work telemetry {}: {error}", path.display()))?;
-            Ok::<_, String>(serde_json::json!({
-                "path": path.strip_prefix(&root).unwrap_or(&path).display().to_string(),
-                "sha256": sha256_bytes(&bytes),
-                "payload": value,
-            }))
+            Ok::<_, String>(Value::from(
+                Object::new()
+                    .with(
+                        "path",
+                        (path
+                            .strip_prefix(&root)
+                            .unwrap_or(&path)
+                            .display()
+                            .to_string())
+                        .to_json(),
+                    )
+                    .with("sha256", (sha256_bytes(&bytes)).to_json())
+                    .with("payload", value.to_json()),
+            ))
         })
         .transpose()?;
     // Cache roots above bind pre-command warmth. Explicit output roots bind bytes
@@ -400,12 +443,12 @@ fn run(args: Args) -> PerfResult<i32> {
     let resource_usage = usage_after.delta(usage_before);
     let cpu_ms = resource_usage
         .get("user_cpu_ms")
-        .and_then(serde_json::Value::as_u64)
+        .and_then(Value::as_u64)
         .unwrap_or(0)
         .saturating_add(
             resource_usage
                 .get("system_cpu_ms")
-                .and_then(serde_json::Value::as_u64)
+                .and_then(Value::as_u64)
                 .unwrap_or(0),
         );
     let logical_cpus = std::thread::available_parallelism()
@@ -423,69 +466,107 @@ fn run(args: Args) -> PerfResult<i32> {
         .queued_unix_ms
         .map(|queued| started_unix_ms.saturating_sub(queued));
 
-    let payload = serde_json::json!({
-        "schema_version": SCHEMA_VERSION,
-        "command": "perf-sample",
-        "sample_identity": {
-            "pair_id": args.pair_id,
-            "variant": args.variant,
-            "sample_index": args.sample_index,
-            "cache_state": args.cache_state,
-            "cache_classes": args.cache_classes,
-            "partial_change": args.partial_change,
-            "node_class": args.node_class,
-            "runner_image": runner_image,
-            "started_unix_ms": started_unix_ms,
-            "measured_command": args.command,
-            "worktree": root.display().to_string(),
-            "git_head": git_head.trim(),
-            "git_tree": git_tree.trim(),
-            "cargo_lock_sha256": cargo_lock_sha256,
-            "dependency_resolution_sha256": dependency_resolution_sha256,
-            "pipeline_build_fingerprint": pipeline_build_fingerprint,
-            "rustc_vv": rustc.trim(),
-            "cargo_version": cargo.trim(),
-            "nextest_version": nextest.trim(),
-            "build_environment": {
-                "CARGO_BUILD_TARGET": std::env::var("CARGO_BUILD_TARGET").ok(),
-                "CARGO_TARGET_DIR": std::env::var("CARGO_TARGET_DIR").ok(),
-                "RUSTFLAGS": std::env::var("RUSTFLAGS").ok(),
-                "CARGO_ENCODED_RUSTFLAGS": std::env::var("CARGO_ENCODED_RUSTFLAGS").ok(),
-            },
-            "host": host,
-            "generated_tree": generated_identity,
-            "identity_receipts": identity_receipts,
-            "cache_census": cache_census,
-        },
-        "deterministic_work": {
-            "command_telemetry": work_telemetry,
-            "output_census": output_census,
-            "proof_inventory": proof_inventory,
-            "causal_counters": causal_counters,
-        },
-        "observations": {
-            "wall_ms": wall_ms,
-            "queue_ms": queue_ms,
-            "aggregate_cpu_utilization_pct": aggregate_cpu_utilization_pct,
-            "host_normalized_cpu_utilization_pct": host_normalized_cpu_utilization_pct,
-            "resource_usage": resource_usage,
-            "loadavg_before": load_before,
-            "loadavg_after": load_after,
-            "exit": exit_observation(exit_status),
-        },
-    });
+    let payload = Value::from(
+        Object::new()
+            .with("schema_version", SCHEMA_VERSION.to_json())
+            .with("command", "perf-sample".to_json())
+            .with(
+                "sample_identity",
+                Value::from(
+                    Object::new()
+                        .with("pair_id", args.pair_id.to_json())
+                        .with("variant", args.variant.to_json())
+                        .with("sample_index", args.sample_index.to_json())
+                        .with("cache_state", args.cache_state.to_json())
+                        .with("cache_classes", args.cache_classes.to_json())
+                        .with("partial_change", args.partial_change.to_json())
+                        .with("node_class", args.node_class.to_json())
+                        .with("runner_image", runner_image.to_json())
+                        .with("started_unix_ms", started_unix_ms)
+                        .with("measured_command", args.command.to_json())
+                        .with("worktree", (root.display().to_string()).to_json())
+                        .with("git_head", (git_head.trim()).to_json())
+                        .with("git_tree", (git_tree.trim()).to_json())
+                        .with("cargo_lock_sha256", cargo_lock_sha256.to_json())
+                        .with(
+                            "dependency_resolution_sha256",
+                            dependency_resolution_sha256.to_json(),
+                        )
+                        .with(
+                            "pipeline_build_fingerprint",
+                            pipeline_build_fingerprint.to_json(),
+                        )
+                        .with("rustc_vv", (rustc.trim()).to_json())
+                        .with("cargo_version", (cargo.trim()).to_json())
+                        .with("nextest_version", (nextest.trim()).to_json())
+                        .with(
+                            "build_environment",
+                            Value::from(
+                                Object::new()
+                                    .with(
+                                        "CARGO_BUILD_TARGET",
+                                        (std::env::var("CARGO_BUILD_TARGET").ok()).to_json(),
+                                    )
+                                    .with(
+                                        "CARGO_TARGET_DIR",
+                                        (std::env::var("CARGO_TARGET_DIR").ok()).to_json(),
+                                    )
+                                    .with("RUSTFLAGS", (std::env::var("RUSTFLAGS").ok()).to_json())
+                                    .with(
+                                        "CARGO_ENCODED_RUSTFLAGS",
+                                        (std::env::var("CARGO_ENCODED_RUSTFLAGS").ok()).to_json(),
+                                    ),
+                            ),
+                        )
+                        .with("host", host.to_json())
+                        .with("generated_tree", generated_identity.to_json())
+                        .with("identity_receipts", identity_receipts.to_json())
+                        .with("cache_census", cache_census.to_json()),
+                ),
+            )
+            .with(
+                "deterministic_work",
+                Value::from(
+                    Object::new()
+                        .with("command_telemetry", work_telemetry.to_json())
+                        .with("output_census", output_census.to_json())
+                        .with("proof_inventory", proof_inventory.to_json())
+                        .with("causal_counters", causal_counters.to_json()),
+                ),
+            )
+            .with(
+                "observations",
+                Value::from(
+                    Object::new()
+                        .with("wall_ms", wall_ms)
+                        .with("queue_ms", queue_ms)
+                        .with(
+                            "aggregate_cpu_utilization_pct",
+                            aggregate_cpu_utilization_pct.to_json(),
+                        )
+                        .with(
+                            "host_normalized_cpu_utilization_pct",
+                            host_normalized_cpu_utilization_pct.to_json(),
+                        )
+                        .with("resource_usage", resource_usage.to_json())
+                        .with("loadavg_before", load_before.to_json())
+                        .with("loadavg_after", load_after.to_json())
+                        .with("exit", (exit_observation(exit_status)).to_json()),
+                ),
+            ),
+    );
     write_json_atomic(&args.output, &payload)?;
     println!("{}", args.output.display());
     Ok(exit_status.code().unwrap_or(1))
 }
 
-fn proof_inventory(work_telemetry: Option<&serde_json::Value>, command: &[String]) -> Vec<String> {
+fn proof_inventory(work_telemetry: Option<&Value>, command: &[String]) -> Vec<String> {
     let mut inventory = work_telemetry
         .and_then(|receipt| receipt.pointer("/payload/commands"))
-        .and_then(serde_json::Value::as_array)
+        .and_then(Value::as_array)
         .into_iter()
         .flatten()
-        .filter_map(|entry| entry.get("command").and_then(serde_json::Value::as_str))
+        .filter_map(|entry| entry.get("command").and_then(Value::as_str))
         .map(ToString::to_string)
         .collect::<Vec<_>>();
     if inventory.is_empty() {
@@ -503,64 +584,61 @@ fn proof_inventory(work_telemetry: Option<&serde_json::Value>, command: &[String
 /// only those top-level rows (never nested phase timings), while current telemetry uses
 /// the producer's explicit count. This makes the comparison an observation of actual
 /// work from each run rather than a source-version lookup or hand-written estimate.
-fn causal_counters(work_telemetry: Option<&serde_json::Value>) -> serde_json::Value {
-    let mut counters = serde_json::Map::new();
+fn causal_counters(work_telemetry: Option<&Value>) -> Value {
+    let mut counters = Object::new();
     // A direct host command has no CI job group that can fall back to compiling the
     // source producer independently. Hosted run receipts populate the same counter
     // from the authored workflow.
     counters.insert(
         "source_producer_fallback_job_groups".to_string(),
-        serde_json::Value::from(0_u64),
+        Value::from(0_u64),
     );
 
     let Some(payload) = work_telemetry.and_then(|receipt| receipt.get("payload")) else {
-        return serde_json::Value::Object(counters);
+        return Value::Object(counters);
     };
     let Some(sync) = payload
         .get("commands")
-        .and_then(serde_json::Value::as_array)
+        .and_then(Value::as_array)
         .and_then(|commands| {
-            commands.iter().find(|command| {
-                command.get("command").and_then(serde_json::Value::as_str) == Some("sync")
-            })
+            commands
+                .iter()
+                .find(|command| command.get("command").and_then(Value::as_str) == Some("sync"))
         })
     else {
-        return serde_json::Value::Object(counters);
+        return Value::Object(counters);
     };
 
     let pipeline_runs = sync
         .pointer("/observations/pipeline_runs")
         .or_else(|| sync.get("pipeline_runs"))
-        .and_then(serde_json::Value::as_u64);
+        .and_then(Value::as_u64);
     if let Some(pipeline_runs) = pipeline_runs {
-        counters.insert(
-            "pipeline_runs".to_string(),
-            serde_json::Value::from(pipeline_runs),
-        );
+        counters.insert("pipeline_runs".to_string(), Value::from(pipeline_runs));
     }
 
     let explicit_stage_count = sync
         .pointer("/observations/executed_stage_count")
         .or_else(|| sync.get("executed_stage_count"))
-        .and_then(serde_json::Value::as_u64);
+        .and_then(Value::as_u64);
     let stage_count = explicit_stage_count
         .or_else(|| (pipeline_runs == Some(0)).then_some(0))
         .or_else(|| legacy_executed_stage_count(sync));
     if let Some(stage_count) = stage_count {
         counters.insert(
             "pipeline_stage_executions".to_string(),
-            serde_json::Value::from(stage_count),
+            Value::from(stage_count),
         );
     }
 
-    serde_json::Value::Object(counters)
+    Value::Object(counters)
 }
 
-fn legacy_executed_stage_count(sync: &serde_json::Value) -> Option<u64> {
+fn legacy_executed_stage_count(sync: &Value) -> Option<u64> {
     let timings = sync.get("timings")?.as_array()?;
     let stages = timings
         .iter()
-        .filter_map(|timing| timing.get("phase").and_then(serde_json::Value::as_str))
+        .filter_map(|timing| timing.get("phase").and_then(Value::as_str))
         .filter_map(|phase| phase.strip_prefix("stage:"))
         .filter(|stage_and_phase| !stage_and_phase.contains('/'))
         .collect::<std::collections::BTreeSet<_>>();
@@ -667,11 +745,11 @@ fn build_fingerprint_from(path: &Path, pointers: &[&str]) -> PerfResult<Option<S
     }
     let bytes = fs::read(path)
         .map_err(|error| format!("read producer identity {}: {error}", path.display()))?;
-    let receipt: serde_json::Value = serde_json::from_slice(&bytes)
+    let receipt: Value = json::record::read_document(&bytes)
         .map_err(|error| format!("parse producer identity {}: {error}", path.display()))?;
     let Some(fingerprint) = pointers
         .iter()
-        .find_map(|pointer| receipt.pointer(pointer).and_then(serde_json::Value::as_str))
+        .find_map(|pointer| receipt.pointer(pointer).and_then(Value::as_str))
     else {
         return Ok(None);
     };
@@ -702,11 +780,15 @@ fn dependency_resolution_digest(root: &Path) -> PerfResult<String> {
         )
         .into());
     }
-    let metadata: serde_json::Value = serde_json::from_slice(&output.stdout)
+    dependency_resolution_digest_from(&output.stdout)
+}
+
+fn dependency_resolution_digest_from(bytes: &[u8]) -> PerfResult<String> {
+    let metadata: Value = json::record::read_document(bytes)
         .map_err(|error| format!("parse cargo metadata: {error}"))?;
     let packages = metadata
         .get("packages")
-        .and_then(serde_json::Value::as_array)
+        .and_then(Value::as_array)
         .ok_or("cargo metadata lacks packages")?;
     let mut identities = packages
         .iter()
@@ -719,7 +801,7 @@ fn dependency_resolution_digest(root: &Path) -> PerfResult<String> {
                 source,
                 package
                     .get("checksum")
-                    .and_then(serde_json::Value::as_str)
+                    .and_then(Value::as_str)
                     .unwrap_or("")
             ))
         })
@@ -738,7 +820,7 @@ fn dependency_resolution_digest(root: &Path) -> PerfResult<String> {
 fn named_file_receipts(
     root: &Path,
     inputs: &[(String, PathBuf)],
-) -> PerfResult<BTreeMap<String, serde_json::Value>> {
+) -> PerfResult<BTreeMap<String, Value>> {
     let mut receipts = BTreeMap::new();
     for (name, path) in inputs {
         if receipts.contains_key(name) {
@@ -750,15 +832,16 @@ fn named_file_receipts(
             .len();
         let parsed_json = fs::read(&resolved)
             .ok()
-            .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
+            .and_then(|bytes| json::record::read_document(&bytes).ok());
         receipts.insert(
             name.clone(),
-            serde_json::json!({
-                "path": display_path(root, &resolved),
-                "sha256": sha256_file(&resolved)?,
-                "bytes": file_bytes,
-                "json": parsed_json,
-            }),
+            Value::from(
+                Object::new()
+                    .with("path", (display_path(root, &resolved)).to_json())
+                    .with("sha256", (sha256_file(&resolved)?).to_json())
+                    .with("bytes", file_bytes.to_json())
+                    .with("json", parsed_json.to_json()),
+            ),
         );
     }
     Ok(receipts)
@@ -767,7 +850,7 @@ fn named_file_receipts(
 fn named_tree_receipts(
     root: &Path,
     inputs: &[(String, PathBuf)],
-) -> PerfResult<BTreeMap<String, serde_json::Value>> {
+) -> PerfResult<BTreeMap<String, Value>> {
     let mut receipts = BTreeMap::new();
     for (name, path) in inputs {
         if receipts.contains_key(name) {
@@ -776,16 +859,18 @@ fn named_tree_receipts(
         let resolved = resolve(root, path);
         let census = if resolved.exists() {
             let census = tree_census(&resolved)?;
-            serde_json::json!({
-                "exists": true,
-                "path": display_path(root, &resolved),
-                "tree": census,
-            })
+            Value::from(
+                Object::new()
+                    .with("exists", true.to_json())
+                    .with("path", (display_path(root, &resolved)).to_json())
+                    .with("tree", census.to_json()),
+            )
         } else {
-            serde_json::json!({
-                "exists": false,
-                "path": display_path(root, &resolved),
-            })
+            Value::from(
+                Object::new()
+                    .with("exists", false.to_json())
+                    .with("path", (display_path(root, &resolved)).to_json()),
+            )
         };
         receipts.insert(name.clone(), census);
     }
@@ -807,7 +892,7 @@ fn display_path(root: &Path, path: &Path) -> String {
         .to_string()
 }
 
-fn tree_census(root: &Path) -> PerfResult<serde_json::Value> {
+fn tree_census(root: &Path) -> PerfResult<Value> {
     let mut files = Vec::new();
     collect_tree_files(root, root, &mut files)?;
     files.sort_by(|left, right| left.0.cmp(&right.0));
@@ -827,11 +912,12 @@ fn tree_census(root: &Path) -> PerfResult<serde_json::Value> {
         tree.update([0]);
         total_bytes = total_bytes.saturating_add(bytes);
     }
-    Ok(serde_json::json!({
-        "sha256": format!("{:x}", tree.finalize()),
-        "file_count": files.len(),
-        "bytes": total_bytes,
-    }))
+    Ok(Value::from(
+        Object::new()
+            .with("sha256", (format!("{:x}", tree.finalize())).to_json())
+            .with("file_count", (files.len()).to_json())
+            .with("bytes", total_bytes.to_json()),
+    ))
 }
 
 fn collect_tree_files(
@@ -873,7 +959,7 @@ fn read_trimmed(path: &str) -> Option<String> {
         .map(|value| value.trim().to_string())
 }
 
-fn host_identity() -> serde_json::Value {
+fn host_identity() -> Value {
     let cpu_model = fs::read_to_string("/proc/cpuinfo")
         .ok()
         .and_then(|cpuinfo| {
@@ -892,26 +978,43 @@ fn host_identity() -> serde_json::Value {
                     .and_then(|value| value.parse::<u64>().ok())
             })
         });
-    serde_json::json!({
-        "os": std::env::consts::OS,
-        "arch": std::env::consts::ARCH,
-        "logical_cpus": std::thread::available_parallelism().map(|n| n.get()).ok(),
-        "cpu_model": cpu_model,
-        "mem_total_kib": mem_total_kib,
-        "kernel_release": read_trimmed("/proc/sys/kernel/osrelease"),
-        "github_runner_name": std::env::var("RUNNER_NAME").ok(),
-        "github_run_id": std::env::var("GITHUB_RUN_ID").ok(),
-        "github_run_attempt": std::env::var("GITHUB_RUN_ATTEMPT").ok(),
-    })
+    Value::from(
+        Object::new()
+            .with("os", (std::env::consts::OS).to_json())
+            .with("arch", (std::env::consts::ARCH).to_json())
+            .with(
+                "logical_cpus",
+                (std::thread::available_parallelism().map(|n| n.get()).ok()).to_json(),
+            )
+            .with("cpu_model", cpu_model.to_json())
+            .with("mem_total_kib", mem_total_kib.to_json())
+            .with(
+                "kernel_release",
+                (read_trimmed("/proc/sys/kernel/osrelease")).to_json(),
+            )
+            .with(
+                "github_runner_name",
+                (std::env::var("RUNNER_NAME").ok()).to_json(),
+            )
+            .with(
+                "github_run_id",
+                (std::env::var("GITHUB_RUN_ID").ok()).to_json(),
+            )
+            .with(
+                "github_run_attempt",
+                (std::env::var("GITHUB_RUN_ATTEMPT").ok()).to_json(),
+            ),
+    )
 }
 
-fn exit_observation(status: ExitStatus) -> serde_json::Value {
+fn exit_observation(status: ExitStatus) -> Value {
     use std::os::unix::process::ExitStatusExt;
-    serde_json::json!({
-        "success": status.success(),
-        "code": status.code(),
-        "signal": status.signal(),
-    })
+    Value::from(
+        Object::new()
+            .with("success", (status.success()).to_json())
+            .with("code", (status.code()).to_json())
+            .with("signal", (status.signal()).to_json()),
+    )
 }
 
 fn child_usage() -> PerfResult<Usage> {
@@ -956,215 +1059,5 @@ where
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn base_args(cache_state: &str) -> Vec<OsString> {
-        [
-            "--pair-id",
-            "pair",
-            "--variant",
-            "candidate",
-            "--sample-index",
-            "1",
-            "--cache-state",
-            cache_state,
-            "--cargo-cache-state",
-            cache_state,
-            "--sync-cache-state",
-            cache_state,
-            "--pipeline-cache-state",
-            cache_state,
-            "--fixture-cache-state",
-            cache_state,
-            "--bundle-import-cache-state",
-            cache_state,
-            "--nextest-archive-cache-state",
-            cache_state,
-            "--node-class",
-            "node",
-            "--output",
-            "sample.json",
-        ]
-        .into_iter()
-        .map(OsString::from)
-        .collect()
-    }
-
-    #[test]
-    fn partial_samples_require_a_named_path_and_digest() {
-        let mut missing = base_args("partial");
-        missing.extend([OsString::from("--"), OsString::from("true")]);
-        assert!(parse_args_from(missing).is_err());
-
-        let mut complete = base_args("partial");
-        complete.extend([
-            OsString::from("--partial-change"),
-            OsString::from(format!("irrelevant:slices/example.ttl:{}", "a".repeat(64))),
-            OsString::from("--output-root"),
-            OsString::from("archive=dist/nextest"),
-            OsString::from("--"),
-            OsString::from("true"),
-        ]);
-        let parsed = parse_args_from(complete).unwrap();
-        assert_eq!(parsed.cache_state, "partial");
-        assert_eq!(parsed.cache_classes["pipeline"], "partial");
-        assert_eq!(
-            parsed.output_roots,
-            vec![("archive".to_string(), PathBuf::from("dist/nextest"))]
-        );
-    }
-
-    #[test]
-    fn the_six_cache_classes_are_not_collapsed_into_one_label() {
-        let mut args = base_args("warm");
-        let sync_option = args
-            .iter()
-            .position(|arg| arg == "--sync-cache-state")
-            .unwrap();
-        args.drain(sync_option..=sync_option + 1);
-        args.extend([OsString::from("--"), OsString::from("true")]);
-        let error = parse_args_from(args).unwrap_err();
-        assert!(
-            error
-                .to_string()
-                .contains("missing required --sync-cache-state"),
-            "{error}"
-        );
-    }
-
-    #[test]
-    fn tree_census_binds_paths_bytes_and_content() {
-        let directory = tempfile::tempdir().unwrap();
-        fs::create_dir(directory.path().join("nested")).unwrap();
-        fs::write(directory.path().join("b"), b"two").unwrap();
-        fs::write(directory.path().join("nested/a"), b"one").unwrap();
-        let first = tree_census(directory.path()).unwrap();
-        fs::write(directory.path().join("nested/a"), b"ONE").unwrap();
-        let second = tree_census(directory.path()).unwrap();
-        assert_eq!(first["file_count"], 2);
-        assert_eq!(first["bytes"], 6);
-        assert_ne!(first["sha256"], second["sha256"]);
-    }
-
-    #[test]
-    fn producer_receipt_identity_precedes_the_local_sync_manifest() {
-        let root = tempfile::tempdir().unwrap();
-        fs::create_dir_all(root.path().join("dist")).unwrap();
-        fs::create_dir_all(root.path().join(".cache/gmeow-sync/manifests")).unwrap();
-        fs::write(
-            root.path().join("dist/producer-receipt.json"),
-            serde_json::to_vec(&serde_json::json!({
-                "payload": {"build_identity": {"fingerprint": "a".repeat(64)}}
-            }))
-            .unwrap(),
-        )
-        .unwrap();
-        fs::write(
-            root.path()
-                .join(".cache/gmeow-sync/manifests/generated-default.json"),
-            serde_json::to_vec(&serde_json::json!({"build_fingerprint": "b".repeat(64)})).unwrap(),
-        )
-        .unwrap();
-        assert_eq!(
-            pipeline_build_fingerprint(root.path(), &[]).unwrap(),
-            "a".repeat(64)
-        );
-    }
-
-    #[test]
-    fn explicit_legacy_producer_manifest_supplies_cold_identity_outside_the_cache() {
-        let root = tempfile::tempdir().unwrap();
-        let authority = root.path().join("dist/baseline-generation-a.json");
-        fs::create_dir_all(authority.parent().unwrap()).unwrap();
-        fs::write(
-            &authority,
-            serde_json::to_vec(&serde_json::json!({
-                "version": 3,
-                "build_fingerprint": "c".repeat(64)
-            }))
-            .unwrap(),
-        )
-        .unwrap();
-
-        assert_eq!(
-            pipeline_build_fingerprint(
-                root.path(),
-                &[(
-                    "producer".to_string(),
-                    PathBuf::from("dist/baseline-generation-a.json")
-                )]
-            )
-            .unwrap(),
-            "c".repeat(64)
-        );
-        assert!(
-            !root
-                .path()
-                .join(".cache/gmeow-sync/manifests/generated-default.json")
-                .exists(),
-            "producer identity must not warm the live sync-manifest cache"
-        );
-    }
-
-    #[test]
-    fn stage_execution_counter_normalizes_legacy_and_current_sync_telemetry() {
-        let legacy = serde_json::json!({
-            "payload": {
-                "commands": [{
-                    "command": "sync",
-                    "pipeline_runs": 1,
-                    "timings": [
-                        {"phase": "stage:stage-source-load"},
-                        {"phase": "stage:stage-source-load/parse"},
-                        {"phase": "stage:stage-reason"},
-                        {"phase": "pipeline-total"}
-                    ]
-                }]
-            }
-        });
-        let current = serde_json::json!({
-            "payload": {
-                "commands": [{
-                    "command": "sync",
-                    "observations": {
-                        "pipeline_runs": 1,
-                        "executed_stage_count": 1
-                    }
-                }]
-            }
-        });
-        let fixed_point = serde_json::json!({
-            "payload": {
-                "commands": [{"command": "sync", "pipeline_runs": 0}]
-            }
-        });
-
-        assert_eq!(
-            causal_counters(Some(&legacy))["pipeline_stage_executions"],
-            2
-        );
-        assert_eq!(
-            causal_counters(Some(&current))["pipeline_stage_executions"],
-            1
-        );
-        assert_eq!(
-            causal_counters(Some(&fixed_point))["pipeline_stage_executions"],
-            0
-        );
-    }
-
-    #[test]
-    fn producer_identity_is_required_and_structurally_validated() {
-        let root = tempfile::tempdir().unwrap();
-        assert!(pipeline_build_fingerprint(root.path(), &[]).is_err());
-        fs::create_dir_all(root.path().join(".cache/gmeow-sync/manifests")).unwrap();
-        fs::write(
-            root.path()
-                .join(".cache/gmeow-sync/manifests/generated-default.json"),
-            br#"{"build_fingerprint":"NOT-A-DIGEST"}"#,
-        )
-        .unwrap();
-        assert!(pipeline_build_fingerprint(root.path(), &[]).is_err());
-    }
-}
+#[path = "sample.tests.rs"]
+mod tests;
