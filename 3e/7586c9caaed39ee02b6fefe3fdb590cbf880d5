@@ -1,0 +1,21 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 0537ffdf850ab8e695fce867d43af4f9a5a32f43
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1899
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1899
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 1f61a0b35bdfe795e4d7f4d9eeed853263d3ef90
+GhpRsq-Head-Ref: paudley/1895-ground-risk-likelihoods-and-scores-in
+GhpRsq-Head-OID: 0537ffdf850ab8e695fce867d43af4f9a5a32f43
+GhpRsq-Result-Tree: 7e2fa20832111e040a42add858629e1733c6e061
+GhpRsq-Result-Commit: 3e7586c9caaed39ee02b6fefe3fdb590cbf880d5
+GhpRsq-Parent-Hashes: 0537ffdf850ab8e695fce867d43af4f9a5a32f43
+GhpRsq-Squash-Notes-SHA256: a17528d76332ad0c2627f33374e1f5091f4a1eb62ea80dcb67a0ca4939be0363
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Tree: 9bf0745beb00516dead9d8e208f3a169f1c3f6dc
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1899/stage
+GhpRsq-Stage-Files: 21
