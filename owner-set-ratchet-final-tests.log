@@ -1,0 +1,15 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-slice-quality) & (test(owner_set_registry_ratchet_rejects_expansion_and_replacement) | test(owner_set_registry_ratchet_rejects_every_recognizer_change))' --no-tests=fail
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+    Finished `test` profile [optimized] target(s) in 23.82s
+────────────
+ Nextest run ID 762401dc-0834-4ce5-950c-0f92847c062c with nextest profile: ci
+    Starting 2 tests across 20 binaries (246 tests and 207 binaries skipped)
+        PASS [   0.010s] (1/2) gmeow-slice-quality gate::tests::owner_set_registry_ratchet_rejects_expansion_and_replacement
+        PASS [   0.011s] (2/2) gmeow-slice-quality gate::tests::owner_set_registry_ratchet_rejects_every_recognizer_change
+────────────
+     Summary [   0.018s] 2 tests run: 2 passed, 246 skipped

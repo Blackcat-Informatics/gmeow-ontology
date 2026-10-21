@@ -1,0 +1,9 @@
+# Review disposition
+
+Independent review covers the complete owner-set implementation and canonical carrier/ledger/coats retirement. It caught a missed installedCLI field pair; both now render the complete sorted commajoined set, preserving singleton bytes. Review updated/frozen. Root fixed only the authored projection fixture namespace after57/58 initial result; all expected minimum/value-set assertions unchanged,58PASS. Test-only clone lint fixed with borrowed slices and both changed ratchet controls rerun/PASS. Full embeddedCLI compile remains explicitly unrun.
+
+Complete fresh REST formal/inline/conversation captures each one empty paginated page; GraphQL reviewThreads0, hasNextPage=false, no nested pages. No source feedback dropped or unresolved. Hosted helpers/lintSUCCESS, producer/prebuildpending; recorded sequential merge ignoring CI exception applies without treating pending as passed.
+
+Fresh main delta11paths:3installer workflows plus8docs/docs-model/Cargo/test paths from1922/1923/1924. These do not change this unit APIs/canonical ownership/counting/registry policy. CachedSite byte-envelope changes and i18n observation writer affect separate output owners; docs removes only productionserde_json while native/profile dependencies unchanged. Installer explicit tool versions/profiles/permissions retained; unversioned nextest default change documented in its own archive. Merge-tree exit0, candidate retained; no base synchronization needed.
+
+Known missing acceptance: actual schema.org8>7 repair, native fulli18n/metrics/corpus/full consumer and explicit frozen reviewed-coverage refresh. These remain visibly owned under1894/1717; no parent closes or silent scope reduction. The source prerequisite does not raise a ceiling, alter guard instance data or claim production parity.

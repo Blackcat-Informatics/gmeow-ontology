@@ -1,0 +1,7 @@
+# Explicit grounding-owner sets prerequisite
+
+Refs1894/1717; Principles4/7/17/19. The hosted schema.org exemption8>7 remains unresolved. Support explicit nonempty grounding-owner sets on new guarded surfaces while preserving all current guard declarations, namespaces, counts and ceilings. Reject noncanonical, non-IRI and missing owners; preserve exact validated native/node bridge exemptions and foreign/raw/incomplete residue. Neutral APIs must select no preferred member. Strengthen the meta-ratchet to refuse owner addition/replacement and every count-kind change on existing guards.
+
+Intentionally retire only the vocabularyOwner functional carrier and one frozen ledger line. Replace it with canonical allowed owner oneOf and required closed path, paired French/Chinese descriptions and ratchet documentation. No DSL/cell-selector/catalog changes, new schema.org value guard, floor/ceiling measurement or raise. Full registry repair still needs real Lang literal authority and complete selected-cell catalog across compiler/counter/standalone consumers.
+
+Source16files frozen. Root inspects actual callers and authored controls; runs fmt, explicit synthetic tests, strict producer-independent Clippy, helpers, source recipe and normal hooks serially. Independent reviewer owns independent-review.md only. Canonical producer/corpus/full gates/native i18n/metrics/installed acceptance remain unrun under recorded user exception. Parent contracts remain open. Sequential ghprsq merge/archive/readback/owned cleanup, without bypasses.

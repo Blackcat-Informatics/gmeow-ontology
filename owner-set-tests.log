@@ -1,0 +1,71 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-slice-quality) & (test(owner_set_) | test(counting::tests::) | test(residue_text_carrier_tests::) | test(registry_ratchet_reds_on_weakening_and_silent_on_strengthening) | test(projection_vocabulary_and_ceiling_load))) | (package(gmeow-logic-compile) & (test(functional_carrier_) | test(functional_completeness_)))' --no-tests=fail
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+    Finished `test` profile [optimized] target(s) in 13.91s
+────────────
+ Nextest run ID c969b737-f92c-4470-92b2-457b722598e4 with nextest profile: ci
+    Starting 58 tests across 22 binaries (1244 tests and 205 binaries skipped)
+        PASS [   0.009s] ( 1/58) gmeow-slice-quality counting::tests::back_ref_to_non_axiom_target_still_counts
+        PASS [   0.010s] ( 2/58) gmeow-slice-quality counting::tests::anonymous_nested_property_shape_absent_from_historical_scope
+        PASS [   0.010s] ( 3/58) gmeow-slice-quality counting::tests::blank_subject_anchors_on_its_nearest_named_sh_ancestor
+        PASS [   0.010s] ( 4/58) gmeow-slice-quality counting::tests::internal_equivalent_class_stays_in_residue
+        PASS [   0.010s] ( 5/58) gmeow-slice-quality counting::tests::grounded_fraction_matches_legacy_grounded_over_authored
+        PASS [   0.010s] ( 6/58) gmeow-slice-quality counting::tests::owner_set_relocation_distinguishes_shared_boundary_from_foreign_surface
+        PASS [   0.011s] ( 7/58) gmeow-slice-quality counting::tests::grounded_shape_not_counted_in_residue
+        PASS [   0.011s] ( 8/58) gmeow-slice-quality counting::tests::grounding_cell_without_justification_is_not_exempt
+        PASS [   0.011s] ( 9/58) gmeow-slice-quality counting::tests::non_rdf_surface_vocab_is_structurally_zero
+        PASS [   0.011s] (10/58) gmeow-slice-quality counting::tests::aliased_namespace_construct_counted
+        PASS [   0.012s] (11/58) gmeow-slice-quality counting::tests::anonymous_nested_property_shape_counted_in_full_residue
+        PASS [   0.012s] (12/58) gmeow-slice-quality counting::tests::declarative_owl_rdfs_axiom_not_counted_for_guarded_vocab
+        PASS [   0.011s] (13/58) gmeow-slice-quality counting::tests::grounded_fraction_is_one_when_nothing_authored
+        PASS [   0.011s] (14/58) gmeow-slice-quality counting::tests::back_ref_to_named_disjointness_axiom_grounds
+        PASS [   0.012s] (15/58) gmeow-slice-quality counting::tests::owner_set_node_bridge_preserves_exact_validation_boundary
+        PASS [   0.011s] (16/58) gmeow-slice-quality counting::tests::ordinary_alignment_to_typed_vocab_stays_in_residue
+        PASS [   0.012s] (17/58) gmeow-slice-quality counting::tests::grounding_that_travels_with_its_axiom_is_not_orphaned
+        PASS [   0.013s] (18/58) gmeow-slice-quality counting::tests::named_subject_anchors_on_its_own_term_iri
+        PASS [   0.013s] (19/58) gmeow-slice-quality counting::tests::dangling_back_ref_still_counts
+        PASS [   0.014s] (20/58) gmeow-slice-quality counting::tests::a_non_relocatable_construct_carries_no_relocation_warrant
+        PASS [   0.014s] (21/58) gmeow-slice-quality counting::tests::owner_set_native_bridge_requires_membership_and_complete_envelope
+        PASS [   0.014s] (22/58) gmeow-slice-quality counting::tests::multi_binding_grounding_projection_does_not_open_the_boundary
+        PASS [   0.015s] (23/58) gmeow-slice-quality counting::tests::blank_subject_without_named_ancestor_is_non_relocatable
+        PASS [   0.007s] (24/58) gmeow-slice-quality counting::tests::raw_external_bridge_now_counts_not_exempt
+        PASS [   0.007s] (25/58) gmeow-slice-quality counting::tests::reason_code_exemption_shift_owner_boundary
+        PASS [   0.008s] (26/58) gmeow-slice-quality counting::tests::ungrounded_shape_counted_in_residue
+        PASS [   0.007s] (27/58) gmeow-slice-quality counting::tests::validated_correspondence_cell_is_exempt
+        PASS [   0.008s] (28/58) gmeow-slice-quality counting::tests::reason_code_grounding_orphaned
+        PASS [   0.007s] (29/58) gmeow-slice-quality counting::tests::validated_cell_on_non_owner_surface_still_counts
+        PASS [   0.008s] (30/58) gmeow-slice-quality counting::tests::structural_axiom_anchors_on_the_subject_term_not_the_whole_triple
+        PASS [   0.009s] (31/58) gmeow-slice-quality counting::tests::single_binding_grounding_projection_target_is_exempt
+        PASS [   0.009s] (32/58) gmeow-slice-quality counting::tests::reason_code_bridge_exempt_both_sides
+        PASS [   0.008s] (33/58) gmeow-slice-quality gate::tests::registry_ratchet_reds_on_weakening_and_silent_on_strengthening
+        PASS [   0.010s] (34/58) gmeow-slice-quality counting::tests::residue_count_is_exactly_the_construct_sets_length
+        PASS [   0.007s] (35/58) gmeow-slice-quality residue_text_carrier_tests::a_broken_base_surface_hard_fails_rather_than_measuring_zero
+        PASS [   0.009s] (36/58) gmeow-slice-quality counting::tests::structural_domain_alignment_cell_is_exempt
+        PASS [   0.009s] (37/58) gmeow-slice-quality gate::tests::owner_set_registry_ratchet_rejects_every_recognizer_change
+        PASS [   0.008s] (38/58) gmeow-slice-quality residue_text_carrier_tests::count_over_texts_is_the_construct_sets_length
+        PASS [   0.009s] (39/58) gmeow-slice-quality gate::tests::owner_set_registry_ratchet_rejects_expansion_and_replacement
+        PASS [   0.009s] (40/58) gmeow-slice-quality profile::tests::owner_set_standalone_standard_admits_complete_sets_and_refuses_bad_members
+        PASS [   0.007s] (41/58) gmeow-slice-quality residue_text_carrier_tests::relocation_reasons_over_texts_names_the_owner_boundary_shift
+        PASS [   0.009s] (42/58) gmeow-slice-quality residue_text_carrier_tests::base_bytes_can_be_measured_at_a_destination_surface
+        PASS [   0.010s] (43/58) gmeow-slice-quality projection_debt::tests::owner_set_installed_debt_reader_uses_every_declared_boundary
+        PASS [   0.008s] (44/58) gmeow-slice-quality residue_text_carrier_tests::relocation_reasons_over_texts_names_an_orphaned_grounding
+        PASS [   0.008s] (45/58) gmeow-slice-quality rubric::tests::owner_set_canonical_restriction_derives_required_unbounded_value_set
+        PASS [   0.009s] (46/58) gmeow-slice-quality residue_text_carrier_tests::owner_set_text_carrier_preserves_shared_boundary_and_foreign_shift
+        PASS [   0.007s] (47/58) gmeow-slice-quality rubric::tests::owner_set_loads_every_owner_in_deterministic_order
+        PASS [   0.006s] (48/58) gmeow-slice-quality rubric::tests::projection_vocabulary_and_ceiling_load
+        PASS [   0.007s] (49/58) gmeow-slice-quality rubric::tests::owner_set_rejects_every_invalid_or_missing_object
+        PASS [   0.030s] (50/58) gmeow-logic-compile frontend::tests::functional_completeness_invariant_flags_carrierless_and_clears_when_carried
+        PASS [   0.030s] (51/58) gmeow-logic-compile frontend::tests::functional_carrier_integrity_flags_reintroduced_owl_marker
+        PASS [   0.031s] (52/58) gmeow-logic-compile frontend::tests::functional_carrier_ledger_drift_names_missing_and_unexpected
+        PASS [   0.031s] (53/58) gmeow-logic-compile frontend::tests::functional_carrier_integrity_flags_orphan_carrier
+        PASS [   0.031s] (54/58) gmeow-logic-compile frontend::tests::functional_carrier_integrity_flags_duplicate_carrier
+        PASS [   0.033s] (55/58) gmeow-logic-compile frontend::tests::derive_inverse_functional_carrier_caps_range_class_node_shape
+        PASS [   0.035s] (56/58) gmeow-logic-compile frontend::tests::derive_functional_carrier_caps_domain_class_node_shape
+        PASS [   0.036s] (57/58) gmeow-logic-compile frontend::tests::derive_functional_carrier_no_domain_fabricates_no_class
+        PASS [   0.036s] (58/58) gmeow-logic-compile projections::tests::functional_carrier_record_projects_owl_functional_property
+────────────
+     Summary [   0.056s] 58 tests run: 58 passed, 1244 skipped

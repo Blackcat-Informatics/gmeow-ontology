@@ -1,0 +1,6 @@
+Source: final pr-state.json via gh pr view1925 statusCheckRollup
+IN_PROGRESS producer-build
+SUCCESS helpers
+SUCCESS lint
+IN_PROGRESS rust-prebuild
+state: pending; explicit CI exception applies.

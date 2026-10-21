@@ -1,0 +1,11 @@
+Source: https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39600502877/job/119228681872
+Pages main afterPR1917, containing diagnostic1908 and finance1914/1916. Actual job conclusion failure, completed2026-10-21T14:27:07Z. Exact relevant raw log lines follow; unrelated compiler/download log is omitted.
+
+2026-10-21T14:27:03.9791878Z error gmeow-dev.cli.fail: sync pipeline failed: stage stage-mappings failed: catalog-family registry (dsl/mappings/catalog-families.ttl): lowered grounding correspondences: the residue-ratchet carve-out GREW — https://blackcatinformatics.ca/gmeow/residueExemption-schema-org (schema.org HowTo) now carries 8 shipped grounding correspondence(s), above its gmeow:exemptRowCeiling 7. Rows riding an exemption sit under no residue count, no ceiling and no monotonicity ratchet, so the carve-out may not widen implicitly: ground the new row through an owned, guarded surface, or raise the ceiling deliberately and say why
+2026-10-21T14:27:04.1404483Z make[2]: *** [Makefile:443: check-sync] Error 1
+2026-10-21T14:27:04.1405342Z make[2]: Leaving directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-21T14:27:04.1410813Z make[1]: *** [Makefile:442: check-sync] Error 2
+2026-10-21T14:27:04.1411653Z make[1]: Leaving directory '/home/runner/work/gmeow-ontology/gmeow-ontology'
+2026-10-21T14:27:04.1414439Z make: *** [Makefile:1254: maint-mdbook-smoke] Error 2
+2026-10-21T14:27:04.1459954Z ##[error]Process completed with exit code 2.
+2026-10-21T14:27:04.1652147Z Post job cleanup.

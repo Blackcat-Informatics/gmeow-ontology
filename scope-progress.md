@@ -1,0 +1,7 @@
+Hosted [Pages generation after PR1917](https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39600502877/job/119228681872) now reaches the catalog-family registry and fails at stage-mappings: the schema.org HowTo exemption counts eight grounding rows above its ceiling of seven.
+
+The added row is the valid math:quantityValue to schema:value bridge introduced by the finance work. The existing HowTo family uses the entire schema.org prefix, mixing that quantity row with its seven procedure rows. The source investigation will preserve all mappings and the ceiling; no new headroom or weakened check is authorized.
+
+A narrow value guard also exposes two existing DSL text-value templates: identifierValue and exifTagValue. Their values are not numeric quantities, and no canonical target law currently drives those template atoms. The repair needs a real owned derivation for those outputs, preserving their guards, literal values and loss semantics; marking them as grounded is insufficient. The separate checkout remains source-untouched while that compiler/ownership prerequisite is resolved.
+
+Refs #1894 and #1717. Principles 4, 17 and 19 govern the shared source and domain ownership. Actual hosted mappings completion, downstream ONNX and full finance acceptance remain open. No local corpus, producer, fixture rebuild, sync or full gate is running under the retained campaign exception.
