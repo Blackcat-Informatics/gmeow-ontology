@@ -856,7 +856,7 @@ fn per_term_card_json_and_full_md_are_emitted() {
     assert!(parsed.get("entailments").is_none(), "standard omits panels");
     let facets = precompute_alignment_facets(&model);
     let expected = doc_term_card(foo, &facets, &model).projected(crate::card::CardDetail::Standard);
-    let expected_bytes = serde_json::to_vec(&expected).expect("serialize standard card");
+    let expected_bytes = json::write_compact(&expected.to_json()).into_bytes();
     assert_eq!(
         bytes, &expected_bytes,
         "packed card.json equals the standard Card via the same serializer"

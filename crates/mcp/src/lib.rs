@@ -981,6 +981,41 @@ fn card_detail_label(detail: gmeow_docs_model::card::CardDetail) -> &'static str
     }
 }
 
+/// Encode the complete card envelope; measure the original payload before sorting JSON names.
+#[cfg(feature = "core")]
+fn card_envelope(
+    title: &str,
+    card: &gmeow_docs_model::card::Card,
+    detail: gmeow_docs_model::card::CardDetail,
+    format: CardFormat,
+) -> String {
+    use purrdf_lex::json::record::ToJson;
+    use purrdf_lex::json::{self, Object, Value as NativeValue};
+
+    let (rendered, card_value) = match format {
+        CardFormat::Markdown => {
+            let rendered = gmeow_docs_model::card::render_card(title, card, detail);
+            let value = NativeValue::from(rendered.as_str());
+            (rendered, value)
+        }
+        CardFormat::Json => {
+            let value = card.projected(detail).to_json();
+            (json::write_compact(&value), value)
+        }
+    };
+    let mut envelope = NativeValue::from(
+        Object::new()
+            .with("ok", true)
+            .with("detail", card_detail_label(detail))
+            .with("format", format.label())
+            .with("bytes", rendered.len())
+            .with("tokens", gmeow_docs_model::llms::estimate_tokens(&rendered))
+            .with("card", card_value),
+    );
+    envelope.sort_keys();
+    json::write_compact(&envelope)
+}
+
 /// One-line and cap a fixture Turtle body to a short snippet for the full-tier
 /// `doc_card` Do / Don't panels (the card is token-budgeted; the full body is
 /// available through the `counter_examples` tool).
@@ -1695,36 +1730,7 @@ impl McpView {
             card.diagnostics = self.card_diagnostics(&iri)?;
             card.loss = self.card_loss(&iri)?;
         }
-        let (rendered, card_value) = match format {
-            CardFormat::Markdown => {
-                let md = gmeow_docs_model::card::render_card(&title, &card, detail);
-                let value = Value::String(md.clone());
-                (md, value)
-            }
-            CardFormat::Json => {
-                let projected = card.projected(detail);
-                let js = serde_json::to_string(&projected).map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                        message: format!("doc_card: serialize card to JSON: {e}"),
-                    })
-                })?;
-                let value = serde_json::to_value(&projected).map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                        message: format!("doc_card: card to JSON value: {e}"),
-                    })
-                })?;
-                (js, value)
-            }
-        };
-        Ok(json!({
-            "ok": true,
-            "detail": card_detail_label(detail),
-            "format": format.label(),
-            "bytes": rendered.len(),
-            "tokens": gmeow_docs_model::llms::estimate_tokens(&rendered),
-            "card": card_value,
-        })
-        .to_string())
+        Ok(card_envelope(&title, &card, detail, format))
     }
 
     /// The full-tier entailment panel for `term_iri`: the reasoner derivations
@@ -8933,3 +8939,7 @@ mod browser_storage_tests;
 
 #[cfg(test)]
 mod packet_submission_tests;
+
+#[cfg(all(test, feature = "core"))]
+#[path = "card_json.tests.rs"]
+mod card_json_tests;

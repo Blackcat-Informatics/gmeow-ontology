@@ -1796,6 +1796,7 @@ dependencies = [
  "purrdf",
  "purrdf-ed25519",
  "purrdf-hash",
+ "purrdf-lex",
  "serde",
  "serde_json",
  "sha2 0.10.9",

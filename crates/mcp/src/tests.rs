@@ -3842,11 +3842,11 @@ gmeow_test_batch_macros::batch_mcp_items! {
     /// Compile a hand-authored draft-2020-12 schema and assert `instance` CONFORMS,
     /// surfacing every validation error verbatim on failure (a real payload the
     /// schema rejects is a schema bug to FIX, never to weaken).
-    fn assert_conforms(schema: &Value, instance: &Value, what: &str) {
+    fn assert_conforms(schema: &[u8], instance: &Value, what: &str) {
         let errors = gmeow_validate::instance::validate_instance(
             &serde_json::to_vec(instance).expect("serialize actual instance payload"),
             gmeow_validate::instance::InstanceFormat::Json,
-            &serde_json::to_vec(schema).expect("serialize schema"),
+            schema,
         )
         .unwrap_or_else(|e| panic!("{what}: could not validate payload: {e}"));
         assert!(
@@ -3870,7 +3870,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let schema = gmeow_docs_model::card::card_json_schema();
+        let schema = gmeow_docs_model::card::card_json_schema().to_string().into_bytes();
 
         // STANDARD tier — the `card.json` shape. `gmeow:Entity` is a real bundled term.
         let standard = text_payload(server.call_tool_result(
@@ -3917,7 +3917,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             "expected an attached counter-example (exercises the fixture $def): {enriched}"
         );
         let schema = gmeow_validate::local_oracle::finding_json_schema();
-        assert_conforms(&schema, enriched, "validate_local EnrichedReport");
+        assert_conforms(&serde_json::to_vec(&schema).expect("serialize finding schema"), enriched, "validate_local EnrichedReport");
     }
 
     /// DEEP PASS (heavy): drive the tool end-to-end with `deep = true` over a REAL

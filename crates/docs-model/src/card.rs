@@ -19,11 +19,11 @@
 //! [`render_card`]. The canonical convention is the SITE card's: **bold**
 //! labels, `; ` value delimiters, NO per-item backticks, and a metadata header.
 //!
-//! Pure / std-only so it has no I/O or graph dependency (the `serde` derive is
-//! data-only, no I/O).
+//! The renderers have no I/O or graph dependency. Native JSON records and writers
+//! own the machine representations; callers supply resolved plain data.
 
-use serde::Serialize;
-use serde_json::Value;
+use purrdf_lex::json::record::ToJson;
+use purrdf_lex::json::{self, Object, Value};
 
 /// How much of a [`Card`] to surface — the token-budgeted detail tiers the live
 /// `doc_card` MCP tool exposes. The DEFAULT is [`CardDetail::Standard`], whose
@@ -51,7 +51,7 @@ pub enum CardDetail {
 /// One reasoner entailment documenting the term (full tier): the rule that fires,
 /// its conclusion, and every premise the derivation rests on. Field order is fixed
 /// for deterministic serialization.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CardEntailment {
     /// The entailment rule name.
     pub rule: String,
@@ -65,7 +65,7 @@ pub struct CardEntailment {
 /// short body (the fixture Turtle, capped). Both the well-formed (Do) and the
 /// counter-example (Don't) panels are lists of these. Field order is fixed for
 /// deterministic serialization.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CardFixture {
     /// The fixture's human label / title.
     pub title: String,
@@ -75,7 +75,7 @@ pub struct CardFixture {
 
 /// One diagnostic finding the term may hit (full tier): the finding code and a
 /// short note. Field order is fixed for deterministic serialization.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CardDiagnostic {
     /// The finding code (the stable identifier of the diagnostic).
     pub code: String,
@@ -86,7 +86,7 @@ pub struct CardDiagnostic {
 /// One projection-loss row for the term (full tier): the projection target the
 /// term degrades into and the preservation judgment for that degradation. Field
 /// order is fixed for deterministic serialization.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CardLoss {
     /// The projection target (the lossy projection this term degrades into).
     pub target: String,
@@ -97,14 +97,15 @@ pub struct CardLoss {
 /// The full UNION of fields both the docs-site `DocTerm` and the folded `Term`
 /// can carry for one term. Every value is a pre-resolved DISPLAY string (the
 /// caller resolves IRIs to local names / CURIEs); the renderer never touches
-/// IRIs. Empty `Vec`s / empty `String`s / `None`s are omitted from the output.
+/// IRIs. Empty vectors and absent optionals are omitted from JSON. Required strings
+/// and present empty optional strings remain present.
 ///
-/// `#[derive(Serialize)]` gives `format=json` a byte-stable projection: the fixed
+/// The native record gives `format=json` a byte-stable projection: the fixed
 /// struct field order is the serialization order, and every field is a `String` /
 /// `Option` / `Vec` whose contents the caller has already deterministically
-/// ordered. Empty optional / vector fields are skipped, so a leaner tier
-/// serializes to a strictly smaller object than a richer one.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+/// ordered. Absent optionals and empty vectors are skipped, so removing populated
+/// fields at a leaner tier produces a smaller object.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Card {
     /// The vocabulary category, singular and human-cased (`"Class"`,
     /// `"Property"`, `"Individual"`, `"Datatype"`, `"Term"`).
@@ -112,90 +113,193 @@ pub struct Card {
     /// The full term IRI.
     pub iri: String,
     /// `rdfs:label`, omitted from the header when it equals the title/CURIE.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     /// The defining slice as a display string (the owning module's local name).
     /// Both sources carry it: the docs side from `DocTerm::owner_slice`, the
     /// folded/MCP side from the documentation graph's `gmeow:docOwnerSlice`.
     /// `None` only when the source genuinely has no slice for this term, and is
     /// rendered as no `slice:` header line — NEVER a blank value.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub slice: Option<String>,
     /// `gmeow:graphBoxRole` four-boxes role display names (e.g. `boxTBox`).
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub box_roles: Vec<String>,
     /// `skos:definition` (falling back to `rdfs:comment`), one-lined.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub definition: Option<String>,
     /// `logic:subClassOf`/`logic:subPropertyOf` (canonical) ∪ `rdfs:subClassOf`/
     /// `rdfs:subPropertyOf` (projection) parent display names.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub parents: Vec<String>,
     /// `rdfs:domain` display names.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub domain: Vec<String>,
     /// `rdfs:range` display names.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub range: Vec<String>,
     /// `gmeow:useWhen` prose.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub use_when: Vec<String>,
     /// `gmeow:avoidWhen` prose.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub avoid_when: Vec<String>,
     /// `gmeow:howToUse` prose.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub how_to_use: Vec<String>,
     /// `skos:scopeNote` prose.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub scope_notes: Vec<String>,
     /// `skos:example` prose.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub examples: Vec<String>,
     /// `logic:*` stereotype CURIEs.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub logic_stereotypes: Vec<String>,
     /// Related-term display names (`skos:related` ∪ `gmeow:pairsWith` ∪
     /// `rdfs:seeAlso`).
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub related_terms: Vec<String>,
     /// `gmeow:useForConsumer` profile display names.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub use_for_consumer: Vec<String>,
     /// `gmeow:avoidForConsumer` profile display names.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub avoid_for_consumer: Vec<String>,
     /// Alignment facets, each a pre-formatted `predicate=object` display string.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub aligns: Vec<String>,
     /// The importable dotted path `gmeow_models.<slice>.<Class>` of the generated
     /// Pydantic model for a MODELED CLASS term — the explicit term→model link
     /// (§19: importing the model IS reading the term). `None` for non-class terms,
     /// which have no generated model. Rides the Standard + Full tiers, not Summary.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub python_model: Option<String>,
     /// A COMPACT, deterministic Pydantic snippet for a modeled class term — the
     /// model import plus a `model_validate` of a minimal `@type` payload. `None`
     /// for non-class terms. Token-budgeted (short) so it rides Standard + Full.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub python_snippet: Option<String>,
     // ── Full-tier rich panels (populated ONLY for [`CardDetail::Full`]) ─────────
     /// The reasoner entailments documenting the term. Empty for a term with no
     /// entailments, and for every tier below `Full` (never queried there).
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub entailments: Vec<CardEntailment>,
     /// The well-formed conformance exemplars (the "Do" panel).
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub fixtures_do: Vec<CardFixture>,
     /// The counter-example conformance fixtures (the "Don't" panel).
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub fixtures_dont: Vec<CardFixture>,
     /// The diagnostic findings the term may hit.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub diagnostics: Vec<CardDiagnostic>,
     /// The projection-loss rows: the targets the term degrades into.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub loss: Vec<CardLoss>,
+}
+
+impl ToJson for CardEntailment {
+    /// Emit every rich-panel member in its declared order.
+    fn to_json(&self) -> Value {
+        Value::from(
+            Object::new()
+                .with("rule", self.rule.to_json())
+                .with("conclusion", self.conclusion.to_json())
+                .with("premises", self.premises.to_json()),
+        )
+    }
+}
+
+impl ToJson for CardFixture {
+    /// Emit every rich-panel member in its declared order.
+    fn to_json(&self) -> Value {
+        Value::from(
+            Object::new()
+                .with("title", self.title.to_json())
+                .with("body", self.body.to_json()),
+        )
+    }
+}
+
+impl ToJson for CardDiagnostic {
+    /// Emit every rich-panel member in its declared order.
+    fn to_json(&self) -> Value {
+        Value::from(
+            Object::new()
+                .with("code", self.code.to_json())
+                .with("note", self.note.to_json()),
+        )
+    }
+}
+
+impl ToJson for CardLoss {
+    /// Emit every rich-panel member in its declared order.
+    fn to_json(&self) -> Value {
+        Value::from(
+            Object::new()
+                .with("target", self.target.to_json())
+                .with("preservation", self.preservation.to_json()),
+        )
+    }
+}
+
+impl ToJson for Card {
+    /// Preserve declaration order and omit only absent optionals and empty vectors.
+    fn to_json(&self) -> Value {
+        let mut object = Object::new();
+        object.insert("category", self.category.to_json());
+        object.insert("iri", self.iri.to_json());
+        if let Some(value) = &self.label {
+            object.insert("label", value.to_json());
+        }
+        if let Some(value) = &self.slice {
+            object.insert("slice", value.to_json());
+        }
+        if !self.box_roles.is_empty() {
+            object.insert("box_roles", self.box_roles.to_json());
+        }
+        if let Some(value) = &self.definition {
+            object.insert("definition", value.to_json());
+        }
+        if !self.parents.is_empty() {
+            object.insert("parents", self.parents.to_json());
+        }
+        if !self.domain.is_empty() {
+            object.insert("domain", self.domain.to_json());
+        }
+        if !self.range.is_empty() {
+            object.insert("range", self.range.to_json());
+        }
+        if !self.use_when.is_empty() {
+            object.insert("use_when", self.use_when.to_json());
+        }
+        if !self.avoid_when.is_empty() {
+            object.insert("avoid_when", self.avoid_when.to_json());
+        }
+        if !self.how_to_use.is_empty() {
+            object.insert("how_to_use", self.how_to_use.to_json());
+        }
+        if !self.scope_notes.is_empty() {
+            object.insert("scope_notes", self.scope_notes.to_json());
+        }
+        if !self.examples.is_empty() {
+            object.insert("examples", self.examples.to_json());
+        }
+        if !self.logic_stereotypes.is_empty() {
+            object.insert("logic_stereotypes", self.logic_stereotypes.to_json());
+        }
+        if !self.related_terms.is_empty() {
+            object.insert("related_terms", self.related_terms.to_json());
+        }
+        if !self.use_for_consumer.is_empty() {
+            object.insert("use_for_consumer", self.use_for_consumer.to_json());
+        }
+        if !self.avoid_for_consumer.is_empty() {
+            object.insert("avoid_for_consumer", self.avoid_for_consumer.to_json());
+        }
+        if !self.aligns.is_empty() {
+            object.insert("aligns", self.aligns.to_json());
+        }
+        if let Some(value) = &self.python_model {
+            object.insert("python_model", value.to_json());
+        }
+        if let Some(value) = &self.python_snippet {
+            object.insert("python_snippet", value.to_json());
+        }
+        if !self.entailments.is_empty() {
+            object.insert("entailments", self.entailments.to_json());
+        }
+        if !self.fixtures_do.is_empty() {
+            object.insert("fixtures_do", self.fixtures_do.to_json());
+        }
+        if !self.fixtures_dont.is_empty() {
+            object.insert("fixtures_dont", self.fixtures_dont.to_json());
+        }
+        if !self.diagnostics.is_empty() {
+            object.insert("diagnostics", self.diagnostics.to_json());
+        }
+        if !self.loss.is_empty() {
+            object.insert("loss", self.loss.to_json());
+        }
+        Value::from(object)
+    }
 }
 
 impl Card {
@@ -416,102 +520,174 @@ pub fn python_model_snippet(slice_iri: &str, term_iri: &str, curie: &str) -> Str
 /// It is co-located WITH the [`Card`] type on purpose (drift-resistance /
 /// dogfooding): the `properties` mirror the struct's serialized fields, the two
 /// unconditional fields (`category`, `iri`) are `required`, and every
-/// `#[serde(skip_serializing_if)]` field is optional (absent when empty). The rich
+/// conditionally emitted field is optional (absent under its record policy). The rich
 /// panels reference `$defs` matching [`CardEntailment`], [`CardFixture`],
-/// [`CardDiagnostic`], and [`CardLoss`] (whose subfields carry no skip attribute, so
+/// [`CardDiagnostic`], and [`CardLoss`] (whose subfields are never omitted, so
 /// each is `required`). Keeping this beside the type means a field added to `Card`
 /// that is not mirrored here is caught by the conformance test that validates a REAL
 /// rendered card against this schema.
 #[must_use]
-pub fn card_json_schema() -> serde_json::Value {
-    let string_array = || serde_json::json!({ "type": "array", "items": { "type": "string" } });
-    serde_json::json!({
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://blackcatinformatics.ca/gmeow/schemas/card.schema.json",
-        "title": "GMEOW term card",
-        "description": "The neutral, pre-resolved term card the docs `card.json` member \
+pub fn card_json_schema() -> Value {
+    let string_array = || {
+        Object::new()
+            .with("type", "array")
+            .with("items", Object::new().with("type", "string"))
+    };
+    let properties = Object::new()
+        .with(
+            "category",
+            Object::new().with("type", "string").with(
+                "description",
+                "The vocabulary category (Class, Property, Individual, Datatype, Term).",
+            ),
+        )
+        .with(
+            "iri",
+            Object::new()
+                .with("type", "string")
+                .with("description", "The full term IRI."),
+        )
+        .with("label", Object::new().with("type", "string"))
+        .with("slice", Object::new().with("type", "string"))
+        .with("box_roles", string_array())
+        .with("definition", Object::new().with("type", "string"))
+        .with("parents", string_array())
+        .with("domain", string_array())
+        .with("range", string_array())
+        .with("use_when", string_array())
+        .with("avoid_when", string_array())
+        .with("how_to_use", string_array())
+        .with("scope_notes", string_array())
+        .with("examples", string_array())
+        .with("logic_stereotypes", string_array())
+        .with("related_terms", string_array())
+        .with("use_for_consumer", string_array())
+        .with("avoid_for_consumer", string_array())
+        .with("aligns", string_array())
+        .with(
+            "python_model",
+            Object::new().with("type", "string").with(
+                "description",
+                "The importable dotted path gmeow_models.<slice>.<Class> of the \
+                                generated Pydantic model for a class term (the term→model link).",
+            ),
+        )
+        .with(
+            "python_snippet",
+            Object::new().with("type", "string").with(
+                "description",
+                "A compact Pydantic import + model_validate snippet for a class term.",
+            ),
+        )
+        .with(
+            "entailments",
+            Object::new()
+                .with("type", "array")
+                .with("items", Object::new().with("$ref", "#/$defs/entailment")),
+        )
+        .with(
+            "fixtures_do",
+            Object::new()
+                .with("type", "array")
+                .with("items", Object::new().with("$ref", "#/$defs/fixture")),
+        )
+        .with(
+            "fixtures_dont",
+            Object::new()
+                .with("type", "array")
+                .with("items", Object::new().with("$ref", "#/$defs/fixture")),
+        )
+        .with(
+            "diagnostics",
+            Object::new()
+                .with("type", "array")
+                .with("items", Object::new().with("$ref", "#/$defs/diagnostic")),
+        )
+        .with(
+            "loss",
+            Object::new()
+                .with("type", "array")
+                .with("items", Object::new().with("$ref", "#/$defs/loss")),
+        );
+    let entailment = Object::new()
+        .with("type", "object")
+        .with("additionalProperties", false)
+        .with(
+            "required",
+            Value::Array(vec!["rule".into(), "conclusion".into(), "premises".into()]),
+        )
+        .with(
+            "properties",
+            Object::new()
+                .with("rule", Object::new().with("type", "string"))
+                .with("conclusion", Object::new().with("type", "string"))
+                .with("premises", string_array()),
+        );
+    let fixture = Object::new()
+        .with("type", "object")
+        .with("additionalProperties", false)
+        .with(
+            "required",
+            Value::Array(vec!["title".into(), "body".into()]),
+        )
+        .with(
+            "properties",
+            Object::new()
+                .with("title", Object::new().with("type", "string"))
+                .with("body", Object::new().with("type", "string")),
+        );
+    let diagnostic = Object::new()
+        .with("type", "object")
+        .with("additionalProperties", false)
+        .with("required", Value::Array(vec!["code".into(), "note".into()]))
+        .with(
+            "properties",
+            Object::new()
+                .with("code", Object::new().with("type", "string"))
+                .with("note", Object::new().with("type", "string")),
+        );
+    let loss = Object::new()
+        .with("type", "object")
+        .with("additionalProperties", false)
+        .with(
+            "required",
+            Value::Array(vec!["target".into(), "preservation".into()]),
+        )
+        .with(
+            "properties",
+            Object::new()
+                .with("target", Object::new().with("type", "string"))
+                .with("preservation", Object::new().with("type", "string")),
+        );
+    let definitions = Object::new()
+        .with("entailment", entailment)
+        .with("fixture", fixture)
+        .with("diagnostic", diagnostic)
+        .with("loss", loss);
+    let mut schema = Value::from(
+        Object::new()
+            .with("$schema", "https://json-schema.org/draft/2020-12/schema")
+            .with(
+                "$id",
+                "https://blackcatinformatics.ca/gmeow/schemas/card.schema.json",
+            )
+            .with("title", "GMEOW term card")
+            .with(
+                "description",
+                "The neutral, pre-resolved term card the docs `card.json` member \
                         and the live MCP `doc_card format=json` tool serialize.",
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["category", "iri"],
-        "properties": {
-            "category": {
-                "type": "string",
-                "description": "The vocabulary category (Class, Property, Individual, Datatype, Term)."
-            },
-            "iri": { "type": "string", "description": "The full term IRI." },
-            "label": { "type": "string" },
-            "slice": { "type": "string" },
-            "box_roles": string_array(),
-            "definition": { "type": "string" },
-            "parents": string_array(),
-            "domain": string_array(),
-            "range": string_array(),
-            "use_when": string_array(),
-            "avoid_when": string_array(),
-            "how_to_use": string_array(),
-            "scope_notes": string_array(),
-            "examples": string_array(),
-            "logic_stereotypes": string_array(),
-            "related_terms": string_array(),
-            "use_for_consumer": string_array(),
-            "avoid_for_consumer": string_array(),
-            "aligns": string_array(),
-            "python_model": {
-                "type": "string",
-                "description": "The importable dotted path gmeow_models.<slice>.<Class> of the \
-                                generated Pydantic model for a class term (the term→model link)."
-            },
-            "python_snippet": {
-                "type": "string",
-                "description": "A compact Pydantic import + model_validate snippet for a class term."
-            },
-            "entailments": { "type": "array", "items": { "$ref": "#/$defs/entailment" } },
-            "fixtures_do": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
-            "fixtures_dont": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
-            "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
-            "loss": { "type": "array", "items": { "$ref": "#/$defs/loss" } }
-        },
-        "$defs": {
-            "entailment": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["rule", "conclusion", "premises"],
-                "properties": {
-                    "rule": { "type": "string" },
-                    "conclusion": { "type": "string" },
-                    "premises": { "type": "array", "items": { "type": "string" } }
-                }
-            },
-            "fixture": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["title", "body"],
-                "properties": {
-                    "title": { "type": "string" },
-                    "body": { "type": "string" }
-                }
-            },
-            "diagnostic": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["code", "note"],
-                "properties": {
-                    "code": { "type": "string" },
-                    "note": { "type": "string" }
-                }
-            },
-            "loss": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["target", "preservation"],
-                "properties": {
-                    "target": { "type": "string" },
-                    "preservation": { "type": "string" }
-                }
-            }
-        }
-    })
+            )
+            .with("type", "object")
+            .with("additionalProperties", false)
+            .with(
+                "required",
+                Value::Array(vec!["category".into(), "iri".into()]),
+            )
+            .with("properties", properties)
+            .with("$defs", definitions),
+    );
+    schema.sort_keys();
+    schema
 }
 
 /// The output serialization for a term [`Card`] on the `describe` surface.
@@ -533,13 +709,12 @@ pub enum CardFormat {
 /// optionals/vectors skipped.
 #[must_use]
 pub fn card_json(card: &Card) -> String {
-    serde_json::to_string_pretty(card)
-        .expect("a Card is pure String/Vec data and always serializes to JSON")
+    json::write_pretty(&card.to_json())
 }
 
 /// Serialize a card as TOON — the compact, token-oriented notation. Encodes the
-/// card's neutral serde JSON model, so it is reusable for any [`serde::Serialize`]
-/// value that maps to the same JSON object/array/scalar shape.
+/// card's native JSON model with recursively sorted member names, retaining the
+/// established root and tabular column order.
 ///
 /// The encoding: object fields as `key: value` lines (nested objects indented by
 /// two spaces); scalar arrays inline and length-tagged (`key[N]: a,b,c`); arrays
@@ -550,8 +725,8 @@ pub fn card_json(card: &Card) -> String {
 /// number/bool/null lexeme).
 #[must_use]
 pub fn card_toon(card: &Card) -> String {
-    let value = serde_json::to_value(card)
-        .expect("a Card is pure String/Vec data and always serializes to a JSON value");
+    let mut value = card.to_json();
+    value.sort_keys();
     let mut out = String::new();
     toon_encode(&value, 0, &mut out);
     out
@@ -614,7 +789,10 @@ fn toon_array(key: &str, arr: &[Value], indent: usize, out: &mut String) {
             let obj = elem
                 .as_object()
                 .expect("uniform check guarantees an object");
-            let cells: Vec<String> = fields.iter().map(|f| toon_scalar(&obj[f])).collect();
+            let cells: Vec<String> = fields
+                .iter()
+                .map(|f| toon_scalar(obj.get(f).expect("uniform check guarantees each field")))
+                .collect();
             out.push_str(&format!("{rowpad}{}\n", cells.join(",")));
         }
         return;
@@ -716,3 +894,7 @@ fn toon_scalar_str(s: &str) -> String {
 #[path = "card.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[path = "card.json.tests.rs"]
+#[cfg(test)]
+mod json_tests;
