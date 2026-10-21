@@ -1,0 +1,14 @@
+issue      /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/.stage/perf-logic-finish-merged-pipeline/issue.md
+prior art  /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/.stage/perf-logic-finish-merged-pipeline/prior-art.md
+reqs       /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/.stage/perf-logic-finish-merged-pipeline/requirements-candidates.md
+references /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/.stage/perf-logic-finish-merged-pipeline/references.md
+machine    /home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/.stage/perf-logic-finish-merged-pipeline/brief.json  (+ requirements.json, references.json)
+
+  - issue #1757 + 46 comment(s) via github
+  - link crawl: 56 issue(s) within 2 hop(s) of `#N` references
+  - forge search on ['perf/logic:', 'finish', 'merged']: 14 other item(s)
+  - GhpRsq-Defect-Class trailers: 5 distinct class(es) in the last 200 commits
+  - prior attempts: 7 commit(s) citing #1757 (second parents walked), 0 other branch(es) named for it
+  - PRs citing #1757: 16
+  - requirement candidates: 36 line(s); 22 comment(s) matched no rule
+  - referenced artifacts: 31 path(s) (23 on disk), 46 identifier(s), 5 workspace package(s), 15 URL(s)

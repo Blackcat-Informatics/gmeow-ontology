@@ -1,0 +1,5 @@
+# Shared acceptance blockers
+
+The live list has 56 open issues. The oldest projection group still has ten slice shapes files and the structural ShEx exporter; it is not an already-completed closure. The existing queue places shared acceptance before downstream closeout. Completed CI identifies a common contextual admission failure in cold generation and documentation; no current successful corpus qualification is available. The latest math helper job reports new default hashing, manual framing and XML-escaping duplication, plus a validator falsely described by a constructor-reserved name. These are concrete defects, not evidence of resource shortage or grounds for weaker checks.
+
+The full 1757 body and current discussion retain complete producer/gate, native ownership and performance requirements. The present plan advances their failed admission boundary and owns the direct math regression. It does not close 1757, 1438, 1761, 1782, 1783 or 1843 from narrow checks. Existing implementation and historical checks are not redone merely to create another PR.

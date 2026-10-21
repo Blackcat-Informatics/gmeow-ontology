@@ -1,0 +1,512 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "The implementation was committed after the normal repository commit hook passed. This issue owns the work deliberately left after merging that concrete implementation; it must not be represented as completed by #1740.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 14,
+      "rules": [
+        "modal"
+      ],
+      "text": "- Do not introduce a narrow producer feature, crate, or separate compilation lineage as a performance measure: `make check` builds the complete required Rust surface, so shifting code between Cargo invocations is not removed work. Retain the authenticated O3/fat-LTO producer contract and optimize only measured work removed from the end-to-end gate, including duplicate execution, repeated lowering/parsing/materialization, avoidable corpus reads, and serial scheduler dependencies.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 16,
+      "rules": [
+        "modal"
+      ],
+      "text": "- Reconcile and close the remaining #1704 child issues only after their own acceptance evidence is present. In particular, #1748 still requires the complete program-aware admitted native run; exporter/source-admission code alone is not that certificate. Existing PurRDF #317 remains upstream-owned and GMEOW must not duplicate its generic conformance suite.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "- Review current CodeRabbit findings and required CI on the post-merge follow-up PR before its final merge.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B5",
+      "line": 21,
+      "rules": [
+        "modal"
+      ],
+      "text": "Keep standpoint, provenance, complements, loss evidence, logical stage identities, required checks, exact source/context/program identities, and both cold generations. Bounded-corpus evidence never authorizes unrestricted rewrites. Generic RDF 1.2, SPARQL, SHACL, and codec conformance remains exclusively PurRDF-owned.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B6",
+      "line": 33,
+      "rules": [
+        "modal"
+      ],
+      "text": "The merged change also excludes machine-leased Cargo output directories from producer resolution identity. Output placement does not select packages, features, targets, or sources, and must not make a freshly built producer receipt stale on the next invocation.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B7",
+      "line": 43,
+      "rules": [
+        "modal"
+      ],
+      "text": "The cold update pipeline was stopped after `stage-source-load` exceeded ten minutes. This is an incomplete diagnostic observation, not a completed gate or a speedup claim. The next implementation must expose certified/slow probe counts per slice, identify the residual native families, extend only proof-backed shared analyses, and complete the full cold pipeline plus both independent CI generations. Workspace compilation remains required either way, so moving code behind a narrow producer feature or crate is explicitly outside the optimization target.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "C3.1",
+      "line": 11,
+      "rules": [
+        "modal"
+      ],
+      "text": "This is measured O3/full-LTO producer-build evidence, not a speedup claim. It confirms the optimized producer build/link surface is itself a major critical-path owner and does not saturate the four-core runner. The narrow producer surface remains required follow-on work in #1757; scheduler changes alone cannot remove this 18.5-minute pre-generation cost.",
+      "source": "comment 3",
+      "author": "paudley",
+      "date": "2026-09-17T05:52:13Z"
+    },
+    {
+      "id": "C4.1",
+      "line": 27,
+      "rules": [
+        "modal"
+      ],
+      "text": "- Hosted CI final candidate b6c4441ba: lint passed; producer-build and rust-prebuild were still running at merge finalization. The two cold generations and remaining required jobs were not claimed. Issue #1757 durably owns their completion and every resulting repair.",
+      "source": "comment 4",
+      "author": "paudley",
+      "date": "2026-09-17T05:58:04Z"
+    },
+    {
+      "id": "C7.1",
+      "line": 13,
+      "rules": [
+        "scope-out"
+      ],
+      "text": "3. Add a focused synthetic regression that proves the removed operation stays removed and that old/new graph and byte projections are identical. Tests will consume supplied fixtures only; they will not produce corpus data.",
+      "source": "comment 7",
+      "author": "paudley",
+      "date": "2026-09-22T09:02:22Z"
+    },
+    {
+      "id": "C7.2",
+      "line": 15,
+      "rules": [
+        "modal"
+      ],
+      "text": "5. Complete a fresh `make check`, authenticated fixture production, and the required focused nextest inventory for correspondence laws, expression selection, native literal identity, source admission, old-graph removal, and ordinary/heavy conformance selectors.",
+      "source": "comment 7",
+      "author": "paudley",
+      "date": "2026-09-22T09:02:22Z"
+    },
+    {
+      "id": "C7.3",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "7. Reconcile every remaining #1704 child only against its own acceptance evidence, including #1748's complete program-aware admitted native run. Review and resolve current CodeRabbit findings and all required CI checks, then merge only through `ghprsq`.",
+      "source": "comment 7",
+      "author": "paudley",
+      "date": "2026-09-22T09:02:22Z"
+    },
+    {
+      "id": "C13.1",
+      "line": 21,
+      "rules": [
+        "modal"
+      ],
+      "text": "A fresh optimized producer rebuild and identical 24 GiB serial measurement remain required before claiming #1757 fixed.",
+      "source": "comment 13",
+      "author": "paudley",
+      "date": "2026-09-22T21:12:41Z"
+    },
+    {
+      "id": "C14.1",
+      "line": 17,
+      "rules": [
+        "modal"
+      ],
+      "text": "The next bounded production run must still prove that the 631,136-fact summary completes under the same 24 GiB address-space ceiling before this defect is considered fixed. Principles 4, 7, 12, 15, 17, and 18 remain preserved.",
+      "source": "comment 14",
+      "author": "paudley",
+      "date": "2026-09-22T22:55:33Z"
+    },
+    {
+      "id": "C15.1",
+      "line": 30,
+      "rules": [
+        "modal"
+      ],
+      "text": "The rebuilt producer is staged. The next bounded production run must measure the batched global refinement and confirm downstream reasoning/output behavior before this optimization is considered complete. Principles 4, 7, 12, 15, 17, and 18 remain preserved.",
+      "source": "comment 15",
+      "author": "paudley",
+      "date": "2026-09-22T23:51:40Z"
+    },
+    {
+      "id": "C18.1",
+      "line": 14,
+      "rules": [
+        "modal"
+      ],
+      "text": "The remaining critical path is now explicit: every broad rule computes the same seeded join once to prune a head domain and again to publish its conditional support, then repeats those full scans on subsequent fixed-point iterations. The next change must fuse the exact prune/publication pass and make closure scheduling delta-aware; no all-head Cartesian approximation is involved.",
+      "source": "comment 18",
+      "author": "paudley",
+      "date": "2026-09-23T02:26:13Z"
+    },
+    {
+      "id": "C19.1",
+      "line": 7,
+      "rules": [
+        "modal"
+      ],
+      "text": "I have corrected the scheduler to a deterministic FIFO queue: a self-rescheduled rule goes behind already-pending peers, while a per-rule queued bit prevents duplicates. The trace now carries `rule_index` and `visit` so the next production sample can distinguish one recursive rule from structurally identical rules. The full focused value-flow selection passes after this correction: 18 tests, including concrete fixed-point coverage, protected-grammar exclusions, compact rectangles, and the 4,096 x 4,096 dynamic-predicate regression (1.38 s execution for the selection). A new production build/measurement is still required before claiming the scheduler improvement.",
+      "source": "comment 19",
+      "author": "paudley",
+      "date": "2026-09-23T03:17:15Z"
+    },
+    {
+      "id": "C22.1",
+      "line": 12,
+      "rules": [
+        "modal"
+      ],
+      "text": "The next exact narrowing seam is the property-rule guard abstraction. `FlowRule` currently carries the positive `analysis_body` but deliberately drops pure guards. For these rules that drops `CardinalityEqual(?count, 1)`, so value flow evaluates every cardinality row and then every broad head value. Any repair must preserve accepted cardinality lexical forms such as integer `01`; substituting one literal spelling would be unsound. The appropriate direction is to carry a pure cardinality-domain constraint using the same native count parser, then measure whether the rule head domains narrow before adding broader batching machinery.",
+      "source": "comment 22",
+      "author": "paudley",
+      "date": "2026-09-23T06:38:33Z"
+    },
+    {
+      "id": "C24.1",
+      "line": 25,
+      "rules": [
+        "modal"
+      ],
+      "text": "A fresh authenticated producer build and capped production replay are still required before making a runtime claim. They have not started while the host is running the PurRDF SIMD frontier benchmark and unrelated Lillith compilation. No completion, full-gate, CI, or merge claim is made.",
+      "source": "comment 24",
+      "author": "paudley",
+      "date": "2026-09-23T18:32:40Z"
+    },
+    {
+      "id": "C26.1",
+      "line": 93,
+      "rules": [
+        "modal"
+      ],
+      "text": "The proof distinction is now explicit. A conservative Skolem-flow over-approximation can contain additional firings. That abstraction must not supply additional facts as evidence that a restricted trigger is blocked. The separate `closure` and `nonblocking` paths enforce that distinction for the recorded cases.",
+      "source": "comment 26",
+      "author": "coderabbitai",
+      "date": "2026-10-15T17:54:19Z"
+    },
+    {
+      "id": "C26.2",
+      "line": 216,
+      "rules": [
+        "modal"
+      ],
+      "text": "The proof distinction is now explicit. A conservative Skolem-flow over-approximation can contain additional firings. That abstraction must not supply additional facts as evidence that a restricted trigger is blocked. The separate `closure` and `nonblocking` paths enforce that distinction for the recorded cases.",
+      "source": "comment 26",
+      "author": "coderabbitai",
+      "date": "2026-10-15T17:54:19Z"
+    },
+    {
+      "id": "C27.1",
+      "line": 8,
+      "rules": [
+        "modal"
+      ],
+      "text": "Verified on the combined working source: make fmt, make lint, and 152 focused tests (nextest d240e531-3bac-4fe6-b5bb-3141da4549f5; 3801 skipped). These include actual SHACL consumer controls for the numeric-range repair. That canonical math source/compiler change is still uncommitted pending its required full qualification, so its review finding stays open.",
+      "source": "comment 27",
+      "author": "paudley",
+      "date": "2026-10-15T18:49:33Z"
+    },
+    {
+      "id": "C29.1",
+      "line": 7,
+      "rules": [
+        "modal"
+      ],
+      "text": "The optimized producer and first full run remain in flight. The coordinator rechecks source/configuration after compilation and refuses a receipt when they changed, so the earlier build cannot qualify these later edits. A fresh required full qualification is still needed after the repairs settle; it is an explicitly required retry of a failed gate. No test constructs the ontology corpus, no corpus-backed test has been waived, and no canonical commit, fresh-source CI pass, completion audit, readiness or merge is claimed. The published PR head remains `b797a315e`.",
+      "source": "comment 29",
+      "author": "paudley",
+      "date": "2026-10-15T20:21:53Z"
+    },
+    {
+      "id": "C30.1",
+      "line": 9,
+      "rules": [
+        "modal"
+      ],
+      "text": "The first full gate failed helper ownership. Its producer compiled for 43m35s and correctly refused a receipt because source inputs changed during compilation. Both commands ended. A fresh full gate is required after these repairs settle; none of the focused results establishes production reasoning completion, merge readiness, or closure of this issue. Published head remains b797a315e; its generation (b) CI job is now failed and its actual job log is being retrieved separately.",
+      "source": "comment 30",
+      "author": "paudley",
+      "date": "2026-10-15T20:45:19Z"
+    },
+    {
+      "id": "C31.1",
+      "line": 1,
+      "rules": [
+        "modal"
+      ],
+      "text": "The remaining failure-class findings concern three existing operational refusals: native definition/source coverage, original native class-expression admission, and native snapshot input ingestion. Their meanings must be authored separately from read-side parse failure and frame-compression failure; those existing classes do not describe these operations.",
+      "source": "comment 31",
+      "author": "paudley",
+      "date": "2026-10-15T22:49:00Z"
+    },
+    {
+      "id": "C32.1",
+      "line": 9,
+      "rules": [
+        "modal"
+      ],
+      "text": "The reported Clippy failures are being repaired at source without allowances or capped lint levels. A source-only `clippy-prebuild` Make target uses the existing producer-independent workspace graph and retains `-D warnings`; `--keep-going` collects independent crate failures while preserving the failing exit status. This is development diagnosis, not a substitute for the required whole-workspace gate. Focused compiler/projection/receipt consumer checks are running for the structural repairs.",
+      "source": "comment 32",
+      "author": "paudley",
+      "date": "2026-10-15T23:20:13Z"
+    },
+    {
+      "id": "C32.2",
+      "line": 11,
+      "rules": [
+        "modal"
+      ],
+      "text": "Four codebook-independent browser engines are rebuilding through the normal Make targets. The GMN and validator engines require the absent producer-selected native codebook; verification remains read-only and refuses missing or mismatched artifacts. An explicit authenticated producer bootstrap is still required. No placeholder, stamp-only refresh, corpus production from tests, resource override or host probe was used.",
+      "source": "comment 32",
+      "author": "paudley",
+      "date": "2026-10-15T23:20:13Z"
+    },
+    {
+      "id": "C35.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "Four local browser package builds completed. Actual Node execution passed the query package's seven controls, but the reasoning package trapped on its closure witness. Inspection found unconditional native Instant calls in production reasoning observations. The replacement uses the native clock on native targets and the required host Performance clock on browser targets, preserving actual observations and deterministic reasoning results; its actual WebAssembly parity run is pending. No zero-duration stub or legacy clock fallback was added.",
+      "source": "comment 35",
+      "author": "paudley",
+      "date": "2026-10-17T06:55:03Z"
+    },
+    {
+      "id": "C35.2",
+      "line": 7,
+      "rules": [
+        "modal"
+      ],
+      "text": "The source-census metadata and report-fidelity repairs remain on the same branch; final review and qualification must include the settled changes.",
+      "source": "comment 35",
+      "author": "paudley",
+      "date": "2026-10-17T06:55:03Z"
+    },
+    {
+      "id": "C37.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "Fixture-prefix was stopped at 14:42:00Z while produce-producer-independent-test-fixtures was active. Neither terminal failure proves the authenticated corpus/verifier/full-gate acceptance required by #1782 or whole-workspace qualification required by #1783. Those issues remain open. Current metadata repairs preserve annotation semantics while removing invalid role restrictions before further native class admission work.",
+      "source": "comment 37",
+      "author": "paudley",
+      "date": "2026-10-17T15:12:01Z"
+    },
+    {
+      "id": "C38.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "PurRDF recorded cancellation is now merged through PR583 at 1ce411424; GMEOW adoption is implemented in the isolated 1803 worktree with synthetic tests and producer-independent Clippy running. It is not the class-engine replacement. Checked rooted source-proof support, the shared-store/delta seam and actual joint production delegation/deletion remain next required implementation steps. No local corpus producer or restarted/canceled process was used for this observation. Principles 4, 7, 17 and 18.",
+      "source": "comment 38",
+      "author": "paudley",
+      "date": "2026-10-17T16:12:52Z"
+    },
+    {
+      "id": "C39.1",
+      "line": 5,
+      "rules": [
+        "modal"
+      ],
+      "text": "The current class path still reports 7,296 obstructions in graph/logic and 14,012 in graph/rl-default, including definition equivalence, nominal set-equality and domain/range cases. These are separate world inventories and must not be added as a distinct-defect count. Native delegation, precise local support and shared/delta execution remain required under the existing ownership plan. No source filtering, weakened gate, machine probe, resource cap or local full producer was introduced.",
+      "source": "comment 39",
+      "author": "paudley",
+      "date": "2026-10-17T22:16:15Z"
+    },
+    {
+      "id": "C40.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "The last retained class-world observations are 7,296 obstructions in graph/logic and 14,012 in graph/rl-default. These are separate world inventories, not additive counts of distinct defects. The missing native class capabilities remain required. The fixture selector and its consumer qualification did not complete. No retry or cancellation has been requested; generation A was still confirmed live in the same refresh.",
+      "source": "comment 40",
+      "author": "paudley",
+      "date": "2026-10-17T22:33:24Z"
+    },
+    {
+      "id": "C41.1",
+      "line": 3,
+      "rules": [
+        "modal"
+      ],
+      "text": "The log records completion of validation, documentation rendering, verification attestation, conformance and export agreement before snapshot termination. The cold product, fixed-point and downstream acceptance are not established by those stage completions. The last small conformance-world warning still reports the unsupported nominal set-equality class capability. The full class-engine ownership work remains required.",
+      "source": "comment 41",
+      "author": "paudley",
+      "date": "2026-10-17T23:19:10Z"
+    },
+    {
+      "id": "C43.1",
+      "line": 8,
+      "rules": [
+        "modal"
+      ],
+      "text": "required job, both cold generations and quality requirements. Do not restart or",
+      "source": "comment 43",
+      "author": "paudley",
+      "date": "2026-10-20T09:55:00Z"
+    },
+    {
+      "id": "C46.1",
+      "line": 11,
+      "rules": [
+        "modal"
+      ],
+      "text": "The selected source is clean and pushed. Refresh the actual base and review surface before ghprsq; no conflict or source overlap is currently known. The completion and feedback reports are labelled self-assessments because no independent dispatcher is available. Any current code finding must be resolved; pending automated processing is not approval.",
+      "source": "comment 46",
+      "author": "paudley",
+      "date": "2026-10-20T16:07:18Z"
+    }
+  ],
+  "silent_comments": [
+    {
+      "comment": 1,
+      "author": "paudley",
+      "date": "2026-09-17T05:29:42Z"
+    },
+    {
+      "comment": 2,
+      "author": "paudley",
+      "date": "2026-09-17T05:50:11Z"
+    },
+    {
+      "comment": 5,
+      "author": "paudley",
+      "date": "2026-09-17T07:01:47Z"
+    },
+    {
+      "comment": 6,
+      "author": "paudley",
+      "date": "2026-09-17T09:06:52Z"
+    },
+    {
+      "comment": 8,
+      "author": "paudley",
+      "date": "2026-09-22T16:45:15Z"
+    },
+    {
+      "comment": 9,
+      "author": "paudley",
+      "date": "2026-09-22T17:57:26Z"
+    },
+    {
+      "comment": 10,
+      "author": "paudley",
+      "date": "2026-09-22T18:42:40Z"
+    },
+    {
+      "comment": 11,
+      "author": "paudley",
+      "date": "2026-09-22T18:46:23Z"
+    },
+    {
+      "comment": 12,
+      "author": "paudley",
+      "date": "2026-09-22T20:00:23Z"
+    },
+    {
+      "comment": 16,
+      "author": "paudley",
+      "date": "2026-09-23T00:46:12Z"
+    },
+    {
+      "comment": 17,
+      "author": "paudley",
+      "date": "2026-09-23T01:41:29Z"
+    },
+    {
+      "comment": 20,
+      "author": "paudley",
+      "date": "2026-09-23T04:08:41Z"
+    },
+    {
+      "comment": 21,
+      "author": "paudley",
+      "date": "2026-09-23T05:49:01Z"
+    },
+    {
+      "comment": 23,
+      "author": "paudley",
+      "date": "2026-09-23T07:31:50Z"
+    },
+    {
+      "comment": 25,
+      "author": "paudley",
+      "date": "2026-10-15T17:52:39Z"
+    },
+    {
+      "comment": 28,
+      "author": "coderabbitai",
+      "date": "2026-10-15T18:50:54Z"
+    },
+    {
+      "comment": 33,
+      "author": "paudley",
+      "date": "2026-10-16T01:33:03Z"
+    },
+    {
+      "comment": 34,
+      "author": "paudley",
+      "date": "2026-10-16T02:03:59Z"
+    },
+    {
+      "comment": 36,
+      "author": "paudley",
+      "date": "2026-10-17T11:47:08Z"
+    },
+    {
+      "comment": 42,
+      "author": "paudley",
+      "date": "2026-10-20T07:40:44Z"
+    },
+    {
+      "comment": 44,
+      "author": "paudley",
+      "date": "2026-10-20T13:12:21Z"
+    },
+    {
+      "comment": 45,
+      "author": "paudley",
+      "date": "2026-10-20T16:03:37Z"
+    }
+  ]
+}

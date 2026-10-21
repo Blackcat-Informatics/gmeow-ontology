@@ -1,0 +1,102 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(modal::contextual::) | test(math_projection_) | test(generated_math_projection_)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math-lift)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/math)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect-ingest)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 14m 17s
+────────────
+ Nextest run ID f42fd70a-73fd-4208-91d0-278a5b002d68 with nextest profile: ci
+    Starting 63 tests across 225 binaries (7689 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.069s] ( 1/63) gmeow-logic modal::contextual::tests::contextual_anonymous_evidence_addresses_retain_the_original_blank_scope
+        PASS [   0.076s] ( 2/63) gmeow-logic modal::contextual::tests::an_explicitly_empty_successor_set_differs_from_a_missing_inventory
+        PASS [   0.076s] ( 3/63) gmeow-logic modal::contextual::native::source::tests::indexed_rows_preserve_statement_layer_partitions
+        PASS [   0.077s] ( 4/63) gmeow-logic modal::contextual::path::tests::preparation_rejects_foreign_and_malformed_anchors_before_execution
+        PASS [   0.078s] ( 5/63) gmeow-logic modal::contextual::path::tests::path_order_and_membership_fail_closed
+        PASS [   0.078s] ( 6/63) gmeow-logic modal::contextual::tests::rdf12_evidence_preserves_world_and_standpoint_without_default_support
+        PASS [   0.077s] ( 7/63) gmeow-logic modal::contextual::tests::conflicting_bindings_and_malformed_selected_claims_fail_admission
+        PASS [   0.079s] ( 8/63) gmeow-logic modal::contextual::path::tests::prepared_path_never_reuses_another_observations_evidence
+        PASS [   0.080s] ( 9/63) gmeow-logic modal::contextual::path::tests::prepared_path_shares_evidence_across_goals_and_keeps_each_execution_independent
+        PASS [   0.080s] (10/63) gmeow-logic modal::contextual::path::tests::path_unknown_conflict_and_open_tail_remain_independent
+        PASS [   0.080s] (11/63) gmeow-logic modal::contextual::tests::named_request_cannot_borrow_a_missing_binding_or_choose_between_source_graphs
+        PASS [   0.079s] (12/63) gmeow-logic modal::contextual::tests::nested_review_selects_its_standpoint_before_following_epistemic_edges
+        PASS [   0.081s] (13/63) gmeow-logic modal::contextual::path::tests::prepared_identity_binds_selectors_anchor_and_observation_separately_from_run_budget
+        PASS [   0.079s] (14/63) gmeow-logic modal::contextual::tests::public_budget_stop_is_typed_and_cannot_become_neither
+        PASS [   0.080s] (15/63) gmeow-logic modal::contextual::tests::public_assessment_preserves_the_shared_result_and_complete_proof_addresses
+        PASS [   0.082s] (16/63) gmeow-logic modal::contextual::path::tests::explicit_atomic_and_temporal_anchors_keep_the_full_observation_and_provenance
+        PASS [   0.084s] (17/63) gmeow-logic modal::contextual::tests::lexical_carriers_cannot_silently_erase_rdf12_literal_semantics
+        PASS [   0.125s] (18/63) gmeow-logic modal::contextual::tests::native_execution::a_request_writer_in_an_admitted_empty_world_is_rejected_before_execution
+        PASS [   0.023s] (19/63) gmeow-logic modal::contextual::tests::selecting_one_request_does_not_select_unrelated_malformed_requests
+        PASS [   0.025s] (20/63) gmeow-logic modal::contextual::tests::temporal::finalization_changes_the_verdict_and_result_identity_without_inventing_an_event
+        PASS [   0.027s] (21/63) gmeow-logic modal::contextual::tests::temporal::next_selects_the_committed_successor_and_exports_its_exact_prefix
+        PASS [   0.028s] (22/63) gmeow-logic modal::contextual::tests::temporal::journal_ownership_is_checked_before_query_order_can_choose_an_enactment
+        PASS [   0.028s] (23/63) gmeow-logic modal::contextual::tests::temporal::monitor_rejects_changed_past_or_compiled_inputs_without_advancing
+        PASS [   0.030s] (24/63) gmeow-logic modal::contextual::tests::temporal::temporal_sugar_uses_the_same_source_admission_and_shared_formula_ir
+        PASS [   0.143s] (25/63) gmeow-logic modal::contextual::path::tests::path_binding_reads_each_actual_state_and_retains_the_path_basis
+        PASS [   0.037s] (26/63) gmeow-logic modal::contextual::tests::temporal::a_temporal_request_cannot_borrow_a_hash_scope_or_observed_adjacency
+        PASS [   0.032s] (27/63) gmeow-logic modal::contextual::tests::temporal::unrelated_legacy_journals_do_not_weaken_or_block_selected_temporal_admission
+        PASS [   0.025s] (28/63) gmeow-logic modal::contextual::tests::unsupported_queries_export_the_shared_source_anchored_diagnostic_ledger
+        PASS [   0.040s] (29/63) gmeow-logic modal::contextual::tests::temporal::monitor_eviction_recomputes_and_cancelled_cache_hits_cannot_succeed
+        PASS [   0.022s] (30/63) gmeow-math-lift projection::tests::math_projection_rejects_missing_ambiguous_cyclic_and_unsupported_expressions
+        PASS [   0.030s] (31/63) gmeow-math-lift projection::tests::math_projection_qudt_lift_never_invents_a_reference_frame
+        PASS [   0.036s] (32/63) gmeow-math-lift projection::tests::math_projection_presentation_lift_records_notation_without_a_fabricated_ast
+        PASS [   0.027s] (33/63) gmeow-math-lift projection::tests::math_projection_requests_are_explicit_atomic_and_source_bound
+        PASS [   0.024s] (34/63) gmeow-math-lift projection::tests::math_projection_requires_the_actual_rendering_contract
+        PASS [   0.043s] (35/63) gmeow-math-lift projection::tests::math_projection_external_content_refuses_unresolved_and_foreign_constructs
+        PASS [   0.042s] (36/63) gmeow-math-lift projection::tests::math_projection_keeps_argument_order_and_resolves_real_dictionary_symbols
+        PASS [   0.045s] (37/63) gmeow-math-lift projection::tests::math_projection_emits_real_content_xml_and_mandatory_loss_records
+        PASS [   0.043s] (38/63) gmeow-math-lift projection::tests::math_projection_distinguishes_cycles_from_shared_expression_subtrees
+        PASS [   0.042s] (39/63) gmeow-math-lift projection::tests::math_projection_cube_preserves_exact_rational_cells_without_decimal_rounding
+        PASS [   0.030s] (40/63) gmeow-math-lift projection::tests::math_projection_rational_tokens_refuse_hidden_markup_and_qualifiers
+        PASS [   0.037s] (41/63) gmeow-math-lift projection::tests::math_projection_qudt_checks_classification_dimensions_and_typed_values
+        PASS [   0.021s] (42/63) gmeow-math-lift projection::tests::math_projection_stato_requires_an_existing_model_expression_anchor
+        PASS [   0.172s] (43/63) gmeow-logic modal::contextual::path::tests::path_standpoint_isolation_and_budget_do_not_manufacture_truth
+        PASS [   0.030s] (44/63) gmeow-math-lift projection::tests::math_projection_stato_preserves_the_selected_statistical_profile
+        PASS [   0.026s] (45/63) gmeow-math-lift projection::tests::math_projection_uses_situated_number_objects_without_guessing_from_labels
+        PASS [   0.066s] (46/63) gmeow-logic modal::contextual::tests::temporal::appended_monitor_judgments_match_fresh_evaluation_and_reuse_committed_proofs
+        PASS [   0.025s] (47/63) gmeow-math-lift projection::tests::math_projection_xml_boundary_retains_variable_identity_and_parser_causes
+        PASS [   0.031s] (48/63) gmeow-math-lift projection::tests::math_projection_symbol_lifts_keep_native_ownership_and_variable_identity
+        PASS [   0.216s] (49/63) gmeow-logic modal::contextual::tests::native_execution::a_zero_shared_allowance_publishes_one_complete_unvisited_assessment
+        PASS [   0.233s] (50/63) gmeow-logic modal::contextual::tests::raw_inferred_facts_do_not_supply_attribution_and_interruption_claims_no_receipts
+        PASS [   0.236s] (51/63) gmeow-logic modal::contextual::tests::native_execution::unrelated_existing_reasoning_graph_does_not_become_contextual_source_grammar
+        PASS [   0.252s] (52/63) gmeow-logic modal::contextual::tests::named_request_keeps_source_configuration_separate_from_evidence_worlds
+        PASS [   0.254s] (53/63) gmeow-logic modal::contextual::tests::native_execution::native_contextual_status_waits_for_its_committed_writer
+        PASS [   0.258s] (54/63) gmeow-logic modal::contextual::tests::native_execution::derived_attribution_receipts_keep_their_committed_source_world
+        PASS [   0.261s] (55/63) gmeow-logic modal::contextual::tests::native_execution::one_contextual_receipt_owns_every_metadata_head_and_rejects_tampering
+        PASS [   0.147s] (56/63) gmeow-math-lift projection::tests::math_projection_competencies_inspect_actual_correspondences_and_sensitive_losses
+        PASS [   0.266s] (57/63) gmeow-logic modal::contextual::tests::native_reasoning_evaluates_requests_without_asserting_their_propositions
+        PASS [   0.103s] (58/63) gmeow-validate lint::tests::math_projection_exact_and_explicit_loss_judgments_remain_admissible
+        PASS [   0.110s] (59/63) gmeow-validate lint::tests::generated_math_projection_ledger_passes_the_six_native_projection_checks
+        PASS [   0.293s] (60/63) gmeow-logic modal::contextual::tests::result_components_remain_disjoint_when_multiple_requests_share_one_reasoning_graph
+        PASS [   0.346s] (61/63) gmeow-logic modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts
+        PASS [   0.380s] (62/63) gmeow-logic modal::contextual::tests::incremental_attribution_replaces_contextual_results_outside_the_changed_world
+        PASS [   0.437s] (63/63) gmeow-logic modal::contextual::tests::native_execution::contextual_native_admission_preserves_anonymous_claims_and_ignores_unselected_graphs
+────────────
+     Summary [   0.788s] 63 tests run: 63 passed, 7689 skipped
