@@ -1,0 +1,1 @@
+PR1923 fresh state: helpers and lint SUCCESS; producer-build/rust-prebuild in progress. Actual state in pr-state.json. Local15 authored/in-memory tests, strictprebuild22.08s, helpers/sourceadmission/fmt/normal hooks PASS. Retained CI exception applies; actual rendered-cache/authenticated/full acceptance open.

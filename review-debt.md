@@ -1,0 +1,7 @@
+# Review and check disposition
+
+Complete paginated REST formal reviews, inline comments and conversation plus GraphQL reviewThreads were captured for PR1923: all four inventories empty. GraphQL outer/inner pageInfo show no next page. No substantive remote finding is deferred. Capture projection removes only decorative coderabbit comment markers and review_stack_entry blocks, retaining all metadata/substantive feedback if present.
+
+Independent review-cached-site-json.md verifies both actual reads, producer write, same shared SHA1 byte boundary, model byte preservation, selector/receipt/read-only/tamper ordering, native wire/admission, dependencies and fifteen eligible in-memory controls. The helper gate found a duplicate compact-byte wrapper; root removed it in favor of native record::to_vec, kept all expectations, reran15PASS and obtained independent fix review. No remaining blocking finding. Final strictprebuild22.08s/helpers/sourceadmission/fmt and normal commit/push hooks passed; original gate failure is retained.
+
+CI lint SUCCESS; producer-build/helpers/rust-prebuild still in progress at capture. User retained no local corpus/fixture construction, sync or full gate and sequential merges ignoring CI. This permits source delivery without waiting, not broader acceptance. Real rendered-cache selection, authenticated/installed/full consumers/full1776 remain unrun. Hosted schema registry failure is owned under1894 and under source investigation in a separate untouched checkout; it is not cache qualification.

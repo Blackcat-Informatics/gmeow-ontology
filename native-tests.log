@@ -1,0 +1,33 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-docs) and (test(json_cached_site_) or test(cached_site_round_trips_to_identical_bytes) or test(an_edited_site_envelope_is_refused) or test(cached_site_rejects_non_utf8_files))) or (package(gmeow-docs-model) and test(an_edited_model_envelope_is_refused))' --no-tests=fail
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 00s
+────────────
+ Nextest run ID 03953c48-0df4-488b-b4ba-2b16f31c7f31 with nextest profile: ci
+    Starting 15 tests across 32 binaries (440 tests and 195 binaries skipped)
+        PASS [   0.006s] ( 1/15) gmeow-docs fixture::tests::cached_site_round_trips_to_identical_bytes
+        PASS [   0.006s] ( 2/15) gmeow-docs fixture::json_tests::json_cached_site_known_duplicates_refuse_and_file_map_duplicates_keep_last_string
+        PASS [   0.006s] ( 3/15) gmeow-docs fixture::json_tests::json_cached_site_literal_envelope_pins_shared_digest_and_compact_order
+        PASS [   0.006s] ( 4/15) gmeow-docs fixture::json_tests::json_cached_site_whitespace_escapes_and_ignored_members_do_not_change_payload_identity
+        PASS [   0.006s] ( 5/15) gmeow-docs fixture::tests::cached_site_rejects_non_utf8_files
+        PASS [   0.006s] ( 6/15) gmeow-docs fixture::json_tests::json_cached_site_roundtrip_preserves_unicode_controls_empty_files_and_sorted_names
+        PASS [   0.006s] ( 7/15) gmeow-docs fixture::json_tests::json_cached_site_required_fields_and_all_record_kinds_refuse_without_coercion
+        PASS [   0.006s] ( 8/15) gmeow-docs fixture::json_tests::json_cached_site_literal_string_escaping_matches_canonical_payload_bytes
+        PASS [   0.006s] ( 9/15) gmeow-docs fixture::json_tests::json_cached_site_malformed_trailing_and_invalid_unicode_documents_refuse
+        PASS [   0.006s] (10/15) gmeow-docs fixture::json_tests::json_cached_site_changed_declared_digest_never_reconstructs_valid_payload
+        PASS [   0.006s] (11/15) gmeow-docs fixture::json_tests::json_cached_site_changed_payload_never_reconstructs_with_stale_digest
+        PASS [   0.006s] (12/15) gmeow-docs fixture::json_tests::json_cached_site_non_utf8_file_is_refused_before_caching
+        PASS [   0.006s] (13/15) gmeow-docs fixture::tests::an_edited_site_envelope_is_refused
+        PASS [   0.007s] (14/15) gmeow-docs fixture::json_tests::json_cached_site_file_values_are_strict_strings_with_native_member_pointers
+        PASS [   0.009s] (15/15) gmeow-docs-model fixture::tests::an_edited_model_envelope_is_refused
+────────────
+     Summary [   0.020s] 15 tests run: 15 passed, 440 skipped
