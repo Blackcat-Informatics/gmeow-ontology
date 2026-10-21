@@ -1,0 +1,5 @@
+Further source tracing found the next mandatory finance admission gap: all five input parameters and both output slots lack authored labels, definitions and owner references. Mapping generation reads the source module records directly; its later generated annotation completion cannot supply metadata required before FnO admission.
+
+This repair adds the three required properties to those seven existing identities, with paired French and Chinese translations for the fourteen English literals. Computational edges, recipe topology, signatures and identities remain unchanged. Pure independently authored FnO controls will verify missing input/output metadata refusal and preservation; tests will not compile the canonical finance module or produce a corpus.
+
+Actual hosted mapping rerun and full financial generated/installed acceptance remain open under the retained no-local-corpus/full-gate exception. No translation floor is changed without measurement. Refs #1894; Principles 1, 4, 6, 7, 17 and 19.
