@@ -481,6 +481,23 @@ fn iri<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
     }
 }
 
+/// Evidence addresses use the same source-scoped blank identity as native facts.
+/// This does not relax the IRI-only context, request or attribution bindings.
+fn claim_witness<D: DatasetView<ReadError = std::convert::Infallible> + ?Sized>(
+    dataset: &D,
+    term: D::Id,
+) -> Result<String, AdmissionError> {
+    match crate::seam::resident(dataset.resolve(term)).term() {
+        TermRef::Iri(value) => Ok(value.to_owned()),
+        TermRef::Blank { label, scope } => {
+            Ok(crate::facts::skolem_iri(&scope.qualify_label(label)))
+        }
+        _ => Err(malformed(
+            "an attributed claim reifier must be an IRI or blank node",
+        )),
+    }
+}
+
 /// Borrow one metadata graph without merging the evidence worlds it describes.
 struct Metadata<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized = RdfDataset> {
     dataset: &'a D,
@@ -1048,7 +1065,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> RdfFrame
                 Some("supportNeither") => (false, false),
                 _ => return Err(malformed("unrecognized attributed support status")),
             };
-            let witness = iri(dataset, reifier)?;
+            let witness = claim_witness(dataset, reifier)?;
             let TermRef::Triple { s, p, o } =
                 crate::seam::resident(dataset.resolve(statement)).term()
             else {

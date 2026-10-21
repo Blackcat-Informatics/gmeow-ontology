@@ -311,6 +311,35 @@ fn rdf12_evidence_preserves_world_and_standpoint_without_default_support() {
 }
 
 #[test]
+fn contextual_anonymous_evidence_addresses_retain_the_original_blank_scope() {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for scope in [purrdf::BlankScope(11), purrdf::BlankScope(12)] {
+        builder
+            .push_owned_quad(&purrdf::RdfQuad::new(
+                purrdf::RdfTerm::BlankNode(scope.qualify_label("claim").into_owned()),
+                RDF_TYPE,
+                purrdf::RdfTerm::iri("urn:example:Claim"),
+            ))
+            .unwrap();
+    }
+    let dataset = builder.freeze().unwrap();
+    let addresses = dataset
+        .quads()
+        .map(|quad| claim_witness(dataset.as_ref(), quad.s).unwrap())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        addresses.len(),
+        2,
+        "same label in different sources must not alias evidence"
+    );
+    let expected = [purrdf::BlankScope(11), purrdf::BlankScope(12)]
+        .map(|scope| crate::facts::skolem_iri(&scope.qualify_label("claim")))
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    assert_eq!(addresses, expected, "native source identity has one owner");
+}
+
+#[test]
 fn an_explicitly_empty_successor_set_differs_from_a_missing_inventory() {
     let dataset = parse(SOURCE);
     let frame = RdfFrame::load(dataset.as_ref()).unwrap();

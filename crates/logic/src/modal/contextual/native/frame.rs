@@ -11,7 +11,8 @@ use crate::modal::composite::{
 use crate::modal::contextual::{
     AssessmentEvidence, ContextualInference, NativeEvidence, RdfFrame, atom_term, malformed,
 };
-use purrdf::{DatasetView, GraphMatch, TermValue};
+use purrdf::dataset_view::TermGuard;
+use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
 #[derive(Clone)]
 struct Claim {
@@ -59,11 +60,18 @@ impl PreparedFrame {
             let Some(graph) = row.g else {
                 continue;
             };
-            let world = crate::modal::contextual::iri(dataset, graph).map_err(diagnostic)?;
-            if !selected_worlds.contains(world.as_str()) {
+            let graph_term = crate::seam::resident(dataset.resolve(graph));
+            let TermRef::Iri(world) = graph_term.term() else {
+                // Context worlds are explicitly IRI-valued. An unrelated blank
+                // graph cannot be selected and must not invalidate this request.
+                continue;
+            };
+            if !selected_worlds.contains(world) {
                 continue;
             }
-            let reifier = crate::modal::contextual::iri(dataset, row.s).map_err(diagnostic)?;
+            let world = world.to_owned();
+            let reifier =
+                crate::modal::contextual::claim_witness(dataset, row.s).map_err(diagnostic)?;
             let TermValue::Triple { s, p, o } = crate::reason::dataset::native(dataset, row.o)
             else {
                 return Err(diagnostic(malformed(
