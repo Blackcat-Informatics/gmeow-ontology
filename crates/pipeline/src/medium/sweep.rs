@@ -56,7 +56,17 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::{
+    self,
+    record::{FromJson, Record, ToJson},
+};
+
+#[path = "sweep/json.rs"]
+mod json_codec;
+
+#[cfg(test)]
+#[path = "sweep.json.tests.rs"]
+mod json_tests;
 
 use super::measure::{DictionaryEffect, Population, encoded_len};
 use super::registry::{DictionaryStrategy, MediumRegistry};
@@ -114,7 +124,12 @@ pub const SWEEP_CODECS: [&str; 2] = ["zstd", "zstd-rsyncable"];
 pub const SWEEP_LEVELS: [i32; 4] = [3, 9, 12, 19];
 
 /// The committed sweep artifact.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+///
+/// The native JSON transport is object-only for every record; incidental Serde
+/// positional arrays are not admitted. Unknown object members remain ignored,
+/// while duplicate known fields, missing fields and explicit nulls are refused.
+/// Declaration-order fields, vector order and the gain-fraction string are retained.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MediumBaseline {
     /// [`MEDIUM_BASELINE_SCHEMA`].
     pub schema: String,
@@ -126,7 +141,7 @@ pub struct MediumBaseline {
 
 /// The global codec × level sweep: the evidence that the mandated
 /// `zstd-rsyncable` @ 12 chain is not dominated.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CodecSweep {
     /// The codec the media declare.
     pub mandated_codec: String,
@@ -158,7 +173,7 @@ pub struct CodecSweep {
 }
 
 /// One cell of the codec × level grid.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CodecRow {
     /// The wire codec name.
     pub codec: String,
@@ -169,7 +184,7 @@ pub struct CodecRow {
 }
 
 /// One dictionary's committed winner + the grid it was chosen from.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DictionaryBaseline {
     /// `gmeow:dictionaryId`.
     pub id: String,
@@ -226,7 +241,8 @@ impl DictionaryBaseline {
     ///
     /// # Errors
     /// The committed winning strategy is not a recognized
-    /// `gmeow:DictionaryStrategy`.
+    /// `gmeow:DictionaryStrategy`, or its target length cannot be represented on
+    /// this platform. No saturated target is substituted.
     pub fn winner(&self) -> Result<(DictionaryStrategy, usize), gmeow_errors::Diag> {
         let strategy = strategy_from_wire(&self.winning_strategy).ok_or_else(|| {
             invalid_declaration(format!(
@@ -236,15 +252,18 @@ impl DictionaryBaseline {
                 self.id, self.winning_strategy
             ))
         })?;
-        Ok((
-            strategy,
-            usize::try_from(self.winning_target_length).unwrap_or(usize::MAX),
-        ))
+        let target = usize::try_from(self.winning_target_length).map_err(|_| {
+            invalid_declaration(format!(
+                "{MEDIUM_BASELINE_PATH} row {:?} winning target length {} exceeds this platform's usize range; cannot train at a substituted target",
+                self.id, self.winning_target_length
+            ))
+        })?;
+        Ok((strategy, target))
     }
 }
 
 /// One `(strategy, target length)` cell.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GridRow {
     /// The strategy this cell trained under.
     pub strategy: String,
@@ -279,12 +298,12 @@ impl MediumBaseline {
     /// newline, every collection already in canonical order.
     ///
     /// # Errors
-    /// Serialization failure.
+    /// The existing fallible API is retained; native writing of this closed
+    /// string/integer record family is infallible.
     pub fn to_json(&self) -> Result<String, gmeow_errors::Diag> {
-        let mut json = serde_json::to_string_pretty(self)
-            .map_err(|e| invalid_declaration(format!("serialize {MEDIUM_BASELINE_PATH}: {e}")))?;
-        json.push('\n');
-        Ok(json)
+        let mut text = json::write_pretty(&ToJson::to_json(self));
+        text.push('\n');
+        Ok(text)
     }
 
     /// Parse the committed artifact.
@@ -294,31 +313,29 @@ impl MediumBaseline {
     /// a HARD FAIL: reading an unknown shape leniently would steer the trainers off
     /// half-understood evidence).
     pub fn from_json(text: &str) -> Result<Self, gmeow_errors::Diag> {
-        // The schema token FIRST, off a probe that reads nothing else. A full
-        // deserialization of an older shape fails on whichever field this version
-        // added — "missing field `held_out_sample_count`" — which sends a reader
-        // hunting for a corrupt file instead of telling them the artifact is a
-        // version behind and naming the lane that refreshes it.
-        #[derive(Deserialize)]
-        struct SchemaProbe {
-            schema: String,
-        }
-        let probe: SchemaProbe = serde_json::from_str(text).map_err(|e| {
+        // Parse once without normalizing record members: schema admission comes
+        // first, and the complete decoder sees the same duplicate-preserving value.
+        let value = json::read(text).map_err(|error| {
+            invalid_declaration(format!("parse {MEDIUM_BASELINE_PATH}: {error}"))
+        })?;
+        let probe = (|| {
+            let mut fields = Record::new(&value, "medium winner table object")?;
+            fields.required::<String>("schema")
+        })().map_err(|error| {
             invalid_declaration(format!(
-                "parse {MEDIUM_BASELINE_PATH}: {e} — the artifact does not even carry a `schema` \
-                 token, so it is not a winner table this build can identify"
+                "parse {MEDIUM_BASELINE_PATH}: {error} — the artifact does not even carry a valid `schema` token, so it is not a winner table this build can identify"
             ))
         })?;
-        if probe.schema != MEDIUM_BASELINE_SCHEMA {
+        if probe != MEDIUM_BASELINE_SCHEMA {
             return Err(invalid_declaration(format!(
-                "{MEDIUM_BASELINE_PATH} declares schema {:?}, but this build reads only \
+                "{MEDIUM_BASELINE_PATH} declares schema {probe:?}, but this build reads only \
                  {MEDIUM_BASELINE_SCHEMA:?} — re-run `make maint-medium-sweep` rather than \
                  reading an unknown shape leniently",
-                probe.schema
             )));
         }
-        let parsed: Self = serde_json::from_str(text)
-            .map_err(|e| invalid_declaration(format!("parse {MEDIUM_BASELINE_PATH}: {e}")))?;
+        let parsed = <Self as FromJson>::from_json(&value).map_err(|error| {
+            invalid_declaration(format!("parse {MEDIUM_BASELINE_PATH}: {error}"))
+        })?;
         Ok(parsed)
     }
 
