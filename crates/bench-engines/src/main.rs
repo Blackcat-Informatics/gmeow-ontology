@@ -19,7 +19,7 @@
 //!   count)` tuples, `consumed_steps`, the derived-fact / answer counts, the three native
 //!   allocation scalars (`alloc_bytes`, `alloc_count`, `peak_live_bytes`), and the
 //!   verdict-agreement booleans+tokens. Every value is an INTEGER or a stable fingerprint
-//!   and every map is serialized with sorted keys (serde_json's default `BTreeMap`-backed
+//!   and every map is serialized with sorted keys (the native sorted free-form
 //!   `Value`), so the bytes are a pure function of `(engine version, corpus)`. This is the
 //!   drift-gate-eligible signal. It carries NO wall-clock and NO peak-RSS.
 //!
@@ -103,7 +103,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use serde_json::{Value, json};
+use purrdf_lex::json::record::ToJson;
+use purrdf_lex::json::{self, Object, Value};
 
 use gmeow_conformance::bench_corpus::{
     BenchCase, Fragment, load_bench_corpora, load_bench_corpora_from,
@@ -302,28 +303,22 @@ fn main() -> gmeow_errors::Result<()> {
         // deterministic artifact demonstrates the join keys, sorted by IRI.
         let mut ids: Vec<Value> = findings
             .iter()
-            .map(|f| {
-                json!({
-                    "code": f.code,
-                    "finding_iri": f.finding_iri.clone().unwrap_or_default(),
-                    "anchor_iri": f.anchor_iri.clone().unwrap_or_default(),
-                    "antecedents": f.antecedents.clone(),
-                })
-            })
-            .collect();
+            .map(|f| finding_record(f).map(Value::from))
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
         ids.sort_by(|a, b| a["finding_iri"].as_str().cmp(&b["finding_iri"].as_str()));
 
         corpus_ledgers.insert(
             corpus.clone(),
-            json!({
-                "cases": tally.cases,
-                "agree": tally.agree,
-                "corpus_only": tally.corpus_only,
-                "dl_gap": tally.dl_gap,
-                "finding_count": findings.len(),
-                "finding_graph_blake3": graph_digest,
-                "findings": ids,
-            }),
+            Value::from(
+                Object::new()
+                    .with("cases", (tally.cases).to_json())
+                    .with("agree", (tally.agree).to_json())
+                    .with("corpus_only", (tally.corpus_only).to_json())
+                    .with("dl_gap", (tally.dl_gap).to_json())
+                    .with("finding_count", (findings.len()).to_json())
+                    .with("finding_graph_blake3", (graph_digest).to_json())
+                    .with("findings", (ids).to_json()),
+            ),
         );
     }
 
@@ -336,27 +331,52 @@ fn main() -> gmeow_errors::Result<()> {
             detail: format!("four-worker rule-parallel evidence failed: {error}"),
         })
     })?;
-    let rule_parallelism = json!({
-        "fixture": "balanced-six-rule-v1",
-        "worker_count": parallel.worker_count,
-        "rule_count": parallel.rule_count,
-        "seed_rows": parallel.seed_rows,
-        "derived_rows": parallel.derived_rows,
-        "consumed_steps": parallel.consumed_steps,
-        "parallel_rounds": parallel.parallel_rounds,
-        "rule_tasks": parallel.rule_tasks,
-        "serial_candidate_rows": parallel.serial_candidate_rows,
-        "critical_path_candidate_rows": parallel.critical_path_candidate_rows,
-        "critical_path_rows_saved": parallel.serial_candidate_rows - parallel.critical_path_candidate_rows,
-        "max_buffered_candidate_rows": parallel.max_buffered_candidate_rows,
-        "max_task_candidate_rows": parallel.max_task_candidate_rows,
-        "budget_cases": parallel.budget_cases,
-        "output_parity": parallel.output_parity,
-        "budget_parity": parallel.budget_parity,
-        "parallel_path_entered": parallel.parallel_path_entered,
-        "critical_path_strictly_lower": parallel.critical_path_strictly_lower,
-        "closure_blake3": purrdf_hash::hex::Digest32::new(parallel.closure_hash).to_hex(),
-    });
+    let rule_parallelism = Value::from(
+        Object::new()
+            .with("fixture", ("balanced-six-rule-v1").to_json())
+            .with("worker_count", (parallel.worker_count).to_json())
+            .with("rule_count", (parallel.rule_count).to_json())
+            .with("seed_rows", (parallel.seed_rows).to_json())
+            .with("derived_rows", (parallel.derived_rows).to_json())
+            .with("consumed_steps", (parallel.consumed_steps).to_json())
+            .with("parallel_rounds", (parallel.parallel_rounds).to_json())
+            .with("rule_tasks", (parallel.rule_tasks).to_json())
+            .with(
+                "serial_candidate_rows",
+                (parallel.serial_candidate_rows).to_json(),
+            )
+            .with(
+                "critical_path_candidate_rows",
+                (parallel.critical_path_candidate_rows).to_json(),
+            )
+            .with(
+                "critical_path_rows_saved",
+                (parallel.serial_candidate_rows - parallel.critical_path_candidate_rows).to_json(),
+            )
+            .with(
+                "max_buffered_candidate_rows",
+                (parallel.max_buffered_candidate_rows).to_json(),
+            )
+            .with(
+                "max_task_candidate_rows",
+                (parallel.max_task_candidate_rows).to_json(),
+            )
+            .with("budget_cases", (parallel.budget_cases).to_json())
+            .with("output_parity", (parallel.output_parity).to_json())
+            .with("budget_parity", (parallel.budget_parity).to_json())
+            .with(
+                "parallel_path_entered",
+                (parallel.parallel_path_entered).to_json(),
+            )
+            .with(
+                "critical_path_strictly_lower",
+                (parallel.critical_path_strictly_lower).to_json(),
+            )
+            .with(
+                "closure_blake3",
+                (purrdf_hash::hex::Digest32::new(parallel.closure_hash).to_hex()).to_json(),
+            ),
+    );
 
     // ── Cost-regression check (L3): compare THIS fresh run's deterministic cost +
     //    verdict-agreement against the committed baseline; ANY divergence is a
@@ -370,22 +390,23 @@ fn main() -> gmeow_errors::Result<()> {
     }
 
     // ── (2a) The DETERMINISTIC structured artifact ──────────────────────────────
-    let artifact = json!({
-        "schema": "gmeow.bench-engines.cost/1",
-        "engine_pins": {
-            "native": EngineId::native().version,
-            "backward_reference": BACKWARD_REFERENCE,
-        },
-        "case_count": case_records.len(),
-        "cases": case_records,
-        "rule_parallelism": rule_parallelism,
-        "ledgers": corpus_ledgers,
-    });
-    let json = serde_json::to_string_pretty(&artifact).map_err(|e| {
-        Diag::of_kind(Serialize {
-            detail: e.to_string(),
-        })
-    })? + "\n";
+    let artifact = Value::from(
+        Object::new()
+            .with("schema", ("gmeow.bench-engines.cost/1").to_json())
+            .with(
+                "engine_pins",
+                Value::from(
+                    Object::new()
+                        .with("native", (EngineId::native().version).to_json())
+                        .with("backward_reference", (BACKWARD_REFERENCE).to_json()),
+                ),
+            )
+            .with("case_count", (case_records.len()).to_json())
+            .with("cases", (case_records).to_json())
+            .with("rule_parallelism", (rule_parallelism).to_json())
+            .with("ledgers", (corpus_ledgers).to_json()),
+    );
+    let json = pretty_json(&artifact) + "\n";
 
     match &emit_cost {
         Some(path) => {
@@ -571,84 +592,211 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         &golden_tok,
     )];
 
-    let record = json!({
-        "corpus": case.corpus,
-        "case": case.name,
-        "fragment": "forward",
-        "world": world,
-        "golden_rows": golden_rows,
-        "native": {
-            "engine": native.engine.version,
-            "consumed_steps": native.consumed_steps,
-            "derived_count": native_derived,
-            // The three allocation scalars all GATE: alloc_bytes/alloc_count are the
-            // process-GLOBAL totals (summed across the caller + Rayon worker, so
-            // invariant to the work-stealing split and deterministic under the
-            // sequential harness), and peak_live_bytes is the per-thread net-live
-            // high-water. All are integer-valued and byte-reproducible.
-            "alloc_bytes": native.cost.alloc_bytes(),
-            "alloc_count": native.cost.alloc_count(),
-            "peak_live_bytes": native.cost.peak_live_bytes(),
-            "rows_fingerprint": native_fp,
-            "cost_vector": cost_tuples(&native.cost.to_sorted_tuples()),
-            "plan_cache": {
-                "solver_version": cold.solver_version,
-                "rule_hash": purrdf_hash::hex::Digest32::new(cold.rule_hash).to_hex(),
-                "cold": {
-                    "cache_hit": cold.cache_hit,
-                    "plan_builds": cold.plan_builds,
-                    "planning_units": cold.planning_units,
-                    "consumed_steps": cold.consumed_steps,
-                    "peak_live_bytes": cold_sample.peak_live,
-                    "closure_blake3": purrdf_hash::hex::Digest32::new(cold.closure_hash).to_hex(),
-                    "cost_vector": cost_tuples(&cold.cost.to_sorted_tuples()),
-                },
-                "warm": {
-                    "cache_hit": warm.cache_hit,
-                    "plan_builds": warm.plan_builds,
-                    "planning_units": warm.planning_units,
-                    "consumed_steps": warm.consumed_steps,
-                    "peak_live_bytes": warm_sample.peak_live,
-                    "closure_blake3": purrdf_hash::hex::Digest32::new(warm.closure_hash).to_hex(),
-                    "cost_vector": cost_tuples(&warm.cost.to_sorted_tuples()),
-                },
-                "same_executable": warm.same_executable_as_first,
-                "repeat_parity": repeat_parity,
-                "warm_alloc_count_strictly_lower": alloc_count_win,
-                "warm_peak_live_strictly_lower": peak_live_win,
-            },
-            "provenance": {
-                "record": {
-                    "annotation_count": record_probe.annotation_count,
-                    "max_proof_height": record_probe.max_proof_height,
-                    "consumed_steps": record_probe.consumed_steps,
-                    "fact_count": record_probe.annotation_count,
-                    "fact_closure_blake3": purrdf_hash::hex::Digest32::new(record_probe.fact_closure_hash).to_hex(),
-                    // Total allocation count remains advisory engine scratch; peak-live is exact.
-                    "alloc_count": record_sample.count,
-                    "peak_live_bytes": record_sample.peak_live,
-                },
-                "skip": {
-                    "annotation_count": 0,
-                    "consumed_steps": skip.consumed_steps,
-                    "fact_count": skip.fact_count,
-                    "fact_closure_blake3": purrdf_hash::hex::Digest32::new(skip.fact_closure_hash).to_hex(),
-                    "alloc_count": skip_sample.count,
-                    "peak_live_bytes": skip_sample.peak_live,
-                },
-                "closure_parity": provenance_closure_parity,
-                "step_parity": provenance_step_parity,
-                "annotation_complete": annotation_complete,
-                "record_peak_overhead_bytes": record_peak_overhead_bytes,
-                "record_alloc_count_overhead": record_alloc_count_overhead,
-            },
-        },
-        "agreement": {
-            "native_vs_golden": agree_golden,
-            "native_golden_token": native_golden_tok,
-            "golden_token": golden_tok,
-        },
-    });
+    let record = Value::from(
+        Object::new()
+            .with("corpus", (case.corpus).to_json())
+            .with("case", (case.name).to_json())
+            .with("fragment", ("forward").to_json())
+            .with("world", (world).to_json())
+            .with("golden_rows", (golden_rows).to_json())
+            .with(
+                "native",
+                Value::from(
+                    Object::new()
+                        .with("engine", (native.engine.version).to_json())
+                        .with("consumed_steps", (native.consumed_steps).to_json())
+                        .with("derived_count", (native_derived).to_json())
+                        .with("alloc_bytes", (native.cost.alloc_bytes()).to_json())
+                        .with("alloc_count", (native.cost.alloc_count()).to_json())
+                        .with("peak_live_bytes", (native.cost.peak_live_bytes()).to_json())
+                        .with("rows_fingerprint", (native_fp).to_json())
+                        .with(
+                            "cost_vector",
+                            (cost_tuples(&native.cost.to_sorted_tuples())).to_json(),
+                        )
+                        .with(
+                            "plan_cache",
+                            Value::from(
+                                Object::new()
+                                    .with("solver_version", (cold.solver_version).to_json())
+                                    .with(
+                                        "rule_hash",
+                                        (purrdf_hash::hex::Digest32::new(cold.rule_hash).to_hex())
+                                            .to_json(),
+                                    )
+                                    .with(
+                                        "cold",
+                                        Value::from(
+                                            Object::new()
+                                                .with("cache_hit", (cold.cache_hit).to_json())
+                                                .with("plan_builds", (cold.plan_builds).to_json())
+                                                .with(
+                                                    "planning_units",
+                                                    (cold.planning_units).to_json(),
+                                                )
+                                                .with(
+                                                    "consumed_steps",
+                                                    (cold.consumed_steps).to_json(),
+                                                )
+                                                .with(
+                                                    "peak_live_bytes",
+                                                    (cold_sample.peak_live).to_json(),
+                                                )
+                                                .with(
+                                                    "closure_blake3",
+                                                    (purrdf_hash::hex::Digest32::new(
+                                                        cold.closure_hash,
+                                                    )
+                                                    .to_hex())
+                                                    .to_json(),
+                                                )
+                                                .with(
+                                                    "cost_vector",
+                                                    (cost_tuples(&cold.cost.to_sorted_tuples()))
+                                                        .to_json(),
+                                                ),
+                                        ),
+                                    )
+                                    .with(
+                                        "warm",
+                                        Value::from(
+                                            Object::new()
+                                                .with("cache_hit", (warm.cache_hit).to_json())
+                                                .with("plan_builds", (warm.plan_builds).to_json())
+                                                .with(
+                                                    "planning_units",
+                                                    (warm.planning_units).to_json(),
+                                                )
+                                                .with(
+                                                    "consumed_steps",
+                                                    (warm.consumed_steps).to_json(),
+                                                )
+                                                .with(
+                                                    "peak_live_bytes",
+                                                    (warm_sample.peak_live).to_json(),
+                                                )
+                                                .with(
+                                                    "closure_blake3",
+                                                    (purrdf_hash::hex::Digest32::new(
+                                                        warm.closure_hash,
+                                                    )
+                                                    .to_hex())
+                                                    .to_json(),
+                                                )
+                                                .with(
+                                                    "cost_vector",
+                                                    (cost_tuples(&warm.cost.to_sorted_tuples()))
+                                                        .to_json(),
+                                                ),
+                                        ),
+                                    )
+                                    .with(
+                                        "same_executable",
+                                        (warm.same_executable_as_first).to_json(),
+                                    )
+                                    .with("repeat_parity", (repeat_parity).to_json())
+                                    .with(
+                                        "warm_alloc_count_strictly_lower",
+                                        (alloc_count_win).to_json(),
+                                    )
+                                    .with(
+                                        "warm_peak_live_strictly_lower",
+                                        (peak_live_win).to_json(),
+                                    ),
+                            ),
+                        )
+                        .with(
+                            "provenance",
+                            Value::from(
+                                Object::new()
+                                    .with(
+                                        "record",
+                                        Value::from(
+                                            Object::new()
+                                                .with(
+                                                    "annotation_count",
+                                                    (record_probe.annotation_count).to_json(),
+                                                )
+                                                .with(
+                                                    "max_proof_height",
+                                                    (record_probe.max_proof_height).to_json(),
+                                                )
+                                                .with(
+                                                    "consumed_steps",
+                                                    (record_probe.consumed_steps).to_json(),
+                                                )
+                                                .with(
+                                                    "fact_count",
+                                                    (record_probe.annotation_count).to_json(),
+                                                )
+                                                .with(
+                                                    "fact_closure_blake3",
+                                                    (purrdf_hash::hex::Digest32::new(
+                                                        record_probe.fact_closure_hash,
+                                                    )
+                                                    .to_hex())
+                                                    .to_json(),
+                                                )
+                                                .with(
+                                                    "alloc_count",
+                                                    (record_sample.count).to_json(),
+                                                )
+                                                .with(
+                                                    "peak_live_bytes",
+                                                    (record_sample.peak_live).to_json(),
+                                                ),
+                                        ),
+                                    )
+                                    .with(
+                                        "skip",
+                                        Value::from(
+                                            Object::new()
+                                                .with("annotation_count", (0).to_json())
+                                                .with(
+                                                    "consumed_steps",
+                                                    (skip.consumed_steps).to_json(),
+                                                )
+                                                .with("fact_count", (skip.fact_count).to_json())
+                                                .with(
+                                                    "fact_closure_blake3",
+                                                    (purrdf_hash::hex::Digest32::new(
+                                                        skip.fact_closure_hash,
+                                                    )
+                                                    .to_hex())
+                                                    .to_json(),
+                                                )
+                                                .with("alloc_count", (skip_sample.count).to_json())
+                                                .with(
+                                                    "peak_live_bytes",
+                                                    (skip_sample.peak_live).to_json(),
+                                                ),
+                                        ),
+                                    )
+                                    .with("closure_parity", (provenance_closure_parity).to_json())
+                                    .with("step_parity", (provenance_step_parity).to_json())
+                                    .with("annotation_complete", (annotation_complete).to_json())
+                                    .with(
+                                        "record_peak_overhead_bytes",
+                                        (record_peak_overhead_bytes).to_json(),
+                                    )
+                                    .with(
+                                        "record_alloc_count_overhead",
+                                        (record_alloc_count_overhead).to_json(),
+                                    ),
+                            ),
+                        ),
+                ),
+            )
+            .with(
+                "agreement",
+                Value::from(
+                    Object::new()
+                        .with("native_vs_golden", (agree_golden).to_json())
+                        .with("native_golden_token", (native_golden_tok).to_json())
+                        .with("golden_token", (golden_tok).to_json()),
+                ),
+            ),
+    );
 
     let peak = peak_rss_kib();
     Ok(CaseOutcome {
@@ -778,64 +926,106 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         ),
     ];
 
-    let record = json!({
-        "corpus": case.corpus,
-        "case": case.name,
-        "fragment": "incremental",
-        "world": world,
-        "golden_rows": golden_rows,
-        "native": {
-            "engine": incremental.engine.version,
-            "consumed_steps": incremental.consumed_steps,
-            "derived_count": incremental.derived_count,
-            "joined_rows": incremental.joined_rows,
-            "inner_iterations": incremental.inner_iterations,
-            "signed_change_count": incremental.changes.len(),
-            "signed_changes_blake3": incremental_changes_fp,
-            "rows_fingerprint": incremental_fp,
-            "alloc_bytes": incremental.cost.alloc_bytes(),
-            "alloc_count": incremental.cost.alloc_count(),
-            "peak_live_bytes": incremental.cost.peak_live_bytes(),
-            "cost_vector": cost_tuples(&incremental.cost.to_sorted_tuples()),
-            "retraction": {
-                "derived_count": retracted.derived_count,
-                "joined_rows": retracted.joined_rows,
-                "inner_iterations": retracted.inner_iterations,
-                "signed_change_count": retracted.changes.len(),
-                "signed_changes_blake3": retracted_changes_fp,
-                "rows_fingerprint": retracted_fp,
-            },
-            // The clean rebuild comparator lives inside the exact native descriptor,
-            // so its deterministic counts/vector/peak are drift-gated alongside the
-            // incremental transaction. Non-reproducible total allocs stay omitted.
-            "scratch": {
-                "engine": scratch.engine.version,
-                "consumed_steps": scratch.consumed_steps,
-                "derived_count": scratch_derived,
-                "peak_live_bytes": scratch.cost.peak_live_bytes(),
-                "rows_fingerprint": scratch_fp,
-                "cost_vector": cost_tuples(&scratch.cost.to_sorted_tuples()),
-            },
-        },
-        "reference": {
-            "engine": "native-scratch",
-            "derived_count": scratch_derived,
-            "rows_fingerprint": scratch_fp,
-            "base_rows_fingerprint": base_fp,
-        },
-        "agreement": {
-            "native_vs_golden": agree_golden,
-            "native_vs_reference": agree_insert && agree_retract,
-            "incremental_insert_vs_scratch": agree_insert,
-            "incremental_retract_vs_scratch": agree_retract,
-            "incremental_step_win": step_win,
-            "native_golden_token": native_golden_tok,
-            "golden_token": golden_tok,
-            "native_reference_descriptor": parity_token,
-            "reference_descriptor": "insert-and-retract-match-scratch",
-            "step_token": step_token,
-        },
-    });
+    let record = Value::from(
+        Object::new()
+            .with("corpus", (case.corpus).to_json())
+            .with("case", (case.name).to_json())
+            .with("fragment", ("incremental").to_json())
+            .with("world", (world).to_json())
+            .with("golden_rows", (golden_rows).to_json())
+            .with(
+                "native",
+                Value::from(
+                    Object::new()
+                        .with("engine", (incremental.engine.version).to_json())
+                        .with("consumed_steps", (incremental.consumed_steps).to_json())
+                        .with("derived_count", (incremental.derived_count).to_json())
+                        .with("joined_rows", (incremental.joined_rows).to_json())
+                        .with("inner_iterations", (incremental.inner_iterations).to_json())
+                        .with("signed_change_count", (incremental.changes.len()).to_json())
+                        .with("signed_changes_blake3", (incremental_changes_fp).to_json())
+                        .with("rows_fingerprint", (incremental_fp).to_json())
+                        .with("alloc_bytes", (incremental.cost.alloc_bytes()).to_json())
+                        .with("alloc_count", (incremental.cost.alloc_count()).to_json())
+                        .with(
+                            "peak_live_bytes",
+                            (incremental.cost.peak_live_bytes()).to_json(),
+                        )
+                        .with(
+                            "cost_vector",
+                            (cost_tuples(&incremental.cost.to_sorted_tuples())).to_json(),
+                        )
+                        .with(
+                            "retraction",
+                            Value::from(
+                                Object::new()
+                                    .with("derived_count", (retracted.derived_count).to_json())
+                                    .with("joined_rows", (retracted.joined_rows).to_json())
+                                    .with(
+                                        "inner_iterations",
+                                        (retracted.inner_iterations).to_json(),
+                                    )
+                                    .with(
+                                        "signed_change_count",
+                                        (retracted.changes.len()).to_json(),
+                                    )
+                                    .with("signed_changes_blake3", (retracted_changes_fp).to_json())
+                                    .with("rows_fingerprint", (retracted_fp).to_json()),
+                            ),
+                        )
+                        .with(
+                            "scratch",
+                            Value::from(
+                                Object::new()
+                                    .with("engine", (scratch.engine.version).to_json())
+                                    .with("consumed_steps", (scratch.consumed_steps).to_json())
+                                    .with("derived_count", (scratch_derived).to_json())
+                                    .with(
+                                        "peak_live_bytes",
+                                        (scratch.cost.peak_live_bytes()).to_json(),
+                                    )
+                                    .with("rows_fingerprint", (scratch_fp).to_json())
+                                    .with(
+                                        "cost_vector",
+                                        (cost_tuples(&scratch.cost.to_sorted_tuples())).to_json(),
+                                    ),
+                            ),
+                        ),
+                ),
+            )
+            .with(
+                "reference",
+                Value::from(
+                    Object::new()
+                        .with("engine", ("native-scratch").to_json())
+                        .with("derived_count", (scratch_derived).to_json())
+                        .with("rows_fingerprint", (scratch_fp).to_json())
+                        .with("base_rows_fingerprint", (base_fp).to_json()),
+                ),
+            )
+            .with(
+                "agreement",
+                Value::from(
+                    Object::new()
+                        .with("native_vs_golden", (agree_golden).to_json())
+                        .with(
+                            "native_vs_reference",
+                            (agree_insert && agree_retract).to_json(),
+                        )
+                        .with("incremental_insert_vs_scratch", (agree_insert).to_json())
+                        .with("incremental_retract_vs_scratch", (agree_retract).to_json())
+                        .with("incremental_step_win", (step_win).to_json())
+                        .with("native_golden_token", (native_golden_tok).to_json())
+                        .with("golden_token", (golden_tok).to_json())
+                        .with("native_reference_descriptor", (parity_token).to_json())
+                        .with(
+                            "reference_descriptor",
+                            ("insert-and-retract-match-scratch").to_json(),
+                        )
+                        .with("step_token", (step_token).to_json()),
+                ),
+            ),
+    );
 
     let peak = peak_rss_kib();
     Ok(CaseOutcome {
@@ -1015,78 +1205,140 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
         ),
     ];
 
-    let record = json!({
-        "corpus": case.corpus,
-        "case": case.name,
-        "fragment": "incremental-grounding",
-        "world": world,
-        "golden_rows": golden_rows,
-        "native": {
-            "engine": EngineId::native().version,
-            // A committed step in this lane is an active ground-rule zero-crossing,
-            // not a non-monotone solver step.
-            "consumed_steps": committed_groundings,
-            "derived_count": incremental_derived,
-            "joined_rows": incremental.joined_rows,
-            "alloc_bytes": incremental_sample.bytes,
-            "alloc_count": incremental_sample.count,
-            "peak_live_bytes": incremental_sample.peak_live,
-            "cost_vector": Value::Array(Vec::new()),
-            "rows_fingerprint": incremental_fp,
-            "grounding": {
-                "edb_changes": incremental.edb_changes,
-                "ground_rule_changes": incremental.ground_rule_changes,
-                "universe_changes": incremental.universe_changes,
-                "universe_joined_rows": incremental.universe_joined_rows,
-                "ground_rule_joined_rows": incremental.ground_rule_joined_rows,
-                "ground_rule_probe_rows": incremental.ground_rule_probe_rows,
-                "active_ground_rules": incremental.active_ground_rules,
-                "solver": incremental.solver,
-                "solver_status": incremental.solver_status,
-                "solver_reran": incremental.solver_reran,
-            },
-            "retraction": {
-                "rows_fingerprint": retracted_fp,
-                "edb_changes": retracted.edb_changes,
-                "ground_rule_changes": retracted.ground_rule_changes,
-                "universe_changes": retracted.universe_changes,
-                "joined_rows": retracted.joined_rows,
-                "ground_rule_probe_rows": retracted.ground_rule_probe_rows,
-                "solver_status": retracted.solver_status,
-                "solver_reran": retracted.solver_reran,
-            },
-            "scratch": {
-                "engine": EngineId::native().version,
-                "consumed_steps": scratch_groundings,
-                "derived_count": scratch_derived,
-                "peak_live_bytes": scratch_sample.peak_live,
-                "rows_fingerprint": scratch_fp,
-                "cost_vector": Value::Array(Vec::new()),
-                "ground_rule_probe_rows": scratch.ground_rule_probe_rows,
-                "active_ground_rules": scratch.active_ground_rules,
-            },
-        },
-        "reference": {
-            "engine": "native-grounding-scratch",
-            "derived_count": scratch_derived,
-            "rows_fingerprint": scratch_fp,
-            "base_rows_fingerprint": base_fp,
-        },
-        "agreement": {
-            "native_vs_golden": agree_golden,
-            "native_vs_reference": grounding_semantic_parity(agree_insert, agree_retract),
-            "incremental_insert_vs_scratch": agree_insert,
-            "incremental_retract_vs_scratch": agree_retract,
-            "incremental_step_win": step_win,
-            "incremental_probe_win": probe_win,
-            "native_golden_token": native_golden_tok,
-            "golden_token": golden_tok,
-            "native_reference_descriptor": parity_token,
-            "reference_descriptor": "insert-and-retract-ground-slice-match-scratch",
-            "step_token": step_token,
-            "probe_token": probe_token,
-        },
-    });
+    let record = Value::from(
+        Object::new()
+            .with("corpus", (case.corpus).to_json())
+            .with("case", (case.name).to_json())
+            .with("fragment", ("incremental-grounding").to_json())
+            .with("world", (world).to_json())
+            .with("golden_rows", (golden_rows).to_json())
+            .with(
+                "native",
+                Value::from(
+                    Object::new()
+                        .with("engine", (EngineId::native().version).to_json())
+                        .with("consumed_steps", (committed_groundings).to_json())
+                        .with("derived_count", (incremental_derived).to_json())
+                        .with("joined_rows", (incremental.joined_rows).to_json())
+                        .with("alloc_bytes", (incremental_sample.bytes).to_json())
+                        .with("alloc_count", (incremental_sample.count).to_json())
+                        .with("peak_live_bytes", (incremental_sample.peak_live).to_json())
+                        .with("cost_vector", (Value::Array(Vec::new())).to_json())
+                        .with("rows_fingerprint", (incremental_fp).to_json())
+                        .with(
+                            "grounding",
+                            Value::from(
+                                Object::new()
+                                    .with("edb_changes", (incremental.edb_changes).to_json())
+                                    .with(
+                                        "ground_rule_changes",
+                                        (incremental.ground_rule_changes).to_json(),
+                                    )
+                                    .with(
+                                        "universe_changes",
+                                        (incremental.universe_changes).to_json(),
+                                    )
+                                    .with(
+                                        "universe_joined_rows",
+                                        (incremental.universe_joined_rows).to_json(),
+                                    )
+                                    .with(
+                                        "ground_rule_joined_rows",
+                                        (incremental.ground_rule_joined_rows).to_json(),
+                                    )
+                                    .with(
+                                        "ground_rule_probe_rows",
+                                        (incremental.ground_rule_probe_rows).to_json(),
+                                    )
+                                    .with(
+                                        "active_ground_rules",
+                                        (incremental.active_ground_rules).to_json(),
+                                    )
+                                    .with("solver", (incremental.solver).to_json())
+                                    .with("solver_status", (incremental.solver_status).to_json())
+                                    .with("solver_reran", (incremental.solver_reran).to_json()),
+                            ),
+                        )
+                        .with(
+                            "retraction",
+                            Value::from(
+                                Object::new()
+                                    .with("rows_fingerprint", (retracted_fp).to_json())
+                                    .with("edb_changes", (retracted.edb_changes).to_json())
+                                    .with(
+                                        "ground_rule_changes",
+                                        (retracted.ground_rule_changes).to_json(),
+                                    )
+                                    .with(
+                                        "universe_changes",
+                                        (retracted.universe_changes).to_json(),
+                                    )
+                                    .with("joined_rows", (retracted.joined_rows).to_json())
+                                    .with(
+                                        "ground_rule_probe_rows",
+                                        (retracted.ground_rule_probe_rows).to_json(),
+                                    )
+                                    .with("solver_status", (retracted.solver_status).to_json())
+                                    .with("solver_reran", (retracted.solver_reran).to_json()),
+                            ),
+                        )
+                        .with(
+                            "scratch",
+                            Value::from(
+                                Object::new()
+                                    .with("engine", (EngineId::native().version).to_json())
+                                    .with("consumed_steps", (scratch_groundings).to_json())
+                                    .with("derived_count", (scratch_derived).to_json())
+                                    .with("peak_live_bytes", (scratch_sample.peak_live).to_json())
+                                    .with("rows_fingerprint", (scratch_fp).to_json())
+                                    .with("cost_vector", (Value::Array(Vec::new())).to_json())
+                                    .with(
+                                        "ground_rule_probe_rows",
+                                        (scratch.ground_rule_probe_rows).to_json(),
+                                    )
+                                    .with(
+                                        "active_ground_rules",
+                                        (scratch.active_ground_rules).to_json(),
+                                    ),
+                            ),
+                        ),
+                ),
+            )
+            .with(
+                "reference",
+                Value::from(
+                    Object::new()
+                        .with("engine", ("native-grounding-scratch").to_json())
+                        .with("derived_count", (scratch_derived).to_json())
+                        .with("rows_fingerprint", (scratch_fp).to_json())
+                        .with("base_rows_fingerprint", (base_fp).to_json()),
+                ),
+            )
+            .with(
+                "agreement",
+                Value::from(
+                    Object::new()
+                        .with("native_vs_golden", (agree_golden).to_json())
+                        .with(
+                            "native_vs_reference",
+                            (grounding_semantic_parity(agree_insert, agree_retract)).to_json(),
+                        )
+                        .with("incremental_insert_vs_scratch", (agree_insert).to_json())
+                        .with("incremental_retract_vs_scratch", (agree_retract).to_json())
+                        .with("incremental_step_win", (step_win).to_json())
+                        .with("incremental_probe_win", (probe_win).to_json())
+                        .with("native_golden_token", (native_golden_tok).to_json())
+                        .with("golden_token", (golden_tok).to_json())
+                        .with("native_reference_descriptor", (parity_token).to_json())
+                        .with(
+                            "reference_descriptor",
+                            ("insert-and-retract-ground-slice-match-scratch").to_json(),
+                        )
+                        .with("step_token", (step_token).to_json())
+                        .with("probe_token", (probe_token).to_json()),
+                ),
+            ),
+    );
 
     let peak = peak_rss_kib();
     Ok(CaseOutcome {
@@ -1162,27 +1414,36 @@ fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         &native_token,
         &golden_token,
     )];
-    let record = json!({
-        "corpus": case.corpus,
-        "case": case.name,
-        "fragment": "existential",
-        "world": world,
-        "golden_rows": golden_rows,
-        "native": {
-            "engine": EngineId::native().version,
-            "consumed_steps": native.frontier.consumed_steps,
-            "derived_count": native_derived,
-            "alloc_bytes": sample.bytes,
-            "alloc_count": sample.count,
-            "peak_live_bytes": sample.peak_live,
-            "cost_vector": Value::Array(Vec::new()),
-        },
-        "agreement": {
-            "native_vs_golden": agreement,
-            "native_golden_token": native_token,
-            "golden_token": golden_token,
-        },
-    });
+    let record = Value::from(
+        Object::new()
+            .with("corpus", (case.corpus).to_json())
+            .with("case", (case.name).to_json())
+            .with("fragment", ("existential").to_json())
+            .with("world", (world).to_json())
+            .with("golden_rows", (golden_rows).to_json())
+            .with(
+                "native",
+                Value::from(
+                    Object::new()
+                        .with("engine", (EngineId::native().version).to_json())
+                        .with("consumed_steps", (native.frontier.consumed_steps).to_json())
+                        .with("derived_count", (native_derived).to_json())
+                        .with("alloc_bytes", (sample.bytes).to_json())
+                        .with("alloc_count", (sample.count).to_json())
+                        .with("peak_live_bytes", (sample.peak_live).to_json())
+                        .with("cost_vector", (Value::Array(Vec::new())).to_json()),
+                ),
+            )
+            .with(
+                "agreement",
+                Value::from(
+                    Object::new()
+                        .with("native_vs_golden", (agreement).to_json())
+                        .with("native_golden_token", (native_token).to_json())
+                        .with("golden_token", (golden_token).to_json()),
+                ),
+            ),
+    );
     Ok(CaseOutcome {
         record,
         advisory: vec![AdvisoryRow {
@@ -1264,40 +1525,49 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         ),
     ];
 
-    let record = json!({
-        "corpus": case.corpus,
-        "case": case.name,
-        "fragment": "backward",
-        "world": world,
-        "golden_rows": golden_rows,
-        "native": {
-            "engine": EngineId::native().version,
-            "consumed_steps": consumed_steps,
-            "answer_count": native_count,
-            // All three allocation scalars GATE: alloc_bytes/alloc_count are the
-            // process-global totals (deterministic under the sequential harness) and
-            // peak_live_bytes is the per-thread net-live high-water.
-            "alloc_bytes": sample.bytes,
-            "alloc_count": sample.count,
-            "peak_live_bytes": sample.peak_live,
-            "answers_fingerprint": native_fp,
-            // No decomposable cost vector at the backward dispatch seam.
-            "cost_vector": Value::Array(Vec::new()),
-        },
-        "reference": {
-            "engine": BACKWARD_REFERENCE,
-            "answer_count": golden_rows,
-            "answers_fingerprint": published_fp,
-        },
-        "agreement": {
-            "native_vs_golden": agree_golden,
-            "native_vs_reference": agree_published,
-            "native_golden_token": native_golden_tok,
-            "golden_token": golden_tok,
-            "native_reference_descriptor": native_fp,
-            "reference_descriptor": published_fp,
-        },
-    });
+    let record = Value::from(
+        Object::new()
+            .with("corpus", (case.corpus).to_json())
+            .with("case", (case.name).to_json())
+            .with("fragment", ("backward").to_json())
+            .with("world", (world).to_json())
+            .with("golden_rows", (golden_rows).to_json())
+            .with(
+                "native",
+                Value::from(
+                    Object::new()
+                        .with("engine", (EngineId::native().version).to_json())
+                        .with("consumed_steps", (consumed_steps).to_json())
+                        .with("answer_count", (native_count).to_json())
+                        .with("alloc_bytes", (sample.bytes).to_json())
+                        .with("alloc_count", (sample.count).to_json())
+                        .with("peak_live_bytes", (sample.peak_live).to_json())
+                        .with("answers_fingerprint", (native_fp).to_json())
+                        .with("cost_vector", (Value::Array(Vec::new())).to_json()),
+                ),
+            )
+            .with(
+                "reference",
+                Value::from(
+                    Object::new()
+                        .with("engine", (BACKWARD_REFERENCE).to_json())
+                        .with("answer_count", (golden_rows).to_json())
+                        .with("answers_fingerprint", (published_fp).to_json()),
+                ),
+            )
+            .with(
+                "agreement",
+                Value::from(
+                    Object::new()
+                        .with("native_vs_golden", (agree_golden).to_json())
+                        .with("native_vs_reference", (agree_published).to_json())
+                        .with("native_golden_token", (native_golden_tok).to_json())
+                        .with("golden_token", (golden_tok).to_json())
+                        .with("native_reference_descriptor", (native_fp).to_json())
+                        .with("reference_descriptor", (published_fp).to_json()),
+                ),
+            ),
+    );
 
     let peak = peak_rss_kib();
     Ok(CaseOutcome {
@@ -1316,20 +1586,233 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 
-/// The `(corpus, case)` identity key of a per-case deterministic record. Hard-fails if
-/// either field is missing (a malformed record is an error, never silently keyed empty).
+/// Compact and pretty wire boundaries share sorted, last-wins free-form objects.
+fn compact_json(value: &Value) -> String {
+    let mut value = value.clone();
+    json::record::sorted_last_wins(&mut value);
+    json::write_compact(&value)
+}
+
+/// Sort free-form names recursively and render two-space JSON without a trailing newline.
+fn pretty_json(value: &Value) -> String {
+    let mut value = value.clone();
+    json::record::sorted_last_wins(&mut value);
+    json::write_pretty(&value)
+}
+
+/// A report is a projection of an existing ledger witness, never a new identity.
+fn finding_record(finding: &gmeow_errors::Finding) -> gmeow_errors::Result<Object> {
+    let required = |name, value: &Option<String>| {
+        value.as_deref().filter(|value| !value.trim().is_empty()).map(ToJson::to_json).ok_or_else(|| {
+            Diag::of_kind(RunFailed {
+                detail: format!("divergence finding {} has no nonempty {name}; expected a DiagLedger witness", finding.code),
+            })
+        })
+    };
+    Ok(Object::new()
+        .with("code", finding.code.to_json())
+        .with(
+            "finding_iri",
+            required("finding_iri", &finding.finding_iri)?,
+        )
+        .with("anchor_iri", required("anchor_iri", &finding.anchor_iri)?)
+        .with("antecedents", finding.antecedents.to_json()))
+}
+
+/// Refuse malformed selected benchmark evidence through the existing run-failure diagnostic.
+fn invalid_case(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(RunFailed {
+        detail: detail.into(),
+    })
+}
+
+/// Read a required identity string; missing, non-string and blank identities are errors.
+fn nonempty_member<'a>(
+    value: &'a Value,
+    field: &str,
+    context: &str,
+) -> gmeow_errors::Result<&'a str> {
+    value
+        .get(field)
+        .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
+        .ok_or_else(|| invalid_case(format!("{context}: {field} must be a nonempty string")))
+}
+
+/// The actual five wire fragments have different result counts and identities.
 fn case_key(rec: &Value) -> gmeow_errors::Result<(String, String)> {
-    let corpus = rec.get("corpus").and_then(Value::as_str).ok_or_else(|| {
-        Diag::of_kind(RunFailed {
-            detail: "cost record missing `corpus`".to_string(),
-        })
-    })?;
-    let case = rec.get("case").and_then(Value::as_str).ok_or_else(|| {
-        Diag::of_kind(RunFailed {
-            detail: format!("cost record for corpus {corpus} missing `case`"),
-        })
-    })?;
+    if rec.as_object().is_none() {
+        return Err(invalid_case("cost case must be an object"));
+    }
+    let corpus = nonempty_member(rec, "corpus", "cost case")?;
+    let case = nonempty_member(rec, "case", corpus)?;
     Ok((corpus.to_owned(), case.to_owned()))
+}
+
+/// Admit common counters and the selected fragment's actual output identities before comparison.
+fn admit_case(rec: &Value) -> gmeow_errors::Result<(String, String)> {
+    let key = case_key(rec)?;
+    let context = format!("{}/{}", key.0, key.1);
+    let fragment = nonempty_member(rec, "fragment", &context)?;
+    if !matches!(
+        fragment,
+        "forward" | "existential" | "backward" | "incremental" | "incremental-grounding"
+    ) {
+        return Err(invalid_case(format!(
+            "{context}: unknown fragment {fragment}"
+        )));
+    }
+    nonempty_member(rec, "world", &context)?;
+    if rec.get("golden_rows").and_then(Value::as_u64).is_none() {
+        return Err(invalid_case(format!(
+            "{context}: golden_rows must be an unsigned u64 integer"
+        )));
+    }
+    if rec.get("agreement").and_then(Value::as_object).is_none() {
+        return Err(invalid_case(format!(
+            "{context}: agreement must be an object"
+        )));
+    }
+    let native = rec
+        .get("native")
+        .filter(|value| value.as_object().is_some())
+        .ok_or_else(|| invalid_case(format!("{context}: native must be an object")))?;
+    nonempty_member(native, "engine", &context)?;
+    for field in [
+        "consumed_steps",
+        "peak_live_bytes",
+        if fragment == "backward" {
+            "answer_count"
+        } else {
+            "derived_count"
+        },
+    ] {
+        if native.get(field).and_then(Value::as_u64).is_none() {
+            return Err(invalid_case(format!(
+                "{context}: native.{field} must be an unsigned u64 integer"
+            )));
+        }
+    }
+    if native
+        .get("cost_vector")
+        .and_then(Value::as_array)
+        .is_none()
+    {
+        return Err(invalid_case(format!(
+            "{context}: native.cost_vector must be an array"
+        )));
+    }
+    if fragment == "backward" {
+        nonempty_member(native, "answers_fingerprint", &context)?;
+    } else if matches!(
+        fragment,
+        "forward" | "incremental" | "incremental-grounding"
+    ) {
+        nonempty_member(native, "rows_fingerprint", &context)?;
+    }
+    if matches!(fragment, "incremental" | "incremental-grounding") {
+        let retraction = native
+            .get("retraction")
+            .filter(|value| value.as_object().is_some())
+            .ok_or_else(|| {
+                invalid_case(format!("{context}: native.retraction must be an object"))
+            })?;
+        nonempty_member(
+            retraction,
+            "rows_fingerprint",
+            &format!("{context}: native.retraction"),
+        )?;
+        if fragment == "incremental" {
+            for (label, value) in [("native", native), ("native.retraction", retraction)] {
+                nonempty_member(
+                    value,
+                    "signed_changes_blake3",
+                    &format!("{context}: {label}"),
+                )?;
+                for field in ["signed_change_count", "derived_count"] {
+                    if value.get(field).and_then(Value::as_u64).is_none() {
+                        return Err(invalid_case(format!(
+                            "{context}: {label}.{field} must be an unsigned u64 integer"
+                        )));
+                    }
+                }
+            }
+        }
+    }
+    Ok(key)
+}
+
+/// Index already-selected cases with the shared admission boundary and refuse duplicate keys.
+fn index_case_records<'a>(
+    cases: &'a [Value],
+    context: &str,
+) -> gmeow_errors::Result<BTreeMap<(String, String), &'a Value>> {
+    let mut out = BTreeMap::new();
+    for case in cases {
+        let key = admit_case(case)?;
+        if out.insert(key.clone(), case).is_some() {
+            return Err(invalid_case(format!(
+                "{context}: duplicate cost case {}/{}",
+                key.0, key.1
+            )));
+        }
+    }
+    Ok(out)
+}
+
+/// Require a document object and its cases array; absence is never an empty case collection.
+fn document_cases<'a>(doc: &'a Value, context: &str) -> gmeow_errors::Result<&'a [Value]> {
+    if doc.as_object().is_none() {
+        return Err(invalid_case(format!(
+            "{context}: expected an object with a cases array"
+        )));
+    }
+    doc.get("cases")
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .ok_or_else(|| invalid_case(format!("{context}: cases must be an array")))
+}
+
+/// Evaluation/output identity excludes measurements that the improvement gate permits to fall.
+fn evaluation_descriptor(rec: &Value) -> String {
+    let mut fields = Object::new();
+    for name in ["fragment", "world", "golden_rows", "reference", "agreement"] {
+        if let Some(value) = rec.get(name) {
+            fields.insert(name, value.clone());
+        }
+    }
+    let mut native = Object::new();
+    for name in [
+        "engine",
+        "consumed_steps",
+        "derived_count",
+        "answer_count",
+        "cost_vector",
+        "rows_fingerprint",
+        "answers_fingerprint",
+        "signed_change_count",
+        "signed_changes_blake3",
+    ] {
+        if let Some(value) = rec["native"].get(name) {
+            native.insert(name, value.clone());
+        }
+    }
+    if let Some(retraction) = rec["native"].get("retraction") {
+        let mut output = Object::new();
+        for name in [
+            "rows_fingerprint",
+            "derived_count",
+            "signed_change_count",
+            "signed_changes_blake3",
+        ] {
+            if let Some(value) = retraction.get(name) {
+                output.insert(name, value.clone());
+            }
+        }
+        native.insert("retraction", Value::from(output));
+    }
+    fields.insert("native", Value::from(native));
+    compact_json(&Value::from(fields))
 }
 
 /// Percentage component of the one-sided allocation regression band.
@@ -1353,8 +1836,7 @@ const ALLOC_COUNT_JITTER_FLOOR: u64 = 42;
 /// sub-records, EXCLUDING the two non-reproducible total-allocation scalars (`alloc_bytes`
 /// / `alloc_count`), which gate through the separate one-sided [`alloc_band_comp`] band
 /// (see [`ALLOC_BAND_NUM`]). `peak_live_bytes` — the deterministic net-live high-water —
-/// STAYS in the descriptor. serde_json serializes object keys sorted (no `preserve_order`
-/// feature), so this is byte-stable; ANY change to a deterministic count / fingerprint /
+/// STAYS in the descriptor. The native writer boundary recursively sorts object keys, so this is byte-stable; ANY change to a deterministic count / fingerprint /
 /// verdict changes the descriptor, and thus surfaces as a cost-regression divergence.
 fn cost_descriptor(rec: &Value) -> String {
     let mut native = rec.get("native").cloned().unwrap_or(Value::Null);
@@ -1381,8 +1863,8 @@ fn cost_descriptor(rec: &Value) -> String {
     // JSON of the pair is the comparable descriptor.
     format!(
         "native={} agreement={}",
-        serde_json::to_string(&native).unwrap_or_default(),
-        serde_json::to_string(&agreement).unwrap_or_default(),
+        compact_json(&native),
+        compact_json(&agreement),
     )
 }
 
@@ -1461,32 +1943,14 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
             detail: format!("reading cost baseline {}: {e}", baseline_path.display()),
         })
     })?;
-    let baseline: Value = serde_json::from_slice(&bytes).map_err(|e| {
+    let baseline: Value = json::record::read_document(&bytes).map_err(|e| {
         Diag::of_kind(Serialize {
             detail: format!("cost baseline {} parse: {e}", baseline_path.display()),
         })
     })?;
-    let base_cases = baseline
-        .get("cases")
-        .and_then(Value::as_array)
-        .ok_or_else(|| {
-            Diag::of_kind(RunFailed {
-                detail: format!(
-                    "cost baseline {} has no `cases` array",
-                    baseline_path.display()
-                ),
-            })
-        })?;
-
-    // Index both sides by (corpus, case).
-    let mut fresh_idx: BTreeMap<(String, String), &Value> = BTreeMap::new();
-    for r in fresh {
-        fresh_idx.insert(case_key(r)?, r);
-    }
-    let mut base_idx: BTreeMap<(String, String), &Value> = BTreeMap::new();
-    for r in base_cases {
-        base_idx.insert(case_key(r)?, r);
-    }
+    let base_cases = document_cases(&baseline, "cost baseline")?;
+    let fresh_idx = index_case_records(fresh, "fresh cost records")?;
+    let base_idx = index_case_records(base_cases, "cost baseline")?;
 
     // The union of keys → per-corpus comparisons (deterministic BTree order).
     let mut keys: BTreeSet<(String, String)> = BTreeSet::new();
@@ -1506,9 +1970,8 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
             .unwrap_or_else(|| "absent-from-baseline".to_string());
         let world = fresh_rec
             .or(base_rec)
-            .and_then(|r| r.get("world").and_then(Value::as_str))
-            .unwrap_or("")
-            .to_owned();
+            .ok_or_else(|| invalid_case(format!("{corpus}/{case}: union key has no record")))?;
+        let world = nonempty_member(world, "world", &format!("{corpus}/{case}"))?.to_owned();
         let corpus_comps = comps_by_corpus.entry(corpus.clone()).or_default();
         corpus_comps.push(ExternalComparison {
             case: format!("{corpus}/{case}::cost"),
@@ -1525,6 +1988,12 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
         // `native` object lacks the alloc fields is a stale/malformed baseline: hard-fail
         // with a regenerate hint, never silently skip.
         if let (Some(fresh_rec), Some(base_rec)) = (fresh_rec, base_rec) {
+            corpus_comps.push(ExternalComparison {
+                case: format!("{corpus}/{case}::output-identity"),
+                world: world.clone(),
+                native: evaluation_descriptor(fresh_rec),
+                published: evaluation_descriptor(base_rec),
+            });
             let (fresh_bytes, fresh_count) = native_alloc(fresh_rec).ok_or_else(|| {
                 Diag::of_kind(RunFailed {
                     detail: format!(
@@ -1572,13 +2041,9 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
         regressions += ledger.corpus_only;
         for f in divergence_findings(&ledger) {
             if f.code == "reason.divergence.corpus-only" {
-                regression_findings.push(json!({
-                    "code": f.code,
-                    "finding_iri": f.finding_iri.clone().unwrap_or_default(),
-                    "anchor_iri": f.anchor_iri.clone().unwrap_or_default(),
-                    "antecedents": f.antecedents.clone(),
-                    "message": f.message,
-                }));
+                regression_findings.push(Value::from(
+                    finding_record(&f)?.with("message", f.message.to_json()),
+                ));
             }
         }
     }
@@ -1595,17 +2060,17 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
     // Emit the cost-regression findings (each carrying its ledger identity), sorted by
     // finding IRI for determinism, then HARD-FAIL.
     regression_findings.sort_by(|a, b| a["finding_iri"].as_str().cmp(&b["finding_iri"].as_str()));
-    let report = json!({
-        "schema": "gmeow.bench-engines.cost-regression/1",
-        "regression_count": regressions,
-        "baseline": baseline_path.display().to_string(),
-        "findings": regression_findings,
-    });
-    let json = serde_json::to_string_pretty(&report).map_err(|e| {
-        Diag::of_kind(Serialize {
-            detail: e.to_string(),
-        })
-    })?;
+    let report = Value::from(
+        Object::new()
+            .with(
+                "schema",
+                ("gmeow.bench-engines.cost-regression/1").to_json(),
+            )
+            .with("regression_count", (regressions).to_json())
+            .with("baseline", (baseline_path.display().to_string()).to_json())
+            .with("findings", (regression_findings).to_json()),
+    );
+    let json = pretty_json(&report);
     println!("{json}");
     Err(Diag::of_kind(RunFailed {
         detail: format!(
@@ -1631,23 +2096,15 @@ fn run_parallelism_regression_check(
             detail: format!("reading cost baseline {}: {error}", baseline_path.display()),
         })
     })?;
-    let baseline: Value = serde_json::from_slice(&bytes).map_err(|error| {
+    let baseline: Value = json::record::read_document(&bytes).map_err(|error| {
         Diag::of_kind(Serialize {
             detail: format!("cost baseline {} parse: {error}", baseline_path.display()),
         })
     })?;
     let published = baseline.get("rule_parallelism");
-    let native_token = serde_json::to_string(fresh).map_err(|error| {
-        Diag::of_kind(Serialize {
-            detail: format!("serialize fresh rule-parallel evidence: {error}"),
-        })
-    })?;
+    let native_token = compact_json(fresh);
     let published_token = match published {
-        Some(value) => serde_json::to_string(value).map_err(|error| {
-            Diag::of_kind(Serialize {
-                detail: format!("serialize baseline rule-parallel evidence: {error}"),
-            })
-        })?,
+        Some(value) => compact_json(value),
         None => "absent-from-baseline".to_owned(),
     };
     let comparison = ExternalComparison {
@@ -1670,28 +2127,20 @@ fn run_parallelism_regression_check(
         .into_iter()
         .filter(|finding| finding.code == "reason.divergence.corpus-only")
         .map(|finding| {
-            json!({
-                "code": finding.code,
-                "finding_iri": finding.finding_iri.unwrap_or_default(),
-                "anchor_iri": finding.anchor_iri.unwrap_or_default(),
-                "antecedents": finding.antecedents,
-                "message": finding.message,
-            })
+            finding_record(&finding)
+                .map(|record| Value::from(record.with("message", finding.message.to_json())))
         })
-        .collect::<Vec<_>>();
-    let report = json!({
-        "schema": "gmeow.bench-engines.rule-parallel-regression/1",
-        "baseline": baseline_path.display().to_string(),
-        "findings": findings,
-    });
-    println!(
-        "{}",
-        serde_json::to_string_pretty(&report).map_err(|error| {
-            Diag::of_kind(Serialize {
-                detail: format!("serialize rule-parallel regression report: {error}"),
-            })
-        })?
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let report = Value::from(
+        Object::new()
+            .with(
+                "schema",
+                ("gmeow.bench-engines.rule-parallel-regression/1").to_json(),
+            )
+            .with("baseline", (baseline_path.display().to_string()).to_json())
+            .with("findings", (findings).to_json()),
     );
+    println!("{}", pretty_json(&report));
     Err(Diag::of_kind(RunFailed {
         detail: format!(
             "four-worker rule-parallel evidence diverged from the committed baseline {}",
@@ -1750,19 +2199,12 @@ const COST_NOREG_CASES: &[(&str, &str)] = &[
     ("chasebench-mini", "lubm-like"),
 ];
 
-/// Index a cost-baseline JSON document's cases by `(corpus, case)` → its `native` object.
-fn index_native_cases(doc: &Value) -> BTreeMap<(String, String), &Value> {
-    let mut out: BTreeMap<(String, String), &Value> = BTreeMap::new();
-    if let Some(cases) = doc.get("cases").and_then(Value::as_array) {
-        for c in cases {
-            let corpus = c.get("corpus").and_then(Value::as_str).unwrap_or_default();
-            let case = c.get("case").and_then(Value::as_str).unwrap_or_default();
-            if let Some(native) = c.get("native") {
-                out.insert((corpus.to_owned(), case.to_owned()), native);
-            }
-        }
-    }
-    out
+/// Admit both documents through the same case boundary as exact replay.
+fn index_native_cases<'a>(
+    doc: &'a Value,
+    context: &str,
+) -> gmeow_errors::Result<BTreeMap<(String, String), &'a Value>> {
+    index_case_records(document_cases(doc, context)?, context)
 }
 
 /// Compare a REGENERATED cost baseline (`new`) against a prior committed one (`old`),
@@ -1773,8 +2215,8 @@ fn index_native_cases(doc: &Value) -> BTreeMap<(String, String), &Value> {
 ///     enough to clear the fixed non-store floor, shedding the resident HashSet / posting
 ///     maps / per-round bitset lowers the high-water mark.
 ///   * every case present in BOTH baselines: `peak_live_bytes` NON-INCREASED (exact, no
-///     flake) and `consumed_steps` / `derived_count` / `cost_vector` UNCHANGED (exact
-///     byte-identical evaluation — any change means the logic moved, a hard fail).
+///     flake), with evaluation counters/vectors and fragment-specific output identities
+///     UNCHANGED as sorted compact tokens (exact byte-identical evaluation).
 ///   * the `win` corpus's `alloc_bytes` (aggregate + per-case) is REPORTED as advisory
 ///     corroboration ONLY — it is non-deterministic transient scratch (a sub-ε ~±14-alloc
 ///     run-to-run jitter), so it never contributes a violation; gating on it would gate on
@@ -1790,8 +2232,21 @@ fn compare_baselines(
     win: &[(&str, &str)],
     noreg: &[(&str, &str)],
 ) -> (Vec<String>, Vec<String>) {
-    let (o, n) = (index_native_cases(old), index_native_cases(new));
-    let u = |v: &Value, k: &str| v.get(k).and_then(Value::as_u64);
+    let (o, n) = match (
+        index_native_cases(old, "prior baseline"),
+        index_native_cases(new, "fresh baseline"),
+    ) {
+        (Ok(old), Ok(new)) => (old, new),
+        (old, new) => {
+            let violations = [old.err(), new.err()]
+                .into_iter()
+                .flatten()
+                .map(|error| error.to_string())
+                .collect();
+            return (Vec::new(), violations);
+        }
+    };
+    let u = |v: &Value, k: &str| v["native"].get(k).and_then(Value::as_u64);
     let mut report: Vec<String> = Vec::new();
     let mut viol: Vec<String> = Vec::new();
 
@@ -1804,13 +2259,8 @@ fn compare_baselines(
             ));
             continue;
         };
-        for field in ["consumed_steps", "derived_count", "cost_vector"] {
-            if ov.get(field) != nv.get(field) {
-                viol.push(format!(
-                    "{}/{}: {field} changed (evaluation moved — not byte-identical)",
-                    key.0, key.1
-                ));
-            }
+        if evaluation_descriptor(ov) != evaluation_descriptor(nv) {
+            viol.push(format!("{}/{}: evaluation/output identity changed (consumed_steps changed or result count/fingerprint, cost_vector or profile moved — not byte-identical)", key.0, key.1));
         }
         if let (Some(op), Some(np)) = (u(ov, "peak_live_bytes"), u(nv, "peak_live_bytes"))
             && np > op
@@ -1847,7 +2297,7 @@ fn compare_baselines(
         }
         report.push(format!(
             "PEAK-WIN {corpus}/{case:<28} peak {op}->{np} ({:+})",
-            np as i64 - op as i64
+            i128::from(np) - i128::from(op)
         ));
     }
 
@@ -1855,12 +2305,21 @@ fn compare_baselines(
     // non-deterministic transient scratch (a sub-ε run-to-run jitter), so it contributes no
     // violation; the deterministic `peak_live_bytes` drop above carries the win.
     let (mut win_old_sum, mut win_new_sum) = (0u128, 0u128);
+    let mut complete_advisory = true;
     for &(corpus, case) in win {
         let k = (corpus.to_owned(), case.to_owned());
         let (Some(ov), Some(nv)) = (o.get(&k), n.get(&k)) else {
+            complete_advisory = false;
+            report.push(format!(
+                "adv   {corpus}/{case}: alloc unavailable (case absent)"
+            ));
             continue;
         };
         let (Some(oa), Some(na)) = (u(ov, "alloc_bytes"), u(nv, "alloc_bytes")) else {
+            complete_advisory = false;
+            report.push(format!(
+                "adv   {corpus}/{case}: alloc unavailable (missing unsigned alloc_bytes)"
+            ));
             continue;
         };
         win_old_sum += u128::from(oa);
@@ -1871,14 +2330,18 @@ fn compare_baselines(
         };
         report.push(format!(
             "adv   {corpus}/{case:<30} alloc {oa}->{na} ({:+})  {peak}",
-            na as i64 - oa as i64
+            i128::from(na) - i128::from(oa)
         ));
     }
-    if !win.is_empty() {
+    if !win.is_empty() && complete_advisory {
         report.push(format!(
             "adv   aggregate alloc {win_old_sum}->{win_new_sum} ({:+}) [advisory, not gated]",
             win_new_sum as i128 - win_old_sum as i128
         ));
+    }
+
+    if !win.is_empty() && !complete_advisory {
+        report.push("adv   aggregate alloc unavailable [advisory, not gated]".to_owned());
     }
 
     // NOREG cases: named explicitly so the small-relation guard is a documented part of
@@ -1889,7 +2352,7 @@ fn compare_baselines(
             if let (Some(op), Some(np)) = (u(ov, "peak_live_bytes"), u(nv, "peak_live_bytes")) {
                 report.push(format!(
                     "NOREG {corpus}/{case:<30} peak {op}->{np} ({:+})",
-                    np as i64 - op as i64
+                    i128::from(np) - i128::from(op)
                 ));
             }
         } else {
@@ -1923,7 +2386,7 @@ fn run_compare_baseline(git_ref: &str) -> gmeow_errors::Result<()> {
             ),
         }));
     }
-    let old: Value = serde_json::from_slice(&out.stdout).map_err(|e| {
+    let old: Value = json::record::read_document(&out.stdout).map_err(|e| {
         Diag::of_kind(Serialize {
             detail: format!("parsing prior baseline at {spec}: {e}"),
         })
@@ -1933,7 +2396,7 @@ fn run_compare_baseline(git_ref: &str) -> gmeow_errors::Result<()> {
             detail: format!("reading working-tree bench/cost-baseline.json: {e}"),
         })
     })?;
-    let new: Value = serde_json::from_slice(&new_bytes).map_err(|e| {
+    let new: Value = json::record::read_document(&new_bytes).map_err(|e| {
         Diag::of_kind(Serialize {
             detail: format!("parsing working-tree bench/cost-baseline.json: {e}"),
         })
@@ -1953,7 +2416,7 @@ fn run_compare_baseline(git_ref: &str) -> gmeow_errors::Result<()> {
         println!(
             "compare-baseline vs {git_ref}: PASS — peak_live_bytes STRICTLY DROPPED on all {} \
              deterministic peak-win cases (the authoritative win), non-increased on every \
-             case, evaluation byte-identical; aggregate alloc_bytes lower (advisory).",
+             case, evaluation byte-identical; advisory allocation availability reported above.",
             COST_PEAK_WIN_CASES.len()
         );
         Ok(())
@@ -2216,13 +2679,9 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
         disagreements += ledger.corpus_only;
         for f in divergence_findings(&ledger) {
             if f.code == "reason.divergence.corpus-only" {
-                findings.push(json!({
-                    "code": f.code,
-                    "finding_iri": f.finding_iri.clone().unwrap_or_default(),
-                    "anchor_iri": f.anchor_iri.clone().unwrap_or_default(),
-                    "antecedents": f.antecedents.clone(),
-                    "message": f.message,
-                }));
+                findings.push(Value::from(
+                    finding_record(&f)?.with("message", f.message.to_json()),
+                ));
             }
         }
     }
@@ -2237,16 +2696,13 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
     }
 
     findings.sort_by(|a, b| a["finding_iri"].as_str().cmp(&b["finding_iri"].as_str()));
-    let report = json!({
-        "schema": "gmeow.bench-engines.golden-gate/1",
-        "disagreement_count": disagreements,
-        "findings": findings,
-    });
-    let json = serde_json::to_string_pretty(&report).map_err(|e| {
-        Diag::of_kind(Serialize {
-            detail: e.to_string(),
-        })
-    })?;
+    let report = Value::from(
+        Object::new()
+            .with("schema", ("gmeow.bench-engines.golden-gate/1").to_json())
+            .with("disagreement_count", (disagreements).to_json())
+            .with("findings", (findings).to_json()),
+    );
+    let json = pretty_json(&report);
     println!("{json}");
     Err(Diag::of_kind(RunFailed {
         detail: format!(
@@ -2318,13 +2774,9 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
                     if f.code == "reason.divergence.corpus-only"
                         || f.code == "reason.divergence.dl-gap"
                     {
-                        findings.push(json!({
-                            "code": f.code,
-                            "finding_iri": f.finding_iri.clone().unwrap_or_default(),
-                            "anchor_iri": f.anchor_iri.clone().unwrap_or_default(),
-                            "antecedents": f.antecedents.clone(),
-                            "message": f.message,
-                        }));
+                        findings.push(Value::from(
+                            finding_record(&f)?.with("message", f.message.to_json()),
+                        ));
                     }
                 }
             }
@@ -2334,19 +2786,16 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
         // (a) gap-zero: ANY corpus-only disagreement or dl-gap breaks the soak window.
         if total_dl_gap != 0 || total_corpus_only != 0 {
             findings.sort_by(|a, b| a["finding_iri"].as_str().cmp(&b["finding_iri"].as_str()));
-            let report = json!({
-                "schema": "gmeow.bench-engines.soak/1",
-                "run": run_ix,
-                "window": window,
-                "corpus_only": total_corpus_only,
-                "dl_gap": total_dl_gap,
-                "findings": findings,
-            });
-            let json = serde_json::to_string_pretty(&report).map_err(|e| {
-                Diag::of_kind(Serialize {
-                    detail: e.to_string(),
-                })
-            })?;
+            let report = Value::from(
+                Object::new()
+                    .with("schema", ("gmeow.bench-engines.soak/1").to_json())
+                    .with("run", (run_ix).to_json())
+                    .with("window", (window).to_json())
+                    .with("corpus_only", (total_corpus_only).to_json())
+                    .with("dl_gap", (total_dl_gap).to_json())
+                    .with("findings", (findings).to_json()),
+            );
+            let json = pretty_json(&report);
             println!("{json}");
             return Err(Diag::of_kind(RunFailed {
                 detail: format!(
@@ -2369,19 +2818,16 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
     let first = run_digests[0].clone();
     for (ix, d) in run_digests.iter().enumerate() {
         if *d != first {
-            let report = json!({
-                "schema": "gmeow.bench-engines.soak/1",
-                "window": window,
-                "reproducibility": false,
-                "run": ix + 1,
-                "expected_finding_graph_blake3": first,
-                "actual_finding_graph_blake3": d,
-            });
-            let json = serde_json::to_string_pretty(&report).map_err(|e| {
-                Diag::of_kind(Serialize {
-                    detail: e.to_string(),
-                })
-            })?;
+            let report = Value::from(
+                Object::new()
+                    .with("schema", ("gmeow.bench-engines.soak/1").to_json())
+                    .with("window", (window).to_json())
+                    .with("reproducibility", (false).to_json())
+                    .with("run", (ix + 1).to_json())
+                    .with("expected_finding_graph_blake3", (first).to_json())
+                    .with("actual_finding_graph_blake3", (d).to_json()),
+            );
+            let json = pretty_json(&report);
             println!("{json}");
             return Err(Diag::of_kind(RunFailed {
                 detail: format!(
@@ -2491,7 +2937,14 @@ fn cost_tuples(tuples: &[(String, String, u32, u64)]) -> Value {
     Value::Array(
         tuples
             .iter()
-            .map(|(rule, pred, stratum, count)| json!([rule, pred, stratum, count]))
+            .map(|(rule, pred, stratum, count)| {
+                Value::Array(vec![
+                    (rule).to_json(),
+                    (pred).to_json(),
+                    (stratum).to_json(),
+                    (count).to_json(),
+                ])
+            })
             .collect(),
     )
 }
@@ -2551,440 +3004,5 @@ fn print_advisory_table(rows: &[AdvisoryRow]) {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// A two-case cost baseline for the `--compare-baseline` comparator: one WIN case
-    /// (`c/win`) and one small NOREG case (`c/small`), each with the fields the gate reads.
-    fn compare_doc(win_alloc: u64, win_peak: u64, small_peak: u64, steps: u64) -> Value {
-        json!({
-            "cases": [
-                {"corpus": "c", "case": "win", "native": {
-                    "alloc_bytes": win_alloc, "peak_live_bytes": win_peak,
-                    "consumed_steps": steps, "derived_count": 3, "cost_vector": []}},
-                {"corpus": "c", "case": "small", "native": {
-                    "alloc_bytes": 100, "peak_live_bytes": small_peak,
-                    "consumed_steps": 1, "derived_count": 1, "cost_vector": []}},
-            ]
-        })
-    }
-
-    /// The `--compare-baseline` comparator is FALSIFIABLE: it PASSES a genuine win (the
-    /// authoritative `peak_live_bytes` strictly dropping on the named win case, other peaks
-    /// non-increased, evaluation byte-identical) and FAILS each distinct violation — a
-    /// peak-win that does NOT strictly drop, a peak regression on another case, and a
-    /// determinism drift.  It also proves `alloc_bytes` is ADVISORY: even a gross alloc
-    /// balloon does NOT fail as long as the deterministic peak win holds.
-    #[test]
-    fn compare_baselines_gates_win_and_regressions() {
-        let peak_win: &[(&str, &str)] = &[("c", "win")];
-        let win: &[(&str, &str)] = &[("c", "win")];
-        let noreg: &[(&str, &str)] = &[("c", "small")];
-        // `c/win` old peak 500; `c/small` old peak 300.
-        let old = compare_doc(100_000, 500, 300, 3);
-
-        // PASS: c/win peak strictly drops 500->480, c/small peak flat, determinism same.
-        let (_r, v) = compare_baselines(
-            &old,
-            &compare_doc(98_000, 480, 300, 3),
-            peak_win,
-            win,
-            noreg,
-        );
-        assert!(v.is_empty(), "a clean peak win must pass, got: {v:?}");
-
-        // FAIL: the peak-win case's peak_live_bytes did NOT strictly drop (flat 500->500).
-        let (_r, v) = compare_baselines(
-            &old,
-            &compare_doc(98_000, 500, 300, 3),
-            peak_win,
-            win,
-            noreg,
-        );
-        assert!(
-            v.iter().any(|s| s.contains("did not strictly drop")),
-            "a flat peak on the win case must fail, got: {v:?}"
-        );
-
-        // ADVISORY: a gross alloc balloon (100_000->200_000) does NOT fail — alloc is not
-        // gated; the peak win (500->480) still holds, so the verdict is PASS.
-        let (_r, v) = compare_baselines(
-            &old,
-            &compare_doc(200_000, 480, 300, 3),
-            peak_win,
-            win,
-            noreg,
-        );
-        assert!(
-            v.is_empty(),
-            "alloc_bytes is advisory: a balloon must NOT fail while the peak win holds, got: {v:?}"
-        );
-
-        // FAIL: peak_live_bytes regressed on the small (non-win) case.
-        let (_r, v) = compare_baselines(
-            &old,
-            &compare_doc(98_000, 480, 999, 3),
-            peak_win,
-            win,
-            noreg,
-        );
-        assert!(
-            v.iter().any(|s| s.contains("REGRESSED")),
-            "a peak-live regression must fail, got: {v:?}"
-        );
-
-        // FAIL: the evaluation moved (consumed_steps changed) — not byte-identical.
-        let (_r, v) = compare_baselines(
-            &old,
-            &compare_doc(98_000, 480, 300, 7),
-            peak_win,
-            win,
-            noreg,
-        );
-        assert!(
-            v.iter().any(|s| s.contains("consumed_steps changed")),
-            "a determinism drift must fail, got: {v:?}"
-        );
-    }
-
-    /// A minimal per-case deterministic record with the fields the cost-regression
-    /// check compares, carrying fixed allocation scalars.
-    fn rec(corpus: &str, case: &str, steps: u64) -> Value {
-        rec_alloc(corpus, case, steps, 10_000, 100)
-    }
-
-    /// Like [`rec`] but with explicit total-allocation scalars, so the tolerance-band
-    /// gate can be exercised at chosen `(alloc_bytes, alloc_count)` values.
-    fn rec_alloc(
-        corpus: &str,
-        case: &str,
-        steps: u64,
-        alloc_bytes: u64,
-        alloc_count: u64,
-    ) -> Value {
-        json!({
-            "corpus": corpus,
-            "case": case,
-            "world": "urn:gmeow:test:world",
-            "native": {
-                "consumed_steps": steps,
-                "derived_count": 3,
-                "alloc_bytes": alloc_bytes,
-                "alloc_count": alloc_count,
-                "peak_live_bytes": 100,
-                "cost_vector": [],
-            },
-            "agreement": { "native_vs_golden": true, "native_vs_reference": true },
-        })
-    }
-
-    /// Write a JSON artifact into a fresh cost-baseline temp directory.
-    ///
-    /// The returned [`tempfile::TempDir`] OWNS the artifact: bind it to a live local
-    /// (`let (_tmp, base) = write_baseline_doc(&doc);`) for as long as the path is
-    /// read; dropping it removes the directory and the artifact, on success, on early
-    /// return, and on panic alike. The artifact keeps its `.json` name — the same
-    /// shape the committed cost baseline has on disk — and the enclosing directory
-    /// now carries the uniqueness the pid/nanos salt used to.
-    fn write_baseline_doc(document: &Value) -> (tempfile::TempDir, PathBuf) {
-        let tmp = tempfile::Builder::new()
-            .prefix("gmeow-cost-baseline-test-")
-            .tempdir()
-            .expect("create cost-baseline temp dir");
-        let p = tmp.path().join("cost-baseline.json");
-        std::fs::write(&p, serde_json::to_string(document).unwrap()).unwrap();
-        (tmp, p)
-    }
-
-    /// Write a minimal per-case cost baseline artifact into a fresh temp directory.
-    fn write_baseline(cases: Vec<Value>) -> (tempfile::TempDir, PathBuf) {
-        write_baseline_doc(&json!({ "cases": cases }))
-    }
-
-    fn parallelism_record() -> Value {
-        json!({
-            "fixture": "balanced-six-rule-v1",
-            "worker_count": 4,
-            "rule_count": 6,
-            "seed_rows": 24,
-            "derived_rows": 120,
-            "consumed_steps": 120,
-            "parallel_rounds": 3,
-            "rule_tasks": 18,
-            "serial_candidate_rows": 144,
-            "critical_path_candidate_rows": 48,
-            "critical_path_rows_saved": 96,
-            "max_buffered_candidate_rows": 96,
-            "max_task_candidate_rows": 24,
-            "budget_cases": 8,
-            "output_parity": true,
-            "budget_parity": true,
-            "parallel_path_entered": true,
-            "critical_path_strictly_lower": true,
-            "closure_blake3": "6e7c8e8dfb2c3d6537ba91ce1ec2d0c22be9cb2d66d595213493506047eb54f3",
-        })
-    }
-
-    #[test]
-    fn cost_descriptor_is_stable_and_count_sensitive() {
-        let a = rec("c", "x", 3);
-        let b = rec("c", "x", 3);
-        assert_eq!(
-            cost_descriptor(&a),
-            cost_descriptor(&b),
-            "identical records must yield identical descriptors"
-        );
-        let changed = rec("c", "x", 4);
-        assert_ne!(
-            cost_descriptor(&a),
-            cost_descriptor(&changed),
-            "a changed consumed_steps count must change the descriptor"
-        );
-    }
-
-    #[test]
-    fn cost_descriptor_excludes_the_nonreproducible_alloc_totals() {
-        // Two records identical except for the total-allocation scalars must yield the
-        // SAME exact descriptor — the totals gate through the tolerance band, not here, so
-        // their run-to-run jitter can never flake the exact `::cost` comparison.
-        let a = rec_alloc("c", "x", 3, 10_000, 100);
-        let b = rec_alloc("c", "x", 3, 999_999, 9_999);
-        assert_eq!(
-            cost_descriptor(&a),
-            cost_descriptor(&b),
-            "alloc_bytes/alloc_count must NOT enter the exact descriptor"
-        );
-        // …but peak_live_bytes (deterministic) MUST still be in the descriptor.
-        assert!(
-            cost_descriptor(&a).contains("peak_live_bytes"),
-            "the deterministic peak_live_bytes must remain in the exact descriptor"
-        );
-    }
-
-    #[test]
-    fn provenance_descriptor_excludes_advisory_counts_but_keeps_exact_peak() {
-        let provenance = || {
-            json!({
-                "record": {"alloc_count": 100, "peak_live_bytes": 900},
-                "skip": {"alloc_count": 80, "peak_live_bytes": 700},
-                "record_alloc_count_overhead": 20,
-                "record_peak_overhead_bytes": 200,
-                "closure_parity": true,
-                "step_parity": true,
-            })
-        };
-        let mut a = rec("c", "p", 3);
-        a["native"]["provenance"] = provenance();
-        let mut b = a.clone();
-        b["native"]["provenance"]["record"]["alloc_count"] = json!(9_999);
-        b["native"]["provenance"]["skip"]["alloc_count"] = json!(1);
-        b["native"]["provenance"]["record_alloc_count_overhead"] = json!(9_998);
-        assert_eq!(
-            cost_descriptor(&a),
-            cost_descriptor(&b),
-            "per-mode allocation-count jitter must stay outside exact identity"
-        );
-
-        b["native"]["provenance"]["record"]["peak_live_bytes"] = json!(901);
-        assert_ne!(
-            cost_descriptor(&a),
-            cost_descriptor(&b),
-            "per-mode peak-live is deterministic and must remain exact"
-        );
-    }
-
-    #[test]
-    fn incremental_grounding_descriptor_keeps_work_and_solver_honesty_exact() {
-        let mut baseline = rec("c", "ground", 1);
-        baseline["native"]["grounding"] = json!({
-            "ground_rule_probe_rows": 28,
-            "ground_rule_changes": 1,
-            "solver_status": "flagged-non-incremental",
-            "solver_reran": true,
-        });
-
-        let mut changed_work = baseline.clone();
-        changed_work["native"]["grounding"]["ground_rule_probe_rows"] = json!(29);
-        assert_ne!(
-            cost_descriptor(&baseline),
-            cost_descriptor(&changed_work),
-            "grounding probe work is deterministic and must remain exact"
-        );
-
-        let mut overclaimed = baseline.clone();
-        overclaimed["native"]["grounding"]["solver_status"] = json!("incremental");
-        assert_ne!(
-            cost_descriptor(&baseline),
-            cost_descriptor(&overclaimed),
-            "the explicit non-incremental solver status is part of exact identity"
-        );
-    }
-
-    #[test]
-    fn incremental_grounding_requires_both_changed_solver_shots_to_be_flagged() {
-        assert!(changed_solver_shots_are_flagged(
-            true,
-            "flagged-non-incremental",
-            true,
-            "flagged-non-incremental",
-        ));
-        assert!(!changed_solver_shots_are_flagged(
-            true,
-            "flagged-non-incremental",
-            true,
-            "incremental",
-        ));
-        assert!(!changed_solver_shots_are_flagged(
-            true,
-            "flagged-non-incremental",
-            false,
-            "flagged-non-incremental",
-        ));
-    }
-
-    #[test]
-    fn incremental_grounding_reference_agreement_is_semantic_only() {
-        assert!(grounding_semantic_parity(true, true));
-        assert!(!grounding_semantic_parity(true, false));
-        assert!(!grounding_semantic_parity(false, true));
-    }
-
-    #[test]
-    fn alloc_band_passes_within_tolerance() {
-        // Baseline alloc_count=10000/bytes=1_000_000; a fresh run 0.5% higher is inside
-        // the 1% band → no regression (the sub-ε jitter the band is designed to absorb).
-        let fresh = vec![rec_alloc("c", "x", 3, 1_005_000, 10_050)];
-        let (_tmp, base) = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
-        let out = run_cost_regression_check(&base, &fresh);
-        assert!(
-            out.is_ok(),
-            "a fresh alloc within the 1% band must not regress: {out:?}"
-        );
-    }
-
-    #[test]
-    fn alloc_count_band_absorbs_measured_quantum_but_still_bites() {
-        assert!(within_alloc_band(1_835, 1_793, ALLOC_COUNT_JITTER_FLOOR));
-        assert_eq!(alloc_band_ceiling(1_793, ALLOC_COUNT_JITTER_FLOOR), 1_835);
-        assert!(
-            !within_alloc_band(1_836, 1_793, ALLOC_COUNT_JITTER_FLOOR),
-            "one allocation beyond the measured 42-count span must fail"
-        );
-        assert_eq!(
-            alloc_band_ceiling(1_000_000, ALLOC_COUNT_JITTER_FLOOR),
-            1_010_000,
-            "the 1% relative band dominates for large totals"
-        );
-    }
-
-    #[test]
-    fn alloc_band_hard_fails_on_allocation_regression() {
-        // FALSIFIABLE alloc gate: the committed baseline row records a SMALLER alloc_count
-        // (10000) than the fresh run allocates (20000, +100% ≫ the 1% band) → the one-sided
-        // tolerance band is breached → a blocking CorpusOnly cost-regression (hard fail).
-        // Proves the alloc gate BITES, not just passes vacuously.
-        let fresh = vec![rec_alloc("c", "x", 3, 2_000_000, 20_000)];
-        let (_tmp, base) = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
-        let out = run_cost_regression_check(&base, &fresh);
-        assert!(
-            out.is_err(),
-            "a fresh alloc_count far above the baseline band must be a cost regression"
-        );
-    }
-
-    #[test]
-    fn alloc_band_hard_fails_when_baseline_lacks_alloc_fields() {
-        // A stale baseline whose `native` object predates the alloc columns is a hard
-        // error (regenerate hint), never a silent skip that would let alloc stop gating.
-        let fresh = vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)];
-        let mut stale = rec_alloc("c", "x", 3, 1_000_000, 10_000);
-        let native = stale.get_mut("native").unwrap().as_object_mut().unwrap();
-        native.remove("alloc_bytes");
-        native.remove("alloc_count");
-        let (_tmp, base) = write_baseline(vec![stale]);
-        let out = run_cost_regression_check(&base, &fresh);
-        assert!(
-            out.is_err(),
-            "a baseline record missing the alloc columns must hard-fail, never skip the gate"
-        );
-    }
-
-    #[test]
-    fn regression_check_passes_on_match() {
-        let fresh = vec![rec("c", "x", 3)];
-        let (_tmp, base) = write_baseline(vec![rec("c", "x", 3)]);
-        let out = run_cost_regression_check(&base, &fresh);
-        assert!(
-            out.is_ok(),
-            "an identical fresh run must not regress: {out:?}"
-        );
-    }
-
-    #[test]
-    fn regression_check_hard_fails_on_count_divergence() {
-        // Fresh run has consumed_steps=3; the committed baseline recorded 4 → a
-        // deterministic-count divergence is a cost regression (hard fail).
-        let fresh = vec![rec("c", "x", 3)];
-        let (_tmp, base) = write_baseline(vec![rec("c", "x", 4)]);
-        let out = run_cost_regression_check(&base, &fresh);
-        assert!(
-            out.is_err(),
-            "a diverged deterministic count must be a cost regression"
-        );
-    }
-
-    #[test]
-    fn soak_rejects_window_below_two() {
-        // A window of 0 or 1 is a single-run tally, NOT soak evidence — the N-run
-        // longitudinal reproducibility contract requires N >= 2. The guard runs before
-        // any case is driven, so an empty corpus slice still surfaces the contract error.
-        for n in [0usize, 1] {
-            let out = run_soak(&[], n);
-            assert!(
-                out.is_err(),
-                "a soak window of {n} must be rejected (< 2 is not a soak window)"
-            );
-        }
-    }
-
-    #[test]
-    fn regression_check_hard_fails_on_dropped_case() {
-        // The baseline has a case the fresh run does not produce → divergence.
-        let fresh = vec![rec("c", "x", 3)];
-        let (_tmp, base) = write_baseline(vec![rec("c", "x", 3), rec("c", "y", 5)]);
-        let out = run_cost_regression_check(&base, &fresh);
-        assert!(
-            out.is_err(),
-            "a case present in the baseline but absent from the fresh run must regress"
-        );
-    }
-
-    #[test]
-    fn rule_parallelism_regression_check_is_exact_and_bites() {
-        let fresh = parallelism_record();
-        let (_matching_tmp, matching) =
-            write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
-        let match_result = run_parallelism_regression_check(&matching, &fresh);
-        assert!(
-            match_result.is_ok(),
-            "identical structural evidence must pass: {match_result:?}"
-        );
-
-        let mut drifted = fresh.clone();
-        drifted["critical_path_candidate_rows"] = json!(49);
-        let (_baseline_tmp, baseline) =
-            write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
-        let drift_result = run_parallelism_regression_check(&baseline, &drifted);
-        assert!(
-            drift_result.is_err(),
-            "one changed structural count must produce a blocking divergence"
-        );
-
-        let (_absent_tmp, absent) = write_baseline_doc(&json!({ "cases": [] }));
-        let absent_result = run_parallelism_regression_check(&absent, &fresh);
-        assert!(
-            absent_result.is_err(),
-            "a baseline without the multi-worker record must hard-fail"
-        );
-    }
-}
+#[path = "json_tests.rs"]
+mod tests;

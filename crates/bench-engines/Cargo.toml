@@ -43,9 +43,8 @@ gmeow-cost-measure = { path = "../cost-measure" }
 # Native RDF text codecs: parse the world-scoped EDB N-Quads into the frozen
 # `RdfDataset` IR (`purrdf::parse_dataset`) the forward/existential seams consume.
 purrdf.workspace = true
-# Canonical JSON (sorted BTreeMap keys — NO `preserve_order`) for the deterministic
-# cost/agreement artifact: identical inputs ⇒ identical bytes, the drift-gate form.
-serde_json.workspace = true
+# Native free-form JSON, normalized to sorted last-wins objects at wire boundaries.
+purrdf-lex.workspace = true
 # blake3 fingerprints of canonically-sorted engine result rows / answer bindings,
 # the stable verdict-agreement tokens the divergence ledger folds.
 purrdf-hash.workspace = true
