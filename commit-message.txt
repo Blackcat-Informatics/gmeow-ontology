@@ -1,0 +1,8 @@
+docs(math): explain exact linear algebra carriers
+
+Add distinct usage, scope and worked-triple guidance for eight existing
+form, matrix, vector, norm and distance classes, paired with French and
+Chinese translations of their labels, definitions and new guidance.
+Preserve mathematical axioms, bridges and existing definitions.
+
+Refs #1656. Principles 4 and 7.

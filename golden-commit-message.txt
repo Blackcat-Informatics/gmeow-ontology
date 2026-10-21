@@ -1,0 +1,10 @@
+test(i18n): refresh reviewed coverage from hosted catalogs
+
+Copy the exact native producer output after reviewing the complete source
+history delta since the August golden. Include the paired Math guidance
+and earlier merged catalog additions and term retirements.
+
+Keep pre-existing quality-profile Chinese translation debt visible.
+No source translations, parser policy or coverage floors change here.
+
+Refs #1656. Principles 4 and 7.
