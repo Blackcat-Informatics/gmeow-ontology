@@ -804,3 +804,199 @@ msgstr "同时记录精确稳定词元、hasReferenceFrame 与 witnessedLocus。
 msgctxt "https://blackcatinformatics.ca/gmeow/witnessedAtHead|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when replay needs the environment state that was actually witnessed."
 msgstr "用于重放需要实际见证的环境状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Policy finding"
+msgstr "策略发现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation by a named policy process about a judged claim, with a policy-defined finding as its result."
+msgstr "具名策略进程针对受评断言作出的观察，其结果是该策略定义的发现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:claim ; gmeow:observationResult ex:speakerMismatch ."
+msgstr "ex:发现 a gmeow:PolicyFinding ; gmeow:vantage ex:策略V2 ; gmeow:observedFeature ex:断言 ; gmeow:observationResult ex:发言者不匹配 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A finding records the policy perspective; it neither asserts the judged claim nor mandates rejection of a write."
+msgstr "发现记录策略的视角，既不认可受评断言，也不要求拒绝写入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for admission, attribution or disclosure findings that must themselves retain provenance."
+msgstr "用于自身也必须保留来源的准入、归属或披露发现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a policy result as an unattributed truth or silently substituting it for the original claim."
+msgstr "不要将策略结果视为无归属的真理，也不要用它悄然替代原始断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the versioned policy as vantage, the judged claim as observedFeature and an explicit finding kind as observationResult."
+msgstr "以 vantage 标明带版本的策略，以 observedFeature 标明受评断言，以 observationResult 标明明确的发现类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Disclosure decision"
+msgstr "披露决定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation of how a policy treats a particular claim for a particular reader."
+msgstr "关于策略如何为特定读取者处理特定断言的观察。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:view a gmeow:DisclosureDecision ; gmeow:disclosureReader ex:reader ; gmeow:observedFeature ex:claim ; gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+msgstr "ex:视图 a gmeow:DisclosureDecision ; gmeow:disclosureReader ex:读取者 ; gmeow:observedFeature ex:断言 ; gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The decision is private policy evidence, not automatically part of the reader view. Different readers and policy versions retain distinct decisions."
+msgstr "决定是私有的策略证据，不会自动成为读取者视图的一部分。不同读取者及策略版本各自保留独立决定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an explicit reader-relative release or withholding outcome."
+msgstr "用于记录针对读取者的明确发布或隐藏结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid leaking a hidden claim through its decision record or inferring an outcome from missing metadata."
+msgstr "不要通过决定记录泄露隐藏断言，也不要从缺失元数据推断结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureDecision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind disclosureReader, observedFeature, policy vantage and a DisclosureOutcome through observationResult; apply the selected policy before emitting any reader-visible record."
+msgstr "绑定 disclosureReader、observedFeature、策略视角，并通过 observationResult 指定 DisclosureOutcome；输出任何读取者可见记录前先应用所选策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "disclosure reader"
+msgstr "披露读取者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader principal for whom a disclosure decision was made."
+msgstr "披露决定所针对的读取者主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:disclosureReader ex:alice ."
+msgstr "ex:决定 gmeow:disclosureReader ex:小明 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reader is separate from the claim observer, the signing agent and the policy vantage."
+msgstr "读取者与断言观察者、签名代理及策略视角相互独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind a decision to its explicitly selected reader."
+msgstr "用于将决定绑定到明确选定的读取者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using reader identity as observer attribution or as proof of authorization."
+msgstr "不要将读取者身份当作观察归属或授权证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReader|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the reader Agent on the decision; retain separate decisions when another principal receives a different view."
+msgstr "在决定中标明读取者 Agent；另一主体获得不同视图时保留独立决定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Disclosure outcome"
+msgstr "披露结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit result of applying a disclosure policy for a reader, including release and distinct forms of withholding."
+msgstr "对读取者应用披露策略得到的明确结果，包括发布及不同形式的隐藏。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:disclosureVisibleRedaction a gmeow:DisclosureOutcome ."
+msgstr "gmeow:disclosureVisibleRedaction a gmeow:DisclosureOutcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An open result vocabulary, separate from sensitivity, policy posture and truth. No result is implied by absence."
+msgstr "开放的结果词汇，与敏感性、策略立场及真值分离。缺失不隐含任何结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the individual-valued result of a DisclosureDecision."
+msgstr "用于 DisclosureDecision 的个体值结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the result as permission to bypass the selected reader policy."
+msgstr "不要将结果当作绕过所选读取者策略的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisclosureOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an outcome individual through observationResult and preserve the reader and policy that produced it."
+msgstr "通过 observationResult 引用结果个体，并保留产生结果的读取者及策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "released to reader"
+msgstr "向读取者发布"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reader policy permits emitting the claim in its authorized projected form."
+msgstr "所选读取者策略允许以获授权的投影形式输出断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:observationResult gmeow:disclosureReleased ."
+msgstr "ex:决定 gmeow:observationResult gmeow:disclosureReleased ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Release may still require coarsening or suppression of fields under the policy; it is not a public-release flag."
+msgstr "发布仍可能要求按策略降低精度或隐藏字段，并不表示公开发布。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when this reader may receive the policy-selected projection."
+msgstr "用于该读取者可以接收策略选定投影的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extending one reader permission to other readers or the unprojected source."
+msgstr "不要将某个读取者的许可扩展到其他读取者或未投影源数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureReleased|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit only the authorized projection and retain the private decision with its reader and policy."
+msgstr "仅输出获授权投影，私下保留包含读取者及策略的决定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "visible redaction"
+msgstr "可见遮蔽"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Withhold the protected content while permitting an explicit indication that content was withheld."
+msgstr "隐藏受保护内容，同时允许明确显示有内容被隐藏。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:observationResult gmeow:disclosureVisibleRedaction ."
+msgstr "ex:决定 gmeow:observationResult gmeow:disclosureVisibleRedaction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Acknowledgement itself is a disclosure and must be permitted for this reader."
+msgstr "确认存在本身就是披露，必须获准向该读取者提供。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader may know that protected content exists."
+msgstr "用于允许读取者知道受保护内容存在的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid when even existence, identifiers or result counts must remain hidden."
+msgstr "若连存在性、标识符或结果计数也必须隐藏，则不要使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureVisibleRedaction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit only the permitted redaction indicator; omit the protected content and any unauthorized metadata."
+msgstr "仅输出获准的遮蔽提示，省略受保护内容及所有未经授权的元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "non-acknowledgement"
+msgstr "不确认存在"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Withhold content without revealing to the reader that anything was withheld."
+msgstr "隐藏内容，并且不向读取者透露有任何内容被隐藏。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+msgstr "ex:决定 gmeow:observationResult gmeow:disclosureNonAcknowledgement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reader-visible graph contains no redaction marker, hidden-claim identifier or decision record that acknowledges the omission."
+msgstr "读取者可见图中不得包含遮蔽标记、隐藏断言标识符或确认该省略的决定记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the policy withholds the existence of the protected claim as well as its content."
+msgstr "用于策略同时隐藏受保护断言的存在性及内容的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exposing the private decision, counts or provenance links that reveal the hidden claim."
+msgstr "不要暴露会揭示隐藏断言的私有决定、计数或来源链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disclosureNonAcknowledgement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the decision on the policy side and apply non-acknowledgement to every reader-visible surface, including errors and pagination."
+msgstr "将决定保留在策略侧，并在所有读取者可见界面上执行不确认存在，包括错误及分页。"

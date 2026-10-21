@@ -693,3 +693,17 @@ gmeow:verificationStatusFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:verificationStatus and nothing else. It is not a definition of gmeow:verificationStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:verificationStatusFunctionality logic:characterizes gmeow:verificationStatus ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+
+gmeow:boundToKey
+    a logic:ObjectProperty ;
+    logic:domain logic:Individual ; logic:range gmeow:CryptographicKey ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "bound to key"@x-gmeow-english ;
+    skos:definition "A claimed binding from an agent or standpoint to a cryptographic key used to authenticate that vantage under a relying policy."@x-gmeow-english ;
+    skos:example "ex:observer gmeow:boundToKey ex:observerKey ."@x-gmeow-english ;
+    skos:scopeNote "A binding assertion is evidence to evaluate, not self-granted authority. Keys are entities; short key identifiers are not unique bindings. Rotated and disputed bindings may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the vantage-to-key binding checked by a consumer admission policy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring observer identity from the signer, accepting an untrusted binding or treating key possession alone as authorization."@x-gmeow-english ;
+    gmeow:howToUse "Reference a CryptographicKey, retain dated and attributed binding evidence, and check it against the verified signature and selected policy; reuse Certification for an agent-key attestation."@x-gmeow-english .

@@ -125,6 +125,12 @@ schema:MonetaryAmount and the FIBO monetary amount.
 
 ## The evaluative-primitive vocabulary
 
+Policy findings and reader-specific disclosure decisions are observations too.
+`PolicyFinding` reuses the policy vantage, judged feature and explicit result;
+`DisclosureDecision` adds `disclosureReader` and a `DisclosureOutcome` result.
+See the [identity and disclosure guide](../../../docs/identity-and-disclosure.md)
+for recording-only admission, signature separation and private decision records.
+
 ### gmeow:Assessment · gmeow:assessmentCriterion · gmeow:assessmentRubric · gmeow:assessmentTarget · gmeow:assessmentScoreValue
 
 Promoted to core from the norms extension (Principle 16): scoring a target against a

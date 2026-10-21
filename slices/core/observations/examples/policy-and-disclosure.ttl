@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <https://example.org/policy-disclosure/> .
+
+# These are private policy records, never the non-acknowledging reader view.
+ex:policyV2 a gmeow:SoftwareAgent ; gmeow:versionLabel "2" .
+ex:operator a gmeow:Agent .
+ex:guest a gmeow:Agent .
+ex:outsider a gmeow:Agent .
+ex:writer a gmeow:SoftwareAgent .
+ex:writerAttempt a gmeow:InformationObject ;
+    rdf:reifies <<( ex:topic gmeow:description "untagged prose" )>> ;
+    gmeow:wasAttributedTo ex:writer .
+ex:protectedClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:record gmeow:description "private note"@en )>> .
+ex:untaggedProse a logic:Individual .
+
+ex:finding a gmeow:PolicyFinding ;
+    gmeow:vantage ex:policyV2 ;
+    gmeow:observedFeature ex:writerAttempt ;
+    gmeow:observationResult ex:untaggedProse .
+
+ex:operatorDecision a gmeow:DisclosureDecision ;
+    gmeow:vantage ex:policyV2 ;
+    gmeow:observedFeature ex:protectedClaim ;
+    gmeow:disclosureReader ex:operator ;
+    gmeow:observationResult gmeow:disclosureReleased .
+ex:guestDecision a gmeow:DisclosureDecision ;
+    gmeow:vantage ex:policyV2 ;
+    gmeow:observedFeature ex:protectedClaim ;
+    gmeow:disclosureReader ex:guest ;
+    gmeow:observationResult gmeow:disclosureVisibleRedaction .
+ex:outsiderDecision a gmeow:DisclosureDecision ;
+    gmeow:vantage ex:policyV2 ;
+    gmeow:observedFeature ex:protectedClaim ;
+    gmeow:disclosureReader ex:outsider ;
+    gmeow:observationResult gmeow:disclosureNonAcknowledgement .

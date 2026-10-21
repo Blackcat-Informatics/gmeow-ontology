@@ -8,6 +8,43 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix ot: <https://example.org/observation-record-tests/> .
 
+test:cqDisclosureReaders a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/policy-and-disclosure.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?reader ?outcome WHERE { ?decision a gmeow:DisclosureDecision ; gmeow:disclosureReader ?reader ; gmeow:observationResult ?outcome . }" ;
+    gmeow:cqRationale "One protected claim retains separate, explicit results for its operator, guest and outsider; visible redaction and non-acknowledgement never collapse into one withholding flag." ;
+    gmeow:cqResultShape test:shapeDisclosureReaders ;
+    gmeow:cqExpectRow test:rowDisclosureOperator, test:rowDisclosureGuest, test:rowDisclosureOutsider .
+
+test:shapeDisclosureReaders a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "reader" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "outcome" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+test:rowDisclosureOperator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reader" ; gmeow:cellValueIri <https://example.org/policy-disclosure/operator> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:disclosureReleased ] .
+test:rowDisclosureGuest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reader" ; gmeow:cellValueIri <https://example.org/policy-disclosure/guest> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:disclosureVisibleRedaction ] .
+test:rowDisclosureOutsider a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reader" ; gmeow:cellValueIri <https://example.org/policy-disclosure/outsider> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri gmeow:disclosureNonAcknowledgement ] .
+
+test:cqPolicyFindingRoles a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/policy-and-disclosure.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?policy ?claim ?kind WHERE { ?finding a gmeow:PolicyFinding ; gmeow:vantage ?policy ; gmeow:observedFeature ?claim ; gmeow:observationResult ?kind . ?claim rdf:reifies ?quoted . FILTER NOT EXISTS { <https://example.org/policy-disclosure/topic> gmeow:description ?leaked } }" ;
+    gmeow:cqRationale "A finding names the versioned policy, judged write attempt and policy-owned result without asserting the submitted content or forcing admission rejection." ;
+    gmeow:cqResultShape test:shapePolicyFindingRoles ;
+    gmeow:cqExpectRow test:rowPolicyFindingRoles .
+test:shapePolicyFindingRoles a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "policy" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+test:rowPolicyFindingRoles a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "policy" ; gmeow:cellValueIri <https://example.org/policy-disclosure/policyV2> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri <https://example.org/policy-disclosure/writerAttempt> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri <https://example.org/policy-disclosure/untaggedProse> ] .
+
 test:cqRefinementOutcomes a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/refinement-readings.ttl" ;
     gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX ex: <https://example.org/refinement/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX lang: <https://blackcatinformatics.ca/lang/> SELECT ?reading ?outcome WHERE { VALUES ?reading { ex:resolved ex:guess ex:ambiguous ex:unresolved } ?reading a gmeow:Refinement ; gmeow:refinementOutcome ?outcome . }" ;

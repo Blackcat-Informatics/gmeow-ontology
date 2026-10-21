@@ -93,6 +93,12 @@ level, a window, or its own identity: the flat↔reified pairing in its standard
 
 ## Signatures
 
+`gmeow:boundToKey` records a claimed vantage-to-key binding without making
+possession or an untrusted assertion into authorization. The
+[identity and disclosure guide](../../../docs/identity-and-disclosure.md) shows
+how a verified signer, a certified binding and an observation's vantage remain
+separate, including when a refiner signs a derived claim.
+
 ### gmeow:CryptographicSignature
 
 A signature over any artifact — not only mail — asserting origin and integrity, with
