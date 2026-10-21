@@ -18,7 +18,7 @@
 //! are engine-emitted, and the six worked-example A-Box `.ttl` files plus the Croissant
 //! copy ride as caller-supplied `RoCrateAssets` payloads (each `.ttl` retagged
 //! `x-gmeow`→BCP-47 and re-serialized through the canonical Turtle path). The `dcat.ttl`
-//! runs the generated `dcat.rq` CONSTRUCT over the WHOLE composed ontology (every slice
+//! executes the typed DCAT projection over the WHOLE composed ontology (every slice
 //! source) plus the worked-example A-Box, canonicalized through the same purrdf Turtle
 //! fold, so it drifts with the ontology. The git-ignored crate `.zip` is NOT produced.
 
@@ -26,6 +26,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
+use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -1359,11 +1360,12 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), gmeow_errors::Diag> {
 // ── render: the committed artifact map ─────────────────────────────────────────
 
 /// Render every committed research-object artifact under `root`, keyed by its
-/// logical (repo-relative) path.
+/// logical (repo-relative) path. The native correspondence program comes directly
+/// from the same run's mappings carrier and is admitted against actual owned sources.
 pub fn render_research_objects(
     root: &Path,
     dcat_program: &[u8],
-    correspondence_laws: &[u8],
+    correspondence_program: CorrespondenceProgram,
     scores_ttl: &[u8],
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let store = load_instance_graph(root, scores_ttl)?;
@@ -1430,7 +1432,7 @@ pub fn render_research_objects(
     }
 
     // DCAT: CONSTRUCT over the whole composed ontology + the worked-example A-Box.
-    let dcat = render_dcat(root, dcat_program, correspondence_laws, scores_ttl)?;
+    let dcat = render_dcat(root, dcat_program, correspondence_program, scores_ttl)?;
     out.insert(p("lillith.dcat.ttl"), dcat.into_bytes());
 
     // DataCite XML — purrdf project_datacite.
@@ -1467,7 +1469,7 @@ pub fn render_research_objects(
 fn render_dcat(
     root: &Path,
     dcat_program: &[u8],
-    correspondence_laws: &[u8],
+    correspondence_program: CorrespondenceProgram,
     scores_ttl: &[u8],
 ) -> Result<String, gmeow_errors::Diag> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
@@ -1481,10 +1483,9 @@ fn render_dcat(
     }
     let ontology_refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
     let ontology = RdfDataset::union(&ontology_refs)?;
-    let native = purrdf::parse_dataset(correspondence_laws, "application/n-triples", None)?;
     let catalog =
         gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_program(
-            gmeow_logic_compile::projections::correspondence::parse_correspondence(&native)?,
+            correspondence_program,
             &gmeow_logic_compile::ingest::DslView::new(&ontology),
             &gmeow_validate::grounding_catalog::discover(root)?,
         )?;
@@ -1511,7 +1512,7 @@ fn render_dcat(
         SparqlResult::Graph(graph) => graph,
         _ => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: "dcat.rq did not return a CONSTRUCT graph".into(),
+                message: "typed DCAT projection did not return a CONSTRUCT graph".into(),
             }));
         }
     };
@@ -1524,7 +1525,7 @@ fn render_dcat(
     }
     let canon = purrdf::native_quads::flat_dataset_from_quads(&quads).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("dcat.rq re-freeze: {e}"),
+            message: format!("typed DCAT projection re-freeze: {e}"),
         })
     })?;
     let nt = purrdf::serialize_dataset(
@@ -1534,7 +1535,7 @@ fn render_dcat(
     )
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("dcat.rq serialize N-Triples: {e}"),
+            message: format!("typed DCAT projection serialize N-Triples: {e}"),
         })
     })?;
     // Emit EXACTLY the canonical fold (shared prefix authority, no banner): the file
@@ -1549,6 +1550,26 @@ fn render_dcat(
 /// Required typed product, consumed from this run's mappings stage.
 const DCAT_QUERY_PATH: &str = "generated/queries/dcat.projection.json";
 
+/// Read this run's native correspondence program from the mappings RDF carrier.
+/// Missing or malformed selected graph data fails native admission; byte artifacts
+/// and generated files are never alternate authorities for this catalog. Project
+/// only the required graph into the native reader's default-graph view, including
+/// its graph-scoped statement layer; the original carrier is unchanged.
+fn mappings_correspondence_program(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<CorrespondenceProgram, gmeow_errors::Diag> {
+    let product = upstream.get("stage-mappings").ok_or_else(|| {
+        ro_err(format!(
+            "missing stage-mappings product for the <{}> graph",
+            super::carrier::GRAPH_CORRESPONDENCE_LAWS,
+        ))
+    })?;
+    let graph = product.dataset().project_graph(Some(&RdfTerm::iri(
+        super::carrier::GRAPH_CORRESPONDENCE_LAWS,
+    )))?;
+    gmeow_logic_compile::projections::correspondence::parse_correspondence(&graph)
+}
+
 /// The `research-objects` export-leaf stage.
 pub struct ResearchObjectsStage {
     consumes: Vec<String>,
@@ -1560,11 +1581,12 @@ impl ResearchObjectsStage {
     /// * `stage-export-evals` — to obtain `generated/evals/scores.ttl` (a product of the
     ///   SAME run, written to the git-ignored generated tree only by the post-pipeline
     ///   fanout) from that stage's in-memory product, and
-    /// * `stage-mappings` — to obtain the generated DCAT CONSTRUCT query
-    ///   (`generated/queries/dcat.rq`) from that stage's in-memory product.
+    /// * `stage-mappings` — to obtain the typed DCAT projection
+    ///   (`generated/queries/dcat.projection.json`) and native correspondence graph
+    ///   from that stage's in-memory product.
     ///
-    /// Both are sourced from the consumed product rather than re-reading the stale/absent
-    /// committed files off disk (the stale-disk-fold class): a scores or `dcat.rq` edit then
+    /// Both are sourced from the consumed product rather than re-reading stale/absent
+    /// generated files off disk: a scores or typed DCAT program edit then
     /// reaches the research objects in a single regenerate, and a cold clone (no materialized
     /// generated tree) still builds.
     /// Kept in sorted order to match the registry `consumes()` and the module.ttl
@@ -1596,18 +1618,20 @@ impl Stage for ResearchObjectsStage {
         // v4: croissant/datacite/frictionless/ro-crate are projected by the purrdf 0.12.0
         // research-object codecs (RO-Crate is Attached, payloads carried as RoCrateAssets); the
         // rdflib-parity serializers are gone and the goldens are re-blessed. DCAT stays on its
-        // whole-ontology `dcat.rq` CONSTRUCT. `scores.ttl`/`dcat.rq` still ride in from the
+        // whole-ontology typed DCAT CONSTRUCT. Scores, typed projection and native
+        // catalog ride in from the
         // consumed stage-export-evals / stage-mappings products (never a git-ignored disk read).
         "research_objects.v4"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the
         // language-tag map (root ontology + slice modules). NONE are in the composed fold, so
-        // declare them so any edit busts the cache. Two inputs are NOT declared here — they are
+        // declare them so any edit busts the cache. Produced inputs are NOT declared here — they are
         // generated projections consumed from upstream products (whose digests cover their
         // edits), never read off disk: `generated/evals/scores.ttl` (stage-export-evals) and
-        // `generated/queries/dcat.rq` (stage-mappings). A generated/ path in input_files would
-        // itself be the stale-disk-fold class.
+        // `generated/queries/dcat.projection.json` and its correspondence graph
+        // (stage-mappings). A generated/ path in input_files would itself be the
+        // stale-disk-fold class.
         let mut files: Vec<std::path::PathBuf> = Vec::new();
         for (rel, _) in AUTHORED_EXAMPLE_INPUTS {
             files.push(root.join(rel));
@@ -1624,7 +1648,7 @@ impl Stage for ResearchObjectsStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The typed DCAT capability, sourced from THIS run's stage-mappings
         // product (fail-closed: a missing artifact is a hard error, never a disk fallback).
-        let dcat_rq = input
+        let dcat_program = input
             .upstream
             .get("stage-mappings")
             .and_then(|p| p.artifact(DCAT_QUERY_PATH))
@@ -1637,16 +1661,7 @@ impl Stage for ResearchObjectsStage {
                     ),
                 })
             })?;
-        let correspondence_laws = input
-            .upstream
-            .get("stage-mappings")
-            .and_then(|product| product.artifact(super::carrier::CORRESPONDENCE_LAWS_PATH))
-            .ok_or_else(|| {
-                ro_err(
-                    "missing native correspondence catalog in this run's mappings product"
-                        .to_owned(),
-                )
-            })?;
+        let correspondence_program = mappings_correspondence_program(input.upstream)?;
         // `generated/evals/scores.ttl` from THIS run's stage-export-evals product
         // (fail-closed: a missing artifact is a hard error, never a disk fallback of the
         // git-ignored generated tree).
@@ -1665,7 +1680,7 @@ impl Stage for ResearchObjectsStage {
             })?;
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
-            render_research_objects(input.root, dcat_rq, correspondence_laws, scores_ttl)?,
+            render_research_objects(input.root, dcat_program, correspondence_program, scores_ttl)?,
         )))
     }
 }
@@ -1673,3 +1688,7 @@ impl Stage for ResearchObjectsStage {
 #[path = "research_objects.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[path = "research_objects.catalog.tests.rs"]
+#[cfg(test)]
+mod catalog_tests;
