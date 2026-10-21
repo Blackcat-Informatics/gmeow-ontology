@@ -26,6 +26,8 @@ gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 purrdf-hash.workspace = true
+# Shared GMN verdict JSON uses the native record owner on host and browser targets.
+purrdf-lex.workspace = true
 serde.workspace = true
 sha2.workspace = true
 # The plain-text bridge declares each lifted surface's Unicode normalization form

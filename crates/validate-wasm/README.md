@@ -37,6 +37,14 @@ const report = JSON.parse(
 `Report` as a JSON string (`findings` omitted when the graph conforms); it throws on
 a malformed bundle or unparsable input.
 
+`gmn_validate(bytes)` validates UTF-8 GMN text against the embedded, source-pinned
+codebook and returns compact JSON. A successful verdict is
+`{"conformant":true}`. Failure members appear in the order `conformant`, `detail`,
+`failureClass`; absent optional strings are omitted. The shared native record
+codec is documented in [GMN validation verdict JSON](../lang-bridge/JSON.md).
+The JSON presentation does not change codebook authentication or the codec's
+typed failure classes.
+
 ## Build
 
 ```sh

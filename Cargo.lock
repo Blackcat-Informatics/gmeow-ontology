@@ -1625,7 +1625,7 @@ dependencies = [
  "gmeow-action-cache",
  "gmeow-lang-bridge",
  "purrdf",
- "serde_json",
+ "purrdf-lex",
  "wasm-bindgen",
 ]
 
@@ -1653,6 +1653,7 @@ dependencies = [
  "proptest",
  "purrdf",
  "purrdf-hash",
+ "purrdf-lex",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -2069,7 +2070,7 @@ dependencies = [
  "gmeow-action-cache",
  "gmeow-lang-bridge",
  "gmeow-validate",
- "serde_json",
+ "purrdf-lex",
  "wasm-bindgen",
 ]
 

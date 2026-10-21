@@ -6,7 +6,12 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_lang_bridge::{Gmn1Document, gmn_validation::validate_gmn_document};
+use gmeow_lang_bridge::{
+    Gmn1Document,
+    gmn_validation::{GmnValidationVerdict, validate_gmn_document},
+};
+use purrdf_lex::json;
+use purrdf_lex::json::record::ToJson;
 
 use crate::stages::parse_sources::SourceCatalog;
 
@@ -18,6 +23,11 @@ const VECTORS: [&str; 2] = [
 
 pub(super) fn input_files(root: &Path) -> Vec<PathBuf> {
     VECTORS.iter().map(|path| root.join(path)).collect()
+}
+
+/// Encode sorted source paths with each verdict's declaration-order members and no newline.
+fn verdict_map_bytes(verdicts: &BTreeMap<String, GmnValidationVerdict>) -> Vec<u8> {
+    json::write_compact(&verdicts.to_json()).into_bytes()
 }
 
 pub(super) fn record(
@@ -32,14 +42,14 @@ pub(super) fn record(
             super::stage_err(&format!("read GMN browser vector {path}: {error}"))
         })?;
         verdicts.insert(
-            path,
+            path.to_owned(),
             validate_gmn_document(&Gmn1Document::from_text(&text), &language.dictionary),
         );
     }
-    artifacts.insert(
-        CHANNEL.to_owned(),
-        serde_json::to_vec(&verdicts)
-            .map_err(|error| super::stage_err(&format!("encode GMN browser verdicts: {error}")))?,
-    );
+    artifacts.insert(CHANNEL.to_owned(), verdict_map_bytes(&verdicts));
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "wasm_gmn.tests.rs"]
+mod tests;
