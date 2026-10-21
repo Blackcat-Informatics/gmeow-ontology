@@ -16,7 +16,7 @@ msgstr "Une raison lisible expliquant pourquoi une question de compétence et so
 
 msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:cq gmeow:cqRationale \"A retrievable name is necessary.\"@en, \"Un nom doit être accessible.\"@fr ."
-msgstr "ex:cq gmeow:cqRationale \"A retrievable name is necessary.\"@en, \"Un nom doit être accessible.\"@fr ."
+msgstr "ex:cq gmeow:cqRationale \"Le nom doit pouvoir être retrouvé.\"@fr, \"Un nom doit être accessible.\"@fr--ltr ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record every modelling intent the question protects, preserving private-use or public language tags and a stated base direction."
