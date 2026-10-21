@@ -55,7 +55,8 @@ The existing signature spine is sufficient for attaching signatures to claims:
 @prefix ex: <https://example.org/identity/> .
 
 ex:observer gmeow:boundToKey ex:observerKey .
-ex:original gmeow:hasSignature ex:originalSignature .
+ex:original gmeow:vantage ex:observer ;
+    gmeow:hasSignature ex:originalSignature .
 ex:originalSignature a gmeow:CryptographicSignature ;
     gmeow:signedBy ex:observer ; gmeow:signingKey ex:observerKey .
 
@@ -85,7 +86,13 @@ and authorization are consumer operations, not entailments of an RDF link.
 
 A `gmeow:DisclosureDecision` uses `observedFeature` for the protected claim,
 `disclosureReader` for the reader principal, `vantage` for the versioned policy,
-and `observationResult` for an explicit `DisclosureOutcome`:
+and `observationResult` for an explicit `DisclosureOutcome`.
+
+Each decision requires exactly one reader and one typed outcome. These are local
+constraints on DisclosureDecision; ordinary observations retain their multivalued
+results, and separate decision nodes retain different readers and policy versions.
+
+The seeded outcomes are:
 
 | Outcome | Reader-visible behavior |
 | --- | --- |

@@ -7,6 +7,7 @@ use super::{CHANNEL, ModuleProduct, ShapeProduct, ValidationFixtures};
 use std::sync::OnceLock;
 
 mod diagnostics_migration;
+mod disclosure_decisions;
 mod procedural_constraints;
 mod shape_migration_equivalence;
 mod substrate_reconciliation;
