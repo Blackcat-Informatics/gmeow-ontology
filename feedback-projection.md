@@ -1,0 +1,1 @@
+Complete paginated feedback retained in raw. Only decorative CodeRabbit marker comments and review-stack metadata blocks are projected out. Substantive bodies, IDs, URLs, thread pagination and nested pagination remain; both thread pageInfo levels are exhausted.
