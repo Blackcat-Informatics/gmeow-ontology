@@ -1,0 +1,25 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1776-deps-replace-serde-serde-json-with decac2584] refactor: use native performance report JSON (Principles 4 and 7)
+ 8 files changed, 1007 insertions(+), 190 deletions(-)
+ create mode 100644 crates/pipeline/BENCH-TIMING-JSON.md
+ create mode 100644 crates/pipeline/PERF-GATE-JSON.md
+ create mode 100644 crates/pipeline/src/bin/perf_gate_merge/json.tests.rs
+ create mode 100644 crates/pipeline/src/stages/bench.timing_json.tests.rs

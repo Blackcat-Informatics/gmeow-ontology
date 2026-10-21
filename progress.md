@@ -1,0 +1,5 @@
+PR #1920 delivers the complete native perf-gate envelope and Criterion timing/baseline report families under Principles4 and7. The merger retains complete command documents and profile-specific work/observation data. The actual comparison/CLI and committed leaderboard use native admission; invalid required inputs fail, valid regressions remain advisory, and zero-reference percentages are unavailable.
+
+All27 selected authored-input controls passed, along with strict producer-independent Clippy, helper hygiene, source admission, formatting and normal commit/push hooks. Two independent review scopes are clear. Wire docs distinguish free-form last-wins/exact-number behavior from strict unsigned typed baseline records.
+
+The retained campaign exception still applies: no local corpus/fixture production, sync or full gate; sequential merge without waiting for CI. Actual measurements, authenticated/installed/full consumer acceptance and remaining JSON owners are open. This does not close #1776. Next ready unit is the private cost/soak reader family, whose producer already uses native JSON.

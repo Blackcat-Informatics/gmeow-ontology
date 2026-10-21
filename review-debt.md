@@ -1,0 +1,7 @@
+# Review disposition
+
+Complete paginated formal review, inline comment and conversation APIs plus GraphQL review threads were captured for PR1920. There are zero formal reviews, zero inline comments and zero threads. The sole conversation is automated review-in-progress metadata; it contains no substantive finding. Only copied decorative comment-marker metadata was projected out as documented below; review IDs, URLs and substantive bodies remain. Root independently reviewed the perf merger; a separate reviewer independently reviewed the timing family and the compiler repair. Both scopes are clear. No review finding is silently deferred.
+
+CI producer-build, helpers, lint, rust-prebuild and automated review are pending at capture. The user explicitly retained sequential merges ignoring CI, with no local optimized producer/corpus/full-gate runs. Pending checks do not qualify production acceptance and do not block this authorized source unit. Local27pure controls, strict prebuild Clippy, helpers, source admission, formatting and normal commit/push hooks passed. Full1776 remains open.
+
+Projection: REST captures remove only coderabbit decorative HTML comment markers and review_stack_entry_start/end blocks; full API pagination and metadata are retained. GraphQL outer/inner pageInfo were checked and no next page exists. Required raw issue evidence remains in raw/issue.json. No whole transcript or source copy is added.

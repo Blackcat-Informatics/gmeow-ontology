@@ -1,0 +1,42 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) and (test(json_perf_gate_) or test(json_bench_timing_) or test(emit_baseline_is_sorted_integer_ns) or test(compare_classifies_ok_watch_regressed_missing_new) or test(compare_with_explicit_empty_baseline_marks_all_new) or test(compare_refuses_malformed_baseline) or test(compare_refuses_missing_criterion_root))' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 45s
+────────────
+ Nextest run ID 4b5d2e4f-9dcf-400a-ab8d-2b65c398b3b4 with nextest profile: ci
+    Starting 27 tests across 25 binaries (1083 tests and 202 binaries skipped)
+        PASS [   0.005s] ( 1/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_whole_literal_output_preserves_envelope_and_pretty_lf
+        PASS [   0.006s] ( 2/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_malformed_json_remains_a_parse_failure
+        PASS [   0.006s] ( 3/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_required_projection_fields_refuse_missing_and_every_wrong_kind
+        PASS [   0.006s] ( 4/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_command_is_required_string_bound_to_each_filename
+        PASS [   0.006s] ( 5/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_duplicates_resolve_last_recursively_before_admission
+        PASS [   0.007s] ( 6/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_document_root_must_be_an_object
+        PASS [   0.006s] ( 7/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_native_numbers_preserve_opaque_lexemes_without_identities
+        PASS [   0.007s] ( 8/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_cache_hit_and_nullable_profiles_remain_opaque
+        PASS [   0.007s] ( 9/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_literal_baseline_keeps_sorted_keys_exact_integers_unicode_and_lf
+        PASS [   0.008s] (10/27) gmeow-pipeline stages::bench::tests::compare_refuses_malformed_baseline
+        PASS [   0.008s] (11/27) gmeow-pipeline stages::bench::tests::compare_refuses_missing_criterion_root
+        PASS [   0.007s] (12/27) gmeow-pipeline::bin/perf-gate-merge json_tests::json_perf_gate_full_documents_and_opaque_versions_are_retained
+        PASS [   0.008s] (13/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_collector_uses_only_selected_new_paths_and_keeps_invalid_context
+        PASS [   0.008s] (14/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_thresholds_missing_new_and_zero_denominator_remain_distinct
+        PASS [   0.008s] (15/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_criterion_freeform_duplicates_are_recursively_last_wins
+        PASS [   0.008s] (16/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_live_invalid_metrics_never_become_zero_or_saturated
+        PASS [   0.008s] (17/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_typed_records_refuse_duplicates_but_outer_map_is_last_wins
+        PASS [   0.008s] (18/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_explicit_empty_inventories_are_not_missing_required_inputs
+        PASS [   0.008s] (19/27) gmeow-pipeline stages::bench::tests::compare_classifies_ok_watch_regressed_missing_new
+        PASS [   0.008s] (20/27) gmeow-pipeline stages::bench::tests::emit_baseline_is_sorted_integer_ns
+        PASS [   0.008s] (21/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_non_utf8_benchmark_identity_is_refused
+        PASS [   0.008s] (22/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_committed_leaderboard_uses_same_typed_baseline_without_measurement
+        PASS [   0.008s] (23/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_required_documents_refuse_blank_malformed_trailing_and_non_utf8
+        PASS [   0.009s] (24/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_comparison_has_literal_legacy_markdown_for_valid_measurements
+        PASS [   0.009s] (25/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_baseline_unsigned_tokens_keep_u64_max_and_reject_coercion
+        PASS [   0.009s] (26/27) gmeow-pipeline stages::bench::tests::compare_with_explicit_empty_baseline_marks_all_new
+        PASS [   0.009s] (27/27) gmeow-pipeline stages::bench::timing_json_tests::json_bench_timing_live_valid_floats_keep_existing_rounding
+────────────
+     Summary [   0.023s] 27 tests run: 27 passed, 1083 skipped
