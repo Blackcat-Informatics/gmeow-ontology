@@ -1,0 +1,7 @@
+Current captured checks for PR1901; full raw state in raw/pr-state.json.
+User exception: merge them one by one, ignoring CI. Pending checks remain unverified.
+producer-build: IN_PROGRESS 
+helpers: COMPLETED SUCCESS
+lint: COMPLETED SUCCESS
+rust-prebuild: IN_PROGRESS 
+CodeRabbit: PENDING 

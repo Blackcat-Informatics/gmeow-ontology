@@ -1,0 +1,228 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-logic) & (test(math_evaluation) | test(physical::numeric::tests))) | (package(gmeow-logic-compile) & test(relational_core::numeric::tests))' --no-tests=fail
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling ring v0.17.14
+   Compiling rustls v0.23.46
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling image v0.25.10
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cli-core)
+   Compiling codex v0.1.1
+   Compiling typst-syntax v0.13.1
+   Compiling rust_decimal v1.42.1
+   Compiling two-face v0.4.5
+   Compiling typst-macros v0.13.1
+   Compiling wasmi v0.40.0
+   Compiling hayagriva v0.8.1
+   Compiling typed-arena v2.0.2
+   Compiling az v1.3.0
+   Compiling typst-assets v0.13.1
+   Compiling bumpalo v3.20.3
+   Compiling qcms v0.3.0
+   Compiling font-types v0.11.3
+   Compiling polycool v0.4.0
+   Compiling icu_segmenter_data v1.5.1
+   Compiling object v0.37.3
+   Compiling stacker v0.1.24
+   Compiling diff v0.1.13
+   Compiling zune-core v0.4.12
+   Compiling quick-error v2.0.1
+   Compiling yansi v1.0.1
+   Compiling tiny-skia v0.11.4
+   Compiling image-webp v0.1.3
+   Compiling gif v0.13.3
+   Compiling read-fonts v0.39.2
+   Compiling kurbo v0.13.1
+   Compiling zune-jpeg v0.4.21
+   Compiling rgb v0.8.53
+   Compiling rustc_version v0.4.1
+   Compiling derive_more-impl v2.1.1
+   Compiling xmlparser v0.13.6
+   Compiling icu_provider_adapters v1.5.0
+   Compiling pdf-writer v0.12.1
+   Compiling pretty_assertions v1.4.1
+   Compiling proc-macro-error-attr3 v3.1.1
+   Compiling bincode-next v3.1.1
+   Compiling hypher v0.1.7
+   Compiling if_chain v1.0.3
+   Compiling ar_archive_writer v0.5.2
+   Compiling gungraun-macros v0.9.1
+   Compiling rapidhash v4.5.1
+   Compiling either-or-both v0.3.1
+   Compiling proc-macro-error3 v3.1.1
+   Compiling itertools v0.10.5
+   Compiling pastey v0.2.3
+   Compiling resvg v0.43.0
+   Compiling gungraun v0.19.4
+   Compiling cast v0.3.0
+   Compiling unty-next v0.1.2
+   Compiling xmp-writer v0.3.3
+   Compiling tinytemplate v1.2.1
+   Compiling rand_core v0.9.5
+   Compiling is-terminal v0.4.17
+   Compiling derive_more v2.1.1
+   Compiling anes v0.1.6
+   Compiling oorandom v11.1.5
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gungraun-runner v0.19.4
+   Compiling quick-error v1.2.3
+   Compiling unarray v0.1.4
+   Compiling ahash v0.8.12
+   Compiling icu_segmenter v1.5.0
+   Compiling psm v0.1.31
+   Compiling inventory v0.3.24
+   Compiling rand_chacha v0.9.0
+   Compiling rusty-fork v0.3.1
+   Compiling rand_xorshift v0.4.0
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/test-batch-macros)
+   Compiling wasm-bindgen-shared v0.2.125
+   Compiling wasm-bindgen v0.2.125
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+   Compiling criterion-plot v0.5.0
+   Compiling normalize-line-endings v0.3.0
+   Compiling predicates-core v1.0.10
+   Compiling snapbox-macros v0.4.0
+   Compiling float-cmp v0.10.0
+   Compiling rand v0.9.5
+   Compiling filetime v0.2.29
+   Compiling os_pipe v1.2.3
+   Compiling toml_datetime v0.7.5+spec-1.1.0
+   Compiling content_inspector v0.2.4
+   Compiling difflib v0.4.0
+   Compiling termtree v0.5.1
+   Compiling criterion v0.5.1
+   Compiling dunce v1.0.5
+   Compiling humantime v2.4.0
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling assert_cmd v2.2.2
+   Compiling wasm-bindgen-macro-support v0.2.125
+   Compiling automod v1.0.17
+   Compiling predicates-tree v1.0.13
+   Compiling predicates v3.1.4
+   Compiling shlex v1.3.0
+   Compiling typst-library v0.13.1
+   Compiling ident_case v1.0.1
+   Compiling snapbox v0.6.24
+   Compiling humantime-serde v1.1.1
+   Compiling static_assertions v1.1.0
+   Compiling minimal-lexical v0.2.1
+   Compiling esaxx-rs v0.1.10
+   Compiling toml_edit v0.23.10+spec-1.0.0
+   Compiling castaway v0.2.4
+   Compiling monostate-impl v0.1.18
+   Compiling itertools v0.14.0
+   Compiling proptest v1.11.0
+   Compiling darling_core v0.20.11
+   Compiling base64 v0.13.1
+   Compiling macro_rules_attribute-proc_macro v0.2.2
+   Compiling compact_str v0.9.1
+   Compiling monostate v0.1.18
+   Compiling fancy-regex v0.14.0
+   Compiling macro_rules_attribute v0.2.2
+   Compiling dary_heap v0.3.9
+   Compiling nom v7.1.3
+   Compiling unicode-normalization-alignments v0.1.12
+   Compiling unicode_categories v0.1.1
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/perf-evidence)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/errors)
+   Compiling trycmd v0.15.11
+   Compiling rayon-cond v0.4.0
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/xtask)
+   Compiling wasm-bindgen-macro v0.2.125
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/build-inputs)
+   Compiling darling_macro v0.20.11
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling darling v0.20.11
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-form)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/action-cache)
+   Compiling write-fonts v0.48.1
+   Compiling skrifa v0.42.1
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/helper-census)
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cost-measure)
+   Compiling derive_builder_core v0.20.2
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/license)
+   Compiling spm_precompiled v0.1.4
+   Compiling derive_builder_macro v0.20.2
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling derive_builder v0.20.2
+   Compiling tokenizers v0.22.2
+   Compiling typst-svg v0.13.1
+   Compiling typst-layout v0.13.1
+   Compiling typst-realize v0.13.1
+   Compiling subsetter v0.2.6
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling typst-html v0.13.1
+   Compiling svg2pdf v0.12.0
+   Compiling typst-pdf v0.13.1
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling rustls-webpki v0.103.15
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling typst-eval v0.13.1
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math-lift)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-import)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/music)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/foundation-corpus)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/query-wasm)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect-ingest)
+   Compiling typst v0.13.1
+   Compiling ureq v3.3.0
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 32s
+────────────
+ Nextest run ID 162512e8-f9a5-457e-aa2a-41f08dfdbb95 with nextest profile: ci
+    Starting 21 tests across 28 binaries (3403 tests and 198 binaries skipped)
+        PASS [   0.009s] ( 1/21) gmeow-logic-compile relational_core::numeric::tests::numeric_modes_and_head_assertions_remain_honest_residue
+        PASS [   0.013s] ( 2/21) gmeow-logic physical::numeric::tests::numeric_operand_and_language_refusals_keep_native_term_evidence
+        PASS [   0.013s] ( 3/21) gmeow-logic physical::numeric::tests::numeric_binding_schedule_failure_is_a_registered_diagnostic
+        PASS [   0.014s] ( 4/21) gmeow-logic physical::numeric::tests::numeric_decode_failures_retain_typed_datatype_and_lexical_evidence
+        PASS [   0.014s] ( 5/21) gmeow-logic physical::numeric::tests::cached_numeric_preparation_failure_mints_independent_complete_diagnostics
+        PASS [   0.014s] ( 6/21) gmeow-logic physical::numeric::tests::numeric_execution_diagnostics_keep_operator_rule_and_operand_evidence
+        PASS [   0.015s] ( 7/21) gmeow-logic physical::numeric::tests::exact_division_selection_changes_plan_identity_without_changing_default_division
+        PASS [   0.015s] ( 8/21) gmeow-logic physical::numeric::tests::numeric_plan_reuses_typed_results_and_keeps_source_support
+        PASS [   0.016s] ( 9/21) gmeow-logic physical::numeric::tests::invalid_numeric_instructions_fail_before_empty_world_execution
+        PASS [   0.016s] (10/21) gmeow-logic physical::numeric::tests::undefined_numeric_operation_refuses_the_whole_solution_batch
+        PASS [   0.017s] (11/21) gmeow-logic-compile relational_core::numeric::tests::numeric_output_and_existential_witness_keep_distinct_scope
+        PASS [   0.017s] (12/21) gmeow-logic-compile relational_core::numeric::tests::canonical_numeric_chain_is_scheduled_and_transport_is_lossless
+        PASS [   0.017s] (13/21) gmeow-logic-compile relational_core::numeric::tests::exact_division_relation_retains_policy_through_native_rdf_transport
+        PASS [   0.018s] (14/21) gmeow-logic-compile relational_core::numeric::tests::numeric_projection_cannot_drop_required_operands_or_invent_an_operator
+        PASS [   0.018s] (15/21) gmeow-logic physical::numeric::tests::recursive_numeric_invention_needs_a_position_certificate
+        PASS [   0.020s] (16/21) gmeow-logic physical::numeric::tests::authored_numeric_formula_executes_in_both_native_rule_shapes
+        PASS [   0.031s] (17/21) gmeow-logic physical::numeric::tests::public_scalar_materialization_keeps_certification_and_annotation
+        PASS [   0.048s] (18/21) gmeow-logic math_evaluation::tests::math_evaluation_never_reuses_an_asserted_result_identity
+        PASS [   0.065s] (19/21) gmeow-logic math_evaluation::tests::math_evaluation_rejects_malformed_or_unsupported_selected_operations
+        PASS [   0.150s] (20/21) gmeow-logic math_evaluation::tests::math_evaluation_executes_four_operations_with_native_source_proofs
+        PASS [   0.163s] (21/21) gmeow-logic math_evaluation::tests::math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata
+────────────
+     Summary [   0.190s] 21 tests run: 21 passed, 3403 skipped

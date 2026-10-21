@@ -1,0 +1,6 @@
+{
+  "base": "2d649cf6318a9bda3927ac381203a046aca89918",
+  "head": "94acf116a1548b2ef9e674924e51e11327c2c1e4",
+  "candidate_tree": "25c2d9dcbd1735d5fe183225e6bd69b9268e405b",
+  "assessment": "clean merge; fetched base equals qualified integrated source base; no additional base-side delta"
+}
