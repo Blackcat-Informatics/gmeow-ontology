@@ -1453,7 +1453,21 @@ gmeow:PolicyFinding
 
 gmeow:DisclosureDecision
     a logic:SubKind, logic:Class ;
-    logic:subClassOf gmeow:Observation ;
+    logic:subClassOf gmeow:Observation ,
+        [ a logic:Restriction ;
+          logic:onProperty gmeow:disclosureReader ;
+          logic:allValuesFrom gmeow:Agent ] ,
+        [ a logic:Restriction ;
+          logic:onProperty gmeow:disclosureReader ;
+          logic:maxQualifiedCardinality 1 ;
+          logic:onClass gmeow:Agent ] ,
+        [ a logic:Restriction ;
+          logic:onProperty gmeow:observationResult ;
+          logic:allValuesFrom gmeow:DisclosureOutcome ] ,
+        [ a logic:Restriction ;
+          logic:onProperty gmeow:observationResult ;
+          logic:maxQualifiedCardinality 1 ;
+          logic:onClass gmeow:DisclosureOutcome ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Disclosure decision"@x-gmeow-english ;
@@ -1463,6 +1477,15 @@ gmeow:DisclosureDecision
     gmeow:useWhen "Use to record an explicit reader-relative release or withholding outcome."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid leaking a hidden claim through its decision record or inferring an outcome from missing metadata."@x-gmeow-english ;
     gmeow:howToUse "Bind disclosureReader, observedFeature, policy vantage and a DisclosureOutcome through observationResult; apply the selected policy before emitting any reader-visible record."@x-gmeow-english .
+
+[ a logic:ClosureEntry ;
+  logic:onClass gmeow:DisclosureDecision ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/disclosureReader" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+  logic:onClass gmeow:DisclosureDecision ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
 
 
 gmeow:disclosureReader
