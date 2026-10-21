@@ -15,10 +15,7 @@
 //! The durable pin compares authenticated producer observations to the frozen
 //! golden. Tests never rediscover or reparse the repository translation corpus.
 
-#[path = "support/reviewed_coverage.rs"]
-mod reviewed_coverage;
-
-use reviewed_coverage::{golden_path, repo_root};
+use gmeow_docs_model::reviewed_coverage::{golden_path, repo_root};
 
 fn observation() -> gmeow_docs_model::reviewed_coverage::ReviewedCoverageObservation {
     let bytes = gmeow_action_cache::selection::source_artifacts::load(
