@@ -45,7 +45,7 @@ default = ["core", "reasoning"]
 # dependencies NOTHING else in this crate reaches — `convert` and `distribution_matrix` are
 # their sole readers — so selecting the segment out removes them from the reasoning image's
 # dependency tree outright rather than merely leaving them unreferenced.
-core = ["dep:gmeow-transcode", "dep:gmeow-docs-catalog"]
+core = ["dep:gmeow-transcode", "dep:gmeow-docs-catalog", "dep:purrdf-lex"]
 # The reasoning SEGMENT: the native DL reasoner (`gmeow-logic`) and the rubric kernel
 # built on it (`gmeow-slice-quality`), plus the 15 tools that cannot answer without them
 # or that share the claim package with the writes that cannot (the grounded-memory triad
@@ -138,9 +138,10 @@ gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 # that has selected the DL reasoner out cannot score a rubric either, so the two travel
 # as ONE demand-loaded segment rather than as two half-loadable halves.
 gmeow-slice-quality = { path = "../slice-quality", optional = true }
-# JSON is the MCP wire format: every tool envelope, every JSON-RPC frame, and the
-# `format=json` card projection are `serde_json::Value`s.
+# JSON is the MCP wire format for the remaining JSON-RPC frames and tool records.
 serde_json.workspace = true
+# The core Card envelope uses the same native JSON record owner as docs and schema output.
+purrdf-lex = { workspace = true, optional = true }
 # Typed, authenticated producer observations consumed without corpus execution.
 serde.workspace = true
 # SHA-256 content addressing for the append-only conjecture/candidate library

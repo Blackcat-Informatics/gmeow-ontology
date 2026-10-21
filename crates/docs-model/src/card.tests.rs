@@ -173,9 +173,9 @@ fn empty_panels_are_omitted_at_full_tier() {
 #[test]
 fn projected_json_tiers_are_strictly_nested() {
     let card = full_sample();
-    let summary = serde_json::to_string(&card.projected(CardDetail::Summary)).unwrap();
-    let standard = serde_json::to_string(&card.projected(CardDetail::Standard)).unwrap();
-    let full = serde_json::to_string(&card.projected(CardDetail::Full)).unwrap();
+    let summary = json::write_compact(&card.projected(CardDetail::Summary).to_json());
+    let standard = json::write_compact(&card.projected(CardDetail::Standard).to_json());
+    let full = json::write_compact(&card.projected(CardDetail::Full).to_json());
     // Standard JSON MUST NOT carry any full-tier rich key.
     assert!(!standard.contains("entailments"));
     assert!(!standard.contains("fixtures_do"));
@@ -189,7 +189,7 @@ fn projected_json_tiers_are_strictly_nested() {
     // Byte-stable across two serializations.
     assert_eq!(
         full,
-        serde_json::to_string(&card.projected(CardDetail::Full)).unwrap()
+        json::write_compact(&card.projected(CardDetail::Full).to_json())
     );
     // Monotone by size.
     assert!(summary.len() <= standard.len());
@@ -239,10 +239,10 @@ fn class_card_carries_python_model_link_and_snippet() {
     assert!(!summary.contains("Python model"));
 
     // JSON: Standard carries both fields; Summary drops them.
-    let standard_json = serde_json::to_string(&card.projected(CardDetail::Standard)).unwrap();
+    let standard_json = json::write_compact(&card.projected(CardDetail::Standard).to_json());
     assert!(standard_json.contains("\"python_model\":\"gmeow_models.lifecycle.Foo\""));
     assert!(standard_json.contains("\"python_snippet\":"));
-    let summary_json = serde_json::to_string(&card.projected(CardDetail::Summary)).unwrap();
+    let summary_json = json::write_compact(&card.projected(CardDetail::Summary).to_json());
     assert!(!summary_json.contains("python_model"));
     assert!(!summary_json.contains("python_snippet"));
 

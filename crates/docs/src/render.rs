@@ -646,8 +646,8 @@ pub fn render_site_lang_exec_with_diagrams(
     //
     // Alongside the human-oriented `card.md` two machine surfaces ride:
     // `card.json` — the STANDARD-tier `Card` serialized through the SAME
-    // `serde_json` path the live MCP `doc_card format=json detail=standard` uses
-    // (byte-identical to that tool's card payload for the term) — and
+    // native JSON record the live MCP `doc_card format=json detail=standard` uses
+    // (the same record shape, values, and tier, with distinct member ordering) — and
     // `card-full.md` — the FULL-tier oracle card: the compact card enriched with
     // the rich panels (entailments, Do / Don't fixtures, diagnostics, projection
     // loss) drawn from `model` + `exec`, rendered by the ONE canonical
@@ -662,15 +662,11 @@ pub fn render_site_lang_exec_with_diagrams(
                 term_card_md_inner(term, &alignment_facets, model).into_bytes(),
             );
             // card.json — the standard-tier neutral card, deterministically
-            // serialized (the `Card` derives `Serialize` with a fixed field
-            // order and every internal collection is already ordered).
+            // serialized in its native declaration order; every internal collection
+            // is already ordered.
             let standard = doc_term_card(term, &alignment_facets, model)
                 .projected(crate::card::CardDetail::Standard);
-            let json = serde_json::to_vec(&standard).unwrap_or_else(|e| {
-                // A pure-data `Card` of `String`/`Vec`/`Option` fields cannot fail
-                // to serialize; a failure here is a genuine invariant break.
-                panic!("card.json serialize for {slug}: {e}")
-            });
+            let json = json::write_compact(&standard.to_json()).into_bytes();
             files.insert(format!("terms/{slug}/card.json"), json);
             // card-full.md — the full-tier oracle card.
             let full = full_card_for(model, exec, term, &alignment_facets, &fixtures_by_curie);
@@ -8271,7 +8267,7 @@ pub fn term_card_json(model: &DocsModel, term: &DocTerm) -> Vec<u8> {
     let alignment_facets = precompute_alignment_facets(model);
     let standard =
         doc_term_card(term, &alignment_facets, model).projected(crate::card::CardDetail::Standard);
-    serde_json::to_vec(&standard).expect("a pure-data Card of String/Vec/Option fields serializes")
+    json::write_compact(&standard.to_json()).into_bytes()
 }
 
 /// [`term_card_md`] with the alignment facets supplied — lets `render_site_lang`
@@ -8302,3 +8298,7 @@ mod tests;
 #[path = "render.search_index.tests.rs"]
 #[cfg(test)]
 mod search_index_tests;
+
+#[path = "render.card_json.tests.rs"]
+#[cfg(test)]
+mod card_json_tests;

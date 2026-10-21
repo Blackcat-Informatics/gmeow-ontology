@@ -59,6 +59,14 @@ fn schema_bytes(schema: &serde_json::Value) -> Result<Vec<u8>, gmeow_errors::Dia
     Ok(bytes)
 }
 
+/// Publish the native card schema in sorted pretty form with the existing terminal newline.
+fn card_schema_bytes() -> Vec<u8> {
+    let mut bytes =
+        purrdf_lex::json::write_pretty(&gmeow_docs::card::card_json_schema()).into_bytes();
+    bytes.push(b'\n');
+    bytes
+}
+
 /// The `stage-export-json-schema` export-leaf stage.
 pub struct JsonSchemaStage {
     consumes: Vec<String>,
@@ -182,10 +190,7 @@ fn publish_schema(
     // types (drift-resistance). They ride REP_SCHEMAS so a repo-free consumer can
     // validate a `card.json` / a `validate_local` envelope straight from the
     // bundle.
-    artifacts.insert(
-        CARD_SCHEMA_PATH.to_string(),
-        schema_bytes(&gmeow_docs::card::card_json_schema())?,
-    );
+    artifacts.insert(CARD_SCHEMA_PATH.to_string(), card_schema_bytes());
     artifacts.insert(
         FINDING_SCHEMA_PATH.to_string(),
         schema_bytes(&gmeow_validate::local_oracle::finding_json_schema())?,
@@ -208,3 +213,7 @@ fn publish_schema(
 #[path = "json_schema.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[path = "json_schema.card_json.tests.rs"]
+#[cfg(test)]
+mod card_json_tests;
