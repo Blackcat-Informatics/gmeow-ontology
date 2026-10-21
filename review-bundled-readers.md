@@ -1,0 +1,9 @@
+# Independent review: primitive bundle readers
+
+Root reviewed all three source/doc files, the original implementation diff, actual method/wrapper callers and all nine literal-input controls. Root did not implement these source changes. No executable qualification has run yet; the primer family is being added sequentially before the combined batch.
+
+No blocking source finding identified. modeled_def_keys keeps its original schema/archive/representation read and absence branch, then invokes the tested native freeform decoder. The pinned native record.rs read_document calls sorted_last_wins recursively; this preserves last duplicate selection rather than accidentally choosing a first member. Extraction remains a key-set operation, with explicit empty results for nonobject roots or nonobject/missing defs. Wider RFC-number admission is documented and confined to ignored schema values; decoded string keys retain exact identities. It does not publish or rewrite schema bytes.
+
+Denied cells retain the original blob/absence branch, strict nested string arrays, exact three-member conversion, row order, duplicates and decoded contents. Shape/syntax/encoding/width errors remain actionable BundleJson failures; the helpers do not return partial rows. The public one-shot wrapper still delegates through Bundle. No authentication, source selection, corpus construction, schema production or diagnostic-node owner changed.
+
+Nine controls cover actual decoder helpers with independent bytes: duplicate transitions, Unicode/escapes, all empty extraction shapes, unused numeric admission, malformed/trailing/UTF-8/surrogate failures, strict denied types, row order/duplicates and tuple width. They load no bundle/corpus and construct no GTS. Current source/native API inspection supports these claims; runtime execution, existing authenticated consumers and installed/full acceptance remain unverified. This review adds no execution or CI waiver.
