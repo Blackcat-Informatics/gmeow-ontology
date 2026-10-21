@@ -1,0 +1,21 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: d42fc820db2bd314cc75551a26bfad2c7f52f601
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1934
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1934
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 186c4ce0e302619cd218ddc35c4daac5bcdf9034
+GhpRsq-Head-Ref: paudley/1894-ground-financial-amounts-rates-prices
+GhpRsq-Head-OID: d42fc820db2bd314cc75551a26bfad2c7f52f601
+GhpRsq-Result-Tree: 9b11badadc4f9bae32024a2a650ae0a97caf0bec
+GhpRsq-Result-Commit: 4fd171f99fac11b11f73d3abae36ec34266f167b
+GhpRsq-Parent-Hashes: d42fc820db2bd314cc75551a26bfad2c7f52f601
+GhpRsq-Squash-Notes-SHA256: 1a92d3e1b8b54bd069f6c0c4e670c6cc44af36ff5dbbd788d0bb29b066f87a86
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Tree: 2f0512b02b6378c0fde5ff09daeee4e396730bce
+GhpRsq-Stage-Ref: refs/ghprsq/pr/1934/stage
+GhpRsq-Stage-Files: 89
