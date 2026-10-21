@@ -1,0 +1,27 @@
+# Early runtime snapshot review
+
+Scope: the interim frozen runtime snapshot after integration onto base `4f608df67`, before root released the freeze for compiler/admission repairs and further implementation. This is not a verdict on the changing current tree or the complete delivery. Reviewed typed profile/check records, native correspondence RDF reconstruction, execution boundary, small authored controls, and installed/dev/project/MAXIMAL/archive callers. No tests, builds, parsing/check tools, source mutations or host probes were run by this reviewer. Only this Stage report was written.
+
+## Concrete findings reported and accepted for repair
+
+1. **Remaining production raw-query bypass.** `crates/pipeline/src/stages/research_objects.rs` still selects `generated/queries/dcat.rq` from the stage-mappings product, threads its text through `render_research_objects` to `render_dcat`, and invokes `native_query::query` directly (snapshot around lines1604/1488). This bypasses the typed profile's mandatory input checks and catalog validation. It needs an actual selected-upstream typed-product/catalog adapter, retaining fail-closed upstream selection; reading a `.rq` or disk artifact is not a substitute. This differs from the already migrated `docs_distribution::build_docs_distribution_manifest` path.
+
+2. **Whole selected-set preflight not yet established.** Within one `PreparedProjectionProfile::execute`, every check completes before that profile's CONSTRUCT. However `transform::projection_derived` loops selected profiles and calls `execute` one by one (snapshot around line725). An earlier profile's CONSTRUCT can run before a later profile's invalid source value is discovered. No partial result is returned, but the stronger operation-wide requirement of refusing before *any* CONSTRUCT across MAXIMAL(G)'s selected set is not yet met. Implementer accepted a shared two-phase admission/construct path over the same immutable input for repair.
+
+Both findings were sent promptly to root and implementer. Their later repairs and qualification are not covered by this snapshot report.
+
+## Positive source observations
+
+The single-profile executor prepares only validated typed products, keeps program/prepared queries private, runs all selected SELECT checks, requires the exact hygienic object-variable column, rejects ambiguous/missing columns and malformed row width, and refuses IRI, blank-node, quoted-triple and unbound values before its CONSTRUCT. Literal datatype/language/direction components are validated, with the complete source RDF literal retained rather than stringified or coerced. Empty valid match sets remain valid empty projections.
+
+Transport records deny unknown and duplicate known fields. Program identity covers forward text, profile, catalog identity and complete check set. Admission compares the entire transported product with the catalog's admitted profile, so separate missing/duplicate/swapped checks or changed forward text do not become valid merely by recomputing the transported product ID. Each check validates actual alias/source-property support against the catalog, checks canonical binding membership/digest form, and proves the mandatory hygienic source-property occurrence in parsed native SELECT algebra; optional-only witnesses are not accepted.
+
+The correspondence RDF transport retains explicit program membership and `rdf:JSON` typed content. Reader admission requires one content literal, matching program subject identity, correct datatype and no language/direction. Native alias/member readers reject mixed non-IRI fields. `GroundingCatalog::from_bundle` reads the named correspondence-laws graph structurally before using default-graph ontology premises; it does not flatten away the native catalog boundary.
+
+Installed `project`, dev projection, installed/dev MAXIMAL inputs, docs-distribution and scoreboard adapters now select typed products/catalogs. The archive adapter requires exactly one explicitly named `<profile>.projection.json`, matching declared profile and admitted catalog; it does not fall back to raw `.rq` inference. These are source observations, not proof that the complete caller graph compiles. The research-object exception above prevents claiming full production closure.
+
+## Controls and acceptance limits
+
+Eight `projection_literal_` controls use independently authored tiny mappings and instance datasets. Reviewed cases cover complete plain/typed/language/directional Unicode literals; mixed good/nonliteral rows; strict source-witness fields; selector membership and alias errors; missing/forged owner and property premises; native catalog RDF roundtrip; separate transported capability tampering; duplicate/unknown JSON fields. They do not construct a repository ontology, fixture corpus or GTS product.
+
+There is no runtime result from this reviewer. Root reported the early checkpoint stopped at compilation/source admission before any of these tests executed; subsequent fixes are a separate qualification. Real bundle/archive selection, installed CLI compilation/execution, full selected-set preflight, remaining direct helpers, produced/native/corpus acceptance and actual canonical source evidence remain unverified here. Canonical Lang/DSL/registry/i18n and counter/base/standalone migration were explicitly pending at this checkpoint and are not newly discovered omissions. No final completion or current whole-unit approval is claimed.

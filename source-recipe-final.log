@@ -1,0 +1,2 @@
+producer build: inline test implementation must be extracted from /home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality/src/lib.rs
+make: *** [Makefile:334: producer-recipe] Error 1

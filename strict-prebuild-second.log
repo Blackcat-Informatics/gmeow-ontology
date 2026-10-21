@@ -1,0 +1,42 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-bridge)
+    Checking gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/transcode)
+    Checking gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmn-cost-matrix)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+    Checking gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+    Checking gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+error: this `if` statement can be collapsed
+   --> crates/validate/src/repo_static.rs:323:13
+    |
+323 | /             if let Some(catalog) = grounding_catalog.as_ref() {
+324 | |                 if let Err(error) =
+325 | |                     gmeow_logic_compile::projections::get_leg::projections(&view, catalog)
+...   |
+330 | |             }
+    | |_____________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+323 ~             if let Some(catalog) = grounding_catalog.as_ref()
+324 ~                 && let Err(error) =
+325 |                     gmeow_logic_compile::projections::get_leg::projections(&view, catalog)
+...
+328 |                     continue;
+329 ~                 }
+    |
+
+error: could not compile `gmeow-validate` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-validate` (lib test) due to 1 previous error
+make: *** [Makefile:289: clippy-prebuild] Error 101

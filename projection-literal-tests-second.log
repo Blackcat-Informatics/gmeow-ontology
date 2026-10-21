@@ -1,0 +1,142 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(projection_literal_)' --no-tests=fail
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/transcode)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+error: unused import: `purrdf::DatasetView`
+ --> crates/docs-model/src/ontology_catalogs.rs:8:5
+  |
+8 | use purrdf::DatasetView;
+  |     ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `-D unused-imports` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error[E0277]: the trait bound `Diag: StdError` is not satisfied
+  --> crates/docs-model/src/reviewed_coverage.rs:19:5
+   |
+19 | /     crate::ontology_catalogs::discover(root)
+20 | |         .map(|sources| sources.into_iter().map(|source| source.path).collect())
+21 | |         .map_err(std::io::Error::other)
+   | |_______________________________________^ the trait `StdError` is not implemented for `Diag`
+   |
+   = note: required for `std::boxed::Box<(dyn StdError + Send + Sync + 'static)>` to implement `From<Diag>`
+   = note: required for `Diag` to implement `Into<std::boxed::Box<(dyn StdError + Send + Sync + 'static)>>`
+note: required by a bound in `alloc::io::error::<impl std::io::Error>::other`
+  --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/io/error.rs:77:12
+   |
+11 | impl Error {
+...
+75 |     pub fn other<E>(error: E) -> Error
+76 |     where
+77 |         E: Into<Box<dyn error::Error + Send + Sync>>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `alloc::io::error::<impl Error>::other`
+
+error[E0277]: the trait bound `Diag: StdError` is not satisfied
+  --> crates/docs-model/src/reviewed_coverage.rs:21:10
+   |
+21 |         .map_err(std::io::Error::other)
+   |          ^^^^^^^ the trait `StdError` is not implemented for `Diag`
+   |
+   = note: required for `std::boxed::Box<(dyn StdError + Send + Sync + 'static)>` to implement `From<Diag>`
+   = note: required for `Diag` to implement `Into<std::boxed::Box<(dyn StdError + Send + Sync + 'static)>>`
+note: required by a bound in `alloc::io::error::<impl std::io::Error>::other`
+  --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/io/error.rs:77:12
+   |
+11 | impl Error {
+...
+75 |     pub fn other<E>(error: E) -> Error
+76 |     where
+77 |         E: Into<Box<dyn error::Error + Send + Sync>>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `alloc::io::error::<impl Error>::other`
+
+error[E0277]: the trait bound `Diag: StdError` is not satisfied
+  --> crates/docs-model/src/reviewed_coverage.rs:21:18
+   |
+21 |         .map_err(std::io::Error::other)
+   |                  ^^^^^^^^^^^^^^^^^^^^^ the trait `StdError` is not implemented for `Diag`
+   |
+   = note: required for `std::boxed::Box<(dyn StdError + Send + Sync + 'static)>` to implement `From<Diag>`
+   = note: required for `Diag` to implement `Into<std::boxed::Box<(dyn StdError + Send + Sync + 'static)>>`
+note: required by a bound in `alloc::io::error::<impl std::io::Error>::other`
+  --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/io/error.rs:77:12
+   |
+11 | impl Error {
+...
+75 |     pub fn other<E>(error: E) -> Error
+76 |     where
+77 |         E: Into<Box<dyn error::Error + Send + Sync>>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `alloc::io::error::<impl Error>::other`
+
+error[E0277]: the trait bound `Diag: StdError` is not satisfied
+  --> crates/docs-model/src/reviewed_coverage.rs:59:19
+   |
+59 |     let sources = crate::ontology_catalogs::discover(root).map_err(std::io::Error::other)?;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `StdError` is not implemented for `Diag`
+   |
+   = note: required for `std::boxed::Box<(dyn StdError + Send + Sync + 'static)>` to implement `From<Diag>`
+   = note: required for `Diag` to implement `Into<std::boxed::Box<(dyn StdError + Send + Sync + 'static)>>`
+note: required by a bound in `alloc::io::error::<impl std::io::Error>::other`
+  --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/io/error.rs:77:12
+   |
+11 | impl Error {
+...
+75 |     pub fn other<E>(error: E) -> Error
+76 |     where
+77 |         E: Into<Box<dyn error::Error + Send + Sync>>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `alloc::io::error::<impl Error>::other`
+
+error[E0277]: the trait bound `Diag: StdError` is not satisfied
+  --> crates/docs-model/src/reviewed_coverage.rs:59:60
+   |
+59 |     let sources = crate::ontology_catalogs::discover(root).map_err(std::io::Error::other)?;
+   |                                                            ^^^^^^^ the trait `StdError` is not implemented for `Diag`
+   |
+   = note: required for `std::boxed::Box<(dyn StdError + Send + Sync + 'static)>` to implement `From<Diag>`
+   = note: required for `Diag` to implement `Into<std::boxed::Box<(dyn StdError + Send + Sync + 'static)>>`
+note: required by a bound in `alloc::io::error::<impl std::io::Error>::other`
+  --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/io/error.rs:77:12
+   |
+11 | impl Error {
+...
+75 |     pub fn other<E>(error: E) -> Error
+76 |     where
+77 |         E: Into<Box<dyn error::Error + Send + Sync>>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `alloc::io::error::<impl Error>::other`
+
+error[E0277]: the trait bound `Diag: StdError` is not satisfied
+  --> crates/docs-model/src/reviewed_coverage.rs:59:68
+   |
+59 |     let sources = crate::ontology_catalogs::discover(root).map_err(std::io::Error::other)?;
+   |                                                                    ^^^^^^^^^^^^^^^^^^^^^ the trait `StdError` is not implemented for `Diag`
+   |
+   = note: required for `std::boxed::Box<(dyn StdError + Send + Sync + 'static)>` to implement `From<Diag>`
+   = note: required for `Diag` to implement `Into<std::boxed::Box<(dyn StdError + Send + Sync + 'static)>>`
+note: required by a bound in `alloc::io::error::<impl std::io::Error>::other`
+  --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/alloc/src/io/error.rs:77:12
+   |
+11 | impl Error {
+...
+75 |     pub fn other<E>(error: E) -> Error
+76 |     where
+77 |         E: Into<Box<dyn error::Error + Send + Sync>>,
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `alloc::io::error::<impl Error>::other`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `gmeow-docs-model` (lib) due to 7 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:717: nextest-synthetic] Error 101

@@ -1,0 +1,716 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & test(projection_literal_)' --no-tests=fail
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/errors)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-form)
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/build-inputs)
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/license)
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cost-measure)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/ns)
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/test-batch-macros)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/foundation-corpus)
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/perf-evidence)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/query-wasm)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math-lift)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cli-core)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/helper-census)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/xtask)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/music)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect-ingest)
+error: failed to run custom build command for `gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)`
+
+Caused by:
+  process didn't exit successfully: `/opt/.cargo/ba/58ab8808c2ba64/debug/build/gmeow-logic/793a1f199ad72419/out/build_script_build` (exit status: 101)
+  --- stdout
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/axis-not-disjoint.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/citation-act-incomplete.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/class-in-two-disjoint-axes.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/class-without-stereotype.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/conjecture-open-if-inconclusive.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/conjecture-refutation-witness-required.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/conjecture-standpoint-scoped.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries/verify/credence-out-of-range.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/queries/verify/dimensional-inhomogeneity.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/enactment-integrity-violation.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-ascii-fallback-uniqueness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-belnap-distinctness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-form-signature-completeness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-glyph-fallback-global-unique.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-infix-precedence-consistency.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-logic-ascii-fallback-uniqueness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-coverage-complete.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-glyph-scope-disjoint.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-no-double-binding.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-precedence-fibered.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-signature-coherence.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-modal-accessibility-typed.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-operator-arity-coherence.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-turnstile-entailment-distinct.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/harvest-link-paired.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/hasskill-not-strict-subproperty-of-knowsabout.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/knowsabout-not-materialized-from-hasskill.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries/verify/no-doxastic-state-without-agent.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries/verify/no-factivity-edge.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries/verify/no-instant-without-value.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries/verify/no-jepd-violation.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/queries/verify/no-mobile-form-chain-axiom.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/no-orphan-accessibility-assertion.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/no-period-without-bounds.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/non-entailment-carrier-required.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/non-entailment-counterpart.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/notability-without-independence.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/notability-without-secondary.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/notability-without-significant-coverage.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/promotion-cases-required.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/reviewer-gate.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/accounts
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/accounts/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/accounts/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/accounts/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/accounts/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/affect/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agentic
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agentic/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agentic/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agentic/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agentic/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agreements
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agreements/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/agreements/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/ai
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/ai/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/ai/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/ai/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/ai/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/attestation
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/attestation/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/attestation/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/attestation/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/attestation/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/attestation/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/attestation/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/awareness
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/awareness/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/awareness/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/awareness/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/awareness/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/calendar
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/calendar/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/calendar/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/calendar/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/calendar/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/citations
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/citations/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/citations/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/citations/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/citations/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/cognition
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/cognition/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/cognition/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/cognition/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/cognition/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/concepts
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/concepts/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/concepts/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/concepts/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/concepts/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/concepts/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/concepts/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/contacts
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/contacts/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/contacts/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/contacts/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/contacts/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/coreference
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/coreference/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/coreference/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/coreference/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/coreference/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/creative-works
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/creative-works/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/creative-works/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/creative-works/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/creative-works/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/deception
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/deception/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/deception/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/deception/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/deception/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/diagnostics
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/diagnostics/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/diagnostics/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/diagnostics/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/diagnostics/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/diagnostics/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/diagnostics/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documentation
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documentation/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documentation/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documentation/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documentation/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documentation/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documents
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documents/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documents/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documents/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/documents/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/entities
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/entities/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/entities/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/entities/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries/verify
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/events
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/events/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/events/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/events/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/events/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/evidence
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/evidence/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/evidence/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/evidence/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/expertise
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/expertise/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/expertise/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/expertise/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/expertise/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/expertise/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gender
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gender/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gender/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gender/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gender/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gts
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gts/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gts/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gts/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gts/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gts/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/gts/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/guides
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/guides/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/guides/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/imagination
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/imagination/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/imagination/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/imagination/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inference
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inference/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inference/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inference/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inference/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inhabitation/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inquiry
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inquiry/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inquiry/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inquiry/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/inquiry/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/kernel
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/kernel/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/kernel/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/kernel/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/kernel/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/kernel/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/kernel/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/language
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/language/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/language/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/language/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/language/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/language/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/learning
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/learning/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/learning/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/learning/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/learning/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/learning/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/learning/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/lifecycle
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/lifecycle/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/lifecycle/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/lifecycle/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/lifecycle/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/mentation
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/mentation/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/mentation/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/mentation/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/mentation/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/metacognition
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/metacognition/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/metacognition/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/metacognition/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/names
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/names/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/names/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/names/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/names/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/norms/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notation
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notation/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notation/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notation/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notation/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notes
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notes/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notes/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notes/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/notes/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/observations
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/observations/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/observations/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/observations/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/observations/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/organization
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/organization/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/organization/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/organization/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/organization/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/pipeline/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/places
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/places/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/places/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/places/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/places/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/preference/tests/data
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/profiles
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/profiles/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/profiles/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/profiles/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/provenance
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/provenance/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/provenance/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/provenance/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/provenance/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/quality
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/quality/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/quality/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/quality/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/quality/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/rights
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/rights/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/rights/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/rights/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/rights/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/rights/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/rights/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sexuality
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sexuality/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sexuality/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sexuality/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sexuality/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/queries/qc
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/slice-quality-rubric/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sources
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sources/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sources/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/sources/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/standpoint
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/standpoint/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/standpoint/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/standpoint/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/standpoint/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/tags
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/tags/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/tags/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/tags/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/tags/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/tags/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/tags/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/teleology
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/teleology/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/teleology/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/teleology/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries/tql
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries/verify
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/trust
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/trust/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/trust/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/trust/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/trust/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/versions
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/versions/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/versions/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/versions/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/versions/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/work-orchestration/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/accessibility
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/accessibility/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/accessibility/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/accessibility/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/accessibility/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/aggregation
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/aggregation/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/aggregation/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/aggregation/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/aggregation/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/archaeological-evidence
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/archaeological-evidence/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/archaeological-evidence/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/archaeological-evidence/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/archaeological-evidence/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/connectivity
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/connectivity/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/connectivity/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/connectivity/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/connectivity/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/dreaming
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/dreaming/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/dreaming/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/email
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/email/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/email/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/email/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/email/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/embedding-projection/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/employment
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/employment/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/employment/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/employment/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/employment/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/finance
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/finance/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/finance/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/finance/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/finance/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/genealogy
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/genealogy/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/genealogy/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/genealogy/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/genealogy/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/graphrag
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/graphrag/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/graphrag/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/graphrag/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/graphrag/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/graphrag/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/graphrag/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/images
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/images/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/images/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/images/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/images/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/languages
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/languages/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/languages/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/languages/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/languages/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/languages/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/lexicon
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/lexicon/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/lexicon/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/lexicon/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/lexicon/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/queries/project
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/model-serving/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/queries/verify
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/narrative
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/narrative/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/narrative/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/narrative/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/narrative/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/risk
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/risk/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/risk/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/risk/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/semantic-topology
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/semantic-topology/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/semantic-topology/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/semantic-topology/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/semantic-topology/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/semantic-topology/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/semantic-topology/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory-environment
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory-environment/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory-environment/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory-environment/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory-environment/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/sensory/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/software
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/software/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/software/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/software/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/software/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/grammars
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/tests/gmn1-vectors
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/tests/gmn1-vectors/negative-codec
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/tests/gmn1-vectors/negative-graph
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/design
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/i18n
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/mappings
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/projections
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/queries/verify
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/tests/conformance-fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/tests/counter-examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/tests/fixtures
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/profile
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/profile/agent-runtime
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/profile/agent-runtime/examples
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/profile/agent-runtime/queries
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/profile/agent-runtime/queries/competency
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/profile/agent-runtime/tests
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/axis-not-disjoint.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/citation-act-incomplete.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/class-in-two-disjoint-axes.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/class-without-stereotype.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/conjecture-open-if-inconclusive.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/conjecture-refutation-witness-required.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/conjecture-standpoint-scoped.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries/verify/credence-out-of-range.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/math/queries/verify/dimensional-inhomogeneity.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/enactment-integrity-violation.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-ascii-fallback-uniqueness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-belnap-distinctness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-form-signature-completeness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-glyph-fallback-global-unique.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-infix-precedence-consistency.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-logic-ascii-fallback-uniqueness.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-coverage-complete.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-glyph-scope-disjoint.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-no-double-binding.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-precedence-fibered.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-logic-signature-coherence.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-modal-accessibility-typed.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/lang/queries/verify/gmn-operator-arity-coherence.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/gmn-turnstile-entailment-distinct.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/harvest-link-paired.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/hasskill-not-strict-subproperty-of-knowsabout.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/knowsabout-not-materialized-from-hasskill.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries/verify/no-doxastic-state-without-agent.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/epistemics/queries/verify/no-factivity-edge.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries/verify/no-instant-without-value.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/core/temporal/queries/verify/no-jepd-violation.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/extensions/music/queries/verify/no-mobile-form-chain-axiom.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/no-orphan-accessibility-assertion.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/no-period-without-bounds.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/non-entailment-carrier-required.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/non-entailment-counterpart.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/notability-without-independence.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/notability-without-secondary.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/queries/verify/notability-without-significant-coverage.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/promotion-cases-required.rq
+  cargo:rerun-if-changed=/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/slices/grounding/logic/queries/verify/reviewer-gate.rq
+
+  --- stderr
+
+  thread 'main' (593671) panicked at crates/logic/build.rs:55:10:
+  canonical native source ownership: InputError("macro json_record! has no selected source-input capability owner in /home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile/src/projections/profile_program.rs")
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...
+error: type `NaturalKey` is more private than the item `admit_native_cells`
+   --> crates/logic-compile/src/projections/correspondence_frontend.rs:252:1
+    |
+252 | / pub(crate) fn admit_native_cells(dsl_view: &DslView) -> gmeow_errors::Result<(
+253 | |     CorrespondenceProgram, Vec<crate::projections::sssom::EquivalenceCell>,
+254 | |     BTreeMap<NaturalKey, TypedRelation>,
+255 | | )> {
+    | |__^ function `admit_native_cells` is reachable at visibility `pub(crate)`
+    |
+note: but type `NaturalKey` is only usable at visibility `pub(self)`
+   --> crates/logic-compile/src/projections/correspondence_frontend.rs:115:1
+    |
+115 | enum NaturalKey {
+    | ^^^^^^^^^^^^^^^
+    = note: `-D private-interfaces` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(private_interfaces)]`
+
+error: type `NaturalKey` is private
+  --> crates/logic-compile/src/projections/grounding_catalog.rs:70:31
+   |
+70 |         let (program, _, _) = super::correspondence_frontend::admit_native_cells(mappings)?;
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ private type
+
+error: could not compile `gmeow-logic-compile` (lib) due to 2 previous errors
+error[E0061]: this function takes 2 arguments but 1 argument was supplied
+   --> crates/logic-compile/src/projections/fno.tests.rs:70:25
+    |
+ 70 |       let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
+    |  _________________________^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+ 71 | |         &DslView::new(&dsl),
+ 72 | |     )
+    | |_____- argument #2 of type `&ingest::dataset::DslView<'_>` is missing
+    |
+note: function defined here
+   --> crates/logic-compile/src/projections/correspondence_frontend.rs:468:8
+    |
+468 | pub fn transpile_correspondences_indexed(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+469 |     dsl_view: &DslView,
+470 |     ontology: &DslView,
+    |     ------------------
+help: provide the argument
+    |
+ 70 -     let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
+ 71 -         &DslView::new(&dsl),
+ 72 -     )
+ 70 +     let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(&DslView::new(&dsl), /* &DslView<'_> */)
+    |
+
+error[E0061]: this function takes 2 arguments but 1 argument was supplied
+   --> crates/logic-compile/src/projections/fno.tests.rs:154:25
+    |
+154 |       let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
+    |  _________________________^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+155 | |         &DslView::new(&dsl),
+156 | |     )
+    | |_____- argument #2 of type `&ingest::dataset::DslView<'_>` is missing
+    |
+note: function defined here
+   --> crates/logic-compile/src/projections/correspondence_frontend.rs:468:8
+    |
+468 | pub fn transpile_correspondences_indexed(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+469 |     dsl_view: &DslView,
+470 |     ontology: &DslView,
+    |     ------------------
+help: provide the argument
+    |
+154 -     let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(
+155 -         &DslView::new(&dsl),
+156 -     )
+154 +     let (_, analysis) = super::super::correspondence_frontend::transpile_correspondences_indexed(&DslView::new(&dsl), /* &DslView<'_> */)
+    |
+
+For more information about this error, try `rustc --explain E0061`.
+error: could not compile `gmeow-logic-compile` (lib test) due to 2 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:717: nextest-synthetic] Error 101

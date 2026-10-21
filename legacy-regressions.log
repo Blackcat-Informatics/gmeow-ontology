@@ -1,0 +1,381 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '((package(gmeow-docs-model) & (test(i18n_compile::tests::) | test(reviewed_coverage::tests::synthetic_catalogs_record_reviewed_keys_and_reject_malformed_input) | test(model::tests::documented_terms_))) | (package(gmeow-slice-quality) & (test(counting::tests::) | test(residue_text_carrier_tests::) | test(projection_debt::tests::) | test(profile::tests::))) | (package(gmeow-logic-compile) & (test(projections::correspondence_frontend::tests::) | test(projections::fno::tests::) | test(projections::sparql::tests::) | test(projections::sparql_put::tests::) | test(projections::sssom::tests::) | test(projections::edoal::tests::))) | (package(gmeow-pipeline) & (test(docs_distribution::tests::manifest_is_deterministic) | test(docs_distribution::tests::manifest_carries_a_checksum_and_catalog_link_per_entry) | test(docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query) | test(docs_distribution::tests::build_manifest_projects_site_sub_asset_digests_through_dcat_rq) | test(projections::tests::projection_retags_nested_claim_literals_without_losing_direction_or_scope) | test(projections::tests::project_graph_runs_a_construct_to_schema_org) | test(projections::tests::project_graph_retags_public_language) | test(transform::tests::prepared_transform_preserves_projected_provenance_across_independent_inputs)))) & !test(projection_literal_)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 8m 17s
+────────────
+ Nextest run ID 4265ab54-2e14-45ed-a777-9e52040ce146 with nextest profile: ci
+    Starting 195 tests across 48 binaries (2481 tests and 179 binaries skipped)
+        PASS [   0.012s] (  1/195) gmeow-docs-model i18n_compile::tests::lint_native_json_focus_preserves_tuple_bytes
+        PASS [   0.012s] (  2/195) gmeow-docs-model i18n_compile::tests::lint_identity_excludes_wording_but_keeps_context_and_warning_grade
+        PASS [   0.013s] (  3/195) gmeow-docs-model i18n_compile::tests::lint_native_json_focus_preserves_string_escapes_and_empty_subjects
+        PASS [   0.018s] (  4/195) gmeow-docs-model i18n_compile::tests::lint_native_json_focus_keeps_rule_and_subject_boundaries_distinct
+        PASS [   0.014s] (  5/195) gmeow-docs-model i18n_compile::tests::csv_escape_quotes_commas
+        PASS [   0.019s] (  6/195) gmeow-docs-model i18n_compile::tests::lint_passes_declared_homograph
+        PASS [   0.019s] (  7/195) gmeow-docs-model i18n_compile::tests::lint_passes_twin_source_shared_translation
+        PASS [   0.020s] (  8/195) gmeow-docs-model i18n_compile::tests::lint_all_fuzzy_catalog_is_error
+        PASS [   0.018s] (  9/195) gmeow-docs-model i18n_compile::tests::lint_passes_consistent_glossary
+        PASS [   0.018s] ( 10/195) gmeow-docs-model i18n_compile::tests::malformed_rdf_retains_native_cause_under_the_translation_operation
+        PASS [   0.020s] ( 11/195) gmeow-docs-model i18n_compile::tests::lint_excludes_fuzzy_from_distinctiveness
+        PASS [   0.018s] ( 12/195) gmeow-docs-model i18n_compile::tests::malformed_authored_source_is_a_native_failure_and_a_lint_refusal
+        PASS [   0.020s] ( 13/195) gmeow-docs-model i18n_compile::tests::lint_flags_collapsed_translation_distinction
+        PASS [   0.020s] ( 14/195) gmeow-docs-model model::tests::documented_terms_keep_conflicting_ownership_claims_visible
+        PASS [   0.021s] ( 15/195) gmeow-docs-model i18n_compile::tests::lint_flags_glossary_inconsistency
+        PASS [   0.018s] ( 16/195) gmeow-docs-model i18n_compile::tests::live_translation_target_gates_fuzzy_seeds
+        PASS [   0.019s] ( 17/195) gmeow-docs-model i18n_compile::tests::lint_reports_orphaned_and_stale_entries_as_warnings
+        PASS [   0.018s] ( 18/195) gmeow-docs-model i18n_compile::tests::parse_po_reads_fuzzy_and_language
+        PASS [   0.020s] ( 19/195) gmeow-docs-model i18n_compile::tests::lint_rejects_copied_or_hybrid_english_as_translation
+        PASS [   0.018s] ( 20/195) gmeow-docs-model i18n_compile::tests::lint_keeps_distinct_catalog_sources_and_projects_the_native_verdict
+        PASS [   0.019s] ( 21/195) gmeow-docs-model i18n_compile::tests::lint_valid_catalog_reports_no_errors
+        PASS [   0.021s] ( 22/195) gmeow-docs-model i18n_compile::tests::turtle_replace_preserves_triple_quoted_style
+        PASS [   0.021s] ( 23/195) gmeow-docs-model i18n_compile::tests::markdown_extract_uses_stable_hash
+        PASS [   0.021s] ( 24/195) gmeow-docs-model i18n_compile::tests::turtle_sync_reports_source_already_at_po_value_as_unchanged
+        PASS [   0.023s] ( 25/195) gmeow-docs-model i18n_compile::tests::turtle_replace_disambiguates_by_subject_and_predicate
+        PASS [   0.024s] ( 26/195) gmeow-docs-model i18n_compile::tests::catalog_discovery_retains_io_causes_and_rejects_wrong_directory_types
+        PASS [   0.025s] ( 27/195) gmeow-docs-model i18n_compile::tests::the_turtle_scanners_survive_non_ascii_sources
+        PASS [   0.024s] ( 28/195) gmeow-docs-model i18n_compile::tests::turtle_sync_conflicts_when_source_and_po_both_changed
+        PASS [   0.023s] ( 29/195) gmeow-docs-model i18n_compile::tests::lint_flags_inconsistency_despite_unrelated_homograph
+        PASS [   0.024s] ( 30/195) gmeow-docs-model model::tests::documented_terms_keep_unowned_declarations_visible
+        PASS [   0.025s] ( 31/195) gmeow-docs-model i18n_compile::tests::lint_missing_language_header_is_error
+        PASS [   0.028s] ( 32/195) gmeow-docs-model i18n_compile::tests::xliff_export_uses_actual_slice_path
+        PASS [   0.017s] ( 33/195) gmeow-docs-model model::tests::documented_terms_use_validated_owner_before_or_after_reference
+        PASS [   0.021s] ( 34/195) gmeow-docs-model reviewed_coverage::tests::synthetic_catalogs_record_reviewed_keys_and_reject_malformed_input
+        PASS [   0.020s] ( 35/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_lowers_to_the_same_typed_ir
+        PASS [   0.022s] ( 36/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_a_commitment_shift_with_equivalence_relation
+        PASS [   0.010s] ( 37/195) gmeow-logic-compile projections::edoal::tests::object_property_source_derives_relation
+        PASS [   0.021s] ( 38/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_requires_explicit_judgments
+        PASS [   0.021s] ( 39/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_requires_exactly_one_binding_target_form
+        PASS [   0.021s] ( 40/195) gmeow-logic-compile projections::correspondence_frontend::tests::same_fact_in_two_sssom_sets_collapses_not_conflicts
+        PASS [   0.013s] ( 41/195) gmeow-logic-compile projections::edoal::tests::annotation_property_derives_kind_from_range
+        PASS [   0.022s] ( 42/195) gmeow-logic-compile projections::correspondence_frontend::tests::correspondence_iris_are_content_stable
+        PASS [   0.020s] ( 43/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_multiple_bindings
+        PASS [   0.021s] ( 44/195) gmeow-logic-compile projections::correspondence_frontend::tests::evidence_retains_full_identity_without_implicit_warrant_scores
+        PASS [   0.022s] ( 45/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_accepts_an_honest_commitment_shift
+        PASS [   0.022s] ( 46/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_projection_rejects_missing_metadata_and_target_drift
+        PASS [   0.023s] ( 47/195) gmeow-logic-compile projections::correspondence_frontend::tests::divergent_duplicate_alignment_cell_fails_closed
+        PASS [   0.022s] ( 48/195) gmeow-logic-compile projections::correspondence_frontend::tests::same_assertion_keeps_each_declared_morphism_and_overclaim_gate
+        PASS [   0.015s] ( 49/195) gmeow-logic-compile projections::edoal::tests::bridge_cell_emitting_equivalence_fails_the_lowering
+        PASS [   0.016s] ( 50/195) gmeow-logic-compile projections::edoal::tests::template_atoms_present_but_no_atom_names_to_predicate_is_a_hard_fail_without_override
+        PASS [   0.014s] ( 51/195) gmeow-logic-compile projections::edoal::tests::annotation_property_range_rdf_lang_string_derives_property
+        PASS [   0.014s] ( 52/195) gmeow-logic-compile projections::edoal::tests::indeterminate_source_kind_is_a_hard_fail
+        PASS [   0.014s] ( 53/195) gmeow-logic-compile projections::edoal::tests::stable_bnode_encodes_injectively
+        PASS [   0.026s] ( 54/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_cannot_surface_exact_match
+        PASS [   0.019s] ( 55/195) gmeow-logic-compile projections::edoal::tests::mapping_cell_identity_retains_full_owner_and_each_same_profile_binding
+        PASS [   0.018s] ( 56/195) gmeow-logic-compile projections::edoal::tests::authored_target_kind_overrides_derivation
+        PASS [   0.015s] ( 57/195) gmeow-logic-compile projections::edoal::tests::edoal_kind_rejects_unknown_token
+        PASS [   0.009s] ( 58/195) gmeow-logic-compile projections::edoal::tests::template_minted_iri_object_derives_relation_even_though_source_is_a_datatype_property
+        FAIL [   0.027s] ( 59/195) gmeow-logic-compile projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input
+  stdout ───
+
+    running 1 test
+    test projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input ... FAILED
+
+    failures:
+
+    failures:
+        projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1049 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input' (2742286) panicked at crates/logic-compile/src/projections/correspondence_frontend/tests.rs:828:22:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(2), message: "alignment reifier Blank { label: \"gts_00000000000000000000000000\", scope: BlankScope(0) }, gmeow:confidence: quantitative coordinate: requires a finite RDF numeric value", context: [], antecedents: [], source: Some(Sssom { detail: "alignment reifier Blank { label: \"gts_00000000000000000000000000\", scope: BlankScope(0) }, gmeow:confidence: quantitative coordinate: requires a finite RDF numeric value" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/sssom.rs", line: 612, column: 21 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.023s] ( 60/195) gmeow-logic-compile projections::edoal::tests::datatype_property_source_derives_property
+        PASS [   0.021s] ( 61/195) gmeow-logic-compile projections::correspondence_frontend::tests::transpile_round_trips_with_no_extract_errors
+        PASS [   0.013s] ( 62/195) gmeow-logic-compile projections::fno::tests::canonical_callable_slot_metadata_is_required_before_projection
+        PASS [   0.011s] ( 63/195) gmeow-logic-compile projections::fno::tests::order_binds_is_topological_with_alpha_tiebreak
+        PASS [   0.025s] ( 64/195) gmeow-logic-compile projections::edoal::tests::object_property_subtype_alone_derives_relation
+        PASS [   0.013s] ( 65/195) gmeow-logic-compile projections::fno::tests::canonical_callable_slot_metadata_preserves_authored_input_and_output_values
+        PASS [   0.013s] ( 66/195) gmeow-logic-compile projections::fno::tests::canonical_callables_fail_closed_on_invalid_or_unrepresentable_declarations
+        PASS [   0.017s] ( 67/195) gmeow-logic-compile projections::fno::tests::canonical_callable_identity_cannot_collide_with_a_derived_projection_node
+        PASS [   0.016s] ( 68/195) gmeow-logic-compile projections::fno::tests::canonical_callables_preserve_order_identity_types_and_rdf12_metadata
+        PASS [   0.018s] ( 69/195) gmeow-logic-compile projections::fno::tests::iri_minting_matches_historical
+        PASS [   0.027s] ( 70/195) gmeow-logic-compile projections::edoal::tests::format_double_matches_corpus
+        PASS [   0.017s] ( 71/195) gmeow-logic-compile projections::fno::tests::order_binds_rejects_cycle
+        PASS [   0.020s] ( 72/195) gmeow-logic-compile projections::fno::tests::callable_declarations_keep_identity_and_metadata_without_inventing_a_signature
+        PASS [   0.041s] ( 73/195) gmeow-logic-compile projections::correspondence_frontend::tests::grounding_term_bridge_keeps_typed_commitment_and_endpoints
+        PASS [   0.019s] ( 74/195) gmeow-logic-compile projections::fno::tests::canonical_interfaces_are_admitted_from_ontology_sources_without_duplicate_ownership
+        PASS [   0.021s] ( 75/195) gmeow-logic-compile projections::fno::tests::canonical_callables_refuse_invalid_scope_note_metadata
+        PASS [   0.021s] ( 76/195) gmeow-logic-compile projections::fno::tests::lower_fno_extracts_nested_collection_atoms
+        PASS [   0.018s] ( 77/195) gmeow-logic-compile projections::sparql::tests::helper_inventory_includes_templates_nested_atoms_predicate_variables_and_expressions
+        PASS [   0.020s] ( 78/195) gmeow-logic-compile projections::sparql::tests::complete_source_and_binding_identity_prevents_report_relation_and_law_aliases
+        PASS [   0.024s] ( 79/195) gmeow-logic-compile projections::fno::tests::fno_abox_individuals_carry_full_structural_annotations
+        PASS [   0.029s] ( 80/195) gmeow-logic-compile projections::edoal::tests::template_literal_var_derives_property_even_though_no_mint_or_subject_use
+        PASS [   0.026s] ( 81/195) gmeow-logic-compile projections::fno::tests::canonical_callables_require_paired_method_recipe_and_keep_role_boundaries
+        PASS [   0.025s] ( 82/195) gmeow-logic-compile projections::fno::tests::canonical_callables_preserve_selected_mathematical_extensions_from_both_views
+        PASS [   0.010s] ( 83/195) gmeow-logic-compile projections::sparql_put::tests::emission_is_deterministic_and_clock_free
+        PASS [   0.027s] ( 84/195) gmeow-logic-compile projections::fno::tests::canonical_callables_refuse_malformed_mathematical_extension_targets
+        PASS [   0.023s] ( 85/195) gmeow-logic-compile projections::sparql::tests::expression_operator_names_do_not_grant_foreign_vocabulary_authority
+        PASS [   0.051s] ( 86/195) gmeow-logic-compile projections::correspondence_frontend::tests::bridge_cell_surfacing_equivalence_fails_end_to_end
+        PASS [   0.012s] ( 87/195) gmeow-logic-compile projections::sparql_put::tests::mixed_profile_asserts_recovery_bare_and_reifies_the_lossy_lift_under_one_import
+        PASS [   0.019s] ( 88/195) gmeow-logic-compile projections::sparql::tests::semantic_binding_key_retains_full_native_literal_evidence_and_leg_polarity
+        PASS [   0.013s] ( 89/195) gmeow-logic-compile projections::sparql_put::tests::complete_over_multi_atom_emits_every_source_atom_bare_and_no_envelope
+        FAIL [   0.015s] ( 90/195) gmeow-logic-compile projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent
+  stdout ───
+
+    running 1 test
+    test projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent ... FAILED
+
+    failures:
+
+    failures:
+        projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1049 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent' (2742399) panicked at crates/logic-compile/src/projections/sparql_put.tests.rs:334:6:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "projection lost its canonical binding correspondence", context: [], antecedents: [], source: Some(Sparql { detail: "projection lost its canonical binding correspondence" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/sparql/native.rs", line: 18, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.010s] ( 91/195) gmeow-logic-compile projections::sssom::tests::bare_skos_exactmatch_without_sssomfile_is_ignored
+        PASS [   0.014s] ( 92/195) gmeow-logic-compile projections::sparql_put::tests::candidate_literal_claim_retains_datatype_and_direction_without_assertion
+        PASS [   0.011s] ( 93/195) gmeow-logic-compile projections::sssom::tests::checked_mapping_rejects_tab_in_cell
+        PASS [   0.014s] ( 94/195) gmeow-logic-compile projections::sparql_put::tests::classify_put_is_the_single_authority_for_the_three_polarities
+        PASS [   0.017s] ( 95/195) gmeow-logic-compile projections::sparql_put::tests::validation_only_binding_reifies_the_lift_as_an_inert_claim
+        PASS [   0.012s] ( 96/195) gmeow-logic-compile projections::sssom::tests::lower_sssom_extracts_over_dslview
+        PASS [   0.030s] ( 97/195) gmeow-logic-compile projections::sparql::tests::native_and_emitted_candidate_put_keep_literal_evidence_and_import_ownership
+        PASS [   0.011s] ( 98/195) gmeow-logic-compile projections::sssom::tests::native_cell_with_non_iri_object_hard_fails
+        PASS [   0.014s] ( 99/195) gmeow-logic-compile projections::sssom::tests::label_column_appears_only_when_populated
+        PASS [   0.026s] (100/195) gmeow-logic-compile projections::sparql::tests::typed_and_emitted_binding_preserve_get_suppression_and_unguarded_put
+        PASS [   0.034s] (101/195) gmeow-logic-compile projections::sparql::tests::name_part_retag_reuses_an_authored_parent_language_binding
+        PASS [   0.025s] (102/195) gmeow-logic-compile projections::sparql::tests::value_class_lookup_does_not_capture_an_authored_class_suffixed_variable
+        PASS [   0.012s] (103/195) gmeow-logic-compile projections::sssom::tests::native_five_match_predicates_materialize_row_and_correspondence
+        PASS [   0.013s] (104/195) gmeow-logic-compile projections::sssom::tests::lower_sssom_emits_projection_binding_rows
+        PASS [   0.027s] (105/195) gmeow-logic-compile projections::sparql::tests::typed_cell_domains_stay_isolated_from_profile_union_and_other_contexts
+        PASS [   0.014s] (106/195) gmeow-logic-compile projections::sssom::tests::malformed_native_alignment_fields_fail_instead_of_disappearing
+        PASS [   0.028s] (107/195) gmeow-logic-compile projections::sparql::tests::typed_mapping_executes_nested_paths_optionals_values_and_legalized_expressions
+        PASS [   0.028s] (108/195) gmeow-logic-compile projections::sparql::tests::typed_retag_preserves_script_selection_and_hidden_bearer_guard
+        PASS [   0.010s] (109/195) gmeow-logic-compile projections::sssom::tests::render_one_emits_canonical_tsv
+        PASS [   0.014s] (110/195) gmeow-logic-compile projections::sssom::tests::native_grounding_cell_preserves_all_fields_and_passes_invariants
+        PASS [   0.040s] (111/195) gmeow-logic-compile projections::sparql::tests::authored_language_final_value_and_hidden_bearer_roles_keep_their_own_bindings
+        PASS [   0.014s] (112/195) gmeow-logic-compile projections::sssom::tests::native_owl_and_rdfs_alignment_predicates_are_read
+        PASS [   0.030s] (113/195) gmeow-logic-compile projections::sparql::tests::unsupported_expression_has_loss_evidence_without_a_placeholder_binding
+        PASS [   0.018s] (114/195) gmeow-logic-compile projections::sssom::tests::native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries
+        PASS [   0.009s] (115/195) gmeow-logic-compile projections::sssom::tests::projection_binding_exactmatch_overclaim_is_rejected
+        PASS [   0.039s] (116/195) gmeow-logic-compile projections::sparql::tests::optional_binding_remains_unbound_in_its_own_profile_branch
+        PASS [   0.021s] (117/195) gmeow-logic-compile projections::sssom::tests::native_grounding_cell_missing_preservation_hard_fails
+        PASS [   0.042s] (118/195) gmeow-logic-compile projections::sparql::tests::retag_helpers_never_capture_an_authored_value_with_the_same_name
+        PASS [   0.017s] (119/195) gmeow-pipeline projections::tests::project_graph_runs_a_construct_to_schema_org
+        PASS [   0.020s] (120/195) gmeow-pipeline projections::tests::project_graph_retags_public_language
+        PASS [   0.057s] (121/195) gmeow-logic-compile projections::sparql::tests::full_profiles_equal_independent_binding_execution_despite_shared_variable_names
+        PASS [   0.022s] (122/195) gmeow-pipeline projections::tests::projection_retags_nested_claim_literals_without_losing_direction_or_scope
+        PASS [   0.031s] (123/195) gmeow-pipeline docs_distribution::tests::build_manifest_projects_site_sub_asset_digests_through_dcat_rq
+        PASS [   0.030s] (124/195) gmeow-pipeline docs_distribution::tests::manifest_carries_a_checksum_and_catalog_link_per_entry
+        FAIL [   0.030s] (125/195) gmeow-pipeline docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query
+  stdout ───
+
+    running 1 test
+    test docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query ... FAILED
+
+    failures:
+
+    failures:
+        docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1061 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query' (2742570) panicked at crates/pipeline/src/docs_distribution.tests.rs:230:5:
+    failure must name the required typed DCAT product: docs-distribution error: load required bundled DCAT projection program: GTS archive profile: required archive queries-archive is missing
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.022s] (126/195) gmeow-slice-quality counting::tests::grounded_fraction_matches_legacy_grounded_over_authored
+        PASS [   0.012s] (127/195) gmeow-slice-quality counting::tests::raw_external_bridge_now_counts_not_exempt
+        PASS [   0.033s] (128/195) gmeow-pipeline docs_distribution::tests::manifest_is_deterministic
+        PASS [   0.022s] (129/195) gmeow-slice-quality counting::tests::back_ref_to_named_disjointness_axiom_grounds
+        PASS [   0.018s] (130/195) gmeow-slice-quality counting::tests::owner_set_native_bridge_requires_membership_and_complete_envelope
+        PASS [   0.019s] (131/195) gmeow-slice-quality counting::tests::blank_subject_anchors_on_its_nearest_named_sh_ancestor
+        PASS [   0.019s] (132/195) gmeow-slice-quality counting::tests::dangling_back_ref_still_counts
+        PASS [   0.022s] (133/195) gmeow-slice-quality counting::tests::multi_binding_grounding_projection_does_not_open_the_boundary
+        PASS [   0.022s] (134/195) gmeow-slice-quality counting::tests::grounded_shape_not_counted_in_residue
+        PASS [   0.023s] (135/195) gmeow-slice-quality counting::tests::declarative_owl_rdfs_axiom_not_counted_for_guarded_vocab
+        PASS [   0.022s] (136/195) gmeow-slice-quality counting::tests::grounding_cell_without_justification_is_not_exempt
+        PASS [   0.020s] (137/195) gmeow-slice-quality counting::tests::grounded_fraction_is_one_when_nothing_authored
+        PASS [   0.019s] (138/195) gmeow-slice-quality counting::tests::owner_set_node_bridge_preserves_exact_validation_boundary
+        PASS [   0.023s] (139/195) gmeow-slice-quality counting::tests::back_ref_to_non_axiom_target_still_counts
+        PASS [   0.025s] (140/195) gmeow-slice-quality counting::tests::internal_equivalent_class_stays_in_residue
+        PASS [   0.026s] (141/195) gmeow-slice-quality counting::tests::named_subject_anchors_on_its_own_term_iri
+        PASS [   0.023s] (142/195) gmeow-slice-quality counting::tests::aliased_namespace_construct_counted
+        PASS [   0.026s] (143/195) gmeow-slice-quality counting::tests::ordinary_alignment_to_typed_vocab_stays_in_residue
+        PASS [   0.022s] (144/195) gmeow-slice-quality counting::tests::anonymous_nested_property_shape_counted_in_full_residue
+        PASS [   0.025s] (145/195) gmeow-slice-quality counting::tests::non_rdf_surface_vocab_is_structurally_zero
+        PASS [   0.023s] (146/195) gmeow-slice-quality counting::tests::anonymous_nested_property_shape_absent_from_historical_scope
+        PASS [   0.022s] (147/195) gmeow-slice-quality counting::tests::blank_subject_without_named_ancestor_is_non_relocatable
+        PASS [   0.006s] (148/195) gmeow-slice-quality counting::tests::reason_code_grounding_orphaned
+        PASS [   0.014s] (149/195) gmeow-slice-quality counting::tests::reason_code_exemption_shift_owner_boundary
+        PASS [   0.014s] (150/195) gmeow-slice-quality counting::tests::reason_code_bridge_exempt_both_sides
+        PASS [   0.074s] (151/195) gmeow-logic-compile projections::sparql::tests::candidate_ground_rows_and_template_blanks_belong_only_to_their_successful_branch
+        PASS [   0.028s] (152/195) gmeow-slice-quality counting::tests::a_non_relocatable_construct_carries_no_relocation_warrant
+        PASS [   0.025s] (153/195) gmeow-slice-quality counting::tests::owner_set_relocation_distinguishes_shared_boundary_from_foreign_surface
+        PASS [   0.008s] (154/195) gmeow-slice-quality counting::tests::structural_domain_alignment_cell_is_exempt
+        PASS [   0.027s] (155/195) gmeow-slice-quality counting::tests::grounding_that_travels_with_its_axiom_is_not_orphaned
+        PASS [   0.037s] (156/195) gmeow-pipeline transform::tests::prepared_transform_preserves_projected_provenance_across_independent_inputs
+        PASS [   0.012s] (157/195) gmeow-slice-quality profile::tests::excluded_and_unsupported_axes_have_distinct_honest_denominators
+        PASS [   0.013s] (158/195) gmeow-slice-quality counting::tests::structural_axiom_anchors_on_the_subject_term_not_the_whole_triple
+        PASS [   0.011s] (159/195) gmeow-slice-quality profile::tests::profile_native_json_preserves_empty_fields_and_string_bytes
+        PASS [   0.014s] (160/195) gmeow-slice-quality profile::tests::a_declared_import_must_exist_as_a_real_supplied_owner
+        PASS [   0.015s] (161/195) gmeow-slice-quality profile::tests::owner_set_standalone_standard_admits_complete_sets_and_refuses_bad_members
+        PASS [   0.014s] (162/195) gmeow-slice-quality projection_debt::tests::projection_debt_does_not_present_documentary_surfaces_as_measured
+        PASS [   0.015s] (163/195) gmeow-slice-quality profile::tests::malformed_selected_import_lists_fail_instead_of_retaining_partial_context
+        PASS [   0.015s] (164/195) gmeow-slice-quality profile::tests::profile_changes_do_not_change_shared_measurements_or_hide_input_identity
+        PASS [   0.016s] (165/195) gmeow-slice-quality profile::tests::profile_native_json_preserves_record_enum_and_axis_order
+        PASS [   0.017s] (166/195) gmeow-slice-quality counting::tests::validated_cell_on_non_owner_surface_still_counts
+        PASS [   0.020s] (167/195) gmeow-slice-quality counting::tests::single_binding_grounding_projection_target_is_exempt
+        PASS [   0.017s] (168/195) gmeow-slice-quality projection_debt::tests::owner_set_installed_debt_reader_uses_every_declared_boundary
+        PASS [   0.020s] (169/195) gmeow-slice-quality profile::tests::declared_imports_include_owned_structure_and_native_reifiers_without_asserting_quotes
+        PASS [   0.019s] (170/195) gmeow-slice-quality profile::tests::excluding_every_axis_cannot_manufacture_a_passing_rollup
+        PASS [   0.018s] (171/195) gmeow-slice-quality profile::tests::selected_profiles_admit_capabilities_before_measurement_without_fallback
+        PASS [   0.021s] (172/195) gmeow-slice-quality counting::tests::residue_count_is_exactly_the_construct_sets_length
+        PASS [   0.020s] (173/195) gmeow-slice-quality counting::tests::ungrounded_shape_counted_in_residue
+        PASS [   0.015s] (174/195) gmeow-slice-quality projection_debt::tests::projection_debt_parses_every_selected_shape_and_mapping_file
+        PASS [   0.020s] (175/195) gmeow-slice-quality profile::tests::profile_native_json_actual_assessment_keeps_independent_identity_golden
+        PASS [   0.016s] (176/195) gmeow-slice-quality projection_debt::tests::projection_debt_measures_recursive_authoring_only_without_a_checkout
+        PASS [   0.015s] (177/195) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_a_mapping_tree_that_cannot_be_scanned
+        PASS [   0.022s] (178/195) gmeow-slice-quality profile::tests::corpus_identity_distinguishes_equal_concatenations_with_different_field_boundaries
+        PASS [   0.009s] (179/195) gmeow-slice-quality residue_text_carrier_tests::base_bytes_can_be_measured_at_a_destination_surface
+        PASS [   0.016s] (180/195) gmeow-slice-quality projection_debt::tests::projection_debt_preserves_exact_u64_headroom_and_wide_totals
+        PASS [   0.021s] (181/195) gmeow-slice-quality profile::tests::profile_results_and_reasons_survive_consumer_report_formats
+        PASS [   0.011s] (182/195) gmeow-slice-quality projection_debt::tests::projection_debt_shared_inventory_accepts_manifest_only_profiles
+        PASS [   0.015s] (183/195) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_mapping_cycles_and_dangling_optional_sources
+        PASS [   0.022s] (184/195) gmeow-slice-quality counting::tests::validated_correspondence_cell_is_exempt
+        PASS [   0.022s] (185/195) gmeow-slice-quality profile::tests::malformed_or_ambiguous_profile_contracts_fail_instead_of_shrinking_the_roster
+        PASS [   0.013s] (186/195) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_missing_malformed_and_ambiguous_selected_sources
+        PASS [   0.010s] (187/195) gmeow-slice-quality residue_text_carrier_tests::a_broken_base_surface_hard_fails_rather_than_measuring_zero
+        PASS [   0.017s] (188/195) gmeow-slice-quality projection_debt::tests::projection_debt_preserves_the_declared_subsumption_budget_unit
+        PASS [   0.012s] (189/195) gmeow-slice-quality projection_debt::tests::projection_debt_uses_trusted_defaults_and_reports_deficits_without_rebaselining
+        PASS [   0.008s] (190/195) gmeow-slice-quality residue_text_carrier_tests::relocation_reasons_over_texts_names_the_owner_boundary_shift
+        PASS [   0.018s] (191/195) gmeow-slice-quality projection_debt::tests::projection_debt_rejects_ambiguous_or_missing_governance
+        FAIL [   0.024s] (192/195) gmeow-slice-quality profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades
+  stdout ───
+
+    running 1 test
+    test profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades ... FAILED
+
+    failures:
+
+    failures:
+        profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 187 filtered out; finished in 0.02s
+
+  stderr ───
+
+    thread 'profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades' (2742812) panicked at crates/slice-quality/src/profile.tests.rs:609:5:
+    mappings/broken.ttl: error native-codec-parse: unexpected token Some(Word("not")) in Turtle/TriG term at <unknown>:1:1
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.011s] (193/195) gmeow-slice-quality residue_text_carrier_tests::count_over_texts_is_the_construct_sets_length
+        PASS [   0.012s] (194/195) gmeow-slice-quality residue_text_carrier_tests::relocation_reasons_over_texts_names_an_orphaned_grounding
+        PASS [   0.013s] (195/195) gmeow-slice-quality residue_text_carrier_tests::owner_set_text_carrier_preserves_shared_boundary_and_foreign_shift
+────────────
+     Summary [   0.178s] 195 tests run: 191 passed, 4 failed, 2481 skipped
+        FAIL [   0.027s] ( 59/195) gmeow-logic-compile projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input
+  stdout ───
+
+    running 1 test
+    test projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input ... FAILED
+
+    failures:
+
+    failures:
+        projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1049 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input' (2742286) panicked at crates/logic-compile/src/projections/correspondence_frontend/tests.rs:828:22:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(2), message: "alignment reifier Blank { label: \"gts_00000000000000000000000000\", scope: BlankScope(0) }, gmeow:confidence: quantitative coordinate: requires a finite RDF numeric value", context: [], antecedents: [], source: Some(Sssom { detail: "alignment reifier Blank { label: \"gts_00000000000000000000000000\", scope: BlankScope(0) }, gmeow:confidence: quantitative coordinate: requires a finite RDF numeric value" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/sssom.rs", line: 612, column: 21 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.015s] ( 90/195) gmeow-logic-compile projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent
+  stdout ───
+
+    running 1 test
+    test projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent ... FAILED
+
+    failures:
+
+    failures:
+        projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1049 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent' (2742399) panicked at crates/logic-compile/src/projections/sparql_put.tests.rs:334:6:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "projection lost its canonical binding correspondence", context: [], antecedents: [], source: Some(Sparql { detail: "projection lost its canonical binding correspondence" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic-compile/src/projections/sparql/native.rs", line: 18, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.030s] (125/195) gmeow-pipeline docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query
+  stdout ───
+
+    running 1 test
+    test docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query ... FAILED
+
+    failures:
+
+    failures:
+        docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1061 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query' (2742570) panicked at crates/pipeline/src/docs_distribution.tests.rs:230:5:
+    failure must name the required typed DCAT product: docs-distribution error: load required bundled DCAT projection program: GTS archive profile: required archive queries-archive is missing
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.024s] (192/195) gmeow-slice-quality profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades
+  stdout ───
+
+    running 1 test
+    test profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades ... FAILED
+
+    failures:
+
+    failures:
+        profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 187 filtered out; finished in 0.02s
+
+  stderr ───
+
+    thread 'profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades' (2742812) panicked at crates/slice-quality/src/profile.tests.rs:609:5:
+    mappings/broken.ttl: error native-codec-parse: unexpected token Some(Word("not")) in Turtle/TriG term at <unknown>:1:1
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:717: nextest-synthetic] Error 100

@@ -1,0 +1,67 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/errors)
+    Checking gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-form)
+    Checking gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/build-inputs)
+    Checking gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/license)
+    Checking gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cost-measure)
+    Checking gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/term-arena)
+    Checking gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/ns)
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/test-batch-macros)
+    Checking gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/foundation-corpus)
+    Checking gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/perf-evidence)
+    Checking gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/query-wasm)
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+    Checking gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gts-profile)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math-lift)
+    Checking gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/cli-core)
+    Checking helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/helper-census)
+    Checking xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/xtask)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+    Checking gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/music)
+    Checking gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/math)
+    Checking gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect-ingest)
+error: enclosing `Ok` and `?` operator are unneeded
+    --> crates/logic-compile/src/projections/correspondence.rs:1546:5
+     |
+1546 | /     Ok(CorrespondenceProgram::new(correspondences, preservation)
+1547 | |         .with_compositions(compositions)
+1548 | |         .with_leg_programs(leg_programs)
+1549 | |         .with_native_sources(native_sources)?
+1550 | |         .with_projection_bindings(bindings)?
+1551 | |         .with_projection_profiles(profiles)?)
+     | |_____________________________________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#needless_question_mark
+     = note: `-D clippy::needless-question-mark` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::needless_question_mark)]`
+help: remove the enclosing `Ok` and `?` operator
+     |
+1546 ~     CorrespondenceProgram::new(correspondences, preservation)
+1547 |         .with_compositions(compositions)
+ ...
+1550 |         .with_projection_bindings(bindings)?
+1551 ~         .with_projection_profiles(profiles)
+     |
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> crates/logic-compile/src/projections/grounding_catalog.rs:152:85
+    |
+152 |             let source = OwnedGroundingSource::new(&identity.owner, &identity.path, &original)?;
+    |                                                                                     ^^^^^^^^^ help: change this to: `original`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#needless_borrow
+    = note: `-D clippy::needless-borrow` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrow)]`
+
+error: could not compile `gmeow-logic-compile` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-logic-compile` (lib test) due to 2 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101

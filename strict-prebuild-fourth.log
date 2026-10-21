@@ -1,0 +1,31 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on package cache
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+error[E0308]: mismatched types
+   --> crates/gmeow-dev-cli/src/dev_slice_quality.rs:112:75
+    |
+112 |     let grounding_catalog = match gmeow_validate::grounding_catalog::load(root) {
+    |                                   --------------------------------------- ^^^^ expected `&Path`, found `PathBuf`
+    |                                   |
+    |                                   arguments to this function are incorrect
+    |
+note: function defined here
+   --> crates/validate/src/grounding_catalog.rs:65:8
+    |
+ 65 | pub fn load(
+    |        ^^^^
+help: consider borrowing here
+    |
+112 |     let grounding_catalog = match gmeow_validate::grounding_catalog::load(&root) {
+    |                                                                           +
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `gmeow-dev-cli` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-dev-cli` (lib test) due to 1 previous error
+make: *** [Makefile:289: clippy-prebuild] Error 101

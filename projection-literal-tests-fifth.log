@@ -1,0 +1,62 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(projection_literal_)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-catalog)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 11s
+────────────
+ Nextest run ID 378fd886-fefb-464e-a753-1666c6ace7f7 with nextest profile: ci
+    Starting 28 tests across 226 binaries (8000 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.015s] ( 1/28) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_family_only_partial_dsl_owner_but_allows_fully_absent_owner
+        PASS [   0.027s] ( 2/28) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_discovery_does_not_load_unrelated_slice_artifacts_or_foreign_catalogs
+        PASS [   0.027s] ( 3/28) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_missing_or_ambiguous_selected_owner_and_required_dsl_sources
+        PASS [   0.028s] ( 4/28) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_uses_actual_dsl_owner_across_native_index_export_and_reviewed_inputs
+        PASS [   0.031s] ( 5/28) gmeow-slice-quality profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection
+        PASS [   0.031s] ( 6/28) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_admits_all_selectors_before_namespace_filtering
+        PASS [   0.033s] ( 7/28) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_retains_virtual_proof_without_catalog_denominator
+        PASS [   0.036s] ( 8/28) gmeow-slice-quality profile::tests::projection_literal_directory_scoring_refuses_linked_selected_files_subtrees_and_dangling_links
+        PASS [   0.036s] ( 9/28) gmeow-slice-quality profile::tests::projection_literal_standalone_valid_mapping_admission_preserves_axis_inventory_and_directory_parity
+        PASS [   0.036s] (10/28) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_prefix_suffix_and_file_text_adapters_agree
+        PASS [   0.037s] (11/28) gmeow-slice-quality profile::tests::projection_literal_standalone_mapping_refusals_cover_file_directory_and_standard_entrypoints
+        PASS [   0.038s] (12/28) gmeow-pipeline catalog_families::selected_catalog_tests::projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges
+        PASS [   0.040s] (13/28) gmeow-pipeline catalog_families::selected_catalog_tests::projection_literal_catalog_refuses_old_broad_overlap_unknown_and_guarded_exemption
+        PASS [   0.040s] (14/28) gmeow-pipeline projection_execution::tests::projection_literal_refuses_off_owner_catalog_even_with_valid_semantic_envelope
+        PASS [   0.041s] (15/28) gmeow-pipeline projection_execution::tests::projection_literal_requires_strict_mandatory_source_witness
+        PASS [   0.041s] (16/28) gmeow-pipeline projection_execution::tests::projection_literal_refuses_missing_wrong_or_forged_owner_premises
+        PASS [   0.042s] (17/28) gmeow-pipeline projection_execution::tests::projection_literal_refuses_bad_selector_fields_membership_and_flow
+        PASS [   0.045s] (18/28) gmeow-pipeline projection_execution::tests::projection_literal_catalog_refuses_missing_extra_duplicate_and_swapped_checks
+        PASS [   0.046s] (19/28) gmeow-pipeline projection_execution::tests::projection_literal_retained_get_leg_refuses_joint_catalog_product_check_tampering
+        PASS [   0.045s] (20/28) gmeow-pipeline projection_execution::tests::projection_literal_native_record_refuses_duplicate_and_unknown_fields
+        PASS [   0.048s] (21/28) gmeow-pipeline projection_execution::tests::projection_literal_required_archive_selection_refuses_duplicate_and_missing_products
+        PASS [   0.048s] (22/28) gmeow-pipeline projection_execution::tests::projection_literal_catalog_native_rdf_roundtrip_keeps_exact_support
+        PASS [   0.069s] (23/28) gmeow-pipeline stages::lang_docs_rendering::selected_tests::projection_literal_i18n_rendering_selects_actual_pages_without_discarding_catalog_translations
+        PASS [   0.072s] (24/28) gmeow-pipeline projection_execution::tests::projection_literal_refuses_nonliteral_matches_before_construct
+        PASS [   0.073s] (25/28) gmeow-pipeline projection_execution::tests::projection_literal_batch_admits_every_profile_before_construction_capabilities
+        PASS [   0.072s] (26/28) gmeow-pipeline projection_execution::tests::projection_literal_preserves_complete_native_literals
+        PASS [   0.074s] (27/28) gmeow-pipeline projection_execution::tests::projection_literal_same_profile_siblings_own_only_their_selected_occurrences
+        PASS [   0.266s] (28/28) gmeow-dev-cli dev_slice_quality::relocation_gate_tests::projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missing_support_refuses
+────────────
+     Summary [   0.334s] 28 tests run: 28 passed, 8000 skipped

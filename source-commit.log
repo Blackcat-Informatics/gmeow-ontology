@@ -1,0 +1,37 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...............................................................Passed
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1894-ground-financial-amounts-rates-prices b3c70ca83] feat: bind literal projections to owned grounding correspondences
+ 110 files changed, 7511 insertions(+), 1028 deletions(-)
+ create mode 100644 crates/docs-model/src/ontology_catalogs.rs
+ create mode 100644 crates/docs-model/src/ontology_catalogs.tests.rs
+ create mode 100644 crates/logic-compile/src/projections/grounding_catalog.rs
+ create mode 100644 crates/logic-compile/src/projections/profile_program.rs
+ create mode 100644 crates/logic-compile/src/projections/selected_templates.rs
+ create mode 100644 crates/pipeline/src/catalog_families.selected.tests.rs
+ create mode 100644 crates/pipeline/src/projection_execution.rs
+ create mode 100644 crates/pipeline/src/projection_execution/tests.rs
+ create mode 100644 crates/pipeline/src/stages/lang_docs_rendering.selected.tests.rs
+ create mode 100644 crates/slice-quality/src/counting.selected_templates.tests.rs
+ create mode 100644 crates/slice-quality/src/lib.test_support.rs
+ create mode 100644 crates/slice-quality/tests/common/mod.rs
+ create mode 100644 crates/validate/src/grounding_catalog.rs
+ create mode 100644 dsl/mappings/i18n/fr.po
+ create mode 100644 dsl/mappings/i18n/zh.po
+ create mode 100644 slices/grounding/lang/mappings/literal-value-bridge.ttl

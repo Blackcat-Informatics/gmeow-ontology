@@ -1,0 +1,87 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(projection_literal_)' --no-tests=fail
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-print)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 55s
+────────────
+ Nextest run ID e98a1b05-776f-4655-be10-fc4391112fa2 with nextest profile: ci
+    Starting 25 tests across 226 binaries (7992 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.009s] ( 1/25) gmeow-pipeline catalog_families::selected_catalog_tests::projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges
+        PASS [   0.009s] ( 2/25) gmeow-pipeline catalog_families::selected_catalog_tests::projection_literal_catalog_refuses_old_broad_overlap_unknown_and_guarded_exemption
+        PASS [   0.010s] ( 3/25) gmeow-pipeline projection_execution::tests::projection_literal_refuses_off_owner_catalog_even_with_valid_semantic_envelope
+        PASS [   0.011s] ( 4/25) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_family_only_partial_dsl_owner_but_allows_fully_absent_owner
+        PASS [   0.011s] ( 5/25) gmeow-pipeline projection_execution::tests::projection_literal_native_record_refuses_duplicate_and_unknown_fields
+        PASS [   0.011s] ( 6/25) gmeow-pipeline projection_execution::tests::projection_literal_required_archive_selection_refuses_duplicate_and_missing_products
+        PASS [   0.012s] ( 7/25) gmeow-pipeline projection_execution::tests::projection_literal_requires_strict_mandatory_source_witness
+        PASS [   0.012s] ( 8/25) gmeow-pipeline projection_execution::tests::projection_literal_refuses_missing_wrong_or_forged_owner_premises
+        PASS [   0.012s] ( 9/25) gmeow-pipeline projection_execution::tests::projection_literal_catalog_refuses_missing_extra_duplicate_and_swapped_checks
+        PASS [   0.012s] (10/25) gmeow-pipeline stages::lang_docs_rendering::selected_tests::projection_literal_i18n_rendering_selects_actual_pages_without_discarding_catalog_translations
+        PASS [   0.012s] (11/25) gmeow-pipeline projection_execution::tests::projection_literal_batch_admits_every_profile_before_construction_capabilities
+        PASS [   0.012s] (12/25) gmeow-pipeline projection_execution::tests::projection_literal_refuses_nonliteral_matches_before_construct
+        PASS [   0.012s] (13/25) gmeow-pipeline projection_execution::tests::projection_literal_refuses_bad_selector_fields_membership_and_flow
+        PASS [   0.013s] (14/25) gmeow-pipeline projection_execution::tests::projection_literal_catalog_native_rdf_roundtrip_keeps_exact_support
+        PASS [   0.013s] (15/25) gmeow-pipeline projection_execution::tests::projection_literal_retained_get_leg_refuses_joint_catalog_product_check_tampering
+        PASS [   0.013s] (16/25) gmeow-pipeline projection_execution::tests::projection_literal_preserves_complete_native_literals
+        PASS [   0.014s] (17/25) gmeow-pipeline projection_execution::tests::projection_literal_same_profile_siblings_own_only_their_selected_occurrences
+        PASS [   0.015s] (18/25) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_admits_all_selectors_before_namespace_filtering
+        PASS [   0.015s] (19/25) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_retains_virtual_proof_without_catalog_denominator
+        PASS [   0.016s] (20/25) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_prefix_suffix_and_file_text_adapters_agree
+        PASS [   0.019s] (21/25) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_discovery_does_not_load_unrelated_slice_artifacts_or_foreign_catalogs
+        PASS [   0.020s] (22/25) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_missing_or_ambiguous_selected_owner_and_required_dsl_sources
+        PASS [   0.021s] (23/25) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_uses_actual_dsl_owner_across_native_index_export_and_reviewed_inputs
+        FAIL [   0.021s] (24/25) gmeow-slice-quality profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection
+  stdout ───
+
+    running 1 test
+    test profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection ... FAILED
+
+    failures:
+
+    failures:
+        profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 184 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection' (2182380) panicked at crates/slice-quality/src/profile.tests.rs:105:10:
+    required selected catalog alias must be admitted before scoring
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.063s] (25/25) gmeow-dev-cli dev_slice_quality::relocation_gate_tests::projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missing_support_refuses
+────────────
+     Summary [   0.123s] 25 tests run: 24 passed, 1 failed, 7992 skipped
+        FAIL [   0.021s] (24/25) gmeow-slice-quality profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection
+  stdout ───
+
+    running 1 test
+    test profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection ... FAILED
+
+    failures:
+
+    failures:
+        profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 184 filtered out; finished in 0.01s
+
+  stderr ───
+
+    thread 'profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection' (2182380) panicked at crates/slice-quality/src/profile.tests.rs:105:10:
+    required selected catalog alias must be admitted before scoring
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:717: nextest-synthetic] Error 100

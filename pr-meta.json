@@ -1,0 +1,13 @@
+{
+  "baseRefName": "main",
+  "baseRefOid": "186c4ce0e302619cd218ddc35c4daac5bcdf9034",
+  "headRefName": "paudley/1894-ground-financial-amounts-rates-prices",
+  "headRefOid": "d42fc820db2bd314cc75551a26bfad2c7f52f601",
+  "isDraft": false,
+  "mergeCommit": null,
+  "mergedAt": null,
+  "number": 1934,
+  "state": "OPEN",
+  "title": "fix: ground literal projections and separate schema value guards",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1934"
+}

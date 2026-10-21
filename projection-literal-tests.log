@@ -1,0 +1,61 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(projection_literal_)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+error[E0425]: cannot find type `ProfileBinding` in this scope
+  --> crates/logic-compile/src/projections/correspondence_frontend/test_support.rs:13:19
+   |
+13 |         binding: &ProfileBinding,
+   |                   ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct
+   |
+ 4 + use crate::projections::get_leg::ProfileBinding;
+   |
+
+error[E0507]: cannot move out of dereference of `ProjectionBinding`
+    --> crates/logic-compile/src/projections/correspondence_frontend/tests.rs:786:26
+     |
+ 786 |           let projection = projections(
+     |  __________________________^
+ 787 | |             &view,
+ 788 | |             &crate::projections::grounding_catalog::GroundingCatalog::admit(&view, &view).unwrap(),
+...    |
+ 793 | |         .remove(0)
+ 794 | |         .confidence
+     | |___________________^ move occurs because value has type `std::option::Option<numeric_literal::NumericLiteral<true>>`, which does not implement the `Copy` trait
+ 795 |           .unwrap();
+     |            -------- value moved due to this method call
+     |
+note: `std::option::Option::<T>::unwrap` takes ownership of the receiver `self`, which moves value
+    --> /home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:1013:25
+     |
+1013 |     pub const fn unwrap(self) -> T {
+     |                         ^^^^
+help: consider calling `.as_ref()` to borrow the value's contents
+     |
+ 794 |         .confidence.as_ref()
+     |                    +++++++++
+help: consider calling `.as_mut()` to mutably borrow the value's contents
+     |
+ 794 |         .confidence.as_mut()
+     |                    +++++++++
+help: you can `clone` the value and consume it, but this might not be your desired behavior
+     |
+ 786 ~         let projection = <std::option::Option<numeric_literal::NumericLiteral<true>> as Clone>::clone(&projections(
+ 787 |             &view,
+ ...
+ 793 |         .remove(0)
+ 794 ~         .confidence)
+     |
+
+Some errors have detailed explanations: E0425, E0507.
+For more information about an error, try `rustc --explain E0425`.
+error: could not compile `gmeow-logic-compile` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:717: nextest-synthetic] Error 101

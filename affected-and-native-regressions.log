@@ -1,0 +1,122 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(projection_literal_) | (package(gmeow-logic-compile) & (test(projections::get_leg::tests::) | test(projections::correspondence::) | test(projections::correspondence_soundness::tests::))) | test(mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input) | test(binding_residue_is_interned_once_and_unsupported_put_is_absent) | test(manifest_fails_closed_without_a_bundled_dcat_query) | test(selected_documentation_catalog_failures_are_errors_and_not_grades) | test(bridge_cell_emitting_equivalence_fails_the_lowering)' --no-tests=fail
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 47s
+────────────
+ Nextest run ID 8ae07d32-b57a-49ed-b91e-7190428426ae with nextest profile: ci
+    Starting 100 tests across 226 binaries (7928 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.018s] (  1/100) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_family_only_partial_dsl_owner_but_allows_fully_absent_owner
+        PASS [   0.071s] (  2/100) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_missing_or_ambiguous_selected_owner_and_required_dsl_sources
+        PASS [   0.071s] (  3/100) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_uses_actual_dsl_owner_across_native_index_export_and_reviewed_inputs
+        PASS [   0.097s] (  4/100) gmeow-logic-compile projections::correspondence::field_tests::native_duplicate_rows_are_one_field_value_without_a_lexical_index
+        PASS [   0.098s] (  5/100) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_discovery_does_not_load_unrelated_slice_artifacts_or_foreign_catalogs
+        PASS [   0.027s] (  6/100) gmeow-logic-compile projections::correspondence::loss_tests::program_preservation_does_not_invent_an_affine_overlap
+        PASS [   0.098s] (  7/100) gmeow-logic-compile projections::correspondence::loss_tests::malformed_loss_owner_is_rejected_without_removing_healthy_owners
+        PASS [   0.099s] (  8/100) gmeow-logic-compile projections::correspondence::field_tests::malformed_authored_caveats_reject_the_owner_without_poisoning_other_owners
+        PASS [   0.098s] (  9/100) gmeow-logic-compile projections::correspondence::loss_tests::loss_identity_binds_all_literal_components_and_owner_context
+        PASS [   0.098s] ( 10/100) gmeow-logic-compile projections::correspondence::field_tests::nested_leg_order_and_all_selected_programs_survive_strict_reads
+        PASS [   0.099s] ( 11/100) gmeow-logic-compile projections::correspondence::field_tests::correspondence_projection_round_trips_present_leg_bodies_and_symbolic_legs
+        PASS [   0.075s] ( 12/100) gmeow-logic-compile projections::correspondence::loss_tests::preservation_judgments_never_manufacture_loss_or_execution_claims
+        PASS [   0.099s] ( 13/100) gmeow-logic-compile projections::correspondence::field_tests::correspondence_source_coordinates_require_numeric_datatypes_and_exact_range
+        PASS [   0.099s] ( 14/100) gmeow-logic-compile projections::correspondence::loss_tests::malformed_loss_literal_metadata_cannot_enter_through_cache
+        PASS [   0.099s] ( 15/100) gmeow-logic-compile projections::correspondence::loss_tests::invalid_loss_claims_fail_source_and_native_projection_admission
+        PASS [   0.099s] ( 16/100) gmeow-logic-compile projections::correspondence::field_tests::caveat_identity_is_owned_and_canonical
+        PASS [   0.100s] ( 17/100) gmeow-logic-compile projections::correspondence::composition_tests::authored_composition_cannot_be_erased_by_empty_supplemental_selection
+        PASS [   0.100s] ( 18/100) gmeow-logic-compile projections::correspondence::composition_tests::authored_composition_checks_endpoints_and_unspecified_standpoint
+        PASS [   0.100s] ( 19/100) gmeow-logic-compile projections::correspondence::field_tests::absent_axes_and_valid_boolean_lexicals_preserve_declared_semantics
+        PASS [   0.099s] ( 20/100) gmeow-logic-compile projections::correspondence::field_tests::quantitative_cache_admission_cannot_bypass_datatype_or_axis_range
+        PASS [   0.100s] ( 21/100) gmeow-logic-compile projections::correspondence::field_tests::every_law_and_registry_member_is_required
+        PASS [   0.099s] ( 22/100) gmeow-logic-compile projections::correspondence::field_tests::invalid_caveat_literal_components_fail_typed_and_cache_admission
+        PASS [   0.100s] ( 23/100) gmeow-logic-compile projections::correspondence::composition_tests::composition_keys_bind_order_result_and_source_identity
+        PASS [   0.100s] ( 24/100) gmeow-logic-compile projections::correspondence::field_tests::conflicting_scalar_values_cannot_select_a_winning_axis
+        PASS [   0.100s] ( 25/100) gmeow-logic-compile projections::correspondence::field_tests::correspondence_weight_retains_declared_double_domain
+        PASS [   0.099s] ( 26/100) gmeow-logic-compile projections::correspondence::field_tests::malformed_optional_axes_reject_the_owner_instead_of_becoming_absent
+        PASS [   0.029s] ( 27/100) gmeow-logic-compile projections::correspondence::loss_tests::source_loss_literals_survive_native_common_logic_and_cache_roundtrips
+        PASS [   0.100s] ( 28/100) gmeow-logic-compile projections::correspondence::composition_tests::malformed_composition_keeps_its_rejected_source_owner
+        PASS [   0.100s] ( 29/100) gmeow-logic-compile projections::correspondence::composition_tests::composition_cannot_select_one_of_two_definitions_for_a_member_identity
+        PASS [   0.100s] ( 30/100) gmeow-logic-compile projections::correspondence::field_tests::authored_caveats_survive_compilation_and_each_common_logic_projection
+        PASS [   0.100s] ( 31/100) gmeow-logic-compile projections::correspondence::loss_tests::compiler_records_only_each_cells_actual_losses_and_context
+        PASS [   0.101s] ( 32/100) gmeow-logic-compile projections::correspondence::field_tests::every_caveat_literal_component_participates_in_ir_and_cache_identity
+        PASS [   0.101s] ( 33/100) gmeow-logic-compile projections::correspondence::field_tests::malformed_path_members_cannot_shorten_a_selected_leg
+        PASS [   0.102s] ( 34/100) gmeow-logic-compile projections::correspondence::composition_tests::composition_source_ownership_and_all_common_logic_round_trips
+        PASS [   0.005s] ( 35/100) gmeow-logic-compile projections::correspondence::tests::correspondence_ownership_does_not_over_capture_unrelated_slash_children
+        PASS [   0.005s] ( 36/100) gmeow-logic-compile projections::correspondence::tests::affine_triangle_projects_related_match_never_equivalence
+        PASS [   0.007s] ( 37/100) gmeow-logic-compile projections::correspondence::tests::correspondence_identity_frames_arbitrary_caveat_text_and_collection_boundaries
+        PASS [   0.006s] ( 38/100) gmeow-logic-compile projections::correspondence::tests::correspondence_identity_binds_leg_selection_standpoint_and_law_evidence
+        PASS [   0.007s] ( 39/100) gmeow-logic-compile projections::correspondence::tests::overclaim_gate_refuses_equivalence_for_commitment_shifting_bridge
+        PASS [   0.007s] ( 40/100) gmeow-logic-compile projections::correspondence::tests::projection_is_byte_deterministic
+        PASS [   0.007s] ( 41/100) gmeow-logic-compile projections::correspondence::tests::overclaim_gate_rejects_equivalence_for_affine_overlap
+        PASS [   0.007s] ( 42/100) gmeow-logic-compile projections::correspondence_soundness::tests::class_bridge_traverses_canonical_logic_subclass_of
+        PASS [   0.007s] ( 43/100) gmeow-logic-compile projections::correspondence::tests::standpoint_index_round_trips_through_canonical_gmeow_property
+        PASS [   0.007s] ( 44/100) gmeow-logic-compile projections::correspondence_soundness::tests::alignment_target_prefixes_are_expandable
+        PASS [   0.007s] ( 45/100) gmeow-logic-compile projections::correspondence::tests::quantitative_coordinates_retain_native_identity_through_projection_and_cache
+        PASS [   0.007s] ( 46/100) gmeow-logic-compile projections::correspondence_soundness::tests::canonical_logic_property_typing_participates_in_alignment_checks
+        PASS [   0.007s] ( 47/100) gmeow-logic-compile projections::correspondence_soundness::tests::dc_hand_authored_flagged
+        PASS [   0.008s] ( 48/100) gmeow-logic-compile projections::correspondence::tests::overclaim_gate_allows_equivalence_for_true_equiv
+        PASS [   0.007s] ( 49/100) gmeow-logic-compile projections::correspondence_soundness::tests::owl_kind_edoal_recognizes_object_property_subtypes
+        PASS [   0.007s] ( 50/100) gmeow-logic-compile projections::correspondence_soundness::tests::undefined_fno_reference_is_flagged
+        PASS [   0.007s] ( 51/100) gmeow-logic-compile projections::correspondence_soundness::tests::domain_range_synthetic
+        PASS [   0.007s] ( 52/100) gmeow-logic-compile projections::correspondence_soundness::tests::detects_self_contradicting_inverse_mapping
+        PASS [   0.007s] ( 53/100) gmeow-logic-compile projections::correspondence_soundness::tests::property_character_mismatches_and_skips
+        PASS [   0.007s] ( 54/100) gmeow-logic-compile projections::correspondence_soundness::tests::self_inverse_target_is_not_flagged
+        PASS [   0.007s] ( 55/100) gmeow-logic-compile projections::correspondence_soundness::tests::equivalence_collapse_detects_disjoint_class_chain
+        PASS [   0.008s] ( 56/100) gmeow-logic-compile projections::correspondence_soundness::tests::dc_refinement_flags_missing_broader
+        PASS [   0.008s] ( 57/100) gmeow-logic-compile projections::correspondence_soundness::tests::strong_property_predicates_contain_expected_curies
+        PASS [   0.009s] ( 58/100) gmeow-logic-compile projections::correspondence::tests::projection_round_trips_to_equal_content_key
+        PASS [   0.009s] ( 59/100) gmeow-logic-compile projections::correspondence_soundness::tests::edoal_entity_kind_makes_no_claim_without_a_matching_template
+        PASS [   0.010s] ( 60/100) gmeow-logic-compile projections::correspondence_soundness::tests::edoal_entity_kind_flags_equivalence_mismatch
+        PASS [   0.010s] ( 61/100) gmeow-logic-compile projections::correspondence_soundness::tests::edoal_entity_kind_scopes_to_equivalence_and_gmeow
+        PASS [   0.009s] ( 62/100) gmeow-logic-compile projections::correspondence_soundness::tests::run_soundness_combines_and_sorts
+        PASS [   0.009s] ( 63/100) gmeow-logic-compile projections::correspondence_soundness::tests::fno_type_mismatch_is_flagged_match_is_clean
+        PASS [   0.010s] ( 64/100) gmeow-logic-compile projections::correspondence_soundness::tests::edoal_entity_kind_accepts_template_coherent_entity2
+        PASS [   0.010s] ( 65/100) gmeow-logic-compile projections::correspondence_soundness::tests::edoal_entity_kind_flags_template_mismatch_on_subsumption_cell
+        PASS [   0.010s] ( 66/100) gmeow-logic-compile projections::correspondence_soundness::tests::dcterms_refinements_and_grandfathered_dc_are_present
+        PASS [   0.011s] ( 67/100) gmeow-logic-compile projections::correspondence_frontend::tests::mapping_confidence_retains_exact_coordinate_and_rejects_ambiguous_input
+        PASS [   0.011s] ( 68/100) gmeow-logic-compile projections::correspondence::tests::writer_meta_channel_retains_axiom_sharing_case_iri_as_slash_prefix
+        PASS [   0.005s] ( 69/100) gmeow-logic-compile projections::get_leg::tests::mapping_constant_read_retains_native_proposition_and_direction
+        PASS [   0.005s] ( 70/100) gmeow-logic-compile projections::get_leg::tests::native_expression_constants_preserve_direction_and_nested_propositions
+        PASS [   0.006s] ( 71/100) gmeow-logic-compile projections::edoal::tests::bridge_cell_emitting_equivalence_fails_the_lowering
+        PASS [   0.006s] ( 72/100) gmeow-logic-compile projections::get_leg::tests::source_scoped_proposition_constant_requires_explicit_binding
+        PASS [   0.017s] ( 73/100) gmeow-logic-compile projections::correspondence::tests::recovery_case_formula_round_trips_byte_identically
+        PASS [   0.011s] ( 74/100) gmeow-logic-compile projections::sparql_put::tests::binding_residue_is_interned_once_and_unsupported_put_is_absent
+        PASS [   0.043s] ( 75/100) gmeow-slice-quality profile::tests::projection_literal_standalone_scoring_refuses_unresolved_required_catalog_selection
+        PASS [   0.044s] ( 76/100) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_admits_all_selectors_before_namespace_filtering
+        PASS [   0.044s] ( 77/100) gmeow-slice-quality profile::tests::projection_literal_directory_scoring_refuses_linked_selected_files_subtrees_and_dangling_links
+        PASS [   0.045s] ( 78/100) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_retains_virtual_proof_without_catalog_denominator
+        PASS [   0.044s] ( 79/100) gmeow-slice-quality counting::selected_template_tests::projection_literal_counter_prefix_suffix_and_file_text_adapters_agree
+        PASS [   0.045s] ( 80/100) gmeow-slice-quality profile::tests::projection_literal_standalone_mapping_refusals_cover_file_directory_and_standard_entrypoints
+        PASS [   0.054s] ( 81/100) gmeow-slice-quality profile::tests::projection_literal_standalone_valid_mapping_admission_preserves_axis_inventory_and_directory_parity
+        PASS [   0.057s] ( 82/100) gmeow-slice-quality profile::tests::selected_documentation_catalog_failures_are_errors_and_not_grades
+        PASS [   0.095s] ( 83/100) gmeow-pipeline catalog_families::selected_catalog_tests::projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges
+        PASS [   0.102s] ( 84/100) gmeow-pipeline projection_execution::tests::projection_literal_refuses_off_owner_catalog_even_with_valid_semantic_envelope
+        PASS [   0.103s] ( 85/100) gmeow-pipeline catalog_families::selected_catalog_tests::projection_literal_catalog_refuses_old_broad_overlap_unknown_and_guarded_exemption
+        PASS [   0.103s] ( 86/100) gmeow-pipeline projection_execution::tests::projection_literal_refuses_missing_wrong_or_forged_owner_premises
+        PASS [   0.103s] ( 87/100) gmeow-pipeline projection_execution::tests::projection_literal_requires_strict_mandatory_source_witness
+        PASS [   0.104s] ( 88/100) gmeow-pipeline projection_execution::tests::projection_literal_refuses_bad_selector_fields_membership_and_flow
+        PASS [   0.114s] ( 89/100) gmeow-pipeline projection_execution::tests::projection_literal_native_record_refuses_duplicate_and_unknown_fields
+        PASS [   0.114s] ( 90/100) gmeow-pipeline projection_execution::tests::projection_literal_catalog_refuses_missing_extra_duplicate_and_swapped_checks
+        PASS [   0.114s] ( 91/100) gmeow-pipeline projection_execution::tests::projection_literal_required_archive_selection_refuses_duplicate_and_missing_products
+        PASS [   0.115s] ( 92/100) gmeow-pipeline projection_execution::tests::projection_literal_retained_get_leg_refuses_joint_catalog_product_check_tampering
+        PASS [   0.116s] ( 93/100) gmeow-pipeline projection_execution::tests::projection_literal_catalog_native_rdf_roundtrip_keeps_exact_support
+        PASS [   0.115s] ( 94/100) gmeow-pipeline stages::lang_docs_rendering::selected_tests::projection_literal_i18n_rendering_selects_actual_pages_without_discarding_catalog_translations
+        PASS [   0.120s] ( 95/100) gmeow-pipeline docs_distribution::tests::manifest_fails_closed_without_a_bundled_dcat_query
+        PASS [   0.132s] ( 96/100) gmeow-pipeline projection_execution::tests::projection_literal_batch_admits_every_profile_before_construction_capabilities
+        PASS [   0.132s] ( 97/100) gmeow-pipeline projection_execution::tests::projection_literal_refuses_nonliteral_matches_before_construct
+        PASS [   0.133s] ( 98/100) gmeow-pipeline projection_execution::tests::projection_literal_same_profile_siblings_own_only_their_selected_occurrences
+        PASS [   0.134s] ( 99/100) gmeow-pipeline projection_execution::tests::projection_literal_preserves_complete_native_literals
+        PASS [   0.296s] (100/100) gmeow-dev-cli dev_slice_quality::relocation_gate_tests::projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missing_support_refuses
+────────────
+     Summary [   0.362s] 100 tests run: 100 passed, 7928 skipped

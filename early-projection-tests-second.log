@@ -1,0 +1,174 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & test(projection_literal_)' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+error[E0425]: cannot find function `stage_err` in this scope
+    --> crates/pipeline/src/stages/mappings.rs:1464:74
+     |
+1464 | ...   let spdx_bytes = artifacts.get(&spdx_program_path).ok_or_else(|| stage_err(format!("mappings run omitted required {spdx_prog...
+     |                                                                        ^^^^^^^^^ not found in this scope
+     |
+note: these functions exist but are inaccessible
+    --> crates/pipeline/src/cli_ops/okf_import.rs:102:1
+     |
+ 102 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::cli_ops::okf_import::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/cli_ops/quality.rs:29:1
+     |
+  29 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::cli_ops::quality::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/agreement.rs:39:1
+     |
+  39 | fn stage_err(message: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::agreement::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/archive_blobs.rs:763:1
+     |
+ 763 | fn stage_err(message: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::archive_blobs::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/carrier.rs:4269:1
+     |
+4269 | fn stage_err(message: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::carrier::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/compile_logic.rs:312:1
+     |
+ 312 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::compile_logic::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/conformance.rs:702:1
+     |
+ 702 | fn stage_err(message: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::conformance::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/gmn1_gate.rs:616:1
+     |
+ 616 | fn stage_err(message: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::gmn1_gate::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/gmn_training_corpus.rs:119:1
+     |
+ 119 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::gmn_training_corpus::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/goal_directed.rs:39:1
+     |
+  39 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::goal_directed::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/lang_lowering.rs:105:1
+     |
+ 105 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::lang_lowering::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/lang_projection.rs:544:1
+     |
+ 544 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::lang_projection::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/medium_dictionaries.rs:104:1
+     |
+ 104 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::medium_dictionaries::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/shape_union_fresh.rs:66:1
+     |
+  66 | fn stage_err(stage: &str, message: String) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::shape_union_fresh::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/slice_brief.rs:302:1
+     |
+ 302 | fn stage_err(message: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::slice_brief::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/substrate_graph.rs:592:1
+     |
+ 592 | fn stage_err(msg: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::substrate_graph::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/superset.rs:1355:1
+     |
+1355 | fn stage_err(message: &str) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::superset::stage_err`: not accessible
+     |
+    ::: crates/pipeline/src/stages/verify_attestation.rs:598:1
+     |
+ 598 | fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `crate::stages::verify_attestation::stage_err`: not accessible
+
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+error[E0308]: mismatched types
+  --> crates/pipeline/src/projection_execution.rs:39:63
+   |
+39 |         let result = NativeSparqlEngine::new().query_prepared(self.source, &self.program.forward, &[], QueryOptions::EMPTY)
+   |                                                -------------- ^^^^^^^^^^^ expected `&Arc<RdfDataset>`, found `&RdfDataset`
+   |                                                |
+   |                                                arguments to this method are incorrect
+   |
+   = note: expected reference `&std::sync::Arc<RdfDataset>`
+              found reference `&RdfDataset`
+note: method defined here
+  --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/017f552/crates/sparql-eval/src/engine.rs:1801:11
+
+error[E0308]: mismatched types
+  --> crates/pipeline/src/projection_execution.rs:75:48
+   |
+75 |             let result = engine.query_prepared(source, query, &[], QueryOptions::EMPTY)
+   |                                 -------------- ^^^^^^ expected `&Arc<RdfDataset>`, found `&RdfDataset`
+   |                                 |
+   |                                 arguments to this method are incorrect
+   |
+   = note: expected reference `&std::sync::Arc<RdfDataset>`
+              found reference `&'a RdfDataset`
+note: method defined here
+  --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/017f552/crates/sparql-eval/src/engine.rs:1801:11
+
+error[E0308]: mismatched types
+   --> crates/pipeline/src/projection_execution/tests.rs:64:27
+    |
+ 64 |         forward: Arc::new(engine.prepare_query(query, None).unwrap()), checks: Vec::new(),
+    |                  -------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `PreparedQuery`, found `Arc<PreparedQuery>`
+    |                  |
+    |                  arguments to this function are incorrect
+    |
+    = note: expected struct `PreparedQuery`
+               found struct `std::sync::Arc<PreparedQuery>`
+note: associated function defined here
+   --> /home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/rcs/arc.rs:434:12
+    |
+434 |     pub fn new(data: T) -> Arc<T> {
+    |            ^^^
+
+Some errors have detailed explanations: E0308, E0425.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `gmeow-pipeline` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `gmeow-pipeline` (lib test) due to 4 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:717: nextest-synthetic] Error 101

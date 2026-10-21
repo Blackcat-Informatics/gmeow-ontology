@@ -1,0 +1,422 @@
+./scripts/test-check-sync-prerequisites.sh
+check-sync prerequisites fail closed OK
+pre-commit run --all-files --show-diff-on-failure
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check json...............................................................Passed
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Failed
+- hook id: codespell
+- exit code: 65
+
+crates/pipeline/src/stages/lang_docs_rendering.selected.tests.rs:45: classe ==> class, classes
+crates/pipeline/src/stages/lang_docs_rendering.selected.tests.rs:46: formule ==> formula, formulas
+
+yamllint.................................................................Passed
+Lint GitHub Actions workflow files.......................................Passed
+markdownlint-cli2........................................................Passed
+shellcheck...............................................................Passed
+zizmor...................................................................Passed
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+pre-commit hook(s) made changes.
+If you are seeing this message in CI, reproduce locally with: `pre-commit run --all-files`.
+To run `pre-commit` as part of git workflow, use `pre-commit install`.
+All changes made by hooks:
+diff --git crates/gmeow-dev-cli/src/dev_slice_quality.relocation_gate_tests.rs crates/gmeow-dev-cli/src/dev_slice_quality.relocation_gate_tests.rs
+index 861550211..b10e80e08 100644
+--- crates/gmeow-dev-cli/src/dev_slice_quality.relocation_gate_tests.rs
++++ crates/gmeow-dev-cli/src/dev_slice_quality.relocation_gate_tests.rs
+@@ -389,13 +389,43 @@ fn projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missin
+     let temporary = tempfile::tempdir().unwrap();
+     let root = temporary.path();
+     let (lang_module, bridge_path, bridge) = write_selected_base_inputs(root);
+-    git(root, &["init", "-q"]);
+-    git(root, &["config", "user.email", "test@example.com"]);
+-    git(root, &["config", "user.name", "Test"]);
+-    git(root, &["config", "commit.gpgsign", "false"]);
+-    git(root, &["add", "-A"]);
+-    git(root, &["commit", "-q", "-m", "independent base catalog"]);
+-    git(root, &["branch", "authored-base"]);
++    // Inert tree snapshots need neither commits nor references. Retain normal
++    // configuration while scoping every write to this independently authored fixture.
++    let snapshot_git = |args: &[&str]| {
++        let mut command = Command::new("git");
++        command
++            .current_dir(root)
++            .arg("--git-dir")
++            .arg(root.join(".git"))
++            .arg("--work-tree")
++            .arg(root);
++        for variable in [
++            "GIT_DIR",
++            "GIT_WORK_TREE",
++            "GIT_INDEX_FILE",
++            "GIT_COMMON_DIR",
++            "GIT_OBJECT_DIRECTORY",
++            "GIT_ALTERNATE_OBJECT_DIRECTORIES",
++        ] {
++            command.env_remove(variable);
++        }
++        let output = command
++            .args(args)
++            .output()
++            .expect("run fixture tree snapshot command");
++        assert!(
++            output.status.success(),
++            "fixture Git {args:?}: {}",
++            String::from_utf8_lossy(&output.stderr)
++        );
++        String::from_utf8(output.stdout)
++            .expect("fixture Git output is UTF-8")
++            .trim()
++            .to_owned()
++    };
++    snapshot_git(&["init", "-q"]);
++    snapshot_git(&["add", "-A"]);
++    let original_tree = snapshot_git(&["write-tree"]);
+     let vocabulary = gmeow_slice_quality::model::ProjectionVocabulary {
+         prefix: "value".to_owned(),
+         namespaces: vec!["https://schema.org/value".to_owned()],
+@@ -413,7 +443,7 @@ fn projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missin
+     };
+     let needed =
+         std::collections::BTreeSet::from([gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned()]);
+-    // HEAD now has a different valid target and original-artifact digest.
++    // The working files now have a different valid target and artifact digest.
+     std::fs::write(
+         &bridge_path,
+         bridge.replace("schema.org/value>", "schema.org/valueReference>"),
+@@ -421,7 +451,7 @@ fn projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missin
+     .unwrap();
+     let measured = measure_base_residues(
+         root,
+-        "authored-base",
++        &original_tree,
+         std::slice::from_ref(&vocabulary),
+         &needed,
+         &[],
+@@ -478,7 +508,7 @@ fn projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missin
+     let absent_iri = "urn:base-fixture:new".to_owned();
+     let absent = measure_base_residues(
+         root,
+-        "authored-base",
++        &original_tree,
+         std::slice::from_ref(&vocabulary),
+         &std::collections::BTreeSet::from([absent_iri.clone()]),
+         &[(absent_dir.as_path(), absent_iri)],
+@@ -489,12 +519,11 @@ fn projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missin
+     // A present selected base surface cannot borrow its missing carrier module
+     // from another revision, nor silently measure zero.
+     std::fs::remove_file(&lang_module).unwrap();
+-    git(root, &["add", "-A"]);
+-    git(
+-        root,
+-        &["commit", "-q", "-m", "independent missing carrier input"],
++    snapshot_git(&["add", "-A"]);
++    let missing_carrier_tree = snapshot_git(&["write-tree"]);
++    assert!(
++        measure_base_residues(root, &missing_carrier_tree, &[vocabulary], &needed, &[]).is_err()
+     );
+-    assert!(measure_base_residues(root, "HEAD", &[vocabulary], &needed, &[]).is_err());
+ }
+ 
+ /// Assert `root`'s relocation-aware rebalance carries a violation containing
+diff --git crates/logic-compile/src/projections/get_leg.rs crates/logic-compile/src/projections/get_leg.rs
+index 5fd7b582b..515ba2d3e 100644
+--- crates/logic-compile/src/projections/get_leg.rs
++++ crates/logic-compile/src/projections/get_leg.rs
+@@ -22,6 +22,9 @@ use crate::ir::{
+     MorphismKind,
+ };
+ 
++const SELECTED_TEMPLATE_DOMAIN: purrdf_hash::Domain =
++    purrdf_hash::Domain::new(b"selected-native-template-v1\0");
++
+ /// The 47 projection profiles. The single authority shared by BOTH the EDOAL and the
+ /// SPARQL-CONSTRUCT lowerings — keeping one copy makes "no spec drift between the two
+ /// dialects" structurally true.
+@@ -427,7 +430,7 @@ pub fn binding_key(cell: &ProjectionCell, binding: &ProjectionBinding) -> String
+     )
+     .expect("digest writer cannot fail");
+     if !binding.selected_templates.is_empty() {
+-        writer.0.update(b"selected-native-template-v1\0");
++        writer.0.update(SELECTED_TEMPLATE_DOMAIN.as_bytes());
+         writer.0.update(purrdf_lex::json::record::to_vec(
+             &binding.selected_templates,
+         ));
+diff --git crates/logic-compile/src/projections/profile_program.rs crates/logic-compile/src/projections/profile_program.rs
+index 83aa233cb..4f6d23143 100644
+--- crates/logic-compile/src/projections/profile_program.rs
++++ crates/logic-compile/src/projections/profile_program.rs
+@@ -15,6 +15,11 @@ use super::grounding_catalog::{
+ };
+ use super::selected_templates::SelectedTemplate;
+ 
++const BINDING_DOMAIN: purrdf_hash::Domain = purrdf_hash::Domain::new(b"projection-binding-v1");
++const INPUT_CHECK_DOMAIN: purrdf_hash::Domain =
++    purrdf_hash::Domain::new(b"projection-input-check-v1");
++const PROFILE_DOMAIN: purrdf_hash::Domain = purrdf_hash::Domain::new(b"projection-profile-v1");
++
+ /// Realized get-leg body retained independently of a profile's execution product.
+ /// The source pattern occurs once; both forward construction and every input
+ /// check are derived from that same native algebra. The template query has an
+@@ -85,7 +90,7 @@ impl ProjectionBindingProgram {
+     fn expected_id(&self) -> String {
+         let mut value = self.clone();
+         value.id.clear();
+-        identity("projection-binding-v1", &value)
++        identity(BINDING_DOMAIN, &value)
+     }
+ 
+     /// Decode only the existing native grammar, with no execution or alternate
+@@ -252,13 +257,14 @@ pub struct ProjectionProfileProgram {
+     pub payload: ProjectionProfilePayload,
+ }
+ 
+-fn identity<T: ToJson>(domain: &str, value: &T) -> String {
++fn identity<T: ToJson>(domain: purrdf_hash::Domain, value: &T) -> String {
+     let mut digest = Sha256::new();
+     digest.update(domain.as_bytes());
+     digest.update([0]);
+     digest.update(purrdf_lex::json::record::to_vec(value));
+     format!(
+-        "urn:gmeow:{domain}:{}",
++        "urn:gmeow:{}:{}",
++        domain.as_str(),
+         purrdf_hash::hex::encode(&digest.finalize())
+     )
+ }
+@@ -290,7 +296,7 @@ impl ProjectionInputCheck {
+     fn expected_id(&self) -> String {
+         let mut payload = self.clone();
+         payload.id.clear();
+-        identity("projection-input-check-v1", &payload)
++        identity(INPUT_CHECK_DOMAIN, &payload)
+     }
+ 
+     /// Object variable after the binding's existing hygienic native lowering.
+@@ -433,7 +439,7 @@ impl ProjectionProfileProgram {
+             checks,
+         };
+         Self {
+-            id: identity("projection-profile-v1", &payload),
++            id: identity(PROFILE_DOMAIN, &payload),
+             payload,
+         }
+     }
+@@ -451,7 +457,7 @@ impl ProjectionProfileProgram {
+     }
+ 
+     pub fn validate(&self, catalog: &GroundingCatalog) -> gmeow_errors::Result<()> {
+-        if self.id != identity("projection-profile-v1", &self.payload)
++        if self.id != identity(PROFILE_DOMAIN, &self.payload)
+             || self.payload.profile.is_empty()
+             || self.payload.forward.trim().is_empty()
+             || self.payload.catalog_id != catalog.identity()
+diff --git crates/pipeline/src/projection_execution.rs crates/pipeline/src/projection_execution.rs
+index 4dd587a02..566835e74 100644
+--- crates/pipeline/src/projection_execution.rs
++++ crates/pipeline/src/projection_execution.rs
+@@ -13,12 +13,6 @@ use gmeow_logic_compile::projections::{
+ use purrdf::sparql::{NativeSparqlEngine, PreparedQuery, QueryOptions};
+ use purrdf::{RdfDataset, SparqlResult, TermValue};
+ 
+-fn error(message: impl Into<String>) -> Diag {
+-    Diag::of_kind(crate::error::Projection {
+-        message: message.into(),
+-    })
+-}
+-
+ /// Prepared native programs retain the complete selected capability/proof input.
+ #[derive(Debug, Clone)]
+ pub struct PreparedProjectionProfile {
+@@ -48,10 +42,12 @@ impl AdmittedProjection<'_> {
+             .query_prepared_view(self.source, &self.program.forward, &[], QueryOptions::EMPTY)
+             .with_ctx(|| format!("execute required projection {}", self.program.program.id))?;
+         if !matches!(result, SparqlResult::Graph(_)) {
+-            return Err(error(format!(
+-                "{}: forward projection did not return a graph",
+-                self.program.program.id
+-            )));
++            return Err(Diag::of_kind(crate::error::Projection {
++                message: format!(
++                    "{}: forward projection did not return a graph",
++                    self.program.program.id
++                ),
++            }));
+         }
+         Ok(result)
+     }
+@@ -61,7 +57,7 @@ impl PreparedProjectionProfile {
+     pub fn from_bundle(bytes: &[u8], profile: &str) -> gmeow_errors::Result<Self> {
+         prepared_from_bundle(bytes, &[profile])
+             .with_ctx(|| format!("prepare required installed projection {profile:?} from {profile}.projection.json"))?.into_iter().next()
+-            .ok_or_else(|| error(format!("selected projection {profile:?} lost its required typed product")))
++            .ok_or_else(|| Diag::of_kind(crate::error::Projection { message: format!("selected projection {profile:?} lost its required typed product") }))
+     }
+ 
+     pub fn prepare(
+@@ -113,10 +109,12 @@ impl PreparedProjectionProfile {
+                 variables, rows, ..
+             } = result
+             else {
+-                return Err(error(format!(
+-                    "{}: native input check did not return SELECT solutions",
+-                    check.id
+-                )));
++                return Err(Diag::of_kind(crate::error::Projection {
++                    message: format!(
++                        "{}: native input check did not return SELECT solutions",
++                        check.id
++                    ),
++                }));
+             };
+             let variable = check.checked_variable();
+             let columns: Vec<_> = variables
+@@ -125,10 +123,12 @@ impl PreparedProjectionProfile {
+                 .filter_map(|(index, name)| (name == &variable).then_some(index))
+                 .collect();
+             let [column] = columns.as_slice() else {
+-                return Err(error(format!(
+-                    "{}: required source variable ?{variable} is absent or ambiguous",
+-                    check.id
+-                )));
++                return Err(Diag::of_kind(crate::error::Projection {
++                    message: format!(
++                        "{}: required source variable ?{variable} is absent or ambiguous",
++                        check.id
++                    ),
++                }));
+             };
+             let subject_variable = check.checked_subject();
+             let subjects: Vec<_> = variables
+@@ -137,17 +137,18 @@ impl PreparedProjectionProfile {
+                 .filter_map(|(index, name)| (name == &subject_variable).then_some(index))
+                 .collect();
+             let [subject_column] = subjects.as_slice() else {
+-                return Err(error(format!(
+-                    "{}: required source subject ?{subject_variable} is absent or ambiguous",
+-                    check.source_mapping
+-                )));
++                return Err(Diag::of_kind(crate::error::Projection {
++                    message: format!(
++                        "{}: required source subject ?{subject_variable} is absent or ambiguous",
++                        check.source_mapping
++                    ),
++                }));
+             };
+             for (row_index, row) in rows.iter().enumerate() {
+                 if row.len() != variables.len() {
+-                    return Err(error(format!(
+-                        "{}: malformed native SELECT row {row_index}",
+-                        check.id
+-                    )));
++                    return Err(Diag::of_kind(crate::error::Projection {
++                        message: format!("{}: malformed native SELECT row {row_index}", check.id),
++                    }));
+                 }
+                 let Some(Some(TermValue::Literal {
+                     datatype,
+@@ -158,24 +159,28 @@ impl PreparedProjectionProfile {
+                 else {
+                     let subject = diagnostic_term(row[*subject_column].as_ref())?;
+                     let value = diagnostic_term(row[*column].as_ref())?;
+-                    return Err(error(format!(
+-                        "profile {} mapping <{}> binding <{}>: subject {} <{}> value {} for ?{} in row {} must be a complete RDF literal; IRI, blank, quoted and unbound values are refused before projection",
+-                        self.program.payload.profile,
+-                        check.source_mapping,
+-                        check.binding_iri,
+-                        subject,
+-                        check.selected.support.source_property,
+-                        value,
+-                        check.selected.object_variable,
+-                        row_index
+-                    )));
++                    return Err(Diag::of_kind(crate::error::Projection {
++                        message: format!(
++                            "profile {} mapping <{}> binding <{}>: subject {} <{}> value {} for ?{} in row {} must be a complete RDF literal; IRI, blank, quoted and unbound values are refused before projection",
++                            self.program.payload.profile,
++                            check.source_mapping,
++                            check.binding_iri,
++                            subject,
++                            check.selected.support.source_property,
++                            value,
++                            check.selected.object_variable,
++                            row_index
++                        ),
++                    }));
+                 };
+                 purrdf::RdfLiteral::validate_components(datatype, language.as_deref(), *direction)
+                     .map_err(|why| {
+-                        error(format!(
+-                            "{}: malformed native RDF literal in row {row_index}: {why}",
+-                            check.id
+-                        ))
++                        Diag::of_kind(crate::error::Projection {
++                            message: format!(
++                                "{}: malformed native RDF literal in row {row_index}: {why}",
++                                check.id
++                            ),
++                        })
+                     })?;
+             }
+         }
+@@ -191,7 +196,11 @@ fn diagnostic_term(value: Option<&TermValue>) -> gmeow_errors::Result<String> {
+         Some(value) => value
+             .to_rdf_term()
+             .map(|term| term.to_string())
+-            .map_err(|why| error(format!("malformed native matched term: {why}"))),
++            .map_err(|why| {
++                Diag::of_kind(crate::error::Projection {
++                    message: format!("malformed native matched term: {why}"),
++                })
++            }),
+         None => Ok("UNBOUND".to_owned()),
+     }
+ }
+@@ -224,15 +233,17 @@ pub fn programs_from_archive(
+                 })
+                 .collect();
+             let [(_, bytes)] = matches.as_slice() else {
+-                return Err(error(format!(
+-                    "selected projection {profile:?} requires exactly one {filename} product"
+-                )));
++                return Err(Diag::of_kind(crate::error::Projection {
++                    message: format!(
++                        "selected projection {profile:?} requires exactly one {filename} product"
++                    ),
++                }));
+             };
+             let program = ProjectionProfileProgram::from_bytes(bytes, catalog)?;
+             if program.payload.profile != *profile {
+-                return Err(error(format!(
+-                    "{filename}: product declares a different profile"
+-                )));
++                return Err(Diag::of_kind(crate::error::Projection {
++                    message: format!("{filename}: product declares a different profile"),
++                }));
+             }
+             Ok(program)
+         })
+@@ -285,9 +296,9 @@ pub fn programs_from_required_archive(
+             )?;
+             let program = ProjectionProfileProgram::from_bytes(bytes, catalog)?;
+             if program.payload.profile != *profile {
+-                return Err(error(format!(
+-                    "{path}: product declares a different profile"
+-                )));
++                return Err(Diag::of_kind(crate::error::Projection {
++                    message: format!("{path}: product declares a different profile"),
++                }));
+             }
+             Ok(program)
+         })
+make: *** [Makefile:260: lint] Error 1

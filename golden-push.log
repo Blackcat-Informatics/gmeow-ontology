@@ -1,0 +1,6 @@
+remote: 
+remote: GitHub found 12 vulnerabilities on Blackcat-Informatics/gmeow-ontology's default branch (2 critical, 7 high, 3 moderate). To find out more, visit:        
+remote:      https://github.com/Blackcat-Informatics/gmeow-ontology/security/dependabot        
+remote: 
+To ssh://ssh.github.com:443/Blackcat-Informatics/gmeow-ontology.git
+   53fe4bbed..d42fc820d  paudley/1894-ground-financial-amounts-rates-prices -> paudley/1894-ground-financial-amounts-rates-prices
