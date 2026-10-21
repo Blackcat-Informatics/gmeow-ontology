@@ -684,9 +684,38 @@ fn result_components_remain_disjoint_when_multiple_requests_share_one_reasoning_
 
 #[test]
 fn native_derived_attribution_preserves_world_scopes_and_exact_receipts() {
-    let source = SOURCE.replace("gmeow:accordingTo ex:s", "ex:reportedBy ex:s");
-    let rules = "ex:w { ex:reportedBy <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> gmeow:accordingTo . }";
+    assert_derived_attribution_receipts(false);
+}
+
+#[test]
+fn anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts() {
+    assert_derived_attribution_receipts(true);
+}
+
+fn assert_derived_attribution_receipts(anonymous: bool) {
+    let mut source = SOURCE
+        .replace("gmeow:accordingTo ex:s", "ex:reportedBy ex:s")
+        .replace(
+            "gmeow:standpointSupportStatus gmeow:supportSupported",
+            "ex:reportedStatus gmeow:supportSupported",
+        );
+    if anonymous {
+        source = source.replace("ex:yes rdf:reifies", "_:yes rdf:reifies");
+    }
+    let rules = "ex:w {
+        ex:reportedBy <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> gmeow:accordingTo .
+        ex:reportedStatus <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> gmeow:standpointSupportStatus .
+    }";
     let dataset = parse(&format!("{source}\n{rules}\n{QUERY}"));
+    let witness = if anonymous {
+        let reifier = dataset
+            .reifier_quads()
+            .find(|quad| matches!(dataset.as_ref().resolve(quad.s), TermRef::Blank { .. }))
+            .expect("anonymous support reifier");
+        claim_witness(dataset.as_ref(), reifier.s).unwrap()
+    } else {
+        "urn:example:yes".to_owned()
+    };
     let source_only = evaluate_request(&dataset, "urn:example:request", None, None).unwrap();
     assert_eq!(source_only.result.information, InformationState::Neither);
     let input = crate::reason::prepare_reasoning_input(dataset.as_ref()).unwrap();
@@ -695,15 +724,19 @@ fn native_derived_attribution_preserves_world_scopes_and_exact_receipts() {
     let assessments = evaluate_requests_with_closure(&dataset, &closure, None, None).unwrap();
     let assessment = &assessments[0];
     assert_eq!(assessment.result.information, InformationState::Supported);
-    assert_eq!(assessment.native_evidence.len(), 1);
-    let native = &assessment.native_evidence[0];
+    assert_eq!(assessment.native_evidence.len(), 2);
+    let native = assessment
+        .native_evidence
+        .iter()
+        .find(|receipt| receipt.row().predicate == format!("{GMEOW_NS}accordingTo"))
+        .unwrap();
     assert_eq!(native.row().graph, "urn:example:w");
-    assert_eq!(native.row().subject, "urn:example:yes");
+    assert_eq!(native.row().subject, witness);
     let derived_fact = closure
         .iter()
         .find(|fact| {
             !fact.is_edb
-                && fact.subject == "urn:example:yes"
+                && fact.subject == witness
                 && fact.predicate == format!("{GMEOW_NS}accordingTo")
         })
         .unwrap();
