@@ -1,0 +1,58 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Summary\n\nFour questions about who a claim is from, who may read it, and what\nidentifies a node:\n1. address identity;\n2. policy findings;\n3. a vantage bound to a consumer key, with signer kept apart from\n   observer;\n4. reader-relative disclosure.\n\nChecked against `main` at `a631f73` (2026-10-10).\n\n## Consumers\n\n- **katamari**: the governed RDF 1.2 store. Writes are consumer-signed.\n  An admission policy judges each write, and a reader sees a view\n  shaped by what it may know.\n- **memetics**: the memory adapter for a companion agent.\n  - One rule is absolute: only she speaks as herself. Code must never\n    write a claim in her first person.\n  - Its admission never refuses a write. It records findings about the\n    writing code, which go to the operator.\n\n## 1. What identifies an address node (katamari)\n\n**Today.** `gmeow:addressValue` (`core/contacts`) is functional but not\na key, so two address nodes with equal normalized values never collapse.\n\n**Proposal.** Declare it a key (`owl:hasKey`) on `gmeow:EmailAddress`.\nOr document that identity derives from the normalized value. katamari's\nstarting default is the latter.\n\n## 2. Policy findings (both)\n\n**Today.** Nothing specific.\n\n**Use case.** A store's admission policy judges a write and finds\nsomething:\n- a serialized record inside a literal;\n- an untagged string written by code;\n- code naming the companion as the speaker.\n\nThe finding is itself a claim, from the policy's vantage, about another\nclaim.\n- memetics records such findings as conditions on the writing code.\n- katamari records policy findings at the store.\n\n**Proposed terms.**\n- `gmeow:PolicyFinding`, a sub-kind of `gmeow:Observation`: its vantage\n  the policy (named and versioned), its observed feature the judged\n  claim, and its result a finding kind.\n- `gmeow:violatesPolicy` / `gmeow:findingKind` with a value vocabulary\n  the policy defines.\n\n**Open question.** Is this a special case of `logic:` constraint\nviolation reports (SHACL validation results as RDF)? If so, the consumers\nwould map onto it and only need the vantage binding.\n\n## 3. Vantage bound to a consumer key; signer apart from observer (both)\n\n**Today.** `gmeow:vantage` (`core/observations`) names who observed. It\nhas no binding to the key that signed the write, and no distinction\nbetween who signed and who observed.\n\n**Use case.**\n- The store must check that a claim asserting a vantage was signed by a\n  key bound to that vantage.\n- That check is how \"only she speaks as herself\" is enforced at the\n  store, not just by convention.\n- A migration or a refiner may sign a claim whose observer is someone\n  else (re-expressing what she wrote, with a derivation link), so the\n  signer and the observer must be separable.\n\n**Proposed terms.**\n- `gmeow:boundToKey`: a vantage or agent to a key identifier (per\n  #1807 item 2's identifier typing).\n- `gmeow:signedBy`: on the claim, distinct from `gmeow:vantage`.\n\n## 4. Reader-relative disclosure (katamari)\n\n**Today.** `hasSensitivity`, `hasDisclosurePolicy`, `coarsenTo` and\n`displayable` (kernel slice) exist. Two forms of withholding are not\ntold apart:\n- **visible redaction**: \"there is something here you may not see\";\n- **non-acknowledgement**: nothing indicates anything was withheld.\n\n**Ask.** Is that distinction wanted in the disclosure vocabulary? A\nreader-relative view must know which form a policy calls for. The ADR\non katamari's side is not yet written; this is raised early so GMEOW's\nmodel can inform it.\n",
+  "closedAt": "2026-10-21T01:41:15Z",
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABd9mgzA",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Identity, policy and reader disclosure\n\nDeliver all four questions in issue 1816 using existing owners and Principles 4, 9, 10, 12, 17 and 19. No external consumer repository changes.\n\n1. Document store-relative address identity under an explicitly selected normalization policy, without equating channel holders or adding global equality axioms.\n2. Add PolicyFinding as an Observation. Reuse vantage, observedFeature and observationResult for versioned policy, judged claim and policy-owned result kind. Explain native constraint evidence and recording-only admission without imposing rejection.\n3. Reuse hasSignature, signedBy, signingKey and Certification. Add the missing boundToKey relation from an agent or standpoint to a CryptographicKey entity. Distinguish authorized binding, verified signature and observer attribution. Show refiner signing with derivation and retained observer.\n4. Add a reader-specific DisclosureDecision, reader role and explicit release, visible-redaction and non-acknowledgement outcomes. Keep private decision records out of protected reader views. Absence supplies no default; reader decisions coexist.\n\nAuthor logic-native terms with complete English coats and paired French/Chinese catalogs. Add examples and exact-row producer-owned competencies. No test constructs corpus. Inspect source/catalog pairs and run normal hooks and focused source checks. Local optimized production, synchronization and full gate remain prohibited; source hygiene does not establish hosted generation acceptance.\n\nPublish one coherent PR, review feedback, assess integration, merge with ghprsq under the CI waiver, verify landing/archive and clean the owned checkout. The portfolio remains open. No independent dispatcher is available; label local review as self-review.\n",
+      "createdAt": "2026-10-21T01:26:42Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1816#issuecomment-6305718476",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABd9v24w",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Model policy findings, vantage key bindings and reader disclosure\n\nCloses #1816.\n\nResolve the four GMEOW model questions through existing owners. Address identity is store-relative under an explicit normalization policy and does not equate channel holders. PolicyFinding specializes Observation and retains the policy vantage, exact judged RDF 1.2 claim and policy-owned outcome. boundToKey supplies the missing vantage/key binding while hasSignature, signedBy, signingKey and Certification remain the signature spine. DisclosureDecision retains its reader and explicit release, visible-redaction or non-acknowledgement result. Principles 4, 9, 10, 12, 17 and 19.\n\nEight owning-slice terms include full English annotation coats and paired French/Chinese catalogs. The guide covers recording-only admission, native constraint evidence, trusted key bindings, refiner derivation without observer impersonation, and protection of policy-side decision records across reader-visible surfaces. Correct the attestation guide to name its actual CryptographicKey range. Add private worked records, two exact-row competencies and two structural controls through the existing producer-owned slice-specification lane. Judged content remains quoted, not asserted.\n\nSource checks passed for eight declarations, 56 exact English annotation fields, 112 complete catalog pairs, unique contexts, guide links and logic-native semantic authoring. Diff hygiene and every applicable normal signed commit hook passed, including spelling, Markdown, secrets and reference policy. No Rust code changed. No local optimized producer, corpus construction, synchronization or full gate ran. Corpus competencies and complete projection/translation qualification have not run locally. External consumer authorization and disclosure engines are outside this ontology delivery and no execution of them is claimed.\n\nThe user instructed: \"merge them one by one, ignoring CI.\" Pending CI does not delay integration and is not called passed. Independent local review is unavailable; requirements and source review are self-review. Capture fresh PR feedback and check status before merge; processing notices are not approvals. The fetched base has no additional source delta and merge-tree produced a clean candidate with no conflicts. Source qualification applies to that integration tree.\n\nThe authoritative delivery plan is .stage/identity-vantage-and-policy-address/plan.md and the selected Stage directory is .stage/identity-vantage-and-policy-address. The portfolio index remains at the canonical main checkout under .stage/queues/all-issues/queue.md. No dependency, ratchet, detector, profile or required gate changed. Verify the actual landing, issue closure and selected archive, then remove only the completed owned branch/worktree and fast-forward main. Preserve the unfinished GMN sibling.\n\nDefect-Class: none\n",
+      "createdAt": "2026-10-21T01:38:47Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1816#issuecomment-6305871587",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-10T10:12:36Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZK3g",
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    }
+  ],
+  "milestone": null,
+  "number": 1816,
+  "state": "CLOSED",
+  "title": "Identity, vantage and policy: address identity, policy findings, vantage bound to a key, reader-relative disclosure (consumers: katamari, memetics)",
+  "updatedAt": "2026-10-21T01:41:16Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1816"
+}
