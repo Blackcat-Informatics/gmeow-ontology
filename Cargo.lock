@@ -1545,6 +1545,7 @@ dependencies = [
  "pulldown-cmark",
  "purrdf",
  "purrdf-hash",
+ "purrdf-lex",
  "regex",
  "serde",
  "serde_json",
