@@ -6,6 +6,19 @@
 
 use super::*;
 
+fn list_text(members: Vec<String>, cell: impl FnMut(usize) -> String) -> String {
+    let vocab = purrdf_core::ListVocab {
+        first: "rdf:first".to_owned(),
+        rest: "rdf:rest".to_owned(),
+        nil: "rdf:nil".to_owned(),
+    };
+    let mut text = String::new();
+    purrdf_core::build_rdf_list(members, &vocab, cell, |s, p, o| {
+        text.push_str(&format!("{s} {p} {o} .\n"));
+    });
+    text
+}
+
 fn owner() -> String {
     let mut text = String::from(
         r#"
@@ -46,15 +59,19 @@ g:referenceFrameEUR a g:ReferenceFrame ; g:frameKind g:frameKindScalar ; g:frame
         ),
     ] {
         text.push_str(&format!("g:{method} a g:ObservationMethod, l:CallableSignature ; l:inputParameters <urn:{prefix}:list:0> ; l:outputParameters <urn:{prefix}:out:list> ; g:calculationExpression <urn:{prefix}:recipe> .\n"));
+        text.push_str(&list_text(
+            (0..roles.len())
+                .map(|i| format!("<urn:{prefix}:parameter:{i}>"))
+                .collect(),
+            |i| format!("<urn:{prefix}:list:{i}>"),
+        ));
         for (i, (role, class)) in roles.iter().enumerate() {
-            let next = if i + 1 == roles.len() {
-                "rdf:nil".into()
-            } else {
-                format!("<urn:{prefix}:list:{}>", i + 1)
-            };
-            text.push_str(&format!("<urn:{prefix}:list:{i}> rdf:first <urn:{prefix}:parameter:{i}> ; rdf:rest {next} .\n<urn:{prefix}:parameter:{i}> a l:CallParameter ; l:parameterPredicate g:{role} ; l:parameterValueType g:{class} ; l:parameterRequired true ; m:hasMathematicalSymbol <urn:{prefix}:symbol:{i}> .\n<urn:{prefix}:symbol:{i}> a m:MathematicalSymbol .\n<urn:{prefix}:leaf:{i}> a m:SymbolReference ; m:hasMathematicalSymbol <urn:{prefix}:symbol:{i}> .\n"));
+            text.push_str(&format!("<urn:{prefix}:parameter:{i}> a l:CallParameter ; l:parameterPredicate g:{role} ; l:parameterValueType g:{class} ; l:parameterRequired true ; m:hasMathematicalSymbol <urn:{prefix}:symbol:{i}> .\n<urn:{prefix}:symbol:{i}> a m:MathematicalSymbol .\n<urn:{prefix}:leaf:{i}> a m:SymbolReference ; m:hasMathematicalSymbol <urn:{prefix}:symbol:{i}> .\n"));
         }
-        text.push_str(&format!("<urn:{prefix}:out:list> rdf:first <urn:{prefix}:output> ; rdf:rest rdf:nil .\n<urn:{prefix}:output> a l:CallResult ; l:parameterPredicate g:observationResult ; l:parameterValueType g:{output} .\n"));
+        text.push_str(&list_text(vec![format!("<urn:{prefix}:output>")], |_| {
+            format!("<urn:{prefix}:out:list>")
+        }));
+        text.push_str(&format!("<urn:{prefix}:output> a l:CallResult ; l:parameterPredicate g:observationResult ; l:parameterValueType g:{output} .\n"));
     }
     for (node, op, left, right) in [
         (
@@ -150,6 +167,134 @@ fn run(source: &str, owner_text: &str, identity: &str) -> gmeow_errors::Result<E
         },
         "urn:calculation",
     )
+}
+
+#[test]
+fn finance_evaluation_callable_lists_use_strict_collection_and_named_member_contracts() {
+    let valid = owner();
+    let read = |text: &str| {
+        let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
+        let records = Records::read(&dataset, true).unwrap();
+        signature(&records, format!("{G}methodSimpleInterest"))
+    };
+    let complete = read(&valid).unwrap();
+    assert_eq!(
+        complete
+            .parameters
+            .iter()
+            .map(|(role, _, _)| role.as_str())
+            .collect::<Vec<_>>(),
+        [
+            format!("{G}principalAmount"),
+            format!("{G}interestRate"),
+            format!("{G}interestPeriodCount")
+        ]
+    );
+    for (name, from, to) in [
+        (
+            "cycle",
+            "<urn:simple:list:2> rdf:rest rdf:nil",
+            "<urn:simple:list:2> rdf:rest <urn:simple:list:0>",
+        ),
+        (
+            "missing first",
+            "<urn:simple:list:0> rdf:first <urn:simple:parameter:0> .",
+            "",
+        ),
+        (
+            "missing rest",
+            "<urn:simple:list:0> rdf:rest <urn:simple:list:1> .",
+            "",
+        ),
+        (
+            "duplicate first",
+            "<urn:simple:list:0> rdf:first <urn:simple:parameter:0>",
+            "<urn:simple:list:0> rdf:first <urn:simple:parameter:0>, <urn:simple:parameter:1>",
+        ),
+        (
+            "duplicate rest",
+            "<urn:simple:list:0> rdf:rest <urn:simple:list:1>",
+            "<urn:simple:list:0> rdf:rest <urn:simple:list:1>, rdf:nil",
+        ),
+        (
+            "literal member",
+            "<urn:simple:list:0> rdf:first <urn:simple:parameter:0>",
+            "<urn:simple:list:0> rdf:first 'not a parameter'",
+        ),
+    ] {
+        assert!(valid.contains(from), "{name}");
+        let error = read(&valid.replace(from, to)).err().expect(name);
+        assert!(error.to_string().contains(PROFILE), "{name}: {error}");
+    }
+    assert!(
+        read(&format!(
+            "{valid} rdf:nil rdf:first <urn:simple:parameter:0> ."
+        ))
+        .is_err()
+    );
+}
+
+#[test]
+fn finance_evaluation_mixed_named_and_anonymous_selected_list_edges_still_refuse() {
+    let owner = format!(
+        "{} <urn:simple:list:0> rdf:first [ a l:CallParameter ] .",
+        owner()
+    );
+    assert!(run(&input(false), &owner, "ambiguous-selected-list-owner").is_err());
+}
+
+#[test]
+fn finance_evaluation_owner_import_retains_list_cells_members_and_override_checks() {
+    let dataset = purrdf::parse_dataset(owner().as_bytes(), "text/turtle", None).unwrap();
+    let trusted = Records::read(&dataset, true).unwrap();
+    let mut imported = Records::default();
+    imported
+        .admit_owner(&trusted, [format!("{G}methodSimpleInterest")])
+        .unwrap();
+    let premises = imported.premises();
+    for subject in [
+        "urn:simple:list:0",
+        "urn:simple:list:1",
+        "urn:simple:list:2",
+        "urn:simple:out:list",
+        "urn:simple:parameter:0",
+        "urn:simple:parameter:1",
+        "urn:simple:parameter:2",
+        "urn:simple:output",
+    ] {
+        let records: Vec<_> = trusted
+            .0
+            .iter()
+            .filter(|((s, _), _)| s == subject)
+            .collect();
+        assert!(!records.is_empty(), "owned record {subject}");
+        for ((_, predicate), values) in records {
+            assert_eq!(imported.values(subject, predicate), values.as_slice());
+            for value in values {
+                assert!(
+                    premises.contains(&Formula::Atom {
+                        relation: Term::Iri(predicate.clone()),
+                        args: vec![Term::Iri(subject.into()), value.clone()],
+                    }),
+                    "source support {subject} {predicate}"
+                );
+            }
+        }
+    }
+    for sabotage in [
+        "<urn:simple:list:1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .",
+        "<urn:simple:parameter:1> a <urn:wrong-parameter-type> .",
+        "<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .",
+    ] {
+        let source = purrdf::parse_dataset(sabotage.as_bytes(), "text/turtle", None).unwrap();
+        let mut changed = Records::read(&source, false).unwrap();
+        assert!(
+            changed
+                .admit_owner(&trusted, [format!("{G}methodSimpleInterest")])
+                .is_err(),
+            "{sabotage}"
+        );
+    }
 }
 
 #[test]
@@ -254,6 +399,20 @@ fn finance_evaluation_derives_money_and_return_with_owned_quantity_typing_proof(
             && row.subject == evaluation.quantity
             && row.predicate == format!("{G}{frame_predicate}")));
         let proof = crate::result_rdf::project_reasoning_result(&evaluation.result).unwrap();
+        let prefix = if is_return { "return" } else { "simple" };
+        for suffix in [
+            "list:0",
+            "list:1",
+            "out:list",
+            "parameter:0",
+            "parameter:1",
+            "output",
+        ] {
+            assert!(
+                proof.contains(&format!("urn:{prefix}:{suffix}")),
+                "list source support {suffix}"
+            );
+        }
         for witness in [
             "urn:opening",
             "subClassOf",

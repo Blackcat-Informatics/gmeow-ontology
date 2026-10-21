@@ -10,6 +10,7 @@ mod cargo;
 mod cfg;
 mod dep_info;
 mod embedded;
+mod json_macros;
 mod modules;
 mod native;
 mod resolution;

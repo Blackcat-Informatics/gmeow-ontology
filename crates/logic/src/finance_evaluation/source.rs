@@ -9,7 +9,7 @@
 //! owned by the authenticated complete generated validation products. A required
 //! selected edge with an anonymous/quoted object fails; it is never dropped.
 
-use super::{G, L, M, TYPE, failure};
+use super::{G, L, M, PROFILE, TYPE};
 use gmeow_logic_compile::ir::{Formula, Term};
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, TermRef,
@@ -21,6 +21,26 @@ pub(super) struct Records(
     pub BTreeMap<(String, String), Vec<Term>>,
     BTreeSet<(String, String)>,
 );
+
+struct CallableList {
+    members: Vec<String>,
+    cells: BTreeSet<String>,
+}
+
+fn named_list_term(
+    dataset: &RdfDataset,
+    term: purrdf::TermId,
+    head: &str,
+    role: &str,
+) -> gmeow_errors::Result<String> {
+    match dataset.resolve(term) {
+        TermRef::Iri(iri) => Ok(iri.to_owned()),
+        _ => Err(crate::error::profile_result(
+            PROFILE,
+            format!("callable list {head} requires named {role}"),
+        )),
+    }
+}
 
 fn execution_predicate(predicate: &str) -> bool {
     if [
@@ -84,7 +104,8 @@ impl Records {
         let mut records = Self::default();
         for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
             if !owner && quad.g.is_some() {
-                return Err(failure(
+                return Err(crate::error::profile_result(
+                    PROFILE,
                     "finance profile requires one explicit default-graph source",
                 ));
             }
@@ -97,7 +118,8 @@ impl Records {
                 if owner {
                     continue;
                 }
-                return Err(failure(
+                return Err(crate::error::profile_result(
+                    PROFILE,
                     "finance inputs must have named subjects and predicates",
                 ));
             };
@@ -131,7 +153,8 @@ impl Records {
                     continue;
                 }
                 _ => {
-                    return Err(failure(
+                    return Err(crate::error::profile_result(
+                        PROFILE,
                         "finance input records require named references or RDF literals",
                     ));
                 }
@@ -157,24 +180,31 @@ impl Records {
     }
     pub(super) fn one(&self, subject: &str, predicate: &str) -> gmeow_errors::Result<Term> {
         if self.1.contains(&(subject.into(), predicate.into())) {
-            return Err(failure(format!(
-                "required selected owner field {subject} {predicate} has unsupported anonymous or quoted object; named operation records are mandatory"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "required selected owner field {subject} {predicate} has unsupported anonymous or quoted object; named operation records are mandatory"
+                ),
+            ));
         }
         match self.values(subject, predicate) {
             [value] => Ok(value.clone()),
-            values => Err(failure(format!(
-                "{subject} requires exactly one {predicate}; found {}",
-                values.len()
-            ))),
+            values => Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "{subject} requires exactly one {predicate}; found {}",
+                    values.len()
+                ),
+            )),
         }
     }
     pub(super) fn reference(&self, subject: &str, predicate: &str) -> gmeow_errors::Result<String> {
         match self.one(subject, predicate)? {
             Term::Iri(value) => Ok(value),
-            _ => Err(failure(format!(
-                "{subject}: {predicate} requires a named reference"
-            ))),
+            _ => Err(crate::error::profile_result(
+                PROFILE,
+                format!("{subject}: {predicate} requires a named reference"),
+            )),
         }
     }
     pub(super) fn typed(&self, subject: &str, class: &str) -> bool {
@@ -183,22 +213,76 @@ impl Records {
     }
     pub(super) fn require_type(&self, subject: &str, class: &str) -> gmeow_errors::Result<()> {
         if !self.typed(subject, class) {
-            return Err(failure(format!("{subject} requires explicit type {class}")));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("{subject} requires explicit type {class}"),
+            ));
         }
         Ok(())
     }
     pub(super) fn list(&self, head: &str) -> gmeow_errors::Result<Vec<String>> {
-        let mut next = head.to_owned();
-        let mut seen = BTreeSet::new();
-        let mut values = vec![];
-        while next != "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" {
-            if !seen.insert(next.clone()) {
-                return Err(failure("cyclic callable parameter list"));
-            }
-            values.push(self.reference(&next, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first")?);
-            next = self.reference(&next, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest")?;
+        Ok(self.callable_list(head)?.members)
+    }
+    fn callable_list(&self, head: &str) -> gmeow_errors::Result<CallableList> {
+        let dataset = self.dataset(false)?;
+        let head_id = dataset
+            .term_id_if_ready(&purrdf::TermValue::iri(head))
+            .ok_or_else(|| {
+                crate::error::profile_result(PROFILE, format!("missing named callable list {head}"))
+            })?;
+        let first = dataset.term_id_if_ready(&purrdf::TermValue::iri(
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+        ));
+        let rest = dataset.term_id_if_ready(&purrdf::TermValue::iri(
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+        ));
+        let nil = dataset.term_id_if_ready(&purrdf::TermValue::iri(
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        ));
+        let mut visited = BTreeSet::new();
+        // The same strict walker used by DatasetView owns both membership and
+        // cell traversal. Retain its visited cells to import complete source
+        // records/proof premises, without a second first/rest traversal.
+        let members = purrdf_core::walk_rdf_list(
+            head_id,
+            nil,
+            |cell| {
+                visited.insert(cell);
+                dataset.sole_object(cell, first, GraphMatch::Default)
+            },
+            |cell| dataset.sole_object(cell, rest, GraphMatch::Default),
+        )
+        .map_err(|error| {
+            crate::error::profile_result(
+                PROFILE,
+                format!("malformed callable list {head}: {error}"),
+            )
+        })?;
+        let cells = visited
+            .into_iter()
+            .map(|cell| named_list_term(&dataset, cell, head, "cells"))
+            .collect::<gmeow_errors::Result<BTreeSet<_>>>()?;
+        for cell in &cells {
+            self.require_supported_record(cell)?;
         }
-        Ok(values)
+        Ok(CallableList {
+            members: members
+                .into_iter()
+                .map(|member| named_list_term(&dataset, member, head, "members"))
+                .collect::<gmeow_errors::Result<_>>()?,
+            cells,
+        })
+    }
+    fn require_supported_record(&self, subject: &str) -> gmeow_errors::Result<()> {
+        if let Some((_, predicate)) = self.1.iter().find(|(s, _)| s == subject) {
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "required selected owner record {subject} {predicate} has unsupported anonymous or quoted object"
+                ),
+            ));
+        }
+        Ok(())
     }
     pub(super) fn admit_owner(
         &mut self,
@@ -209,12 +293,8 @@ impl Records {
             TYPE.to_owned(),
             format!("{L}subClassOf"),
             gmeow_ns::RDFS_SUB_CLASS_OF.into(),
-            format!("{L}inputParameters"),
-            format!("{L}outputParameters"),
             format!("{L}parameterPredicate"),
             format!("{L}parameterValueType"),
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#first".into(),
-            "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest".into(),
             format!("{M}argumentSlot"),
             format!("{M}slotExpression"),
             format!("{M}operator"),
@@ -229,15 +309,12 @@ impl Records {
         ];
         let mut pending: Vec<_> = roots.into_iter().collect();
         let mut seen = BTreeSet::new();
+        let mut selected_lists = BTreeSet::new();
         while let Some(subject) = pending.pop() {
             if !seen.insert(subject.clone()) {
                 continue;
             }
-            if let Some((_, predicate)) = owner.1.iter().find(|(s, _)| s == &subject) {
-                return Err(failure(format!(
-                    "required selected owner record {subject} {predicate} has unsupported anonymous or quoted object"
-                )));
-            }
+            owner.require_supported_record(&subject)?;
             if owner.0.keys().any(|(s, _)| s == &subject) {
                 for ((s, p), values) in self.0.range((subject.clone(), String::new())..) {
                     if s != &subject {
@@ -247,9 +324,10 @@ impl Records {
                         .iter()
                         .any(|value| !owner.values(s, p).contains(value))
                     {
-                        return Err(failure(format!(
-                            "source changes authenticated owner record {s} {p}"
-                        )));
+                        return Err(crate::error::profile_result(
+                            PROFILE,
+                            format!("source changes authenticated owner record {s} {p}"),
+                        ));
                     }
                 }
             }
@@ -259,19 +337,33 @@ impl Records {
                 }
                 let existing = self.values(s, predicate);
                 if !existing.is_empty() && existing.iter().any(|value| !values.contains(value)) {
-                    return Err(failure(format!(
-                        "source overrides authenticated owner record {s} {predicate}"
-                    )));
+                    return Err(crate::error::profile_result(
+                        PROFILE,
+                        format!("source overrides authenticated owner record {s} {predicate}"),
+                    ));
                 }
                 for value in values {
-                    if follows.contains(predicate)
-                        && let Term::Iri(iri) = value
-                    {
-                        pending.push(iri.clone());
+                    if let Term::Iri(iri) = value {
+                        if predicate == &format!("{L}inputParameters")
+                            || predicate == &format!("{L}outputParameters")
+                        {
+                            let list = owner.callable_list(iri)?;
+                            selected_lists.insert(iri.clone());
+                            pending.extend(list.cells);
+                            pending.extend(list.members);
+                        } else if follows.contains(predicate) {
+                            pending.push(iri.clone());
+                        }
                     }
                     self.insert(s, predicate, value.clone());
                 }
             }
+        }
+        // Validate the effective selected lists as well as the authenticated
+        // owner lists: source assertions must not change even rdf:nil, whose
+        // canonical empty record may otherwise have no owner subject row.
+        for head in selected_lists {
+            self.callable_list(&head)?;
         }
         Ok(())
     }

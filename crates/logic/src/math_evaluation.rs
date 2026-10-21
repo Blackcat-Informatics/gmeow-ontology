@@ -22,12 +22,6 @@ pub const PROFILE: &str = "math-exact-decimal-v1";
 
 type Source = BTreeMap<(String, String), Vec<Term>>;
 
-fn failure(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Result {
-        detail: format!("{PROFILE}: {}", detail.into()),
-    })
-}
-
 fn iri(local: &str) -> String {
     format!("{MATH}{local}")
 }
@@ -49,25 +43,30 @@ fn objects<'a>(source: &'a Source, subject: &str, predicate: &str) -> &'a [Term]
 fn one(source: &Source, subject: &str, predicate: &str) -> gmeow_errors::Result<Term> {
     match objects(source, subject, predicate) {
         [value] => Ok(value.clone()),
-        values => Err(failure(format!(
-            "{subject} requires exactly one {predicate}; found {}",
-            values.len()
-        ))),
+        values => Err(crate::error::profile_result(
+            PROFILE,
+            format!(
+                "{subject} requires exactly one {predicate}; found {}",
+                values.len()
+            ),
+        )),
     }
 }
 fn reference(source: &Source, subject: &str, predicate: &str) -> gmeow_errors::Result<String> {
     match one(source, subject, predicate)? {
         Term::Iri(value) => Ok(value),
-        _ => Err(failure(format!(
-            "{subject} requires an IRI for {predicate}"
-        ))),
+        _ => Err(crate::error::profile_result(
+            PROFILE,
+            format!("{subject} requires an IRI for {predicate}"),
+        )),
     }
 }
 fn require_type(source: &Source, subject: &str, class: &str) -> gmeow_errors::Result<()> {
     if !objects(source, subject, TYPE).contains(&named(class)) {
-        return Err(failure(format!(
-            "{subject} must explicitly have type {class}"
-        )));
+        return Err(crate::error::profile_result(
+            PROFILE,
+            format!("{subject} must explicitly have type {class}"),
+        ));
     }
     Ok(())
 }
@@ -77,7 +76,8 @@ fn read_source(dataset: &RdfDataset) -> gmeow_errors::Result<Source> {
         .quads_for_pattern(None, None, None, GraphMatch::Any)
         .any(|quad| quad.g.is_some())
     {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "this profile accepts only a default-graph source; select/export one world explicitly",
         ));
     }
@@ -86,7 +86,8 @@ fn read_source(dataset: &RdfDataset) -> gmeow_errors::Result<Source> {
         let (TermRef::Iri(subject), TermRef::Iri(predicate)) =
             (dataset.resolve(quad.s), dataset.resolve(quad.p))
         else {
-            return Err(failure(
+            return Err(crate::error::profile_result(
+                PROFILE,
                 "this profile requires named source subjects and predicates",
             ));
         };
@@ -109,7 +110,8 @@ fn read_source(dataset: &RdfDataset) -> gmeow_errors::Result<Source> {
                 })
             }
             _ => {
-                return Err(failure(
+                return Err(crate::error::profile_result(
+                    PROFILE,
                     "this profile requires IRI or RDF literal objects; blank and quoted objects are unsupported",
                 ));
             }
@@ -152,9 +154,10 @@ impl Lowering<'_> {
         if depth > crate::math_expression::analysis::depth_limit()
             || !self.visited.insert(node.into())
         {
-            return Err(failure(format!(
-                "cyclic or excessively deep expression at {node}"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("cyclic or excessively deep expression at {node}"),
+            ));
         }
         // The structural owner admits the general grammar. This selected profile
         // must not reinterpret a multiply typed node through a different branch.
@@ -170,9 +173,10 @@ impl Lowering<'_> {
         .filter(|form| objects(self.source, node, TYPE).contains(&named(&iri(form))))
         .collect();
         if forms.len() != 1 {
-            return Err(failure(format!(
-                "{node}: requires one unambiguous concrete AST form; found {forms:?}"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("{node}: requires one unambiguous concrete AST form; found {forms:?}"),
+            ));
         }
         self.witness(node);
         let value = if forms[0] == "SymbolReference" {
@@ -190,7 +194,9 @@ impl Lowering<'_> {
         let quantity = self
             .bindings
             .get(&symbol)
-            .ok_or_else(|| failure(format!("missing --bind {symbol}=QUANTITY")))?
+            .ok_or_else(|| {
+                crate::error::profile_result(PROFILE, format!("missing --bind {symbol}=QUANTITY"))
+            })?
             .clone();
         if !objects(self.source, &quantity, TYPE).contains(&named(&iri("Quantity"))) {
             if !self
@@ -198,36 +204,52 @@ impl Lowering<'_> {
                 .iter()
                 .any(|class| objects(self.source, &quantity, TYPE).contains(&named(class)))
             {
-                return Err(failure(format!(
-                    "{quantity} requires Quantity type or an explicitly admitted owned subclass"
-                )));
+                return Err(crate::error::profile_result(
+                    PROFILE,
+                    format!(
+                        "{quantity} requires Quantity type or an explicitly admitted owned subclass"
+                    ),
+                ));
             }
             // This is a native body obligation, never an asserted input type.
             self.premises
                 .push(atom(TYPE, named(&quantity), named(&iri("Quantity"))));
         }
         if reference(self.source, &quantity, &iri("hasDimension"))? != iri("dimensionless") {
-            return Err(failure(format!(
-                "{quantity} is dimensioned; this profile supports only explicitly dimensionless quantities"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "{quantity} is dimensioned; this profile supports only explicitly dimensionless quantities"
+                ),
+            ));
         }
         let Term::Literal(literal) = one(self.source, &quantity, &iri("quantityValue"))? else {
-            return Err(failure(format!(
-                "{quantity} requires a numeric literal quantityValue"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("{quantity} requires a numeric literal quantityValue"),
+            ));
         };
         if literal.language.is_some() || literal.direction.is_some() {
-            return Err(failure(format!(
-                "{quantity}: numeric values cannot carry language or direction"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("{quantity}: numeric values cannot carry language or direction"),
+            ));
         }
         let value = purrdf::xsd::parse_by_iri(&literal.lexical_form, literal.datatype_iri())
-            .map_err(|error| failure(format!("{quantity}: {error}")))?
-            .ok_or_else(|| failure(format!("{quantity}: unsupported numeric datatype")))?;
+            .map_err(|error| crate::error::profile_result(PROFILE, format!("{quantity}: {error}")))?
+            .ok_or_else(|| {
+                crate::error::profile_result(
+                    PROFILE,
+                    format!("{quantity}: unsupported numeric datatype"),
+                )
+            })?;
         if !value.is_exact_numeric() {
-            return Err(failure(format!(
-                "{quantity}: only integer and decimal inputs are admitted; float/double are unsupported"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "{quantity}: only integer and decimal inputs are admitted; float/double are unsupported"
+                ),
+            ));
         }
         self.used.insert(symbol);
         self.witness(&quantity);
@@ -247,9 +269,12 @@ impl Lowering<'_> {
             Some("Multiplication") => NumericOperator::Multiply,
             Some("Division") => NumericOperator::ExactDivide,
             _ => {
-                return Err(failure(format!(
-                    "{node}: unsupported operator {operator}; supported operators are Addition, Subtraction, Multiplication, Division"
-                )));
+                return Err(crate::error::profile_result(
+                    PROFILE,
+                    format!(
+                        "{node}: unsupported operator {operator}; supported operators are Addition, Subtraction, Multiplication, Division"
+                    ),
+                ));
             }
         };
         let ordered = self.slots(node)?;
@@ -267,41 +292,60 @@ impl Lowering<'_> {
     fn slots(&mut self, node: &str) -> gmeow_errors::Result<BTreeMap<usize, String>> {
         let slots = objects(self.source, node, &iri("argumentSlot"));
         if slots.len() != 2 {
-            return Err(failure(format!(
-                "{node}: binary arithmetic requires exactly two argument slots"
-            )));
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("{node}: binary arithmetic requires exactly two argument slots"),
+            ));
         }
         let mut ordered = BTreeMap::new();
         for slot in slots {
             let Term::Iri(slot) = slot else {
-                return Err(failure("argument slots must be named IRIs"));
+                return Err(crate::error::profile_result(
+                    PROFILE,
+                    "argument slots must be named IRIs",
+                ));
             };
             require_type(self.source, slot, &iri("ArgumentSlot"))?;
             self.witness(slot);
             let Term::Literal(index) = one(self.source, slot, &iri("slotIndex"))? else {
-                return Err(failure("slotIndex must be integer"));
+                return Err(crate::error::profile_result(
+                    PROFILE,
+                    "slotIndex must be integer",
+                ));
             };
             if index.language.is_some() || index.direction.is_some() {
-                return Err(failure("slotIndex cannot carry language or direction"));
+                return Err(crate::error::profile_result(
+                    PROFILE,
+                    "slotIndex cannot carry language or direction",
+                ));
             }
             let value = purrdf::xsd::parse_by_iri(&index.lexical_form, index.datatype_iri())
-                .map_err(|error| failure(format!("invalid slotIndex: {error}")))?;
+                .map_err(|error| {
+                    crate::error::profile_result(PROFILE, format!("invalid slotIndex: {error}"))
+                })?;
             let Some(value @ purrdf::xsd::XsdValue::Integer { .. }) = value else {
-                return Err(failure(
+                return Err(crate::error::profile_result(
+                    PROFILE,
                     "slotIndex requires an XSD integer datatype, not a string, decimal or float",
                 ));
             };
-            let index = value
-                .canonical_lexical()
-                .parse::<usize>()
-                .map_err(|_| failure("slotIndex must be a bounded nonnegative integer"))?;
+            let index = value.canonical_lexical().parse::<usize>().map_err(|_| {
+                crate::error::profile_result(
+                    PROFILE,
+                    "slotIndex must be a bounded nonnegative integer",
+                )
+            })?;
             let expression = reference(self.source, slot, &iri("slotExpression"))?;
             if ordered.insert(index, expression).is_some() {
-                return Err(failure("duplicate argument slot index"));
+                return Err(crate::error::profile_result(
+                    PROFILE,
+                    "duplicate argument slot index",
+                ));
             }
         }
         if ordered.keys().copied().collect::<Vec<_>>() != [0, 1] {
-            return Err(failure(
+            return Err(crate::error::profile_result(
+                PROFILE,
                 "binary argument slot indexes must be exactly 0 and 1",
             ));
         }
@@ -341,7 +385,8 @@ fn validate_quantity_result(
         || dimensions.len() != 1
         || dimensions[0] != &purrdf::TermValue::iri(iri("dimensionless"))
     {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "native computation must derive Quantity type and exactly one dimensionless dimension; no partial result is published",
         ));
     }
@@ -354,14 +399,17 @@ fn validate_quantity_result(
         },
     ] = values.as_slice()
     else {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "native computation must derive exactly one untagged numeric quantityValue; no partial result is published",
         ));
     };
-    let value = purrdf::xsd::parse_by_iri(lexical_form, datatype)
-        .map_err(|error| failure(format!("invalid derived quantityValue: {error}")))?;
+    let value = purrdf::xsd::parse_by_iri(lexical_form, datatype).map_err(|error| {
+        crate::error::profile_result(PROFILE, format!("invalid derived quantityValue: {error}"))
+    })?;
     if !value.is_some_and(|value| value.is_exact_numeric()) {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "derived quantityValue must be an exact integer or decimal; no partial result is published",
         ));
     }
@@ -382,7 +430,7 @@ pub fn prepare(
     context: &EvaluationContext,
 ) -> gmeow_errors::Result<PreparedEvaluation> {
     crate::math_expression::analysis::structural_key_at(dataset, root)
-        .map_err(|error| failure(error.to_string()))?;
+        .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?;
     let source = read_source(dataset)?;
     let mut lowering = Lowering {
         source: &source,
@@ -396,7 +444,8 @@ pub fn prepare(
     };
     let value = lowering.expression(root, 0)?;
     if lowering.used.len() != bindings.len() {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "unused binding: every selected symbol must occur in the root expression",
         ));
     }
@@ -405,7 +454,7 @@ pub fn prepare(
         && context.quantity_classes.is_empty()
     {
         serde_json::to_vec(&(PROFILE, root, bindings, &lowering.premises, &lowering.calls))
-            .map_err(|error| failure(error.to_string()))?
+            .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
     } else {
         serde_json::to_vec(&(
             PROFILE,
@@ -417,7 +466,7 @@ pub fn prepare(
             &context.premises,
             &context.quantity_classes,
         ))
-        .map_err(|error| failure(error.to_string()))?
+        .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
     };
     let digest = format!("{:x}", Sha256::digest(identity));
     let quantity = format!("urn:gmeow:math-evaluation:quantity:{digest}");
@@ -427,7 +476,8 @@ pub fn prepare(
             .flatten()
             .any(|object| object == &named(&quantity))
     {
-        return Err(failure(
+        return Err(crate::error::profile_result(
+            PROFILE,
             "derived result identity already occurs in the source; supply original inputs only",
         ));
     }
