@@ -4,13 +4,13 @@
 //! `bench-compare`: the report-only perf regression scoreboard and the
 //! single `bench/baseline.json` producer.
 //!
-//! Two modes, both reading a live criterion run under `target/criterion` and the
-//! committed `bench/baseline.json` relative to the current directory (the
-//! workspace root when driven by `make`):
+//! Two modes read a live Criterion run under `target/criterion`; comparison also
+//! requires committed `bench/baseline.json`. Paths are relative to the current
+//! directory (the workspace root when driven by `make`):
 //!
 //!   * default — print the regression scoreboard (live vs baseline) to stdout and
-//!     ALWAYS exit 0. This is advisory: it runs only in the off-gate
-//!     `suite-quality` lane and never fails a PR (Principle 18).
+//!     exit 0 for valid measurements, including regressions. Invalid required
+//!     inputs fail explicitly; runner jitter remains advisory (Principle 18).
 //!   * `--emit-baseline` — flatten the live criterion run into the committed
 //!     baseline JSON (integer nanoseconds, sorted keys) on stdout. This is the
 //!     ONLY producer of `bench/baseline.json`; `make maint-bench-baseline` wires
@@ -24,7 +24,6 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
-use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
 use gmeow_pipeline::stages::bench;
 
 /// The emitting tool name every diagnostic here is stamped with.
@@ -54,46 +53,40 @@ fn main() -> ExitCode {
                 print!("{json}");
                 ExitCode::SUCCESS
             }
-            Err(err) => {
-                let diag = Diag::new(
-                    gmeow_errors::code::register_code("gmeow-pipeline.bench-compare.emit-baseline"),
-                    Grade::new(
-                        Severity::Error,
-                        FindingCategory::ModelingDisciplineViolation,
-                        Standpoint::Binding,
-                    ),
-                    format!("--emit-baseline failed: {err}"),
-                );
-                reporter.report(&report_diag(diag, TOOL));
+            Err(error) => {
+                reporter.report(&report_diag(
+                    error.with_context("bench-compare --emit-baseline"),
+                    TOOL,
+                ));
                 ExitCode::FAILURE
             }
         }
     } else {
-        // Report-only: a missing baseline degrades silently to an all-`new`
-        // board (the legitimate first-run case). A baseline that is PRESENT but
-        // unreadable is a real degradation — surface it (don't swallow it),
-        // then still degrade. The scoreboard NEVER gates — always exit 0.
         let baseline = match std::fs::read_to_string(bench::BASELINE_PATH) {
-            Ok(s) => s,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
-            Err(e) => {
-                gmeow_cli_core::note(
-                    reporter.as_ref(),
+            Ok(baseline) => baseline,
+            Err(error) => {
+                reporter.report(&report_diag(
+                    gmeow_errors::Diag::from(error).with_context(format!(
+                        "read required timing baseline {}",
+                        bench::BASELINE_PATH,
+                    )),
                     TOOL,
-                    "gmeow-pipeline.bench-compare.note",
-                    format!(
-                        "committed `{}` is present but unreadable ({e}); \
-treating every benchmark as `new`.",
-                        bench::BASELINE_PATH
-                    ),
-                );
-                String::new()
+                ));
+                return ExitCode::FAILURE;
             }
         };
-        print!(
-            "{}",
-            bench::compare_against_baseline(criterion_root, &baseline)
-        );
-        ExitCode::SUCCESS
+        match bench::compare_against_baseline(criterion_root, &baseline) {
+            Ok(report) => {
+                print!("{report}");
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                reporter.report(&report_diag(
+                    error.with_context("bench-compare timing comparison"),
+                    TOOL,
+                ));
+                ExitCode::FAILURE
+            }
+        }
     }
 }

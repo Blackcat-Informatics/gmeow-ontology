@@ -16,10 +16,9 @@
 //!   * **Report-only** — [`compare_against_baseline`] reads a LIVE criterion
 //!     run (`target/criterion/**/new/estimates.json`) and the committed
 //!     baseline, classifies each benchmark `ok | watch | regressed` against an
-//!     advisory tolerance band, and renders a scoreboard. It NEVER gates: the
-//!     `bench-compare` bin that drives it always exits 0 and runs only in the
-//!     off-gate `suite-quality` lane (Principle 18 + the AGENTS doctrine that
-//!     timing numbers are evidence, not a fabricated gate).
+//!     advisory tolerance band, and renders a scoreboard. Valid regressions never
+//!     fail the command; invalid required inputs do. The off-gate `suite-quality`
+//!     lane records timing evidence without turning runner jitter into a gate.
 //!
 //! [`emit_baseline`] is the SINGLE producer of `bench/baseline.json` (seed and
 //! every refresh go through it), subsuming the retired `scripts/bench_to_json.py`.
@@ -27,8 +26,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
+use purrdf_lex::json::{
+    self, Object, Value,
+    record::{DecodeError, FromJson, Record},
+};
 use serde::Deserialize;
-use serde_json::Value;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -64,10 +66,33 @@ const REGRESS_PCT: f64 = 15.0;
 
 /// One benchmark's point estimates, in integer nanoseconds (`f64`→`u64` at the
 /// emit boundary so the committed JSON and the render are formatting-stable).
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy)]
 struct Estimate {
     mean_ns: u64,
     median_ns: u64,
+}
+
+impl FromJson for Estimate {
+    /// Admit required unsigned integer tokens, preserving known duplicate refusals.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "timing baseline estimate object")?;
+        let unsigned = |value: &Value| {
+            value.as_u64().ok_or_else(|| {
+                DecodeError::invalid_value(value, "an unsigned integer token within u64 range")
+            })
+        };
+        Ok(Self {
+            mean_ns: fields.required_with("mean_ns", unsigned)?,
+            median_ns: fields.required_with("median_ns", unsigned)?,
+        })
+    }
+}
+
+/// Decode the required typed baseline without normalizing away duplicate record fields.
+fn parse_timing_baseline(bytes: &[u8]) -> Result<BTreeMap<String, Estimate>, gmeow_errors::Diag> {
+    json::record::from_slice(bytes).map_err(|error| {
+        gmeow_errors::Diag::from(error).with_context(format!("parse required {BASELINE_PATH}"))
+    })
 }
 
 // ── Criterion estimate collection (subsumes `bench_to_json.py::collect`) ────────
@@ -81,8 +106,19 @@ fn collect_estimates(
     criterion_root: &Path,
 ) -> Result<BTreeMap<String, Estimate>, gmeow_errors::Diag> {
     let mut out = BTreeMap::new();
-    if !criterion_root.is_dir() {
-        return Ok(out);
+    let metadata = std::fs::metadata(criterion_root).map_err(|error| {
+        gmeow_errors::Diag::from(error).with_context(format!(
+            "read required criterion directory {}",
+            criterion_root.display(),
+        ))
+    })?;
+    if !metadata.is_dir() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "criterion input is not a directory: {}",
+                criterion_root.display()
+            ),
+        }));
     }
     let mut files: Vec<PathBuf> = Vec::new();
     walk_estimates(criterion_root, &mut files)?;
@@ -91,31 +127,32 @@ fn collect_estimates(
         let rel = path
             .strip_prefix(criterion_root)
             .expect("walked path is under root");
-        let parts: Vec<String> = rel
-            .components()
-            .map(|c| c.as_os_str().to_string_lossy().into_owned())
-            .collect();
-        // `<group>/<bench>/new/estimates.json` ⇒ at least 4 components, with the
-        // trailing `new/estimates.json` already guaranteed by `walk_estimates`.
-        if parts.len() < 4 {
+        let components: Vec<_> = rel.components().collect();
+        // Shallower paths are outside the selected measurement surface.
+        if components.len() < 4 {
             continue;
         }
-        let name = parts[..parts.len() - 2].join("/");
-        let bytes = std::fs::read(&path)?;
-        let data: Value = serde_json::from_slice(&bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("criterion estimates parse: {e}"),
+        let parts: Vec<&str> = components
+            .iter()
+            .map(|component| {
+                component.as_os_str().to_str().ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::Parse {
+                        message: format!(
+                            "criterion benchmark path is not UTF-8: {}",
+                            path.display()
+                        ),
+                    })
+                })
             })
+            .collect::<Result<_, _>>()?;
+        let name = parts[..parts.len() - 2].join("/");
+        let bytes = std::fs::read(&path).map_err(|error| {
+            gmeow_errors::Diag::from(error).with_context(format!(
+                "read criterion benchmark {name} at {}",
+                path.display(),
+            ))
         })?;
-        let mean = point_estimate(&data, "mean")?;
-        let median = point_estimate(&data, "median")?;
-        out.insert(
-            name,
-            Estimate {
-                mean_ns: round_ns(mean),
-                median_ns: round_ns(median),
-            },
-        );
+        out.insert(name.clone(), parse_live_estimate(&bytes, &path, &name)?);
     }
     Ok(out)
 }
@@ -142,23 +179,61 @@ fn walk_estimates(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), gmeow_errors
 
 /// Read `data[key].point_estimate` as `f64` (criterion's estimate shape).
 fn point_estimate(data: &Value, key: &str) -> Result<f64, gmeow_errors::Diag> {
-    data.get(key)
+    let number = data
+        .get(key)
         .and_then(|v| v.get("point_estimate"))
-        .and_then(Value::as_f64)
+        .and_then(Value::as_number)
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("criterion estimate missing {key}.point_estimate"),
+                message: format!("criterion estimate requires numeric {key}.point_estimate"),
             })
-        })
+        })?;
+    if number.decimal().is_negative() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("criterion {key}.point_estimate must be nonnegative"),
+        }));
+    }
+    Ok(number.as_f64())
 }
 
-/// Round a nanosecond `f64` point estimate to the nearest integer ns (`round`,
-/// ties away from zero — the criterion estimates are always positive).
-fn round_ns(ns: f64) -> u64 {
-    if !ns.is_finite() || ns < 0.0 {
-        return 0;
+/// Round finite nonnegative nanoseconds, refusing overflow instead of saturating.
+fn round_ns(ns: f64) -> Result<u64, gmeow_errors::Diag> {
+    let rounded = ns.round();
+    // u64::MAX rounds up to 2^64 as binary64; that endpoint cannot be cast safely.
+    if !ns.is_finite() || ns < 0.0 || rounded >= 18_446_744_073_709_551_616.0 {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: "criterion point estimate must be finite, nonnegative and round within u64 nanoseconds".into(),
+        }));
     }
-    ns.round() as u64
+    Ok(rounded as u64)
+}
+
+/// Decode one free-form Criterion document and locate each metric failure precisely.
+fn parse_live_estimate(
+    bytes: &[u8],
+    path: &Path,
+    name: &str,
+) -> Result<Estimate, gmeow_errors::Diag> {
+    let data = json::record::read_document(bytes).map_err(|error| {
+        gmeow_errors::Diag::from(error).with_context(format!(
+            "parse criterion benchmark {name} at {}",
+            path.display(),
+        ))
+    })?;
+    let metric = |key: &str| {
+        point_estimate(&data, key)
+            .and_then(round_ns)
+            .map_err(|error| {
+                error.with_context(format!(
+                    "criterion benchmark {name} at {}: {key}.point_estimate",
+                    path.display(),
+                ))
+            })
+    };
+    Ok(Estimate {
+        mean_ns: metric("mean")?,
+        median_ns: metric("median")?,
+    })
 }
 
 // ── Baseline emit (THE single `bench/baseline.json` producer) ───────────────────
@@ -169,21 +244,31 @@ fn round_ns(ns: f64) -> u64 {
 /// is no second format to drift against.
 pub fn emit_baseline(criterion_root: &Path) -> Result<String, gmeow_errors::Diag> {
     let estimates = collect_estimates(criterion_root)?;
-    // BTreeMap → sorted keys; inner BTreeMap → `mean_ns` before `median_ns`.
-    let mut top: BTreeMap<String, BTreeMap<&'static str, u64>> = BTreeMap::new();
-    for (name, est) in estimates {
-        let mut inner: BTreeMap<&'static str, u64> = BTreeMap::new();
-        inner.insert("mean_ns", est.mean_ns);
-        inner.insert("median_ns", est.median_ns);
-        top.insert(name, inner);
+    if estimates.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "cannot emit a measured baseline: no criterion estimates under {}",
+                criterion_root.display(),
+            ),
+        }));
     }
-    let mut json = serde_json::to_string_pretty(&top).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("baseline serialize: {e}"),
-        })
-    })?;
-    json.push('\n');
-    Ok(json)
+    Ok(encode_timing_baseline(&estimates))
+}
+
+/// Emit sorted benchmark names and mean/median members as pretty integer JSON plus one LF.
+fn encode_timing_baseline(estimates: &BTreeMap<String, Estimate>) -> String {
+    let mut top = Object::new();
+    for (name, estimate) in estimates {
+        top.insert(
+            name,
+            Object::new()
+                .with("mean_ns", estimate.mean_ns)
+                .with("median_ns", estimate.median_ns),
+        );
+    }
+    let mut output = json::write_pretty(&top.into());
+    output.push('\n');
+    output
 }
 
 // ── Report-only regression scoreboard ───────────────────────────────────────────
@@ -196,6 +281,8 @@ enum Status {
     Watch,
     /// Slower than [`REGRESS_PCT`].
     Regressed,
+    /// Percentage comparison is undefined because the baseline median is zero.
+    Unavailable,
     /// In the baseline but absent from this run.
     Missing,
     /// In this run but not the baseline.
@@ -208,6 +295,7 @@ impl Status {
             Status::Ok => "ok",
             Status::Watch => "watch",
             Status::Regressed => "regressed",
+            Status::Unavailable => "unavailable",
             Status::Missing => "missing",
             Status::New => "new",
         }
@@ -225,37 +313,24 @@ fn classify(delta_pct: f64) -> Status {
     }
 }
 
-/// Render the report-only regression scoreboard: live criterion run vs the
-/// committed baseline. Advisory — the caller always exits 0. A benchmark present
-/// in both is classified on its median Δ%; baseline-only ⇒ `missing`, run-only ⇒
-/// `new`.
-pub fn compare_against_baseline(criterion_root: &Path, baseline_json: &str) -> String {
-    // Report-only path: never gate (always exit 0), but never SWALLOW an error
-    // either — surface it to stderr (the job-summary log) before degrading, so a
-    // misleading all-`missing`/all-`new` board is always explained. The committed
-    // `render_bench_leaderboard` path hard-fails instead; only this advisory path
-    // degrades. See / Principle 18.
-    let baseline: BTreeMap<String, Estimate> = if baseline_json.trim().is_empty() {
-        BTreeMap::new()
-    } else {
-        serde_json::from_str(baseline_json).unwrap_or_else(|e| {
-            tracing::warn!(
-                target: "bench_compare",
-                error = %e,
-                "committed baseline JSON is unparsable; treating every benchmark as `new`",
-            );
-            BTreeMap::new()
-        })
-    };
-    let current = collect_estimates(criterion_root).unwrap_or_else(|e| {
-        tracing::warn!(
-            target: "bench_compare",
-            error = %e,
-            "could not collect live criterion estimates; treating every baseline benchmark as `missing`",
-        );
-        BTreeMap::new()
-    });
+/// Render a valid live timing comparison; regressions remain advisory.
+///
+/// # Errors
+/// Refuses missing/malformed baselines and missing/invalid live measurement inputs.
+pub fn compare_against_baseline(
+    criterion_root: &Path,
+    baseline_json: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let baseline = parse_timing_baseline(baseline_json.as_bytes())?;
+    let current = collect_estimates(criterion_root)?;
+    Ok(render_timing_comparison(&baseline, &current))
+}
 
+/// Compare admitted inventories without treating missing measurements as zero.
+fn render_timing_comparison(
+    baseline: &BTreeMap<String, Estimate>,
+    current: &BTreeMap<String, Estimate>,
+) -> String {
     let mut names: BTreeSet<&str> = BTreeSet::new();
     names.extend(baseline.keys().map(String::as_str));
     names.extend(current.keys().map(String::as_str));
@@ -279,12 +354,14 @@ runner jitter is expected and never gates a PR."
         let base = baseline.get(*name);
         let cur = current.get(*name);
         let (base_cell, cur_cell, delta_cell, status) = match (base, cur) {
+            (Some(b), Some(c)) if b.median_ns == 0 => (
+                b.median_ns.to_string(),
+                c.median_ns.to_string(),
+                "—".to_string(),
+                Status::Unavailable,
+            ),
             (Some(b), Some(c)) => {
-                let delta = if b.median_ns == 0 {
-                    0.0
-                } else {
-                    (c.median_ns as f64 - b.median_ns as f64) / b.median_ns as f64 * 100.0
-                };
+                let delta = (c.median_ns as f64 - b.median_ns as f64) / b.median_ns as f64 * 100.0;
                 let status = classify(delta);
                 match status {
                     Status::Regressed => regressed += 1,
@@ -337,11 +414,7 @@ pub(crate) fn render_bench_leaderboard(
     root: &Path,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let bytes = std::fs::read(root.join(BASELINE_PATH))?;
-    let baseline: BTreeMap<String, Estimate> = serde_json::from_slice(&bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("baseline parse: {e}"),
-        })
-    })?;
+    let baseline = parse_timing_baseline(&bytes)?;
 
     let mut lines: Vec<String> = vec![
         "<!-- GENERATED by `gmeow-dev sync --mode update --outputs generated` (bench) — DO NOT EDIT. -->".to_string(),
@@ -1200,3 +1273,7 @@ impl Stage for CostLedgerStage {
 #[path = "bench.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "bench.timing_json.tests.rs"]
+mod timing_json_tests;
