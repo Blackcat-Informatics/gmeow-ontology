@@ -23,7 +23,7 @@ fn agreement_tallies_are_deterministic_sorted_and_cover_lane_a() {
     // admitted tally product and never grades the external corpus.
     let a = authenticated_conformance_artifact(AGREEMENT_TALLIES_PATH);
     let records: BTreeMap<String, TallyRecord> =
-        serde_json::from_slice(&a).expect("tally JSON parses");
+        parse_agreement_tallies(&a).expect("tally JSON parses");
     assert!(
         !records.is_empty(),
         "the committed corpus must grade something"

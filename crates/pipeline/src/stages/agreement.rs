@@ -24,7 +24,7 @@
 use std::collections::BTreeMap;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::conformance::{AGREEMENT_TALLIES_PATH, TallyRecord};
+use crate::stages::conformance::{AGREEMENT_TALLIES_PATH, TallyRecord, parse_agreement_tallies};
 
 /// Committed, drift-gated agreement-matrix dashboard artifact. Lives at the
 /// `generated/` root (a committed surface, like `generated/module-status.md`) — NOT
@@ -43,6 +43,16 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
     })
 }
 
+/// Refuse an unrepresentable dashboard aggregate with the offending count's
+/// identity rather than wrapping, panicking, or publishing a fabricated total.
+fn tally_sum(total: usize, count: usize, identity: &str) -> Result<usize, gmeow_errors::Diag> {
+    total.checked_add(count).ok_or_else(|| {
+        stage_err(&format!(
+            "agreement tally total exceeds usize range: {identity}"
+        ))
+    })
+}
+
 /// The agree rate `agree/cases` rendered as `"N.N%"`, rounded to the nearest tenth of
 /// a percent with integer math (no `f64`). A zero-`cases` corpus is a corpus-integrity
 /// failure, never a rendered `0.0%`.
@@ -58,7 +68,7 @@ fn agree_rate(agree: usize, cases: usize) -> Result<String, gmeow_errors::Diag> 
         ));
     }
     // permille = round_half_up(1000 * agree / cases) = floor((2000*agree + cases) / (2*cases)).
-    let mut permille = (2000 * agree + cases) / (2 * cases);
+    let mut permille = (2000 * (agree as u128) + cases as u128) / (2 * cases as u128);
     if agree < cases && permille >= 1000 {
         permille = 999;
     }
@@ -72,7 +82,7 @@ fn agree_rate(agree: usize, cases: usize) -> Result<String, gmeow_errors::Diag> 
 pub(crate) fn render_agreement_matrix(
     tallies_json: &[u8],
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let records: BTreeMap<String, TallyRecord> = serde_json::from_slice(tallies_json)
+    let records = parse_agreement_tallies(tallies_json)
         .map_err(|e| stage_err(&format!("parse agreement tallies: {e}")))?;
 
     let mut lines: Vec<String> = vec![
@@ -119,10 +129,14 @@ pub(crate) fn render_agreement_matrix(
             "| {corpus} | {} | {} | {} | {} | {} | {rate} |",
             r.lane, r.cases, r.agree, r.corpus_only, r.dl_gap
         ));
-        t_cases += r.cases;
-        t_agree += r.agree;
-        t_corpus_only += r.corpus_only;
-        t_dl_gap += r.dl_gap;
+        t_cases = tally_sum(t_cases, r.cases, &format!("cases at corpus {corpus}"))?;
+        t_agree = tally_sum(t_agree, r.agree, &format!("agree at corpus {corpus}"))?;
+        t_corpus_only = tally_sum(
+            t_corpus_only,
+            r.corpus_only,
+            &format!("corpus_only at corpus {corpus}"),
+        )?;
+        t_dl_gap = tally_sum(t_dl_gap, r.dl_gap, &format!("dl_gap at corpus {corpus}"))?;
     }
     if t_cases == 0 {
         return Err(stage_err(
@@ -174,9 +188,10 @@ pub(crate) fn render_agreement_matrix(
     // native-coverage / malformed) is tallied here across all corpora. A non-empty
     // section proves the gap-shape data flowed; the byte gate pins it.
     let mut gap_shape_totals: BTreeMap<String, usize> = BTreeMap::new();
-    for r in records.values() {
+    for (corpus, r) in &records {
         for (shape, n) in &r.gap_shapes {
-            *gap_shape_totals.entry(shape.clone()).or_insert(0) += n;
+            let total = gap_shape_totals.entry(shape.clone()).or_insert(0);
+            *total = tally_sum(*total, *n, &format!("gap shape {shape} at corpus {corpus}"))?;
         }
     }
     lines.push("## Capability gaps (by shape)".to_string());
@@ -267,3 +282,7 @@ impl Stage for AgreementMatrixStage {
 #[path = "agreement.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "agreement.json.tests.rs"]
+mod json_tests;
