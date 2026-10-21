@@ -14,6 +14,7 @@
 //! | `opset_import` | `math:MathematicalTheory` scoping a `math:MathematicalSymbol` per operator |
 //! | graph `input`/`output`/`value_info` | typed tensor slots: expression leaves carrying a `math:ExpressionType` |
 //! | a `TypeProto.Tensor`'s `elem_type` | a `math:TensorElementType` term, shared by every tensor of that format |
+//! | a leaf's admitted tensor type | a separate `math:Set` linked by `math:expressionValueSpace`, used as its free declaration's `math:variableDomain` |
 //! | a `TensorShapeProto`/`TensorProto.dims` | a `math:TensorShape` with its `math:tensorRank` and one indexed `math:TensorAxis` per axis |
 //! | a `TensorShapeProto.Dimension.dim_param` | a `math:FreeVariableDeclaration` named through `math:symbolicExtent` |
 //! | `metadata_props`, `ir_version`, `domain` | reified `math:SourceAnnotation` pairs on the retained `math:parseSource` witness |
@@ -71,11 +72,9 @@
 //! - An operator individual is typed `math:Operation` and **never** `math:ActivationFunction`
 //!   — even for `Relu`. `math:ActivationFunction` is a `math:Function`, and `math:Function`
 //!   carries min-1 `math:domain` and min-1 `math:codomain` qualified on `math:Set`
-//!   (`module.ttl:10251`, `math:UnframedFunction`). An ONNX graph states a tensor's *shape*,
-//!   not the mathematical *set* the activation maps between, so claiming the class would mean
-//!   minting two sets the model never declares. The shape it *does* state is carried in full
-//!   as a `math:TensorShape`; refusing the class is a refusal to invent, not a refusal to
-//!   read.
+//!   (`module.ttl:10251`, `math:UnframedFunction`). A typed slot's admitted value space is
+//!   retained separately from the operator. A boundary type declaration does not establish
+//!   the operator's mathematical function signature or that it is an activation function.
 //! - A `TypeProto` that is not a tensor type (a sequence, map, optional, or sparse tensor)
 //!   and an `AttributeProto` carrying a control-flow subgraph are [`OnnxUnliftable`] by name.
 //!   Lifting a node whose configuration this crate did not read would misstate the operator's
@@ -169,6 +168,8 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
         emitted: BTreeSet::new(),
         env: BTreeMap::new(),
         weight_layer: BTreeMap::new(),
+        leaf_declarations: BTreeMap::new(),
+        value_types: BTreeMap::new(),
         tensor_structures: 0,
     };
     lift.model(&model, graph)?;
@@ -203,6 +204,10 @@ struct Lift<'f> {
     env: BTreeMap<String, Value>,
     /// Initializer name → the `math:NeuralLayer` of the first node that consumes it.
     weight_layer: BTreeMap<String, String>,
+    /// Leaf expression IRI -> its free declaration and authoritative value domain.
+    leaf_declarations: BTreeMap<String, (String, Option<String>)>,
+    /// Retained source type declarations for compatibility checks and refinement.
+    value_types: BTreeMap<String, Vec<TensorTypeSpec>>,
     /// How many genuinely TENSOR structures the run produced — nodes, weights, the graph.
     ///
     /// Separate from `emitted.len()`, which also counts provenance nodes. Without it a model
@@ -298,6 +303,17 @@ impl Lift<'_> {
             let expr = self.expression_iri(value.node);
             self.attach_initializer_type(&expr, tensor)?;
             self.env.insert(tensor.name.clone(), value);
+        }
+        // Legacy graph inputs may repeat initializer names. Keep the header's
+        // identity and domain, but validate any supplied additional annotation.
+        for info in &graph.input {
+            if initializers.contains(info.name.as_str())
+                && let Some(declared) = info.value_type.as_ref()
+            {
+                let value = self.env[&info.name];
+                let expr = self.expression_iri(value.node);
+                self.attach_type(&expr, declared)?;
+            }
         }
 
         // The nodes, in the topological order ONNX guarantees.
@@ -488,6 +504,8 @@ impl Lift<'_> {
                 .iri(&occurrence, &math("declaredVariable"), &declaration)?;
             self.sink
                 .iri(&iri, &math("variableOccurrence"), &occurrence)?;
+            self.leaf_declarations
+                .insert(iri.clone(), (declaration, None));
         }
         Ok(Value { node })
     }
@@ -575,7 +593,7 @@ impl Lift<'_> {
     /// Attach the whole of what an ONNX tensor type states: the element format and, when the
     /// source declares one, the per-axis shape.
     ///
-    /// The `math:ExpressionType` individual is content-addressed on the rendered type, so two
+    /// The `math:ExpressionType` individual is content-addressed on structural type content, so two
     /// values of the same tensor type share ONE type individual rather than minting a copy per
     /// mention — and the structured element type and shape hang off that shared node, emitted
     /// exactly once.
@@ -585,10 +603,39 @@ impl Lift<'_> {
         element: &str,
         axes: Option<&[AxisSpec]>,
     ) -> gmeow_errors::Result<()> {
+        if axes.is_some_and(|axes| {
+            axes.iter()
+                .any(|axis| matches!(axis, AxisSpec::Extent(extent) if *extent < 0))
+        }) {
+            return Err(unliftable(
+                "an ONNX tensor type declares a negative concrete axis extent".to_owned(),
+            ));
+        }
+        let declared = TensorTypeSpec {
+            element: element.to_owned(),
+            axes: axes.map(<[AxisSpec]>::to_vec),
+        };
+        let previous = self.value_types.entry(expr_iri.to_owned()).or_default();
+        if !compatible_tensor_types(previous, &declared) {
+            return Err(unliftable(format!(
+                "the ONNX value {expr_iri} has incompatible tensor type declarations; \
+                 the source input or initializer type cannot be replaced by a conflicting annotation"
+            )));
+        }
+        if !previous.contains(&declared) {
+            previous.push(declared);
+        }
         let rendered = render_tensor_type(element, axes);
-        let (iri, fresh) = self.mint("type", &rendered)?;
+        let key = tensor_type_key(element, axes);
+        let (iri, fresh) = self.mint("type", &key)?;
+        let (space, fresh_space) = self.mint("tensor-value-space", &key)?;
+        if fresh_space {
+            self.sink.typed(&space, &math("Set"))?;
+            self.label(&space, &format!("values admitted by {rendered}"))?;
+        }
         if fresh {
             self.sink.typed(&iri, &math("ExpressionType"))?;
+            self.sink.iri(&iri, &math("expressionValueSpace"), &space)?;
             // The human label stays: it is how a reader recognizes the type at a glance. What
             // changes is that it is no longer the ONLY place the shape lives.
             self.label(&iri, &rendered)?;
@@ -601,6 +648,15 @@ impl Lift<'_> {
             }
         }
         self.sink.iri(expr_iri, &math("expressionType"), &iri)?;
+        if let Some((declaration, domain)) = self.leaf_declarations.get_mut(expr_iri)
+            && domain.is_none()
+        {
+            // Inputs are typed before later value_info/output annotations; initializer
+            // headers are typed before all metadata. Their domain stays authoritative.
+            self.sink
+                .iri(declaration, &math("variableDomain"), &space)?;
+            *domain = Some(space);
+        }
         Ok(())
     }
 
@@ -656,6 +712,14 @@ impl Lift<'_> {
                         self.sink
                             .typed(&declaration, &math("FreeVariableDeclaration"))?;
                         self.label(&declaration, name)?;
+                        // A symbolic extent ranges over nonnegative counting numbers.
+                        // This domain is warranted for an axis length, not for an
+                        // arbitrary ONNX value declaration.
+                        self.sink.iri(
+                            &declaration,
+                            &math("variableDomain"),
+                            &math("naturalNumbers"),
+                        )?;
                     }
                     self.sink
                         .iri(&axis_iri, &math("symbolicExtent"), &declaration)?;
@@ -1038,6 +1102,75 @@ enum AxisSpec {
     Unstated,
 }
 
+/// A source tensor type, retaining unknown rank and each axis arm separately.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct TensorTypeSpec {
+    element: String,
+    axes: Option<Vec<AxisSpec>>,
+}
+
+fn axis_root(parents: &[usize], mut index: usize) -> usize {
+    while parents[index] != index {
+        index = parents[index];
+    }
+    index
+}
+
+/// Decide compatibility of the source's explicit shape equalities, without
+/// inferring unknown dimensions or executing tensor operations.
+fn compatible_tensor_types(previous: &[TensorTypeSpec], declared: &TensorTypeSpec) -> bool {
+    if previous.iter().any(|old| old.element != declared.element) {
+        return false;
+    }
+    let mut rank = None;
+    for spec in previous.iter().chain(std::iter::once(declared)) {
+        if let Some(axes) = &spec.axes {
+            if rank.is_some_and(|rank| rank != axes.len()) {
+                return false;
+            }
+            rank = Some(axes.len());
+        }
+    }
+    let Some(rank) = rank else {
+        return true;
+    };
+    let mut parents: Vec<usize> = (0..rank).collect();
+    let mut concrete = vec![None; rank];
+    let mut symbols = BTreeMap::new();
+    for spec in previous.iter().chain(std::iter::once(declared)) {
+        let Some(axes) = &spec.axes else { continue };
+        for (index, axis) in axes.iter().enumerate() {
+            let root = axis_root(&parents, index);
+            match axis {
+                AxisSpec::Extent(extent) => {
+                    if concrete[root].is_some_and(|value| value != *extent) {
+                        return false;
+                    }
+                    concrete[root] = Some(*extent);
+                }
+                AxisSpec::Symbolic(name) => {
+                    if let Some(other) = symbols.get(name).copied() {
+                        let other = axis_root(&parents, other);
+                        if root != other {
+                            if matches!((concrete[root], concrete[other]),
+                                (Some(left), Some(right)) if left != right)
+                            {
+                                return false;
+                            }
+                            parents[other] = root;
+                            concrete[root] = concrete[root].or(concrete[other]);
+                        }
+                    } else {
+                        symbols.insert(name.clone(), index);
+                    }
+                }
+                AxisSpec::Unstated => {}
+            }
+        }
+    }
+    true
+}
+
 impl AxisSpec {
     fn of_dim(dim: &Dim) -> Self {
         match dim {
@@ -1063,17 +1196,36 @@ impl AxisSpec {
     /// content-addressed on this key.
     fn key(&self) -> String {
         match self {
-            Self::Extent(extent) => format!("#{extent}"),
-            Self::Symbolic(name) => format!("${name}"),
-            Self::Unstated => "?".to_owned(),
+            Self::Extent(extent) => {
+                let value = extent.to_string();
+                format!("E{}:{value}", value.len())
+            }
+            Self::Symbolic(name) => format!("S{}:{name}", name.len()),
+            Self::Unstated => "U".to_owned(),
         }
     }
 }
 
 /// The content-addressing key of a whole axis list.
 fn shape_key(axes: &[AxisSpec]) -> String {
-    let parts: Vec<String> = axes.iter().map(AxisSpec::key).collect();
-    format!("[{}]", parts.join(","))
+    let mut key = format!("shape:v2:{}:", axes.len());
+    for axis in axes {
+        key.push_str(&axis.key());
+    }
+    key
+}
+
+/// Type identity uses framed element and shape structure, never rendered labels.
+fn tensor_type_key(element: &str, axes: Option<&[AxisSpec]>) -> String {
+    let mut key = format!("type:v2:E{}:{element}", element.len());
+    match axes {
+        Some(axes) => {
+            let shape = shape_key(axes);
+            key.push_str(&format!("K{}:{shape}", shape.len()));
+        }
+        None => key.push('U'),
+    }
+    key
 }
 
 /// An axis list as a reader sees it: `[4,3]`, `[1,batch,?]`, `[]` for a scalar.

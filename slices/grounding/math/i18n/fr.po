@@ -3196,3 +3196,31 @@ msgstr "Les deux signes du dénominateur sont autorisés. Le propriétaire Ratio
 msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:example"
 msgid "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."
 msgstr "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression value space"
+msgstr "espace de valeurs d’expression"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an ExpressionType descriptor to the mathematical Set of values admitted by that type in its declared context. The type descriptor, its admitted value set, the expression and a held result retain separate identities. This optional set interpretation is explicit; an ExpressionType or TensorElementType is not silently made a Set."
+msgstr "Relie un descripteur ExpressionType à l’ensemble mathématique Set des valeurs admises par ce type dans son contexte déclaré. Descripteur, ensemble de valeurs, expression et résultat tenu gardent des identités distinctes. Cette interprétation en ensemble est explicite et facultative ; ExpressionType et TensorElementType ne deviennent pas silencieusement des Set."
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structured mathematical type supplies the value domain of a free variable or typed expression."
+msgstr "Utiliser lorsqu’un type mathématique structuré fournit le domaine de valeurs d’une variable libre ou d’une expression typée."
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a scalar number system for arbitrary tensor values, identify the type descriptor with its value set, or infer payload membership from type metadata."
+msgstr "Ne pas substituer un système scalaire de nombres aux valeurs tensorielles arbitraires, identifier le descripteur à son ensemble, ni inférer l’appartenance d’un contenu à partir des métadonnées de type."
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one ExpressionType to one typed Set. A FreeVariableDeclaration may name that same Set through variableDomain; retain tensorElementType and any declared tensorShape on the descriptor."
+msgstr "Relier une ExpressionType à un seul Set typé. Une FreeVariableDeclaration peut nommer ce même Set par variableDomain ; conserver tensorElementType et tensorShape déclaré sur le descripteur."
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional on general ExpressionType descriptors. A tensor value space reflects its admitted element format and declared shape, including unknown rank or symbolic extents, without loading values. It is distinct from the natural-number domain of an extent symbol and from a model parameter vector space."
+msgstr "Facultatif sur les descripteurs ExpressionType généraux. Un espace de valeurs tensoriel reflète format et forme déclarés, y compris rang inconnu ou étendues symboliques, sans charger les valeurs. Il diffère du domaine naturel d’un symbole d’étendue et de l’espace de vecteurs de paramètres d’un modèle."
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."
+msgstr "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."

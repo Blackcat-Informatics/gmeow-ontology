@@ -16576,3 +16576,20 @@ math:RationalProbabilityRangeConstraint
         [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "denominator" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ],
         [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ],
         [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ], [ logic:termIndex 1 ; logic:termVariable "denominator" ] ] ] ] ] ] .
+
+# Explicit value spaces for mathematical expression descriptors.
+math:expressionValueSpace
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "expression value space"@x-gmeow-english ;
+    skos:definition "Relates an ExpressionType descriptor to the mathematical Set of values admitted by that type in its declared context. The type descriptor, its admitted value set, the expression and a held result retain separate identities. This optional set interpretation is explicit; an ExpressionType or TensorElementType is not silently made a Set."@x-gmeow-english ;
+    gmeow:useWhen "Use when a structured mathematical type supplies the value domain of a free variable or typed expression."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a scalar number system for arbitrary tensor values, identify the type descriptor with its value set, or infer payload membership from type metadata."@x-gmeow-english ;
+    gmeow:howToUse "Link one ExpressionType to one typed Set. A FreeVariableDeclaration may name that same Set through variableDomain; retain tensorElementType and any declared tensorShape on the descriptor."@x-gmeow-english ;
+    skos:scopeNote "Optional on general ExpressionType descriptors. A tensor value space reflects its admitted element format and declared shape, including unknown rank or symbolic extents, without loading values. It is distinct from the natural-number domain of an extent symbol and from a model parameter vector space."@x-gmeow-english ;
+    skos:example "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."@x-gmeow-english ;
+    logic:domain math:ExpressionType ; logic:range math:Set ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+math:ExpressionType logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:expressionValueSpace ; logic:allValuesFrom math:Set ],
+    [ a logic:Restriction ; logic:onProperty math:expressionValueSpace ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Set ] .

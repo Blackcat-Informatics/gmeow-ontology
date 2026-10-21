@@ -875,11 +875,373 @@ fn a_symbolic_extent_is_one_shared_declaration_rather_than_two_equal_strings() {
         "both `batch` axes must resolve to ONE math:FreeVariableDeclaration — that shared \
              identity is exactly what a per-axis string would discard:\n{ttl}"
     );
+    let extent_declaration = declarations
+        .iter()
+        .next()
+        .expect("shared extent declaration");
+    assert_eq!(
+        object_of(&ttl, extent_declaration, &math("variableDomain")),
+        Some(format!("<{}>", math("naturalNumbers"))),
+        "symbolic lengths retain the complete free-variable domain owner:\n{ttl}"
+    );
+    let input_domain = leaf_value_domain(&ttl, "X");
+    assert_ne!(input_domain, format!("<{}>", math("naturalNumbers")));
+    assert!(ttl.contains(&format!(
+        "{input_domain} {RDF_TYPE_LINE} <{}> .",
+        math("Set")
+    )));
+    assert!(
+        subjects_with(&ttl, &math("expressionValueSpace"))
+            .iter()
+            .any(
+                |descriptor| object_of(&ttl, descriptor, &math("expressionValueSpace")).as_ref()
+                    == Some(&input_domain)
+            )
+    );
     let x_type = subjects_with_literal(&ttl, RDFS_LABEL, "tensor(float)[batch,4]");
     let x_type = x_type.iter().next().expect("the type node");
     assert_eq!(
         axes_of(&ttl, &shape_of(&ttl, x_type)),
         vec![(0, "batch".to_owned()), (1, "4".to_owned())],
+    );
+}
+
+/// Encode actual admitted ONNX tensor metadata, preserving the oneof axis arm.
+fn tensor_type_bytes(element: i64, axes: Option<&[Dim]>) -> Vec<u8> {
+    let mut tensor = varint_field(1, element);
+    if let Some(axes) = axes {
+        let mut shape = Vec::new();
+        for axis in axes {
+            let dimension = match axis {
+                Dim::Value(value) => varint_field(1, *value),
+                Dim::Param(name) => string_field(2, name),
+                Dim::Unknown => Vec::new(),
+            };
+            shape.extend(message_field(1, &dimension));
+        }
+        tensor.extend(message_field(2, &shape));
+    }
+    message_field(1, &tensor)
+}
+
+fn tensor_info_bytes(name: &str, value_type: &[u8]) -> Vec<u8> {
+    let mut info = string_field(1, name);
+    info.extend(message_field(2, value_type));
+    info
+}
+
+/// X -> Y Identity plus independent declared inputs and optional value annotations.
+fn typed_identity_model(
+    inputs: &[(&str, Vec<u8>)],
+    output_type: &[u8],
+    annotations: &[(&str, Vec<u8>)],
+) -> Vec<u8> {
+    let mut node = string_field(1, "X");
+    node.extend(string_field(2, "Y"));
+    node.extend(string_field(4, "Identity"));
+    let mut graph = message_field(1, &node);
+    graph.extend(string_field(2, "typed identity"));
+    for (name, value_type) in inputs {
+        graph.extend(message_field(11, &tensor_info_bytes(name, value_type)));
+    }
+    graph.extend(message_field(12, &tensor_info_bytes("Y", output_type)));
+    for (name, value_type) in annotations {
+        graph.extend(message_field(13, &tensor_info_bytes(name, value_type)));
+    }
+    let mut model = varint_field(1, 8);
+    model.extend(message_field(7, &graph));
+    model.extend(message_field(8, &varint_field(2, 18)));
+    model
+}
+
+fn leaf_expression(ttl: &str, name: &str) -> String {
+    let named = subjects_with_literal(ttl, RDFS_LABEL, name);
+    subjects_with(ttl, &math("variableOccurrence"))
+        .intersection(&named)
+        .next()
+        .unwrap_or_else(|| panic!("leaf expression {name}:\n{ttl}"))
+        .clone()
+}
+
+fn leaf_value_domain(ttl: &str, name: &str) -> String {
+    let expr = leaf_expression(ttl, name);
+    let occurrence = object_of(ttl, &expr, &math("variableOccurrence")).unwrap();
+    let declaration = object_of(ttl, &occurrence, &math("declaredVariable")).unwrap();
+    object_of(ttl, &declaration, &math("variableDomain"))
+        .unwrap_or_else(|| panic!("leaf domain {name}:\n{ttl}"))
+}
+
+#[test]
+fn structural_tensor_keys_preserve_equal_labels_and_delimiter_symbols_in_both_orders() {
+    for (left, right, same_label) in [
+        (vec![Dim::Value(3)], vec![Dim::Param("3".into())], true),
+        (vec![Dim::Unknown], vec![Dim::Param("?".into())], true),
+        (
+            vec![Dim::Param("a,$b".into())],
+            vec![Dim::Param("a".into()), Dim::Param("b".into())],
+            false,
+        ),
+        (
+            vec![Dim::Param("a,b".into())],
+            vec![Dim::Param("a".into()), Dim::Param("b".into())],
+            true,
+        ),
+        (
+            vec![Dim::Param("λ,$β".into())],
+            vec![Dim::Param("λ".into()), Dim::Param("β".into())],
+            false,
+        ),
+    ] {
+        let left_type = tensor_type_bytes(1, Some(&left));
+        let right_type = tensor_type_bytes(1, Some(&right));
+        for reversed in [false, true] {
+            let mut inputs = vec![("X", left_type.clone()), ("Z", right_type.clone())];
+            if reversed {
+                inputs.reverse();
+            }
+            let ttl = turtle(&typed_identity_model(&inputs, &left_type, &[]));
+            let x_type =
+                object_of(&ttl, &leaf_expression(&ttl, "X"), &math("expressionType")).unwrap();
+            let z_type =
+                object_of(&ttl, &leaf_expression(&ttl, "Z"), &math("expressionType")).unwrap();
+            assert_ne!(x_type, z_type, "source type arms remain distinct:\n{ttl}");
+            assert_eq!(
+                label_of(&ttl, &x_type) == label_of(&ttl, &z_type),
+                same_label
+            );
+            let x_shape = shape_of(&ttl, &x_type);
+            let z_shape = shape_of(&ttl, &z_type);
+            assert_ne!(
+                x_shape, z_shape,
+                "axis framing preserves distinct shapes:\n{ttl}"
+            );
+            assert_eq!(
+                integers_of(&about(&ttl, &x_shape), &math("tensorRank")),
+                vec![i64::try_from(left.len()).unwrap()]
+            );
+            assert_eq!(
+                integers_of(&about(&ttl, &z_shape), &math("tensorRank")),
+                vec![i64::try_from(right.len()).unwrap()]
+            );
+            assert_ne!(leaf_value_domain(&ttl, "X"), leaf_value_domain(&ttl, "Z"));
+        }
+    }
+}
+
+#[test]
+fn tensor_leaf_domains_share_structural_types_and_keep_bool_and_string_distinct() {
+    let axes = [Dim::Value(2)];
+    for (left_element, right_element, same_type) in [(9, 9, true), (9, 8, false)] {
+        let left = tensor_type_bytes(left_element, Some(&axes));
+        let right = tensor_type_bytes(right_element, Some(&axes));
+        let ttl = turtle(&typed_identity_model(
+            &[("X", left.clone()), ("Z", right)],
+            &left,
+            &[],
+        ));
+        let x = object_of(&ttl, &leaf_expression(&ttl, "X"), &math("expressionType")).unwrap();
+        let z = object_of(&ttl, &leaf_expression(&ttl, "Z"), &math("expressionType")).unwrap();
+        let x_domain = leaf_value_domain(&ttl, "X");
+        let z_domain = leaf_value_domain(&ttl, "Z");
+        assert_eq!(x == z, same_type);
+        assert_eq!(x_domain == z_domain, same_type);
+        assert_eq!(
+            object_of(&ttl, &x, &math("expressionValueSpace")),
+            Some(x_domain.clone())
+        );
+        assert_eq!(
+            object_of(&ttl, &z, &math("expressionValueSpace")),
+            Some(z_domain)
+        );
+        assert_eq!(shape_of(&ttl, &x), shape_of(&ttl, &z));
+        assert!(ttl.contains(&format!("{x_domain} {RDF_TYPE_LINE} <{}> .", math("Set"))));
+        assert_ne!(x, x_domain, "descriptor and admitted values are separate");
+        assert_ne!(x_domain, format!("<{}>", math("naturalNumbers")));
+    }
+}
+
+#[test]
+fn unknown_rank_and_scalar_value_spaces_remain_distinct() {
+    let unknown = tensor_type_bytes(1, None);
+    let scalar = tensor_type_bytes(1, Some(&[]));
+    let ttl = turtle(&typed_identity_model(
+        &[("X", unknown.clone()), ("Z", scalar)],
+        &unknown,
+        &[],
+    ));
+    let x = object_of(&ttl, &leaf_expression(&ttl, "X"), &math("expressionType")).unwrap();
+    let z = object_of(&ttl, &leaf_expression(&ttl, "Z"), &math("expressionType")).unwrap();
+    assert_ne!(x, z);
+    assert!(object_of(&ttl, &x, &math("tensorShape")).is_none());
+    let scalar_shape = shape_of(&ttl, &z);
+    assert_eq!(
+        integers_of(&about(&ttl, &scalar_shape), &math("tensorRank")),
+        vec![0]
+    );
+    assert!(axes_of(&ttl, &scalar_shape).is_empty());
+    assert_ne!(leaf_value_domain(&ttl, "X"), leaf_value_domain(&ttl, "Z"));
+}
+
+#[test]
+fn compatible_type_refinement_keeps_the_authoritative_input_domain() {
+    let unknown = tensor_type_bytes(1, None);
+    let known = tensor_type_bytes(1, Some(&[Dim::Value(4)]));
+    let ttl = turtle(&typed_identity_model(
+        &[("X", unknown)],
+        &known,
+        &[("X", known.clone())],
+    ));
+    let domain = leaf_value_domain(&ttl, "X");
+    let descriptor = subjects_with(&ttl, &math("expressionValueSpace"))
+        .into_iter()
+        .find(|descriptor| {
+            object_of(&ttl, descriptor, &math("expressionValueSpace")).as_ref() == Some(&domain)
+        })
+        .unwrap();
+    assert_eq!(
+        label_of(&ttl, &descriptor).as_deref(),
+        Some("tensor(float) of unknown rank")
+    );
+    assert!(object_of(&ttl, &descriptor, &math("tensorShape")).is_none());
+    let expression = leaf_expression(&ttl, "X");
+    assert_eq!(
+        count(
+            &about(&ttl, &expression),
+            &format!("<{}>", math("expressionType"))
+        ),
+        2
+    );
+}
+
+#[test]
+fn conflicting_leaf_types_refuse_instead_of_replacing_a_domain() {
+    let original = tensor_type_bytes(
+        1,
+        Some(&[Dim::Param("batch".into()), Dim::Param("batch".into())]),
+    );
+    for conflicting in [
+        tensor_type_bytes(
+            9,
+            Some(&[Dim::Param("batch".into()), Dim::Param("batch".into())]),
+        ),
+        tensor_type_bytes(1, Some(&[Dim::Value(2)])),
+        tensor_type_bytes(1, Some(&[Dim::Value(2), Dim::Value(3)])),
+    ] {
+        let source =
+            typed_identity_model(&[("X", original.clone())], &original, &[("X", conflicting)]);
+        let error = lift(&source, BASE).expect_err("a conflicting source annotation must refuse");
+        assert!(
+            error.to_string().contains("incompatible tensor type"),
+            "{error}"
+        );
+    }
+}
+
+fn initializer_domain_model(legacy_input_type: Option<&[u8]>) -> Vec<u8> {
+    let value_type = tensor_type_bytes(1, Some(&[Dim::Value(4)]));
+    let mut node = string_field(1, "X");
+    node.extend(string_field(1, "W"));
+    node.extend(string_field(2, "Y"));
+    node.extend(string_field(4, "Add"));
+    let mut tensor = varint_field(1, 4);
+    tensor.extend(varint_field(2, 1));
+    tensor.extend(string_field(8, "W"));
+    tensor.extend(bytes_field(9, &[0; 16]));
+    let mut graph = message_field(1, &node);
+    graph.extend(string_field(2, "initializer value domains"));
+    graph.extend(message_field(5, &tensor));
+    graph.extend(message_field(11, &tensor_info_bytes("X", &value_type)));
+    if let Some(legacy_input_type) = legacy_input_type {
+        graph.extend(message_field(
+            11,
+            &tensor_info_bytes("W", legacy_input_type),
+        ));
+    }
+    graph.extend(message_field(12, &tensor_info_bytes("Y", &value_type)));
+    let mut model = varint_field(1, if legacy_input_type.is_some() { 3 } else { 8 });
+    model.extend(message_field(7, &graph));
+    model.extend(message_field(8, &varint_field(2, 18)));
+    model
+}
+
+#[test]
+fn initializer_headers_and_inputs_share_their_admitted_value_space() {
+    for legacy in [None, Some(tensor_type_bytes(1, None))] {
+        let ttl = turtle(&initializer_domain_model(legacy.as_deref()));
+        let input_domain = leaf_value_domain(&ttl, "X");
+        let weight_domain = leaf_value_domain(&ttl, "W");
+        assert_eq!(
+            input_domain, weight_domain,
+            "same admitted tensor type shares its Set"
+        );
+        let descriptor = subjects_with(&ttl, &math("expressionValueSpace"))
+            .into_iter()
+            .find(|descriptor| {
+                object_of(&ttl, descriptor, &math("expressionValueSpace")).as_ref()
+                    == Some(&weight_domain)
+            })
+            .unwrap();
+        assert_eq!(
+            label_of(&ttl, &descriptor).as_deref(),
+            Some("tensor(float)[4]")
+        );
+        assert_eq!(typed(&ttl, "WeightTensor"), 1);
+        assert_eq!(
+            typed(&ttl, "VariableExpression"),
+            2,
+            "legacy declaration does not fork initializer identity"
+        );
+    }
+}
+
+#[test]
+fn conflicting_legacy_input_cannot_replace_an_initializer_header_domain() {
+    for conflicting in [
+        tensor_type_bytes(9, Some(&[Dim::Value(4)])),
+        tensor_type_bytes(1, Some(&[Dim::Value(5)])),
+    ] {
+        let error = lift(&initializer_domain_model(Some(&conflicting)), BASE)
+            .expect_err("conflicting redundant initializer input must refuse");
+        assert!(
+            error.to_string().contains("incompatible tensor type"),
+            "{error}"
+        );
+    }
+}
+
+#[test]
+fn compatible_symbolic_refinement_and_negative_source_extent_are_distinct() {
+    let symbolic = tensor_type_bytes(
+        1,
+        Some(&[Dim::Param("batch".into()), Dim::Param("batch".into())]),
+    );
+    let concrete = tensor_type_bytes(1, Some(&[Dim::Value(2), Dim::Value(2)]));
+    let ttl = turtle(&typed_identity_model(
+        &[("X", symbolic)],
+        &concrete,
+        &[("X", concrete.clone())],
+    ));
+    let domain = leaf_value_domain(&ttl, "X");
+    let descriptor = subjects_with(&ttl, &math("expressionValueSpace"))
+        .into_iter()
+        .find(|descriptor| {
+            object_of(&ttl, descriptor, &math("expressionValueSpace")).as_ref() == Some(&domain)
+        })
+        .unwrap();
+    assert_eq!(
+        label_of(&ttl, &descriptor).as_deref(),
+        Some("tensor(float)[batch,batch]")
+    );
+
+    let negative = tensor_type_bytes(1, Some(&[Dim::Value(-1)]));
+    let error = lift(
+        &typed_identity_model(&[("X", negative.clone())], &negative, &[]),
+        BASE,
+    )
+    .expect_err("negative declared type extent must refuse at source admission");
+    assert!(
+        error.to_string().contains("negative concrete axis extent"),
+        "{error}"
     );
 }
 
@@ -1271,7 +1633,7 @@ fn no_operator_is_typed_as_a_function_whose_domain_the_model_never_states() {
         typed(&ttl, "ActivationFunction"),
         0,
         "Relu is not typed math:ActivationFunction: math:Function owes min-1 math:domain \
-             and math:codomain on math:Set, which an ONNX graph never states"
+             and math:codomain for the operator, which boundary value-space metadata does not establish"
     );
     assert_eq!(count(&ttl, &format!("<{}>", math("domain"))), 0);
     assert_eq!(count(&ttl, &format!("<{}>", math("codomain"))), 0);

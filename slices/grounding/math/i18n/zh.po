@@ -3196,3 +3196,31 @@ msgstr "分母可正可负。现有 RationalValue 所有者拒绝零分母及不
 msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:example"
 msgid "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."
 msgstr "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression value space"
+msgstr "表达式值空间"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an ExpressionType descriptor to the mathematical Set of values admitted by that type in its declared context. The type descriptor, its admitted value set, the expression and a held result retain separate identities. This optional set interpretation is explicit; an ExpressionType or TensorElementType is not silently made a Set."
+msgstr "将 ExpressionType 描述符链接到其声明上下文中该类型允许的数学值集合 Set。类型描述符、允许值集合、表达式和持有结果保持不同身份。此可选集合解释须显式声明；ExpressionType 或 TensorElementType 不会被默认为 Set。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structured mathematical type supplies the value domain of a free variable or typed expression."
+msgstr "用于结构化数学类型提供自由变量或有类型表达式的值域时。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a scalar number system for arbitrary tensor values, identify the type descriptor with its value set, or infer payload membership from type metadata."
+msgstr "不要用标量数系替代任意张量值，不要把类型描述符与其值集合合并，也不要从类型元数据推断载荷成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one ExpressionType to one typed Set. A FreeVariableDeclaration may name that same Set through variableDomain; retain tensorElementType and any declared tensorShape on the descriptor."
+msgstr "将一个 ExpressionType 链接到唯一已定型 Set。FreeVariableDeclaration 可通过 variableDomain 指向同一 Set；tensorElementType 及声明的 tensorShape 保留在描述符上。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional on general ExpressionType descriptors. A tensor value space reflects its admitted element format and declared shape, including unknown rank or symbolic extents, without loading values. It is distinct from the natural-number domain of an extent symbol and from a model parameter vector space."
+msgstr "对一般 ExpressionType 描述符可选。张量值空间在不加载数值的前提下反映允许的元素格式与声明形状，包括未知秩或符号长度。它不同于长度符号的自然数域，也不同于模型参数向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."
+msgstr "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."
