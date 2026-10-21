@@ -160,6 +160,55 @@ fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::D
     Ok(purrdf::canonicalize(&flat).nquads)
 }
 
+/// Retain the graph already computed by a failing parity check, never a stage product.
+fn producer_parity_mismatch_message(
+    label: &str,
+    graph_iri: &str,
+    relative_path: &str,
+    fixture_graph: &str,
+    producer_graph: &str,
+) -> String {
+    let expected_lines: std::collections::BTreeSet<_> = fixture_graph.lines().collect();
+    let actual_lines: std::collections::BTreeSet<_> = producer_graph.lines().collect();
+    let expected_only: Vec<_> = expected_lines.difference(&actual_lines).copied().collect();
+    let actual_only: Vec<_> = actual_lines.difference(&expected_lines).copied().collect();
+    let mut message = format!(
+        "{label} producer output is not graph-isomorphic to producer fixture {relative_path}\n\
+         producer graph: {graph_iri}\n\
+         expected canonical graph: bytes={} quads={}\n\
+         actual canonical graph: bytes={} quads={}\n\
+         BEGIN ACTUAL CANONICAL N-QUADS bytes={} quads={}\n",
+        fixture_graph.len(),
+        fixture_graph.lines().count(),
+        producer_graph.len(),
+        producer_graph.lines().count(),
+        producer_graph.len(),
+        producer_graph.lines().count(),
+    );
+    message.push_str(producer_graph);
+    if !producer_graph.is_empty() && !producer_graph.ends_with('\n') {
+        // A framing separator is outside the byte-counted graph payload.
+        message.push('\n');
+    }
+    message.push_str("END ACTUAL CANONICAL N-QUADS\n");
+    message.push_str("Canonical-line differences below are textual; blank-node relabeling may contribute differences.\n");
+    for (kind, lines) in [
+        ("EXPECTED-ONLY", expected_only),
+        ("ACTUAL-ONLY", actual_only),
+    ] {
+        message.push_str(&format!(
+            "BEGIN TEXTUAL {kind} CANONICAL LINES count={}\n",
+            lines.len()
+        ));
+        for line in lines {
+            message.push_str(line);
+            message.push('\n');
+        }
+        message.push_str(&format!("END TEXTUAL {kind} CANONICAL LINES\n"));
+    }
+    message
+}
+
 fn enforce_producer_fixture_parity(
     root: &Path,
     produced: &[(&str, String)],
@@ -180,14 +229,22 @@ fn enforce_producer_fixture_parity(
         if fixture_graph != producer_graph {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: "stage-math-producers".to_owned(),
-                message: format!(
-                    "{label} producer output is not graph-isomorphic to producer fixture {relative_path}"
+                message: producer_parity_mismatch_message(
+                    label,
+                    produced[producer_index].0,
+                    relative_path,
+                    &fixture_graph,
+                    &producer_graph,
                 ),
             }));
         }
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "math_producers.tests.rs"]
+mod tests;
 
 /// Compute the ten producer graphs and the explicitly requested target projections.
 /// Projection inputs come from declared source and mapping products.
