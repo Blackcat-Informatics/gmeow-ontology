@@ -10,7 +10,7 @@
 use std::path::{Path, PathBuf};
 
 use gmeow_mcp_wasm::{init, mcp, ready};
-use serde_json::Value;
+use purrdf_lex::json::{Value, record::read_document};
 
 /// Byte-identical to the request carried by both parity consumers.
 const REQUEST: &str = concat!(
@@ -40,7 +40,7 @@ fn fail(message: impl Into<String>) -> Box<dyn std::error::Error> {
 }
 
 fn validate_answer(frame: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let envelope: Value = serde_json::from_str(frame)?;
+    let envelope: Value = read_document(frame.as_bytes())?;
     if envelope["jsonrpc"] != "2.0"
         || envelope["id"] != 1
         || envelope["result"]["isError"] != Value::Bool(false)
@@ -52,7 +52,7 @@ fn validate_answer(frame: &str) -> Result<(), Box<dyn std::error::Error>> {
     let text = envelope["result"]["content"][0]["text"]
         .as_str()
         .ok_or_else(|| fail("producer response has no text payload"))?;
-    let payload: Value = serde_json::from_str(text)?;
+    let payload: Value = read_document(text.as_bytes())?;
     if payload["ok"] != Value::Bool(true)
         || payload["verdict"]["lifecycle"] != "corroborated"
         || payload["verdict"]["evaluation"] != "completed"

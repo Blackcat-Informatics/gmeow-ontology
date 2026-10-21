@@ -38,17 +38,25 @@ fn attestation_path() -> PathBuf {
 /// The query set, read from the SAME file the Node lane reads, so the two halves
 /// cannot drift apart in what they ask.
 ///
-/// Parsed with `serde_json::Value`, not a hand-rolled string splitter: a splitter
+/// Parsed with `purrdf_lex::json::Value`, not a hand-rolled string splitter: a splitter
 /// that finds the first `"` after `"sparql":` truncates at any embedded quoted
 /// literal (e.g. `FILTER(?x = "literal")`) instead of respecting JSON's `\"` escape,
-/// silently sending the two halves different query text. `serde_json` is a
+/// silently sending the two halves different query text. `purrdf-lex` is a
 /// `[dev-dependencies]` entry — `tests/` is never linked into the `cdylib`
 /// wasm-bindgen artifact this crate ships, so this adds nothing to the shipped
 /// engine's dependency tree.
 fn queries() -> Vec<(String, String)> {
     let text = std::fs::read_to_string(repo_root().join("crates/query-wasm/js/tests/queries.json"))
         .expect("read queries.json");
-    let value: serde_json::Value = serde_json::from_str(&text).expect("parse queries.json");
+    decode_queries(&text)
+}
+
+/// Decode the shared native/Node query list without changing escaped SPARQL text.
+/// Invalid JSON or missing/wrongly typed names and queries fail the witness.
+/// Unknown fields remain ignored; free-form objects retain their last duplicate.
+fn decode_queries(text: &str) -> Vec<(String, String)> {
+    let value =
+        purrdf_lex::json::record::read_document(text.as_bytes()).expect("parse queries.json");
     value
         .as_array()
         .expect("queries.json is a JSON array")
@@ -59,6 +67,42 @@ fn queries() -> Vec<(String, String)> {
             (name, sparql)
         })
         .collect()
+}
+
+#[test]
+fn json_witness_queries_preserve_full_escaped_sparql() {
+    let text = r#"[{"name":"old","name":"quoted é","sparql":"SELECT ?o WHERE { ?s ?p ?o FILTER(?o = \"é\") }\n","ignored":true}]"#;
+    assert_eq!(
+        decode_queries(text),
+        vec![(
+            "quoted é".to_owned(),
+            "SELECT ?o WHERE { ?s ?p ?o FILTER(?o = \"é\") }\n".to_owned(),
+        )]
+    );
+}
+
+#[test]
+#[should_panic(expected = "parse queries.json")]
+fn json_witness_queries_refuse_malformed_json() {
+    decode_queries("[");
+}
+
+#[test]
+#[should_panic(expected = "queries.json is a JSON array")]
+fn json_witness_queries_refuse_non_array_documents() {
+    decode_queries("{}");
+}
+
+#[test]
+#[should_panic(expected = "name value")]
+fn json_witness_queries_refuse_missing_names() {
+    decode_queries(r#"[{"sparql":"ASK {}"}]"#);
+}
+
+#[test]
+#[should_panic(expected = "sparql value")]
+fn json_witness_queries_refuse_non_string_sparql() {
+    decode_queries(r#"[{"name":"ask","sparql":false}]"#);
 }
 
 #[test]

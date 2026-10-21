@@ -54,4 +54,4 @@ purrdf.workspace = true
 # The native witness parses the JSON-RPC response frame back to assert the envelope
 # shape (`result.content[0].text`, `isError`) before pinning the attestation, so a
 # malformed frame fails as a frame defect rather than as a byte diff.
-serde_json.workspace = true
+purrdf-lex.workspace = true
