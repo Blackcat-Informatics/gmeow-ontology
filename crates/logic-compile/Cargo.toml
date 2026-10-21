@@ -40,6 +40,9 @@ purrdf-lex.workspace = true
 # projection-loss accumulators onto one DiagLedger of FindingCategory::ProjectionLoss
 # witnesses. A wasm-clean rlib leaf (serde/serde_json/purrdf/blake3 only, python OFF).
 gmeow-errors = { path = "../errors" }
+# Required original catalog members use the existing authenticated archive owner.
+# This leaf has no compiler or reasoning dependency and remains wasm-clean.
+gmeow-gts-profile = { path = "../gts-profile" }
 # THE one structured-term representation. `Formula::content_key` is one of exactly two
 # content-key folds in the workspace (the other is the arena's own netstring fold), and
 # both sides of that congruence seam now return the arena's `ContentKey` newtype — landing

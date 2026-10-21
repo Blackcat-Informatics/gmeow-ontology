@@ -556,3 +556,7 @@ pub fn check_residue_exemptions(
 #[path = "catalog_families.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "catalog_families.selected.tests.rs"]
+mod selected_catalog_tests;

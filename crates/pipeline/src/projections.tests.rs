@@ -118,7 +118,13 @@ fn project_graph_runs_a_construct_to_schema_org() {
         "CONSTRUCT {{ ?s a <{SCHEMA_PERSON}> . ?s <{SCHEMA_NAME}> ?n . }} \
              WHERE {{ ?s a <{GM_PERSON}> . ?s <{GM_FULL_NAME}> ?n . }}"
     );
-    let out = project_graph(&source, &query, &TagMap::new()).unwrap();
+    let out = project_graph(
+        &source,
+        &crate::projection_execution::tests::prepare_queries(&[("test".to_owned(), query.clone())])
+            [0],
+        &TagMap::new(),
+    )
+    .unwrap();
     assert!(
         out.contains(&format!("<{EX_ME}> <{RDF_TYPE}> <{SCHEMA_PERSON}> .")),
         "missing schema:Person type: {out}"
@@ -142,12 +148,24 @@ fn project_graph_retags_public_language() {
     let query =
         format!("CONSTRUCT {{ ?s <{SCHEMA_NAME}> ?n . }} WHERE {{ ?s <{GM_FULL_NAME}> ?n . }}");
 
-    let untagged = project_graph(&source, &query, &TagMap::new()).unwrap();
+    let untagged = project_graph(
+        &source,
+        &crate::projection_execution::tests::prepare_queries(&[("test".to_owned(), query.clone())])
+            [0],
+        &TagMap::new(),
+    )
+    .unwrap();
     assert!(untagged.contains("@x-gmeow-english"), "{untagged}");
 
     let mut map = TagMap::new();
     map.insert("x-gmeow-english".to_owned(), "en".to_owned());
-    let retagged = project_graph(&source, &query, &map).unwrap();
+    let retagged = project_graph(
+        &source,
+        &crate::projection_execution::tests::prepare_queries(&[("test".to_owned(), query.clone())])
+            [0],
+        &map,
+    )
+    .unwrap();
     assert!(retagged.contains("\"Ada\"@en"), "not retagged: {retagged}");
     assert!(!retagged.contains("x-gmeow-english"), "leak: {retagged}");
 }
@@ -321,7 +339,7 @@ fn transpile_graph_chains_up_then_maximal() {
             ),
         }],
         denied: Vec::new(),
-        projection_queries: Vec::new(),
+        projection_programs: Vec::new(),
     };
 
     let report = transpile_graph(
@@ -394,7 +412,7 @@ fn transpile_graph_fans_out_without_x_gmeow_leak() {
             ),
         }],
         denied: Vec::new(),
-        projection_queries: Vec::new(),
+        projection_programs: Vec::new(),
     };
 
     // Non-vacuity / negative control: with NO tag_map, the internal tag survives

@@ -17,6 +17,8 @@
 //! This test is read-only. Golden production is an explicit maintainer operation,
 //! never an environment-controlled branch inside the test runner.
 
+mod common;
+
 use std::path::{Path, PathBuf};
 
 use gmeow_errors::render::{to_json, to_sarif};
@@ -35,6 +37,7 @@ fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
         ScoringEnv::Repo {
             slice_dir: dir.to_path_buf(),
         },
+        common::grounding(),
     )
 }
 

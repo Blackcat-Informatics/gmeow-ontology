@@ -49,12 +49,15 @@ pub mod emotionml;
 pub mod fno;
 // The shared get leg both EDOAL and SPARQL lower from (spec-drift gone by construction).
 pub mod get_leg;
+pub mod grounding_catalog;
 pub mod paths;
 mod presentation;
+pub mod profile_program;
 pub mod rdf;
 pub mod reader_view;
 pub mod reified_claim;
 pub mod report;
+pub mod selected_templates;
 // The SHACL-AF rule projection (logic: derivation rules → sh:SPARQLRule) — the
 // computation surface (design/LOGIC-SHACL-AF.md): computation added to the canon and
 // emitted, never bolted onto SHACL (Principle 17).

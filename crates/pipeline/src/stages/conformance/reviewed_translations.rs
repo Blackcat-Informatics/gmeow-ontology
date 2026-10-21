@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 pub(crate) const CHANNEL: &str = "pipeline/reviewed-translation-observation.json";
 
 pub(super) fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
-    gmeow_docs::reviewed_coverage::input_files(root).map_err(Into::into)
+    gmeow_docs::reviewed_coverage::input_files(root)
 }
 
 pub(super) fn record(

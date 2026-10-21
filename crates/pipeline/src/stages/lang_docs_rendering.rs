@@ -3,15 +3,16 @@
 
 //! Re-typing the existing documentation "language trees" as reified crossings.
 //!
-//! The multilingual documentation is rendered from the per-slice gettext catalogs
-//! (`slices/**/i18n/<lang>.po`): every non-English language tree is the English docs model
+//! The multilingual documentation resolves ontology-owned gettext catalogs:
+//! every non-English language tree is the English docs model
 //! resolved through those catalogs. This module TYPES that already-existing output — it does
 //! NOT re-render and does NOT build a second docs pipeline. Over the same `.po`-derived page
 //! and language set the docs renderer walks, it emits three first-class crossing records:
 //!
 //!   * **One `lang:Rendering` (`lang:renderingDocsPage`) per non-English page.** A "page" is
 //!     the ontology term (`msgctxt = "<term-iri>|<predicate>"`, so the page key is the
-//!     term-IRI); the rendering `lang:renderedContent`s that term, `lang:renderingForm`s the
+//!     term-IRI), restricted to the actual documentation model's admitted term inventory;
+//!     the rendering `lang:renderedContent`s that term, `lang:renderingForm`s the
 //!     translated target surfaces the `lang_translation` corpus already interned, is governed
 //!     by the target language's `lang:renderingConvention` (a minted `lang:Orthography`), and
 //!     carries a `lang:renderingPreservation` that is the DERIVED weakest-dominates join of
@@ -38,10 +39,10 @@ use std::collections::BTreeMap;
 use sha2::{Digest, Sha256};
 
 use gmeow_docs::i18n_compile::{language_from_po, live_translation_target, parse_po};
+use gmeow_docs::ontology_catalogs::OntologyCatalogSource;
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
-use purrdf::slice::{ArtifactRole, SliceCatalog};
 
 use crate::stages::lang_translation::{script_for_lang, target_surface_iri, unit_iri};
 
@@ -96,67 +97,72 @@ struct PageGroup {
 /// each catalog's entries by their `msgctxt` term-IRI page key, and emits the page rendering
 /// + roll-up records plus the exec-docs boundary gap.
 pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, gmeow_errors::Diag> {
-    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-mappings".to_string(),
-                message: format!("lang-docs-rendering slice catalog: {e}"),
-            })
-        })?;
+    let catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
+    let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog).analyze()?;
+    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership);
+    let sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;
+    build_corpus_from_sources(&sources, &pages)
+}
 
+/// Reuse the selected immutable owner/artifact inventory and required actual
+/// term-page inventory. Catalog-only DSL terms remain translation/glossary inputs
+/// without becoming fictitious documentation pages.
+pub fn build_corpus_from_sources(
+    sources: &[OntologyCatalogSource],
+    documented_pages: &std::collections::BTreeSet<String>,
+) -> Result<LangDocsRenderingCorpus, gmeow_errors::Diag> {
     // (lang, term-page IRI) -> the entries that render that page in that language. A
     // BTreeMap keeps the grouping deterministic independent of catalog discovery order.
     let mut pages: BTreeMap<(String, String), Vec<EntryRef>> = BTreeMap::new();
     // The distinct non-English languages seen — each contributes one exec-docs boundary gap.
     let mut langs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
 
-    for record in catalog.records() {
-        for artifact in &record.artifacts {
-            if artifact.role != ArtifactRole::TranslationCatalog {
+    for source in sources {
+        // A translation catalog is required input: invalid UTF-8 is a HARD FAIL, never a
+        // silent lossy repair that would corrupt the surface text it carries.
+        let text = std::str::from_utf8(&source.content).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!(
+                    "lang-docs-rendering: translation catalog '{}' is not valid UTF-8: {e}",
+                    source.path.display()
+                ),
+            })
+        })?;
+        let lang = language_from_po(text)?.unwrap_or_default();
+        let lang = lang.trim().to_string();
+        if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
+            continue;
+        }
+        // Resolve the target script now (fallible): an unknown catalog language HARD-FAILS
+        // rather than minting a materially-underspecified rendering.
+        let _ = script_for_lang(&lang)?;
+        langs.insert(lang.clone());
+        for entry in &parse_po(text, false)? {
+            if entry.msgctxt.is_empty() || !entry.msgctxt.contains('|') {
                 continue;
             }
-            // A translation catalog is required input: invalid UTF-8 is a HARD FAIL, never a
-            // silent lossy repair that would corrupt the surface text it carries.
-            let text = std::str::from_utf8(&artifact.content).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!(
-                        "lang-docs-rendering: translation catalog '{}' is not valid UTF-8: {e}",
-                        artifact.logical_path
-                    ),
-                })
-            })?;
-            let lang = language_from_po(text)?.unwrap_or_default();
-            let lang = lang.trim().to_string();
-            if lang.is_empty() || lang.eq_ignore_ascii_case("en") {
+            let Some((term_iri, _predicate)) = entry.msgctxt.split_once('|') else {
+                continue;
+            };
+            if !documented_pages.contains(term_iri) {
                 continue;
             }
-            // Resolve the target script now (fallible): an unknown catalog language HARD-FAILS
-            // rather than minting a materially-underspecified rendering.
-            let _ = script_for_lang(&lang)?;
-            langs.insert(lang.clone());
-            for entry in &parse_po(text, false)? {
-                if entry.msgctxt.is_empty() || !entry.msgctxt.contains('|') {
-                    continue;
-                }
-                let Some((term_iri, _predicate)) = entry.msgctxt.split_once('|') else {
-                    continue;
-                };
-                // A machine-seeded `#, fuzzy` entry is not a reviewed translation: it is
-                // treated as not-yet-live (English fallback), identical to an untranslated
-                // entry, so unreviewed content never surfaces as a live rendered form in the
-                // gmeow.gts projection — matching `Translations::lookup` and the coverage axis.
-                // The fuzzy-gating lives in the shared `live_translation_target` policy.
-                let msgstr = live_translation_target(entry).to_string();
-                pages
-                    .entry((lang.clone(), term_iri.to_string()))
-                    .or_default()
-                    .push(EntryRef {
-                        msgctxt: entry.msgctxt.clone(),
-                        present: !msgstr.is_empty(),
-                        msgstr,
-                    });
-            }
+            // A machine-seeded `#, fuzzy` entry is not a reviewed translation: it is
+            // treated as not-yet-live (English fallback), identical to an untranslated
+            // entry, so unreviewed content never surfaces as a live rendered form in the
+            // gmeow.gts projection — matching `Translations::lookup` and the coverage axis.
+            // The fuzzy-gating lives in the shared `live_translation_target` policy.
+            let msgstr = live_translation_target(entry).to_string();
+            pages
+                .entry((lang.clone(), term_iri.to_string()))
+                .or_default()
+                .push(EntryRef {
+                    msgctxt: entry.msgctxt.clone(),
+                    present: !msgstr.is_empty(),
+                    msgstr,
+                });
         }
     }
 
@@ -573,3 +579,7 @@ fn nt_literal(value: &str) -> String {
     out.push('"');
     out
 }
+
+#[cfg(test)]
+#[path = "lang_docs_rendering.selected.tests.rs"]
+mod selected_tests;

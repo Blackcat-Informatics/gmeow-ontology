@@ -44,6 +44,84 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
 
 use crate::graph::{self, RDF_TYPE, all_iris, id, instances_of};
 use crate::model::{CountKind, GMEOW, ProjectionVocabulary};
+use gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog;
+
+/// One author's surface with every selected correspondence admitted before any
+/// vocabulary filtering. Catalog facts remain separate authority inputs and are
+/// never copied into this surface's denominator.
+pub struct AdmittedProjectionSurface<'a> {
+    dataset: &'a RdfDataset,
+    selections: Vec<SelectedConstruct>,
+}
+
+struct SelectedConstruct {
+    key: String,
+    mapping: String,
+    target: String,
+    owner: String,
+}
+
+impl<'a> AdmittedProjectionSurface<'a> {
+    /// Missing, malformed or unresolved selection rejects the complete surface,
+    /// even when its eventual target falls outside the requested vocabulary.
+    pub fn admit(
+        dataset: &'a RdfDataset,
+        catalog: &GroundingCatalog,
+    ) -> gmeow_errors::Result<Self> {
+        use gmeow_logic_compile::{
+            ingest::DslView,
+            projections::{get_leg, grounding_catalog::SELECTED_TARGET},
+        };
+        let view = DslView::new(dataset);
+        let mut selections = Vec::new();
+        if !view.quads_with_predicate(SELECTED_TARGET).is_empty() {
+            let cells = get_leg::projections(&view, catalog)?;
+            let mut bindings = BTreeSet::new();
+            for cell in &cells {
+                for binding in &cell.bindings {
+                    if binding.selected_templates.is_empty() {
+                        continue;
+                    }
+                    let key = get_leg::binding_key(cell, binding);
+                    if !bindings.insert(key.clone()) {
+                        return Err(gmeow_errors::Diag::of_kind(crate::error::Io {
+                            detail: format!("{}: duplicate selected output binding", cell.iri),
+                        }));
+                    }
+                    for selected in &binding.selected_templates {
+                        selections.push(SelectedConstruct {
+                            key: format!(
+                                "selected-template|{}|{key}|{}|{}",
+                                catalog.identity(),
+                                selected.template_index,
+                                selected.support.correspondence
+                            ),
+                            mapping: cell.iri.clone(),
+                            target: selected.support.target_property.clone(),
+                            owner: selected.support.owner.clone(),
+                        });
+                    }
+                }
+            }
+        }
+        Ok(Self {
+            dataset,
+            selections,
+        })
+    }
+
+    /// The immutable authored graph whose complete selections were admitted.
+    pub fn dataset(&self) -> &'a RdfDataset {
+        self.dataset
+    }
+}
+
+impl std::ops::Deref for AdmittedProjectionSurface<'_> {
+    type Target = RdfDataset;
+    fn deref(&self) -> &Self::Target {
+        self.dataset
+    }
+}
 
 /// SHACL node-shape class IRI.
 pub const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
@@ -437,7 +515,7 @@ fn presence_grounding(ds: &RdfDataset, subject: TermId) -> bool {
 /// driver can reach each construct's [`Witness`] without a second enumeration.
 #[must_use]
 pub fn enumerate(
-    ds: &RdfDataset,
+    ds: &AdmittedProjectionSurface<'_>,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
     surface_iri: &str,
@@ -446,17 +524,35 @@ pub fn enumerate(
 }
 
 fn enumerate_at(
-    ds: &RdfDataset,
+    ds: &AdmittedProjectionSurface<'_>,
     vocab: &ProjectionVocabulary,
     mode: CountMode,
     boundary: OwnerBoundary<'_>,
 ) -> Vec<Construct> {
-    match vocab.count_kind {
+    let mut constructs = match vocab.count_kind {
         CountKind::Shape => enumerate_shape(ds, mode),
         CountKind::TypedAxiom => enumerate_typed_axiom(ds, vocab, mode, boundary),
         CountKind::StructuralAxiom => enumerate_structural_axiom(ds, vocab, mode, boundary),
         CountKind::NonRdfSurface => Vec::new(),
+    };
+    if mode == CountMode::FullResidue && vocab.count_kind == CountKind::TypedAxiom {
+        for selected in &ds.selections {
+            if vocab
+                .namespaces
+                .iter()
+                .any(|namespace| selected.target.starts_with(namespace))
+            {
+                constructs.push(Construct {
+                    key: selected.key.clone(),
+                    grounded: vocab.owners.contains(&selected.owner),
+                    is_bridge: false,
+                    witness: Witness::Anchored(selected.mapping.clone()),
+                });
+            }
+        }
+        constructs.sort_by(|left, right| left.key.cmp(&right.key));
     }
+    constructs
 }
 
 /// `CountKind::StructuralAxiom` enumeration — RDFS's minimum useful structural set.
@@ -582,6 +678,12 @@ fn enumerate_shape(ds: &RdfDataset, mode: CountMode) -> Vec<Construct> {
     }
 }
 
+/// The historical advisory deliberately retains its shapes-only denominator.
+/// The complete scoring entry separately requires complete source admission.
+pub(crate) fn historical_shapes(ds: &RdfDataset) -> Vec<Construct> {
+    enumerate_shape(ds, CountMode::Historical)
+}
+
 /// `CountKind::TypedAxiom` enumeration — only meaningful under [`CountMode::FullResidue`];
 /// [`CountMode::Historical`] returns empty (the legacy axis never scored typed-axiom
 /// vocabs).
@@ -659,7 +761,7 @@ fn enumerate_typed_axiom(
 /// accounting can never disagree about which constructs are in the residue.
 #[must_use]
 pub fn residue_constructs_for_surface(
-    ds: &RdfDataset,
+    ds: &AdmittedProjectionSurface<'_>,
     vocab: &ProjectionVocabulary,
     surface_iri: &str,
 ) -> Vec<Construct> {
@@ -667,7 +769,7 @@ pub fn residue_constructs_for_surface(
 }
 
 fn residue_constructs_at(
-    ds: &RdfDataset,
+    ds: &AdmittedProjectionSurface<'_>,
     vocab: &ProjectionVocabulary,
     boundary: OwnerBoundary<'_>,
 ) -> Vec<Construct> {
@@ -681,7 +783,7 @@ fn residue_constructs_at(
 /// one construct set above.
 #[must_use]
 pub fn residue_for_surface(
-    ds: &RdfDataset,
+    ds: &AdmittedProjectionSurface<'_>,
     vocab: &ProjectionVocabulary,
     surface_iri: &str,
 ) -> u64 {
@@ -693,7 +795,7 @@ pub fn residue_for_surface(
 /// that know the real surface (the gate/seed) use [`residue_for_surface`] so the
 /// strict owner boundary is enforced; this wrapper is explicitly owner-neutral.
 #[must_use]
-pub fn residue(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> u64 {
+pub fn residue(ds: &AdmittedProjectionSurface<'_>, vocab: &ProjectionVocabulary) -> u64 {
     residue_constructs_at(ds, vocab, OwnerBoundary::Neutral).len() as u64
 }
 
@@ -766,9 +868,9 @@ impl RelocationReason {
 /// cross-dataset identity, so it carries no relocation warrant (fail-closed).
 #[must_use]
 pub fn relocation_reasons(
-    source: &RdfDataset,
+    source: &AdmittedProjectionSurface<'_>,
     source_surface_iri: &str,
-    destination: &RdfDataset,
+    destination: &AdmittedProjectionSurface<'_>,
     destination_surface_iri: &str,
     vocab: &ProjectionVocabulary,
 ) -> BTreeMap<String, BTreeSet<RelocationReason>> {
@@ -825,7 +927,7 @@ pub fn relocation_reasons(
 /// quantity the advisory `shape_migration_axis` measures.
 #[must_use]
 #[allow(clippy::cast_precision_loss)]
-pub fn grounded_fraction(ds: &RdfDataset, vocab: &ProjectionVocabulary) -> f64 {
+pub fn grounded_fraction(ds: &AdmittedProjectionSurface<'_>, vocab: &ProjectionVocabulary) -> f64 {
     let constructs = enumerate_at(ds, vocab, CountMode::Historical, OwnerBoundary::Neutral);
     if constructs.is_empty() {
         return 1.0;
@@ -861,3 +963,7 @@ pub fn shacl_vocab() -> ProjectionVocabulary {
 #[path = "counting.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "counting.selected_templates.tests.rs"]
+mod selected_template_tests;

@@ -3919,3 +3919,20 @@ gmeow:qualityProfileExternalSacred
 
 # Natural-language values retain language and direction; plain text declares no language.
 gmeow:QualityAxisApplicability logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:qualityApplicabilityReason ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:projVocab-schema-value a gmeow:ProjectionVocabulary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "schema.org value projection vocabulary"@x-gmeow-english ;
+    skos:definition "The schema.org value-prefix projection boundary shared by Lang literal values and Math numeric magnitudes; suffix terms such as valueReference are included and ungrounded authoring has zero default allowance."@x-gmeow-english ;
+    skos:example "gmeow:projVocab-schema-value gmeow:vocabularyNamespace \"https://schema.org/value\"^^xsd:anyURI ."@x-gmeow-english ;
+    gmeow:useWhen "Use to count raw value-prefix targets and validated selected target occurrences against the shared grounding boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this prefix as only the exact value IRI or importing catalog triples into the measured surface."@x-gmeow-english ;
+    gmeow:howToUse "Admit selectors against the separate owned catalog before namespace filtering; retain only their validated virtual target witnesses in the surface count."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:vocabularyPrefix "schema-value" ;
+    gmeow:vocabularyNamespace "https://schema.org/value"^^xsd:anyURI ;
+    gmeow:vocabularySubsumedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:vocabularyOwner <https://blackcatinformatics.ca/gmeow/slices/lang>, <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:vocabularyCountKind "countKindTypedAxiom" ;
+    gmeow:vocabularyDefaultCeiling 0 ;
+    gmeow:vocabularyPreservation logic:ValidationOnly .

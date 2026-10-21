@@ -108,6 +108,11 @@ pub fn slice_quality(
         Err(e) => return fail(e),
     };
     let root = project_root();
+
+    let grounding_catalog = match gmeow_validate::grounding_catalog::load(&root) {
+        Ok(catalog) => catalog,
+        Err(error) => return fail(format!("slice-quality grounding catalog: {error}")),
+    };
     let config = match DiagnosticsConfig::resolve(
         console.map(ConsoleMode::as_str),
         artifacts,
@@ -145,6 +150,7 @@ pub fn slice_quality(
         ScoringEnv::Repo {
             slice_dir: dir.clone(),
         },
+        &grounding_catalog,
     ) {
         Ok(report) => {
             match render(&report, format) {
@@ -191,6 +197,10 @@ pub fn slice_quality(
 /// set through [`gmeow_slice_quality::discover_slice_dirs`], so the printed roll-up and
 /// the shipped graph never diverge.
 fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &DiagnosticsConfig) -> i32 {
+    let grounding_catalog = match gmeow_validate::grounding_catalog::load(root) {
+        Ok(catalog) => catalog,
+        Err(error) => return fail(format!("slice-quality grounding catalog: {error}")),
+    };
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let rubric = match gmeow_slice_quality::load_repo_rubric(root) {
         Ok(r) => r,
@@ -227,7 +237,8 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // deterministic Pareto-frontier + capping-axis prioritization. The assessment
     // (the primary object) and the advisory count (display only) are all it needs.
     let mut profiles: Vec<(SliceAssessment, usize)> = Vec::new();
-    let scored = gmeow_slice_quality::score_slices_with_rubric(root, &dirs, &rubric);
+    let scored =
+        gmeow_slice_quality::score_slices_with_rubric(root, &dirs, &rubric, &grounding_catalog);
     for (dir, result) in dirs.iter().zip(scored) {
         match result {
             Ok(report) => {
@@ -387,6 +398,11 @@ pub fn slice_quality_gate() -> i32 {
 /// [`slice_quality_gate`] is the thin `make check` entry point over `project_root()`.
 pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     let root = repo_root.to_path_buf();
+
+    let grounding_catalog = match gmeow_validate::grounding_catalog::load(&root) {
+        Ok(catalog) => catalog,
+        Err(error) => return fail(format!("slice-quality grounding catalog: {error}")),
+    };
     let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
@@ -607,8 +623,12 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                     // hand from a single aggregate line.
                     if advisory_source.is_none() {
                         let one = [dir.to_path_buf()];
-                        let mut scored_one =
-                            gmeow_slice_quality::score_slices_with_rubric(&root, &one, &rubric);
+                        let mut scored_one = gmeow_slice_quality::score_slices_with_rubric(
+                            &root,
+                            &one,
+                            &rubric,
+                            &grounding_catalog,
+                        );
                         match scored_one.remove(0) {
                             Ok(r) => advisory_source = Some(r),
                             Err(e) => {
@@ -648,11 +668,14 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     // ONE working-tree measurement, two views: the CONSTRUCT sets (which carry each
     // residue construct's relocation-invariant witness, read by the rebalance) and
     // their `.len()` counts (read by the count gate). Never two sweeps.
-    let working_constructs =
-        match gmeow_slice_quality::measure_repo_residue_constructs(&root, vocabularies) {
-            Ok(m) => m,
-            Err(e) => return fail(format!("slice-quality-gate: {e}")),
-        };
+    let working_constructs = match gmeow_slice_quality::measure_repo_residue_constructs(
+        &root,
+        vocabularies,
+        &grounding_catalog,
+    ) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
     let working_residues: std::collections::BTreeMap<(String, String), u64> = working_constructs
         .iter()
         .map(|(key, constructs)| (key.clone(), constructs.len() as u64))
@@ -797,6 +820,7 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                         working_residues: &working_residues,
                         working_constructs: &working_constructs,
                         needed: &needed,
+                        working_grounding: &grounding_catalog,
                     }) {
                         Ok(r) => r,
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
@@ -1240,6 +1264,59 @@ fn base_dirs_present(
         .collect())
 }
 
+/// The catalog's authority closure at the base commit: canonical module roles,
+/// their manifest identities, and physically owned grounding mapping artifacts.
+/// Examples, tests, generated data and foreign DSL never enter this collection.
+fn base_grounding_paths(root: &Path, base: &str) -> gmeow_errors::Result<Vec<String>> {
+    let output = std::process::Command::new("git")
+        .current_dir(root)
+        .env("LC_ALL", "C")
+        .args([
+            "ls-tree",
+            "-r",
+            "-z",
+            "--name-only",
+            base,
+            "--",
+            "ontology/gmeow.ttl",
+            "slices/",
+        ])
+        .output()
+        .map_err(|error| {
+            sqe(format!(
+                "could not enumerate base grounding inputs at {base}: {error}"
+            ))
+        })?;
+    if !output.status.success() {
+        return Err(sqe(format!(
+            "could not enumerate base grounding inputs at {base} ({}): {}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    let names = std::str::from_utf8(&output.stdout)
+        .map_err(|error| sqe(format!("base grounding input paths are not UTF-8: {error}")))?;
+    let paths: Vec<String> = names
+        .split('\0')
+        .filter(|path| {
+            *path == "ontology/gmeow.ttl"
+                || path.starts_with("slices/")
+                    && path.split('/').count() == 4
+                    && (path.ends_with("/manifest.ttl") || path.ends_with("/module.ttl"))
+                || ["lang", "math", "logic"]
+                    .iter()
+                    .any(|owner| path.starts_with(&format!("slices/grounding/{owner}/mappings/")))
+        })
+        .map(str::to_owned)
+        .collect();
+    if !paths.iter().any(|path| path == "ontology/gmeow.ttl") {
+        return Err(sqe(format!(
+            "base {base} is missing required ontology/gmeow.ttl grounding input"
+        )));
+    }
+    Ok(paths)
+}
+
 /// Materialize `pathspecs` as they existed at `base` into a fresh temp directory with a
 /// SINGLE `git archive <base> -- <pathspecs> | tar -x`, so the base surfaces can be read
 /// as plain files through the very same code path the working tree uses.
@@ -1337,6 +1414,7 @@ struct BaseMeasurement {
     /// The extracted base tree — `None` when no slice was implicated and no `git`
     /// work was done at all.
     tree: Option<BaseSurfaces>,
+    grounding: Option<gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog>,
     /// `slice IRI (or the DSL surface IRI) -> repo-relative directory`, for exactly the
     /// implicated surfaces that EXIST at base.
     dirs: std::collections::BTreeMap<String, String>,
@@ -1425,11 +1503,15 @@ fn measure_base_residues(
         probe.push(DSL_MAPPINGS_REL_DIR.to_owned());
     }
     let present = base_dirs_present(root, base, &probe)?;
-    let pathspecs: Vec<String> = probe.into_iter().filter(|p| present.contains(p)).collect();
+    let mut pathspecs: Vec<String> = probe.into_iter().filter(|p| present.contains(p)).collect();
     if pathspecs.is_empty() {
         return Ok(out); // every implicated directory is new at base → base residue 0
     }
+    pathspecs.extend(base_grounding_paths(root, base)?);
+    pathspecs.sort();
+    pathspecs.dedup();
     let tree = materialize_base_tree(root, base, &pathspecs)?;
+    let grounding = gmeow_validate::grounding_catalog::load(tree.root())?;
 
     for (slice_iri, rel_dir) in &wanted {
         if !present.contains(rel_dir) {
@@ -1441,6 +1523,7 @@ fn measure_base_residues(
             &paths,
             slice_iri,
             vocabularies,
+            &grounding,
         )? {
             out.constructs
                 .insert(((*slice_iri).to_owned(), prefix), constructs);
@@ -1460,6 +1543,7 @@ fn measure_base_residues(
             &paths,
             gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
             vocabularies,
+            &grounding,
         )? {
             out.constructs.insert(
                 (
@@ -1470,6 +1554,7 @@ fn measure_base_residues(
             );
         }
     }
+    out.grounding = Some(grounding);
     out.tree = Some(tree);
     Ok(out)
 }
@@ -1499,6 +1584,7 @@ fn derive_edge_reasons(
     declarations: &[gmeow_slice_quality::CeilingRelocation],
     vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
     slices: &[(&Path, String)],
+    working_grounding: &gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<gmeow_slice_quality::gate::EdgeRelocationReasons> {
     let mut out = gmeow_slice_quality::gate::EdgeRelocationReasons::new();
     let working_dir = |iri: &str| -> Option<&Path> {
@@ -1526,6 +1612,10 @@ fn derive_edge_reasons(
                 &dest_paths,
                 &d.to_slice,
                 vocab,
+                base.grounding.as_ref().ok_or_else(|| {
+                    sqe("present base surface has no retained grounding catalog".to_owned())
+                })?,
+                working_grounding,
             )?;
             let declared: std::collections::BTreeSet<&str> =
                 d.terms.iter().map(String::as_str).collect();
@@ -1594,6 +1684,7 @@ struct RebalanceInputs<'a> {
     working_constructs:
         &'a std::collections::BTreeMap<(String, String), Vec<gmeow_slice_quality::Construct>>,
     needed: &'a std::collections::BTreeSet<String>,
+    working_grounding: &'a gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
 }
 
 /// # Errors
@@ -1613,10 +1704,17 @@ fn ceiling_rebalance(
         working_residues,
         working_constructs,
         needed,
+        working_grounding,
     } = *inputs;
     let base_meas = measure_base_residues(root, base, vocabularies, needed, slice_dirs)?;
     let base_measured = base_meas.counts();
-    let edge_reasons = derive_edge_reasons(&base_meas, declarations, vocabularies, slice_dirs)?;
+    let edge_reasons = derive_edge_reasons(
+        &base_meas,
+        declarations,
+        vocabularies,
+        slice_dirs,
+        working_grounding,
+    )?;
     let default_ceiling_by_prefix: std::collections::BTreeMap<String, u64> = vocabularies
         .iter()
         .map(|v| (v.prefix.clone(), v.default_ceiling))
@@ -1946,6 +2044,11 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
     };
 
     let root = project_root();
+
+    let grounding_catalog = match gmeow_validate::grounding_catalog::load(&root) {
+        Ok(catalog) => catalog,
+        Err(error) => return fail(format!("slice-quality grounding catalog: {error}")),
+    };
     let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
@@ -1976,7 +2079,8 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
         Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
     };
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
-    let score_results = gmeow_slice_quality::score_slices_with_rubric(&root, &dirs, &rubric);
+    let score_results =
+        gmeow_slice_quality::score_slices_with_rubric(&root, &dirs, &rubric, &grounding_catalog);
     let mut assessments: Vec<SliceAssessment> = Vec::with_capacity(dirs.len());
     for (dir, result) in dirs.iter().zip(score_results) {
         match result {
@@ -2043,6 +2147,11 @@ fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> Strin
 /// human commits it.
 pub fn slice_quality_seed_ceilings() -> i32 {
     let root = project_root();
+
+    let grounding_catalog = match gmeow_validate::grounding_catalog::load(&root) {
+        Ok(catalog) => catalog,
+        Err(error) => return fail(format!("slice-quality grounding catalog: {error}")),
+    };
     let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
@@ -2060,7 +2169,11 @@ pub fn slice_quality_seed_ceilings() -> i32 {
 
     // The SAME shared counter the ratchet gate reads — seed and gate can never
     // diverge on what "measured" means.
-    let residues = match gmeow_slice_quality::measure_repo_residues(&root, &vocabularies) {
+    let residues = match gmeow_slice_quality::measure_repo_residues(
+        &root,
+        &vocabularies,
+        &grounding_catalog,
+    ) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
     };
@@ -2110,6 +2223,11 @@ pub fn slice_quality_seed_ceilings() -> i32 {
 /// migration, never by tuning it toward this report's numbers.
 pub fn slice_quality_projection_debt() -> i32 {
     let root = project_root();
+
+    let grounding_catalog = match gmeow_validate::grounding_catalog::load(&root) {
+        Ok(catalog) => catalog,
+        Err(error) => return fail(format!("slice-quality grounding catalog: {error}")),
+    };
     let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
@@ -2125,7 +2243,11 @@ pub fn slice_quality_projection_debt() -> i32 {
 
     // The SAME shared counter the ratchet gate reads — this report can never
     // diverge from what the gate would see.
-    let measured = match gmeow_slice_quality::measure_repo_residues(&root, &vocabularies) {
+    let measured = match gmeow_slice_quality::measure_repo_residues(
+        &root,
+        &vocabularies,
+        &grounding_catalog,
+    ) {
         Ok(m) => m,
         Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
     };
@@ -2454,6 +2576,11 @@ fn print_relocatable_anchors(
 /// derived witness).
 pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) -> i32 {
     let root = project_root();
+
+    let grounding_catalog = match gmeow_validate::grounding_catalog::load(&root) {
+        Ok(catalog) => catalog,
+        Err(error) => return fail(format!("slice-quality grounding catalog: {error}")),
+    };
     let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
@@ -2505,6 +2632,7 @@ pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) 
         &from_paths,
         from_iri,
         vocabularies,
+        &grounding_catalog,
     ) {
         Ok(m) => m,
         Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
@@ -2513,6 +2641,7 @@ pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) 
         &to_paths,
         to_iri,
         vocabularies,
+        &grounding_catalog,
     ) {
         Ok(m) => m,
         Err(e) => return fail(format!("slice-quality-relocation-preview: {e}")),
@@ -2588,6 +2717,8 @@ pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) 
             &to_paths,
             to_iri,
             vocab,
+            &grounding_catalog,
+            &grounding_catalog,
         ) {
             Ok(reasons) => {
                 for (anchor, codes) in reasons.iter().filter(|(a, _)| wanted.contains(a.as_str())) {
@@ -2645,6 +2776,7 @@ pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) 
         &root,
         &[from_dir.clone(), to_dir.clone()],
         &rubric,
+        &grounding_catalog,
     );
     for report in scored {
         let report = match report {

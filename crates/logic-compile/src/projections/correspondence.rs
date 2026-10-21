@@ -225,6 +225,22 @@ pub fn assert_no_overclaim_correspondence(
 /// preservation polarity — the typed payload the `PipelineHandle::Correspondence` arm
 /// carries (C10). One content identity ([`CorrespondenceProgram::content_key`])
 /// across the typed handle and its backing `graph/correspondence` projection.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
+pub struct NativeCorrespondenceSource {
+    /// The actual named RDF reifier selected by an authored template.
+    pub alias: String,
+    /// The canonical, admitted correspondence individual, never an alias hash.
+    pub correspondence: String,
+    /// The native alignment predicate on the reified source proposition.
+    pub predicate: String,
+    /// The authored SSSOM set membership retained with the source declaration.
+    pub sssom_file: String,
+    /// Physical grounding artifact identity, supplied by the actual catalog
+    /// controller. A semantic namespace or isDefinedBy triple is not ownership.
+    pub ownership: Option<super::grounding_catalog::GroundingSourceIdentity>,
+}
+
+/// Canonical correspondence program and its named native source declarations.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct CorrespondenceProgram {
     /// The correspondences, canonically sorted by IRI at construction.
@@ -240,6 +256,12 @@ pub struct CorrespondenceProgram {
     /// instead of comparing opaque IRIs. Sorted by IRI; **append-only** in the content key
     /// (a leg-free program keys identically to before legs were modelled).
     pub leg_programs: Vec<TransactionProgramIr>,
+    /// Named source declarations, retained independently of endpoint identity.
+    pub native_sources: Vec<NativeCorrespondenceSource>,
+    /// Exact native input-check dependencies of selected template bindings.
+    pub projection_profiles: Vec<super::profile_program::ProjectionProfileProgram>,
+    /// Actual realized get-leg bodies, independent of transported check lists.
+    pub projection_bindings: Vec<super::profile_program::ProjectionBindingProgram>,
 }
 
 impl CorrespondenceProgram {
@@ -254,6 +276,9 @@ impl CorrespondenceProgram {
             compositions: Vec::new(),
             preservation,
             leg_programs: Vec::new(),
+            native_sources: Vec::new(),
+            projection_profiles: Vec::new(),
+            projection_bindings: Vec::new(),
         }
     }
 
@@ -274,6 +299,145 @@ impl CorrespondenceProgram {
         leg_programs.sort_by(|a, b| a.iri.cmp(&b.iri));
         self.leg_programs = leg_programs;
         self
+    }
+
+    /// Retain named source identities. An alias cannot denote different admitted
+    /// cells, even when their endpoint spellings happen to agree.
+    pub fn with_native_sources(
+        mut self,
+        mut sources: Vec<NativeCorrespondenceSource>,
+    ) -> gmeow_errors::Result<Self> {
+        sources.sort();
+        sources.dedup();
+        for source in &sources {
+            if !crate::ir::atomic::is_absolute_iri(&source.alias)
+                || !crate::ir::atomic::is_absolute_iri(&source.predicate)
+                || !self
+                    .correspondences
+                    .iter()
+                    .any(|c| c.iri == source.correspondence)
+            {
+                return Err(field_error(
+                    &source.alias,
+                    "native source",
+                    "requires an absolute alias/predicate and an admitted correspondence",
+                ));
+            }
+        }
+        for pair in sources.windows(2) {
+            if pair[0].alias == pair[1].alias && pair[0].correspondence != pair[1].correspondence {
+                return Err(field_error(
+                    &pair[0].alias,
+                    "native source",
+                    "alias denotes conflicting admitted correspondences",
+                ));
+            }
+        }
+        self.native_sources = sources;
+        Ok(self)
+    }
+
+    /// Resolve each binding to one content-addressed native get-leg body.
+    pub fn with_projection_bindings(
+        mut self,
+        mut bindings: Vec<super::profile_program::ProjectionBindingProgram>,
+    ) -> gmeow_errors::Result<Self> {
+        bindings
+            .sort_by(|left, right| (&left.profile, left.order).cmp(&(&right.profile, right.order)));
+        let mut seen = std::collections::BTreeSet::new();
+        for binding in &bindings {
+            binding.body()?;
+            if !seen.insert(&binding.correspondence) {
+                return Err(field_error(
+                    &binding.id,
+                    "get leg",
+                    "duplicate realized binding",
+                ));
+            }
+            let cell = self
+                .correspondences
+                .iter_mut()
+                .find(|cell| cell.iri == binding.correspondence)
+                .ok_or_else(|| {
+                    field_error(&binding.id, "get leg", "missing owning correspondence")
+                })?;
+            if !matches!(cell.get_leg.as_deref(), Some(leg) if leg == binding.source_mapping || leg == binding.id)
+            {
+                return Err(field_error(
+                    &binding.id,
+                    "get leg",
+                    "body belongs to a different source mapping",
+                ));
+            }
+            cell.get_leg = Some(binding.id.clone());
+        }
+        self.projection_bindings = bindings;
+        Ok(self)
+    }
+
+    /// Retain the complete explicit profile capabilities in canonical native IR.
+    pub fn with_projection_profiles(
+        mut self,
+        mut profiles: Vec<super::profile_program::ProjectionProfileProgram>,
+    ) -> gmeow_errors::Result<Self> {
+        profiles.sort_by(|a, b| a.payload.profile.cmp(&b.payload.profile));
+        let mut names = std::collections::BTreeSet::new();
+        let mut ids = std::collections::BTreeSet::new();
+        for profile in &profiles {
+            if !names.insert(&profile.payload.profile) || !ids.insert(&profile.id) {
+                return Err(field_error(
+                    &profile.id,
+                    "projection program",
+                    "duplicate profile or program identity",
+                ));
+            }
+            let expected = super::profile_program::profile_from_bindings(
+                &profile.payload.profile,
+                &self.projection_bindings,
+                &profile.payload.catalog_id,
+            )?;
+            if expected != *profile {
+                return Err(field_error(
+                    &profile.id,
+                    "projection program",
+                    "forward/check roster differs from the independently retained native get-leg bodies",
+                ));
+            }
+            let mut occurrences = std::collections::BTreeSet::new();
+            for check in &profile.payload.checks {
+                if check.selected.profile != profile.payload.profile
+                    || !occurrences.insert((&check.binding_iri, check.selected.template_index))
+                    || !self
+                        .correspondences
+                        .iter()
+                        .any(|cell| cell.iri == check.binding_iri)
+                    || !self.native_sources.iter().any(|source| {
+                        source.alias == check.selected.support.alias
+                            && source.correspondence == check.selected.support.correspondence
+                    })
+                {
+                    return Err(field_error(
+                        &check.id,
+                        "template support",
+                        "duplicate occurrence or unresolved binding/native source identity",
+                    ));
+                }
+            }
+        }
+        let required: std::collections::BTreeSet<_> = self
+            .projection_bindings
+            .iter()
+            .map(|binding| &binding.profile)
+            .collect();
+        if required != names {
+            return Err(field_error(
+                "projection program",
+                "profile inventory",
+                "missing or extra native profile product",
+            ));
+        }
+        self.projection_profiles = profiles;
+        Ok(self)
     }
 
     /// Resolve a leg IRI to its realized [`LegPath`] body via the registry, if present.
@@ -308,6 +472,35 @@ impl CorrespondenceProgram {
         for leg in &self.leg_programs {
             component(&leg.iri);
             component(&super::paths::leg_path_canonical(&leg.body));
+        }
+        if !self.native_sources.is_empty() {
+            component("native-sources-v1");
+            for source in &self.native_sources {
+                component(&source.alias);
+                component(&source.correspondence);
+                component(&source.predicate);
+                component(&source.sssom_file);
+                if let Some(ownership) = &source.ownership {
+                    component(&ownership.owner);
+                    component(&ownership.path);
+                    component(&ownership.digest);
+                }
+            }
+        }
+        if !self.projection_profiles.is_empty() {
+            component("projection-profiles-v1");
+            for profile in &self.projection_profiles {
+                component(&String::from_utf8(profile.to_bytes()).expect("native JSON is UTF-8"));
+            }
+        }
+        if !self.projection_bindings.is_empty() {
+            component("projection-bindings-v1");
+            for binding in &self.projection_bindings {
+                component(
+                    &String::from_utf8(purrdf_lex::json::record::to_vec(binding))
+                        .expect("native JSON is UTF-8"),
+                );
+            }
         }
         key
     }
@@ -430,6 +623,111 @@ pub fn project_correspondence_dataset(
 
     g.add_iri(&prog, RDF_TYPE, &class_program())?;
     g.add_iri(&prog, &p_has_preservation(), &program.preservation.iri())?;
+    for binding in &program.projection_bindings {
+        let json = String::from_utf8(purrdf_lex::json::record::to_vec(binding))
+            .expect("native JSON is UTF-8");
+        g.add_iri(
+            &prog,
+            &format!("{LOGIC_NAMESPACE}hasProjectionBinding"),
+            &binding.id,
+        )?;
+        g.add_iri(
+            &binding.id,
+            RDF_TYPE,
+            &format!("{LOGIC_NAMESPACE}ProjectionBindingProgram"),
+        )?;
+        g.add_lit(
+            &binding.id,
+            &format!("{LOGIC_NAMESPACE}projectionBindingContent"),
+            purrdf::RdfLiteral::typed(json, "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON"),
+        )?;
+    }
+    for profile in &program.projection_profiles {
+        let json = String::from_utf8(profile.to_bytes()).expect("native JSON is UTF-8");
+        g.add_iri(
+            &prog,
+            &format!("{LOGIC_NAMESPACE}hasProjectionProgram"),
+            &profile.id,
+        )?;
+        g.add_iri(
+            &profile.id,
+            RDF_TYPE,
+            &format!("{LOGIC_NAMESPACE}ProjectionProfileProgram"),
+        )?;
+        g.add_lit(
+            &profile.id,
+            &format!("{LOGIC_NAMESPACE}projectionProgramContent"),
+            purrdf::RdfLiteral::typed(json, "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON"),
+        )?;
+    }
+    for source in &program.native_sources {
+        g.add_iri(
+            &prog,
+            &format!("{LOGIC_NAMESPACE}hasCorrespondenceSource"),
+            &source.alias,
+        )?;
+        g.add_iri(
+            &source.alias,
+            RDF_TYPE,
+            &format!("{LOGIC_NAMESPACE}CorrespondenceSource"),
+        )?;
+        g.add_iri(
+            &source.alias,
+            &format!("{LOGIC_NAMESPACE}compiledCorrespondence"),
+            &source.correspondence,
+        )?;
+        g.add_iri(
+            &source.alias,
+            &format!("{LOGIC_NAMESPACE}sourceMatchPredicate"),
+            &source.predicate,
+        )?;
+        g.add_lit(
+            &source.alias,
+            "https://blackcatinformatics.ca/gmeow/sssomFile",
+            purrdf::RdfLiteral::simple(&source.sssom_file),
+        )?;
+        if let Some(ownership) = &source.ownership {
+            g.add_iri(
+                &source.alias,
+                &format!("{LOGIC_NAMESPACE}groundingSourceOwner"),
+                &ownership.owner,
+            )?;
+            g.add_lit(
+                &source.alias,
+                &format!("{LOGIC_NAMESPACE}groundingSourcePath"),
+                purrdf::RdfLiteral::simple(&ownership.path),
+            )?;
+            g.add_lit(
+                &source.alias,
+                &format!("{LOGIC_NAMESPACE}groundingSourceDigest"),
+                purrdf::RdfLiteral::simple(&ownership.digest),
+            )?;
+        }
+        let cell = program
+            .correspondences
+            .iter()
+            .find(|cell| cell.iri == source.correspondence)
+            .ok_or_else(|| {
+                field_error(
+                    &source.alias,
+                    "native source",
+                    "missing admitted correspondence",
+                )
+            })?;
+        let (Some(subject), Some(object)) = (&cell.source_endpoint, &cell.target_endpoint) else {
+            return Err(field_error(
+                &source.alias,
+                "native source",
+                "requires source proposition endpoints",
+            ));
+        };
+        let s = g.builder.intern_iri(subject)?;
+        let p = g.builder.intern_iri(&source.predicate)?;
+        let o = g.builder.intern_iri(object)?;
+        let proposition = g.builder.intern_triple(s, p, o)?;
+        let alias = g.builder.intern_iri(&source.alias)?;
+        g.builder.push_reifier_in_graph(alias, proposition, None)?;
+    }
     for c in &program.correspondences {
         validate_loss_evidence(c)?;
         g.add_iri(&prog, &p_has_correspondence(), &c.iri)?;
@@ -1054,9 +1352,203 @@ pub fn parse_correspondence(
         .map(|iri| read_composition(&idx, iri))
         .collect::<gmeow_errors::Result<_>>()?;
     let leg_programs = extract_present_leg_programs(dataset, &correspondences)?;
-    Ok(CorrespondenceProgram::new(correspondences, preservation)
+    let mut native_sources = Vec::new();
+    for alias in idx.iri_objs(&prog, &format!("{LOGIC_NAMESPACE}hasCorrespondenceSource"))? {
+        if !idx
+            .iri_objs(alias, RDF_TYPE)?
+            .contains(&format!("{LOGIC_NAMESPACE}CorrespondenceSource").as_str())
+        {
+            return Err(field_error(
+                alias,
+                "native source",
+                "requires canonical CorrespondenceSource role",
+            ));
+        }
+        let correspondence =
+            idx.iri_objs(alias, &format!("{LOGIC_NAMESPACE}compiledCorrespondence"))?;
+        let predicate = idx.iri_objs(alias, &format!("{LOGIC_NAMESPACE}sourceMatchPredicate"))?;
+        let files = read_literals(
+            &idx,
+            alias,
+            "https://blackcatinformatics.ca/gmeow/sssomFile",
+        )?;
+        if correspondence.len() != 1 || predicate.len() != 1 || files.len() != 1 {
+            return Err(field_error(
+                alias,
+                "native source",
+                "requires exactly one compiled correspondence, match predicate and SSSOM file",
+            ));
+        }
+        let cell = correspondences
+            .iter()
+            .find(|cell| cell.iri == correspondence[0])
+            .ok_or_else(|| {
+                field_error(
+                    alias,
+                    "native source",
+                    "compiled correspondence is not a program member",
+                )
+            })?;
+        let Some(purrdf::TermRef::Triple { s, p, o }) =
+            idx.scalar(alias, "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies")?
+        else {
+            return Err(field_error(
+                alias,
+                "native source",
+                "requires its exact native reified proposition",
+            ));
+        };
+        if !matches!(dataset.resolve(s), purrdf::TermRef::Iri(value) if Some(value) == cell.source_endpoint.as_deref())
+            || !matches!(dataset.resolve(p), purrdf::TermRef::Iri(value) if value == predicate[0])
+            || !matches!(dataset.resolve(o), purrdf::TermRef::Iri(value) if Some(value) == cell.target_endpoint.as_deref())
+        {
+            return Err(field_error(
+                alias,
+                "native source",
+                "reified proposition differs from canonical endpoints/predicate",
+            ));
+        }
+        let owners = idx.iri_objs(alias, &format!("{LOGIC_NAMESPACE}groundingSourceOwner"))?;
+        let paths = read_literals(
+            &idx,
+            alias,
+            &format!("{LOGIC_NAMESPACE}groundingSourcePath"),
+        )?;
+        let digests = read_literals(
+            &idx,
+            alias,
+            &format!("{LOGIC_NAMESPACE}groundingSourceDigest"),
+        )?;
+        let ownership = match (owners.as_slice(), paths.as_slice(), digests.as_slice()) {
+            ([], [], []) => None,
+            ([owner], [path], [digest])
+                if path.language.is_none()
+                    && path.direction.is_none()
+                    && path.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string"
+                    && digest.language.is_none()
+                    && digest.direction.is_none()
+                    && digest.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string" =>
+            {
+                Some(super::grounding_catalog::GroundingSourceIdentity {
+                    owner: (*owner).to_owned(),
+                    path: path.lexical_form.clone(),
+                    digest: digest.lexical_form.clone(),
+                })
+            }
+            _ => {
+                return Err(field_error(
+                    alias,
+                    "native source",
+                    "physical grounding ownership requires exactly one owner, untagged path and digest",
+                ));
+            }
+        };
+        native_sources.push(NativeCorrespondenceSource {
+            alias: alias.to_owned(),
+            correspondence: correspondence[0].to_owned(),
+            predicate: predicate[0].to_owned(),
+            sssom_file: files[0].lexical_form.clone(),
+            ownership,
+        });
+    }
+    let mut bindings = Vec::new();
+    for binding in idx.iri_objs(&prog, &format!("{LOGIC_NAMESPACE}hasProjectionBinding"))? {
+        if !idx
+            .iri_objs(binding, RDF_TYPE)?
+            .contains(&format!("{LOGIC_NAMESPACE}ProjectionBindingProgram").as_str())
+        {
+            return Err(field_error(
+                binding,
+                "projection binding",
+                "missing canonical realized binding type",
+            ));
+        }
+        let literals = read_literals(
+            &idx,
+            binding,
+            &format!("{LOGIC_NAMESPACE}projectionBindingContent"),
+        )?;
+        let [literal] = literals.as_slice() else {
+            return Err(field_error(
+                binding,
+                "projection binding",
+                "requires one typed native body",
+            ));
+        };
+        if literal.datatype_iri() != "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON"
+            || literal.language.is_some()
+            || literal.direction.is_some()
+        {
+            return Err(field_error(
+                binding,
+                "projection binding",
+                "requires untagged rdf:JSON",
+            ));
+        }
+        let value: super::profile_program::ProjectionBindingProgram =
+            purrdf_lex::json::record::from_slice(literal.lexical_form.as_bytes())
+                .map_err(|why| field_error(binding, "projection binding", why))?;
+        if value.id != binding {
+            return Err(field_error(
+                binding,
+                "projection binding",
+                "native identity differs from content",
+            ));
+        }
+        bindings.push(value);
+    }
+    let mut profiles = Vec::new();
+    for profile in idx.iri_objs(&prog, &format!("{LOGIC_NAMESPACE}hasProjectionProgram"))? {
+        if !idx
+            .iri_objs(profile, RDF_TYPE)?
+            .contains(&format!("{LOGIC_NAMESPACE}ProjectionProfileProgram").as_str())
+        {
+            return Err(field_error(
+                profile,
+                "projection program",
+                "missing canonical program type",
+            ));
+        }
+        let literals = read_literals(
+            &idx,
+            profile,
+            &format!("{LOGIC_NAMESPACE}projectionProgramContent"),
+        )?;
+        let [literal] = literals.as_slice() else {
+            return Err(field_error(
+                profile,
+                "projection program",
+                "requires exactly one typed content record",
+            ));
+        };
+        if literal.datatype_iri() != "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON"
+            || literal.language.is_some()
+            || literal.direction.is_some()
+        {
+            return Err(field_error(
+                profile,
+                "projection program",
+                "requires an untagged rdf:JSON typed native record",
+            ));
+        }
+        let value: super::profile_program::ProjectionProfileProgram =
+            purrdf_lex::json::record::from_slice(literal.lexical_form.as_bytes())
+                .map_err(|error| field_error(profile, "projection program", error))?;
+        if value.id != profile {
+            return Err(field_error(
+                profile,
+                "projection program",
+                "record attributed to a different native program identity",
+            ));
+        }
+        profiles.push(value);
+    }
+    CorrespondenceProgram::new(correspondences, preservation)
         .with_compositions(compositions)
-        .with_leg_programs(leg_programs))
+        .with_leg_programs(leg_programs)
+        .with_native_sources(native_sources)?
+        .with_projection_bindings(bindings)?
+        .with_projection_profiles(profiles)
 }
 
 /// Extract every authored `logic:Correspondence` individual from a dataset — the

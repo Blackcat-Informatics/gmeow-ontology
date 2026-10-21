@@ -14,7 +14,7 @@
 //!   by construction), its confidence from `gmeow:confidence`, and its evidence
 //!   retained independently from the full qualitative evidence identity;
 //! * a `gmeow:ProjectionMapping` per-profile binding (the EDOAL/SPARQL get leg): its
-//!   `(relation, morphism class, morphism kind)` come from [`ProfileBinding::lattice`],
+//!   `(relation, morphism class, morphism kind)` come from [`super::get_leg::ProfileBinding::lattice`],
 //!   its get leg references the cell's pattern, and its confidence from the binding.
 //!
 //! The correspondence IRI is content-addressed (`sha256` of the cell's identifying
@@ -42,7 +42,7 @@ use crate::ir::{
     PreservationKind,
 };
 use crate::projections::correspondence::CorrespondenceProgram;
-use crate::projections::get_leg::{ProfileBinding, ProjectionCell, binding_key, projections};
+use crate::projections::get_leg::{ProjectionBinding, ProjectionCell, binding_key, projections};
 use crate::projections::sssom::{equivalence_cells, sssom_band};
 
 /// A content-addressed correspondence IRI under `LOGIC_NAMESPACE` for the cell keyed by
@@ -50,7 +50,7 @@ use crate::projections::sssom::{equivalence_cells, sssom_band};
 /// (`projections::mod` / `rdf.rs`), so the identity is stable, collision-free, and
 /// IRI-legal. `tag` segments the two cell kinds so a term-equivalence and a projection
 /// binding can never collide on the same digest.
-fn correspondence_iri(tag: &str, key: &str) -> String {
+pub(crate) fn correspondence_iri(tag: &str, key: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(key.as_bytes());
     let digest = hasher.finalize();
@@ -161,9 +161,15 @@ pub struct CorrespondenceAnalysis {
     /// programs for executed lens-law discharge — the per-profile UNION query is the wrong
     /// unit (a single UNION branch's law must be checked in isolation).
     binding_keys: BTreeMap<String, String>,
+    native_catalog_identity: String,
 }
 
 impl CorrespondenceAnalysis {
+    /// Actual admitted native alignment-program identity, independent of its
+    /// derived profile products and therefore free of recursive hashing.
+    pub fn native_catalog_identity(&self) -> &str {
+        &self.native_catalog_identity
+    }
     /// The exact native alignment cells from which the typed program was admitted.
     pub fn alignment_cells(&self) -> &[super::sssom::EquivalenceCell] {
         &self.alignment_cells
@@ -207,7 +213,7 @@ impl CorrespondenceAnalysis {
     pub fn binding(
         &self,
         cell: &ProjectionCell,
-        binding: &ProfileBinding,
+        binding: &ProjectionBinding,
     ) -> gmeow_errors::Result<TypedRelation> {
         let semantic_key = binding_key(cell, binding);
         let key = NaturalKey::Binding {
@@ -243,12 +249,17 @@ impl CorrespondenceAnalysis {
 /// # Errors
 /// Refuses malformed source patterns, unresolved correspondence fields, conflicting
 /// declarations and invalid typed coordinates before publishing either product.
-pub fn transpile_correspondences_indexed(
-    dsl_view: &DslView,
-) -> gmeow_errors::Result<(CorrespondenceProgram, CorrespondenceAnalysis)> {
-    let mut correspondences: Vec<Correspondence> = Vec::new();
-    let mut by_key: BTreeMap<NaturalKey, TypedRelation> = BTreeMap::new();
-    let mut binding_keys: BTreeMap<String, String> = BTreeMap::new();
+/// Admit native alignment cells once, using the same canonical constructors as
+/// the complete correspondence frontend. Selectors consume this typed result.
+pub(crate) struct NativeAdmission {
+    pub(crate) program: CorrespondenceProgram,
+    alignment_cells: Vec<crate::projections::sssom::EquivalenceCell>,
+    by_key: BTreeMap<NaturalKey, TypedRelation>,
+}
+
+pub(crate) fn admit_native_cells(dsl_view: &DslView) -> gmeow_errors::Result<NativeAdmission> {
+    let mut correspondences = Vec::new();
+    let mut by_key = BTreeMap::new();
     // Two authored cells that mint the SAME content-addressed correspondence IRI must agree on
     // the SEMANTIC identity of the fact: confidence, justification, and endpoints. The IRI
     // folds in (subject, predicate, object) + morphism metadata, so a cell that additionally
@@ -261,7 +272,7 @@ pub fn transpile_correspondences_indexed(
     let mut seen_correspondences: BTreeMap<String, (String, String)> = BTreeMap::new();
 
     let alignment_cells = equivalence_cells(dsl_view)?;
-    let projection_cells = projections(dsl_view)?;
+    let mut native_sources = Vec::new();
 
     // ── Native alignment cells (the SSSOM 1:1 band) ────────────────────────────────
     for cell in &alignment_cells {
@@ -363,6 +374,15 @@ pub fn transpile_correspondences_indexed(
             cell.subject, cell.predicate, cell.obj, authored_key
         );
         let iri = correspondence_iri("term-equivalence", &key);
+        if let Some(alias) = &cell.source_alias {
+            native_sources.push(super::correspondence::NativeCorrespondenceSource {
+                alias: alias.clone(),
+                correspondence: iri.clone(),
+                predicate: cell.predicate.clone(),
+                sssom_file: cell.sssom_file.clone(),
+                ownership: None,
+            });
+        }
         // Fail closed on a semantically divergent duplicate; collapse a redundant restatement.
         let signature = format!(
             "conf={:?}|just={:?}|src={:?}|tgt={:?}|loss={:?}",
@@ -448,6 +468,58 @@ pub fn transpile_correspondences_indexed(
         correspondences.push(corr);
     }
 
+    let program = CorrespondenceProgram::new(correspondences, PreservationKind::SoundUnder)
+        .with_native_sources(native_sources)?;
+    Ok(NativeAdmission {
+        program,
+        alignment_cells,
+        by_key,
+    })
+}
+
+pub fn transpile_correspondences_indexed(
+    dsl_view: &DslView,
+    ontology: &DslView,
+    owned_sources: &[super::grounding_catalog::OwnedGroundingSource],
+) -> gmeow_errors::Result<(CorrespondenceProgram, CorrespondenceAnalysis)> {
+    let NativeAdmission {
+        program: native,
+        alignment_cells,
+        mut by_key,
+    } = admit_native_cells(dsl_view)?;
+    let catalog =
+        super::grounding_catalog::GroundingCatalog::from_sources(owned_sources, ontology)?;
+    for owned in &catalog.program().correspondences {
+        if !native.correspondences.contains(owned) {
+            return Err(super::grounding_catalog::error(
+                "required owned native cell differs from general alignment input",
+            ));
+        }
+    }
+    let mut correspondences = native.correspondences;
+    let mut native_sources = native.native_sources;
+    for owned in &catalog.program().native_sources {
+        let source = native_sources
+            .iter_mut()
+            .find(|source| source.alias == owned.alias)
+            .ok_or_else(|| {
+                super::grounding_catalog::error(
+                    "required owned alias is absent from general alignment input",
+                )
+            })?;
+        if source.correspondence != owned.correspondence
+            || source.predicate != owned.predicate
+            || source.sssom_file != owned.sssom_file
+        {
+            return Err(super::grounding_catalog::error(
+                "owned native alias conflicts with general alignment declaration",
+            ));
+        }
+        *source = owned.clone();
+    }
+    let mut binding_keys: BTreeMap<String, String> = BTreeMap::new();
+    let projection_cells = projections(dsl_view, &catalog)?;
+
     // ── gmeow:ProjectionMapping per-profile bindings (the EDOAL/SPARQL get leg) ─────
     for cell in &projection_cells {
         if cell.grounding.is_some() && cell.bindings.len() != 1 {
@@ -475,10 +547,12 @@ pub fn transpile_correspondences_indexed(
 
     // The frontend's preservation polarity for the lane: the alignment lowerings are a
     // sound under-approximation (they refuse the forced-equality reading), never exact.
-    let program = CorrespondenceProgram::new(correspondences, PreservationKind::SoundUnder);
+    let program = CorrespondenceProgram::new(correspondences, PreservationKind::SoundUnder)
+        .with_native_sources(native_sources)?;
     Ok((
         program,
         CorrespondenceAnalysis {
+            native_catalog_identity: catalog.identity().to_owned(),
             alignment_cells,
             projection_cells,
             by_key,
@@ -488,12 +562,12 @@ pub fn transpile_correspondences_indexed(
 }
 
 /// Materialize the typed [`Correspondence`] for one `gmeow:ProjectionMapping` profile
-/// binding, reusing [`ProfileBinding::lattice`] for the relation/class/kind triple — and
+/// binding, reusing [`super::get_leg::ProfileBinding::lattice`] for the relation/class/kind triple — and
 /// return that [`TypedRelation`] alongside it (computed once) so the lookup the dialect
 /// gates consume and the materialized node share one derivation.
 fn correspondence_for_binding(
     cell: &crate::projections::get_leg::ProjectionCell,
-    binding: &ProfileBinding,
+    binding: &ProjectionBinding,
 ) -> gmeow_errors::Result<(Correspondence, TypedRelation)> {
     let (relation, derived_class, derived_kind) = binding.lattice();
     let grounding = cell.grounding.as_ref();

@@ -22,6 +22,9 @@ use crate::ir::{
     MorphismKind,
 };
 
+const SELECTED_TEMPLATE_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"selected-native-template-v1\0");
+
 /// The 47 projection profiles. The single authority shared by BOTH the EDOAL and the
 /// SPARQL-CONSTRUCT lowerings — keeping one copy makes "no spec drift between the two
 /// dialects" structurally true.
@@ -360,11 +363,40 @@ pub struct ProjectionCell {
     pub iri: String,
     pub label: String,
     pub pattern: MappingPattern,
-    pub bindings: Vec<ProfileBinding>,
+    pub bindings: Vec<ProjectionBinding>,
     /// Whether this executable mapping is also an explicitly authored shipped grounding
     /// correspondence. Grounding projection cells are deliberately restricted to one
     /// binding so their target endpoint is unambiguous.
     pub grounding: Option<GroundingAuthoring>,
+}
+
+/// One actual output binding and its own admitted template occurrences. Sibling
+/// bindings may share a profile; that is never an ownership key for this roster.
+#[derive(Debug, Clone)]
+pub struct ProjectionBinding {
+    pub source: ProfileBinding,
+    pub selected_templates: Vec<super::selected_templates::SelectedTemplate>,
+}
+
+impl From<ProfileBinding> for ProjectionBinding {
+    fn from(source: ProfileBinding) -> Self {
+        Self {
+            source,
+            selected_templates: Vec::new(),
+        }
+    }
+}
+
+impl std::ops::Deref for ProjectionBinding {
+    type Target = ProfileBinding;
+    fn deref(&self) -> &Self::Target {
+        &self.source
+    }
+}
+impl std::ops::DerefMut for ProjectionBinding {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.source
+    }
 }
 
 /// Complete source-owned binding identity shared by report rows, typed relation
@@ -372,7 +404,7 @@ pub struct ProjectionCell {
 /// language, direction and source scope) participate; sibling bindings do not.
 /// The schema-tagged native Debug encoding is streamed directly into SHA-256:
 /// this is an identity commitment, never a rendered query or an execution input.
-pub fn binding_key(cell: &ProjectionCell, binding: &ProfileBinding) -> String {
+pub fn binding_key(cell: &ProjectionCell, binding: &ProjectionBinding) -> String {
     use sha2::{Digest, Sha256};
     use std::fmt::Write as _;
 
@@ -393,10 +425,16 @@ pub fn binding_key(cell: &ProjectionCell, binding: &ProfileBinding) -> String {
             &cell.label,
             &cell.pattern,
             &cell.grounding,
-            binding
+            &binding.source
         )
     )
     .expect("digest writer cannot fail");
+    if !binding.selected_templates.is_empty() {
+        writer.0.update(SELECTED_TEMPLATE_DOMAIN.as_bytes());
+        writer.0.update(purrdf_lex::json::record::to_vec(
+            &binding.selected_templates,
+        ));
+    }
     let digest = purrdf_hash::hex::encode(&writer.0.finalize());
     format!(
         "cell={:?};profile={:?};binding={digest}",
@@ -407,7 +445,10 @@ pub fn binding_key(cell: &ProjectionCell, binding: &ProfileBinding) -> String {
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
 
 /// Parse every `gmeow:ProjectionMapping` into the shared get-leg model.
-pub fn projections(view: &DslView) -> gmeow_errors::Result<Vec<ProjectionCell>> {
+pub fn projections(
+    view: &DslView,
+    catalog: &super::grounding_catalog::GroundingCatalog,
+) -> gmeow_errors::Result<Vec<ProjectionCell>> {
     let mut cells = Vec::new();
     let grounding = view
         .subjects_of_type(LOGIC_GROUNDING_CORRESPONDENCE)
@@ -422,7 +463,7 @@ pub fn projections(view: &DslView) -> gmeow_errors::Result<Vec<ProjectionCell>> 
         let pattern = parse_pattern(view, &pattern_node)?;
         let mut bindings = Vec::new();
         for binding_node in view.objects_of(&cell_iri, GM_HAS_BINDING) {
-            bindings.push(parse_binding(view, &binding_node)?);
+            bindings.push(ProjectionBinding::from(parse_binding(view, &binding_node)?));
         }
         if bindings.is_empty() {
             return Err(Diag::of_kind(crate::error::GetLeg {
@@ -447,6 +488,7 @@ pub fn projections(view: &DslView) -> gmeow_errors::Result<Vec<ProjectionCell>> 
             bindings,
         });
     }
+    super::selected_templates::resolve(view, catalog, &mut cells)?;
     Ok(cells)
 }
 

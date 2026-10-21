@@ -427,3 +427,30 @@ exercise each invariant directly against inline fixtures.
   result is a failure. It proves the ratchet's *commitments* (not the live
   measured/headroom) are queryable straight out of the bundled ontology via
   SPARQL, dogfooding Principle 17.
+
+## Selected native targets and catalog authority
+
+Selected template targets are admitted before any guarded-namespace filter. The
+counter resolves `gmeow:tPredFromCorrespondence` against a required independent
+grounding catalog, using the same native correspondence, source specialization and
+mandatory variable-flow checks as the compiler. A virtual target construct carries
+that proof while the original surface remains the denominator: importing the
+catalog's quads into the measured surface would change the inventory and is
+forbidden. Missing or malformed selection is an error, not zero residue.
+
+Repository catalogs use actual kernel-owned Mapping artifacts and canonical
+module-role inputs. A base measurement archives those exact inputs from the base
+commit, retains its admitted catalog with the base tree, and reuses it for
+destination and relocation comparisons. Working-tree inputs never replace missing
+base evidence. A genuinely absent selected directory at base still measures zero;
+an existing surface with missing required base grounding inputs fails.
+
+The schema.org procedure family uses the six IRI prefixes `HowTo`, `Recipe`,
+`supply`, `tool`, `result` and `step`; `HowTo` also covers `HowToStep`. Its seven
+existing correspondences and exemption ceiling seven remain. The separate
+`https://schema.org/value` family requires both the Math quantity bridge and Lang
+literal bridge, with a shared Lang/Math guard and default ceiling zero. These are
+prefixes, not exact-term matches: `valueReference` and other `value` suffixes are
+guarded too. Unknown endpoints and overlapping family/guard declarations retain
+their existing hard refusals. This partition grants no new headroom and removes
+no semantic correspondence.

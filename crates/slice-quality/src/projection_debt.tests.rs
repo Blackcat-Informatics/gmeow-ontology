@@ -81,7 +81,12 @@ fn owner_set_installed_debt_reader_uses_every_declared_boundary() {
             format!("{PREFIXES} <{surface}> a gmeow:Slice ."),
         )
         .unwrap();
-        let rows = measure_slice_debt(directory.path(), &policy).unwrap();
+        let rows = measure_slice_debt(
+            directory.path(),
+            &policy,
+            &crate::independent_grounding_catalog(),
+        )
+        .unwrap();
         assert_eq!(rows[0].measured, expected, "{surface}");
         assert_eq!(rows[0].ceiling, 0);
     }
@@ -105,7 +110,12 @@ fn projection_debt_measures_recursive_authoring_only_without_a_checkout() {
         )
         .unwrap();
     }
-    let rows = measure_slice_debt(root, &governance(2)).unwrap();
+    let rows = measure_slice_debt(
+        root,
+        &governance(2),
+        &crate::independent_grounding_catalog(),
+    )
+    .unwrap();
     assert_eq!(
         rows,
         vec![ProjectionDebtRow {
@@ -118,7 +128,16 @@ fn projection_debt_measures_recursive_authoring_only_without_a_checkout() {
     let first = render_projection_debt(&rows, "tsv").unwrap();
     assert_eq!(
         first,
-        render_projection_debt(&measure_slice_debt(root, &governance(2)).unwrap(), "tsv").unwrap()
+        render_projection_debt(
+            &measure_slice_debt(
+                root,
+                &governance(2),
+                &crate::independent_grounding_catalog(),
+            )
+            .unwrap(),
+            "tsv"
+        )
+        .unwrap()
     );
     assert!(first.contains("\tsh\t2\t2\t0\n"));
 }
@@ -127,10 +146,20 @@ fn projection_debt_measures_recursive_authoring_only_without_a_checkout() {
 fn projection_debt_uses_trusted_defaults_and_reports_deficits_without_rebaselining() {
     let directory = source();
     let mut policy = governance(4);
-    let rows = measure_slice_debt(directory.path(), &policy).unwrap();
+    let rows = measure_slice_debt(
+        directory.path(),
+        &policy,
+        &crate::independent_grounding_catalog(),
+    )
+    .unwrap();
     assert_eq!(rows[0].headroom(), 3);
     policy.ceilings.clear();
-    let rows = measure_slice_debt(directory.path(), &policy).unwrap();
+    let rows = measure_slice_debt(
+        directory.path(),
+        &policy,
+        &crate::independent_grounding_catalog(),
+    )
+    .unwrap();
     assert_eq!(rows[0].ceiling, 0);
     assert_eq!(rows[0].headroom(), -1);
     std::fs::write(directory.path().join("mappings-local.ttl"), "not selected").unwrap();
@@ -143,7 +172,13 @@ fn projection_debt_uses_trusted_defaults_and_reports_deficits_without_rebaselini
     )
     .unwrap();
     assert_eq!(
-        measure_slice_debt(directory.path(), &policy).unwrap()[0].ceiling,
+        measure_slice_debt(
+            directory.path(),
+            &policy,
+            &crate::independent_grounding_catalog(),
+        )
+        .unwrap()[0]
+            .ceiling,
         0
     );
 }
@@ -153,40 +188,103 @@ fn projection_debt_rejects_missing_malformed_and_ambiguous_selected_sources() {
     let directory = source();
     let root = directory.path();
     std::fs::remove_file(root.join("module.ttl")).unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     std::fs::write(root.join("module.ttl"), "invalid Turtle").unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     std::fs::write(root.join("module.ttl"), "").unwrap();
     std::fs::write(
         root.join("manifest.ttl"),
         format!("{PREFIXES} <{SLICE}> a gmeow:Slice . ex:other a gmeow:Slice ."),
     )
     .unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     std::fs::remove_file(root.join("manifest.ttl")).unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
 }
 
 #[test]
 fn projection_debt_rejects_a_mapping_tree_that_cannot_be_scanned() {
     let directory = source();
     std::fs::write(directory.path().join("mappings"), "not a directory").unwrap();
-    assert!(measure_slice_debt(directory.path(), &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            directory.path(),
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
 }
 
 #[test]
 fn projection_debt_rejects_ambiguous_or_missing_governance() {
     let directory = source();
-    assert!(measure_slice_debt(directory.path(), &GovernanceFloors::default()).is_err());
+    assert!(
+        measure_slice_debt(
+            directory.path(),
+            &GovernanceFloors::default(),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     let mut policy = governance(1);
     policy.ceilings.push(policy.ceilings[0].clone());
-    assert!(measure_slice_debt(directory.path(), &policy).is_err());
+    assert!(
+        measure_slice_debt(
+            directory.path(),
+            &policy,
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     let mut policy = governance(1);
     policy.vocabularies.push(policy.vocabularies[0].clone());
-    assert!(measure_slice_debt(directory.path(), &policy).is_err());
+    assert!(
+        measure_slice_debt(
+            directory.path(),
+            &policy,
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     let mut policy = governance(1);
     policy.ceilings[0].vocab_prefix = "unknown".into();
-    assert!(measure_slice_debt(directory.path(), &policy).is_err());
+    assert!(
+        measure_slice_debt(
+            directory.path(),
+            &policy,
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
 }
 
 #[test]
@@ -198,11 +296,24 @@ fn projection_debt_does_not_present_documentary_surfaces_as_measured() {
     documentary.count_kind = CountKind::NonRdfSurface;
     policy.vocabularies.push(documentary);
     assert_eq!(
-        measure_slice_debt(directory.path(), &policy).unwrap().len(),
+        measure_slice_debt(
+            directory.path(),
+            &policy,
+            &crate::independent_grounding_catalog(),
+        )
+        .unwrap()
+        .len(),
         1
     );
     policy.vocabularies[0].count_kind = CountKind::NonRdfSurface;
-    assert!(measure_slice_debt(directory.path(), &policy).is_err());
+    assert!(
+        measure_slice_debt(
+            directory.path(),
+            &policy,
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
 }
 
 #[test]
@@ -210,11 +321,25 @@ fn projection_debt_parses_every_selected_shape_and_mapping_file() {
     let directory = source();
     let root = directory.path();
     std::fs::write(root.join("shapes.ttl"), "invalid Turtle").unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     std::fs::remove_file(root.join("shapes.ttl")).unwrap();
     std::fs::create_dir_all(root.join("mappings/nested")).unwrap();
     std::fs::write(root.join("mappings/nested/broken.ttl"), "invalid Turtle").unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
 }
 
 #[cfg(unix)]
@@ -224,10 +349,24 @@ fn projection_debt_rejects_mapping_cycles_and_dangling_optional_sources() {
     let root = directory.path();
     std::fs::create_dir(root.join("mappings")).unwrap();
     std::os::unix::fs::symlink(root.join("mappings"), root.join("mappings/loop")).unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     std::fs::remove_file(root.join("mappings/loop")).unwrap();
     std::os::unix::fs::symlink(root.join("missing.ttl"), root.join("shapes.ttl")).unwrap();
-    assert!(measure_slice_debt(root, &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            root,
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
 }
 
 #[test]
@@ -277,7 +416,12 @@ fn projection_debt_preserves_the_declared_subsumption_budget_unit() {
         "http://www.w3.org/2000/01/rdf-schema#subPropertyOf".into(),
     ];
     policy.ceilings[0].vocab_prefix = "rdfs".into();
-    let rows = measure_slice_debt(directory.path(), &policy).unwrap();
+    let rows = measure_slice_debt(
+        directory.path(),
+        &policy,
+        &crate::independent_grounding_catalog(),
+    )
+    .unwrap();
     assert_eq!(rows[0].measured, 2);
     assert_eq!(rows[0].headroom(), 0);
 }
@@ -291,7 +435,14 @@ fn projection_debt_shared_inventory_accepts_manifest_only_profiles() {
             .unwrap()
             .is_empty()
     );
-    assert!(measure_slice_debt(directory.path(), &governance(0)).is_err());
+    assert!(
+        measure_slice_debt(
+            directory.path(),
+            &governance(0),
+            &crate::independent_grounding_catalog(),
+        )
+        .is_err()
+    );
     std::fs::create_dir(directory.path().join("module.ttl")).unwrap();
     assert!(crate::ratchet_surface_paths(directory.path()).is_err());
 }

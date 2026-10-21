@@ -205,6 +205,12 @@ fn shapes_doc(shapes: &[String]) -> String {
 
 /// Write a whole repository state onto `root` (creating every directory).
 fn write_state(root: &std::path::Path, state: &State) {
+    std::fs::create_dir_all(root.join("ontology")).unwrap();
+    std::fs::write(
+        root.join("ontology/gmeow.ttl"),
+        "# Independent fixture has no selected grounding catalog.\n",
+    )
+    .unwrap();
     let rubric_dir = root.join("slices/core/slice-quality-rubric");
     std::fs::create_dir_all(&rubric_dir).unwrap();
     std::fs::write(
@@ -328,7 +334,10 @@ fn rebalance_for(root: &std::path::Path) -> gmeow_slice_quality::gate::CeilingRe
     let rubric = gmeow_slice_quality::load_repo_rubric(root).expect("fixture rubric loads");
     let vocabularies = &rubric.floors.vocabularies;
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
-    let score_results = gmeow_slice_quality::score_slices_with_rubric(root, &dirs, &rubric);
+    let grounding =
+        gmeow_validate::grounding_catalog::load(root).expect("authored fixture role inputs load");
+    let score_results =
+        gmeow_slice_quality::score_slices_with_rubric(root, &dirs, &rubric, &grounding);
     let mut slice_dirs: Vec<(&Path, String)> = Vec::with_capacity(dirs.len());
     for (dir, result) in dirs.iter().zip(&score_results) {
         let report = result.as_ref().expect("fixture slice scores");
@@ -336,7 +345,7 @@ fn rebalance_for(root: &std::path::Path) -> gmeow_slice_quality::gate::CeilingRe
     }
     let working_ceilings = ceilings_from_rubric(&rubric);
     let working_constructs =
-        gmeow_slice_quality::measure_repo_residue_constructs(root, vocabularies)
+        gmeow_slice_quality::measure_repo_residue_constructs(root, vocabularies, &grounding)
             .expect("fixture working residue measures");
     let working_residues: std::collections::BTreeMap<(String, String), u64> = working_constructs
         .iter()
@@ -367,8 +376,154 @@ fn rebalance_for(root: &std::path::Path) -> gmeow_slice_quality::gate::CeilingRe
         working_residues: &working_residues,
         working_constructs: &working_constructs,
         needed: &needed,
+        working_grounding: &grounding,
     })
     .expect("fixture ceiling rebalance composes")
+}
+
+#[test]
+fn projection_literal_base_catalog_is_retained_from_exact_base_inputs_and_missing_support_refuses()
+{
+    // Independently authored source-only Git fixture: no assessment/corpus
+    // producer, generated artifact or repository source is used.
+    let temporary = tempfile::tempdir().unwrap();
+    let root = temporary.path();
+    let (lang_module, bridge_path, bridge) = write_selected_base_inputs(root);
+    // Inert tree snapshots need neither commits nor references. Retain normal
+    // configuration while scoping every write to this independently authored fixture.
+    let snapshot_git = |args: &[&str]| {
+        let mut command = Command::new("git");
+        command
+            .current_dir(root)
+            .arg("--git-dir")
+            .arg(root.join(".git"))
+            .arg("--work-tree")
+            .arg(root);
+        for variable in [
+            "GIT_DIR",
+            "GIT_WORK_TREE",
+            "GIT_INDEX_FILE",
+            "GIT_COMMON_DIR",
+            "GIT_OBJECT_DIRECTORY",
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        ] {
+            command.env_remove(variable);
+        }
+        let output = command
+            .args(args)
+            .output()
+            .expect("run fixture tree snapshot command");
+        assert!(
+            output.status.success(),
+            "fixture Git {args:?}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout)
+            .expect("fixture Git output is UTF-8")
+            .trim()
+            .to_owned()
+    };
+    snapshot_git(&["init", "-q"]);
+    snapshot_git(&["add", "-A"]);
+    let original_tree = snapshot_git(&["write-tree"]);
+    let vocabulary = gmeow_slice_quality::model::ProjectionVocabulary {
+        prefix: "value".to_owned(),
+        namespaces: vec!["https://schema.org/value".to_owned()],
+        subsumed_by: LOGIC_SLICE.to_owned(),
+        owners: gmeow_slice_quality::model::GroundingOwners::new([
+            gmeow_slice_quality::model::GroundingOwners::LANG.to_owned(),
+            gmeow_slice_quality::model::GroundingOwners::MATH.to_owned(),
+        ])
+        .unwrap(),
+        count_kind: gmeow_slice_quality::model::CountKind::TypedAxiom,
+        default_ceiling: 0,
+        preservation: "ValidationOnly".to_owned(),
+        alignment_predicates: Vec::new(),
+        counted_predicates: Vec::new(),
+    };
+    let needed =
+        std::collections::BTreeSet::from([gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned()]);
+    // The working files now have a different valid target and artifact digest.
+    std::fs::write(
+        &bridge_path,
+        bridge.replace("schema.org/value>", "schema.org/valueReference>"),
+    )
+    .unwrap();
+    let measured = measure_base_residues(
+        root,
+        &original_tree,
+        std::slice::from_ref(&vocabulary),
+        &needed,
+        &[],
+    )
+    .unwrap();
+    assert!(measured.constructs.is_empty());
+    let retained = measured.grounding.as_ref().unwrap();
+    let working = gmeow_validate::grounding_catalog::load(root).unwrap();
+    let extracted = measured.tree.as_ref().unwrap().root();
+    for excluded in ["design/notes.md", "examples/value.ttl", "i18n/fr.po"] {
+        assert!(
+            !extracted
+                .join("slices/grounding/lang")
+                .join(excluded)
+                .exists()
+        );
+    }
+    assert!(
+        working
+            .literal_support(
+                "https://blackcatinformatics.ca/lang/baseFixtureBridge",
+                "urn:base-fixture:example-only"
+            )
+            .is_err()
+    );
+    assert_ne!(retained.identity(), working.identity());
+    assert_eq!(
+        retained
+            .literal_support(
+                "https://blackcatinformatics.ca/lang/baseFixtureBridge",
+                "urn:base-fixture:value"
+            )
+            .unwrap()
+            .target_property,
+        "https://schema.org/value"
+    );
+    assert_eq!(
+        working
+            .literal_support(
+                "https://blackcatinformatics.ca/lang/baseFixtureBridge",
+                "urn:base-fixture:value"
+            )
+            .unwrap()
+            .target_property,
+        "https://schema.org/valueReference"
+    );
+    assert!(
+        !measured
+            .surface_paths(gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI)
+            .unwrap()
+            .is_empty()
+    );
+    let absent_dir = root.join("slices/demo/new");
+    let absent_iri = "urn:base-fixture:new".to_owned();
+    let absent = measure_base_residues(
+        root,
+        &original_tree,
+        std::slice::from_ref(&vocabulary),
+        &std::collections::BTreeSet::from([absent_iri.clone()]),
+        &[(absent_dir.as_path(), absent_iri)],
+    )
+    .unwrap();
+    assert!(absent.tree.is_none());
+    assert!(absent.constructs.is_empty());
+    // A present selected base surface cannot borrow its missing carrier module
+    // from another revision, nor silently measure zero.
+    std::fs::remove_file(&lang_module).unwrap();
+    snapshot_git(&["add", "-A"]);
+    let missing_carrier_tree = snapshot_git(&["write-tree"]);
+    assert!(
+        measure_base_residues(root, &missing_carrier_tree, &[vocabulary], &needed, &[]).is_err()
+    );
 }
 
 /// Assert `root`'s relocation-aware rebalance carries a violation containing
@@ -708,4 +863,73 @@ fn an_empty_declaration_set_reproduces_the_pre_relocation_behaviour() {
         0,
         "a bare raise on a shared key still reds with no declarations — unchanged behaviour"
     );
+}
+
+fn write_selected_base_inputs(
+    root: &Path,
+) -> (std::path::PathBuf, std::path::PathBuf, &'static str) {
+    for directory in [
+        "ontology",
+        "slices/grounding/lang/mappings",
+        "slices/grounding/lang/design",
+        "slices/grounding/lang/examples",
+        "slices/grounding/lang/i18n",
+        "slices/demo/value",
+        "dsl/mappings",
+    ] {
+        std::fs::create_dir_all(root.join(directory)).unwrap();
+    }
+    std::fs::write(root.join("ontology/gmeow.ttl"), "# independent root\n").unwrap();
+    std::fs::write(root.join("slices/grounding/lang/manifest.ttl"),
+        "<https://blackcatinformatics.ca/gmeow/slices/lang> a <https://blackcatinformatics.ca/gmeow/Slice> ; <http://purl.org/dc/terms/hasPart> <design/notes.md>, <examples/value.ttl>, <i18n/fr.po> .").unwrap();
+    std::fs::write(
+        root.join("slices/grounding/lang/design/notes.md"),
+        "Independent descriptive notes.\n",
+    )
+    .unwrap();
+    std::fs::write(root.join("slices/grounding/lang/examples/value.ttl"), "<urn:base-fixture:example-only> a <https://blackcatinformatics.ca/logic/DatatypeProperty> ; <https://blackcatinformatics.ca/logic/subPropertyOf> <https://blackcatinformatics.ca/lang/literalValue> .").unwrap();
+    std::fs::write(
+        root.join("slices/grounding/lang/i18n/fr.po"),
+        "msgid \"\"\nmsgstr \"\"\n\"Language: fr\\n\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("slices/demo/value/manifest.ttl"),
+        "<urn:base-fixture:domain> a <https://blackcatinformatics.ca/gmeow/Slice> .",
+    )
+    .unwrap();
+    let lang_module = root.join("slices/grounding/lang/module.ttl");
+    std::fs::write(&lang_module, r#"
+<https://blackcatinformatics.ca/lang/literalValue> a <https://blackcatinformatics.ca/logic/DatatypeProperty> ;
+    <https://blackcatinformatics.ca/logic/range> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+    <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/slices/lang> .
+"#).unwrap();
+    std::fs::write(root.join("slices/demo/value/module.ttl"), r#"
+<urn:base-fixture:value> a <https://blackcatinformatics.ca/logic/DatatypeProperty> ;
+    <https://blackcatinformatics.ca/logic/subPropertyOf> <https://blackcatinformatics.ca/lang/literalValue> .
+"#).unwrap();
+    let bridge_path = root.join("slices/grounding/lang/mappings/base-value.ttl");
+    let bridge = r#"
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+lang:literalValue skos:relatedMatch <https://schema.org/value> .
+lang:baseFixtureBridge rdf:reifies <<(lang:literalValue skos:relatedMatch <https://schema.org/value>)>> ;
+    a logic:GroundingCorrespondence ; gm:sssomFile "base-fixture.tsv" ; gm:justification <urn:base-fixture:curation> ;
+    logic:sourceEndpoint lang:literalValue ; logic:targetEndpoint <https://schema.org/value> ;
+    logic:morphismClass logic:BridgeView ; logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly .
+"#;
+    std::fs::write(&bridge_path, bridge).unwrap();
+    std::fs::write(root.join("dsl/mappings/authored.ttl"), r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+<urn:base-fixture:mapping> a gm:ProjectionMapping ;
+    gm:hasMappingPattern [ gm:anchor "record" ; gm:atom (
+        [ gm:subjectVar "record" ; gm:predicate <urn:base-fixture:value> ; gm:objectVar "literal" ] ) ] ;
+    gm:hasBinding [ gm:profile "authored" ; gm:relation "<=" ; gm:templateAtoms (
+        [ gm:tSubj "record" ; gm:tPredFromCorrespondence <https://blackcatinformatics.ca/lang/baseFixtureBridge> ; gm:tObj "literal" ] ) ] .
+"#).unwrap();
+    (lang_module, bridge_path, bridge)
 }

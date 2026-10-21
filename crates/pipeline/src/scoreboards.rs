@@ -711,7 +711,7 @@ impl AcceptanceContext {
             &ontology_nt,
             &load_cells(root)?,
             &denied_cells(root)?,
-            &projection_queries(root)?,
+            &projection_programs(root)?,
             &tag_map
                 .iter()
                 .map(|(key, value)| (key.clone(), value.clone()))
@@ -1357,18 +1357,26 @@ fn projection_ttls(root: &Path) -> gmeow_errors::Result<Vec<String>> {
     read_texts(&paths)
 }
 
-fn projection_queries(root: &Path) -> gmeow_errors::Result<Vec<(String, String)>> {
-    // GENERATED-READ-OK: dev-CLI scoreboard audit of committed queries; result never folds into gmeow.gts.
-    let dir = root.join("generated").join("queries");
-    ACCEPTANCE_PROFILES
-        .iter()
-        .map(|profile| {
-            let path = dir.join(format!("{profile}.rq"));
-            let text = fs::read_to_string(&path)
-                .with_ctx(|| format!("failed to read projection query {}", path.display()))?;
-            Ok(((*profile).to_owned(), text))
-        })
-        .collect()
+fn projection_programs(
+    root: &Path,
+) -> gmeow_errors::Result<Vec<crate::projection_execution::PreparedProjectionProfile>> {
+    // GENERATED-READ-OK: explicit repo acceptance operation reads the exact
+    // generated native authority and typed products; it never produces them.
+    let bundle_path = root.join("generated/dist/gmeow.gts");
+    let bytes = fs::read(&bundle_path)
+        .with_ctx(|| format!("read required native catalog {}", bundle_path.display()))?;
+    let catalog =
+        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_bundle(&bytes)?;
+    let dir = root.join("generated/queries");
+    ACCEPTANCE_PROFILES.iter().map(|profile| {
+        let path = dir.join(format!("{profile}.projection.json"));
+        let bytes = fs::read(&path).with_ctx(|| format!("read required projection product {}", path.display()))?;
+        let program = gmeow_logic_compile::projections::profile_program::ProjectionProfileProgram::from_bytes(&bytes, &catalog)?;
+        if program.payload.profile != *profile {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: format!("{} declares a different projection profile", path.display()) }));
+        }
+        crate::projection_execution::PreparedProjectionProfile::prepare(&program, &catalog)
+    }).collect()
 }
 
 fn load_cells(root: &Path) -> gmeow_errors::Result<Vec<CellInput>> {

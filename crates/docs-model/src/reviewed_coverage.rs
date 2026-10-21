@@ -13,34 +13,6 @@ use crate::i18n_compile::{
     counts_as_reviewed_coverage, expand_predicate, language_from_po, parse_po,
 };
 
-/// Recursively collect every `*.po` file under `dir` whose parent is `i18n`.
-fn collect_i18n_pos(dir: &Path, out: &mut Vec<PathBuf>) -> std::io::Result<()> {
-    for entry in std::fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_dir() {
-            collect_i18n_pos(&path, out)?;
-        } else if path.extension().and_then(|s| s.to_str()) == Some("po")
-            && path
-                .parent()
-                .and_then(Path::file_name)
-                .and_then(|s| s.to_str())
-                == Some("i18n")
-        {
-            out.push(path);
-        }
-    }
-    Ok(())
-}
-
-/// Every live slice PO under `<root>/slices/**/i18n/*.po`, sorted.
-pub fn live_slice_pos(root: &Path) -> std::io::Result<Vec<PathBuf>> {
-    let mut out = Vec::new();
-    collect_i18n_pos(&root.join("slices"), &mut out)?;
-    out.sort();
-    Ok(out)
-}
-
 /// Collect the optional root `i18n/ontology-docs-templates.*.po` catalogs.
 pub fn docs_template_pos(root: &Path) -> std::io::Result<Vec<PathBuf>> {
     let directory = root.join("i18n");
@@ -75,13 +47,31 @@ pub struct ReviewedCoverageObservation {
 }
 
 /// Declare all selected catalog files before recording an observation.
-pub fn input_files(root: &Path) -> std::io::Result<Vec<PathBuf>> {
-    let mut paths = live_slice_pos(root)?;
-    paths.extend(docs_template_pos(root)?);
-    paths.push(root.join("tests/fixtures/i18n/fr.po"));
-    paths.push(root.join("tests/fixtures/i18n/zh.po"));
+pub fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let sources = crate::ontology_catalogs::discover(root)?;
+    let mut paths = Vec::new();
+    for source in sources {
+        paths.push(source.path);
+        if source.owner_iri == crate::ontology_catalogs::MAPPING_DSL_OWNER {
+            paths.extend(
+                crate::ontology_catalogs::MAPPING_DSL_SOURCES
+                    .iter()
+                    .map(|path| root.join(path)),
+            );
+        } else {
+            paths.push(source.owner_path.join("manifest.ttl"));
+        }
+    }
+    paths.extend(auxiliary_catalog_paths(root)?);
     paths.sort();
     paths.dedup();
+    Ok(paths)
+}
+
+fn auxiliary_catalog_paths(root: &Path) -> std::io::Result<Vec<PathBuf>> {
+    let mut paths = docs_template_pos(root)?;
+    paths.push(root.join("tests/fixtures/i18n/fr.po"));
+    paths.push(root.join("tests/fixtures/i18n/zh.po"));
     Ok(paths)
 }
 
@@ -91,17 +81,26 @@ pub fn observe(root: &Path) -> gmeow_errors::Result<ReviewedCoverageObservation>
         parsed_catalogs: BTreeMap::new(),
         reviewed_coverage: BTreeMap::new(),
     };
-    for path in input_files(root)? {
-        let text = std::fs::read_to_string(&path)?;
-        let entries = parse_po(&text, false).map_err(|error| {
+    let sources = crate::ontology_catalogs::discover(root)?;
+    let mut catalogs: Vec<_> = sources
+        .into_iter()
+        .map(|source| (source.path, source.content, true))
+        .collect();
+    for path in auxiliary_catalog_paths(root)? {
+        let content = std::fs::read(&path)?;
+        catalogs.push((path, content, false));
+    }
+    for (path, content, live) in catalogs {
+        let text = std::str::from_utf8(&content).map_err(std::io::Error::other)?;
+        let entries = parse_po(text, false).map_err(|error| {
             std::io::Error::other(format!("parse catalog {}: {error}", path.display()))
         })?;
         let key = relative_key(root, &path);
         observation
             .parsed_catalogs
             .insert(key.clone(), entries.len());
-        if key.starts_with("slices/") {
-            let language = language_from_po(&text)?.unwrap_or_else(|| stem_language(&path));
+        if live {
+            let language = language_from_po(text)?.unwrap_or_else(|| stem_language(&path));
             observation
                 .reviewed_coverage
                 .insert(key, reviewed_keys(entries, &language).into_iter().collect());
@@ -146,10 +145,10 @@ fn reviewed_keys(entries: Vec<crate::i18n_compile::PoEntry>, language: &str) -> 
 /// Recompute the survivor reviewed-coverage map over every live slice PO.
 pub fn reviewed_coverage_map(root: &Path) -> gmeow_errors::Result<BTreeMap<String, Vec<String>>> {
     let mut map = BTreeMap::new();
-    for path in live_slice_pos(root)? {
-        let text = std::fs::read_to_string(&path)?;
-        let set = reviewed_set(&text, &stem_language(&path))?;
-        map.insert(relative_key(root, &path), set.into_iter().collect());
+    for source in crate::ontology_catalogs::discover(root)? {
+        let text = std::str::from_utf8(&source.content).map_err(std::io::Error::other)?;
+        let set = reviewed_set(text, &stem_language(&source.path))?;
+        map.insert(relative_key(root, &source.path), set.into_iter().collect());
     }
     Ok(map)
 }

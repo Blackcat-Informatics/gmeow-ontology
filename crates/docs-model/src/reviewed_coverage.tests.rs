@@ -9,6 +9,11 @@ fn synthetic_catalogs_record_reviewed_keys_and_reject_malformed_input() {
     let root = temporary.path();
     let slice = root.join("slices/control/example/i18n/fr.po");
     std::fs::create_dir_all(slice.parent().unwrap()).unwrap();
+    std::fs::write(
+        root.join("slices/control/example/manifest.ttl"),
+        "<urn:authored:coverage-owner> a <https://blackcatinformatics.ca/gmeow/Slice> .",
+    )
+    .unwrap();
     std::fs::create_dir_all(root.join("tests/fixtures/i18n")).unwrap();
     let po = "msgctxt \"urn:term|rdfs:label\"\nmsgid \"Example\"\nmsgstr \"Exemple\"\n";
     std::fs::write(&slice, po).unwrap();

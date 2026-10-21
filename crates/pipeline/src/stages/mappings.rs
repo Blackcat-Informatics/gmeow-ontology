@@ -89,6 +89,8 @@ const CANONICAL_MAPPING_SOURCE_BANNER: &str = "from canonical mapping sources";
 /// The mapping artifacts plus the per-correspondence loss ledger the SSSOM/FnO/EDOAL/
 /// SPARQL lowerings produced (the residue set the projection report serializes).
 pub struct CompiledMappings {
+    /// Same-run native authority for mandatory typed projection capabilities.
+    pub grounding_catalog: gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
     /// Every emitted artifact, by logical path.
     pub artifacts: BTreeMap<String, Vec<u8>>,
     /// The per-correspondence loss ledger across all four dialects PLUS the live
@@ -346,6 +348,9 @@ fn compile_mappings_with_sources(
     for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
+    for (filename, program) in aligned.projection_profiles {
+        artifacts.insert(format!("{QUERIES_DIR}/{filename}"), program.to_bytes());
+    }
     // The inverse ingest leg: each `<profile>.put.rq` SPARQL CONSTRUCT emitted alongside
     // its forward `.rq`. ml-schema authors the ingest-claim terms today, so this writes the
     // ml-schema put leg and automatically tracks the emitter (the sole authority for the set).
@@ -367,7 +372,14 @@ fn compile_mappings_with_sources(
     // `logic:Correspondence` with an honestly-computed preservation judgment, and fold
     // its per-unit + per-document rows into the loss ledger. The RDF graph is carried as
     // a named graph by the stage `run` below (never a `generated/` file).
-    let lang_corpus = crate::stages::lang_translation::build_corpus(root)?;
+    let translation_sources = match catalog.as_ref() {
+        Some(catalog) => gmeow_docs::ontology_catalogs::for_repository(root, catalog)?,
+        None => gmeow_docs::ontology_catalogs::discover(root)?,
+    };
+    let lang_corpus =
+        crate::stages::lang_translation::build_corpus_from_sources(&translation_sources)?;
+    let (glossary_corpus, glossary_lowering) =
+        crate::stages::lang_glossary::build_products_from_sources(root, &translation_sources)?;
     ledger.extend(lang_corpus.ledger);
     loss.union(&lang_corpus.loss);
     let lang_translation_corpus = lang_corpus.ntriples;
@@ -403,7 +415,6 @@ fn compile_mappings_with_sources(
     // sibling `lang:` emissions) and its lossy `SoundUnderApproximation` row into the loss
     // ledger. Both are lossy — every dropped construct is enumerated, so honest-lossy passes
     // the overclaim floor and silent-lossy reds the build.
-    let glossary_lowering = crate::stages::lang_glossary::build_lowering_corpus(root)?;
     ledger.extend(glossary_lowering.ledger);
     loss.union(&glossary_lowering.loss);
     lang_projection_corpus.extend_from_slice(&glossary_lowering.emission_ntriples);
@@ -425,7 +436,16 @@ fn compile_mappings_with_sources(
     // judgment, and the exec-docs English-only boundary as a declared `lang:translationGap` —
     // and fold its honest per-page + per-boundary rows into the loss ledger. The RDF graph
     // rides as a named graph by the stage `run` below (never a `generated/` file).
-    let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus(root)?;
+    let docs_catalog = catalog.as_ref().ok_or_else(|| gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        stage: "stage-mappings".to_owned(),
+        message: "selected docs-rendering corpus requires its actual slice catalog and term-page inventory".to_owned(),
+    }))?;
+    let docs_ownership = purrdf::slice::OwnershipAnalyzer::new(docs_catalog).analyze()?;
+    let documented_pages = gmeow_docs::model::documented_term_iris(docs_catalog, &docs_ownership);
+    let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus_from_sources(
+        &translation_sources,
+        &documented_pages,
+    )?;
     ledger.extend(docs_rendering_corpus.ledger);
     loss.union(&docs_rendering_corpus.loss);
     let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
@@ -433,7 +453,7 @@ fn compile_mappings_with_sources(
     // The per-slice terminology glossary (term-grain of the translation corpus): every
     // reviewed `.po` pair folded into a `gmeow:Glossary`. Rides as a named graph by the
     // stage `run` below (never a `generated/` file). A pure derivation of the catalogs.
-    let lang_glossary_corpus = crate::stages::lang_glossary::build_corpus(root)?.ntriples;
+    let lang_glossary_corpus = glossary_corpus.ntriples;
 
     // Docs-format grounding loss (A9/F2): fold the four documentation output formats'
     // (site / mdbook / print PDF / snippets) dropped-capability rows into the single loss
@@ -520,6 +540,7 @@ fn compile_mappings_with_sources(
     );
 
     Ok(CompiledMappings {
+        grounding_catalog: aligned.grounding_catalog,
         artifacts,
         ledger,
         loss,
@@ -676,7 +697,10 @@ fn discharge_correspondence_laws(
     // Re-project the now-law-bearing correspondence set (reusing the existing
     // `logic:hasLawClaim` emission). Deterministic: `project_correspondence` sorts + dedups.
     let program = CorrespondenceProgram::new(rebuilt, aligned.correspondences.preservation)
-        .with_leg_programs(aligned.correspondences.leg_programs.clone());
+        .with_leg_programs(aligned.correspondences.leg_programs.clone())
+        .with_native_sources(aligned.correspondences.native_sources.clone())?
+        .with_projection_bindings(aligned.correspondences.projection_bindings.clone())?
+        .with_projection_profiles(aligned.correspondences.projection_profiles.clone())?;
     Ok(project_correspondence(&program)?.into_bytes())
 }
 
@@ -1451,21 +1475,20 @@ impl Stage for MappingsStage {
         // (`gts_compose` folds only the default graph). `spdx.rq` is THIS run's compiled
         // artifact (never a stale disk read); the source A-Box reads only build INPUTS
         // (`substrate_input_paths`), so the fold is non-self-referential.
-        let spdx_rq_path = format!("{QUERIES_DIR}/spdx.rq");
-        let spdx_rq = artifacts.get(&spdx_rq_path).ok_or_else(|| {
+        let spdx_program_path = format!("{QUERIES_DIR}/spdx.projection.json");
+        let spdx_bytes = artifacts.get(&spdx_program_path).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: self.id().to_owned(),
-                message: format!("mappings run omitted the compiled {spdx_rq_path}"),
+                message: format!("mappings run omitted required {spdx_program_path}"),
             })
         })?;
-        let spdx_rq = std::str::from_utf8(spdx_rq).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: self.id().to_owned(),
-                message: format!("compiled {spdx_rq_path} is not valid UTF-8: {e}"),
-            })
-        })?;
+        let spdx = gmeow_logic_compile::projections::profile_program::ProjectionProfileProgram::from_bytes(spdx_bytes, &compiled.grounding_catalog)?;
+        let spdx = crate::projection_execution::PreparedProjectionProfile::prepare(
+            &spdx,
+            &compiled.grounding_catalog,
+        )?;
         let substrate_sbom_graph = crate::stages::carrier::parse_into_graph(
-            crate::stages::substrate_graph::build_substrate_sbom_projection(input.root, spdx_rq)?
+            crate::stages::substrate_graph::build_substrate_sbom_projection(input.root, &spdx)?
                 .as_bytes(),
             "application/n-triples",
             crate::stages::carrier::GRAPH_SUBSTRATE_SBOM,

@@ -46,6 +46,7 @@ fn invalid(detail: impl Into<String>) -> gmeow_errors::Diag {
 pub fn measure_slice_debt(
     slice_dir: &Path,
     governance: &GovernanceFloors,
+    grounding: &gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<Vec<ProjectionDebtRow>> {
     if !governance
         .vocabularies
@@ -68,8 +69,12 @@ pub fn measure_slice_debt(
     }
     let slice = crate::slice_iri_of_dir(slice_dir)?;
     let paths = crate::ratchet_surface_paths(slice_dir)?;
-    let measured =
-        crate::measure_surface_residue_constructs(&paths, &slice, &governance.vocabularies)?;
+    let measured = crate::measure_surface_residue_constructs(
+        &paths,
+        &slice,
+        &governance.vocabularies,
+        grounding,
+    )?;
     let mut seen = BTreeSet::new();
     let mut rows = Vec::with_capacity(governance.vocabularies.len());
     for vocabulary in &governance.vocabularies {

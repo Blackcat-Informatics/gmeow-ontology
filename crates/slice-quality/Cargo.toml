@@ -83,6 +83,7 @@ rayon = "1"
 tempfile.workspace = true
 
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 gmeow-build-inputs = { path = "../build-inputs" }
 pretty_assertions.workspace = true
 insta = { workspace = true, features = ["json"] }

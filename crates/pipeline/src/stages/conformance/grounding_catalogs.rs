@@ -194,7 +194,7 @@ pub(super) fn record(
 }
 
 fn transpile(view: &DslView<'_>) -> Result<usize, gmeow_errors::Diag> {
-    correspondence_frontend::transpile_correspondences_indexed(view)
+    correspondence_frontend::transpile_correspondences_indexed(view, view, &[])
         .map(|(program, _)| program.correspondences.len())
 }
 

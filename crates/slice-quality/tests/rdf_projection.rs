@@ -5,6 +5,8 @@
 //! `gmeow:QualityAssessment` observation, the roll-up tier one more, all in the
 //! `gmeow:graph/slice-quality` named graph, deterministic to the byte.
 
+mod common;
+
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::ScoringEnv;
@@ -33,6 +35,7 @@ fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
         ScoringEnv::Repo {
             slice_dir: dir.to_path_buf(),
         },
+        common::grounding(),
     )
 }
 
@@ -122,6 +125,7 @@ fn recorded_grades_round_trip_exactly() {
         ScoringEnv::Repo {
             slice_dir: dir.clone(),
         },
+        common::grounding(),
     )
     .expect("the rubric slice scores")
     .assessment;
@@ -145,6 +149,7 @@ fn recorded_grades_round_trip_exactly() {
                 ScoringEnv::Repo {
                     slice_dir: dir.clone(),
                 },
+                common::grounding(),
             )
             .expect("the rubric slice scores");
             report.to_gmeow_rdf()
@@ -222,6 +227,7 @@ fn an_edited_record_is_refused_by_its_own_content_digest() {
         ScoringEnv::Repo {
             slice_dir: dir.clone(),
         },
+        common::grounding(),
     )
     .expect("the slice scores");
     let honest = format!(
@@ -303,6 +309,7 @@ fn every_per_axis_grade_names_its_axis() {
         ScoringEnv::Repo {
             slice_dir: dir.clone(),
         },
+        common::grounding(),
     )
     .expect("the slice scores");
     let projected = report.to_gmeow_rdf();

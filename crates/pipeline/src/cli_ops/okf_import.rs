@@ -381,7 +381,7 @@ pub fn transpile_okf(
         &maximal.ontology_nt,
         &maximal.cells,
         &maximal.denied,
-        &maximal.projection_queries,
+        &maximal.projection_programs,
         tag_map,
     )
     .map_err(|e| stage_err(e.to_string()))?;

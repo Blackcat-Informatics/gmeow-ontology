@@ -1466,19 +1466,43 @@ gmeow:TemplateAtomPredRequiredConstraint
     rdfs:label "TemplateAtom predicate requiredness constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: every gmeow:TemplateAtom (a subject of gmeow:tSubj) carries exactly one gmeow:tPred."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: every gmeow:TemplateAtom (a subject of gmeow:tSubj) selects exactly one target mode, raw gmeow:tPred or admitted gmeow:tPredFromCorrespondence; each selected path is functional."@x-gmeow-english ;
     logic:formalizes gmeow:TemplateAtom ;
-    logic:message "TemplateAtom must have exactly one gmeow:tPred (IRI)"@x-gmeow-english ;
+    logic:message "TemplateAtom requires exactly one of tPred or tPredFromCorrespondence (IRI)"@x-gmeow-english ;
     logic:integrity logic:tapForall .
 logic:tapForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] ;
     logic:forall logic:tapImpl .
-logic:tapImpl a logic:Formula ; logic:antecedent logic:tapGuard ; logic:consequent logic:tapExists .
+logic:tapImpl a logic:Formula ; logic:antecedent logic:tapGuard ; logic:consequent logic:tapChoice .
 logic:tapGuard a logic:Formula ; logic:relation gmeow:tSubj ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
 logic:tapExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists logic:tapAtom .
 logic:tapAtom a logic:Formula ; logic:relation gmeow:tPred ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:tapChoice a logic:Formula ; logic:or logic:tapRawOnly, logic:tapSelectedOnly .
+logic:tapRawOnly a logic:Formula ; logic:and logic:tapExists, logic:tapNoSelected .
+logic:tapSelectedOnly a logic:Formula ; logic:and logic:tapNoRaw, logic:tapSelected .
+logic:tapNoRaw a logic:Formula ; logic:not logic:tapExists .
+logic:tapNoSelected a logic:Formula ; logic:not logic:tapSelected .
+logic:tapSelected a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cell" ] ;
+    logic:exists logic:tapSelectedAtom .
+logic:tapSelectedAtom a logic:Formula ; logic:relation gmeow:tPredFromCorrespondence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "cell" ] .
+
+gmeow:mappingDslSelectedPredicateFunctionality
+    a logic:NamedIndividual, logic:PropertyCharacteristicAssertion ;
+    rdfs:label "selected template predicate is functional"@x-gmeow-english ;
+    skos:definition "The selected target mode names at most one native correspondence per template atom; the target-choice constraint separately requires exactly one target mode."@x-gmeow-english ;
+    skos:example "ex:atom gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ."@x-gmeow-english ;
+    gmeow:useWhen "Use to derive the single-selector invariant for the selected target mode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid weakening this assertion to admit two correspondence aliases on one template atom; separate output atoms express separate targets."@x-gmeow-english ;
+    gmeow:howToUse "Retain this canonical assertion with the target-choice constraint; the generated validation surface enforces both selector functionality and exclusive target mode."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    logic:characterizes gmeow:tPredFromCorrespondence ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tPredFromCorrespondence ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:TemplateAtomObjectChoiceConstraint
     a logic:Constraint ;
@@ -2389,3 +2413,13 @@ gmeow:mappingDslFnOutputTypeFunctionality
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:fnOutputType ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tPredFromCorrespondence a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    rdfs:label "template predicate from correspondence"@x-gmeow-english ;
+    skos:definition "Selects the named native grounding correspondence that supplies a template predicate and its mandatory source-property and literal-preservation obligations; mutually exclusive with tPred."@x-gmeow-english ;
+    skos:example "ex:atom gmeow:tSubj \"record\" ; gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ; gmeow:tObj \"value\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the output predicate is justified by a selected owned native correspondence rather than authored as an independent external target."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid combining this selector with tPred, constant objects, optional witnesses or an unresolved catalog alias."@x-gmeow-english ;
+    gmeow:howToUse "Name exactly one admitted correspondence and bind the template subject and object to the same mandatory source atom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .

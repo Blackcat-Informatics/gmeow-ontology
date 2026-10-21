@@ -70,6 +70,8 @@ pub(crate) fn record_worked_envelope(
 /// All four alignment dialects' outputs, keyed by bare file name within each
 /// generated directory.
 pub struct CorrespondenceArtifacts {
+    /// Canonical native catalog and property premises from this exact lowering.
+    pub grounding_catalog: gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
     /// Required DSL statistics emitted from the same admitted source analysis.
     pub dsl_stats: String,
     /// `<name>.sssom.tsv` → TSV.
@@ -80,6 +82,11 @@ pub struct CorrespondenceArtifacts {
     pub edoal: BTreeMap<String, String>,
     /// `<profile>.rq` → SPARQL CONSTRUCT.
     pub sparql: BTreeMap<String, String>,
+    /// Required explicit forward/check products, never inferred from `.rq` files.
+    pub projection_profiles: BTreeMap<
+        String,
+        gmeow_logic_compile::projections::profile_program::ProjectionProfileProgram,
+    >,
     /// `<profile>.put.rq` → SPARQL CONSTRUCT (the inverse ingest leg). ml-schema authors
     /// the ingest-claim terms today, so the map carries one entry; the emitter is the sole
     /// authority for the set, so the write loop and parity gates derive their count from
@@ -139,8 +146,14 @@ pub fn lower_all(
     // dialect lowerings CONSUME for their overclaim gate / ledger path, so it
     // must exist before they run. The dialects retain their authored relation token;
     // required SPARQL is a native rendering of the same legs consumed by execution.
-    let (correspondences, lookup) = transpile_correspondences_indexed(&dsl_view)
-        .map_err(|e| SliceError::Parse(e.to_string()))?;
+    let owned_sources = match catalog {
+        Some(catalog) => gmeow_validate::grounding_catalog::owned_sources(root, catalog),
+        None => gmeow_validate::grounding_catalog::discover(root),
+    }
+    .map_err(|e| SliceError::Parse(e.to_string()))?;
+    let (correspondences, lookup) =
+        transpile_correspondences_indexed(&dsl_view, &onto_view, &owned_sources)
+            .map_err(|e| SliceError::Parse(e.to_string()))?;
 
     let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date, &lookup)
         .map_err(|e| SliceError::Parse(e.to_string()))?;
@@ -148,8 +161,27 @@ pub fn lower_all(
         .map_err(|e| SliceError::Parse(e.to_string()))?;
     let edoal =
         edoal::lower_edoal(&onto_view, &lookup).map_err(|e| SliceError::Parse(e.to_string()))?;
-    let sparql =
-        sparql::lower_sparql(&onto_view, &lookup).map_err(|e| SliceError::Parse(e.to_string()))?;
+    let sparql = sparql::lower_sparql(
+        &onto_view,
+        &lookup,
+        gmeow_logic_compile::projections::get_leg::PROFILES,
+    )
+    .map_err(|e| SliceError::Parse(e.to_string()))?;
+    let correspondences = correspondences
+        .with_projection_bindings(sparql.bindings.clone())
+        .and_then(|program| {
+            program.with_projection_profiles(sparql.profiles.values().cloned().collect())
+        })
+        .map_err(|e| SliceError::Parse(e.to_string()))?;
+    // Required catalog reconstruction proves that transported native support
+    // still agrees with the actual canonical ontology used by this lowering.
+    let grounding_catalog =
+        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_program(
+            correspondences.clone(),
+            &onto_view,
+            &owned_sources,
+        )
+        .map_err(|e| SliceError::Parse(e.to_string()))?;
 
     // The EmotionML XML lowering enumerates the affect category (gmeow:EmotionType) and
     // dimension (gmeow:AppraisalDimension / gmeow:CoreAffectDimension) vocabularies straight
@@ -186,11 +218,13 @@ pub fn lower_all(
         .map_err(|error| SliceError::Parse(error.to_string()))?;
 
     Ok(CorrespondenceArtifacts {
+        grounding_catalog,
         dsl_stats,
         sssom: sssom.sets,
         fno: fno.catalog,
         edoal: edoal.alignments,
         sparql: sparql.queries,
+        projection_profiles: sparql.profiles.clone(),
         // The inverse ingest leg rides on the same lowering; ml-schema authors the
         // ingest-claim terms today, so the map carries one entry now and grows automatically
         // as more slices author claims; the map is the sole authority for the `.put.rq` set.
@@ -223,6 +257,7 @@ pub fn lower_all(
 pub fn discharged_section_cells_from_cells(
     projection_ttls: &[String],
     ontology_nt: &str,
+    owned_sources: &[gmeow_logic_compile::projections::grounding_catalog::OwnedGroundingSource],
 ) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     use gmeow_logic_compile::ir::{CorrespondenceLaw, DischargeVerdict};
 
@@ -239,8 +274,14 @@ pub fn discharged_section_cells_from_cells(
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
     let (correspondences, lookup) =
-        transpile_correspondences_indexed(&dsl_view).map_err(|e| up(e.to_string()))?;
-    let sparql = sparql::lower_sparql(&onto_view, &lookup).map_err(|e| up(e.to_string()))?;
+        transpile_correspondences_indexed(&dsl_view, &onto_view, owned_sources)
+            .map_err(|e| up(e.to_string()))?;
+    let sparql = sparql::lower_sparql(
+        &onto_view,
+        &lookup,
+        gmeow_logic_compile::projections::get_leg::PROFILES,
+    )
+    .map_err(|e| up(e.to_string()))?;
     let bindings = lookup.binding_keys();
 
     let mut cells = std::collections::BTreeSet::new();

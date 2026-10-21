@@ -61,6 +61,9 @@ const DEFAULT_JUSTIFICATION: &str = "https://w3id.org/semapv/vocab/ManualMapping
 /// extraction the SSSOM renderer reads — no second, drifting read of the store.
 #[derive(Debug, Clone)]
 pub struct EquivalenceCell {
+    /// Authored native reifier, when named. Selection never invents an alias for
+    /// an anonymous cell or substitutes an endpoint for its source identity.
+    pub source_alias: Option<String>,
     pub subject: String,
     pub predicate: String,
     pub obj: String,
@@ -616,6 +619,10 @@ fn extract_native_equivalences(
             })
             .transpose()?;
         out.push(EquivalenceCell {
+            source_alias: match stmt.reifier() {
+                purrdf::TermRef::Iri(iri) => Some(iri.to_owned()),
+                _ => None,
+            },
             subject: subject.to_owned(),
             predicate: predicate.to_owned(),
             obj: object.to_owned(),

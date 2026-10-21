@@ -38,6 +38,7 @@ pub mod fixture;
 pub mod formats;
 pub mod gmn1_primer;
 pub mod i18n;
+pub mod ontology_catalogs;
 // The developer i18n authoring/compile family. Compiled on EVERY target: its only
 // non-wasm-clean-looking import was `gmeow_validate::distinctiveness`, which is itself
 // wasm-clean (pure `std::collections` computation) and no longer gated. The `std::fs`

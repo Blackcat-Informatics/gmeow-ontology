@@ -105,10 +105,18 @@ fn advisory_report_for(
     axis_local: &str,
 ) -> (f64, gmeow_errors::Report) {
     let rubric = gmeow_slice_quality::load_repo_rubric(root).unwrap();
+    let empty = purrdf::parse_dataset(b"", "text/turtle", None).unwrap();
+    let grounding =
+        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_sources(
+            &[],
+            &gmeow_logic_compile::ingest::DslView::new(&empty),
+        )
+        .unwrap();
     let mut reports = gmeow_slice_quality::score_slices_with_rubric(
         root,
         std::slice::from_ref(&demo_dir.to_path_buf()),
         &rubric,
+        &grounding,
     );
     let report = reports.remove(0).unwrap();
     let grade = report

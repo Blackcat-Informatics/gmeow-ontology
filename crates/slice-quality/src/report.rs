@@ -268,7 +268,9 @@ pub fn slice_iri_of_files(files: &BTreeMap<String, Vec<u8>>) -> gmeow_errors::Re
 ///
 /// # Errors
 /// Hard-fails if `slice_dir` carries no `manifest.ttl`, if the directory cannot be
-/// walked, or if any file cannot be read — a slice that is present but unreadable is
+/// walked, if any encountered entry is a symbolic link, or if any file cannot be read.
+/// Links are refused with their offending path rather than followed or silently
+/// omitted from selected source admission. A slice that is present but unreadable is
 /// a broken input, never an empty map that would score as a clean, contentless slice.
 pub fn slice_files_from_dir(slice_dir: &Path) -> gmeow_errors::Result<BTreeMap<String, Vec<u8>>> {
     fn walk(
@@ -293,6 +295,14 @@ pub fn slice_files_from_dir(slice_dir: &Path) -> gmeow_errors::Result<BTreeMap<S
                     detail: format!("{}: {e}", path.display()),
                 })
             })?;
+            if file_type.is_symlink() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Io {
+                    detail: format!(
+                        "{}: symbolic links are not admitted slice source entries",
+                        path.display()
+                    ),
+                }));
+            }
             if file_type.is_dir() {
                 walk(root, &path, out)?;
             } else if file_type.is_file() {
@@ -376,6 +386,40 @@ pub fn slice_ttl_documents(files: &BTreeMap<String, Vec<u8>>) -> Vec<(&str, &[u8
         .collect()
 }
 
+/// Projection authoring has additional source roles beyond the semantic graph
+/// used by axes: shapes and recursively nested mappings. Admit their selected
+/// references with the existing native graph without adding those documents (or
+/// any catalog premises) to an unrelated axis's semantic denominator.
+fn admit_projection_inputs(
+    files: &BTreeMap<String, Vec<u8>>,
+    semantic: &purrdf::RdfDataset,
+    catalog: &gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
+) -> gmeow_errors::Result<()> {
+    let admit = || -> gmeow_errors::Result<()> {
+        let documents: Vec<_> = files
+            .iter()
+            .filter(|(path, _)| {
+                path.as_str() == "shapes.ttl"
+                    || (path.starts_with("mappings/") && path.ends_with(".ttl"))
+            })
+            .map(|(path, bytes)| (path.as_str(), bytes.as_slice()))
+            .collect();
+        if documents.is_empty() {
+            crate::counting::AdmittedProjectionSurface::admit(semantic, catalog)?;
+        } else {
+            let additional = crate::dataset_from_documents(&documents)?;
+            let authored = purrdf::RdfDataset::union(&[semantic, additional.as_ref()])?;
+            crate::counting::AdmittedProjectionSurface::admit(&authored, catalog)?;
+        }
+        Ok(())
+    };
+    admit().map_err(|mut diagnostic| {
+        let operation = "admit required authored projection inputs against the required catalog";
+        diagnostic.inner_mut().message = format!("{operation}: {}", diagnostic.message());
+        diagnostic.with_context(operation)
+    })
+}
+
 /// Score the slice carried by `files` against an already-loaded measurement standard
 /// (the floor-free projection of the rubric; the sweep path reuses one) in the given
 /// scoring environment.
@@ -402,9 +446,10 @@ pub fn score_slice_files_with_standard(
     files: &BTreeMap<String, Vec<u8>>,
     standard: &MeasurementStandard,
     env: ScoringEnv,
+    catalog: &gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<SliceReport> {
     let ds = crate::dataset_from_documents(&slice_ttl_documents(files))?;
-    score_slice_files_with_dataset(files, standard, env, &ds)
+    score_slice_files_with_dataset(files, standard, env, &ds, catalog)
 }
 
 /// Score already admitted native inputs without reparsing them or rebuilding a corpus.
@@ -413,7 +458,9 @@ pub(crate) fn score_slice_files_with_dataset(
     standard: &MeasurementStandard,
     env: ScoringEnv,
     ds: &purrdf::RdfDataset,
+    catalog: &gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<SliceReport> {
+    admit_projection_inputs(files, ds, catalog)?;
     if matches!(&env, ScoringEnv::External)
         && standard
             .axes
@@ -450,9 +497,10 @@ pub fn score_slice_with_standard(
     slice_dir: &Path,
     standard: &MeasurementStandard,
     env: ScoringEnv,
+    catalog: &gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<SliceReport> {
     let files = slice_files_from_dir(slice_dir)?;
-    let mut report = score_slice_files_with_standard(&files, standard, env)?;
+    let mut report = score_slice_files_with_standard(&files, standard, env, catalog)?;
     report.source_files.prefix_with_slice_dir(slice_dir);
     Ok(report)
 }

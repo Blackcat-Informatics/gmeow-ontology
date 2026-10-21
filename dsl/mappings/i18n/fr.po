@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Translation owner: https://blackcatinformatics.ca/gmeow/mapping-dsl
+msgid ""
+msgstr ""
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|rdfs:label"
+msgid "template predicate from correspondence"
+msgstr "prédicat de modèle issu d’une correspondance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|skos:definition"
+msgid "Selects the named native grounding correspondence that supplies a template predicate and its mandatory source-property and literal-preservation obligations; mutually exclusive with tPred."
+msgstr "Sélectionne la correspondance native nommée qui fournit le prédicat du modèle et ses obligations de propriété source obligatoire et de préservation des littéraux ; incompatible avec tPred."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|skos:example"
+msgid "ex:atom gmeow:tSubj \"record\" ; gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ; gmeow:tObj \"value\" ."
+msgstr "ex:atom gmeow:tSubj \"record\" ; gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ; gmeow:tObj \"value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|gmeow:useWhen"
+msgid "Use when the output predicate is justified by a selected owned native correspondence rather than authored as an independent external target."
+msgstr "À utiliser lorsque le prédicat de sortie est justifié par une correspondance native sélectionnée dans son catalogue propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|gmeow:avoidWhen"
+msgid "Avoid combining this selector with tPred, constant objects, optional witnesses or an unresolved catalog alias."
+msgstr "Ne combinez pas ce sélecteur avec tPred, des objets constants, des témoins facultatifs ou un alias de catalogue non résolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|gmeow:howToUse"
+msgid "Name exactly one admitted correspondence and bind the template subject and object to the same mandatory source atom."
+msgstr "Nommez exactement une correspondance admise et liez le sujet et l’objet du modèle au même atome source obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|rdfs:label"
+msgid "catalog family — schema.org value"
+msgstr "famille de catalogue — schema.org value"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|skos:definition"
+msgid "The schema.org value-prefix publication surface shared by literal and numeric magnitudes; the prefix also includes valueReference and other suffix terms."
+msgstr "La surface de publication du préfixe schema.org value partagée par les littéraux et les grandeurs numériques ; ce préfixe inclut aussi valueReference et les autres termes suffixés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|skos:example"
+msgid "gmeow:catalogFamily-schema-value gmeow:catalogTargetMinimum 2 ."
+msgstr "gmeow:catalogFamily-schema-value gmeow:catalogTargetMinimum 2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|gmeow:useWhen"
+msgid "Use to classify the Lang literal-value and Math quantity-value grounding bridges in the closed catalog inventory."
+msgstr "À utiliser pour classer les ponts de fondation des valeurs littérales Lang et des valeurs quantitatives Math dans l’inventaire fermé des catalogues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|gmeow:avoidWhen"
+msgid "Avoid extending this family to all schema.org terms or exempting its rows from the value-prefix guard."
+msgstr "N’étendez pas cette famille à tous les termes schema.org et n’exemptez pas ses lignes de la protection du préfixe value."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/catalogFamily-schema-value|gmeow:howToUse"
+msgid "Match target IRIs by the declared prefix, require both owned bridges, and apply the shared zero-default value guard."
+msgstr "Appariez les IRI cibles par le préfixe déclaré, exigez les deux ponts propriétaires et appliquez la protection partagée de value à plafond nul par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|rdfs:label"
+msgid "TemplateAtom predicate requiredness constraint"
+msgstr "contrainte de présence du prédicat TemplateAtom"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|skos:definition"
+msgid "A closed-world integrity constraint: every gmeow:TemplateAtom (a subject of gmeow:tSubj) selects exactly one target mode, raw gmeow:tPred or admitted gmeow:tPredFromCorrespondence; each selected path is functional."
+msgstr "Une contrainte d’intégrité en monde fermé : chaque gmeow:TemplateAtom, sujet de gmeow:tSubj, sélectionne exactement un mode cible, gmeow:tPred brut ou gmeow:tPredFromCorrespondence admis ; chaque chemin sélectionné est fonctionnel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "TemplateAtom requires exactly one of tPred or tPredFromCorrespondence (IRI)"
+msgstr "TemplateAtom exige exactement un choix entre tPred et tPredFromCorrespondence (IRI)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|rdfs:label"
+msgid "selected template predicate is functional"
+msgstr "le prédicat de modèle sélectionné est fonctionnel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|skos:definition"
+msgid "The selected target mode names at most one native correspondence per template atom; the target-choice constraint separately requires exactly one target mode."
+msgstr "Le mode cible sélectionné nomme au plus une correspondance native par atome de modèle ; la contrainte de choix de cible exige séparément exactement un mode cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|skos:example"
+msgid "ex:atom gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ."
+msgstr "ex:atom gmeow:tPredFromCorrespondence lang:literalValueSchemaBridge ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:useWhen"
+msgid "Use to derive the single-selector invariant for the selected target mode."
+msgstr "Utilisez cette assertion pour dériver l’invariant de sélecteur unique du mode cible sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:avoidWhen"
+msgid "Avoid weakening this assertion to admit two correspondence aliases on one template atom; separate output atoms express separate targets."
+msgstr "Évitez d’affaiblir cette assertion pour admettre deux alias de correspondance sur un même atome de modèle ; des atomes de sortie distincts expriment des cibles distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:howToUse"
+msgid "Retain this canonical assertion with the target-choice constraint; the generated validation surface enforces both selector functionality and exclusive target mode."
+msgstr "Conservez cette assertion canonique avec la contrainte de choix de cible ; la surface de validation générée impose à la fois le caractère fonctionnel du sélecteur et l’exclusivité du mode cible."
