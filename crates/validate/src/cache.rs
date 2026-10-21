@@ -12,11 +12,11 @@ use gmeow_action_cache::{
     StoreLimits, bytes_digest, content_digest,
 };
 use gmeow_errors::{Diag, Finding};
-use serde::{Deserialize, Serialize};
+mod json;
 
 /// A cached validation result: the structured findings produced by one cached
 /// phase. Serialized as `{"findings": [...]}`.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct CachedResult {
     /// The structured findings for this phase.
     pub findings: Vec<Finding>,
@@ -199,7 +199,7 @@ impl ValidationCache {
                 "findings product digest disagrees with authenticated bytes",
             ));
         }
-        serde_json::from_slice(&entry.bytes)
+        purrdf_lex::json::record::from_slice(&entry.bytes)
             .map(Some)
             .map_err(cache_error)
     }
@@ -211,7 +211,7 @@ impl ValidationCache {
         key: &str,
         result: &CachedResult,
     ) -> gmeow_errors::Result<()> {
-        let bytes = serde_json::to_vec(result).map_err(cache_error)?;
+        let bytes = purrdf_lex::json::record::to_vec(result);
         self.store
             .publish(&self.context(kind, key), bytes_digest(&bytes), (), &bytes)
             .map_err(cache_error)?;

@@ -20,8 +20,7 @@ anstyle = "1"
 anstream = "0.6"
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-serde.workspace = true
-serde_json.workspace = true
+purrdf-lex.workspace = true
 
 [dev-dependencies]
 # RAII temp directories/files for tests. Every scratch path a test creates is
