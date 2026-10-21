@@ -24,10 +24,13 @@ fn obj_str(obj: &ObjTerm) -> String {
 
 impl AuthoringPacket {
     /// The packet as pretty-printed JSON.
+    ///
+    /// # Panics
+    /// Refuses a manually constructed nonfinite grounding confidence instead of
+    /// silently replacing that selected numeric value with JSON null.
     #[must_use]
     pub fn to_json(&self) -> String {
-        serde_json::to_string_pretty(self)
-            .unwrap_or_else(|e| panic!("authoring packet failed to serialize to JSON: {e}"))
+        purrdf_lex::json::write_pretty(&purrdf_lex::json::record::ToJson::to_json(self))
     }
 
     /// The packet as a human-readable authoring brief.
