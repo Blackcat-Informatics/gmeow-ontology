@@ -1,0 +1,86 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-perf-evidence)' --no-tests=fail
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling rustls-webpki v0.103.15
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/perf-evidence)
+   Compiling typst v0.13.1
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling rustls v0.23.46
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/ns)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gts-profile)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-import)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/foundation-corpus)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/query-wasm)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/music)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/math-lift)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/affect-ingest)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/logic)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmn-cost-matrix)
+   Compiling ureq v3.3.0
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 26s
+────────────
+ Nextest run ID 35f04b6d-2908-4ef1-ac99-ba5701f6bf12 with nextest profile: ci
+    Starting 31 tests across 2 binaries (224 binaries skipped)
+        PASS [   0.005s] ( 1/31) gmeow-perf-evidence sample::tests::stage_execution_counter_normalizes_legacy_and_current_sync_telemetry
+        PASS [   0.005s] ( 2/31) gmeow-perf-evidence tests::malformed_json_is_refused_before_it_becomes_evidence
+        PASS [   0.005s] ( 3/31) gmeow-perf-evidence::bin/perf-accept tests::missing_or_changed_pair_identity_fails_closed
+        PASS [   0.006s] ( 4/31) gmeow-perf-evidence sample::tests::the_six_cache_classes_are_not_collapsed_into_one_label
+        PASS [   0.006s] ( 5/31) gmeow-perf-evidence::bin/perf-accept tests::cache_protocol_requires_exact_classes_and_a_protocol_witness
+        PASS [   0.005s] ( 6/31) gmeow-perf-evidence tests::publication_normalizes_constructed_nested_objects_and_keeps_native_timestamp_width
+        PASS [   0.006s] ( 7/31) gmeow-perf-evidence sample::tests::producer_receipt_identity_precedes_the_local_sync_manifest
+        PASS [   0.006s] ( 8/31) gmeow-perf-evidence tests::generated_float_bytes_keep_exponent_boundaries_and_signed_zero
+        PASS [   0.006s] ( 9/31) gmeow-perf-evidence sample::tests::dependency_identity_reads_authored_metadata_without_invoking_cargo
+        PASS [   0.006s] (10/31) gmeow-perf-evidence::bin/perf-accept tests::sample_decoder_preserves_last_wins_and_number_lexemes
+        PASS [   0.006s] (11/31) gmeow-perf-evidence junit::tests::inventory_is_order_independent_and_duration_is_observational
+        PASS [   0.006s] (12/31) gmeow-perf-evidence::bin/perf-accept tests::timing_acceptance_has_no_implicit_speedup_or_regression_target
+        PASS [   0.006s] (13/31) gmeow-perf-evidence::bin/perf-accept tests::sample_admission_keeps_integer_selectors_and_finite_nonnegative_observations
+        PASS [   0.006s] (14/31) gmeow-perf-evidence::bin/perf-accept tests::pair_report_refuses_non_utf8_paths_without_lossy_substitution
+        PASS [   0.007s] (15/31) gmeow-perf-evidence sample::tests::explicit_legacy_producer_manifest_supplies_cold_identity_outside_the_cache
+        PASS [   0.007s] (16/31) gmeow-perf-evidence junit::tests::inventory_payload_keeps_literal_legacy_bytes_and_refuses_duplicates
+        PASS [   0.007s] (17/31) gmeow-perf-evidence::bin/perf-accept tests::pair_report_keeps_literal_legacy_bytes
+        PASS [   0.007s] (18/31) gmeow-perf-evidence::bin/perf-accept tests::proof_inventory_allows_additions_but_rejects_drops_and_duplicates
+        PASS [   0.007s] (19/31) gmeow-perf-evidence::bin/perf-accept tests::paired_cache_protocol_allows_new_mechanisms_but_not_shared_state_drift
+        PASS [   0.007s] (20/31) gmeow-perf-evidence::bin/perf-accept tests::paired_identity_uses_exact_decimal_values_and_rfc6901_pointers
+        PASS [   0.008s] (21/31) gmeow-perf-evidence sample::tests::partial_samples_require_a_named_path_and_digest
+        PASS [   0.008s] (22/31) gmeow-perf-evidence junit::tests::malformed_and_negative_durations_fail_closed
+        PASS [   0.008s] (23/31) gmeow-perf-evidence::bin/perf-accept tests::median_handles_odd_and_even_complete_pair_counts
+        PASS [   0.008s] (24/31) gmeow-perf-evidence sample::tests::census_refuses_non_utf8_paths_instead_of_replacing_bytes
+        PASS [   0.008s] (25/31) gmeow-perf-evidence tests::atomic_json_replaces_complete_evidence_and_leaves_no_temporary_file
+        PASS [   0.007s] (26/31) gmeow-perf-evidence tests::failed_atomic_publication_preserves_destination_and_removes_temporary_file
+        PASS [   0.007s] (27/31) gmeow-perf-evidence tests::publication_preserves_legacy_member_string_null_and_integer_bytes
+        PASS [   0.008s] (28/31) gmeow-perf-evidence sample::tests::tree_census_binds_paths_bytes_and_content
+        PASS [   0.009s] (29/31) gmeow-perf-evidence sample::tests::resource_delta_keeps_literal_legacy_report_bytes
+        PASS [   0.008s] (30/31) gmeow-perf-evidence tests::embedded_telemetry_preserves_owner_number_lexemes
+        PASS [   0.135s] (31/31) gmeow-perf-evidence sample::tests::producer_identity_is_required_and_structurally_validated
+────────────
+     Summary [   0.373s] 31 tests run: 31 passed, 0 skipped

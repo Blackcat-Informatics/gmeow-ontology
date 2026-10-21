@@ -1,0 +1,9 @@
+# Focused independent source review
+
+The implementation lane authored source; the delivery owner independently reviewed the changed production readers, report builders, atomic publisher, real helper callers and external tests. No review panel applies to this optimized queue unit.
+
+The existing pinned PurRDF record reader owns recursive sorting and last-wins duplicate semantics. All migrated readers call that owner rather than the lower-level first-match parser. Publication normalizes constructed objects, retains terminal newline and synchronization, and preserves the existing destination on failed atomic replacement. Sample/index admission keeps lexical unsigned selectors and finite nonnegative observations. Pair identities intentionally use exact decimal equality; documentation names this and retained embedded number spellings. Non-UTF-8 pair paths fail explicitly. The Make-resolved lock change removes only this package's serde_json dependency.
+
+Existing cache/proof/identity refusal controls remain, with pure byte-fed helpers wired through production. Added controls use literal expected bytes, malformed documents, exact large-number identities, pointer escaping, order-sensitive arrays, atomic failure and temporary files. Tests do not invoke host measurement or corpus construction. Full workspace JSON migration remains outside this complete bounded package unit, under the same open parent issue1776.
+
+Qualification initially found redundant ToJson imports in two test modules, inherited already through super. Both imports were removed; no assertions changed. All31 package tests executed and passed, strict producer-independent make clippy-prebuild passed, formatting and staged whitespace checks passed. The prebuild excludes embedded consumers and does not qualify full consumer-inclusive Clippy. No substantive functional source finding remains from this review; hosted feedback is still to be captured after publication.

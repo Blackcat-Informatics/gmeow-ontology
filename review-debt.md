@@ -1,0 +1,3 @@
+# Review debt and acceptance boundary
+
+No unresolved substantive review finding at the complete current capture. The delegated source was independently reviewed by the delivery owner; all31 focused tests, strict producer-independent prebuild Clippy, formatting and normal commit/push hooks passed. Source and lock scope are restricted to perf-evidence and its documentation. Full1776 JSON migration remains open. Local corpus/full gate, embedded consumers, consumer-inclusive full Clippy and actual host measurements are unrun; the current campaign exception authorizes this sequential merge without waiting for CI. Those checks are not reported passed.
