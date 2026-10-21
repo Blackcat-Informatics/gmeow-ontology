@@ -109,7 +109,7 @@ fn compare_classifies_ok_watch_regressed_missing_new() {
 \"g/slower\":{\"mean_ns\":100,\"median_ns\":100},\
 \"g/regress\":{\"mean_ns\":100,\"median_ns\":100},\
 \"g/gone\":{\"mean_ns\":100,\"median_ns\":100}}";
-    let report = compare_against_baseline(root, baseline);
+    let report = compare_against_baseline(root, baseline).unwrap();
     assert!(report.contains("| g/steady | 100 | 100 | +0.0 | ok |"));
     assert!(report.contains("| g/slower | 100 | 108 | +8.0 | watch |"));
     assert!(report.contains("| g/regress | 100 | 130 | +30.0 | regressed |"));
@@ -119,35 +119,26 @@ fn compare_classifies_ok_watch_regressed_missing_new() {
 }
 
 #[test]
-fn compare_with_empty_baseline_marks_all_new() {
+fn compare_with_explicit_empty_baseline_marks_all_new() {
     let dir = tempdir().unwrap();
     let root = dir.path();
     write_estimate(root, "g", "a", 10.0, 10.0);
-    let report = compare_against_baseline(root, "");
+    let report = compare_against_baseline(root, "{}").unwrap();
     assert!(report.contains("| g/a | — | 10 | — | new |"));
 }
 
 #[test]
-fn compare_degrades_on_malformed_baseline_without_panic() {
-    // A PRESENT-but-unparseable baseline must NOT panic the report-only path
-    // (it always exits 0) and must NOT be silently dropped — the warning is
-    // surfaced to stderr (Gap). The current run is still classified as
-    // `new` against the now-empty baseline.
+fn compare_refuses_malformed_baseline() {
     let dir = tempdir().unwrap();
     let root = dir.path();
     write_estimate(root, "g", "a", 10.0, 10.0);
-    let report = compare_against_baseline(root, "{ this is not valid json ]");
-    assert!(report.contains("| g/a | — | 10 | — | new |"));
-    assert!(report.contains("report-only"));
+    assert!(compare_against_baseline(root, "{ this is not valid json ]").is_err());
 }
 
 #[test]
-fn compare_degrades_on_missing_criterion_root_without_panic() {
-    // No live criterion tree at all: every committed baseline benchmark is
-    // `missing`, the board still renders, and the call never panics.
+fn compare_refuses_missing_criterion_root() {
     let dir = tempdir().unwrap();
     let root = dir.path().join("does-not-exist");
-    let baseline = "{\"g/a\":{\"mean_ns\":100,\"median_ns\":100}}";
-    let report = compare_against_baseline(&root, baseline);
-    assert!(report.contains("| g/a | 100 | — | — | missing |"));
+    let baseline = r#"{"g/a":{"mean_ns":100,"median_ns":100}}"#;
+    assert!(compare_against_baseline(&root, baseline).is_err());
 }

@@ -19,9 +19,106 @@ use std::time::Duration;
 
 use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
 use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
+use purrdf_lex::json::{self, Object, Value};
 
-const FILES: [&str; 3] = ["validate.json", "sync.json", "reason-verify.json"];
+const FILES: [(&str, &str); 3] = [
+    ("validate.json", "validate"),
+    ("sync.json", "sync"),
+    ("reason-verify.json", "reason-verify"),
+];
 const SCHEMA_VERSION: u32 = 1;
+
+/// One complete command document plus the admitted projections it contributes.
+struct Command {
+    document: Value,
+    label: String,
+    work: Value,
+    observations: Value,
+}
+
+#[derive(Debug)]
+enum InputError {
+    Parse(json::Error),
+    Contract(String),
+}
+
+/// Read native last-member-wins JSON and admit only the fields this merger uses.
+/// Inner payloads and input versions remain opaque; numeric tokens are not rounded.
+fn read_command(raw: &[u8], expected: &str) -> Result<Command, InputError> {
+    let document = json::record::read_document(raw).map_err(InputError::Parse)?;
+    if document.as_object().is_none() {
+        return Err(InputError::Contract(
+            "document must be an object".to_owned(),
+        ));
+    }
+    let label = document.get("command").and_then(Value::as_str);
+    if label != Some(expected) {
+        return Err(InputError::Contract(format!(
+            "field command must be the string {expected:?}; found {:?}",
+            document.get("command"),
+        )));
+    }
+    let object = |field| {
+        document
+            .get(field)
+            .filter(|value| value.as_object().is_some())
+            .cloned()
+            .ok_or_else(|| {
+                InputError::Contract(format!(
+                    "field {field} must be an object; found {:?}",
+                    document.get(field),
+                ))
+            })
+    };
+    let work = object("deterministic_work")?;
+    let observations = object("observations")?;
+    Ok(Command {
+        document,
+        label: expected.to_owned(),
+        work,
+        observations,
+    })
+}
+
+/// Assemble the actual product without collecting measurements or minting identities.
+fn merged_json(commands: Vec<Command>) -> String {
+    let work = commands
+        .iter()
+        .map(|command| {
+            Value::from(
+                Object::new()
+                    .with("command", command.label.clone())
+                    .with("work", command.work.clone()),
+            )
+        })
+        .collect();
+    let observations = commands
+        .iter()
+        .map(|command| {
+            Value::from(
+                Object::new()
+                    .with("command", command.label.clone())
+                    .with("observations", command.observations.clone()),
+            )
+        })
+        .collect();
+    let documents = commands
+        .into_iter()
+        .map(|command| command.document)
+        .collect();
+    let mut output = Value::from(
+        Object::new()
+            .with("schema_version", SCHEMA_VERSION)
+            .with("command", "perf-gate")
+            .with("deterministic_work", Value::Array(work))
+            .with("observations", Value::Array(observations))
+            .with("commands", Value::Array(documents)),
+    );
+    output.sort_keys();
+    let mut text = json::write_pretty(&output);
+    text.push('\n');
+    text
+}
 
 /// The emitting tool name every diagnostic here is stamped with.
 const TOOL: &str = "perf-gate-merge";
@@ -82,8 +179,8 @@ fn run(perf_dir: &Path, reporter: &dyn Reporter) -> i32 {
     let started = Instant::now();
     reporter.stage_start("perf-gate-merge");
 
-    let mut commands: Vec<serde_json::Value> = Vec::with_capacity(FILES.len());
-    for file in FILES {
+    let mut commands = Vec::with_capacity(FILES.len());
+    for (file, expected) in FILES {
         let path = perf_dir.join(file);
         let text = match std::fs::read_to_string(&path) {
             Ok(t) => t,
@@ -96,9 +193,9 @@ fn run(perf_dir: &Path, reporter: &dyn Reporter) -> i32 {
                 return 1;
             }
         };
-        let value: serde_json::Value = match serde_json::from_str(&text) {
+        let value = match read_command(text.as_bytes(), expected) {
             Ok(v) => v,
-            Err(e) => {
+            Err(InputError::Parse(e)) => {
                 emit_error(
                     reporter,
                     "gmeow-pipeline.perf-gate-merge.parse",
@@ -106,47 +203,20 @@ fn run(perf_dir: &Path, reporter: &dyn Reporter) -> i32 {
                 );
                 return 1;
             }
+            Err(InputError::Contract(message)) => {
+                emit_error(
+                    reporter,
+                    "gmeow-pipeline.perf-gate-merge.input",
+                    format!("cannot admit {}: {message}", path.display()),
+                );
+                return 1;
+            }
         };
         commands.push(value);
     }
 
-    let deterministic_work = commands
-        .iter()
-        .map(|command| {
-            serde_json::json!({
-                "command": command.get("command"),
-                "work": command.get("deterministic_work"),
-            })
-        })
-        .collect::<Vec<_>>();
-    let observations = commands
-        .iter()
-        .map(|command| {
-            serde_json::json!({
-                "command": command.get("command"),
-                "observations": command.get("observations"),
-            })
-        })
-        .collect::<Vec<_>>();
-    let output = serde_json::json!({
-        "schema_version": SCHEMA_VERSION,
-        "command": "perf-gate",
-        "deterministic_work": deterministic_work,
-        "observations": observations,
-        "commands": commands,
-    });
     let out_path = perf_dir.join("gate-timings.json");
-    let text = match serde_json::to_string_pretty(&output) {
-        Ok(s) => format!("{s}\n"),
-        Err(e) => {
-            emit_error(
-                reporter,
-                "gmeow-pipeline.perf-gate-merge.serialize",
-                format!("cannot serialize output: {e}"),
-            );
-            return 1;
-        }
-    };
+    let text = merged_json(commands);
     if let Err(e) = std::fs::write(&out_path, text) {
         emit_error(
             reporter,
@@ -170,3 +240,7 @@ impl Reporter for SilentReporter {
     fn stage_end(&self, _stage: &str, _elapsed: Duration) {}
     fn summary(&self, _report: &gmeow_errors::Report) {}
 }
+
+#[cfg(test)]
+#[path = "perf_gate_merge/json.tests.rs"]
+mod json_tests;
