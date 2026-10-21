@@ -7,6 +7,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
+use purrdf_hash::fixed::FixedState;
 
 use crate::Sink;
 use crate::ns::{LOGIC, RDF_TYPE, math};
@@ -109,20 +110,20 @@ fn invalid_source(
 /// Exact native RDF terms indexed independently of serialization order.
 /// Graph names remain source context and are explicitly represented in loss evidence.
 struct Source {
-    rows: HashMap<RdfTerm, BTreeMap<String, Vec<RdfTerm>>>,
-    contexts: HashSet<RdfTerm>,
-    visited: HashSet<RdfTerm>,
-    used: HashSet<(RdfTerm, String)>,
+    rows: HashMap<RdfTerm, BTreeMap<String, Vec<RdfTerm>>, FixedState>,
+    contexts: HashSet<RdfTerm, FixedState>,
+    visited: HashSet<RdfTerm, FixedState>,
+    used: HashSet<(RdfTerm, String), FixedState>,
     boundaries: BTreeSet<String>,
 }
 
 impl Source {
     fn new(dataset: &RdfDataset) -> Self {
         let mut value = Self {
-            rows: HashMap::new(),
-            contexts: HashSet::new(),
-            visited: HashSet::new(),
-            used: HashSet::new(),
+            rows: HashMap::with_hasher(FixedState::new()),
+            contexts: HashSet::with_hasher(FixedState::new()),
+            visited: HashSet::with_hasher(FixedState::new()),
+            used: HashSet::with_hasher(FixedState::new()),
             boundaries: BTreeSet::new(),
         };
         value.extend(dataset);
@@ -200,7 +201,7 @@ impl Source {
     fn losses(&self) -> BTreeSet<String> {
         let mut losses = self.boundaries.clone();
         let mut pending: Vec<_> = self.visited.iter().cloned().collect();
-        let mut seen = HashSet::new();
+        let mut seen = HashSet::<_, FixedState>::default();
         while let Some(subject) = pending.pop() {
             if !seen.insert(subject.clone()) {
                 continue;
@@ -250,13 +251,9 @@ impl Source {
     }
 }
 
-fn xml(value: &str) -> String {
-    value
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&apos;")
+fn xml(value: &str) -> gmeow_errors::Result<std::borrow::Cow<'_, str>> {
+    purrdf_core::xml_escape::escape(value, purrdf_core::xml_escape::Context::Attribute)
+        .map_err(|error| invalid_source(format!("invalid mathematical XML value: {error}"), error))
 }
 
 /// Project one named canonical source with explicit target selection.
@@ -335,24 +332,14 @@ fn project_source(
     losses.insert(RDF_TYPE.to_owned());
     let mut identity = Vec::new();
     for loss in &losses {
-        identity.extend_from_slice(
-            &u64::try_from(loss.len())
-                .map_err(|_| invalid("loss identity exceeds u64"))?
-                .to_le_bytes(),
-        );
-        identity.extend_from_slice(loss.as_bytes());
+        purrdf_hash::frame::frame_le(&mut identity, loss.as_bytes());
     }
     for field in [
         source.as_bytes(),
         target.name().as_bytes(),
         bytes.as_slice(),
     ] {
-        identity.extend_from_slice(
-            &u64::try_from(field.len())
-                .map_err(|_| invalid("projection identity field exceeds u64"))?
-                .to_le_bytes(),
-        );
-        identity.extend_from_slice(field);
+        purrdf_hash::frame::frame_le(&mut identity, field);
     }
     let digest = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&identity).as_bytes());
     let record = format!("urn:gmeow:math-projection:{digest}");
@@ -552,8 +539,8 @@ fn observation(input: &mut Source, root: &RdfTerm, source: &str) -> gmeow_errors
         input.typed(&rational, &math("RationalValue"))?;
         let numerator = input.literal(&rational, &math("numerator"))?;
         let denominator = input.literal(&rational, &math("denominator"))?;
-        expression::integer_literal(&numerator)?;
-        expression::integer_literal(&denominator)?;
+        expression::validate_integer_payload(&numerator)?;
+        expression::validate_integer_payload(&denominator)?;
         if expression::canonical_integer(&denominator.lexical_form)? == "0" {
             return Err(invalid("matrix rational denominator cannot be zero"));
         }

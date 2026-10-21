@@ -618,7 +618,7 @@ fn math_reference(
 /// Resolve existing parents and final symlinks, including a dangling link to a new output.
 fn math_output_path(path: &Path) -> std::io::Result<PathBuf> {
     let mut selected = std::path::absolute(path)?;
-    let mut seen = std::collections::HashSet::new();
+    let mut seen = std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::new());
     loop {
         let name = selected.file_name().ok_or_else(|| {
             std::io::Error::new(std::io::ErrorKind::InvalidInput, "output needs a file name")

@@ -22,7 +22,7 @@ pub(super) fn render(
         Exit(RdfTerm),
     }
     let mut pending = vec![Step::Enter(root.clone())];
-    let mut active = HashSet::new();
+    let mut active = HashSet::<_, purrdf_hash::fixed::FixedState>::default();
     let mut output = String::new();
     while let Some(step) = pending.pop() {
         let node = match step {
@@ -143,8 +143,8 @@ fn symbol_xml(
         input.visited.insert(symbol.clone());
         return Ok(format!(
             "<csymbol definitionURL=\"{}\">{}</csymbol>",
-            xml(iri),
-            xml(iri)
+            xml(iri)?,
+            xml(iri)?
         ));
     }
     let mut mappings = input.values(symbol, SKOS_EXACT);
@@ -180,8 +180,8 @@ fn symbol_xml(
     }
     Ok(format!(
         "<OMS cd=\"{}\" name=\"{}\" cdbase=\"http://www.openmath.org/cd\"/>",
-        xml(cd),
-        xml(name)
+        xml(cd)?,
+        xml(name)?
     ))
 }
 
@@ -198,7 +198,7 @@ fn variable(input: &mut Source, node: &RdfTerm, target: Target) -> gmeow_errors:
         ));
     };
     Ok(if target == Target::MathMl {
-        format!("<ci>{}</ci>", xml(&iri))
+        format!("<ci>{}</ci>", xml(&iri)?)
     } else {
         // OpenMath names are NCNames, whereas canonical declarations are IRIs.
         // A reversible byte encoding preserves distinct free-variable identities
@@ -234,8 +234,8 @@ fn number(input: &mut Source, node: &RdfTerm, target: Target) -> gmeow_errors::R
     }
     let numerator = input.literal(&value, &math("numerator"))?;
     let denominator = input.literal(&value, &math("denominator"))?;
-    integer_literal(&numerator)?;
-    integer_literal(&denominator)?;
+    validate_integer_payload(&numerator)?;
+    validate_integer_payload(&denominator)?;
     let numerator = canonical_integer(&numerator.lexical_form)?;
     let denominator = canonical_integer(&denominator.lexical_form)?;
     if denominator == "0" {
@@ -331,7 +331,7 @@ fn integer(value: &str) -> gmeow_errors::Result<()> {
     Ok(())
 }
 
-pub(super) fn integer_literal(value: &purrdf::RdfLiteral) -> gmeow_errors::Result<()> {
+pub(super) fn validate_integer_payload(value: &purrdf::RdfLiteral) -> gmeow_errors::Result<()> {
     if value.datatype_iri() != format!("{XSD}integer")
         || value.language.is_some()
         || value.direction.is_some()
