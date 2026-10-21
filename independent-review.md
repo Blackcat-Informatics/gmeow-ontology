@@ -1,0 +1,11 @@
+# Independent source review
+
+Root reviewed the frozen two-PO change authored by the separate source owner. Root made no translation edits. No actionable source finding.
+
+Read all45newFrench and90Chinese entries against the current canonical15term stanzas and actual profile admission. Selection configurations are distinct from earned grades. Required measurement does not mean passed; explicit non-applicability retains a reason and excludes only the selected denominator; unsupported capability remains visible and makes the assessment incomplete. Missing inputs never infer exclusions. Default measured status still covers newly added axes. Explicit external profiles keep documentation, competency and box-role measurements, repository floors and required inputs intact. Target tiers remain known rubric tiers, not replacement thresholds. Wire keys, IRIs and identifiers remain unchanged.
+
+Both catalogs cover all90currently authored family contexts: label, definition, example, useWhen, avoidWhen and howToUse for15terms. There is no authored scopeNote in these stanzas; this unit adds no English prose. Existing French label/definition/howToUse entries remain untouched, and all earlier PO bytes are retained. Source inspection matched every new msgid to current English, normalized full and CURIE predicate spellings, found90unique family contexts perlanguage, nonempty translations and no new fuzzy flags. All30new code-only examples preserve exact RDF spelling and quoted literals. git diff --check passed.
+
+The translations retain terminology for axes, measurement configuration, grades, tiers, aggregation and repository floors. French and Chinese preserve the negative boundaries rather than turning unsupported into inapplicable or a missing capability into a better score. The external-sacred key remains verbatim and its translated definition explains actual external logical-corpus selection.
+
+This is source/text inspection, not native PO parsing, glossary consistency, measured coverage/floor evidence or corpus acceptance. Repository lint passed. Normal hooks and exact-source hosted reviewed-coverage generation remain required. Root must review the complete produced golden delta and copy exact bytes; no hand editing or local producer. Full issue1656 and remaining English-coat/facet/metric/floor contracts stay open.

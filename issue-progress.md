@@ -1,0 +1,5 @@
+PR #1930 completes all six existing English annotation fields for the fifteen quality-profile/applicability terms in French and Chinese:45new French entries and90new Chinese entries. Existing translations, English prose, ontology semantics and measurement/floor behavior are unchanged (Principles4and7).
+
+Repository lint, independent source review and normal signed commit/push hooks passed. Exact-source hosted native generation succeeded in [run39653241517](https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39653241517). The complete produced golden adds exactly135contexts with zero removals and unchanged144catalogs; it was copied byte for byte. This is actual native catalog parsing/coverage output, not a full quality or corpus verdict.
+
+The remaining English annotation/facet work, broader translation coverage and consistency, actual metrics/floor ratcheting and authenticated corpus acceptance remain open here. The recorded campaign exception excludes local corpus/producer/sync/full-gate runs and permits sequential merges ignoring CI. Normal hooks remain mandatory.

@@ -1,0 +1,10 @@
+docs(quality): complete profile applicability translations
+
+Translate all existing label, definition, example and usage fields for the
+fifteen quality-profile/applicability terms into French and Chinese.
+Preserve the distinction between required measurement, non-applicability
+and unsupported capability, and retain explicit selection keys verbatim.
+
+No English, ontology semantics, measurement thresholds or floors change.
+
+Refs #1656. Principles 4 and 7.

@@ -1,0 +1,1039 @@
+refresh	Set up job	﻿2026-10-21T18:30:01.6905141Z Current runner version: '2.338.0'
+refresh	Set up job	2026-10-21T18:30:01.6930075Z ##[group]Runner Image Provisioner
+refresh	Set up job	2026-10-21T18:30:01.6931021Z Hosted Compute Agent
+refresh	Set up job	2026-10-21T18:30:01.6931686Z Version: 20261015.610
+refresh	Set up job	2026-10-21T18:30:01.6932335Z Commit: 267fdb4e8bbec4ab5ea31367f3a00d5c480c7656
+refresh	Set up job	2026-10-21T18:30:01.6933065Z Build Date: 2026-10-14T17:06:54Z
+refresh	Set up job	2026-10-21T18:30:01.6933774Z Worker ID: {016ff88d-6c7f-470e-86af-d886bf5e8511}
+refresh	Set up job	2026-10-21T18:30:01.6934481Z Region: westus3
+refresh	Set up job	2026-10-21T18:30:01.6935364Z Cloud: Azure
+refresh	Set up job	2026-10-21T18:30:01.6935967Z ##[endgroup]
+refresh	Set up job	2026-10-21T18:30:01.6937606Z ##[group]Operating System
+refresh	Set up job	2026-10-21T18:30:01.6938386Z Ubuntu
+refresh	Set up job	2026-10-21T18:30:01.6939115Z 24.04.5
+refresh	Set up job	2026-10-21T18:30:01.6939690Z LTS
+refresh	Set up job	2026-10-21T18:30:01.6940321Z ##[endgroup]
+refresh	Set up job	2026-10-21T18:30:01.6940879Z ##[group]Runner Image
+refresh	Set up job	2026-10-21T18:30:01.6941501Z Image: ubuntu-24.04
+refresh	Set up job	2026-10-21T18:30:01.6942078Z Version: 20261018.339.1
+refresh	Set up job	2026-10-21T18:30:01.6943148Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261018.339/images/ubuntu/Ubuntu2404-Readme.md
+refresh	Set up job	2026-10-21T18:30:01.6945079Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261018.339
+refresh	Set up job	2026-10-21T18:30:01.6946128Z ##[endgroup]
+refresh	Set up job	2026-10-21T18:30:01.6947280Z ##[group]GITHUB_TOKEN Permissions
+refresh	Set up job	2026-10-21T18:30:01.6949753Z Contents: read
+refresh	Set up job	2026-10-21T18:30:01.6950375Z Metadata: read
+refresh	Set up job	2026-10-21T18:30:01.6950915Z ##[endgroup]
+refresh	Set up job	2026-10-21T18:30:01.6953060Z Secret source: Actions
+refresh	Set up job	2026-10-21T18:30:01.6953949Z Cache mode: write
+refresh	Set up job	2026-10-21T18:30:01.6955066Z Prepare workflow directory
+refresh	Set up job	2026-10-21T18:30:01.7320569Z Prepare all required actions
+refresh	Set up job	2026-10-21T18:30:01.7374643Z Getting action download info
+refresh	Set up job	2026-10-21T18:30:02.1256071Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+refresh	Set up job	2026-10-21T18:30:02.2146932Z Download action repository 'dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8' (SHA:29eef336d9b2848a0b548edc03f92a220660cdb8)
+refresh	Set up job	2026-10-21T18:30:02.4729026Z Download action repository 'Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6' (SHA:6323deb102c322ba6fcbdcafc7e3dddab59af2b6)
+refresh	Set up job	2026-10-21T18:30:03.2247855Z Download action repository 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+refresh	Set up job	2026-10-21T18:30:03.5040116Z Complete job name: refresh
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	﻿2026-10-21T18:30:03.5772144Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5773434Z with:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5774111Z   ref: 9e33d92f5ef2952c38ed94772b4383f85de21990
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5775124Z   persist-credentials: false
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5775981Z   repository: Blackcat-Informatics/gmeow-ontology
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5780455Z   token: ***
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5781093Z   ssh-strict: true
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5781711Z   ssh-user: git
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5782308Z   clean: true
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5782945Z   sparse-checkout-cone-mode: true
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5783670Z   fetch-depth: 1
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5784252Z   fetch-tags: false
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5785049Z   show-progress: true
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5785740Z   lfs: false
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5786319Z   submodules: false
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5786977Z   set-safe-directory: true
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5787688Z   allow-unsafe-pr-checkout: false
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5788616Z env:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5789918Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5791629Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5792606Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5793494Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5794200Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.5795049Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6798040Z Syncing repository: Blackcat-Informatics/gmeow-ontology
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6800322Z ##[group]Getting Git version info
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6801356Z Working directory is '/home/runner/work/gmeow-ontology/gmeow-ontology'
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6803212Z [command]/usr/bin/git version
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6846368Z git version 2.55.0
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6864710Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6875614Z Temporarily overriding HOME='/home/runner/work/_temp/f4a846ae-8847-4c26-b11b-ac70e13a5b70' before making global git config changes
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6878206Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6881954Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6927993Z Deleting the contents of '/home/runner/work/gmeow-ontology/gmeow-ontology'
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6932335Z ##[group]Determining repository object format
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6934392Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6936225Z ##[group]Initializing the repository
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.6939468Z [command]/usr/bin/git init /home/runner/work/gmeow-ontology/gmeow-ontology
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7029655Z hint: Using 'master' as the name for the initial branch. This default branch name
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7031638Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7032868Z hint: to use in all of your new repositories, which will suppress this warning,
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7033929Z hint: call:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7034749Z hint:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7035971Z hint: 	git config --global init.defaultBranch <name>
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7037023Z hint:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7037787Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7039200Z hint: 'development'. The just-created branch can be renamed via this command:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7040238Z hint:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7040821Z hint: 	git branch -m <name>
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7041572Z hint:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7042383Z hint: Disable this message with "git config set advice.defaultBranchName false"
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7044063Z Initialized empty Git repository in /home/runner/work/gmeow-ontology/gmeow-ontology/.git/
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7046685Z [command]/usr/bin/git remote add origin https://github.com/Blackcat-Informatics/gmeow-ontology
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7092480Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7093610Z ##[group]Disabling automatic garbage collection
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7094956Z [command]/usr/bin/git config --local gc.auto 0
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7123642Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7125217Z ##[group]Setting up auth
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7126230Z Removing SSH command configuration
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7128252Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7155981Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7457702Z Removing HTTP extra header
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7462991Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7491690Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7680621Z Removing includeIf entries pointing to credentials config files
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7696676Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7722375Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7935137Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.7969314Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path /home/runner/work/_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.8003220Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.8035764Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.8065074Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.8091412Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.8093206Z ##[group]Fetching the repository
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:03.8099084Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 9e33d92f5ef2952c38ed94772b4383f85de21990
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0699578Z From https://github.com/Blackcat-Informatics/gmeow-ontology
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0702821Z  * branch            9e33d92f5ef2952c38ed94772b4383f85de21990 -> FETCH_HEAD
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0710167Z [command]/usr/bin/git rev-parse --verify --quiet 9e33d92f5ef2952c38ed94772b4383f85de21990^{object}
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0734626Z 9e33d92f5ef2952c38ed94772b4383f85de21990
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0739191Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0741372Z ##[group]Determining the checkout info
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0743769Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0745358Z [command]/usr/bin/git sparse-checkout disable
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0791605Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0820121Z ##[group]Checking out the ref
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.0822738Z [command]/usr/bin/git checkout --progress --force 9e33d92f5ef2952c38ed94772b4383f85de21990
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9392578Z Note: switching to '9e33d92f5ef2952c38ed94772b4383f85de21990'.
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9395663Z 
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9396410Z You are in 'detached HEAD' state. You can look around, make experimental
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9397802Z changes and commit them, and you can discard any commits you make in this
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9399362Z state without impacting any branches by switching back to a branch.
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9399943Z 
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9400252Z If you want to create a new branch to retain commits you create, you may
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9401436Z do so (now or later) by using -c with the switch command. Example:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9401784Z 
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9402032Z   git switch -c <new-branch-name>
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9402261Z 
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9402459Z Or undo this operation with:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9402659Z 
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9402812Z   git switch -
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9403003Z 
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9403298Z Turn off this advice by setting config variable advice.detachedHead to false
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9403729Z 
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9404019Z HEAD is now at 9e33d92 docs(quality): complete profile applicability translations
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9426405Z ##[endgroup]
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9468812Z [command]/usr/bin/git log -1 --format=%H
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9493487Z 9e33d92f5ef2952c38ed94772b4383f85de21990
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9500551Z ##[group]Removing auth
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9501241Z Removing SSH command configuration
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9504469Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9533077Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9745147Z Removing HTTP extra header
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9748969Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9777092Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9982507Z Removing includeIf entries pointing to credentials config files
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:08.9985235Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0009695Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0010787Z includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0011772Z includeif.gitdir:/github/workspace/.git.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0012360Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0019463Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0043242Z /home/runner/work/_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0052345Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-fda8aa73\-15ba\-452a\-8e29\-4bd8e354e4ba\.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0082178Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0104322Z /home/runner/work/_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0111890Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/gmeow-ontology/gmeow-ontology/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-fda8aa73\-15ba\-452a\-8e29\-4bd8e354e4ba\.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0143855Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0162944Z /github/runner_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0174468Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-fda8aa73\-15ba\-452a\-8e29\-4bd8e354e4ba\.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0206369Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0224416Z /github/runner_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0232593Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-fda8aa73\-15ba\-452a\-8e29\-4bd8e354e4ba\.config
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0315210Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0523386Z Removing credentials config '/home/runner/work/_temp/git-credentials-fda8aa73-15ba-452a-8e29-4bd8e354e4ba.config'
+refresh	Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:30:09.0534712Z ##[endgroup]
+refresh	Install Rust (nightly)	﻿2026-10-21T18:30:09.0852463Z ##[group]Run dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0853030Z with:
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0853381Z   toolchain: nightly-2026-09-05
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0853769Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0854474Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0855418Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0855917Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0856438Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0856799Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0857185Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.0957868Z ##[start-action display=Run : parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1006366Z ##[group]Run : parse toolchain version
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1007019Z ^[[36;1m: parse toolchain version^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1007403Z ^[[36;1mif [[ -z $toolchain ]]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1008186Z ^[[36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1009036Z ^[[36;1m  echo "'toolchain' is a required input" >&2^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1009445Z ^[[36;1m  exit 1^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1009922Z ^[[36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1010422Z ^[[36;1m  if [[ Linux == macOS ]]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1011033Z ^[[36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1011680Z ^[[36;1m  else^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1012191Z ^[[36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1012759Z ^[[36;1m  fi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1013161Z ^[[36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1013794Z ^[[36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1014386Z ^[[36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1015203Z ^[[36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1015848Z ^[[36;1melse^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1016196Z ^[[36;1m  echo "toolchain=$toolchain" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1016578Z ^[[36;1mfi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1159478Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1160129Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1160810Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1161663Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1162194Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1162677Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1163123Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1163549Z   toolchain: nightly-2026-09-05
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1163902Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1289231Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=33]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1313873Z ##[start-action display=Run : construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1341038Z ##[group]Run : construct rustup command line
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1341630Z ^[[36;1m: construct rustup command line^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1342209Z ^[[36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1343439Z ^[[36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1344017Z ^[[36;1mecho "downgrade=" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1383471Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1383928Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1384652Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1385692Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1386264Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1386710Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1387062Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1387421Z   targets: 
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1387712Z   components: 
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1388003Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1466779Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=15]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1471518Z ##[start-action display=Run : set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1497551Z ##[group]Run : set $CARGO_HOME
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1498031Z ^[[36;1m: set $CARGO_HOME^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1498495Z ^[[36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1537726Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1538168Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1539012Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1539887Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1540403Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1540833Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1541181Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1541577Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1611578Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=13]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1614499Z ##[start-action display=Run : install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1647333Z ##[group]Run : install rustup if needed
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1647814Z ^[[36;1m: install rustup if needed^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1648255Z ^[[36;1mif ! command -v rustup &>/dev/null; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1649184Z ^[[36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1649999Z ^[[36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1650392Z ^[[36;1mfi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1687732Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1688338Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1689006Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1689798Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1690299Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1690761Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1691172Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1691529Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1691890Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1758349Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=14]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1763476Z ##[start-action display=Run : install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1772156Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1776971Z ##[start-action display=rustup toolchain install nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_4]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1802223Z ##[group]Run rustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1802976Z ^[[36;1mrustup toolchain install nightly-2026-09-05 --profile minimal --no-self-update^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1837883Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1838416Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1839089Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1839985Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1840463Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1840876Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1841266Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1841646Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1842001Z   RUSTUP_PERMIT_COPY_RENAME: 1
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.1842342Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.2355253Z info: syncing channel updates for nightly-2026-09-05-x86_64-unknown-linux-gnu
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.4870108Z info: latest update on 2026-09-05 for version 1.100.0-nightly (0ed41eb41 2026-09-04)
+refresh	Install Rust (nightly)	2026-10-21T18:30:09.4871183Z info: downloading 3 components
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1215499Z 
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1280170Z   nightly-2026-09-05-x86_64-unknown-linux-gnu installed - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1281246Z 
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1399142Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=9962]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1405583Z ##[start-action display=Run rustup default nightly-2026-09-05;id=__dtolnay_rust-toolchain.__run_5]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1429117Z ##[group]Run rustup default nightly-2026-09-05
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1429634Z ^[[36;1mrustup default nightly-2026-09-05^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1463192Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1463739Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1464423Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1465464Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1466047Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1466482Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1466815Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1467212Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1467552Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1565711Z info: using existing install for nightly-2026-09-05-x86_64-unknown-linux-gnu
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1573559Z info: default toolchain set to nightly-2026-09-05-x86_64-unknown-linux-gnu
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1573930Z 
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1635593Z   nightly-2026-09-05-x86_64-unknown-linux-gnu unchanged - rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1636255Z 
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1638498Z info: note that the toolchain 'nightly-x86_64-unknown-linux-gnu' is currently in use (overridden by '/home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml')
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1650813Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=24]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1656481Z ##[start-action display=Run : create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1677911Z ##[group]Run : create cachekey
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1678355Z ^[[36;1m: create cachekey^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1678972Z ^[[36;1mDATE=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1679803Z ^[[36;1mHASH=$(rustc +nightly-2026-09-05 --version --verbose | sed -ne 's/^commit-hash: //p')^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1680481Z ^[[36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1711401Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1711921Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1712656Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1713442Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1714116Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1714577Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1715180Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1715581Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.1715919Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2008983Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=35]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2012022Z ##[start-action display=Run : disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2032237Z ##[group]Run : disable incremental compilation
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2032748Z ^[[36;1m: disable incremental compilation^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2033213Z ^[[36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2033686Z ^[[36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2034072Z ^[[36;1mfi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2067080Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2067554Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2068418Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2069341Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2069811Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2070267Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2070675Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2071047Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2071382Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2129076Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=11]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2132027Z ##[start-action display=Run : enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2153304Z ##[group]Run : enable colors in Cargo output
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2153745Z ^[[36;1m: enable colors in Cargo output^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2154347Z ^[[36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2155017Z ^[[36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2155467Z ^[[36;1mfi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2183925Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2184379Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2185248Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2186064Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2186540Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2186952Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2187508Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2187884Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2188236Z   CARGO_INCREMENTAL: 0
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2188554Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2243204Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=11]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2249281Z ##[start-action display=Run : enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2271489Z ##[group]Run : enable Cargo sparse registry
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2271965Z ^[[36;1m: enable Cargo sparse registry^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2272464Z ^[[36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2273242Z ^[[36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2274094Z ^[[36;1m  if rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[89]\.'; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2275058Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2275697Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2276534Z ^[[36;1m  elif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.6[67]\.'; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2277206Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2277836Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2278271Z ^[[36;1m  fi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2278582Z ^[[36;1mfi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2305124Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2305710Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2306364Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2307123Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2307645Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2308073Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2308452Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2308830Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2309174Z   CARGO_INCREMENTAL: 0
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2309677Z   CARGO_TERM_COLOR: always
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2310159Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2579253Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=32]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2584168Z ##[start-action display=Run : work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2605758Z ##[group]Run : work around spurious network errors in curl 8.0
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2606368Z ^[[36;1m: work around spurious network errors in curl 8.0^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2606996Z ^[[36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2607760Z ^[[36;1mif rustc +nightly-2026-09-05 --version --verbose | grep -q '^release: 1\.7[01]\.'; then^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2608329Z ^[[36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2608735Z ^[[36;1mfi^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2639071Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2639597Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2640248Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2641027Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2641600Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2642015Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2642401Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2642756Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2643104Z   CARGO_INCREMENTAL: 0
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2643462Z   CARGO_TERM_COLOR: always
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2643790Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2805114Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=21]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2809760Z ##[start-action display=Run rustc +nightly-2026-09-05 --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2830207Z ##[group]Run rustc +nightly-2026-09-05 --version --verbose
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2830727Z ^[[36;1mrustc +nightly-2026-09-05 --version --verbose^[[0m
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2860234Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2860746Z env:
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2861398Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2862197Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2862728Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2863183Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2863565Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2863926Z   CARGO_HOME: /home/runner/.cargo
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2864273Z   CARGO_INCREMENTAL: 0
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2864787Z   CARGO_TERM_COLOR: always
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.2865414Z ##[endgroup]
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3011837Z rustc 1.100.0-nightly (0ed41eb41 2026-09-04)
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3012787Z binary: rustc
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3013425Z commit-hash: 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3014099Z commit-date: 2026-09-04
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3014732Z host: x86_64-unknown-linux-gnu
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3015383Z release: 1.100.0-nightly
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3015837Z LLVM version: 23.1.1
+refresh	Install Rust (nightly)	2026-10-21T18:30:19.3028453Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=21]
+refresh	Cache Cargo dependencies	﻿2026-10-21T18:30:19.3153672Z ##[group]Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3154186Z with:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3154527Z   prefix-key: v0-rust
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3154961Z   add-job-id-key: true
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3155323Z   add-rust-environment-hash-key: true
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3155739Z   cache-targets: true
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3156065Z   cache-all-crates: false
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3156427Z   cache-workspace-crates: false
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3156777Z   save-if: true
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3157073Z   cache-provider: github
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3157588Z   cache-bin: true
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3157945Z   lookup-only: false
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3158277Z   cmd-format: {0}
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3158586Z env:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3159233Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3160079Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3160580Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3161153Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3161508Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3161903Z   CARGO_HOME: /home/runner/.cargo
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3162268Z   CARGO_INCREMENTAL: 0
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3162612Z   CARGO_TERM_COLOR: always
+refresh	Cache Cargo dependencies	2026-10-21T18:30:19.3162975Z ##[endgroup]
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3950702Z ##[group]Cache Configuration
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3951329Z Cache Provider:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3951831Z     github
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3952170Z Workspaces:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3952573Z     /home/runner/work/gmeow-ontology/gmeow-ontology
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3952983Z Cache Paths:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3953278Z     /home/runner/.cargo/bin
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3953652Z     /home/runner/.cargo/.crates.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3954021Z     /home/runner/.cargo/.crates2.json
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3954408Z     /home/runner/.cargo/registry
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3954761Z     /home/runner/.cargo/git
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3955549Z     /home/runner/work/gmeow-ontology/gmeow-ontology/target
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3956147Z Restore Key:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3956469Z     v0-rust-refresh-Linux-x64-1405f92b
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3956861Z Cache Key:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3957290Z     v0-rust-refresh-Linux-x64-1405f92b-f214cba3
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3957788Z .. Prefix:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3958149Z   - v0-rust-refresh-Linux-x64
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3958490Z .. Environment considered:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3958842Z   - Rust Versions:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3959311Z     - 1.100.0-nightly x86_64-unknown-linux-gnu 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3959935Z     - 1.101.0-nightly x86_64-unknown-linux-gnu 19833af7224424e8b53e288097d56b6af43d5bcf
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3960565Z     - 1.99.1 x86_64-unknown-linux-gnu 58cf8f9c35b355199727627d07ae34a4e2846d67
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3961021Z   - CARGO_ENV_CFLAGS_FORCE
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3961375Z   - CARGO_ENV_CFLAGS_VALUE
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3961720Z   - CARGO_ENV_CXXFLAGS_FORCE
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3962062Z   - CARGO_ENV_CXXFLAGS_VALUE
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3962401Z   - CARGO_HOME
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3962696Z   - CARGO_INCREMENTAL
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3963047Z   - CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3963471Z   - CARGO_TERM_COLOR
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3963830Z .. Lockfiles considered:
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3964257Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/.cargo/config.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3964771Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/Cargo.lock
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3965539Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3966344Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect-ingest/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3967140Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3967775Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bench-engines/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3968387Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3969727Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3970532Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3971354Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cli-core/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3972125Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/conformance/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3973155Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cost-measure/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3973836Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3974718Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3975720Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-print/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3976412Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3977008Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3977641Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/foundation-corpus/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3978318Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-cli/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3978891Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3979479Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3980168Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-wasm/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3980737Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3981345Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/helper-census/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3981927Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3982484Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3983131Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/license/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3983742Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3984320Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3984989Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lsp/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3985590Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3986205Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3986765Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-core-wasm/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3987350Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3987962Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-wasm/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3988534Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3989180Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/music/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3989934Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3990573Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/perf-evidence/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3991170Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3991751Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/query-wasm/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3992408Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/reason-wasm/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3992974Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-brief/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3993558Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3994285Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3995011Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3995644Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/test-batch-macros/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3996239Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3996844Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate-wasm/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3997515Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3998086Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/xtask/Cargo.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3998645Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3999432Z ##[endgroup]
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3999566Z 
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.3999757Z ... Restoring cache ...
+refresh	Cache Cargo dependencies	2026-10-21T18:30:32.6235012Z No cache found.
+refresh	Refresh the reviewed-coverage golden from live catalogs	﻿2026-10-21T18:30:32.6365708Z ##[group]Run make maint-refresh-reviewed-coverage-golden
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6366262Z ^[[36;1mmake maint-refresh-reviewed-coverage-golden^[[0m
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6400553Z shell: /usr/bin/bash -e {0}
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6401042Z env:
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6401717Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6402485Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6403019Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6403508Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6403874Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6404226Z   CARGO_HOME: /home/runner/.cargo
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6404553Z   CARGO_INCREMENTAL: 0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6405077Z   CARGO_TERM_COLOR: always
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6405437Z   CACHE_ON_FAILURE: false
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6405752Z ##[endgroup]
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.6589458Z cargo run -p gmeow-docs --example refresh-reviewed-coverage-golden
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.7252660Z ^[[1m^[[92m    Updating^[[0m crates.io index
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:32.7256273Z ^[[1m^[[92m    Updating^[[0m git repository `https://github.com/Blackcat-Informatics/purrdf`
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.0459906Z ^[[1m^[[92m Downloading^[[0m crates ...
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1167436Z ^[[1m^[[92m  Downloaded^[[0m httparse v1.10.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1185103Z ^[[1m^[[92m  Downloaded^[[0m adler2 v2.0.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1215811Z ^[[1m^[[92m  Downloaded^[[0m lazy_static v1.5.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1246437Z ^[[1m^[[92m  Downloaded^[[0m indexmap v2.14.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1283860Z ^[[1m^[[92m  Downloaded^[[0m pulldown-cmark-escape v0.11.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1289882Z ^[[1m^[[92m  Downloaded^[[0m inout v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1300336Z ^[[1m^[[92m  Downloaded^[[0m itoa v1.0.18
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1311524Z ^[[1m^[[92m  Downloaded^[[0m percent-encoding v2.3.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1316637Z ^[[1m^[[92m  Downloaded^[[0m toml_write v0.1.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1331148Z ^[[1m^[[92m  Downloaded^[[0m memo-map v0.3.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1362920Z ^[[1m^[[92m  Downloaded^[[0m bitflags v2.13.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1398187Z ^[[1m^[[92m  Downloaded^[[0m block-buffer v0.10.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1404720Z ^[[1m^[[92m  Downloaded^[[0m untrusted v0.9.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1415287Z ^[[1m^[[92m  Downloaded^[[0m utf8-zero v0.8.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1426110Z ^[[1m^[[92m  Downloaded^[[0m block-buffer v0.12.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1438808Z ^[[1m^[[92m  Downloaded^[[0m subtle v2.6.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1453322Z ^[[1m^[[92m  Downloaded^[[0m tinyvec_macros v0.1.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1461105Z ^[[1m^[[92m  Downloaded^[[0m version_check v0.9.5
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1471931Z ^[[1m^[[92m  Downloaded^[[0m bit-set v0.8.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1487108Z ^[[1m^[[92m  Downloaded^[[0m bit-vec v0.8.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1506523Z ^[[1m^[[92m  Downloaded^[[0m rustc-hash v2.1.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1510535Z ^[[1m^[[92m  Downloaded^[[0m universal-hash v0.6.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1519833Z ^[[1m^[[92m  Downloaded^[[0m serde_spanned v1.1.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1540122Z ^[[1m^[[92m  Downloaded^[[0m serde_spanned v0.6.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1558604Z ^[[1m^[[92m  Downloaded^[[0m toml_datetime v0.6.11
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1577594Z ^[[1m^[[92m  Downloaded^[[0m polyval v0.7.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1598417Z ^[[1m^[[92m  Downloaded^[[0m autocfg v1.5.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1628941Z ^[[1m^[[92m  Downloaded^[[0m pin-project-lite v0.2.17
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1661522Z ^[[1m^[[92m  Downloaded^[[0m once_cell v1.21.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1674966Z ^[[1m^[[92m  Downloaded^[[0m sha2 v0.10.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1690714Z ^[[1m^[[92m  Downloaded^[[0m zmij v1.0.23
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1705734Z ^[[1m^[[92m  Downloaded^[[0m zeroize v1.9.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1716756Z ^[[1m^[[92m  Downloaded^[[0m unicase v2.9.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1723127Z ^[[1m^[[92m  Downloaded^[[0m shlex v2.0.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1732944Z ^[[1m^[[92m  Downloaded^[[0m visual-hashing v1.0.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1746401Z ^[[1m^[[92m  Downloaded^[[0m digest v0.10.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1756306Z ^[[1m^[[92m  Downloaded^[[0m hybrid-array v0.4.15
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1772969Z ^[[1m^[[92m  Downloaded^[[0m quote v1.0.47
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1788443Z ^[[1m^[[92m  Downloaded^[[0m cpufeatures v0.3.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1797995Z ^[[1m^[[92m  Downloaded^[[0m crypto-common v0.1.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1808778Z ^[[1m^[[92m  Downloaded^[[0m equivalent v1.0.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1817089Z ^[[1m^[[92m  Downloaded^[[0m log v0.4.33
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1833569Z ^[[1m^[[92m  Downloaded^[[0m rustls-pki-types v1.15.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1866253Z ^[[1m^[[92m  Downloaded^[[0m semver v1.0.28
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1872844Z ^[[1m^[[92m  Downloaded^[[0m simd-adler32 v0.3.10
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1882801Z ^[[1m^[[92m  Downloaded^[[0m smallvec v1.15.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1893109Z ^[[1m^[[92m  Downloaded^[[0m tempfile v3.27.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1908378Z ^[[1m^[[92m  Downloaded^[[0m toml v0.8.23
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1923063Z ^[[1m^[[92m  Downloaded^[[0m toml_datetime v1.1.1+spec-1.1.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1931728Z ^[[1m^[[92m  Downloaded^[[0m toml_parser v1.1.2+spec-1.1.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1945607Z ^[[1m^[[92m  Downloaded^[[0m twox-hash v2.1.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1958244Z ^[[1m^[[92m  Downloaded^[[0m unicode-script v0.5.8
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1969226Z ^[[1m^[[92m  Downloaded^[[0m aead v0.6.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1977968Z ^[[1m^[[92m  Downloaded^[[0m ciborium-io v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1982046Z ^[[1m^[[92m  Downloaded^[[0m crypto-common v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.1988369Z ^[[1m^[[92m  Downloaded^[[0m num-traits v0.2.19
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2003089Z ^[[1m^[[92m  Downloaded^[[0m tinyvec v1.12.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2019241Z ^[[1m^[[92m  Downloaded^[[0m proc-macro2 v1.0.107
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2036338Z ^[[1m^[[92m  Downloaded^[[0m serde_core v1.0.229
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2052664Z ^[[1m^[[92m  Downloaded^[[0m sha2 v0.11.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2070833Z ^[[1m^[[92m  Downloaded^[[0m toml v1.1.3+spec-1.1.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2093267Z ^[[1m^[[92m  Downloaded^[[0m tracing-attributes v0.1.31
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2108298Z ^[[1m^[[92m  Downloaded^[[0m serde_derive v1.0.229
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2125825Z ^[[1m^[[92m  Downloaded^[[0m unicode-ident v1.0.24
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2141513Z ^[[1m^[[92m  Downloaded^[[0m anyhow v1.0.104
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2161524Z ^[[1m^[[92m  Downloaded^[[0m cpubits v0.1.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2166442Z ^[[1m^[[92m  Downloaded^[[0m cpufeatures v0.2.17
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2173481Z ^[[1m^[[92m  Downloaded^[[0m errno v0.3.14
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2181212Z ^[[1m^[[92m  Downloaded^[[0m ghash v0.6.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2194466Z ^[[1m^[[92m  Downloaded^[[0m miniz_oxide v0.8.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2203632Z ^[[1m^[[92m  Downloaded^[[0m pretty_assertions v1.4.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2216532Z ^[[1m^[[92m  Downloaded^[[0m similar v2.7.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2242628Z ^[[1m^[[92m  Downloaded^[[0m toml_edit v0.22.27
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2267586Z ^[[1m^[[92m  Downloaded^[[0m tracing-core v0.1.36
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2283928Z ^[[1m^[[92m  Downloaded^[[0m ureq-proto v0.6.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2305697Z ^[[1m^[[92m  Downloaded^[[0m yansi v1.0.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2319333Z ^[[1m^[[92m  Downloaded^[[0m base64 v0.22.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2340933Z ^[[1m^[[92m  Downloaded^[[0m ciborium-ll v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2347174Z ^[[1m^[[92m  Downloaded^[[0m generic-array v0.14.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2354371Z ^[[1m^[[92m  Downloaded^[[0m rayon-core v1.13.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2374965Z ^[[1m^[[92m  Downloaded^[[0m unicode-security v0.1.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2391223Z ^[[1m^[[92m  Downloaded^[[0m allocator-api2 v0.2.21
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2407262Z ^[[1m^[[92m  Downloaded^[[0m memchr v2.8.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2436661Z ^[[1m^[[92m  Downloaded^[[0m rustls-webpki v0.103.15
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2456627Z ^[[1m^[[92m  Downloaded^[[0m serde v1.0.229
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2478143Z ^[[1m^[[92m  Downloaded^[[0m typenum v1.20.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2502211Z ^[[1m^[[92m  Downloaded^[[0m zerocopy-derive v0.8.55
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2548743Z ^[[1m^[[92m  Downloaded^[[0m aes v0.9.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2570815Z ^[[1m^[[92m  Downloaded^[[0m unicode-normalization v0.1.25
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2595286Z ^[[1m^[[92m  Downloaded^[[0m cipher v0.5.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2608409Z ^[[1m^[[92m  Downloaded^[[0m crossbeam-epoch v0.9.20
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2623510Z ^[[1m^[[92m  Downloaded^[[0m glob v0.3.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2632068Z ^[[1m^[[92m  Downloaded^[[0m http v1.4.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2655304Z ^[[1m^[[92m  Downloaded^[[0m insta v1.48.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2704456Z ^[[1m^[[92m  Downloaded^[[0m cfg-if v1.0.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2711372Z ^[[1m^[[92m  Downloaded^[[0m foldhash v0.1.5
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2718929Z ^[[1m^[[92m  Downloaded^[[0m pulldown-cmark v0.13.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2751685Z ^[[1m^[[92m  Downloaded^[[0m regex v1.13.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2786406Z ^[[1m^[[92m  Downloaded^[[0m serde_json v1.0.151
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2827977Z ^[[1m^[[92m  Downloaded^[[0m ureq v3.3.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2862398Z ^[[1m^[[92m  Downloaded^[[0m aes-gcm v0.11.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2887310Z ^[[1m^[[92m  Downloaded^[[0m aho-corasick v1.1.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2922311Z ^[[1m^[[92m  Downloaded^[[0m rayon v1.12.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.2975255Z ^[[1m^[[92m  Downloaded^[[0m winnow v1.0.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3032467Z ^[[1m^[[92m  Downloaded^[[0m winnow v0.7.15
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3088430Z ^[[1m^[[92m  Downloaded^[[0m minijinja v2.21.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3128276Z ^[[1m^[[92m  Downloaded^[[0m crossbeam-deque v0.8.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3137596Z ^[[1m^[[92m  Downloaded^[[0m webpki-roots v1.0.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3164304Z ^[[1m^[[92m  Downloaded^[[0m cmov v0.5.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3175010Z ^[[1m^[[92m  Downloaded^[[0m fastrand v2.5.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3183614Z ^[[1m^[[92m  Downloaded^[[0m either v1.17.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3192970Z ^[[1m^[[92m  Downloaded^[[0m find-msvc-tools v0.1.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3206793Z ^[[1m^[[92m  Downloaded^[[0m ciborium v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3226484Z ^[[1m^[[92m  Downloaded^[[0m console v0.16.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3255999Z ^[[1m^[[92m  Downloaded^[[0m ctr v0.10.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3265812Z ^[[1m^[[92m  Downloaded^[[0m diff v0.1.13
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3266431Z ^[[1m^[[92m  Downloaded^[[0m digest v0.11.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3269570Z ^[[1m^[[92m  Downloaded^[[0m fixedbitset v0.5.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3280657Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.2.17
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3296504Z ^[[1m^[[92m  Downloaded^[[0m crc32fast v1.5.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3307732Z ^[[1m^[[92m  Downloaded^[[0m ctutils v0.4.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3319028Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.3.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3338434Z ^[[1m^[[92m  Downloaded^[[0m half v2.7.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3355278Z ^[[1m^[[92m  Downloaded^[[0m zerocopy v0.8.55
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3465985Z ^[[1m^[[92m  Downloaded^[[0m crossbeam-utils v0.8.22
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3482033Z ^[[1m^[[92m  Downloaded^[[0m getrandom v0.4.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3503286Z ^[[1m^[[92m  Downloaded^[[0m syn v2.0.119
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3572046Z ^[[1m^[[92m  Downloaded^[[0m syn v3.0.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3641005Z ^[[1m^[[92m  Downloaded^[[0m const-oid v0.10.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3656511Z ^[[1m^[[92m  Downloaded^[[0m regex-syntax v0.8.11
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3709636Z ^[[1m^[[92m  Downloaded^[[0m rustls v0.23.46
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3785885Z ^[[1m^[[92m  Downloaded^[[0m rustix v1.1.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3925462Z ^[[1m^[[92m  Downloaded^[[0m bytes v1.12.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3947025Z ^[[1m^[[92m  Downloaded^[[0m cargo-config2 v0.1.45
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3971118Z ^[[1m^[[92m  Downloaded^[[0m flate2 v1.1.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.3998884Z ^[[1m^[[92m  Downloaded^[[0m cc v1.4.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4019430Z ^[[1m^[[92m  Downloaded^[[0m tracing v0.1.44
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4124582Z ^[[1m^[[92m  Downloaded^[[0m fancy-regex v0.17.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4150115Z ^[[1m^[[92m  Downloaded^[[0m hashbrown v0.15.5
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4180977Z ^[[1m^[[92m  Downloaded^[[0m hashbrown v0.17.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4216274Z ^[[1m^[[92m  Downloaded^[[0m regex-automata v0.4.16
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4317920Z ^[[1m^[[92m  Downloaded^[[0m bstr v1.13.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4374299Z ^[[1m^[[92m  Downloaded^[[0m chrono v0.4.45
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4421189Z ^[[1m^[[92m  Downloaded^[[0m petgraph v0.8.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4567695Z ^[[1m^[[92m  Downloaded^[[0m libc v0.2.189
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4798749Z ^[[1m^[[92m  Downloaded^[[0m structured-zstd v0.0.49
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.4990591Z ^[[1m^[[92m  Downloaded^[[0m ring v0.17.14
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.5267307Z ^[[1m^[[92m  Downloaded^[[0m linux-raw-sys v0.12.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.5729940Z ^[[1m^[[92m  Downloaded^[[0m tiktoken-rs v0.12.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.6983163Z ^[[1m^[[92m   Compiling^[[0m cfg-if v1.0.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.6984122Z ^[[1m^[[92m   Compiling^[[0m typenum v1.20.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.6985519Z ^[[1m^[[92m   Compiling^[[0m proc-macro2 v1.0.107
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.6986191Z ^[[1m^[[92m   Compiling^[[0m unicode-ident v1.0.24
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.7366877Z ^[[1m^[[92m   Compiling^[[0m hashbrown v0.17.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:47.7636720Z ^[[1m^[[92m   Compiling^[[0m quote v1.0.47
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:48.0347836Z ^[[1m^[[92m   Compiling^[[0m purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:48.5737206Z ^[[1m^[[92m   Compiling^[[0m memchr v2.8.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:49.0416756Z ^[[1m^[[92m   Compiling^[[0m hybrid-array v0.4.15
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:49.6656692Z ^[[1m^[[92m   Compiling^[[0m crypto-common v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:50.5176831Z ^[[1m^[[92m   Compiling^[[0m block-buffer v0.12.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:50.6317110Z ^[[1m^[[92m   Compiling^[[0m cpufeatures v0.3.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:50.6726992Z ^[[1m^[[92m   Compiling^[[0m aho-corasick v1.1.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:50.9796705Z ^[[1m^[[92m   Compiling^[[0m regex-syntax v0.8.11
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:51.3167888Z ^[[1m^[[92m   Compiling^[[0m purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:57.6307076Z ^[[1m^[[92m   Compiling^[[0m regex-automata v0.4.16
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:59.1507512Z ^[[1m^[[92m   Compiling^[[0m purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:30:59.9477211Z ^[[1m^[[92m   Compiling^[[0m purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:04.0856726Z ^[[1m^[[92m   Compiling^[[0m const-oid v0.10.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:04.3266878Z ^[[1m^[[92m   Compiling^[[0m libc v0.2.189
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:05.1027291Z ^[[1m^[[92m   Compiling^[[0m digest v0.11.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:05.2347653Z ^[[1m^[[92m   Compiling^[[0m purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:05.3658684Z ^[[1m^[[92m   Compiling^[[0m sha2 v0.11.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:07.6686840Z ^[[1m^[[92m   Compiling^[[0m regex v1.13.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:09.1467248Z ^[[1m^[[92m   Compiling^[[0m syn v3.0.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:11.2328026Z ^[[1m^[[92m   Compiling^[[0m purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:17.4417493Z ^[[1m^[[92m   Compiling^[[0m purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:19.4677957Z ^[[1m^[[92m   Compiling^[[0m purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:19.6144636Z ^[[1m^[[92m   Compiling^[[0m crossbeam-utils v0.8.22
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:19.9396452Z ^[[1m^[[92m   Compiling^[[0m crossbeam-epoch v0.9.20
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:20.7736793Z ^[[1m^[[92m   Compiling^[[0m serde_core v1.0.229
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:21.1666716Z ^[[1m^[[92m   Compiling^[[0m crossbeam-deque v0.8.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:21.7986734Z ^[[1m^[[92m   Compiling^[[0m rayon-core v1.13.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:24.6507204Z ^[[1m^[[92m   Compiling^[[0m version_check v0.9.5
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:25.4096626Z ^[[1m^[[92m   Compiling^[[0m serde_derive v1.0.229
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:25.5206760Z ^[[1m^[[92m   Compiling^[[0m generic-array v0.14.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:27.3375555Z ^[[1m^[[92m   Compiling^[[0m either v1.17.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:27.5116821Z ^[[1m^[[92m   Compiling^[[0m rayon v1.12.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:30.6167193Z ^[[1m^[[92m   Compiling^[[0m serde v1.0.229
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:30.9896682Z ^[[1m^[[92m   Compiling^[[0m equivalent v1.0.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:31.0256716Z ^[[1m^[[92m   Compiling^[[0m getrandom v0.3.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:31.4117511Z ^[[1m^[[92m   Compiling^[[0m purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:31.5666796Z ^[[1m^[[92m   Compiling^[[0m inout v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:31.6517068Z ^[[1m^[[92m   Compiling^[[0m cmov v0.5.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:31.8366714Z ^[[1m^[[92m   Compiling^[[0m itoa v1.0.18
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:32.0226771Z ^[[1m^[[92m   Compiling^[[0m fastrand v2.5.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:32.2747219Z ^[[1m^[[92m   Compiling^[[0m ctutils v0.4.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:32.6127357Z ^[[1m^[[92m   Compiling^[[0m purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:41.9427003Z ^[[1m^[[92m   Compiling^[[0m zmij v1.0.23
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:42.1876515Z ^[[1m^[[92m   Compiling^[[0m cpubits v0.1.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:42.2386731Z ^[[1m^[[92m   Compiling^[[0m universal-hash v0.6.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:42.2976902Z ^[[1m^[[92m   Compiling^[[0m cipher v0.5.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:42.5667129Z ^[[1m^[[92m   Compiling^[[0m serde_json v1.0.151
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:42.6826714Z ^[[1m^[[92m   Compiling^[[0m polyval v0.7.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:42.8817762Z ^[[1m^[[92m   Compiling^[[0m purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:43.0937976Z ^[[1m^[[92m   Compiling^[[0m purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:48.8116730Z ^[[1m^[[92m   Compiling^[[0m twox-hash v2.1.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:31:48.8967033Z ^[[1m^[[92m   Compiling^[[0m structured-zstd v0.0.49
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:16.5447636Z ^[[1m^[[92m   Compiling^[[0m purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:40.6017163Z ^[[1m^[[92m   Compiling^[[0m ghash v0.6.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:43.2747254Z ^[[1m^[[92m   Compiling^[[0m ctr v0.10.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:43.4156735Z ^[[1m^[[92m   Compiling^[[0m aes v0.9.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:44.0596820Z ^[[1m^[[92m   Compiling^[[0m aead v0.6.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:44.1486873Z ^[[1m^[[92m   Compiling^[[0m aes-gcm v0.11.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:44.2447561Z ^[[1m^[[92m   Compiling^[[0m purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:45.9127237Z ^[[1m^[[92m   Compiling^[[0m visual-hashing v1.0.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:32:46.2907581Z ^[[1m^[[92m   Compiling^[[0m purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:33:47.1426888Z ^[[1m^[[92m   Compiling^[[0m syn v2.0.119
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:33:57.4916797Z ^[[1m^[[92m   Compiling^[[0m cpufeatures v0.2.17
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:33:57.5227580Z ^[[1m^[[92m   Compiling^[[0m purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:19.7347980Z ^[[1m^[[92m   Compiling^[[0m purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:35.6416825Z ^[[1m^[[92m   Compiling^[[0m indexmap v2.14.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:37.0036905Z ^[[1m^[[92m   Compiling^[[0m winnow v1.0.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:37.4356629Z ^[[1m^[[92m   Compiling^[[0m toml_parser v1.1.2+spec-1.1.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:38.9067423Z ^[[1m^[[92m   Compiling^[[0m purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:51.1506787Z ^[[1m^[[92m   Compiling^[[0m winnow v0.7.15
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:53.7506675Z ^[[1m^[[92m   Compiling^[[0m toml_write v0.1.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:53.9327562Z ^[[1m^[[92m   Compiling^[[0m purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:34:57.6507503Z ^[[1m^[[92m   Compiling^[[0m purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:36:45.3367628Z ^[[1m^[[92m   Compiling^[[0m purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:00.2272812Z ^[[1m^[[92m   Compiling^[[0m purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:05.9557591Z ^[[1m^[[92m   Compiling^[[0m purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:13.4587426Z ^[[1m^[[92m   Compiling^[[0m purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:13.4897411Z ^[[1m^[[92m   Compiling^[[0m purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:21.8287876Z ^[[1m^[[92m   Compiling^[[0m purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:27.8337407Z ^[[1m^[[92m   Compiling^[[0m purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:28.2816631Z ^[[1m^[[92m   Compiling^[[0m purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:30.7455427Z ^[[1m^[[92m   Compiling^[[0m purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:32.7208421Z ^[[1m^[[92m   Compiling^[[0m purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:32.7426650Z ^[[1m^[[92m   Compiling^[[0m crypto-common v0.1.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:32.8126758Z ^[[1m^[[92m   Compiling^[[0m block-buffer v0.10.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:32.8979986Z ^[[1m^[[92m   Compiling^[[0m digest v0.10.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:33.2169160Z ^[[1m^[[92m   Compiling^[[0m serde_spanned v0.6.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:33.2929478Z ^[[1m^[[92m   Compiling^[[0m toml_datetime v0.6.11
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:33.6136706Z ^[[1m^[[92m   Compiling^[[0m toml_datetime v1.1.1+spec-1.1.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:33.9807084Z ^[[1m^[[92m   Compiling^[[0m serde_spanned v1.1.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:34.0606784Z ^[[1m^[[92m   Compiling^[[0m allocator-api2 v0.2.21
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:34.4467053Z ^[[1m^[[92m   Compiling^[[0m foldhash v0.1.5
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:34.6168089Z ^[[1m^[[92m   Compiling^[[0m purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:38.9176709Z ^[[1m^[[92m   Compiling^[[0m glob v0.3.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:39.9097578Z ^[[1m^[[92m   Compiling^[[0m once_cell v1.21.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:40.0956997Z ^[[1m^[[92m   Compiling^[[0m hashbrown v0.15.5
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:40.9566848Z ^[[1m^[[92m   Compiling^[[0m toml v1.1.3+spec-1.1.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:44.7976658Z ^[[1m^[[92m   Compiling^[[0m toml_edit v0.22.27
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:47.1426296Z ^[[1m^[[92m   Compiling^[[0m sha2 v0.10.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:48.2166773Z ^[[1m^[[92m   Compiling^[[0m gmeow-errors v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:56.0486089Z ^[[1m^[[92m   Compiling^[[0m find-msvc-tools v0.1.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:56.4325504Z ^[[1m^[[92m   Compiling^[[0m shlex v2.0.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:37:56.6676062Z ^[[1m^[[92m   Compiling^[[0m cc v1.4.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:01.4446475Z ^[[1m^[[92m   Compiling^[[0m toml v0.8.23
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:03.0316569Z ^[[1m^[[92m   Compiling^[[0m cargo-config2 v0.1.45
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:03.3656702Z ^[[1m^[[92m   Compiling^[[0m zerocopy v0.8.55
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:04.2376640Z ^[[1m^[[92m   Compiling^[[0m smallvec v1.15.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:04.4547333Z ^[[1m^[[92m   Compiling^[[0m gmeow-term-arena v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:04.5216212Z ^[[1m^[[92m   Compiling^[[0m ring v0.17.14
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:05.6296863Z ^[[1m^[[92m   Compiling^[[0m gmeow-build-inputs v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:06.0541139Z ^[[1m^[[92m   Compiling^[[0m zerocopy-derive v0.8.55
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:08.6416428Z ^[[1m^[[92m   Compiling^[[0m bitflags v2.13.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:09.2186944Z ^[[1m^[[92m   Compiling^[[0m getrandom v0.4.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:09.4026904Z ^[[1m^[[92m   Compiling^[[0m rustix v1.1.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:16.6827143Z ^[[1m^[[92m   Compiling^[[0m zeroize v1.9.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:16.8057577Z ^[[1m^[[92m   Compiling^[[0m autocfg v1.5.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:18.0346410Z ^[[1m^[[92m   Compiling^[[0m linux-raw-sys v0.12.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:21.4796508Z ^[[1m^[[92m   Compiling^[[0m num-traits v0.2.19
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:21.5716480Z ^[[1m^[[92m   Compiling^[[0m rustls-pki-types v1.15.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:25.7866298Z ^[[1m^[[92m   Compiling^[[0m half v2.7.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:26.3976661Z ^[[1m^[[92m   Compiling^[[0m gmeow-ns v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:26.7736164Z ^[[1m^[[92m   Compiling^[[0m getrandom v0.2.17
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:26.9247459Z ^[[1m^[[92m   Compiling^[[0m crc32fast v1.5.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:26.9273378Z ^[[1m^[[92m   Compiling^[[0m httparse v1.10.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:27.1606461Z ^[[1m^[[92m   Compiling^[[0m base64 v0.22.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:27.5505024Z ^[[1m^[[92m   Compiling^[[0m untrusted v0.9.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:27.6236518Z ^[[1m^[[92m   Compiling^[[0m ciborium-io v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:27.6606432Z ^[[1m^[[92m   Compiling^[[0m ciborium-ll v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:27.8626846Z ^[[1m^[[92m   Compiling^[[0m gmeow-logic-compile v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:32.7796779Z ^[[1m^[[92m   Compiling^[[0m tempfile v3.27.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:38:57.8807376Z ^[[1m^[[92m   Compiling^[[0m gmeow-gts-profile v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:03.4434313Z ^[[1m^[[92m   Compiling^[[0m bytes v1.12.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:04.3786648Z ^[[1m^[[92m   Compiling^[[0m anyhow v1.0.104
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:04.7086676Z ^[[1m^[[92m   Compiling^[[0m bit-vec v0.8.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:04.9406733Z ^[[1m^[[92m   Compiling^[[0m log v0.4.33
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:05.0925608Z ^[[1m^[[92m   Compiling^[[0m tinyvec_macros v0.1.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:05.1206514Z ^[[1m^[[92m   Compiling^[[0m adler2 v2.0.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:05.2104129Z ^[[1m^[[92m   Compiling^[[0m simd-adler32 v0.3.10
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:05.7586793Z ^[[1m^[[92m   Compiling^[[0m rustls v0.23.46
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:05.8386333Z ^[[1m^[[92m   Compiling^[[0m miniz_oxide v0.8.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:06.2016378Z ^[[1m^[[92m   Compiling^[[0m tinyvec v1.12.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:06.6976652Z ^[[1m^[[92m   Compiling^[[0m bit-set v0.8.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:06.8606388Z ^[[1m^[[92m   Compiling^[[0m http v1.4.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:09.0336541Z ^[[1m^[[92m   Compiling^[[0m rustls-webpki v0.103.15
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:12.3308508Z ^[[1m^[[92m   Compiling^[[0m ciborium v0.2.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:13.2657258Z ^[[1m^[[92m   Compiling^[[0m gmeow-logic v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:13.4277595Z ^[[1m^[[92m   Compiling^[[0m gmeow-math-lift v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:34.5246971Z ^[[1m^[[92m   Compiling^[[0m gmeow-lang-form v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:35.9137569Z ^[[1m^[[92m   Compiling^[[0m tracing-core v0.1.36
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:36.9226797Z ^[[1m^[[92m   Compiling^[[0m tracing-attributes v0.1.31
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:37.8086449Z ^[[1m^[[92m   Compiling^[[0m pin-project-lite v0.2.17
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:37.8499408Z ^[[1m^[[92m   Compiling^[[0m subtle v2.6.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:37.9373258Z ^[[1m^[[92m   Compiling^[[0m fixedbitset v0.5.7
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:38.4306414Z ^[[1m^[[92m   Compiling^[[0m petgraph v0.8.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:53.2516831Z ^[[1m^[[92m   Compiling^[[0m tracing v0.1.44
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:39:53.5537283Z ^[[1m^[[92m   Compiling^[[0m gmeow-math v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/math)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:02.6226538Z ^[[1m^[[92m   Compiling^[[0m ureq-proto v0.6.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:03.9896506Z ^[[1m^[[92m   Compiling^[[0m flate2 v1.1.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:04.5199405Z ^[[1m^[[92m   Compiling^[[0m gmeow-action-cache v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:04.9416472Z ^[[1m^[[92m   Compiling^[[0m chrono v0.4.45
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:08.3426664Z ^[[1m^[[92m   Compiling^[[0m fancy-regex v0.17.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:13.2566266Z ^[[1m^[[92m   Compiling^[[0m unicode-normalization v0.1.25
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:13.7746735Z ^[[1m^[[92m   Compiling^[[0m webpki-roots v1.0.9
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:13.8346827Z ^[[1m^[[92m   Compiling^[[0m bstr v1.13.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:15.4926988Z ^[[1m^[[92m   Compiling^[[0m percent-encoding v2.3.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:15.6856471Z ^[[1m^[[92m   Compiling^[[0m rustc-hash v2.1.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:15.7416481Z ^[[1m^[[92m   Compiling^[[0m lazy_static v1.5.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:15.7806468Z ^[[1m^[[92m   Compiling^[[0m utf8-zero v0.8.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:15.8976536Z ^[[1m^[[92m   Compiling^[[0m unicode-script v0.5.8
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:16.3256553Z ^[[1m^[[92m   Compiling^[[0m unicode-security v0.1.2
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:16.9866219Z ^[[1m^[[92m   Compiling^[[0m ureq v3.3.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:21.7786490Z ^[[1m^[[92m   Compiling^[[0m tiktoken-rs v0.12.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:26.4408263Z ^[[1m^[[92m   Compiling^[[0m purrdf-jsonschema v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=017f552dbdd8f4bc284121b2b95c51814f38ee0a#017f552d)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:37.5426496Z ^[[1m^[[92m   Compiling^[[0m semver v1.0.28
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:38.2017415Z ^[[1m^[[92m   Compiling^[[0m gmeow-lang-bridge v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:51.9610899Z ^[[1m^[[92m   Compiling^[[0m gmeow-bundle-import v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:52.0916538Z ^[[1m^[[92m   Compiling^[[0m pulldown-cmark v0.13.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:52.1916761Z ^[[1m^[[92m   Compiling^[[0m unicase v2.9.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:52.4027411Z ^[[1m^[[92m   Compiling^[[0m memo-map v0.3.3
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:52.4976460Z ^[[1m^[[92m   Compiling^[[0m pulldown-cmark-escape v0.11.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:40:58.0436466Z ^[[1m^[[92m   Compiling^[[0m minijinja v2.21.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:41:16.4766912Z ^[[1m^[[92m   Compiling^[[0m gmeow-validate v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:41:31.1676689Z ^[[1m^[[92m   Compiling^[[0m gmeow-docs-model v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:41:31.5228943Z ^[[1m^[[92m   Compiling^[[0m gmeow-transcode v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:41:36.7166493Z ^[[1m^[[92m   Compiling^[[0m console v0.16.4
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:41:37.8666914Z ^[[1m^[[92m   Compiling^[[0m gmeow-bundle-view v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:07.8366945Z ^[[1m^[[92m   Compiling^[[0m gmeow-docs-catalog v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:10.3426628Z ^[[1m^[[92m   Compiling^[[0m gmeow-slice-quality v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:44.5676968Z ^[[1m^[[92m   Compiling^[[0m diff v0.1.13
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:45.0976560Z ^[[1m^[[92m   Compiling^[[0m similar v2.7.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:48.6956338Z ^[[1m^[[92m   Compiling^[[0m yansi v1.0.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:49.0736401Z ^[[1m^[[92m   Compiling^[[0m pretty_assertions v1.4.1
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:49.4696872Z ^[[1m^[[92m   Compiling^[[0m insta v1.48.0
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:42:56.4846854Z ^[[1m^[[92m   Compiling^[[0m gmeow-mcp v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:43:03.3067361Z ^[[1m^[[92m   Compiling^[[0m gmeow-docs v0.3.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs)
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:45:09.1071349Z ^[[1m^[[92m    Finished^[[0m `dev` profile [optimized] target(s) in 14m 36s
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:45:09.1844196Z ^[[1m^[[92m     Running^[[0m `target/debug/examples/refresh-reviewed-coverage-golden`
+refresh	Refresh the reviewed-coverage golden from live catalogs	2026-10-21T18:45:09.4605606Z refreshed /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs/tests/fixtures/reviewed_coverage_golden.json from 144 catalogs (27763 reviewed entries)
+refresh	Upload the produced golden for review	﻿2026-10-21T18:45:09.4680347Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4680929Z with:
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4681239Z   name: reviewed-coverage-9e33d92f5ef2952c38ed94772b4383f85de21990
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4681682Z   path: crates/docs/tests/fixtures/reviewed_coverage_golden.json
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4682037Z   if-no-files-found: error
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4682286Z   compression-level: 6
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4682510Z   overwrite: false
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4682956Z   include-hidden-files: false
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4683270Z   archive: true
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4683475Z env:
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4684048Z   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4684739Z   CARGO_ENV_CFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4685328Z   CARGO_ENV_CXXFLAGS_VALUE: -O2 -march=x86-64-v3 -mtune=generic
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4685671Z   CARGO_ENV_CFLAGS_FORCE: true
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4685971Z   CARGO_ENV_CXXFLAGS_FORCE: true
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4686283Z   CARGO_HOME: /home/runner/.cargo
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4686708Z   CARGO_INCREMENTAL: 0
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4686948Z   CARGO_TERM_COLOR: always
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4687183Z   CACHE_ON_FAILURE: false
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.4687410Z ##[endgroup]
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.6077534Z With the provided path, there will be 1 file uploaded
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.6081679Z Artifact name is valid!
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.6082146Z Root directory input is valid!
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.9645881Z Uploading artifact: reviewed-coverage-9e33d92f5ef2952c38ed94772b4383f85de21990.zip
+refresh	Upload the produced golden for review	2026-10-21T18:45:09.9681553Z Beginning upload of artifact content to blob storage
+refresh	Upload the produced golden for review	2026-10-21T18:45:10.3712648Z Uploaded bytes 130646
+refresh	Upload the produced golden for review	2026-10-21T18:45:10.4278591Z Finished uploading artifact content to blob storage!
+refresh	Upload the produced golden for review	2026-10-21T18:45:10.4281834Z SHA256 digest of uploaded artifact is e280d621389dd2883116f7d042c871bb78a001d050f599ce09fd8db7528aa8bb
+refresh	Upload the produced golden for review	2026-10-21T18:45:10.4282504Z Finalizing artifact upload
+refresh	Upload the produced golden for review	2026-10-21T18:45:10.8129607Z Artifact reviewed-coverage-9e33d92f5ef2952c38ed94772b4383f85de21990 successfully finalized. Artifact ID 12371176559
+refresh	Upload the produced golden for review	2026-10-21T18:45:10.8131091Z Artifact reviewed-coverage-9e33d92f5ef2952c38ed94772b4383f85de21990 has been successfully uploaded! Final size is 130646 bytes. Artifact ID is 12371176559
+refresh	Upload the produced golden for review	2026-10-21T18:45:10.8133676Z Artifact download URL: https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39653241517/artifacts/12371176559
+refresh	Post Cache Cargo dependencies	﻿2026-10-21T18:45:10.8302747Z Post job cleanup.
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9501497Z ##[group]Cache Configuration
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9501998Z Cache Provider:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9502320Z     github
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9502619Z Workspaces:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9503006Z     /home/runner/work/gmeow-ontology/gmeow-ontology
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9503512Z Cache Paths:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9503850Z     /home/runner/.cargo/bin
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9504241Z     /home/runner/.cargo/.crates.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9504679Z     /home/runner/.cargo/.crates2.json
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9505299Z     /home/runner/.cargo/registry
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9505767Z     /home/runner/.cargo/git
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9506212Z     /home/runner/work/gmeow-ontology/gmeow-ontology/target
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9506670Z Restore Key:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9507022Z     v0-rust-refresh-Linux-x64-1405f92b
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9507422Z Cache Key:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9507786Z     v0-rust-refresh-Linux-x64-1405f92b-f214cba3
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9508197Z .. Prefix:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9508509Z   - v0-rust-refresh-Linux-x64
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9508975Z .. Environment considered:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9509347Z   - Rust Versions:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9509908Z     - 1.100.0-nightly x86_64-unknown-linux-gnu 0ed41eb4142dda2df61eb1145a312c1a9d62eb56
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9510767Z     - 1.101.0-nightly x86_64-unknown-linux-gnu 19833af7224424e8b53e288097d56b6af43d5bcf
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9511536Z     - 1.99.1 x86_64-unknown-linux-gnu 58cf8f9c35b355199727627d07ae34a4e2846d67
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9512107Z   - CARGO_ENV_CFLAGS_FORCE
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9512469Z   - CARGO_ENV_CFLAGS_VALUE
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9513259Z   - CARGO_ENV_CXXFLAGS_FORCE
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9513626Z   - CARGO_ENV_CXXFLAGS_VALUE
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9514006Z   - CARGO_HOME
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9514306Z   - CARGO_INCREMENTAL
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9514701Z   - CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9515355Z   - CARGO_TERM_COLOR
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9515700Z .. Lockfiles considered:
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9516206Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/.cargo/config.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9516868Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/Cargo.lock
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9517585Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/action-cache/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9518397Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect-ingest/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9519163Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/affect/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9519975Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bench-engines/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9520820Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/build-inputs/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9521606Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-import/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9522435Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/bundle-view/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9523226Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cli-core/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9523932Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/conformance/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9524615Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/cost-measure/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9525574Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-catalog/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9526338Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-model/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9527137Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs-print/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9527781Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/docs/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9528429Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/errors/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9529179Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/foundation-corpus/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9529892Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-cli/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9530956Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmeow-dev-cli/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9531684Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9532392Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-wasm/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9533111Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/gts-profile/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9533854Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/helper-census/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9534605Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-bridge/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9535630Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lang-form/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9536337Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/license/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9537081Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic-compile/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9537843Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/logic/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9538581Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/lsp/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9539301Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math-lift/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9540022Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/math/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9540754Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-core-wasm/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9541560Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-dev/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9542612Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp-wasm/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9543366Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/mcp/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9544074Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/music/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9544961Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/ns/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9545739Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/perf-evidence/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9546536Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/pipeline/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9547307Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/query-wasm/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9548058Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/reason-wasm/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9548822Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-brief/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9549652Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slice-quality/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9550462Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/slicetest/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9551237Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/term-arena/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9552066Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/test-batch-macros/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9552903Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/transcode/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9553696Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate-wasm/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9554459Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/validate/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9555393Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/crates/xtask/Cargo.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9556117Z   - /home/runner/work/gmeow-ontology/gmeow-ontology/rust-toolchain.toml
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9556952Z ##[endgroup]
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:10.9557162Z 
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:12.5460879Z ... Cleaning /home/runner/work/gmeow-ontology/gmeow-ontology/target ...
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:12.5955563Z ... Cleaning cargo registry (cache-all-crates: false) ...
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:13.5200522Z ... Cleaning cargo/bin ...
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:13.5221165Z ... Cleaning cargo git cache ...
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:13.5230390Z ... Saving cache ...
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:13.5389122Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/gmeow-ontology/gmeow-ontology --files-from manifest.txt --use-compress-program zstdmt
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:17.7332011Z Sent 16417781 of 419070965 (3.9%), 15.7 MBs/sec
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:18.7335906Z Sent 351962101 of 419070965 (84.0%), 167.7 MBs/sec
+refresh	Post Cache Cargo dependencies	2026-10-21T18:45:18.7965185Z Sent 419070965 of 419070965 (100.0%), 193.6 MBs/sec
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	﻿2026-10-21T18:45:19.1098403Z Post job cleanup.
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.1933404Z [command]/usr/bin/git version
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.1980293Z git version 2.55.0
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2012530Z Temporarily overriding HOME='/home/runner/work/_temp/e668a2d6-7b8c-4193-b935-449bcc00f782' before making global git config changes
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2013785Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2018675Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gmeow-ontology/gmeow-ontology
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2048713Z Removing SSH command configuration
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2055234Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2089623Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2306464Z Removing HTTP extra header
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2311823Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2342485Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2551583Z Removing includeIf entries pointing to credentials config files
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2552244Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1	2026-10-21T18:45:19.2581901Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Complete job	﻿2026-10-21T18:45:19.2942353Z Cleaning up orphan processes
