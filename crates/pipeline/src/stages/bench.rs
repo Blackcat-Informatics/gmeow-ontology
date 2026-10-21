@@ -28,9 +28,8 @@ use std::path::{Path, PathBuf};
 
 use purrdf_lex::json::{
     self, Object, Value,
-    record::{DecodeError, FromJson, Record},
+    record::{DecodeError, FromJson, Record, Within as _},
 };
-use serde::Deserialize;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -473,7 +472,6 @@ impl Stage for BenchLeaderboardStage {
 // ── Committed deterministic cost ledger (drift-gated export leaf) ────────────────
 
 /// The pinned engine revisions the cost baseline is attributable to.
-#[derive(Deserialize)]
 struct EnginePins {
     native: String,
     backward_reference: String,
@@ -482,12 +480,9 @@ struct EnginePins {
 /// The native engine's deterministic cost record for one bench case. `answer_count`
 /// is the backward fragment's count; `derived_count` every other fragment's — exactly
 /// one is present, so [`CaseRecord::count`] hard-fails if neither is.
-#[derive(Deserialize)]
 struct NativeCost {
     consumed_steps: u64,
-    #[serde(default)]
     derived_count: Option<u64>,
-    #[serde(default)]
     answer_count: Option<u64>,
     /// Total bytes allocated during the run — gated through the one-sided tolerance band
     /// (`fresh ≤ baseline·(1+ε)`) in the harness `--check-cost` lane; rendered here as a
@@ -501,26 +496,20 @@ struct NativeCost {
     /// that expose no decomposable vector — never fabricated).
     cost_vector: Vec<(String, String, u32, u64)>,
     /// Incremental-only deterministic join-work count.
-    #[serde(default)]
     joined_rows: Option<u64>,
     /// Incremental-only clean-rebuild comparator, embedded in the exact descriptor.
-    #[serde(default)]
     scratch: Option<ScratchCost>,
     /// Forward-only cold/warm complete-evaluation evidence for the bounded physical
     /// plan cache.
-    #[serde(default)]
     plan_cache: Option<PlanCacheCost>,
     /// Forward-only bounded-provenance Record/Skip evidence over the same physical
     /// plan and fact closure.
-    #[serde(default)]
     provenance: Option<ProvenanceCost>,
     /// Incremental-grounding-only deterministic work vector and explicit solver
     /// boundary.
-    #[serde(default)]
     grounding: Option<IncrementalGroundingCost>,
 }
 
-#[derive(Deserialize)]
 struct IncrementalGroundingCost {
     edb_changes: u64,
     ground_rule_changes: u64,
@@ -534,7 +523,6 @@ struct IncrementalGroundingCost {
     solver_reran: bool,
 }
 
-#[derive(Deserialize)]
 struct PlanCacheCost {
     solver_version: String,
     rule_hash: String,
@@ -546,7 +534,6 @@ struct PlanCacheCost {
     warm_peak_live_strictly_lower: bool,
 }
 
-#[derive(Deserialize)]
 struct PlanEvaluationCost {
     cache_hit: bool,
     plan_builds: u64,
@@ -557,7 +544,6 @@ struct PlanEvaluationCost {
     cost_vector: Vec<(String, String, u32, u64)>,
 }
 
-#[derive(Deserialize)]
 struct ProvenanceCost {
     record: ProvenanceModeCost,
     skip: ProvenanceModeCost,
@@ -568,10 +554,8 @@ struct ProvenanceCost {
     record_alloc_count_overhead: i128,
 }
 
-#[derive(Deserialize)]
 struct ProvenanceModeCost {
     annotation_count: u64,
-    #[serde(default)]
     max_proof_height: Option<u32>,
     consumed_steps: u64,
     fact_count: u64,
@@ -581,30 +565,23 @@ struct ProvenanceModeCost {
 }
 
 /// The clean native rebuild paired with an incremental transaction.
-#[derive(Deserialize)]
 struct ScratchCost {
     consumed_steps: u64,
     derived_count: u64,
     peak_live_bytes: u64,
     cost_vector: Vec<(String, String, u32, u64)>,
-    #[serde(default)]
     ground_rule_probe_rows: Option<u64>,
-    #[serde(default)]
     active_ground_rules: Option<u64>,
 }
 
 /// The deterministic verdict-agreement booleans for one bench case.
-#[derive(Deserialize)]
 struct Agreement {
     native_vs_golden: bool,
-    #[serde(default)]
     incremental_insert_vs_scratch: Option<bool>,
-    #[serde(default)]
     incremental_retract_vs_scratch: Option<bool>,
 }
 
 /// One `(corpus, case)` deterministic cost + agreement record.
-#[derive(Deserialize)]
 struct CaseRecord {
     corpus: String,
     case: String,
@@ -614,25 +591,55 @@ struct CaseRecord {
 }
 
 impl CaseRecord {
-    /// The native derived / answer count (whichever the fragment carries). Hard-fails
-    /// if the artifact carries neither — an absent measure is never rendered as `0`.
+    /// Select exactly the count owned by this producer fragment.
     fn count(&self) -> Result<u64, gmeow_errors::Diag> {
+        match (
+            self.fragment.as_str(),
+            self.native.derived_count,
+            self.native.answer_count,
+        ) {
+            ("backward", None, Some(count)) => Ok(count),
+            (
+                "forward" | "existential" | "incremental" | "incremental-grounding",
+                Some(count),
+                None,
+            ) => Ok(count),
+            _ => Err(self
+                .evidence_error("exactly one fragment-appropriate derived_count or answer_count")),
+        }
+    }
+
+    /// Locate an absent selected measurement within its producer case.
+    fn evidence_error(&self, missing: &str) -> gmeow_errors::Diag {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!(
+                "cost baseline case {}/{} ({}) requires {missing}",
+                self.corpus, self.case, self.fragment
+            ),
+        })
+    }
+
+    /// Require the paired rebuild, join measurement and both actual parity observations.
+    fn incremental_evidence(&self) -> Result<(u64, bool, bool), gmeow_errors::Diag> {
         self.native
-            .derived_count
-            .or(self.native.answer_count)
-            .ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: format!(
-                        "cost baseline case {}/{} carries neither derived_count nor answer_count",
-                        self.corpus, self.case
-                    ),
-                })
-            })
+            .scratch
+            .as_ref()
+            .ok_or_else(|| self.evidence_error("the scratch comparator"))?;
+        Ok((
+            self.native
+                .joined_rows
+                .ok_or_else(|| self.evidence_error("joined_rows"))?,
+            self.agreement
+                .incremental_insert_vs_scratch
+                .ok_or_else(|| self.evidence_error("incremental_insert_vs_scratch"))?,
+            self.agreement
+                .incremental_retract_vs_scratch
+                .ok_or_else(|| self.evidence_error("incremental_retract_vs_scratch"))?,
+        ))
     }
 }
 
 /// One corpus's divergence-ledger tally (the content-addressed agreement fold).
-#[derive(Deserialize)]
 struct LedgerTally {
     cases: u64,
     agree: u64,
@@ -643,7 +650,6 @@ struct LedgerTally {
 }
 
 /// Scheduler-independent evidence from the permanent four-worker rule fixture.
-#[derive(Deserialize)]
 struct RuleParallelCost {
     fixture: String,
     worker_count: u64,
@@ -708,12 +714,363 @@ impl RuleParallelCost {
 }
 
 /// The committed deterministic cost/agreement artifact (`bench/cost-baseline.json`).
-#[derive(Deserialize)]
 struct CostArtifact {
+    schema: String,
+    case_count: u64,
     engine_pins: EnginePins,
     cases: Vec<CaseRecord>,
     rule_parallelism: RuleParallelCost,
     ledgers: BTreeMap<String, LedgerTally>,
+}
+
+/// Admit an exact unsigned integer token; signed zero is not unsigned evidence.
+fn cost_unsigned(value: &Value) -> Result<u64, DecodeError> {
+    value
+        .as_u64()
+        .ok_or_else(|| DecodeError::invalid_value(value, "an unsigned u64 integer token"))
+}
+
+/// Admit a bounded unsigned stratum/height token without truncation.
+fn cost_stratum(value: &Value) -> Result<u32, DecodeError> {
+    cost_unsigned(value).and_then(|number| {
+        u32::try_from(number)
+            .map_err(|_| DecodeError::invalid_value(value, "an unsigned u32 integer token"))
+    })
+}
+
+/// Admit signed integer overheads exactly, retaining the signed owner's zero semantics.
+fn cost_signed(value: &Value) -> Result<i128, DecodeError> {
+    value
+        .as_number()
+        .and_then(|number| number.as_i128())
+        .ok_or_else(|| DecodeError::invalid_value(value, "a signed i128 integer token"))
+}
+
+/// Decode ordered cost tuples with exact arity and native nested index pointers.
+fn cost_vector(value: &Value) -> Result<Vec<(String, String, u32, u64)>, DecodeError> {
+    json::record::items_with(value, |row| {
+        let fields = row
+            .as_array()
+            .filter(|fields| fields.len() == 4)
+            .ok_or_else(|| DecodeError::invalid_value(row, "a four-element cost tuple"))?;
+        Ok((
+            String::from_json(&fields[0]).map_err(|error| error.within("0"))?,
+            String::from_json(&fields[1]).map_err(|error| error.within("1"))?,
+            cost_stratum(&fields[2]).map_err(|error| error.within("2"))?,
+            cost_unsigned(&fields[3]).map_err(|error| error.within("3"))?,
+        ))
+    })
+}
+
+impl FromJson for EnginePins {
+    /// Read the native and backward-reference version identities.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "EnginePins object")?;
+        Ok(Self {
+            native: fields.required("native")?,
+            backward_reference: fields.required("backward_reference")?,
+        })
+    }
+}
+
+impl FromJson for NativeCost {
+    /// Require common measurements while retaining fragment-specific optional panels.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "NativeCost object")?;
+        Ok(Self {
+            consumed_steps: fields.required_with("consumed_steps", cost_unsigned)?,
+            derived_count: fields.optional_with("derived_count", cost_unsigned)?,
+            answer_count: fields.optional_with("answer_count", cost_unsigned)?,
+            alloc_bytes: fields.required_with("alloc_bytes", cost_unsigned)?,
+            alloc_count: fields.required_with("alloc_count", cost_unsigned)?,
+            peak_live_bytes: fields.required_with("peak_live_bytes", cost_unsigned)?,
+            cost_vector: fields.required_with("cost_vector", cost_vector)?,
+            joined_rows: fields.optional_with("joined_rows", cost_unsigned)?,
+            scratch: fields.optional("scratch")?,
+            plan_cache: fields.optional("plan_cache")?,
+            provenance: fields.optional("provenance")?,
+            grounding: fields.optional("grounding")?,
+        })
+    }
+}
+
+impl FromJson for IncrementalGroundingCost {
+    /// Read the incremental grounding work counts and explicit solver outcome.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "IncrementalGroundingCost object")?;
+        Ok(Self {
+            edb_changes: fields.required_with("edb_changes", cost_unsigned)?,
+            ground_rule_changes: fields.required_with("ground_rule_changes", cost_unsigned)?,
+            universe_changes: fields.required_with("universe_changes", cost_unsigned)?,
+            universe_joined_rows: fields.required_with("universe_joined_rows", cost_unsigned)?,
+            ground_rule_joined_rows: fields
+                .required_with("ground_rule_joined_rows", cost_unsigned)?,
+            ground_rule_probe_rows: fields
+                .required_with("ground_rule_probe_rows", cost_unsigned)?,
+            active_ground_rules: fields.required_with("active_ground_rules", cost_unsigned)?,
+            solver: fields.required("solver")?,
+            solver_status: fields.required("solver_status")?,
+            solver_reran: fields.required("solver_reran")?,
+        })
+    }
+}
+
+impl FromJson for PlanCacheCost {
+    /// Read paired cold/warm evaluations and their declared reuse comparisons.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "PlanCacheCost object")?;
+        Ok(Self {
+            solver_version: fields.required("solver_version")?,
+            rule_hash: fields.required("rule_hash")?,
+            cold: fields.required("cold")?,
+            warm: fields.required("warm")?,
+            same_executable: fields.required("same_executable")?,
+            repeat_parity: fields.required("repeat_parity")?,
+            warm_alloc_count_strictly_lower: fields.required("warm_alloc_count_strictly_lower")?,
+            warm_peak_live_strictly_lower: fields.required("warm_peak_live_strictly_lower")?,
+        })
+    }
+}
+
+impl FromJson for PlanEvaluationCost {
+    /// Read one complete evaluation's costs, closure identity and ordered vector.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "PlanEvaluationCost object")?;
+        Ok(Self {
+            cache_hit: fields.required("cache_hit")?,
+            plan_builds: fields.required_with("plan_builds", cost_unsigned)?,
+            planning_units: fields.required_with("planning_units", cost_unsigned)?,
+            consumed_steps: fields.required_with("consumed_steps", cost_unsigned)?,
+            peak_live_bytes: fields.required_with("peak_live_bytes", cost_unsigned)?,
+            closure_blake3: fields.required("closure_blake3")?,
+            cost_vector: fields.required_with("cost_vector", cost_vector)?,
+        })
+    }
+}
+
+impl FromJson for ProvenanceCost {
+    /// Read Record/Skip observations, parity and exact signed overheads.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "ProvenanceCost object")?;
+        Ok(Self {
+            record: fields.required("record")?,
+            skip: fields.required("skip")?,
+            closure_parity: fields.required("closure_parity")?,
+            step_parity: fields.required("step_parity")?,
+            annotation_complete: fields.required("annotation_complete")?,
+            record_peak_overhead_bytes: fields
+                .required_with("record_peak_overhead_bytes", cost_signed)?,
+            record_alloc_count_overhead: fields
+                .required_with("record_alloc_count_overhead", cost_signed)?,
+        })
+    }
+}
+
+impl FromJson for ProvenanceModeCost {
+    /// Read a provenance mode's costs and nullable proof-height observation.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "ProvenanceModeCost object")?;
+        Ok(Self {
+            annotation_count: fields.required_with("annotation_count", cost_unsigned)?,
+            max_proof_height: fields.optional_with("max_proof_height", cost_stratum)?,
+            consumed_steps: fields.required_with("consumed_steps", cost_unsigned)?,
+            fact_count: fields.required_with("fact_count", cost_unsigned)?,
+            fact_closure_blake3: fields.required("fact_closure_blake3")?,
+            alloc_count: fields.required_with("alloc_count", cost_unsigned)?,
+            peak_live_bytes: fields.required_with("peak_live_bytes", cost_unsigned)?,
+        })
+    }
+}
+
+impl FromJson for ScratchCost {
+    /// Read the paired clean rebuild and its optional grounding measurements.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "ScratchCost object")?;
+        Ok(Self {
+            consumed_steps: fields.required_with("consumed_steps", cost_unsigned)?,
+            derived_count: fields.required_with("derived_count", cost_unsigned)?,
+            peak_live_bytes: fields.required_with("peak_live_bytes", cost_unsigned)?,
+            cost_vector: fields.required_with("cost_vector", cost_vector)?,
+            ground_rule_probe_rows: fields
+                .optional_with("ground_rule_probe_rows", cost_unsigned)?,
+            active_ground_rules: fields.optional_with("active_ground_rules", cost_unsigned)?,
+        })
+    }
+}
+
+impl FromJson for Agreement {
+    /// Read native/golden agreement and optional incremental parity observations.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "Agreement object")?;
+        Ok(Self {
+            native_vs_golden: fields.required("native_vs_golden")?,
+            incremental_insert_vs_scratch: fields.optional("incremental_insert_vs_scratch")?,
+            incremental_retract_vs_scratch: fields.optional("incremental_retract_vs_scratch")?,
+        })
+    }
+}
+
+impl FromJson for CaseRecord {
+    /// Read one case identity, fragment, measurements and agreement record.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "CaseRecord object")?;
+        Ok(Self {
+            corpus: fields.required("corpus")?,
+            case: fields.required("case")?,
+            fragment: fields.required("fragment")?,
+            native: fields.required("native")?,
+            agreement: fields.required("agreement")?,
+        })
+    }
+}
+
+impl FromJson for LedgerTally {
+    /// Read comparison tallies and their stored finding-graph identity.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "LedgerTally object")?;
+        Ok(Self {
+            cases: fields.required_with("cases", cost_unsigned)?,
+            agree: fields.required_with("agree", cost_unsigned)?,
+            corpus_only: fields.required_with("corpus_only", cost_unsigned)?,
+            dl_gap: fields.required_with("dl_gap", cost_unsigned)?,
+            finding_count: fields.required_with("finding_count", cost_unsigned)?,
+            finding_graph_blake3: fields.required("finding_graph_blake3")?,
+        })
+    }
+}
+
+impl FromJson for RuleParallelCost {
+    /// Read all required four-worker structural evidence without invented defaults.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "RuleParallelCost object")?;
+        Ok(Self {
+            fixture: fields.required("fixture")?,
+            worker_count: fields.required_with("worker_count", cost_unsigned)?,
+            rule_count: fields.required_with("rule_count", cost_unsigned)?,
+            seed_rows: fields.required_with("seed_rows", cost_unsigned)?,
+            derived_rows: fields.required_with("derived_rows", cost_unsigned)?,
+            consumed_steps: fields.required_with("consumed_steps", cost_unsigned)?,
+            parallel_rounds: fields.required_with("parallel_rounds", cost_unsigned)?,
+            rule_tasks: fields.required_with("rule_tasks", cost_unsigned)?,
+            serial_candidate_rows: fields.required_with("serial_candidate_rows", cost_unsigned)?,
+            critical_path_candidate_rows: fields
+                .required_with("critical_path_candidate_rows", cost_unsigned)?,
+            critical_path_rows_saved: fields
+                .required_with("critical_path_rows_saved", cost_unsigned)?,
+            max_buffered_candidate_rows: fields
+                .required_with("max_buffered_candidate_rows", cost_unsigned)?,
+            max_task_candidate_rows: fields
+                .required_with("max_task_candidate_rows", cost_unsigned)?,
+            budget_cases: fields.required_with("budget_cases", cost_unsigned)?,
+            output_parity: fields.required("output_parity")?,
+            budget_parity: fields.required("budget_parity")?,
+            parallel_path_entered: fields.required("parallel_path_entered")?,
+            critical_path_strictly_lower: fields.required("critical_path_strictly_lower")?,
+            closure_blake3: fields.required("closure_blake3")?,
+        })
+    }
+}
+
+impl FromJson for CostArtifact {
+    /// Read the versioned envelope and every required case, ledger and evidence owner.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "CostArtifact object")?;
+        Ok(Self {
+            schema: fields.required("schema")?,
+            case_count: fields.required_with("case_count", cost_unsigned)?,
+            engine_pins: fields.required("engine_pins")?,
+            cases: fields.required("cases")?,
+            rule_parallelism: fields.required("rule_parallelism")?,
+            ledgers: fields.required("ledgers")?,
+        })
+    }
+}
+
+/// Admit the complete cost artifact once for both report projections.
+fn parse_cost_artifact(bytes: &[u8]) -> Result<CostArtifact, gmeow_errors::Diag> {
+    let artifact: CostArtifact = json::record::from_slice(bytes).map_err(|error| {
+        gmeow_errors::Diag::from(error).with_context(format!("parse required {COST_BASELINE_PATH}"))
+    })?;
+    artifact.validate()?;
+    Ok(artifact)
+}
+
+impl CostArtifact {
+    /// Refuse unsupported, vacuous or ambiguous artifact identities before reporting.
+    fn validate(&self) -> Result<(), gmeow_errors::Diag> {
+        let invalid = |message: &str| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("cost baseline {message}"),
+            })
+        };
+        if self.schema != "gmeow.bench-engines.cost/1" {
+            return Err(invalid("requires schema gmeow.bench-engines.cost/1"));
+        }
+        if self.cases.is_empty() || self.ledgers.is_empty() {
+            return Err(invalid("requires nonempty cases and ledgers"));
+        }
+        if u64::try_from(self.cases.len()).ok() != Some(self.case_count) {
+            return Err(invalid("case_count does not match cases"));
+        }
+        if self.engine_pins.native.is_empty() || self.engine_pins.backward_reference.is_empty() {
+            return Err(invalid(
+                "requires nonempty native and backward-reference engine pins",
+            ));
+        }
+        let mut identities = BTreeSet::new();
+        let mut corpora = BTreeSet::new();
+        for case in &self.cases {
+            if case.corpus.is_empty() || case.case.is_empty() {
+                return Err(invalid("requires nonempty corpus and case identities"));
+            }
+            if !identities.insert((&case.corpus, &case.case)) {
+                return Err(invalid(&format!(
+                    "has duplicate case {}/{}",
+                    case.corpus, case.case
+                )));
+            }
+            corpora.insert(case.corpus.as_str());
+            case.count()?;
+            let incremental = matches!(
+                case.fragment.as_str(),
+                "incremental" | "incremental-grounding"
+            );
+            if incremental || case.native.scratch.is_some() {
+                case.incremental_evidence()?;
+            }
+            if case.fragment == "incremental-grounding" || case.native.grounding.is_some() {
+                case.native
+                    .grounding
+                    .as_ref()
+                    .ok_or_else(|| case.evidence_error("the grounding record"))?;
+                let scratch = case
+                    .native
+                    .scratch
+                    .as_ref()
+                    .ok_or_else(|| case.evidence_error("the scratch comparator"))?;
+                scratch
+                    .ground_rule_probe_rows
+                    .ok_or_else(|| case.evidence_error("scratch ground_rule_probe_rows"))?;
+                scratch
+                    .active_ground_rules
+                    .ok_or_else(|| case.evidence_error("scratch active_ground_rules"))?;
+            }
+        }
+        for (corpus, tally) in &self.ledgers {
+            if corpus.is_empty() || tally.finding_graph_blake3.is_empty() || tally.cases == 0 {
+                return Err(invalid(&format!(
+                    "ledger {corpus:?} requires a nonempty corpus identity, finding-graph identity and nonzero comparison count"
+                )));
+            }
+        }
+        let ledger_corpora: BTreeSet<_> = self.ledgers.keys().map(String::as_str).collect();
+        if corpora != ledger_corpora {
+            return Err(invalid(&format!(
+                "ledger corpus identities must match case corpora: expected {corpora:?}, found {ledger_corpora:?}"
+            )));
+        }
+        self.rule_parallelism.validate()
+    }
 }
 
 /// Render the committed deterministic engine-cost ledger from the committed cost
@@ -727,13 +1084,11 @@ struct CostArtifact {
 pub(crate) fn render_cost_ledger(
     root: &Path,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let bytes = std::fs::read(root.join(COST_BASELINE_PATH))?;
-    let artifact: CostArtifact = serde_json::from_slice(&bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("cost baseline parse: {e}"),
-        })
+    let path = root.join(COST_BASELINE_PATH);
+    let bytes = std::fs::read(&path).map_err(|error| {
+        gmeow_errors::Diag::from(error).with_context(format!("read required {}", path.display()))
     })?;
-    artifact.rule_parallelism.validate()?;
+    let artifact = parse_cost_artifact(&bytes)?;
 
     // Sort by (corpus, case) so the render is independent of the artifact's array order.
     let mut cases: Vec<&CaseRecord> = artifact.cases.iter().collect();
@@ -828,6 +1183,7 @@ pub(crate) fn render_cost_ledger(
         );
         lines.push("|---|---|---|---|---|---|---|---|---|---|---|---|".to_string());
         for case in incremental_cases {
+            let (joined_rows, insert_parity, retract_parity) = case.incremental_evidence()?;
             let scratch = case
                 .native
                 .scratch
@@ -844,13 +1200,9 @@ pub(crate) fn render_cost_ledger(
                 case.native.peak_live_bytes,
                 scratch.peak_live_bytes,
                 i128::from(scratch.peak_live_bytes) - i128::from(case.native.peak_live_bytes),
-                case.native.joined_rows.unwrap_or(0),
-                case.agreement
-                    .incremental_insert_vs_scratch
-                    .unwrap_or(false),
-                case.agreement
-                    .incremental_retract_vs_scratch
-                    .unwrap_or(false),
+                joined_rows,
+                insert_parity,
+                retract_parity,
             ));
         }
     }
@@ -876,6 +1228,7 @@ pub(crate) fn render_cost_ledger(
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
         );
         for case in grounding_cases {
+            let (_, insert_parity, retract_parity) = case.incremental_evidence()?;
             let evidence_error = |missing: &str| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {
                     message: format!(
@@ -918,12 +1271,8 @@ pub(crate) fn render_cost_ledger(
                 grounding.solver,
                 grounding.solver_status,
                 grounding.solver_reran,
-                case.agreement
-                    .incremental_insert_vs_scratch
-                    .unwrap_or(false),
-                case.agreement
-                    .incremental_retract_vs_scratch
-                    .unwrap_or(false),
+                insert_parity,
+                retract_parity,
             ));
         }
     }
@@ -1022,7 +1371,10 @@ pub(crate) fn render_cost_ledger(
                 case.case,
                 provenance.record.fact_count,
                 provenance.record.annotation_count,
-                provenance.record.max_proof_height.unwrap_or(0),
+                provenance
+                    .record
+                    .max_proof_height
+                    .map_or_else(|| "—".to_string(), |height| height.to_string()),
                 provenance.record.consumed_steps,
                 provenance.skip.consumed_steps,
                 provenance.record.peak_live_bytes,
@@ -1138,13 +1490,11 @@ pub(crate) fn render_cost_ledger(
 /// gap-zero claim, so a non-zero `corpus_only`/`dl_gap` is a hard error here, never a
 /// silently-rendered "held" (no-optionality).
 pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let bytes = std::fs::read(root.join(COST_BASELINE_PATH))?;
-    let artifact: CostArtifact = serde_json::from_slice(&bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("cost baseline parse: {e}"),
-        })
+    let path = root.join(COST_BASELINE_PATH);
+    let bytes = std::fs::read(&path).map_err(|error| {
+        gmeow_errors::Diag::from(error).with_context(format!("read required {}", path.display()))
     })?;
-    artifact.rule_parallelism.validate()?;
+    let artifact = parse_cost_artifact(&bytes)?;
 
     // Assert gap-zero per corpus BEFORE rendering, and fold the invariant per-corpus
     // finding-graph digests into a single combined soak digest (blake3 over the sorted
@@ -1277,3 +1627,7 @@ mod tests;
 #[cfg(test)]
 #[path = "bench.timing_json.tests.rs"]
 mod timing_json_tests;
+
+#[cfg(test)]
+#[path = "bench.cost_json.tests.rs"]
+mod cost_json_tests;
