@@ -1,0 +1,36 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Parent: #1717. Blocks: #1717. This is one complete cluster from the original quantitative-grounding contract; the parent remains open until every remaining cluster and its production acceptance are complete.\n\n## Scope and acceptance\n\nGround monetary amounts, rates and prices through the canonical quantity/dimension substrate and currency reference frames without treating currency as an SI base dimension. Ground interest/return computations in actual math: operations. Reuse the shared observations MonetaryAmount owner instead of minting a finance-specific duplicate. Audit and retire superseded scalar paths under equivalence-before-deletion with explicit guards. Add real math artifact references and the matching manifest dependency. Preserve frame-relative amount semantics, exact numeric values and existing financial callers. Acceptance must exercise actual finance consumers, generated constraints, correct and malformed dimensions/frames and computations; source counts alone prove nothing. Full required gates and shipped/installed acceptance are mandatory.\n\nPrinciples 4, 7, 9, 11, 17 and 19 govern this delivery. No requirement is waived by this decomposition. External repository implementation or model/service lifecycle actions require separate authorization.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABeByPmw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "# Finance grounding #1894\n\nThis delivery implements the remaining finance child after the independently\nlanded shared exact scalar prerequisite PR #1901. Child #1894 and parent #1717\nremain open until actual production qualification and all acceptance pass.\nPrinciples 4, 7, 9, 11, 12, 17 and 19 govern the source design.\n\n## Delivery contract\n\n- Retype the existing observations MonetaryAmount IRI as the abstract math:Quantity\n  owner. Preserve exact decimal values, explicit dimensionless dimension and scalar\n  currency frame. Retire monetaryValue and its assertion carrier deliberately.\n- Migrate actual finance and shared coverage callers, related schema value mapping,\n  journal aggregation and holding count. Holding count is a framed asset quantity,\n  preserving the asset identity and separate monetary cost basis.\n- Add canonical simple-interest P*r*n and holding-period-return (C-O)/O ASTs.\n  Methods reuse CallableSignature/CallParameter/CallResult; parameters, mathematical\n  symbols and runtime quantities remain distinct. No compound-interest claim.\n- Public installed `gmeow finance evaluate SOURCE --subject REQUEST --out RESULT`\n  consumes authenticated embedded owners and complete generated projections.\n  Explicit finance-exact-decimal-v1 admission validates observation context, exact\n  quantities, currency compatibility, period basis, roles and recipe identity.\n- Minimal shared prepared-math seam derives financial result roles in the same\n  native execution. Original subclass-typed inputs require native Quantity typing\n  from retained authenticated named subclass facts; no asserted type patch.\n- Native arithmetic uses an explicit named operation-contract projection, not a\n  whole-ontology verdict. Full actual generated owner constraints remain mandatory,\n  including active required procedural products. Unsupported required anonymous or\n  quoted operation fields fail closed. Full owner identity binds result identity.\n- Exact division rejects zero/nonterminating quotients; generic math/RDF division\n  behavior remains preserved. Results and observationResult are fresh derived rows,\n  retaining normal source/rule/proof evidence rather than asserted metric writes.\n\n## Acceptance and limits\n\nFull original issue scope remains mandatory: amounts/rates/prices, shared owner,\nframe semantics, scalar retirement guards, real artifacts and manifest dependency,\nreal consumers, generated constraints, malformed dimensions/frames/computations,\nfull required gates, and shipped/installed acceptance. Authenticated fixture tests\nconsume producer-selected source/projections; no test produces the corpus.\n\nThis source lane has run no builds, tests, formatting, lint or producer. Parent\nowns sequential qualification and later base integration. Missing authenticated\nassets are blockers to executing their consumer coverage, never permission to\ncreate placeholders, skip admission, produce a corpus from tests, or claim success.\nSee validation.md for the coverage index. Root qualification has now executed13 focused native/standalone-math tests successfully; formatting and mandatory corpus purity passed. Strict prebuild Clippy is running. Actual produced/installed/full acceptance remains unrun under the campaign exception.\n",
+      "createdAt": "2026-10-21T07:01:20Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1894#issuecomment-6310104987",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-21T02:36:42Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1894,
+  "state": "OPEN",
+  "title": "Ground financial amounts, rates, prices and computations in math:",
+  "updatedAt": "2026-10-21T07:01:20Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1894"
+}

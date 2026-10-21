@@ -1,0 +1,104 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-build-inputs) | (package(gmeow-logic) & (test(finance_evaluation) | test(math_evaluation)))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/logic)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 18s
+────────────
+ Nextest run ID a6c3586c-cf27-46ac-a651-9d483f8289e8 with nextest profile: ci
+    Starting 72 tests across 31 binaries (2372 tests and 195 binaries skipped)
+        PASS [   0.021s] ( 1/72) gmeow-build-inputs resolution::tests::resolution_environment_tracks_selection_without_cargo_injected_test_noise
+        PASS [   0.022s] ( 2/72) gmeow-build-inputs::extraction module_extraction_preserves_exact_bodies_paths_and_module_names
+        PASS [   0.024s] ( 3/72) gmeow-build-inputs::extraction changing_the_plan_body_or_original_input_refuses_application
+        PASS [   0.021s] ( 4/72) gmeow-build-inputs::extraction unicode_columns_preserve_the_original_utf8_body_bytes
+        PASS [   0.025s] ( 5/72) gmeow-build-inputs::extraction changing_the_parent_declaration_or_production_bytes_refuses_application
+        PASS [   0.024s] ( 6/72) gmeow-build-inputs::extraction semantic_relocations_are_reviewed_explicitly_instead_of_rewritten_blindly
+        PASS [   0.027s] ( 7/72) gmeow-build-inputs::inventory a_symlink_is_rejected_even_when_followed_by_parent_navigation
+        PASS [   0.028s] ( 8/72) gmeow-build-inputs::inventory explicit_git_package_identity_binds_the_unique_resolved_lock_revision
+        PASS [   0.027s] ( 9/72) gmeow-build-inputs::inventory external_test_changes_do_not_change_producer_or_action_identity
+        PASS [   0.029s] (10/72) gmeow-build-inputs::inventory module_ambiguity_cycles_and_workspace_escape_are_errors
+        PASS [   0.028s] (11/72) gmeow-build-inputs::inventory development_cargo_changes_do_not_mask_production_manifest_changes
+        PASS [   0.029s] (12/72) gmeow-build-inputs::inventory inline_test_code_unknown_cfg_and_unowned_source_macros_fail_closed
+        PASS [   0.030s] (13/72) gmeow-build-inputs::inventory local_macro_capabilities_follow_lexical_blocks_and_module_scopes
+        PASS [   0.031s] (14/72) gmeow-build-inputs::inventory pinned_json_macros_bind_alias_package_revision_and_nested_inputs
+        PASS [   0.030s] (15/72) gmeow-build-inputs::inventory complete_files_and_module_membership_are_portable_and_binding
+        PASS [   0.027s] (16/72) gmeow-build-inputs::inventory cfg_attr_doc_assets_and_inline_module_path_attributes_have_real_owners
+        PASS [   0.031s] (17/72) gmeow-build-inputs::inventory native_semantic_contract_is_portable_and_omits_external_tests
+        PASS [   0.030s] (18/72) gmeow-build-inputs::inventory generated_query_owner_tracks_only_query_contents_and_selected_membership
+        PASS [   0.031s] (19/72) gmeow-build-inputs::inventory explicit_paths_nested_modules_and_assets_resolve_from_their_rust_owners
+        PASS [   0.031s] (20/72) gmeow-build-inputs::inventory controller_profile_code_selection_is_owned_without_developer_optimization_churn
+        PASS [   0.032s] (21/72) gmeow-build-inputs::inventory compiler_artifact_binding_ignores_unselected_dep_info_and_normalizes_paths
+        PASS [   0.032s] (22/72) gmeow-build-inputs::inventory development_cargo_config_and_unused_features_are_not_production_policy
+        PASS [   0.031s] (23/72) gmeow-build-inputs::inventory generated_compiler_inputs_are_bound_outside_the_checkout_to_their_owner
+        PASS [   0.034s] (24/72) gmeow-build-inputs::inventory pinned_json_macro_revision_changes_require_matching_selection_and_identity
+        PASS [   0.033s] (25/72) gmeow-build-inputs::inventory embedding_excluded_tests_is_not_accepted_as_production
+        PASS [   0.034s] (26/72) gmeow-build-inputs::inventory actual_compiler_reads_must_equal_declared_workspace_inputs
+        PASS [   0.034s] (27/72) gmeow-build-inputs::inventory compiler_environment_requires_the_exact_selected_input_owner
+        PASS [   0.035s] (28/72) gmeow-build-inputs::inventory development_resolution_changes_require_readmission_without_identity_churn
+        PASS [   0.013s] (29/72) gmeow-build-inputs::inventory production_module_named_tests_is_not_excluded
+        PASS [   0.038s] (30/72) gmeow-build-inputs::inventory negated_keyword_expressions_are_not_macro_invocations
+        PASS [   0.038s] (31/72) gmeow-build-inputs::inventory pinned_json_macros_refuse_fake_floating_patched_and_conflicting_packages
+        PASS [   0.014s] (32/72) gmeow-build-inputs::inventory production_cannot_embed_a_child_of_an_excluded_test_module
+        PASS [   0.038s] (33/72) gmeow-build-inputs::inventory diagnostic_macros_retain_nested_inputs_and_refuse_unowned_capabilities
+        PASS [   0.009s] (34/72) gmeow-build-inputs::inventory source_policy_cfg_requires_every_production_branch_to_be_excluded
+        PASS [   0.018s] (35/72) gmeow-build-inputs::inventory portable_source_editions_resolve_declared_inherited_and_language_default
+        PASS [   0.012s] (36/72) gmeow-build-inputs::inventory retained_dev_versions_cannot_authenticate_stale_normal_or_build_edges
+        PASS [   0.017s] (37/72) gmeow-build-inputs::inventory portable_tracing_refuses_source_overrides_and_ambiguous_target_owners
+        PASS [   0.012s] (38/72) gmeow-build-inputs::inventory selected_build_controller_bytes_are_owned_but_unselected_tools_are_not
+        PASS [   0.022s] (39/72) gmeow-build-inputs::inventory pinned_json_macros_refuse_unproven_paths_shadowing_and_opaque_inputs
+        PASS [   0.015s] (40/72) gmeow-build-inputs::inventory renamed_tracing_spans_follow_selected_package_identity
+        PASS [   0.014s] (41/72) gmeow-build-inputs::inventory source_policy_follows_module_ownership_instead_of_test_like_names
+        PASS [   0.021s] (42/72) gmeow-build-inputs::inventory portable_tracing_preserves_registry_aliases_and_workspace_declarations
+        PASS [   0.017s] (43/72) gmeow-build-inputs::inventory resolution_glob_membership_and_all_metadata_manifests_are_observed
+        PASS [   0.017s] (44/72) gmeow-build-inputs::inventory selected_registry_identity_and_feature_resolution_are_binding
+        PASS [   0.020s] (45/72) gmeow-build-inputs::inventory resolution_configuration_is_relocatable_and_detects_changed_ancestor_policy
+        PASS [   0.015s] (46/72) gmeow-build-inputs::inventory test_reexport_wiring_is_hashed_but_external_helper_bodies_are_not
+        PASS [   0.017s] (47/72) gmeow-build-inputs::inventory standard_output_macros_retain_nested_input_ownership
+        PASS [   0.020s] (48/72) gmeow-build-inputs::inventory rust_2015_tracing_names_never_hide_embedded_source
+        PASS [   0.026s] (49/72) gmeow-build-inputs::inventory portable_tracing_requires_registry_package_identity
+        PASS [   0.022s] (50/72) gmeow-build-inputs::inventory source_policy_never_excludes_an_ambiguous_cfg_attr_production_branch
+        PASS [   0.020s] (51/72) gmeow-build-inputs::inventory source_policy_registry_type_capability_never_admits_an_unowned_macro
+        PASS [   0.018s] (52/72) gmeow-build-inputs::native_substrate native_substrate_binds_the_git_source_and_refuses_mutable_selectors
+        PASS [   0.024s] (53/72) gmeow-build-inputs::inventory tracing_extern_crate_scope_keeps_genuine_and_inactive_owners
+        PASS [   0.034s] (54/72) gmeow-build-inputs::inventory tracing_spans_require_the_selected_owner_and_retain_nested_inputs
+        PASS [   0.049s] (55/72) gmeow-build-inputs::inventory tracing_extern_crate_aliases_cannot_hide_embedded_inputs
+        PASS [   0.043s] (56/72) gmeow-logic finance_evaluation::tests::finance_evaluation_owner_import_retains_list_cells_members_and_override_checks
+        PASS [   0.051s] (57/72) gmeow-logic finance_evaluation::tests::finance_evaluation_callable_lists_use_strict_collection_and_named_member_contracts
+        PASS [   0.057s] (58/72) gmeow-logic finance_evaluation::tests::finance_evaluation_rejects_anonymous_required_owner_records
+        PASS [   0.059s] (59/72) gmeow-logic finance_evaluation::tests::finance_evaluation_mixed_named_and_anonymous_selected_list_edges_still_refuse
+        PASS [   0.059s] (60/72) gmeow-logic finance_evaluation::tests::finance_evaluation_refuses_missing_or_wrong_owned_quantity_axiom
+        PASS [   0.069s] (61/72) gmeow-logic finance_evaluation::tests::finance_evaluation_requires_every_selected_procedural_product
+        PASS [   0.162s] (62/72) gmeow-logic math_evaluation::tests::math_evaluation_rejects_conflicting_concrete_ast_forms_but_keeps_base_types
+        PASS [   0.163s] (63/72) gmeow-logic math_evaluation::tests::math_evaluation_never_reuses_an_asserted_result_identity
+        PASS [   0.172s] (64/72) gmeow-logic math_evaluation::tests::math_evaluation_keeps_valid_native_subclass_consequences_and_their_proof
+        PASS [   0.198s] (65/72) gmeow-logic math_evaluation::tests::math_evaluation_rejects_malformed_or_unsupported_selected_operations
+        PASS [   0.321s] (66/72) gmeow-logic finance_evaluation::tests::finance_evaluation_contract_projection_retains_named_class_proof_not_anonymous_restrictions
+        PASS [   0.353s] (67/72) gmeow-logic math_evaluation::tests::math_evaluation_executes_four_operations_with_native_source_proofs
+        PASS [   0.418s] (68/72) gmeow-logic finance_evaluation::tests::finance_evaluation_refuses_conflicting_frames_roles_recipes_and_inexact_results
+        PASS [   0.434s] (69/72) gmeow-logic math_evaluation::tests::math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata
+        PASS [   0.521s] (70/72) gmeow-logic finance_evaluation::tests::finance_evaluation_derives_money_and_return_with_owned_quantity_typing_proof
+        PASS [   0.603s] (71/72) gmeow-build-inputs::extraction formatter_evidence_accepts_spacing_but_rejects_assertion_or_path_changes
+        PASS [   1.057s] (72/72) gmeow-logic finance_evaluation::tests::finance_evaluation_identity_binds_owner_context_and_exact_input_values
+────────────
+     Summary [   1.123s] 72 tests run: 72 passed, 2372 skipped

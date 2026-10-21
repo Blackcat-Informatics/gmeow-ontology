@@ -1,0 +1,1 @@
+Complete paginated REST reviews, inline and issue comments plus GraphQL threads retained in raw. Only decorative CodeRabbit marker comments and the review-stack metadata block are projected out; substantive bodies, IDs, URLs and pagination remain. Both thread pagination levels exhausted.
