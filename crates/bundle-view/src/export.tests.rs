@@ -118,7 +118,7 @@ fn english_primer() -> &'static gmeow_docs_model::gmn1_primer::Gmn1Primer {
         )
         .expect("authenticated producer primer; tests never rebuild it");
         let observation: gmeow_docs_model::gmn1_primer::teachability::Observations =
-            serde_json::from_slice(&bytes).expect("typed producer primer artifact");
+            purrdf_lex::json::record::from_slice(&bytes).expect("typed producer primer artifact");
         observation.primer
     })
 }

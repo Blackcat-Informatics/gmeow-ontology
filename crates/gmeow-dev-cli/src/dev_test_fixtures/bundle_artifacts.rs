@@ -196,7 +196,12 @@ impl<'a> Sources<'a> {
                     self.gmn_codebook()?.dictionary(),
                 )
                 .map_err(fail)?;
-                serde_json::to_vec(&observation).map_err(fail)
+                Ok(
+                    purrdf_lex::json::write_compact(&purrdf_lex::json::record::ToJson::to_json(
+                        &observation,
+                    ))
+                    .into_bytes(),
+                )
             }
             "prepared-verify-gates.json" => self.member(
                 archive::REASONING_REP,

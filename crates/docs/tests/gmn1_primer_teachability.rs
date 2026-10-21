@@ -38,7 +38,9 @@ fn observations() -> &'static Observations {
     let (identity, observed) = SELECTED.get_or_init(|| {
         let observed =
             gmeow_bundle_import::load_authenticated_corpus_artifact(&repo_root(), ARTIFACT)
-                .and_then(|bytes| serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from));
+                .and_then(|bytes| {
+                    purrdf_lex::json::record::from_slice(&bytes).map_err(gmeow_errors::Diag::from)
+                });
         (selector.clone(), observed)
     });
     assert_eq!(
