@@ -1,0 +1,3 @@
+# Review debt and acceptance limits
+
+Independent production/caller/failure-path review is recorded in review.md. All7 selected pure JSON tests, strict producer-independent prebuild Clippy, formatting and normal signed commit/push hooks passed. Existing generated drift test remains intact and unrun. Actual installed/MCP execution, embedded consumers, consumer-inclusive full Clippy, corpus/full gates and full1776 migration are not qualified. The current campaign exception authorizes sequential merge without waiting for pending CI; it does not turn any unrun check green. No unresolved substantive feedback finding exists at the complete current capture.

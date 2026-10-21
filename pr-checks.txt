@@ -1,0 +1,16 @@
+# Actual hosted check snapshot; pending is unverified
+producer-build  COMPLETED FAILURE  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119108532904 
+helpers  IN_PROGRESS   https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119108532651 
+lint  COMPLETED SUCCESS  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119108532424 
+rust-prebuild  IN_PROGRESS   https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119108532724 
+generation (${{ matrix.generation }})  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109038312 
+fixture-prefix  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109038046 
+producer  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109038410 
+fixture-complete  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109039677 
+ontology-validate  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109039335 
+ontology-generated  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109039124 
+ontology-reason  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109039460 
+ontology-misc  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109038870 
+heavy  COMPLETED SKIPPED  https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39566072124/job/119109039203 
+ CodeRabbit   PENDING  
+The campaign explicitly authorizes sequential merge without waiting for pending CI; no pending check is reported passed.
