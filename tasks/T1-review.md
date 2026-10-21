@@ -1,0 +1,3 @@
+# Attribution indexing review
+
+Local source review confirms the inventory, native-subject membership check and metadata lookup share the existing source-scoped claim witness. Every key retains its graph. Both derived metadata properties retain IRI validation, firing identity and premises. Explicit evidence retains precedence. Named and anonymous regressions drive the same native reasoning and public receipt consumers; the corrected helper resolves through the resident dataset reference. Strict producer-independent Clippy passed with warnings denied. All 44 contextual tests and final strict Clippy passed, including the actual native anonymous attribution scenario. No independent reviewer was available; no independent PASS is asserted.

@@ -1,0 +1,153 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(modal::contextual::)' --no-tests=fail
+    Blocking waiting for file lock on build directory
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/affect)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/logic)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slicetest)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-catalog)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1757-perf-logic-finish-merged-pipeline/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 5m 46s
+────────────
+ Nextest run ID 84ad3bf3-7d2a-4ba3-918a-2723d0b82b06 with nextest profile: ci
+    Starting 44 tests across 225 binaries (7709 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.034s] ( 1/44) gmeow-logic modal::contextual::tests::contextual_anonymous_evidence_addresses_retain_the_original_blank_scope
+        PASS [   0.050s] ( 2/44) gmeow-logic modal::contextual::native::source::tests::indexed_rows_preserve_statement_layer_partitions
+        PASS [   0.051s] ( 3/44) gmeow-logic modal::contextual::tests::conflicting_bindings_and_malformed_selected_claims_fail_admission
+        PASS [   0.051s] ( 4/44) gmeow-logic modal::contextual::tests::rdf12_evidence_preserves_world_and_standpoint_without_default_support
+        PASS [   0.052s] ( 5/44) gmeow-logic modal::contextual::tests::an_explicitly_empty_successor_set_differs_from_a_missing_inventory
+        PASS [   0.054s] ( 6/44) gmeow-logic modal::contextual::path::tests::path_order_and_membership_fail_closed
+        PASS [   0.051s] ( 7/44) gmeow-logic modal::contextual::tests::named_request_cannot_borrow_a_missing_binding_or_choose_between_source_graphs
+        PASS [   0.054s] ( 8/44) gmeow-logic modal::contextual::path::tests::preparation_rejects_foreign_and_malformed_anchors_before_execution
+        PASS [   0.053s] ( 9/44) gmeow-logic modal::contextual::tests::public_budget_stop_is_typed_and_cannot_become_neither
+        PASS [   0.055s] (10/44) gmeow-logic modal::contextual::path::tests::path_standpoint_isolation_and_budget_do_not_manufacture_truth
+        PASS [   0.055s] (11/44) gmeow-logic modal::contextual::path::tests::path_binding_reads_each_actual_state_and_retains_the_path_basis
+        PASS [   0.055s] (12/44) gmeow-logic modal::contextual::path::tests::prepared_path_never_reuses_another_observations_evidence
+        PASS [   0.056s] (13/44) gmeow-logic modal::contextual::path::tests::explicit_atomic_and_temporal_anchors_keep_the_full_observation_and_provenance
+        PASS [   0.056s] (14/44) gmeow-logic modal::contextual::path::tests::path_unknown_conflict_and_open_tail_remain_independent
+        PASS [   0.055s] (15/44) gmeow-logic modal::contextual::tests::nested_review_selects_its_standpoint_before_following_epistemic_edges
+        PASS [   0.056s] (16/44) gmeow-logic modal::contextual::path::tests::prepared_identity_binds_selectors_anchor_and_observation_separately_from_run_budget
+        PASS [   0.056s] (17/44) gmeow-logic modal::contextual::tests::public_assessment_preserves_the_shared_result_and_complete_proof_addresses
+        PASS [   0.058s] (18/44) gmeow-logic modal::contextual::path::tests::prepared_path_shares_evidence_across_goals_and_keeps_each_execution_independent
+        PASS [   0.010s] (19/44) gmeow-logic modal::contextual::tests::selecting_one_request_does_not_select_unrelated_malformed_requests
+        PASS [   0.009s] (20/44) gmeow-logic modal::contextual::tests::temporal::journal_ownership_is_checked_before_query_order_can_choose_an_enactment
+        PASS [   0.014s] (21/44) gmeow-logic modal::contextual::tests::temporal::a_temporal_request_cannot_borrow_a_hash_scope_or_observed_adjacency
+        PASS [   0.010s] (22/44) gmeow-logic modal::contextual::tests::temporal::unrelated_legacy_journals_do_not_weaken_or_block_selected_temporal_admission
+        PASS [   0.013s] (23/44) gmeow-logic modal::contextual::tests::temporal::finalization_changes_the_verdict_and_result_identity_without_inventing_an_event
+        PASS [   0.066s] (24/44) gmeow-logic modal::contextual::tests::lexical_carriers_cannot_silently_erase_rdf12_literal_semantics
+        PASS [   0.014s] (25/44) gmeow-logic modal::contextual::tests::temporal::monitor_rejects_changed_past_or_compiled_inputs_without_advancing
+        PASS [   0.014s] (26/44) gmeow-logic modal::contextual::tests::temporal::next_selects_the_committed_successor_and_exports_its_exact_prefix
+        FAIL [   0.069s] (27/44) gmeow-logic modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts
+  stdout ───
+
+    running 1 test
+    test modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts ... FAILED
+
+    failures:
+
+    failures:
+        modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2145 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts' (3638612) panicked at crates/logic/src/modal/contextual/tests.rs:716:85:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "invalid contextual input: an attributed claim requires exactly one support status", context: [], antecedents: [], source: Some(Reason { detail: "invalid contextual input: an attributed claim requires exactly one support status" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/modal.rs", line: 25, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (28/44) gmeow-logic modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts
+  stdout ───
+
+    running 1 test
+    test modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts ... FAILED
+
+    failures:
+
+    failures:
+        modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2145 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts' (3638637) panicked at crates/logic/src/modal/contextual/tests.rs:716:85:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "invalid contextual input: an attributed claim requires exactly one support status", context: [], antecedents: [], source: Some(Reason { detail: "invalid contextual input: an attributed claim requires exactly one support status" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/modal.rs", line: 25, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.027s] (29/44) gmeow-logic modal::contextual::tests::temporal::temporal_sugar_uses_the_same_source_admission_and_shared_formula_ir
+        PASS [   0.021s] (30/44) gmeow-logic modal::contextual::tests::unsupported_queries_export_the_shared_source_anchored_diagnostic_ledger
+        PASS [   0.028s] (31/44) gmeow-logic modal::contextual::tests::temporal::monitor_eviction_recomputes_and_cancelled_cache_hits_cannot_succeed
+        PASS [   0.030s] (32/44) gmeow-logic modal::contextual::tests::temporal::appended_monitor_judgments_match_fresh_evaluation_and_reuse_committed_proofs
+        PASS [   0.084s] (33/44) gmeow-logic modal::contextual::tests::native_execution::a_request_writer_in_an_admitted_empty_world_is_rejected_before_execution
+        PASS [   0.134s] (34/44) gmeow-logic modal::contextual::tests::native_execution::one_contextual_receipt_owns_every_metadata_head_and_rejects_tampering
+        PASS [   0.137s] (35/44) gmeow-logic modal::contextual::tests::native_execution::derived_attribution_receipts_keep_their_committed_source_world
+        PASS [   0.180s] (36/44) gmeow-logic modal::contextual::tests::native_execution::a_zero_shared_allowance_publishes_one_complete_unvisited_assessment
+        PASS [   0.189s] (37/44) gmeow-logic modal::contextual::tests::native_execution::unrelated_existing_reasoning_graph_does_not_become_contextual_source_grammar
+        PASS [   0.190s] (38/44) gmeow-logic modal::contextual::tests::native_reasoning_evaluates_requests_without_asserting_their_propositions
+        PASS [   0.193s] (39/44) gmeow-logic modal::contextual::tests::raw_inferred_facts_do_not_supply_attribution_and_interruption_claims_no_receipts
+        PASS [   0.196s] (40/44) gmeow-logic modal::contextual::tests::native_execution::native_contextual_status_waits_for_its_committed_writer
+        PASS [   0.202s] (41/44) gmeow-logic modal::contextual::tests::named_request_keeps_source_configuration_separate_from_evidence_worlds
+        PASS [   0.171s] (42/44) gmeow-logic modal::contextual::tests::result_components_remain_disjoint_when_multiple_requests_share_one_reasoning_graph
+        PASS [   0.292s] (43/44) gmeow-logic modal::contextual::tests::incremental_attribution_replaces_contextual_results_outside_the_changed_world
+        PASS [   0.335s] (44/44) gmeow-logic modal::contextual::tests::native_execution::contextual_native_admission_preserves_anonymous_claims_and_ignores_unselected_graphs
+────────────
+     Summary [   0.485s] 44 tests run: 42 passed, 2 failed, 7709 skipped
+        FAIL [   0.069s] (27/44) gmeow-logic modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts
+  stdout ───
+
+    running 1 test
+    test modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts ... FAILED
+
+    failures:
+
+    failures:
+        modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2145 filtered out; finished in 0.06s
+
+  stderr ───
+
+    thread 'modal::contextual::tests::anonymous_derived_attribution_preserves_world_scopes_and_exact_receipts' (3638612) panicked at crates/logic/src/modal/contextual/tests.rs:716:85:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "invalid contextual input: an attributed claim requires exactly one support status", context: [], antecedents: [], source: Some(Reason { detail: "invalid contextual input: an attributed claim requires exactly one support status" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/modal.rs", line: 25, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        FAIL [   0.068s] (28/44) gmeow-logic modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts
+  stdout ───
+
+    running 1 test
+    test modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts ... FAILED
+
+    failures:
+
+    failures:
+        modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2145 filtered out; finished in 0.05s
+
+  stderr ───
+
+    thread 'modal::contextual::tests::native_derived_attribution_preserves_world_scopes_and_exact_receipts' (3638637) panicked at crates/logic/src/modal/contextual/tests.rs:716:85:
+    called `Result::unwrap()` on an `Err` value: DiagInner { grade: Grade { severity: Error, category: ModelingDisciplineViolation, standpoint: Binding }, code: Code(1), message: "invalid contextual input: an attributed claim requires exactly one support status", context: [], antecedents: [], source: Some(Reason { detail: "invalid contextual input: an attributed claim requires exactly one support status" }), source_ctx: SourceContext { location: Location { path: None, line: None, column: None, logical: None, gts_term_id: None, gts_quad_index: None, gts_reifier_id: None, gts_frame_index: None, gts_segment_index: None }, graph: None, focus: None, term_role: None }, attributions: [], advice: [], remediation: [], guidance: [], derived_from_quads: [], cited_iris: [], labels: [], tags: [], documented_terms: [], failure_class: None, observed: None, expected: None, locus: PipelineLocus { emitted_at: Location { file: "crates/logic/src/modal.rs", line: 25, column: 5 }, stage: None } }
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: test run failed
+make: *** [Makefile:717: nextest-synthetic] Error 100

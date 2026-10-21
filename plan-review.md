@@ -1,0 +1,2 @@
+# Local plan assessment
+The repair is bounded to direct contextual metadata indexing and its production-entry regression. Named and anonymous inputs must share owner/status semantics and retain graph-local proof receipts. No corpus fixture or generation is needed for these synthetic cases. Parent acceptance remains unverified. The plan removes the faulty identity comparison rather than adding a compatibility branch. Independent review is unavailable; this is a self-assessment, not independent approval.

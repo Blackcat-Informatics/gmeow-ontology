@@ -1,0 +1,2 @@
+# Issue ownership
+The full parent requires authenticated merged pipeline and fixture acceptance, parallel generation equality and reconciliation of child contracts. This change repairs a concrete post-merge contextual reader defect found on PR 1889. It does not complete the parent or certify whole-corpus behavior. The review describes the direct reader indexing raw anonymous subjects while closure facts use scoped witnesses; current source confirms that mismatch.

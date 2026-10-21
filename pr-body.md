@@ -1,0 +1,5 @@
+Anonymous RDF 1.2 claims could lose derived attribution because the contextual reader indexed their raw blank-node IDs while native reasoning supplied scoped witness IRIs. Use the existing witness owner for the reifier inventory and derived metadata lookup, retaining world isolation and exact proof receipts. Principles 4, 7, 17 and 18.
+
+Extend the production-entry regression to named and anonymous reifiers with both attribution and support status inferred. Verify source-only absence, supported closure, native receipts, world isolation and public result/artifact round trips.
+
+Related to #1757; the full pipeline acceptance contract remains open. All 44 focused contextual tests passed, including named and anonymous derived attribution, exact receipts, isolation and public round trips. Strict producer-independent Clippy passed on the settled source with warnings denied. Normal commit hooks run before publication. No local producer, corpus construction, synchronization or full gate ran. CI will not delay merge under the user instruction.
