@@ -9,11 +9,11 @@
 Data quality is usually bolted on as a separate report format. GMEOW refuses the bolt-on:
 a quality assessment is a *reified observation about an entity*, and so it reuses the
 universal Observation stack wholesale — the assessed entity is the `observedFeature`, the
-quality result is the `observationResult` (typically a `math:Quantity`), and the
+quality result is the `observationResult` (a quantity, an estimate, or a categorical verdict), and the
 assessment protocol is the `observationMethod`. The result therefore carries unit,
 reference frame, determinacy, and provenance in the same bundle as every other GMEOW
-measurement (Principle 11), and the quality layer stays thin: one SubKind, two
-properties, one open dimension vocabulary.
+measurement (Principle 11). Explicit quantitative and aggregate subkinds select
+stronger result contracts without narrowing ordinary categorical assessments.
 
 The dimensions themselves are ISO 19157's — positional accuracy, temporal accuracy,
 thematic accuracy, completeness, logical consistency, topological consistency — plus
@@ -24,12 +24,45 @@ quality metric is solver-layer work (Principle 12).
 
 ### gmeow:QualityAssessment
 
-A reified assessment of the quality of an entity or dataset — a `gufo:SubKind` of
+A reified assessment of the quality of an entity or dataset — a `logic:SubKind` of
 `gmeow:Observation`, so everything the observations slice provides (vantage, method,
 result, frames) applies unchanged. The result is typically a scalar quantity (accuracy in
 metres, completeness as a normalized dimensionless ratio) or a categorical conformance statement. The
-EL-visible axiom guarantees every assessment assesses *at least one* entity; closed-world
-cardinality is SHACL's concern, never OWL's.
+canonical axiom guarantees every assessment assesses *at least one* entity.
+Closed-world requirements are authored as `logic:` closure metadata; SHACL is
+their generated validation view.
+The `assessedEntity` existential does not itself require an explicitly asserted
+value in validation; supplied values must be entities.
+
+### Quantitative and aggregate results
+
+Use `gmeow:QuantitativeQualityAssessment` for measured magnitudes. It requires
+at least one `observationResult`, and every result is a `math:Quantity`. Each
+quantity carries its own `math:hasDimension`; a completeness ratio is dimensionless,
+while a position error may be a length. Units and reference frames retain their
+ordinary observation semantics. The seven broad quality categories do not acquire
+fixed physical dimensions.
+
+Use `gmeow:AggregateQualityAssessment` for estimated aggregate scores. Each required
+result is a `math:Estimate` with `math:estimateValue` quantities, declared
+`math:Estimator` procedures through `math:estimator`, and a target through
+`math:estimatesEstimand` or `math:estimatedParameter`. Every supplied value and
+estimator must have the appropriate type; one correct value cannot conceal a
+malformed extra value. Quantity dimensions remain the mathematical owner's
+invariant. The canonical `gmeow:AggregateQualityResultsConstraint` supplies the
+cross-node integrity law and its generated procedural validation view.
+
+The assessment is the held observation, the estimate is its result, the estimator
+is a procedure, and the estimand or parameter is its target. These objects are
+never collapsed. Multiple estimates can coexist with their own procedures and
+targets. No Cartesian pairing between a report's dimension classifications and
+its result values is inferred. Split direct and estimated results into separate
+assessments of the same entity when their result contracts differ.
+
+Categorical verdicts remain ordinary `QualityAssessment` results. Neither new
+subkind classifies every positional, temporal, or completeness assessment as
+quantitative. See [dataset-completeness.ttl](examples/dataset-completeness.ttl)
+and [aggregate-and-categorical.ttl](examples/aggregate-and-categorical.ttl).
 
 ### gmeow:assessedEntity
 
@@ -80,5 +113,5 @@ accuracy statistics, completeness ratios, and the coverage gates that consume th
 assessments are solver-layer machinery (Principle 12). Alignment to W3C DQV
 (`dqv:QualityMeasurement`, `dqv:Dimension`) and GeoDCAT-AP is by reference and lossy
 projection — DQV has no standpoint, no determinacy, and no frame on its measurements,
-which is precisely what the Observation stack adds. Depends on kernel and observations;
+which is precisely what the Observation stack adds. Depends on logic, math, kernel and observations;
 consumed by data-quality claims over any slice's instance data.

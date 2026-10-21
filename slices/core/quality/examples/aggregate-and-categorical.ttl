@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/quality/aggregate/> .
+
+ex:dataset a gmeow:Dataset .
+ex:auditor a gmeow:Organization .
+
+# An estimate of mean completeness, held by the auditor rather than asserted as
+# a property intrinsic to the dataset. The estimator is not the estimate.
+ex:aggregate a gmeow:AggregateQualityAssessment ;
+    gmeow:assessedEntity ex:dataset ;
+    gmeow:qualityDimension gmeow:qualityDimensionCompleteness ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage ex:auditor ;
+    gmeow:observationResult ex:estimate .
+
+ex:estimate a math:Estimate ;
+    math:estimateValue ex:meanRatio ;
+    math:estimator ex:sampleMean ;
+    math:estimatedParameter ex:populationMeanCompleteness .
+ex:sampleMean a math:Estimator .
+ex:populationMeanCompleteness a logic:Individual .
+ex:meanRatio a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 0.985 .
+
+# A categorical conformance verdict about that same dataset remains legal.
+ex:categorical a gmeow:QualityAssessment ;
+    gmeow:assessedEntity ex:dataset ;
+    gmeow:qualityDimension gmeow:qualityDimensionTopologicalConsistency ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage ex:auditor ;
+    gmeow:observationResult ex:conforms .
+ex:conforms a logic:Individual .

@@ -17,7 +17,7 @@ ex:dataset a gmeow:Dataset ; gmeow:title "Coastal Bird Survey 2026"@x-gmeow-engl
 ex:auditor a gmeow:Organization ; gmeow:name "Data Quality Audit Ltd."@x-gmeow-english .
 
 # --- The assessment: which entity, which dimension, by what method, from whom.
-ex:assessment a gmeow:QualityAssessment ;
+ex:assessment a gmeow:QuantitativeQualityAssessment ;
     gmeow:assessedEntity    ex:dataset ;
     gmeow:qualityDimension  gmeow:qualityDimensionCompleteness ;
     gmeow:observationMethod gmeow:methodComputationalModel ;
