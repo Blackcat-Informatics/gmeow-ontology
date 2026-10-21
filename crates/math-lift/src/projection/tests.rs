@@ -32,6 +32,38 @@ fn empty() -> Arc<RdfDataset> {
 }
 
 #[test]
+fn math_projection_xml_boundary_retains_variable_identity_and_parser_causes() {
+    let declaration = "urn:projection:test:O'Neil&λ";
+    let source = data(&format!(
+        "ex:v a math:VariableExpression ; math:variableOccurrence ex:occ . ex:occ a math:VariableOccurrence ; math:declaredVariable <{declaration}> . <{declaration}> a math:FreeVariableDeclaration . ex:r a math:ExpressionRendering ; lang:renderedContent ex:v ; lang:renderingKind lang:renderingNotation ; lang:renderingConvention <http://www.w3.org/1998/Math/MathML> ; lang:renderingPreservation logic:ExactPreservation ."
+    ));
+    let emitted = project(&source, "urn:projection:test:r", Target::MathMl, &empty()).unwrap();
+    let text = std::str::from_utf8(&emitted.bytes).unwrap();
+    let document = purrdf_lex::xml::Document::parse(text).unwrap();
+    let variable = document
+        .root_element()
+        .descendants()
+        .find(|node| node.has_tag_name(("http://www.w3.org/1998/Math/MathML", "ci")))
+        .unwrap();
+    assert_eq!(variable.text(), Some(declaration));
+    let diagnostic = lift(
+        b"<math xmlns='http://www.w3.org/1998/Math/MathML'><ci>invalid\x01</ci></math>",
+        Target::MathMl,
+        "",
+        &empty(),
+        "urn:lift:/",
+    )
+    .err()
+    .unwrap();
+    assert!(
+        diagnostic
+            .downcast_ref::<purrdf_lex::xml::XmlError>()
+            .is_some(),
+        "projection refusal must retain the native XML cause"
+    );
+}
+
+#[test]
 fn math_projection_emits_real_content_xml_and_mandatory_loss_records() {
     let signed = data(
         "ex:n a math:NumberLiteral ; math:literalValue ex:seven . ex:seven a math:Number, math:Integer, math:RationalValue ; math:inNumberSystem math:integers ; math:isExact true ; math:numerator \"+007\"^^xsd:integer ; math:denominator 1 .",

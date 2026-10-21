@@ -22,6 +22,7 @@ path = "src/lib.rs"
 # through `RdfDatasetBuilder` rather than by string concatenation, so canonical ordering
 # is the codec's job and not a promise this crate has to keep by hand.
 purrdf.workspace = true
+purrdf-core.workspace = true
 purrdf-lex.workspace = true
 purrdf-hash.workspace = true
 # gmeow-errors: the typed-diagnostic substrate. Every unliftable input is a

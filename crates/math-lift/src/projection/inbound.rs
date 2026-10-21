@@ -703,8 +703,8 @@ fn lift_cube(
         }
         let numerator = input.literal(&observation, &math("numerator"))?;
         let denominator = input.literal(&observation, &math("denominator"))?;
-        super::expression::integer_literal(&numerator)?;
-        super::expression::integer_literal(&denominator)?;
+        super::expression::validate_integer_payload(&numerator)?;
+        super::expression::validate_integer_payload(&denominator)?;
         if super::expression::canonical_integer(&denominator.lexical_form)? == "0" {
             return Err(invalid("cube rational denominator is zero"));
         }

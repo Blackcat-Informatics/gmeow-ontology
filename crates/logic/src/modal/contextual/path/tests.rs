@@ -3,6 +3,7 @@
 
 use super::*;
 use gmeow_logic_compile::frontend::{FINITE_AT_OR_AFTER, FINITE_NEXT};
+use gmeow_logic_compile::ir::CONTEXTUAL_APPLICATION_IRI;
 
 fn source(statuses: &[&str]) -> std::sync::Arc<RdfDataset> {
     let mut text = String::from(
@@ -46,9 +47,10 @@ fn formula(operator: &str) -> Formula {
 fn formula_at(operator: &str, anchor: &str) -> Formula {
     let variable = Term::Var("position".into());
     let atom = Formula::Atom {
-        relation: Term::Iri(format!("{LOGIC_NAMESPACE}situationObtains")),
+        relation: Term::Iri(CONTEXTUAL_APPLICATION_IRI.into()),
         args: vec![
             variable.clone(),
+            Term::Iri(format!("{LOGIC_NAMESPACE}situationObtains")),
             variable.clone(),
             Term::Iri("urn:situation".into()),
         ],
@@ -257,9 +259,10 @@ fn prepared_path_never_reuses_another_observations_evidence() {
 
 fn atomic_at(anchor: &str) -> Formula {
     Formula::Atom {
-        relation: Term::Iri(format!("{LOGIC_NAMESPACE}situationObtains")),
+        relation: Term::Iri(CONTEXTUAL_APPLICATION_IRI.into()),
         args: vec![
             Term::Iri(anchor.into()),
+            Term::Iri(format!("{LOGIC_NAMESPACE}situationObtains")),
             Term::Iri(anchor.into()),
             Term::Iri("urn:situation".into()),
         ],

@@ -8,6 +8,50 @@ use super::*;
 use crate::reason::refute::NativeProofOrigin;
 
 #[test]
+fn contextual_native_admission_preserves_anonymous_claims_and_ignores_unselected_graphs() {
+    for source in [
+        SOURCE.replace("ex:yes rdf:reifies", "_:yes rdf:reifies"),
+        format!(
+            "{SOURCE}\n_:unselected {{ _:claim rdf:reifies <<( ex:item ex:predicate ex:value )>> . }}"
+        ),
+        format!(
+            "{SOURCE}\nex:w {{ _:unattributed rdf:reifies <<( ex:other ex:predicate ex:value )>> . }}"
+        ),
+    ] {
+        let dataset = parse(&format!("{source}\n{QUERY}"));
+        let direct = evaluate_request(&dataset, "urn:example:request", None, None).unwrap();
+        assert_eq!(direct.result.information, InformationState::Supported);
+        let input = crate::reason::prepare_reasoning_input(dataset.as_ref()).unwrap();
+        let domains = evidence_domains(&input);
+        let result = crate::reason::reason_all(input, &domains)
+            .expect("legal RDF 1.2 reifiers and unselected graphs cannot invalidate a request");
+        let execution = result.provenance.native_execution.as_ref().unwrap();
+        execution.validate_structure().unwrap();
+        let owner = execution
+            .families
+            .iter()
+            .find(|ledger| ledger.world == crate::result_rdf::GRAPH_REASONING)
+            .unwrap();
+        let [receipt] = owner.contextual_receipts.as_slice() else {
+            panic!("one selected request retains its complete native receipt");
+        };
+        assert!(receipt.statements.iter().any(|statement| {
+            statement.predicate == format!("{LOGIC_NAMESPACE}resultInformation")
+                && statement.object.as_iri() == Some(InformationState::Supported.iri().as_str())
+        }));
+        assert_preexisting_publication_retains_assessment(receipt);
+    }
+    let malformed = parse(&format!(
+        "{}\n{QUERY}",
+        SOURCE.replace("logic:contextWorld ex:w", "logic:contextWorld _:bad")
+    ));
+    assert!(
+        crate::reason::prepare_reasoning_input(malformed.as_ref()).is_err(),
+        "anonymous evidence does not relax selected context bindings"
+    );
+}
+
+#[test]
 fn one_contextual_receipt_owns_every_metadata_head_and_rejects_tampering() {
     let dataset = parse(&format!("{SOURCE}\n{QUERY}"));
     let input = crate::reason::prepare_reasoning_input(dataset.as_ref()).unwrap();
