@@ -64,7 +64,7 @@ msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint
 msgid "A closed-world integrity constraint: every gmeow:TemplateAtom (a subject of gmeow:tSubj) selects exactly one target mode, raw gmeow:tPred or admitted gmeow:tPredFromCorrespondence; each selected path is functional."
 msgstr "Une contrainte d’intégrité en monde fermé : chaque gmeow:TemplateAtom, sujet de gmeow:tSubj, sélectionne exactement un mode cible, gmeow:tPred brut ou gmeow:tPredFromCorrespondence admis ; chaque chemin sélectionné est fonctionnel."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|logic:message"
+msgctxt "https://blackcatinformatics.ca/gmeow/TemplateAtomPredRequiredConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "TemplateAtom requires exactly one of tPred or tPredFromCorrespondence (IRI)"
 msgstr "TemplateAtom exige exactement un choix entre tPred et tPredFromCorrespondence (IRI)"
 
