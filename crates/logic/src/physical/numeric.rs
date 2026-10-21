@@ -203,11 +203,22 @@ impl Instruction {
         use NumericOperator as Op;
         let left = self.left.resolve(solution, values)?;
         let right = self.right.resolve(solution, values)?;
+        if self.operator == Op::ExactDivide
+            && (!left.is_exact_numeric() || !right.is_exact_numeric())
+        {
+            return Err(failure(
+                self.operator.iri(),
+                format!("{left:?}, {right:?}"),
+                "",
+                "exact division requires integer or decimal operands; float/double are unsupported",
+            ));
+        }
         let operation = match self.operator {
             Op::Add => xsd::numeric_add,
             Op::Subtract => xsd::numeric_sub,
             Op::Multiply => xsd::numeric_mul,
             Op::Divide => xsd::numeric_div,
+            Op::ExactDivide => exact_divide,
             comparison => {
                 let ordering = xsd::numeric_cmp(&left, &right).ok_or_else(|| {
                     failure(
@@ -272,6 +283,11 @@ impl Instruction {
                 )
             })
     }
+}
+
+/// An explicitly selected relation; ordinary RDF numeric division keeps its upstream policy.
+fn exact_divide(left: &XsdValue, right: &XsdValue) -> Result<XsdValue, xsd::XsdError> {
+    xsd::numeric::numeric_div_with_policy(left, right, xsd::exact::DivisionPolicy::Exact)
 }
 
 fn decode_literal(value: &RdfLiteral) -> gmeow_errors::Result<XsdValue> {

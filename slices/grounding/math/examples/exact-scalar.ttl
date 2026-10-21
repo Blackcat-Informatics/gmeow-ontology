@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+
+# Input for math-exact-decimal-v1; the result and proof are derived by the command.
+<urn:scalar:quotient> a math:ApplicationExpression ;
+    math:operator math:Division ;
+    math:argumentSlot <urn:scalar:slot0>, <urn:scalar:slot1> .
+<urn:scalar:slot0> a math:ArgumentSlot ;
+    math:slotIndex 0 ; math:slotExpression <urn:scalar:left> .
+<urn:scalar:slot1> a math:ArgumentSlot ;
+    math:slotIndex 1 ; math:slotExpression <urn:scalar:right> .
+<urn:scalar:left> a math:SymbolReference ;
+    math:hasMathematicalSymbol <urn:scalar:dividend> .
+<urn:scalar:right> a math:SymbolReference ;
+    math:hasMathematicalSymbol <urn:scalar:divisor> .
+<urn:scalar:dividend> a math:MathematicalSymbol .
+<urn:scalar:divisor> a math:MathematicalSymbol .
+<urn:scalar:seven> a math:Quantity ;
+    math:hasDimension math:dimensionless ; math:quantityValue 7 .
+<urn:scalar:two> a math:Quantity ;
+    math:hasDimension math:dimensionless ; math:quantityValue 2 .

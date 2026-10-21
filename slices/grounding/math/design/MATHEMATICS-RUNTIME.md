@@ -10,8 +10,9 @@
 > passing as "future solver profiles", and it answers the three engineering-friction questions a
 > maximal, fully-reified design necessarily raises: ingestion, ABox density, and the execution
 > handoff. General ingestion and solver-profile implementation is **design-only** here and gated
-> (§ Acceptance); the bounded exact Clifford calculation described below is realized. This charter
-> fixes the posture so later Rust work is not improvised.
+> (§ Acceptance). The bounded exact Clifford calculation and selected exact scalar profile
+> described below are separate implementations with separate acceptance evidence; neither
+> establishes general solver handoff. This charter fixes the posture for later Rust work.
 >
 > **Reading this charter.** The declarative present tense is normative: "X is" means a conforming
 > realization implements X, established by the slice's gates and the projection loss ledger — not a
@@ -25,6 +26,54 @@ three jobs: **lift** external artifacts into the canonical AST, **keep** the rei
 tractable, and **hand off** computation that neither the ontology source nor a classifier can
 perform. This charter is that seam's doctrine. It is the mathematical peer of
 `slices/grounding/logic/design/LOGIC-RUNTIME.md`.
+
+## Selected exact scalar execution
+
+`gmeow math evaluate SOURCE --subject ROOT --bind SYMBOL=QUANTITY ... --out RESULT`
+selects `math-exact-decimal-v1`. This consumer command accepts a user's Turtle
+file and runs outside a repository. The standalone input in
+[`../examples/exact-scalar.ttl`](../examples/exact-scalar.ttl) can be evaluated as:
+
+```sh
+gmeow math evaluate exact-scalar.ttl --subject urn:scalar:quotient \
+  --bind urn:scalar:dividend=urn:scalar:seven \
+  --bind urn:scalar:divisor=urn:scalar:two --out result.ttl
+```
+
+This profile admits named `math:ApplicationExpression` and `math:SymbolReference`
+nodes, named `math:ArgumentSlot` cells with exactly the integer indexes 0 and 1,
+and binary `math:Addition`, `math:Subtraction`, `math:Multiplication`, and
+`math:Division`. Each referenced `math:MathematicalSymbol` must have exactly one
+explicit command binding to an explicitly typed `math:Quantity` with exactly one
+`math:hasDimension math:dimensionless` and one integer or decimal
+`math:quantityValue`. Duplicate, missing and unused bindings fail. No dimension
+is inferred from a missing declaration. Other dimensions, operators, blank nodes,
+quoted objects and named source graphs are unsupported by this selected profile
+and fail with an actionable diagnostic. Ordinary literal annotations are retained;
+a numeric value or slot index cannot have language or direction metadata.
+
+The command first admits the canonical AST through the existing structural
+lowerer, then lowers the selected operation into the same native numeric Formula
+execution used by the reasoning engine. PurRDF owns unbounded integer and decimal
+arithmetic. The explicit `logic:rdfNumericExactDivide` relation selects its exact
+no-rounding division policy; division by zero and a nonterminating decimal such
+as 1/3 fail the entire operation. Float and double inputs fail rather than enter
+IEEE arithmetic. Ordinary `logic:rdfNumericDivide` and symbolic application
+semantics retain their existing behavior.
+
+The result is a fresh content-addressed `math:Quantity`, its derived numeric
+value and explicit dimensionless dimension, accompanied by the normal native
+closure proofs and `logic:ReasoningResult` RDF projection. The profile, selected
+root, bindings, source AST edges and complete bound literal identities determine
+the operation identity; original quantity/value/dimension and expression/slot
+facts remain positive proof premises. An already asserted result identity is
+rejected. Outputs are published only after complete native result validation;
+errors leave an existing output untouched. This is an arithmetic result, not an
+asserted observation or a financial metric. No currency compatibility, monetary
+result typing, unit conversion, general dimension algebra, compound interest or
+general solver handoff is claimed by this profile. Domain callers must admit
+their own role/frame/basis contracts before using it and must supply their own
+explicit observation context.
 
 ## Ingestion is a projection, run backwards
 
@@ -173,9 +222,10 @@ authority; neither hand-authors the other's derived results. No E8 representatio
 
 ## Acceptance
 
-The general runtime seam remains design-only until the slice's implementation gates pass; the exact
-Clifford kernel and producer are the bounded realized exception described above. Consistent with the
-manifesto's acceptance posture, a conforming general realization is accepted only when:
+The general runtime seam remains design-only until the slice's implementation gates pass. The exact
+Clifford kernel and the explicitly selected exact scalar profile above are bounded implementations,
+with their own acceptance evidence; they do not establish general runtime acceptance. Consistent
+with the manifesto's posture, a conforming general realization is accepted only when:
 
 1. A lift from at least one real ingest format (e.g. an R formula or a MathML content fragment)
    produces a well-formed, gate-passing AST, with `math:parseSource` retained and any loss

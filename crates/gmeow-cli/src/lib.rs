@@ -1494,6 +1494,20 @@ pub enum AffectCommands {
 /// about what crossed the bridge.
 #[derive(Debug, Subcommand)]
 pub enum MathCommands {
+    /// Evaluate an explicitly selected dimensionless expression with exact decimals and native proof.
+    Evaluate {
+        /// Source Turtle file; '-' reads standard input. No repository is needed.
+        source: PathBuf,
+        /// Named canonical ApplicationExpression or SymbolReference root.
+        #[arg(long)]
+        subject: String,
+        /// Explicit MathematicalSymbol=Quantity binding, repeatable; duplicates fail.
+        #[arg(long = "bind")]
+        bindings: Vec<String>,
+        /// Required derived quantity and proof artifact output path.
+        #[arg(long)]
+        out: PathBuf,
+    },
     /// Project an explicitly selected canonical math source and write its mandatory loss ledger.
     Project {
         /// Source RDF Turtle file; '-' reads standard input.

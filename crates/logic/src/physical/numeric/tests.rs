@@ -135,6 +135,52 @@ fn undefined_numeric_operation_refuses_the_whole_solution_batch() {
     );
 }
 
+#[test]
+fn exact_division_selection_changes_plan_identity_without_changing_default_division() {
+    let rounded = call(
+        NumericOperator::Divide,
+        value("1"),
+        value("3"),
+        Some(var("?result")),
+    );
+    let mut exact = rounded.clone();
+    exact.operator = NumericOperator::ExactDivide;
+    assert_ne!(
+        rounded.key(),
+        exact.key(),
+        "policy is part of the typed plan identity"
+    );
+    assert!(
+        Plan::prepare(&[rounded])
+            .unwrap()
+            .apply("urn:default", &mut solution("1"))
+            .unwrap()
+    );
+    let error = Plan::prepare(&[exact])
+        .unwrap()
+        .apply("urn:exact", &mut solution("1"))
+        .unwrap_err();
+    assert!(error.message().contains("rdfNumericExactDivide"));
+    assert!(error.message().contains("urn:exact"));
+    for datatype in ["float", "double"] {
+        let ieee = call(
+            NumericOperator::ExactDivide,
+            RcTerm::Literal(RdfLiteral::typed(
+                "1",
+                format!("http://www.w3.org/2001/XMLSchema#{datatype}"),
+            )),
+            value("2"),
+            Some(var("?result")),
+        );
+        assert!(
+            Plan::prepare(&[ieee])
+                .unwrap()
+                .apply("urn:exact", &mut solution("1"))
+                .is_err()
+        );
+    }
+}
+
 fn atom(relation: &str, args: Vec<Term>) -> Formula {
     Formula::Atom {
         relation: Term::Iri(relation.into()),

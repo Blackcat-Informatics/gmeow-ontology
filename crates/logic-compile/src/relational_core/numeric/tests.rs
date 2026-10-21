@@ -82,6 +82,34 @@ fn canonical_numeric_chain_is_scheduled_and_transport_is_lossless() {
 }
 
 #[test]
+fn exact_division_relation_retains_policy_through_native_rdf_transport() {
+    let ordinary = lower_formula(rule(vec![atom(
+        NumericOperator::Divide.iri(),
+        vec![var("weight"), literal("3"), var("result")],
+    )]));
+    let exact = lower_formula(rule(vec![atom(
+        NumericOperator::ExactDivide.iri(),
+        vec![var("weight"), literal("3"), var("result")],
+    )]));
+    assert!(exact.residue.is_empty(), "{:?}", exact.residue);
+    let restored =
+        parse_relational_core(&project_relational_core_dataset(&exact).unwrap()).unwrap();
+    assert_eq!(restored, exact);
+    assert_eq!(
+        restored.rules[0].numeric[0].operator,
+        NumericOperator::ExactDivide
+    );
+    assert_ne!(
+        ordinary.content_key().unwrap(),
+        exact.content_key().unwrap()
+    );
+    assert_ne!(
+        ordinary.projection_key().unwrap(),
+        exact.projection_key().unwrap()
+    );
+}
+
+#[test]
 fn numeric_modes_and_head_assertions_remain_honest_residue() {
     for formula in [
         rule(vec![atom(

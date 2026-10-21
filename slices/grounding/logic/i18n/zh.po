@@ -23084,3 +23084,31 @@ msgstr "成功解码源输入并不证明语义完整性。"
 msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#example"
 msgid "An unreadable source file fails before a theory is emitted."
 msgstr "无法读取的源文件会在输出理论之前导致失败。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact RDF numeric quotient"
+msgstr "精确 RDF 数值商"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The third operand is the exact quotient of two bound RDF integer or decimal operands. Division uses the native scalar owner with an exact no-rounding policy. A zero divisor, nonterminating decimal quotient, float or double input fails the selected operation; no approximate answer is emitted. Ordinary rdfNumericDivide retains its existing numeric promotion and division policy."
+msgstr "第三个操作数是两个已绑定 RDF 整数或十进制操作数的精确商。除法通过原生标量机制执行且不进行舍入。零除数、无限小数商或浮点输入会使所选操作失败，不输出近似答案。普通 rdfNumericDivide 保持原有数值提升和除法策略。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2004/02/skos/core#example"
+msgid "An exact-scalar Formula uses rdfNumericExactDivide with dividend, divisor and result as three ordered arguments."
+msgstr "精确标量公式使用 rdfNumericExactDivide，并依次传入被除数、除数和结果。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation selects finite decimal exactness explicitly; it is neither general rational arithmetic nor a change to RDF numeric defaults."
+msgstr "该关系显式选择有限十进制精确性，不代表通用有理数运算，也不改变 RDF 数值默认语义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a selected exact-decimal computation whose quotient must never be rounded."
+msgstr "用于商绝不能舍入的显式精确十进制计算。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for symbolic division, IEEE floating arithmetic or a computation that requires a rational result."
+msgstr "不用于符号除法、IEEE 浮点运算或需要有理数结果的计算。"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both numeric inputs in positive source premises and provide a result variable or bound exact value; retain the selected relation in the plan and proof identity."
+msgstr "在正向来源前提中绑定两个数值输入，并提供结果变量或已绑定精确值；在计划和证明标识中保留所选关系。"
