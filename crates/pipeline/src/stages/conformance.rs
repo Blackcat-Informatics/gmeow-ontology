@@ -38,7 +38,8 @@ use gmeow_conformance::divergence::{
 };
 use gmeow_conformance::external::{outcome_from_szs, parse_test_manifest};
 use gmeow_logic::reason::ExternalComparison;
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::record::{DecodeError, FromJson, Record, ToJson};
+use purrdf_lex::json::{self, Object, Value};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -116,7 +117,12 @@ pub const AGREEMENT_TALLIES_PATH: &str = "pipeline/agreement-tallies.json";
 /// [`crate::stages::agreement::render_agreement_matrix`]'s lane partition only
 /// special-cases `"divergence"`, so `"native-profiled"` already falls into the
 /// agreement-expected bucket alongside `"a"`/`"b"`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+///
+/// The producer-owned transport is a JSON object. Native record admission does
+/// not support the former Serde decoder's incidental positional-array form.
+/// Unknown members are ignored; duplicate declared members are refused. A
+/// missing gap-shape map defaults empty, whereas an explicit null is invalid.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct TallyRecord {
     pub(crate) lane: String,
     pub(crate) cases: usize,
@@ -128,8 +134,73 @@ pub(crate) struct TallyRecord {
     /// corpus carries structured gaps (a divergence corpus), so non-gap corpora keep
     /// their tally bytes unchanged. This is the shipped, drift-gated consumer of the
     /// reified gap-shape data: the agreement matrix renders a per-shape breakdown from it.
-    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub(crate) gap_shapes: std::collections::BTreeMap<String, usize>,
+}
+
+/// The tally wire admits unsigned integer tokens within the target's usize range.
+/// This domain reader also governs each gap-shape count; signed zero, decimal
+/// fractions and exponent notation are not unsigned count tokens.
+struct TallyCount(usize);
+
+impl FromJson for TallyCount {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        value
+            .as_u64()
+            .and_then(|number| usize::try_from(number).ok())
+            .map(Self)
+            .ok_or_else(|| {
+                DecodeError::invalid_value(value, "an unsigned integer token within usize range")
+            })
+    }
+}
+
+impl FromJson for TallyRecord {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "agreement tally object")?;
+        Ok(Self {
+            lane: fields.required("lane")?,
+            cases: fields.required::<TallyCount>("cases")?.0,
+            agree: fields.required::<TallyCount>("agree")?.0,
+            corpus_only: fields.required::<TallyCount>("corpus_only")?.0,
+            dl_gap: fields.required::<TallyCount>("dl_gap")?.0,
+            gap_shapes: fields
+                .defaulted::<BTreeMap<String, TallyCount>>("gap_shapes")?
+                .into_iter()
+                .map(|(shape, count)| (shape, count.0))
+                .collect(),
+        })
+        // Undeclared members remain ignored, as in the original record contract.
+    }
+}
+
+impl ToJson for TallyRecord {
+    fn to_json(&self) -> Value {
+        let mut record = Object::new()
+            .with("lane", self.lane.to_json())
+            .with("cases", self.cases.to_json())
+            .with("agree", self.agree.to_json())
+            .with("corpus_only", self.corpus_only.to_json())
+            .with("dl_gap", self.dl_gap.to_json());
+        if !self.gap_shapes.is_empty() {
+            record.insert("gap_shapes", self.gap_shapes.to_json());
+        }
+        record.into()
+    }
+}
+
+/// Encode the actual sorted-corpus tally product with declaration-order record
+/// members, two-space indentation, and exactly one trailing newline.
+pub(crate) fn encode_agreement_tallies(records: &BTreeMap<String, TallyRecord>) -> Vec<u8> {
+    let mut bytes = json::write_pretty(&records.to_json()).into_bytes();
+    bytes.push(b'\n');
+    bytes
+}
+
+/// Decode the actual product without normalizing away duplicate known members.
+pub(crate) fn parse_agreement_tallies(
+    bytes: &[u8],
+) -> Result<BTreeMap<String, TallyRecord>, DecodeError> {
+    json::record::from_slice(bytes)
 }
 
 /// Parse and validate one case's wire `gap_shape` token against the closed
@@ -387,10 +458,7 @@ pub(crate) fn agreement_tallies_json(
             },
         );
     }
-    let mut json = serde_json::to_string_pretty(&records)
-        .map_err(|e| stage_err(&format!("serialize agreement tallies: {e}")))?;
-    json.push('\n');
-    Ok(json.into_bytes())
+    Ok(encode_agreement_tallies(&records))
 }
 
 /// Discover and grade every committed external case under `external`, sorted by
