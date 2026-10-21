@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1895,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1895-ground-risk-likelihoods-and-scores-in",
+  "branch": "paudley/1895-ground-risk-likelihoods-and-scores-in",
+  "slug": "ground-risk-likelihoods-and-scores-in",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1895-ground-risk-likelihoods-and-scores-in/.stage/ground-risk-likelihoods-and-scores-in",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "70e2a144fc38a89380dc1825e4f6cf54fad1855a",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1895-ground-risk-likelihoods-and-scores-in",
+    "branch:paudley/1895-ground-risk-likelihoods-and-scores-in",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1895-ground-risk-likelihoods-and-scores-in/.stage/ground-risk-likelihoods-and-scores-in",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1895-ground-risk-likelihoods-and-scores-in/.stage/ground-risk-likelihoods-and-scores-in/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T21:02:38-0600"
+}

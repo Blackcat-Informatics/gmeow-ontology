@@ -1,0 +1,5 @@
+feat: ground causal weights and modeled risk likelihoods
+
+Use mathematical quantities and declared scales for causal weights. Preserve exact model-bound probabilities, event contexts and categorical risk distinctions. Add the shared canonical rational probability bounds law and owner-backed validation controls.
+
+Principles 4, 7, 9, 12, 17 and 19.
