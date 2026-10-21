@@ -2175,3 +2175,183 @@ msgstr "Choisir external-sacred et fournir le module externe, son manifeste, sa 
 msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid hardcoding the guarded registry. Require at least one vocabularyNamespace and a nonempty vocabularyOwner set containing only grounding slices. A shared owner set does not ground arbitrary external assertions. The quantitative RDFS budget counts subsumption, not property signatures; OWL authoring remains subject to projection purity."
 msgstr "Éviter de coder le registre surveillé en dur. Exiger au moins un vocabularyNamespace et un ensemble vocabularyOwner non vide ne contenant que des tranches de fondation. Un ensemble partagé de propriétaires ne fonde aucune assertion externe arbitraire. Le budget RDFS quantitatif compte la subsomption, non les signatures de propriétés ; la rédaction OWL reste soumise à la pureté des projections."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile a gmeow:QualityMeasurementProfile ."
+msgstr "ex:profile a gmeow:QualityMeasurementProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Select a reproducible set of measurements for a declared corpus contract."
+msgstr "Sélectionner un ensemble reproductible de mesures pour un contrat de corpus déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityMeasurementProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not create a profile merely to conceal a low score."
+msgstr "Ne pas créer un profil dans le seul but de dissimuler un faible score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision a gmeow:QualityAxisApplicability ."
+msgstr "ex:decision a gmeow:QualityAxisApplicability ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record one justified departure from a profile’s measured default."
+msgstr "Consigner un écart justifié par rapport à la mesure par défaut du profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxisApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not attach two applicability records for the same axis."
+msgstr "Ne pas rattacher deux enregistrements d’applicabilité au même axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:qualityMeasured a gmeow:QualityApplicability ."
+msgstr "gmeow:qualityMeasured a gmeow:QualityApplicability ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Type the closed vocabulary of measurement-selection dispositions."
+msgstr "Typer le vocabulaire fermé des dispositions de sélection des mesures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use a measurement outcome such as passed as an applicability value."
+msgstr "Ne pas utiliser un résultat de mesure, tel que la réussite, comme valeur d’applicabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+msgstr "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Require an axis and every capability needed to measure it."
+msgstr "Exiger un axe et toutes les capacités nécessaires à sa mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityMeasured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not interpret a missing input as a zero score or an exclusion."
+msgstr "Ne pas interpréter une entrée manquante comme un score nul ou une exclusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+msgstr "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Exclude an axis whose declared scope does not cover this corpus contract."
+msgstr "Exclure un axe dont la portée déclarée ne couvre pas ce contrat de corpus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityNotApplicable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer non-applicability from an unavailable implementation or missing file."
+msgstr "Ne pas déduire la non-applicabilité d’une implémentation indisponible ou d’un fichier manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityUnsupported ."
+msgstr "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityUnsupported ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Expose a requested measurement outside the supported implementation fragment."
+msgstr "Rendre visible une mesure demandée qui dépasse le fragment d’implémentation pris en charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityUnsupported|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not present an unsupported axis as passed or the assessment as complete."
+msgstr "Ne pas présenter un axe non pris en charge comme réussi, ni l’évaluation comme complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileKey \"external-sacred\" ."
+msgstr "ex:profile gmeow:qualityProfileKey \"external-sacred\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Give consumers an unambiguous explicit profile selector."
+msgstr "Fournir aux consommateurs un sélecteur de profil explicite et sans ambiguïté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reuse a key across profiles or use translated prose as its value."
+msgstr "Ne pas réutiliser une clé entre plusieurs profils ni employer un texte traduit comme valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileTargetTier gmeow:tierMaximal ."
+msgstr "ex:profile gmeow:qualityProfileTargetTier gmeow:tierMaximal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Declare the tier used to classify each measured axis as passed or failed."
+msgstr "Déclarer le palier servant à classer chaque axe mesuré comme réussi ou échoué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileTargetTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not point to an unknown tier or alter its thresholds through this property."
+msgstr "Ne pas désigner un palier inconnu ni modifier ses seuils au moyen de cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+msgstr "ex:profile gmeow:qualityProfileDefaultApplicability gmeow:qualityMeasured ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Require every rubric axis unless the profile explicitly declares an exception."
+msgstr "Exiger chaque axe du barème, sauf exception explicitement déclarée par le profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileDefaultApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not omit this field or default unknown axes to not applicable."
+msgstr "Ne pas omettre ce champ ni déclarer par défaut les axes inconnus non applicables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:profile gmeow:qualityProfileApplicability ex:decision ."
+msgstr "ex:profile gmeow:qualityProfileApplicability ex:decision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Attach a justified axis-specific exception to its owning profile."
+msgstr "Rattacher une exception justifiée propre à un axe au profil auquel elle appartient."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileApplicability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not share conflicting exceptions or duplicate an axis binding."
+msgstr "Ne pas partager d’exceptions contradictoires ni dupliquer la liaison d’un axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityAxis gmeow:axisGmn1Coverage ."
+msgstr "ex:decision gmeow:qualityApplicabilityAxis gmeow:axisGmn1Coverage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Identify the rubric measurement governed by an applicability decision."
+msgstr "Identifier la mesure du barème régie par une décision d’applicabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityAxis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not point to an unknown axis or bind several axes in one record."
+msgstr "Ne pas désigner un axe inconnu ni lier plusieurs axes dans un même enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+msgstr "ex:decision gmeow:qualityApplicabilityStatus gmeow:qualityNotApplicable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Distinguish deliberate non-applicability from an unsupported requested measurement."
+msgstr "Distinguer la non-applicabilité délibérée d’une mesure demandée non prise en charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a score, passed outcome or arbitrary status IRI."
+msgstr "Ne pas substituer un score, un résultat de réussite ou un IRI de statut arbitraire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:decision gmeow:qualityApplicabilityReason \"The corpus uses another notation contract.\" ."
+msgstr "ex:decision gmeow:qualityApplicabilityReason \"The corpus uses another notation contract.\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Explain why a declared axis is excluded or unsupported."
+msgstr "Expliquer pourquoi un axe déclaré est exclu ou non pris en charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityApplicabilityReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not supply an empty reason or blame a missing required capability."
+msgstr "Ne pas fournir de justification vide ni invoquer l’absence d’une capacité requise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:qualityProfileFull gmeow:qualityProfileKey \"full\" ."
+msgstr "gmeow:qualityProfileFull gmeow:qualityProfileKey \"full\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Measure every canonical axis under the complete GMEOW notation contract."
+msgstr "Mesurer chaque axe canonique selon le contrat de notation GMEOW complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileFull|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not choose this profile when deliberately requesting a different corpus contract."
+msgstr "Ne pas choisir ce profil lorsqu’un autre contrat de corpus est délibérément demandé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:qualityProfileExternalSacred gmeow:qualityProfileKey \"external-sacred\" ."
+msgstr "gmeow:qualityProfileExternalSacred gmeow:qualityProfileKey \"external-sacred\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Assess an external logical corpus that does not adopt GMEOW’s GMN notation inventory."
+msgstr "Évaluer un corpus logique externe qui n’adopte pas l’inventaire de notation GMN de GMEOW."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityProfileExternalSacred|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this profile to waive documentation, competency or box-role measurements."
+msgstr "Ne pas utiliser ce profil pour dispenser des mesures de documentation, de compétence ou de rôle de boîte."
