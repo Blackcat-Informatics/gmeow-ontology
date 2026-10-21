@@ -42,9 +42,9 @@ pub const BENCH_LEADERBOARD_PATH: &str = "generated/bench/leaderboard.md";
 /// truth for the cost ledger). Produced by `gmeow-bench-engines --emit-cost`,
 /// refreshed via `make maint-bench-cost-baseline`.
 pub const COST_BASELINE_PATH: &str = "bench/cost-baseline.json";
-/// Committed, drift-gated cost-ledger artifact.
+/// Pipeline-owned, drift-checked cost-ledger projection of the committed baseline.
 pub const COST_LEDGER_PATH: &str = "generated/bench/cost-ledger.md";
-/// Committed, drift-gated soak-window record (the longitudinal gap-zero claim).
+/// Pipeline-owned soak-window projection of the same committed baseline.
 pub const SOAK_RECORD_PATH: &str = "generated/bench/soak.md";
 
 /// The soak window the committed record documents and the `make bench-soak` lane
