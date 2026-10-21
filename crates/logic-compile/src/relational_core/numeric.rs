@@ -19,6 +19,8 @@ pub enum NumericOperator {
     Multiply,
     /// Quotient, with numeric promotion.
     Divide,
+    /// Exact integer/decimal quotient; never rounds or promotes to IEEE arithmetic.
+    ExactDivide,
     /// Numeric value equality, distinct from RDF term identity.
     Equal,
     /// Numeric value inequality.
@@ -35,11 +37,12 @@ pub enum NumericOperator {
 
 impl NumericOperator {
     /// The closed relation inventory, in stable order.
-    pub const ALL: [Self; 10] = [
+    pub const ALL: [Self; 11] = [
         Self::Add,
         Self::Subtract,
         Self::Multiply,
         Self::Divide,
+        Self::ExactDivide,
         Self::Equal,
         Self::NotEqual,
         Self::Less,
@@ -55,6 +58,7 @@ impl NumericOperator {
             Self::Subtract => "https://blackcatinformatics.ca/logic/rdfNumericSubtract",
             Self::Multiply => "https://blackcatinformatics.ca/logic/rdfNumericMultiply",
             Self::Divide => "https://blackcatinformatics.ca/logic/rdfNumericDivide",
+            Self::ExactDivide => "https://blackcatinformatics.ca/logic/rdfNumericExactDivide",
             Self::Equal => "https://blackcatinformatics.ca/logic/rdfNumericEqual",
             Self::NotEqual => "https://blackcatinformatics.ca/logic/rdfNumericNotEqual",
             Self::Less => "https://blackcatinformatics.ca/logic/rdfNumericLess",
@@ -73,7 +77,7 @@ impl NumericOperator {
     pub fn arity(self) -> usize {
         if matches!(
             self,
-            Self::Add | Self::Subtract | Self::Multiply | Self::Divide
+            Self::Add | Self::Subtract | Self::Multiply | Self::Divide | Self::ExactDivide
         ) {
             3
         } else {

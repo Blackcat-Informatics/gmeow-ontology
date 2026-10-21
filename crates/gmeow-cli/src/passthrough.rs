@@ -503,7 +503,7 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
 pub(crate) fn math(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
     if matches!(
         command,
-        MathCommands::Project { .. } | MathCommands::Lift { .. }
+        MathCommands::Project { .. } | MathCommands::Lift { .. } | MathCommands::Evaluate { .. }
     ) {
         return math_interchange(reporter, command);
     }
@@ -513,7 +513,9 @@ pub(crate) fn math(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
     // `leaf` is the invoked subcommand name, carried onto a failure's context frame so the
     // finding says which bridge refused without the reader having to infer it from the code.
     let (source, out, lift, leaf): (&PathBuf, &Option<PathBuf>, LiftFn, &str) = match command {
-        MathCommands::Project { .. } | MathCommands::Lift { .. } => {
+        MathCommands::Project { .. }
+        | MathCommands::Lift { .. }
+        | MathCommands::Evaluate { .. } => {
             unreachable!("interchange commands dispatched above")
         }
         MathCommands::LiftR { source, out } => (source, out, gmeow_math_lift::r::lift, "lift-r"),
@@ -696,6 +698,61 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
     use gmeow_math_lift::projection::{self, Target};
     let result = (|| -> gmeow_errors::Result<()> {
         match command {
+            MathCommands::Evaluate {
+                source,
+                subject,
+                bindings,
+                out,
+            } => {
+                let bytes = read_source_bytes(source)
+                    .map_err(|error| math_diag_at(error.into(), source, "evaluate"))?;
+                let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
+                    .map_err(|error| math_diag_at(error.into(), source, "evaluate"))?;
+                let mut selected = std::collections::BTreeMap::new();
+                for binding in bindings {
+                    let (symbol, quantity) = binding
+                        .split_once('=')
+                        .filter(|(s, q)| !s.is_empty() && !q.is_empty())
+                        .ok_or_else(|| {
+                            gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
+                                detail: "--bind requires SYMBOL=QUANTITY".into(),
+                            })
+                            .with_context("gmeow math evaluate")
+                            .with_location(gmeow_errors::Location {
+                                path: Some(source.display().to_string()),
+                                ..gmeow_errors::Location::default()
+                            })
+                        })?;
+                    if selected
+                        .insert(symbol.to_owned(), quantity.to_owned())
+                        .is_some()
+                    {
+                        return Err(gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
+                            detail: format!("duplicate --bind for {symbol}"),
+                        })
+                        .with_context("gmeow math evaluate")
+                        .with_location(gmeow_errors::Location {
+                            path: Some(source.display().to_string()),
+                            ..gmeow_errors::Location::default()
+                        }));
+                    }
+                }
+                let evaluation =
+                    gmeow_logic::math_evaluation::evaluate(&dataset, subject, &selected)
+                        .map_err(|diag| math_diag_at(diag, source, "evaluate"))?;
+                let mut turtle = gmeow_logic::reason::artifacts::build_inferred_closure_ttl(
+                    &evaluation.result,
+                    None,
+                    &[],
+                )?;
+                turtle.push_str(&gmeow_logic::result_rdf::project_reasoning_result(
+                    &evaluation.result,
+                )?);
+                let output = math_output_path(out)
+                    .map_err(|error| math_diag_at(error.into(), out, "evaluate"))?;
+                write_math_bytes(&output, turtle.as_bytes())
+                    .map_err(|diag| math_diag_at(diag, out, "evaluate"))?;
+            }
             MathCommands::Project {
                 source,
                 subject,

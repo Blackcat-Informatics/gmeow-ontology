@@ -24072,3 +24072,15 @@ logic:parameterRequired
 logic:Conjecture logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:withdrawalReason ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 logic:Constraint logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:message ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/logic/fragmentBoundaryReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+logic:rdfNumericExactDivide
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "exact RDF numeric quotient"@x-gmeow-english ;
+    skos:definition "The third operand is the exact quotient of two bound RDF integer or decimal operands. Division uses the native scalar owner with an exact no-rounding policy. A zero divisor, nonterminating decimal quotient, float or double input fails the selected operation; no approximate answer is emitted. Ordinary rdfNumericDivide retains its existing numeric promotion and division policy."@x-gmeow-english ;
+    skos:example "An exact-scalar Formula uses rdfNumericExactDivide with dividend, divisor and result as three ordered arguments."@x-gmeow-english ;
+    skos:scopeNote "This relation selects finite decimal exactness explicitly; it is neither general rational arithmetic nor a change to RDF numeric defaults."@x-gmeow-english ;
+    gmeow:useWhen "Use for a selected exact-decimal computation whose quotient must never be rounded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for symbolic division, IEEE floating arithmetic or a computation that requires a rational result."@x-gmeow-english ;
+    gmeow:howToUse "Bind both numeric inputs in positive source premises and provide a result variable or bound exact value; retain the selected relation in the plan and proof identity."@x-gmeow-english .

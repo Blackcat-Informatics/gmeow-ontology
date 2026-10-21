@@ -23084,3 +23084,31 @@ msgstr "Un décodage réussi de la source n’établit pas la complétude séman
 msgctxt "https://blackcatinformatics.ca/logic/CompilerSourceBoundary|http://www.w3.org/2004/02/skos/core#example"
 msgid "An unreadable source file fails before a theory is emitted."
 msgstr "Un fichier source illisible provoque un échec avant l’émission d’une théorie."
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact RDF numeric quotient"
+msgstr "quotient numérique RDF exact"
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The third operand is the exact quotient of two bound RDF integer or decimal operands. Division uses the native scalar owner with an exact no-rounding policy. A zero divisor, nonterminating decimal quotient, float or double input fails the selected operation; no approximate answer is emitted. Ordinary rdfNumericDivide retains its existing numeric promotion and division policy."
+msgstr "Le troisième opérande est le quotient exact de deux opérandes RDF entiers ou décimaux liés. La division utilise le moteur scalaire natif avec une politique exacte sans arrondi. Un diviseur nul, un quotient décimal non terminé ou une entrée flottante provoque l’échec de l’opération sélectionnée ; aucune réponse approximative n’est émise. rdfNumericDivide conserve sa promotion numérique et sa politique de division."
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2004/02/skos/core#example"
+msgid "An exact-scalar Formula uses rdfNumericExactDivide with dividend, divisor and result as three ordered arguments."
+msgstr "Une formule scalaire exacte utilise rdfNumericExactDivide avec le dividende, le diviseur et le résultat comme trois arguments ordonnés."
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation selects finite decimal exactness explicitly; it is neither general rational arithmetic nor a change to RDF numeric defaults."
+msgstr "Cette relation sélectionne explicitement l’exactitude décimale finie ; elle ne constitue ni une arithmétique rationnelle générale ni une modification des valeurs numériques RDF par défaut."
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a selected exact-decimal computation whose quotient must never be rounded."
+msgstr "À utiliser pour un calcul décimal exact sélectionné dont le quotient ne doit jamais être arrondi."
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for symbolic division, IEEE floating arithmetic or a computation that requires a rational result."
+msgstr "Éviter pour la division symbolique, l’arithmétique flottante IEEE ou un calcul nécessitant un résultat rationnel."
+
+msgctxt "https://blackcatinformatics.ca/logic/rdfNumericExactDivide|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both numeric inputs in positive source premises and provide a result variable or bound exact value; retain the selected relation in the plan and proof identity."
+msgstr "Lier les deux entrées numériques dans des prémisses sources positives et fournir une variable de résultat ou une valeur exacte liée ; conserver la relation sélectionnée dans l’identité du plan et de la preuve."
