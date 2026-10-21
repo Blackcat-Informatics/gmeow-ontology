@@ -17,8 +17,7 @@ path = "src/lib.rs"
 [dependencies]
 # The substrate's one lowercase-hex spelling for digests.
 purrdf-hash.workspace = true
-serde.workspace = true
-serde_json.workspace = true
+purrdf-lex.workspace = true
 purrdf.workspace = true
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }

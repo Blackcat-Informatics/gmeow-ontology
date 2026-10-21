@@ -1943,8 +1943,7 @@ dependencies = [
  "gmeow-slice-quality",
  "purrdf",
  "purrdf-hash",
- "serde",
- "serde_json",
+ "purrdf-lex",
  "sha2 0.10.9",
  "tempfile",
 ]

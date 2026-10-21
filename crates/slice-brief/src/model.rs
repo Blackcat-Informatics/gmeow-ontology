@@ -1,19 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The serde-serializable value model of a `gmeow:AuthoringPacket` and its parts.
+//! The native JSON value model of a `gmeow:AuthoringPacket` and its parts.
 //!
 //! Every collection is stored in a deterministic order (ascending by IRI /
 //! `BTreeSet`-ordered), so a packet built twice from identical inputs is identical
 //! field-for-field — the precondition for byte-stable turtle and a stable digest.
 
-use serde::{Deserialize, Serialize};
+mod json;
 
 use crate::ns;
 
 /// The grounding axis a [`GroundingCell`] measures — the columns of the packet's
 /// coverage cross-table (`gmeow:GroundingAttribute`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum GroundingAttribute {
     /// The native English annotation coat (`gmeow:groundingEn`).
     En,
@@ -52,7 +52,7 @@ impl GroundingCell {
 /// absent incidence counts for each non-English, non-exemplar column. Present +
 /// absent recovers the column's full incidence set, so absence is an explicit
 /// recorded fact without materializing a cell per absent incidence.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct GroundingMargins {
     /// Covered incidences with a present French translation.
     pub fr_present: usize,
@@ -128,7 +128,7 @@ impl GroundingAttribute {
 }
 
 /// A resolved RDF object term carried in an axiom / neighbour triple.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ObjTerm {
     /// An IRI object, by its full string.
     Iri(String),
@@ -146,7 +146,7 @@ pub enum ObjTerm {
 }
 
 /// One `(predicate, object)` edge of a term's description (the subject is implied).
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Triple {
     /// The predicate IRI.
     pub predicate: String,
@@ -155,7 +155,7 @@ pub struct Triple {
 }
 
 /// One literal annotation of a term's coat (`rdfs:label`, `skos:definition`, …).
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Annotation {
     /// The annotation predicate IRI.
     pub predicate: String,
@@ -167,7 +167,7 @@ pub struct Annotation {
 
 /// One definitional-dependency-closure entry: a class/property referenced in a
 /// covered term's axioms, with its own label + definition (when authored).
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ClosureEntry {
     /// The referenced term IRI.
     pub iri: String,
@@ -178,7 +178,7 @@ pub struct ClosureEntry {
 }
 
 /// The full authoring content assembled for one covered term.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoveredTerm {
     /// The term IRI.
     pub iri: String,
@@ -200,7 +200,7 @@ pub struct CoveredTerm {
 
 /// One incidence cell of the packet's grounding cross-table
 /// (`gmeow:GroundingCoverage`).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GroundingCell {
     /// The stable, minted cell IRI (never a blank node — byte-stable turtle).
     pub cell_iri: String,
@@ -229,8 +229,8 @@ pub struct GroundingCell {
 }
 
 /// A self-contained authoring brief for one batch of a slice's terms — the
-/// serde-serializable projection that renders to turtle / JSON / human text.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// native JSON projection that renders to turtle / JSON / human text.
+#[derive(Debug, Clone, PartialEq)]
 pub struct AuthoringPacket {
     /// The minted, stable packet-individual IRI.
     pub packet_iri: String,
