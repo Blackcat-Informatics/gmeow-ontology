@@ -1,0 +1,5 @@
+GMN validation verdicts now use one native JSON record codec shared by the browser wrapper and pipeline observation writer. Compact field order, `failureClass` spelling, omitted optional strings and sorted outer source paths are preserved. Object-only record admission, required boolean/string types, duplicate refusal and nullable optionals are explicit and tested. Both wasm crates' direct JSON dependencies move to the native owner; authenticated observation and legend readers retain their selected bytes and assertions.
+
+Validation:9 producer-independent codec/actual-map-adapter controls passed; strict producer-independent prebuild Clippy, helper hygiene, source-input recipe admission, formatting and independent source review passed. The two affected wasm packages are excluded by that check target: their real codebook/witness compilation, wasm/Node, produced observation parity and installed acceptance remain unrun under the campaign exception. Other Serde/CBOR records remain unchanged; issue1776 stays open.
+
+Refs #1776. Principles4,7,17.

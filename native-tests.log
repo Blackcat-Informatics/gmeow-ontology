@@ -1,0 +1,22 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-lang-bridge) or package(gmeow-pipeline)) and test(json_gmn_verdict_)' --no-tests=fail
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/lang-bridge)
+    Finished `test` profile [optimized] target(s) in 8.02s
+────────────
+ Nextest run ID 1b05ff44-fa3c-426e-9958-8d384477ad66 with nextest profile: ci
+    Starting 9 tests across 37 binaries (1317 tests and 190 binaries skipped)
+        PASS [   0.004s] (1/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_known_duplicates_are_refused_even_when_equal_or_null
+        PASS [   0.004s] (2/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_success_keeps_literal_compact_bytes
+        PASS [   0.004s] (3/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_failure_keeps_declaration_order_unicode_and_escaping
+        PASS [   0.004s] (4/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_missing_and_null_optionals_decode_to_none
+        PASS [   0.004s] (5/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_required_boolean_and_optional_string_types_are_enforced
+        PASS [   0.004s] (6/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_optionals_are_independently_omitted
+        PASS [   0.004s] (7/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_only_object_records_and_complete_json_are_admitted
+        PASS [   0.004s] (8/9) gmeow-lang-bridge gmn_validation::tests::json_gmn_verdict_unknown_fields_are_ignored_without_changing_known_values
+        PASS [   0.021s] (9/9) gmeow-pipeline stages::conformance::wasm_gmn::tests::json_gmn_verdict_producer_adapter_sorts_paths_and_preserves_record_order
+────────────
+     Summary [   0.030s] 9 tests run: 9 passed, 1317 skipped
