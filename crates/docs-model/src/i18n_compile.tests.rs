@@ -741,6 +741,73 @@ fn lint_keeps_distinct_catalog_sources_and_projects_the_native_verdict() {
 }
 
 #[test]
+fn lint_native_json_focus_preserves_tuple_bytes() {
+    let mut report = I18nLintReport::default();
+    report.observe(
+        Path::new("authored/fr.po"),
+        "stale-entry",
+        &["urn:first|rdfs:label", "source label"],
+        Severity::Warning,
+        "wording is not identity".to_owned(),
+    );
+    let nodes = report.ledger().emit_sorted();
+    assert_eq!(nodes.len(), 1);
+    assert_eq!(
+        nodes[0].source_ctx.focus.as_ref().unwrap().0,
+        r#"["stale-entry",["urn:first|rdfs:label","source label"]]"#,
+    );
+    assert_eq!(
+        nodes[0].source_ctx.location.path.as_deref(),
+        Some("authored/fr.po")
+    );
+}
+
+#[test]
+fn lint_native_json_focus_preserves_string_escapes_and_empty_subjects() {
+    for (rule, subjects, expected) in [
+        ("", Vec::new(), r#"["",[]]"#),
+        (
+            "quote\"\\\n\u{0}",
+            vec!["é/中文\u{2028}\u{2029}🦀", "\u{8}\u{c}\r\t\u{1f}"],
+            "[\"quote\\\"\\\\\\n\\u0000\",[\"é/中文\u{2028}\u{2029}🦀\",\"\\b\\f\\r\\t\\u001f\"]]",
+        ),
+    ] {
+        let mut report = I18nLintReport::default();
+        report.observe(
+            Path::new("authored.po"),
+            rule,
+            &subjects,
+            Severity::Error,
+            String::new(),
+        );
+        let nodes = report.ledger().emit_sorted();
+        assert_eq!(nodes.len(), 1);
+        assert_eq!(nodes[0].source_ctx.focus.as_ref().unwrap().0, expected);
+    }
+}
+
+#[test]
+fn lint_native_json_focus_keeps_rule_and_subject_boundaries_distinct() {
+    let mut report = I18nLintReport::default();
+    for (rule, subjects) in [
+        ("a", vec!["b", "c"]),
+        ("a", vec!["b,c"]),
+        ("a,b", vec!["c"]),
+        ("a", vec!["c", "b"]),
+        ("a", vec!["b", "c", ""]),
+    ] {
+        report.observe(
+            Path::new("authored.po"),
+            rule,
+            &subjects,
+            Severity::Warning,
+            String::new(),
+        );
+    }
+    assert_eq!(report.ledger().len(), 5);
+}
+
+#[test]
 fn lint_identity_excludes_wording_but_keeps_context_and_warning_grade() {
     let path = Path::new("slices/core/example/i18n/fr.po");
     let mut report = I18nLintReport::default();
