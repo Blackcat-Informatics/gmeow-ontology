@@ -1242,8 +1242,10 @@ pub struct DocShape {
 pub struct DocCompetency {
     /// The competency-question IRI.
     pub iri: String,
-    /// `gmeow:cqRationale` — why the ontology must answer this.
-    pub rationale: Option<String>,
+    /// Every `gmeow:cqRationale`, preserving complete RDF literal identity.
+    /// Sorted and deduplicated by the full term, without language preference.
+    #[serde(default, with = "literal_values")]
+    pub rationales: Vec<purrdf::RdfLiteral>,
     /// `gmeow:cqQueryFile` — the REPO-ROOT-RELATIVE SPARQL query path, as
     /// authored (kept verbatim for citation/display even once resolved). Some
     /// slices author their own `.rq` under `slices/<group>/<name>/queries/…`;
@@ -2103,7 +2105,8 @@ impl DocsModel {
     /// version.
     /// v19: terms with validated ownership are documented from their owning
     /// slice, rather than also publishing foreign type redeclarations as owners.
-    pub const VERSION: &'static str = "19";
+    /// v20: competency rationales retain all complete native RDF literal records.
+    pub const VERSION: &'static str = "20";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -2440,7 +2443,7 @@ impl DocsModel {
                 let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
                     panic!("competency.ttl for slice {owner} failed to parse: {e}")
                 });
-                competencies.extend(extract_competency(&store, owner));
+                competencies.extend(extract_competency(&store, owner)?);
             }
         }
         competencies.sort_by(|a, b| a.iri.cmp(&b.iri));
@@ -3719,10 +3722,10 @@ fn shape_messages(store: &Store, start: &Node) -> Vec<String> {
 /// `gmeow:cqQueryFile` reference needs the repo root to resolve (this function
 /// only sees one slice's parsed store), so that half is completed afterwards by
 /// `apply_competency_query_text` in [`DocsModel::discover`].
-fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
+fn extract_competency(store: &Store, owner_slice: &str) -> Result<Vec<DocCompetency>, SliceError> {
     let mut out = Vec::new();
     for cq in subjects_of_type(store, GMEOW_COMPETENCY_QUESTION) {
-        let rationale = first_literal(store, &cq, GMEOW_CQ_RATIONALE);
+        let rationales = store.rdf_literals(&cq, GMEOW_CQ_RATIONALE)?;
         let query_file = first_literal(store, &cq, GMEOW_CQ_QUERY_FILE);
         // No authored CQ carries both `cqQuery` and `cqQueryFile` (verified
         // across all `slices/*/*/tests/competency.ttl`), so filling `query_text`
@@ -3767,7 +3770,7 @@ fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
         exercises.dedup();
         out.push(DocCompetency {
             iri: cq,
-            rationale,
+            rationales,
             query_file,
             query_text,
             exact_rows,
@@ -3777,7 +3780,7 @@ fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
             owner_slice: owner_slice.to_string(),
         });
     }
-    out
+    Ok(out)
 }
 
 /// The lowest-sorted named-node object of `<node> <pred> ?o`, or `None` — the
@@ -4962,6 +4965,12 @@ fn to_curie(iri: &str) -> String {
 #[cfg(test)]
 #[path = "model_test_support.rs"]
 mod test_support;
+
+mod literal_values;
+
+#[cfg(test)]
+#[path = "model.cq_rationale.tests.rs"]
+mod cq_rationale_tests;
 
 #[path = "model.tests.rs"]
 #[cfg(test)]

@@ -310,6 +310,46 @@ impl Store {
             .min()
     }
 
+    /// Every complete literal on a selected prose path. Nonliteral values fail
+    /// with the source subject and predicate rather than disappearing from docs.
+    pub(crate) fn rdf_literals(
+        &self,
+        subject_iri: &str,
+        pred: &str,
+    ) -> Result<Vec<purrdf::RdfLiteral>, SliceError> {
+        let (Some(subject), Some(predicate)) = (self.iri_id(subject_iri), self.iri_id(pred)) else {
+            return Ok(Vec::new());
+        };
+        let mut values = Vec::new();
+        for quad in
+            self.ds
+                .quads_for_pattern(Some(subject), Some(predicate), None, GraphMatch::Default)
+        {
+            let purrdf::RdfTerm::Literal(literal) = self.ds.as_ref().to_owned_term(quad.o) else {
+                return Err(SliceError::Parse(format!(
+                    "<{subject_iri}> <{pred}> requires a literal rationale"
+                )));
+            };
+            values.push(literal);
+        }
+        values.sort_by(|a, b| {
+            (
+                &a.lexical_form,
+                a.datatype_iri(),
+                &a.language,
+                a.direction.map(|d| d.as_str()),
+            )
+                .cmp(&(
+                    &b.lexical_form,
+                    b.datatype_iri(),
+                    &b.language,
+                    b.direction.map(|d| d.as_str()),
+                ))
+        });
+        values.dedup();
+        Ok(values)
+    }
+
     /// All literal values of `<subject> <pred> ?o`, sorted + deduped.
     pub(crate) fn literals(&self, subject_iri: &str, pred: &str) -> Vec<String> {
         let mut out: Vec<String> = self

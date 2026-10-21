@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Language: zh\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "competency rationale"
+msgstr "能力问题依据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A human-readable reason why a competency question and its expected outcome are an acceptance criterion for the slice's modelling decisions. Rationales may coexist as untagged strings, language-tagged strings or directional language-tagged strings; each literal retains its own language and base direction."
+msgstr "以可读文字说明某个能力问题及其预期结果为何构成该切片建模决策的验收标准。多个依据可以无标签字符串、带语言标签的字符串或带语言及方向标签的字符串形式共存；每个字面量保留自身的语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cq gmeow:cqRationale \"A retrievable name is necessary.\"@en, \"Un nom doit être accessible.\"@fr ."
+msgstr "ex:cq gmeow:cqRationale \"A retrievable name is necessary.\"@en, \"Un nom doit être accessible.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record every modelling intent the question protects, preserving private-use or public language tags and a stated base direction."
+msgstr "用于记录该问题所保护的每项建模意图，同时保留私用或公开的语言标签以及已声明的基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid numeric codes, IRIs and query source in a rationale; keep executable SPARQL in cqQuery or cqQueryFile."
+msgstr "不要在依据中放置数值代码、IRI 或查询源代码；将可执行 SPARQL 放在 cqQuery 或 cqQueryFile 中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one or more prose literals to the question. Leave language unspecified when it was not stated; otherwise retain the authored language tag and optional ltr or rtl direction. No rationale is a preferred winner."
+msgstr "为问题添加一个或多个文字字面量。未声明语言时保持语言未指定；否则保留原有语言标签及可选的 ltr 或 rtl 方向。不优先选择任何一个依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyQuestionRationaleRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CompetencyQuestion rationale requiredness constraint"
+msgstr "能力问题依据必填约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyQuestionRationaleRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:CompetencyQuestion must carry at least one gmeow:cqRationale."
+msgstr "闭世界必填约束：gmeow:CompetencyQuestion 必须至少带有一个 gmeow:cqRationale。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyQuestionRationaleRequiredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "CompetencyQuestion must have at least one prose gmeow:cqRationale"
+msgstr "CompetencyQuestion 必须至少有一个文字类型的 gmeow:cqRationale"

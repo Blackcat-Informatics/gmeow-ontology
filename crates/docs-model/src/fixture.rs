@@ -544,18 +544,20 @@ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
     for dir in COMPETENCY_QUERY_ROOTS
         .iter()
         .map(|r| r.trim_end_matches('/'))
-        .chain(["shapes", "i18n", "dsl/mappings/i18n"])
+        .chain(["shapes", "i18n"])
     {
         collect_files(&root.join(dir), &mut files);
     }
+    files.extend(
+        crate::ontology_catalogs::dsl_input_files(root)
+            .unwrap_or_else(|error| panic!("authenticate fixture DSL translation inputs: {error}")),
+    );
     // Runtime files discover() reads directly. Registry and Git dependencies are
     // already bound by selected lock records in the shared implementation inventory.
     for file in [
         "docs/four-boxes.md",
         "metadata/gmeow-self.ttl",
         "dsl/mappings/mapping-sets.ttl",
-        "dsl/mappings/vocabulary.ttl",
-        "dsl/mappings/catalog-families.ttl",
         "generated/catalog/constraint-catalog.nq",
         "generated/catalog/term-content-manifest.nq",
     ] {
@@ -565,6 +567,7 @@ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
         }
     }
     files.sort();
+    files.dedup();
 
     for path in &files {
         let rel = path.strip_prefix(root).unwrap_or(path);
@@ -614,3 +617,7 @@ fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) {
 #[path = "fixture.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[path = "fixture.cq_rationale.tests.rs"]
+#[cfg(test)]
+mod cq_rationale_tests;

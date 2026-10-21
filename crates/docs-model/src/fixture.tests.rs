@@ -108,7 +108,40 @@ fn temp_root(tag: &str) -> (tempfile::TempDir, PathBuf) {
 fn a_model_envelope_written_to_disk_verifies_when_read_back() {
     let (_tmp, root) = temp_root("disk-round-trip");
     let model_path = cache_path(&root);
-    let model = DocsModel::default();
+    let mut model = DocsModel::default();
+    model.competencies.push(crate::model::DocCompetency {
+        iri: "urn:authored:cached-competency".to_owned(),
+        rationales: vec![
+            purrdf::RdfLiteral {
+                lexical_form: "same — café 中文".to_owned(),
+                datatype: None,
+                language: None,
+                direction: None,
+            },
+            purrdf::RdfLiteral {
+                lexical_form: "same — café 中文".to_owned(),
+                datatype: None,
+                language: Some("fr".to_owned()),
+                direction: None,
+            },
+            purrdf::RdfLiteral {
+                lexical_form: "same — café 中文".to_owned(),
+                datatype: None,
+                language: Some("en".to_owned()),
+                direction: Some(purrdf::RdfTextDirection::Ltr),
+            },
+            purrdf::RdfLiteral {
+                lexical_form: "نفس القيمة".to_owned(),
+                datatype: None,
+                language: Some("ar".to_owned()),
+                direction: Some(purrdf::RdfTextDirection::Rtl),
+            },
+        ],
+        query_text: Some("SELECT ?answer WHERE { <urn:s> <urn:p> ?answer }".to_owned()),
+        expected_row_count: Some(1),
+        exact_rows: Some(true),
+        ..Default::default()
+    });
     let cached = CachedModel::from_model(&model);
     let bytes = serde_json::to_vec(&cached).unwrap();
     let context = model_context(&root);
@@ -126,6 +159,10 @@ fn a_model_envelope_written_to_disk_verifies_when_read_back() {
         .unwrap()
         .expect("warm model action");
     let recovered = decode_model(&model_path, &hit.bytes).unwrap();
+    assert_eq!(
+        recovered.competencies, model.competencies,
+        "complete rationale terms and query expectations survive the authenticated cache body"
+    );
     assert_eq!(
         recovered.available_languages, model.available_languages,
         "the reattached i18n fields survive the disk round trip"

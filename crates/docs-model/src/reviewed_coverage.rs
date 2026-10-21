@@ -52,12 +52,11 @@ pub fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     for source in sources {
         paths.push(source.path);
-        if source.owner_iri == crate::ontology_catalogs::MAPPING_DSL_OWNER {
-            paths.extend(
-                crate::ontology_catalogs::MAPPING_DSL_SOURCES
-                    .iter()
-                    .map(|path| root.join(path)),
-            );
+        if let Some(unit) = crate::ontology_catalogs::DSL_CATALOG_UNITS
+            .iter()
+            .find(|unit| unit.owner_iri == source.owner_iri)
+        {
+            paths.extend(unit.sources.iter().map(|path| root.join(path)));
         } else {
             paths.push(source.owner_path.join("manifest.ttl"));
         }

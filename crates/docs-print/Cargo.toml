@@ -36,4 +36,5 @@ typst-assets = { version = "=0.13.1", features = ["fonts"] }
 purrdf-hash.workspace = true
 
 [dev-dependencies]
+purrdf.workspace = true
 insta.workspace = true

@@ -76,7 +76,9 @@ fn evidence_rich_model() -> DocsModel {
     // so the evidence node carries a `blake3:` query digest.
     let competency = DocCompetency {
         iri: format!("{GMEOW}cq/cats-are-animals"),
-        rationale: Some("Every cat must classify as an animal.".to_string()),
+        rationales: vec![purrdf::RdfLiteral::simple(
+            "Every cat must classify as an animal.",
+        )],
         query_file: None,
         query_text: Some("SELECT ?c WHERE { ?c a gmeow:Cat }".to_string()),
         exact_rows: None,

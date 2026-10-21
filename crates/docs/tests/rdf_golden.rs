@@ -110,7 +110,9 @@ fn small_model() -> DocsModel {
         // `competency` gmeow:DocEvidence node with a blake3 query digest.
         competencies: vec![DocCompetency {
             iri: format!("{GMEOW}cq/cats-are-animals"),
-            rationale: Some("Every cat must classify as an animal.".to_string()),
+            rationales: vec![purrdf::RdfLiteral::simple(
+                "Every cat must classify as an animal.",
+            )],
             query_file: None,
             query_text: Some("SELECT ?c WHERE { ?c a gmeow:Cat }".to_string()),
             exact_rows: None,

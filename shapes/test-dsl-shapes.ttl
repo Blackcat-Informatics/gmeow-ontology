@@ -28,13 +28,6 @@ gmeow:CompetencyQuestionShape
         gmeow:CompetencyQuestionDataFileReasoningConstraint, gmeow:CompetencyQuestionExpectationChoiceConstraint ;
     sh:targetClass gmeow:CompetencyQuestion ;
     sh:property [
-        sh:path gmeow:cqRationale ;
-        sh:minCount 1 ;
-        sh:datatype xsd:string ;
-        sh:severity sh:Violation ;
-        sh:message "CompetencyQuestion must have at least one gmeow:cqRationale (xsd:string)"
-    ] ;
-    sh:property [
         sh:path gmeow:cqExpectAsk ;
         sh:maxCount 1 ;
         sh:datatype xsd:boolean ;

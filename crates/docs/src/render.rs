@@ -2998,17 +2998,19 @@ fn term_academic_surface(
     if !tested_by.is_empty() {
         heading(&mut out, 2, model.ui("body_tested_by"));
         for cq in tested_by {
-            let rationale = cq
-                .rationale
-                .as_deref()
-                .map(one_line)
-                .unwrap_or_else(|| local_name(&cq.iri).to_string());
-            match &cq.query_file {
-                Some(qf) => push_line(
-                    &mut out,
-                    &format!("- {} (`{}`)", md_escape(&rationale), code_escape(qf)),
-                ),
-                None => push_line(&mut out, &format!("- {}", md_escape(&rationale))),
+            if cq.rationales.is_empty() {
+                let text = md_escape(local_name(&cq.iri));
+                match &cq.query_file {
+                    Some(qf) => push_line(&mut out, &format!("- {text} (`{}`)", code_escape(qf))),
+                    None => push_line(&mut out, &format!("- {text}")),
+                }
+            }
+            for rationale in &cq.rationales {
+                let text = md_escape(&one_line(&rationale.lexical_form));
+                match &cq.query_file {
+                    Some(qf) => push_line(&mut out, &format!("- {text} (`{}`)", code_escape(qf))),
+                    None => push_line(&mut out, &format!("- {text}")),
+                }
             }
         }
         let competency_index_href = rel(&from, &Page::CompetencyIndex.dir());
@@ -5355,8 +5357,8 @@ fn md_competency_index(model: &DocsModel) -> String {
         for cq in cqs {
             heading(&mut out, 3, local_name(&cq.iri));
 
-            if let Some(rationale) = &cq.rationale {
-                let text = md_escape(&one_line(rationale));
+            for rationale in &cq.rationales {
+                let text = md_escape(&one_line(&rationale.lexical_form));
                 match &cq.query_file {
                     Some(qf) => push_line(&mut out, &format!("- {text} (`{}`)", code_escape(qf))),
                     None => push_line(&mut out, &format!("- {text}")),
@@ -8290,6 +8292,10 @@ fn local_name_vec(iris: &[String]) -> Vec<String> {
 #[path = "render.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "render.cq_rationale.tests.rs"]
+mod cq_rationale_tests;
 
 #[path = "render.search_index.tests.rs"]
 #[cfg(test)]

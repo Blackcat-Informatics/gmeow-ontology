@@ -194,12 +194,14 @@ impl<'a> CoverageContext<'a> {
         let mut competency_rationale = HashSet::new();
         let mut term_rationales: HashMap<&str, Vec<&str>> = HashMap::new();
         for cq in &model.competencies {
-            let rationale = cq.rationale.as_deref().filter(|r| !r.trim().is_empty());
             for iri in &cq.exercises {
                 competency_reached.insert(iri.as_str());
-                if let Some(r) = rationale {
-                    competency_rationale.insert(iri.as_str());
-                    term_rationales.entry(iri.as_str()).or_default().push(r);
+                for rationale in &cq.rationales {
+                    let text = rationale.lexical_form.as_str();
+                    if !text.trim().is_empty() {
+                        competency_rationale.insert(iri.as_str());
+                        term_rationales.entry(iri.as_str()).or_default().push(text);
+                    }
                 }
             }
         }

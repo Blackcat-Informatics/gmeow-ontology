@@ -875,11 +875,15 @@ pub fn to_gmeow_rdf(
                 &mut lines,
             );
         }
-        if let Some(rationale) = &comp.rationale {
+        for rationale in &comp.rationales {
+            let value =
+                purrdf::TermValue::from_rdf_term(&purrdf::RdfTerm::Literal(rationale.clone()));
+            let mut object = String::new();
+            purrdf_core::write_term_value(&value, &mut object);
             triple(
                 &subject,
                 &format!("{GMEOW}cqRationale"),
-                &literal(rationale),
+                &object,
                 &mut lines,
             );
         }

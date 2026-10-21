@@ -1278,6 +1278,9 @@ impl Stage for MappingsStage {
         // cache. `consumes() == []` (the leaf reads sources, not upstream products).
         let mut files = Vec::new();
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
+        // Translation and glossary products consume every registered DSL owner,
+        // including owners outside the mapping DSL source tree.
+        files.extend(gmeow_docs::ontology_catalogs::dsl_input_files(root)?);
         files.push(root.join(crate::stages::lang_projection::gmn_gate::NEGATIVE_SOURCE));
         files.extend(crate::stages::source_load::module_files(root)?);
         // Several slice source surfaces are read DIRECTLY by this stage yet are reflected by no

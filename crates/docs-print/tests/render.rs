@@ -148,7 +148,7 @@ fn fixture_model() -> DocsModel {
 
     let competency = DocCompetency {
         iri: "https://blackcatinformatics.ca/gmeow/cq/demo".to_string(),
-        rationale: Some("Can a demo Foo be found?".to_string()),
+        rationales: vec![purrdf::RdfLiteral::simple("Can a demo Foo be found?")],
         query_file: Some("demo.rq".to_string()),
         exercises: vec!["https://blackcatinformatics.ca/gmeow/Foo".to_string()],
         owner_slice: "https://blackcatinformatics.ca/gmeow/slice/demo".to_string(),

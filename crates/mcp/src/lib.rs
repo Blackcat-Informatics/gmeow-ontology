@@ -1334,34 +1334,8 @@ fn fixture_json(view: &FixtureView) -> Value {
     })
 }
 
-/// Render one competency-question record as the tool's JSON object. The optional
-/// expectations are included only when authored; the row-count and exact-flag are
-/// typed back to a JSON number / boolean from their `xsd:integer` / `xsd:boolean`
-/// lexical forms (the raw lexeme is kept only if it is somehow not well-typed).
 #[cfg(feature = "core")]
-fn competency_json(query_text: &str, row: &BTreeMap<String, String>) -> Value {
-    let mut obj = serde_json::Map::new();
-    obj.insert("query_text".to_string(), json!(query_text));
-    if let Some(rationale) = row.get("rationale") {
-        obj.insert("rationale".to_string(), json!(rationale));
-    }
-    if let Some(count) = row.get("count") {
-        let value = count
-            .parse::<i64>()
-            .map(|n| json!(n))
-            .unwrap_or_else(|_| json!(count));
-        obj.insert("expected_row_count".to_string(), value);
-    }
-    if let Some(exact) = row.get("exact") {
-        let value = match exact.as_str() {
-            "true" | "1" => json!(true),
-            "false" | "0" => json!(false),
-            other => json!(other),
-        };
-        obj.insert("exact_rows".to_string(), value);
-    }
-    Value::Object(obj)
-}
+mod competency;
 
 #[cfg(feature = "core")]
 type FixtureMaps = (BTreeMap<String, FixtureView>, BTreeMap<String, FixtureView>);
@@ -1628,24 +1602,15 @@ impl McpView {
     /// projection: every `gmeow:DocumentedCompetency` carrying a `gmeow:cqQueryText`,
     /// or — when `term_iri` is `Some` — only those documenting that term. Each record
     /// carries the runnable query text and the authored expectations
-    /// (`gmeow:cqRationale`, `gmeow:cqExpectRowCount`, `gmeow:cqExactRows`) when
-    /// present. Records are ordered by competency IRI, so the surface is
-    /// deterministic.
+    /// (`gmeow:cqExpectRowCount`, `gmeow:cqExactRows`) when present, with every
+    /// `gmeow:cqRationale` as a complete native literal record in `rationales`.
+    /// Records are ordered by competency IRI and rationales by full RDF term;
+    /// conflicting scalar fields and malformed bindings fail the operation.
     #[cfg(feature = "core")]
     fn competency_questions(&self, term_iri: Option<&str>) -> gmeow_errors::Result<Vec<Value>> {
         let query = competency_query(term_iri);
-        // One record per competency IRI (all columns single-valued). BTreeMap →
-        // competency-IRI order.
-        let mut by_competency: BTreeMap<String, Value> = BTreeMap::new();
-        for row in self.docs_select_rows(&query)? {
-            let (Some(competency), Some(query_text)) = (row.get("c"), row.get("q")) else {
-                continue;
-            };
-            by_competency
-                .entry(competency.clone())
-                .or_insert_with(|| competency_json(query_text, &row));
-        }
-        Ok(by_competency.into_values().collect())
+        let result = gmeow_bundle_view::native_query::query(self.documentation()?, &query)?;
+        competency::records(result)
     }
 
     /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
@@ -3419,8 +3384,8 @@ fn builtin_tool_descriptors() -> Vec<Value> {
         tool(
             "competency_questions",
             "Return the runnable competency questions from gmeow:graph/documentation, each with \
-                 its SPARQL query text and the authored rationale / expected row count / exact-rows \
-                 flag. With the OPTIONAL `term`, only that term's questions (an unknown term is a \
+                 its SPARQL query text, plural rationales (complete lexical_form/datatype/language/direction \
+                 records), expected row count and exact-rows flag. With the OPTIONAL `term`, only that term's questions (an unknown term is a \
                  hard error); without `term`, the whole index.",
             &[("term", "string")],
         ),

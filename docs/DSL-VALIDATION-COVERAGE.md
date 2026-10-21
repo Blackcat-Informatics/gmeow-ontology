@@ -36,7 +36,7 @@ cannot pass silently.
 | 9 — example **coverage** (every slice ships ≥1 example) | `slices/*/*/examples/` | `make check` | The live `validate` gate, via Phase 5c | `crates/validate/src/validate_all.rs:749` (`check_example_coverage`, `:1819`) |
 | 11 — **mapping** DSL SHACL | `dsl/mappings/**/*.ttl` vs `shapes/mapping-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:910`; `dev_validate.rs` (authored-source path) |
 | 12 — **statement** DSL SHACL | `dsl/statements/**/*.ttl` vs `shapes/statement-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:930`; `dev_validate.rs` |
-| 13 — **test** DSL SHACL, central | `dsl/tests/**/*.ttl` vs `shapes/test-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:950`; `dev_validate.rs` |
+| 13 — **test** DSL SHACL, central | `dsl/tests/**/*.ttl` vs residual `shapes/test-dsl-shapes.ttl` plus canonical rationale projections | `make check` | The live `validate` gate | `validate_all.rs`; `dsl_coverage.rs`; `dev_validate.rs` |
 
 ### Why these placements
 

@@ -88,7 +88,7 @@ fn cq_with(query: &str) -> CompetencyQuestion {
         result_shape: None,
         input_shape: None,
         consumes: None,
-        rationale: None,
+        rationales: Vec::new(),
     }
 }
 
@@ -338,7 +338,7 @@ fn cq_data_file_overlay_applies_and_is_removed() {
         result_shape: None,
         input_shape: None,
         consumes: None,
-        rationale: None,
+        rationales: Vec::new(),
     };
 
     run_competency_cell(&store, &cq, dir).expect("overlay cell must pass");
