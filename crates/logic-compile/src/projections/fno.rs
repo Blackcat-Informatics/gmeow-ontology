@@ -14,6 +14,9 @@
 //! [`purrdf::fno`] serializer owns the triple shapes. Extraction runs over the
 //! [`DslView`] for function signatures and ontology ranges. Mapping patterns and
 //! transform bindings are borrowed from the single [`CorrespondenceAnalysis`].
+//! Parameter mathematical-symbol bindings and paired observation-method/recipe
+//! references are retained as canonical source extensions, not FnO executable
+//! definitions. Recipe ASTs remain with their canonical mathematical owner.
 
 mod signatures;
 
@@ -131,6 +134,9 @@ pub fn lower_fno(
     signatures
         .annotations
         .append(&mut onto_signatures.annotations);
+    signatures
+        .extensions
+        .append(&mut onto_signatures.extensions);
     signatures.functions.sort_by(|a, b| a.iri.cmp(&b.iri));
     signatures.params.sort_by(|a, b| a.iri.cmp(&b.iri));
     let signature_targets: Vec<_> = signatures.functions.iter().map(|f| f.iri.clone()).collect();
@@ -188,6 +194,7 @@ pub fn lower_fno(
     // catalog literal goes through.
     let mut emitted = fno::to_quads(&catalog_model);
     signatures.restore_annotations(&mut emitted);
+    emitted.extend(signatures.extensions);
     emitted.extend(declarations.quads);
     let completed = complete_fno_abox_annotations(emitted, &catalog_model.document_iri);
     let quads: Vec<RdfQuad> = completed

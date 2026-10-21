@@ -552,6 +552,286 @@ fn lower_callable_views(
     lower_fno(&view, &DslView::new(&ontology), &analysis)
 }
 
+/// Independent reference-only method contract: FnO preserves its links, while
+/// mathematical AST validation and execution remain outside this projection.
+fn mathematical_callable_fixture() -> String {
+    let source = CALLABLE_FIXTURE
+        .replace("ex:call a logic:CallableSignature ;",
+            "ex:call a logic:CallableSignature, gmeow:ObservationMethod ; gmeow:calculationExpression ex:recipe ;")
+        .replace("ex:z a logic:CallParameter ;",
+            "ex:z a logic:CallParameter ; <https://blackcatinformatics.ca/math/hasMathematicalSymbol> ex:symbol ;");
+    format!(
+        "{source}\nex:symbol a <https://blackcatinformatics.ca/math/MathematicalSymbol> .\nex:recipe a <https://blackcatinformatics.ca/math/ApplicationExpression> .\nex:call skos:scopeNote \"portée\"@fr, \"typed note\"^^xsd:string, \"اتجاه\"@ar--rtl .\n"
+    )
+}
+
+/// Preserve source references and role types without inventing FnO recipe or
+/// symbol predicates. Metadata keeps language, datatype and direction identities.
+#[test]
+fn canonical_callables_preserve_selected_mathematical_extensions_from_both_views() {
+    let source = mathematical_callable_fixture();
+    let original = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let original = DslView::new(&original);
+    for (dsl, ontology) in [(&source[..], ""), ("", &source[..])] {
+        let lowering = lower_callable_views(dsl, ontology).expect("selected source extensions");
+        let dataset =
+            purrdf::parse_dataset(lowering.catalog.as_bytes(), "text/turtle", None).unwrap();
+        let view = DslView::new(&dataset);
+        for (subject, predicate) in [
+            (
+                "https://example.org/z",
+                "https://blackcatinformatics.ca/math/hasMathematicalSymbol",
+            ),
+            (
+                "https://example.org/call",
+                "https://blackcatinformatics.ca/gmeow/calculationExpression",
+            ),
+            (
+                "https://example.org/call",
+                "http://www.w3.org/2004/02/skos/core#scopeNote",
+            ),
+        ] {
+            let actual = view.objects_of(subject, predicate);
+            let expected = original.objects_of(subject, predicate);
+            assert_eq!(actual.len(), expected.len(), "{subject}: {predicate}");
+            for value in expected {
+                assert!(actual.contains(&value), "lost {value:?}");
+            }
+        }
+        for (subject, kind) in [
+            (
+                "https://example.org/z",
+                "https://blackcatinformatics.ca/logic/CallParameter",
+            ),
+            (
+                "https://example.org/call",
+                "https://blackcatinformatics.ca/gmeow/ObservationMethod",
+            ),
+            (
+                "https://example.org/call",
+                "https://blackcatinformatics.ca/logic/CallableSignature",
+            ),
+        ] {
+            assert!(
+                view.object_iris(subject, gmeow_errors::abox::RDF_TYPE)
+                    .contains(&kind.to_owned())
+            );
+        }
+        let inputs = view.rdf_list(
+            view.first_object(
+                "https://example.org/call",
+                "https://w3id.org/function/ontology#expects",
+            )
+            .as_ref(),
+        );
+        assert_eq!(
+            inputs,
+            vec![
+                purrdf::TermValue::Iri("https://example.org/z".into()),
+                purrdf::TermValue::Iri("https://example.org/a".into())
+            ]
+        );
+        assert_eq!(
+            view.object_iri(
+                "https://example.org/z",
+                "https://w3id.org/function/ontology#predicate"
+            ),
+            Some("https://example.org/source".into())
+        );
+        assert_eq!(
+            view.object_iri(
+                "https://example.org/z",
+                "https://w3id.org/function/ontology#type"
+            ),
+            Some("http://www.w3.org/2001/XMLSchema#integer".into())
+        );
+        assert_eq!(
+            view.object_literal(
+                "https://example.org/z",
+                "https://w3id.org/function/ontology#required"
+            )
+            .as_deref(),
+            Some("true")
+        );
+        assert_eq!(lowering.ledger.len(), 1);
+    }
+    let other = source.replace("https://example.org/", "https://second.example.org/");
+    let merged = lower_callable_views(&source, &other).expect("distinct owners from both views");
+    let dataset = purrdf::parse_dataset(merged.catalog.as_bytes(), "text/turtle", None).unwrap();
+    let view = DslView::new(&dataset);
+    for base in ["https://example.org/", "https://second.example.org/"] {
+        assert_eq!(
+            view.object_iri(
+                &format!("{base}call"),
+                "https://blackcatinformatics.ca/gmeow/calculationExpression"
+            ),
+            Some(format!("{base}recipe"))
+        );
+        assert_eq!(
+            view.object_iri(
+                &format!("{base}z"),
+                "https://blackcatinformatics.ca/math/hasMathematicalSymbol"
+            ),
+            Some(format!("{base}symbol"))
+        );
+    }
+    assert_eq!(merged.ledger.len(), 2);
+    assert!(
+        lower_callable_views(&source, &source).is_err(),
+        "extensions must not bypass duplicate owner refusal"
+    );
+}
+
+/// Recognized extensions are not a blanket allowance: object kind, scalar
+/// cardinality and declared target type remain mandatory in either source view.
+#[test]
+fn canonical_callables_refuse_malformed_mathematical_extension_targets() {
+    let source = mathematical_callable_fixture();
+    let symbol = "<https://blackcatinformatics.ca/math/hasMathematicalSymbol> ex:symbol";
+    let recipe = "gmeow:calculationExpression ex:recipe";
+    let mut cases = Vec::new();
+    for (field, target) in [(symbol, "ex:symbol"), (recipe, "ex:recipe")] {
+        for replacement in [
+            "\"literal\"".to_owned(),
+            "[]".to_owned(),
+            "<<( ex:s ex:p ex:o )>>".to_owned(),
+            format!("{target}, ex:other"),
+        ] {
+            cases.push((
+                source.replace(field, &field.replace(target, &replacement)),
+                "exactly one named IRI",
+            ));
+        }
+    }
+    for (declaration, replacement) in [
+        (
+            "ex:symbol a <https://blackcatinformatics.ca/math/MathematicalSymbol> .",
+            "",
+        ),
+        (
+            "ex:symbol a <https://blackcatinformatics.ca/math/MathematicalSymbol> .",
+            "ex:symbol a <https://blackcatinformatics.ca/math/ApplicationExpression> .",
+        ),
+        (
+            "ex:recipe a <https://blackcatinformatics.ca/math/ApplicationExpression> .",
+            "",
+        ),
+        (
+            "ex:recipe a <https://blackcatinformatics.ca/math/ApplicationExpression> .",
+            "ex:recipe a <https://blackcatinformatics.ca/math/MathematicalSymbol> .",
+        ),
+    ] {
+        cases.push((source.replace(declaration, replacement), "must be declared"));
+    }
+    for (source, expected) in cases {
+        for (dsl, ontology) in [(&source[..], ""), ("", &source[..])] {
+            let error = match lower_callable_views(dsl, ontology) {
+                Ok(_) => panic!("malformed target must fail: {source}"),
+                Err(error) => error,
+            };
+            assert!(error.to_string().contains(expected), "{error}");
+        }
+    }
+    let declaration = "ex:symbol a <https://blackcatinformatics.ca/math/MathematicalSymbol> .";
+    let untyped = source.replace(declaration, "");
+    let foreign_target = format!("@prefix ex: <https://example.org/> . {declaration}");
+    assert!(
+        lower_callable_views(&untyped, &foreign_target).is_err(),
+        "a separate source view cannot supply implicit target ownership"
+    );
+}
+
+/// Observation-method type and recipe select one paired interface extension;
+/// omission stays legitimate for ordinary callables and unsupported roles fail.
+#[test]
+fn canonical_callables_require_paired_method_recipe_and_keep_role_boundaries() {
+    let source = mathematical_callable_fixture();
+    for source in [
+        source.replace(", gmeow:ObservationMethod", ""),
+        source.replace("gmeow:calculationExpression ex:recipe ;", ""),
+    ] {
+        let error = match lower_callable_fixture(&source) {
+            Ok(_) => panic!("unpaired method must fail"),
+            Err(error) => error,
+        };
+        assert!(
+            error.to_string().contains("must be selected together"),
+            "{error}"
+        );
+    }
+    for (subject, field) in [
+        ("ex:z", "gmeow:calculationExpression ex:recipe"),
+        ("ex:result", "gmeow:calculationExpression ex:recipe"),
+        (
+            "ex:call",
+            "<https://blackcatinformatics.ca/math/hasMathematicalSymbol> ex:symbol",
+        ),
+        (
+            "ex:result",
+            "<https://blackcatinformatics.ca/math/hasMathematicalSymbol> ex:symbol",
+        ),
+    ] {
+        let source = format!("{source}\n{subject} {field} .");
+        let error = match lower_callable_fixture(&source) {
+            Ok(_) => panic!("misplaced extension must fail"),
+            Err(error) => error,
+        };
+        assert!(
+            error.to_string().contains("no selected FnO lowering"),
+            "{error}"
+        );
+    }
+    for subject in ["ex:z", "ex:result"] {
+        let source = format!("{source}\n{subject} a gmeow:ObservationMethod .");
+        let error = match lower_callable_fixture(&source) {
+            Ok(_) => panic!("misplaced method type must fail"),
+            Err(error) => error,
+        };
+        assert!(
+            error.to_string().contains("additional source type"),
+            "{error}"
+        );
+    }
+    assert!(lower_callable_fixture(CALLABLE_FIXTURE).is_ok());
+    let parameter_only = source
+        .replace(", gmeow:ObservationMethod", "")
+        .replace("gmeow:calculationExpression ex:recipe ;", "");
+    assert!(
+        lower_callable_fixture(&parameter_only).is_ok(),
+        "a mathematical parameter does not force an observation method"
+    );
+    for field in [
+        "gmeow:calculationExpression ex:recipe",
+        "<https://blackcatinformatics.ca/math/hasMathematicalSymbol> ex:symbol",
+        "a gmeow:ObservationMethod",
+    ] {
+        let source = format!("{CALLABLE_DECLARATION}\nex:operation {field} .");
+        let error = match lower_callable_fixture(&source) {
+            Ok(_) => panic!("a declaration must not invent an interface"),
+            Err(error) => error,
+        };
+        assert!(
+            error.to_string().contains("no selected FnO lowering")
+                || error.to_string().contains("additional source type"),
+            "{error}"
+        );
+    }
+}
+
+/// Scope notes use the existing exact RDF metadata path, never a loophole for
+/// executable or anonymous fields.
+#[test]
+fn canonical_callables_refuse_invalid_scope_note_metadata() {
+    for value in ["\"\"", "ex:note", "[]"] {
+        let source = format!("{CALLABLE_FIXTURE}\nex:call skos:scopeNote {value} .");
+        let error = match lower_callable_fixture(&source) {
+            Ok(_) => panic!("invalid metadata must fail"),
+            Err(error) => error,
+        };
+        assert!(error.to_string().contains("invalid value kind"), "{error}");
+    }
+}
+
 const CALLABLE_DECLARATION: &str = r#"
     @prefix ex: <https://example.org/> .
     @prefix logic: <https://blackcatinformatics.ca/logic/> .

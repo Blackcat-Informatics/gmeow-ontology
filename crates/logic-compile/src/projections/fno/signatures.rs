@@ -3,6 +3,8 @@
 
 //! Admission of canonical callable signatures. Identity and position are authored,
 //! never inferred from predicate sorting or minted by a projection dialect.
+//! Selected mathematical bindings and observation-method recipe references remain
+//! canonical source triples beside the FnO ABI; they do not declare FnO execution.
 
 use super::*;
 use crate::graphutil::{Node, node_of};
@@ -15,6 +17,11 @@ const CALLABLE: &str = "https://blackcatinformatics.ca/logic/Callable";
 const SIGNATURE: &str = "https://blackcatinformatics.ca/logic/CallableSignature";
 const PARAMETER: &str = "https://blackcatinformatics.ca/logic/CallParameter";
 const RESULT: &str = "https://blackcatinformatics.ca/logic/CallResult";
+const SYMBOL: &str = "https://blackcatinformatics.ca/math/hasMathematicalSymbol";
+const SYMBOL_TYPE: &str = "https://blackcatinformatics.ca/math/MathematicalSymbol";
+const RECIPE: &str = "https://blackcatinformatics.ca/gmeow/calculationExpression";
+const APPLICATION: &str = "https://blackcatinformatics.ca/math/ApplicationExpression";
+const OBSERVATION_METHOD: &str = "https://blackcatinformatics.ca/gmeow/ObservationMethod";
 const METADATA: &[&str] = &[
     RDFS_LABEL,
     SKOS_DEFINITION,
@@ -26,6 +33,7 @@ const METADATA: &[&str] = &[
     "https://blackcatinformatics.ca/gmeow/howToUse",
     "https://blackcatinformatics.ca/gmeow/useWhen",
     "https://blackcatinformatics.ca/gmeow/graphBoxRole",
+    "http://www.w3.org/2004/02/skos/core#scopeNote",
 ];
 
 pub(super) struct Signatures {
@@ -33,6 +41,7 @@ pub(super) struct Signatures {
     pub params: Vec<FnParam>,
     pub subjects: BTreeSet<String>,
     pub annotations: Vec<RdfQuad>,
+    pub extensions: Vec<RdfQuad>,
 }
 
 fn refusal(subject: &str, detail: impl std::fmt::Display) -> Diag {
@@ -58,6 +67,7 @@ fn check_fields(
         if predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" {
             if ds.resolve(quad.o) != TermRef::Iri(kind)
                 && !(kind == SIGNATURE && ds.resolve(quad.o) == TermRef::Iri(CALLABLE))
+                && !(kind == SIGNATURE && ds.resolve(quad.o) == TermRef::Iri(OBSERVATION_METHOD))
             {
                 return Err(refusal(
                     subject,
@@ -82,9 +92,11 @@ fn check_fields(
                     format!("metadata {predicate} has an invalid value kind"),
                 ));
             }
-        } else if !fields
-            .iter()
-            .any(|field| predicate.strip_prefix(LOGIC) == Some(*field))
+        } else if !((kind == PARAMETER && predicate == SYMBOL)
+            || (kind == SIGNATURE && predicate == RECIPE))
+            && !fields
+                .iter()
+                .any(|field| predicate.strip_prefix(LOGIC) == Some(*field))
         {
             return Err(refusal(
                 subject,
@@ -93,6 +105,68 @@ fn check_fields(
         }
     }
     Ok(())
+}
+
+/// Retain an optional selected source reference only after admitting its complete
+/// scalar identity and explicitly declared target kind in the same source view.
+fn typed_reference(
+    view: &DslView<'_>,
+    subject: &str,
+    predicate: &str,
+    target_type: &str,
+) -> gmeow_errors::Result<Option<RdfQuad>> {
+    let values = view.objects_of(subject, predicate);
+    if values.is_empty() {
+        return Ok(None);
+    }
+    let [DslTerm::Iri(target)] = values.as_slice() else {
+        return Err(refusal(
+            subject,
+            format!("{predicate} requires exactly one named IRI"),
+        ));
+    };
+    if !view
+        .object_iris(target, gmeow_errors::abox::RDF_TYPE)
+        .iter()
+        .any(|kind| kind == target_type)
+    {
+        return Err(refusal(
+            subject,
+            format!("{predicate} target {target} must be declared {target_type}"),
+        ));
+    }
+    Ok(Some(RdfQuad::new(
+        RdfTerm::iri(subject),
+        predicate,
+        RdfTerm::iri(target.clone()),
+    )))
+}
+
+/// An observation-method signature selects a recipe; ordinary interfaces select
+/// neither. Retain the paired type and reference without lowering its AST to FnO.
+fn method_extensions(view: &DslView<'_>, subject: &str) -> gmeow_errors::Result<Vec<RdfQuad>> {
+    let recipe = typed_reference(view, subject, RECIPE, APPLICATION)?;
+    let method = view
+        .object_iris(subject, gmeow_errors::abox::RDF_TYPE)
+        .iter()
+        .any(|kind| kind == OBSERVATION_METHOD);
+    if method != recipe.is_some() {
+        return Err(refusal(
+            subject,
+            "ObservationMethod and calculationExpression must be selected together",
+        ));
+    }
+    Ok(match recipe {
+        Some(recipe) => vec![
+            recipe,
+            RdfQuad::new(
+                RdfTerm::iri(subject),
+                gmeow_errors::abox::RDF_TYPE,
+                RdfTerm::iri(OBSERVATION_METHOD),
+            ),
+        ],
+        None => Vec::new(),
+    })
 }
 
 fn scalar(view: &DslView<'_>, subject: &str, local: &str) -> gmeow_errors::Result<DslTerm> {
@@ -173,6 +247,7 @@ impl Signatures {
             params: Vec::new(),
             subjects: BTreeSet::new(),
             annotations: Vec::new(),
+            extensions: Vec::new(),
         };
         let mut results = BTreeMap::new();
         for subject in view.subjects_of_type(PARAMETER) {
@@ -186,6 +261,14 @@ impl Signatures {
                     "parameterRequired",
                 ],
             )?;
+            if let Some(binding) = typed_reference(view, &subject, SYMBOL, SYMBOL_TYPE)? {
+                out.extensions.push(binding);
+                out.extensions.push(RdfQuad::new(
+                    RdfTerm::iri(subject.clone()),
+                    gmeow_errors::abox::RDF_TYPE,
+                    RdfTerm::iri(PARAMETER),
+                ));
+            }
             out.subjects.insert(subject.clone());
             out.params.push(FnParam {
                 predicate: Some(iri(view, &subject, "parameterPredicate")?),
@@ -227,6 +310,7 @@ impl Signatures {
                 SIGNATURE,
                 &["inputParameters", "outputParameters"],
             )?;
+            out.extensions.extend(method_extensions(view, &subject)?);
             if !out.subjects.insert(subject.clone()) {
                 return Err(refusal(
                     &subject,
