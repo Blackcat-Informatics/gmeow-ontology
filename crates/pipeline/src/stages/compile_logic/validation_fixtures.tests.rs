@@ -255,3 +255,128 @@ fn forget_request_requires_roles_and_named_references_without_granting_permissio
         assert!(!report(&valid.replace(from, to)).results.is_empty());
     }
 }
+
+/// Independent scoped obligations remain executable in both supported projection lanes.
+#[test]
+fn scoped_numeric_obligations_admit_markers_and_validate_without_neighbor_leaks() {
+    let source = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix ex: <urn:scoped-numeric:> .
+        ex:contract a logic:Constraint ; gmeow:enforcesFailureClass ex:Bad ;
+          logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ], [ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "frame" ] ; logic:exists [ a logic:Formula ; logic:relation ex:frame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ], [ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ], [ a logic:Formula ; logic:relation ex:frame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri ex:Frame ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ], [ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "magnitude" ] ; logic:exists [ a logic:Formula ; logic:relation ex:magnitude ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ], [ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ], [ a logic:Formula ; logic:relation ex:magnitude ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "magnitude" ] ] ] ] ] ] ] ."#;
+    let product = compile(source);
+    assert!(product.diagnostics.is_empty(), "{:?}", product.diagnostics);
+    assert!(
+        product
+            .procedural_shacl
+            .contains("contractProceduralConstraintShape")
+    );
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let prepared = PreparedLogicSource::new(&dataset).unwrap();
+    let (constraints, diagnostics) = prepared.constraints();
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    assert_eq!(constraints.len(), 1);
+    let program = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(constraints);
+    let (rules, residue) = gmeow_logic_compile::relational_core::lower_violation_constraints_to_rc(
+        &program,
+        &std::collections::BTreeSet::new(),
+    );
+    assert!(residue.is_empty(), "{residue:?}");
+    assert_eq!(rules.len(), 4);
+    let shapes = parse_shapes(&product.procedural_shacl, None).unwrap();
+    for (name, body, valid) in [
+        ("complete", "ex:r ex:frame ex:f ; ex:magnitude 2.5 .", true),
+        ("missing frame", "ex:r ex:magnitude 2.5 .", false),
+        ("missing magnitude", "ex:r ex:frame ex:f .", false),
+        (
+            "wrong frame",
+            "ex:r ex:frame ex:bad ; ex:magnitude 2.5 .",
+            false,
+        ),
+        (
+            "extra malformed frame",
+            "ex:r ex:frame ex:f, ex:bad ; ex:magnitude 2.5 .",
+            false,
+        ),
+        (
+            "extra malformed magnitude",
+            "ex:r ex:frame ex:f ; ex:magnitude 2.5, \"bad\" .",
+            false,
+        ),
+        (
+            "neighbor cannot provide magnitude",
+            "ex:r ex:frame ex:f . ex:other a ex:Report ; ex:result ex:otherR . ex:otherR ex:frame ex:f ; ex:magnitude 3 .",
+            false,
+        ),
+        (
+            "one result cannot conceal another",
+            "ex:r ex:frame ex:f ; ex:magnitude 2.5 . ex:a ex:result ex:missing .",
+            false,
+        ),
+    ] {
+        let data = format!(
+            "@prefix ex: <urn:scoped-numeric:> . ex:a a ex:Report ; ex:result ex:r . ex:f a ex:Frame . {body}"
+        );
+        let data = purrdf::parse_dataset(data.as_bytes(), "text/turtle", None).unwrap();
+        let report = validate_dataset(&data, &shapes).unwrap();
+        assert_eq!(report.results.is_empty(), valid, "{name}: {report:?}");
+    }
+}
+
+/// Integer sign comparisons preserve exact rational bounds beyond machine integers.
+#[test]
+fn rational_bounds_project_without_division_or_integer_narrowing() {
+    let product = compile(
+        r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix ex: <urn:exact-probability:> .
+        ex:KindLaw a logic:Constraint ; gmeow:enforcesFailureClass ex:BadMetadata ; logic:formalizes ex:Projection ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "n" ], [ logic:termIndex 2 ; logic:termVariable "d" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Probability ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Rational ] ], [ a logic:Formula ; logic:relation ex:n ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "n" ] ], [ a logic:Formula ; logic:relation ex:d ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "d" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "d" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termVariable "d" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "d" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termVariable "d" ] ] ] ] ] ] .
+    "#,
+    );
+    assert!(product.diagnostics.is_empty(), "{:?}", product.diagnostics);
+    assert!(
+        product
+            .procedural_shacl
+            .contains("KindLawProceduralConstraintShape")
+    );
+    let shapes = parse_shapes(&product.procedural_shacl, None).unwrap();
+    for (n, d, valid) in [
+        ("1", "3", true),
+        ("-1", "-3", true),
+        ("0", "-3", true),
+        ("3", "2", false),
+        ("-3", "-2", false),
+        ("1", "-3", false),
+        ("1", "0", false),
+        (
+            "340282366920938463463374607431768211456",
+            "340282366920938463463374607431768211457",
+            true,
+        ),
+        (
+            "340282366920938463463374607431768211457",
+            "340282366920938463463374607431768211456",
+            false,
+        ),
+        (
+            "-340282366920938463463374607431768211456",
+            "-340282366920938463463374607431768211457",
+            true,
+        ),
+        (
+            "-340282366920938463463374607431768211457",
+            "-340282366920938463463374607431768211456",
+            false,
+        ),
+    ] {
+        let input = format!(
+            "@prefix ex: <urn:exact-probability:> . ex:p a ex:Probability, ex:Rational ; ex:n {n} ; ex:d {d} ."
+        );
+        let data = purrdf::parse_dataset(input.as_bytes(), "text/turtle", None).unwrap();
+        let report = validate_dataset(&data, &shapes).unwrap();
+        assert_eq!(report.results.is_empty(), valid, "{n}/{d}: {report:?}");
+    }
+}

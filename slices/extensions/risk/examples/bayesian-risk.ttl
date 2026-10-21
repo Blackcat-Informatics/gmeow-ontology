@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix m: <https://blackcatinformatics.ca/math/> .
+@prefix l: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/risk/bayesian/> .
+
+# A recorded Bayesian predictive result, not a request to compute an update.
+ex:assessment a g:RiskLikelihoodAssessment ; g:observedFeature ex:hazard ;
+    g:vantage ex:analyst ; g:observationResult ex:predictiveProbability .
+ex:hazard a g:Hazard ; g:hazardBearer ex:system ; g:manifestedAsType ex:failureType .
+ex:system a g:PhysicalObject . ex:failureType a g:EventType . ex:analyst a g:Organization .
+ex:predictiveProbability a m:ProbabilityValue, m:RationalValue ; m:hasDimension m:dimensionless ;
+    m:isExact true ; m:numerator 1 ; m:denominator 3 ; l:probabilityModel ex:predictiveModel ;
+    g:wasDerivedFrom ex:posterior .
+ex:predictiveModel a l:ProbabilityModel .
+ex:failureOutcomes a m:ProbabilityEvent ; m:probabilityOfEvent ex:predictiveProbability ;
+    m:eventInSpace ex:space .
+ex:space a m:ProbabilitySpace ; m:sampleSpace ex:outcomes ;
+    m:eventSigmaAlgebra ex:algebra ; m:probabilityMeasure ex:measure .
+ex:outcomes a m:SampleSpace . ex:algebra a m:SigmaAlgebra .
+ex:measure a m:ProbabilityMeasure ; m:totalMass 1 ; m:measureOn ex:space .
+# Prior and posterior concern an uncertain failure-rate parameter, rather than
+# two interchangeable scalar probabilities or levels of epistemic confidence.
+ex:prior a m:PriorDistribution ; m:distributionFamily ex:betaFamily .
+ex:likelihood a m:LikelihoodFunction ; g:wasDerivedFrom ex:observedData .
+ex:observedData a g:Dataset .
+ex:posterior a m:PosteriorDistribution ; m:distributionFamily ex:betaFamily ;
+    m:hasPrior ex:prior ; m:hasLikelihood ex:likelihood .
+ex:betaFamily a m:DistributionFamily .

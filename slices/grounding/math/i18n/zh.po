@@ -3168,3 +3168,31 @@ msgstr "将 ProjectionRecord 或 ProjectionRequest 关联到其具名规范数�
 msgctxt "https://blackcatinformatics.ca/math/projectionTargetName|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Names the external target of a mathematical projection record or request. Records identify the addressee of the preservation judgment. Requests select exactly one supported codec name: mathml, openmath, data-cube, stato or qudt; an unknown selected codec fails rather than producing a substitute artifact."
 msgstr "指定数学投影记录或请求的外部目标。记录标识保留性判断所针对的使用者。请求恰好选择一个受支持的编解码器名称：mathml、openmath、data-cube、stato 或 qudt；选择未知编解码器必须失败，不能生成替代产物。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|rdfs:label"
+msgid "Rational probability range constraint"
+msgstr "有理概率范围约束"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:definition"
+msgid "A canonical closed-unit-interval check for an exact math:ProbabilityValue co-typed math:RationalValue. Integer numerator and non-zero integer denominator are compared by sign without division, decimal approximation or a bounded machine-integer conversion. The rational owner separately enforces the pair and its datatypes."
+msgstr "对同时定型为 math:RationalValue 的精确 math:ProbabilityValue 执行规范闭单位区间检查。按符号比较整数分子及非零整数分母，不做除法、十进制近似或有界机器整数转换。有理数所有者另行验证数对及其数据类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|gmeow:useWhen"
+msgid "Validate exact rational probabilities while retaining their numerator and denominator representation."
+msgstr "用于验证精确有理概率并保留其分子和分母表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|gmeow:avoidWhen"
+msgid "Do not round an exact probability into a decimal or apply probability bounds to arbitrary solver weights."
+msgstr "不要将精确概率舍入成小数，也不要对任意求解器权重施加概率界限。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|gmeow:howToUse"
+msgid "Co-type the value as math:ProbabilityValue and math:RationalValue. Supply integer numerator and denominator; a positive denominator requires zero through denominator inclusive for the numerator, and a negative denominator reverses the inequalities."
+msgstr "将值同时定型为 math:ProbabilityValue 和 math:RationalValue，提供整数分子及分母。分母为正时，分子位于零和分母之间且含端点；分母为负时不等式反向。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:scopeNote"
+msgid "Both denominator signs are legal. The existing RationalValue owner rejects zero denominators and incomplete or mistyped pairs. This law supplies the same exact bounds to native marker and generated validation projections."
+msgstr "分母可正可负。现有 RationalValue 所有者拒绝零分母及不完整或类型错误的数对。本定律为原生标记和生成的验证投影提供相同精确界限。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:example"
+msgid "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."
+msgstr "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."

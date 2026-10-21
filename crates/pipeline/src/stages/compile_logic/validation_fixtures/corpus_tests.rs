@@ -10,6 +10,7 @@ mod diagnostics_migration;
 mod disclosure_decisions;
 mod procedural_constraints;
 mod quality_assessments;
+mod risk_grounding;
 mod shape_migration_equivalence;
 mod substrate_reconciliation;
 

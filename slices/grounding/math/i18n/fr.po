@@ -3168,3 +3168,31 @@ msgstr "Relie un ProjectionRecord ou un ProjectionRequest à sa source mathémat
 msgctxt "https://blackcatinformatics.ca/math/projectionTargetName|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Names the external target of a mathematical projection record or request. Records identify the addressee of the preservation judgment. Requests select exactly one supported codec name: mathml, openmath, data-cube, stato or qudt; an unknown selected codec fails rather than producing a substitute artifact."
 msgstr "Nomme la cible externe d’un relevé ou d’une demande de projection mathématique. Les relevés identifient le destinataire du jugement de préservation. Les demandes choisissent exactement un codec pris en charge : mathml, openmath, data-cube, stato ou qudt ; un codec sélectionné inconnu provoque un échec plutôt qu’un artefact de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|rdfs:label"
+msgid "Rational probability range constraint"
+msgstr "Contrainte d’intervalle des probabilités rationnelles"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:definition"
+msgid "A canonical closed-unit-interval check for an exact math:ProbabilityValue co-typed math:RationalValue. Integer numerator and non-zero integer denominator are compared by sign without division, decimal approximation or a bounded machine-integer conversion. The rational owner separately enforces the pair and its datatypes."
+msgstr "Un contrôle canonique de l’intervalle fermé [0,1] pour une math:ProbabilityValue exacte également typée math:RationalValue. Le numérateur entier et le dénominateur entier non nul sont comparés selon leur signe, sans division, approximation décimale ni conversion en entier machine borné. Le propriétaire rationnel vérifie séparément la paire et ses types."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|gmeow:useWhen"
+msgid "Validate exact rational probabilities while retaining their numerator and denominator representation."
+msgstr "Valider les probabilités rationnelles exactes en conservant leur numérateur et leur dénominateur."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|gmeow:avoidWhen"
+msgid "Do not round an exact probability into a decimal or apply probability bounds to arbitrary solver weights."
+msgstr "Ne pas arrondir une probabilité exacte en décimal ni borner des poids arbitraires comme des probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|gmeow:howToUse"
+msgid "Co-type the value as math:ProbabilityValue and math:RationalValue. Supply integer numerator and denominator; a positive denominator requires zero through denominator inclusive for the numerator, and a negative denominator reverses the inequalities."
+msgstr "Typer la valeur math:ProbabilityValue et math:RationalValue. Fournir numérateur et dénominateur entiers ; avec un dénominateur positif, le numérateur est compris entre zéro et le dénominateur inclus, et un dénominateur négatif inverse les inégalités."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:scopeNote"
+msgid "Both denominator signs are legal. The existing RationalValue owner rejects zero denominators and incomplete or mistyped pairs. This law supplies the same exact bounds to native marker and generated validation projections."
+msgstr "Les deux signes du dénominateur sont autorisés. Le propriétaire RationalValue rejette dénominateurs nuls et paires incomplètes ou mal typées. Cette loi fournit les mêmes bornes exactes aux marqueurs natifs et aux projections de validation générées."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalProbabilityRangeConstraint|skos:example"
+msgid "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."
+msgstr "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."

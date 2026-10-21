@@ -1436,3 +1436,13 @@ ASK {
     math:RecoveryLossContract logic:subClassOf math:MathematicalObject .
 }""" ;
     gmeow:saRationale "The vector-symbolic coverage family MUST keep binding, bundling, and unbinding specializations of math:VectorSymbolicOperation (itself an operation), and keep the capacity descriptor and the recovery-loss (fidelity) contract first-class mathematical objects. These canonical logic:subClassOf edges prevent the capacity/recovery frame from collapsing into a bare similarity-score token and exercise the exact semantic edges the completeness restrictions and the reusable-frame competency query rely on — recovery being approximate unless an exact algebra proves otherwise." .
+
+ex:saExactRationalProbabilityHasCanonicalBounds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+ASK { m:RationalProbabilityRangeConstraint a l:Constraint ;
+  l:formalizes m:ProbabilityValue ; g:enforcesFailureClass m:ProbabilityOutOfBounds ;
+  l:integrity ?law . ?law l:forall ?body . }""" ;
+    gmeow:saRationale "Exact probability bounds have one mathematical law shared by native marker and generated validation owners; no decimal approximation substitutes for a rational pair." .

@@ -208,3 +208,143 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:CausalLink and nothing else. It is not a definition of gmeow:CausalLink (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:CausalLink, et rien d'autre. Ce n'est pas une définition de gmeow:CausalLink (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|rdfs:label"
+msgid "link strength"
+msgstr "force du lien"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|skos:definition"
+msgid "A dimensioned solver-input weight for a causal link. The math:Quantity carries its numeric or exact rational value, dimension and declared analysis interpretation through gmeow:hasReferenceFrame. The consuming analysis defines the scale; weights outside the unit interval remain valid. A weight is neither a probability nor epistemic confidence, and solver outputs are never written back as asserted input weights."
+msgstr "Un lien causal est pondéré par une math:Quantity avec valeur numérique, dimension et cadre déclarant l’interprétation de l’analyse. Les poids hors de [0,1] restent valides ; ils ne sont ni probabilité ni confiance épistémique. Aucun résultat du solveur ne devient un poids d’entrée affirmé. Les valeurs exactes sont aussi des math:RationalValue avec math:isExact true, numérateur entier et dénominateur entier non nul, sans approximation décimale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|gmeow:useWhen"
+msgid "Use when an analysis consumes a numerically weighted causal link."
+msgstr "Utiliser lorsqu’une analyse consomme un lien causal pondéré numériquement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|gmeow:avoidWhen"
+msgid "Do not use a literal weight, interpret the weight as probability, or replace categorical causal modality and severity with a number."
+msgstr "Ne pas utiliser de poids littéral, le lire comme probabilité ou remplacer modalité et gravité catégorielles par un nombre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|gmeow:howToUse"
+msgid "Point to a math:Quantity with math:hasDimension and a typed gmeow:ReferenceFrame declaring the analysis scale. Supply finite math:quantityValue magnitudes or co-type it math:RationalValue with math:isExact true and integer numerator and non-zero denominator. Omit linkStrength when no numerical weight is asserted."
+msgstr "Relier une math:Quantity munie de math:quantityValue, math:hasDimension et d’un gmeow:ReferenceFrame typé déclarant l’échelle. Omettre linkStrength en l’absence de poids numérique. Les valeurs exactes sont aussi des math:RationalValue avec math:isExact true, numérateur entier et dénominateur entier non nul, sans approximation décimale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|skos:scopeNote"
+msgid "The property remains optional and non-functional; divergent source-bound weights coexist through the statement layer."
+msgstr "La propriété reste facultative et non fonctionnelle ; les poids divergents liés à leur source coexistent dans la couche des énoncés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|skos:example"
+msgid "ex:link gmeow:linkStrength ex:weight . ex:weight a math:Quantity ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:analysisScale ."
+msgstr "ex:link gmeow:linkStrength ex:weight . ex:weight a math:Quantity ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:analysisScale ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|rdfs:label"
+msgid "Risk Likelihood Assessment"
+msgstr "Évaluation de la probabilité du risque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|skos:definition"
+msgid "A held assessment of modeled risk occurrence probability. Its results are math:ProbabilityValue objects, each naming a typed probability model and a probability event in a probability space. It does not assert an occurrence, reinterpret a causal weight or collapse epistemic confidence into probability."
+msgstr "Une observation située évaluant la probabilité modélisée de survenue d’un risque. Chaque résultat math:ProbabilityValue nomme un modèle de probabilité typé et un événement probabiliste dans un espace probabiliste. Elle n’affirme aucune occurrence et ne convertit ni poids causal ni confiance en probabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|gmeow:useWhen"
+msgid "Use for a model-bound likelihood of feared outcomes, including a numeric risk score only when that score denotes a calibrated occurrence probability."
+msgstr "Utiliser pour une probabilité modélisée d’issues redoutées ; un score numérique convient seulement s’il désigne une probabilité calibrée de survenue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|gmeow:avoidWhen"
+msgid "Do not use for ordinal severity, arbitrary solver weights, odds, log odds or an unsupported confidence-to-probability conversion."
+msgstr "Ne pas utiliser pour gravité ordinale, poids arbitraires, cotes, log-cotes ou conversion non justifiée de confiance en probabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|gmeow:howToUse"
+msgid "Use observedFeature for the risk factor or cascade, observationResult for each modeled probability, probabilityOfEvent from its mathematical event, and eventInSpace for the event context."
+msgstr "Utiliser observedFeature pour le risque ou la cascade, observationResult pour chaque probabilité, probabilityOfEvent depuis son événement mathématique et eventInSpace pour son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|skos:scopeNote"
+msgid "Bayesian risk analyses retain explicit prior, likelihood and posterior artifacts; other probability models do not become Bayesian by default."
+msgstr "Une analyse bayésienne conserve explicitement a priori, vraisemblance et a posteriori ; les autres modèles ne deviennent pas bayésiens par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|skos:example"
+msgid "ex:assessment a gmeow:RiskLikelihoodAssessment ; gmeow:observationResult ex:p . ex:event math:probabilityOfEvent ex:p ."
+msgstr "ex:assessment a gmeow:RiskLikelihoodAssessment ; gmeow:observationResult ex:p . ex:event math:probabilityOfEvent ex:p ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|rdfs:label"
+msgid "Link strength quantity constraint"
+msgstr "Contrainte de quantité du poids causal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|skos:definition"
+msgid "Every asserted causal weight is a dimensioned quantity with finite numeric or exact rational magnitudes and a typed analysis reference frame."
+msgstr "Chaque poids causal affirmé est une quantité dimensionnée ayant des valeurs numériques finies et un cadre d’analyse typé. Les valeurs exactes sont aussi des math:RationalValue avec math:isExact true, numérateur entier et dénominateur entier non nul, sans approximation décimale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|gmeow:useWhen"
+msgid "Validate asserted numerical causal weights."
+msgstr "Valider les poids causaux numériques affirmés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|gmeow:avoidWhen"
+msgid "Do not require a weight on an unweighted causal link."
+msgstr "Ne pas exiger de poids pour un lien causal non pondéré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|gmeow:howToUse"
+msgid "Supply a quantity and declared analysis scale for every linkStrength value."
+msgstr "Fournir une quantité et une échelle d’analyse déclarée pour chaque valeur linkStrength."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|skos:scopeNote"
+msgid "No unit-interval bound or probability interpretation is imposed. An exact rational carrier has one boolean true exactness flag and no parallel quantityValue."
+msgstr "Aucune borne unitaire ni interprétation probabiliste n’est imposée. Un support rationnel exact porte un unique indicateur booléen true et aucune quantityValue décimale parallèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|skos:example"
+msgid "ex:link gmeow:linkStrength ex:weight ."
+msgstr "ex:link gmeow:linkStrength ex:weight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|rdfs:label"
+msgid "Risk likelihood results constraint"
+msgstr "Contrainte des résultats de probabilité du risque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|skos:definition"
+msgid "Every reported risk probability has finite numeric or exact rational magnitudes, typed probability models and at least one typed probability event context."
+msgstr "Chaque probabilité de risque rapportée possède des valeurs numériques finies, des modèles probabilistes typés et au moins un contexte événementiel probabiliste typé. Les valeurs exactes sont aussi des math:RationalValue avec math:isExact true, numérateur entier et dénominateur entier non nul, sans approximation décimale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|gmeow:useWhen"
+msgid "Validate every reported model-bound risk probability."
+msgstr "Valider chaque probabilité de risque rapportée sous un modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|gmeow:avoidWhen"
+msgid "Do not apply this probability contract to causal weights or categorical severity."
+msgstr "Ne pas appliquer ce contrat aux poids causaux ou à la gravité catégorielle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|gmeow:howToUse"
+msgid "Declare each probability model and the event assigned the reported probability."
+msgstr "Déclarer chaque modèle probabiliste et l’événement auquel la probabilité rapportée est attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|skos:scopeNote"
+msgid "Every supplied model must be typed; neighboring probabilities cannot supply missing context. An exact rational carrier has one boolean true exactness flag and no parallel quantityValue."
+msgstr "Chaque modèle fourni doit être typé ; des probabilités voisines ne suppléent pas un contexte absent. Un support rationnel exact porte un unique indicateur booléen true et aucune quantityValue décimale parallèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|skos:example"
+msgid "ex:p logic:probabilityModel ex:model . ex:event math:probabilityOfEvent ex:p ."
+msgstr "ex:p logic:probabilityModel ex:model . ex:event math:probabilityOfEvent ex:p ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|rdfs:label"
+msgid "Risk probability event context constraint"
+msgstr "Contrainte du contexte événementiel probabiliste du risque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|skos:definition"
+msgid "Every event assigning a reported risk probability is a mathematical probability event with a typed probability space."
+msgstr "Chaque événement attribuant une probabilité de risque rapportée est un événement probabiliste mathématique doté d’un espace probabiliste typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|gmeow:useWhen"
+msgid "Validate the event context of a reported risk likelihood."
+msgstr "Valider le contexte événementiel d’une probabilité de risque rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|gmeow:avoidWhen"
+msgid "Do not equate a mathematical event set with an event occurrence or event type."
+msgstr "Ne pas confondre un ensemble mathématique d’issues avec une occurrence ou un type d’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|gmeow:howToUse"
+msgid "Link each probability event to its probability space through math:eventInSpace."
+msgstr "Relier chaque événement probabiliste à son espace par math:eventInSpace."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|skos:scopeNote"
+msgid "The imported mathematical owner validates complete sample space, sigma algebra and measure structure."
+msgstr "Le propriétaire mathématique importé valide la complétude de l’espace d’échantillonnage, de la tribu et de la mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|skos:example"
+msgid "ex:event a math:ProbabilityEvent ; math:eventInSpace ex:space ."
+msgstr "ex:event a math:ProbabilityEvent ; math:eventInSpace ex:space ."

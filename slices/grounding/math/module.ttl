@@ -16545,3 +16545,34 @@ math:ProjectionRequest
 
 [ a logic:ClosureEntry ; logic:onClass math:ProjectionRequest ; logic:closureKey "https://blackcatinformatics.ca/math/projectionSource" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass math:ProjectionRequest ; logic:closureKey "https://blackcatinformatics.ca/math/projectionTargetName" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Exactness metadata is optional, boolean and single-valued on a rational carrier.
+# Scoped consumers may require true; absent metadata does not invent a value.
+math:RationalValue logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:isExact ; logic:allValuesFrom xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty math:isExact ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] .
+
+# Exact probability bounds preserve the rational carrier, including signed denominators.
+math:RationalProbabilityRangeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Rational probability range constraint"@x-gmeow-english ;
+    skos:definition "A canonical closed-unit-interval check for an exact math:ProbabilityValue co-typed math:RationalValue. Integer numerator and non-zero integer denominator are compared by sign without division, decimal approximation or a bounded machine-integer conversion. The rational owner separately enforces the pair and its datatypes."@x-gmeow-english ;
+    gmeow:useWhen "Validate exact rational probabilities while retaining their numerator and denominator representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not round an exact probability into a decimal or apply probability bounds to arbitrary solver weights."@x-gmeow-english ;
+    gmeow:howToUse "Co-type the value as math:ProbabilityValue and math:RationalValue. Supply integer numerator and denominator; a positive denominator requires zero through denominator inclusive for the numerator, and a negative denominator reverses the inequalities."@x-gmeow-english ;
+    skos:scopeNote "Both denominator signs are legal. The existing RationalValue owner rejects zero denominators and incomplete or mistyped pairs. This law supplies the same exact bounds to native marker and generated validation projections."@x-gmeow-english ;
+    skos:example "ex:p a math:ProbabilityValue, math:RationalValue ; math:numerator -1 ; math:denominator -3 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:ProbabilityOutOfBounds ;
+    logic:formalizes math:ProbabilityValue ;
+    logic:message "An exact rational probability must lie in the closed unit interval, retaining either sign of non-zero denominator." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "numerator" ], [ logic:termIndex 2 ; logic:termVariable "denominator" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri math:ProbabilityValue ] ],
+        [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri math:RationalValue ] ],
+        [ a logic:Formula ; logic:relation math:numerator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "numerator" ] ],
+        [ a logic:Formula ; logic:relation math:denominator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "denominator" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "denominator" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ],
+        [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ],
+        [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ], [ logic:termIndex 1 ; logic:termVariable "denominator" ] ] ],
+        [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "denominator" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ],
+        [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ],
+        [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ], [ logic:termIndex 1 ; logic:termVariable "denominator" ] ] ] ] ] ] .

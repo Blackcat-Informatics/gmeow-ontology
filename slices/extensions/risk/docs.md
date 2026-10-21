@@ -74,7 +74,11 @@ The reified type-level causal claim — antecedent kind × consequent kind × mo
 with optional mechanism prose and solver-input strength. `linkAntecedent` and
 `linkConsequent` (both functional, mandatory, and distinct — nothing type-causes
 itself) carry the kinds; `linkMechanism` the localizable how-prose; `linkStrength` a
-solver-INPUT weight, never an output written back as assertion (P12).
+solver-input `math:Quantity`, never an output written back as assertion (Principle 12).
+The quantity names its dimension, finite numeric magnitude and an analysis reference
+frame declaring the interpretation of the scale. Weights need not lie in the unit
+interval: a weight of 2.5 is valid on a declared scale. An unweighted causal link
+remains legal. Literal weights are rejected; there is one mathematical quantity owner.
 
 ### gmeow:CausalModality · gmeow:causalModality
 
@@ -115,3 +119,47 @@ active, retired; retirement is suppression-shaped (kept with its status, never
 deleted, P10). `mitigationStatus` is non-functional: status-over-time rides
 `validFrom`/`validUntil` on the statement, single-valuedness per base graph is SHACL's
 job.
+
+## Modeled risk likelihoods
+
+A `RiskLikelihoodAssessment` is an ordinary held `Observation` about a risk factor
+or cascade. It requires an `observedFeature` and at least one `observationResult`
+typed `math:ProbabilityValue`. Every reported result has finite numeric magnitudes,
+a typed `logic:ProbabilityModel`, and a `math:ProbabilityEvent` assigning the
+value through `math:probabilityOfEvent`. Each such event names a typed
+`math:ProbabilitySpace` through `math:eventInSpace`; the mathematics owner checks
+its sample space, sigma algebra and measure. Its probability lies in [0,1] and
+is dimensionless. A reference frame alone cannot substitute for the required model.
+
+A probability event is a set of modeled outcomes, never an actual occurrence.
+Recording the likelihood of a hazard does not entail that its feared event
+happened. Multiple model-bound results and competing assessments coexist.
+Ordinal severity, causal modality, solver weights and epistemic confidence keep
+their distinct meanings; none implies a probability value or supplies a model.
+An arbitrary numeric risk score uses the declared-scale quantity contract; the
+likelihood contract applies only when the score denotes an occurrence probability.
+
+Bayesian analyses retain `math:PriorDistribution`, `math:LikelihoodFunction` and
+`math:PosteriorDistribution` with explicit `math:hasPrior` and `math:hasLikelihood`
+links. A prior is a distribution over parameters before data; a posterior is
+the updated distribution, rather than another name for a confidence number.
+Other risk probability models do not acquire a Bayesian interpretation.
+See [bayesian-risk.ttl](examples/bayesian-risk.ttl) for a recorded predictive result
+with prior, likelihood, data and posterior provenance.
+See [modeled-risk.ttl](examples/modeled-risk.ttl) for separate categorical,
+weighted and probability-bearing records. Computing propagation and Bayesian
+updates remains solver work; these records do not run a parallel evaluator.
+
+### Exact values remain exact
+
+Weights and risk probabilities can co-type their quantity as `math:RationalValue`,
+with `math:isExact true`, integer `math:numerator` and non-zero integer
+`math:denominator`. A probability of 1/3 requires no decimal approximation.
+The imported rational shape checks the pair, integer datatypes and non-zero
+denominator. The mathematical rational-probability law compares integer numerator and
+denominator by sign to check [0,1] exactly. Its generated procedural projection
+checks the pair without division or a bounded integer conversion; decimal
+value-range facets alone do not establish this bound. An exact rational carrier
+supplies no parallel decimal magnitude; mixed carriers are rejected. The exactness
+flag is a single boolean true, so an additional false or mistyped flag cannot hide
+behind a valid true flag.
