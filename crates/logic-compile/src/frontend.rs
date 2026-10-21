@@ -3901,8 +3901,9 @@ pub fn functional_properties_missing_logic_carrier(
 /// current corpus and commit it alongside the carrier change. The set is exactly the
 /// `logic:characterizes` targets of the `logic:functionalProperty`-sort
 /// `logic:PropertyCharacteristicAssertion` records over the merged authored corpus (see
-/// [`functional_carrier_property_iris`]); the pinning test `functional_carrier_ledger_matches_corpus`
-/// (in `crates/pipeline/tests`) prints the exact expected body on a mismatch.
+/// [`functional_carrier_property_iris`]). The pipeline's `compile_logic` stage checks that merged
+/// corpus with [`functional_carrier_integrity`] and reports each missing or unexpected property
+/// on a mismatch.
 const FUNCTIONAL_CARRIER_LEDGER: &str = include_str!("frontend/functional_carrier_ledger.txt");
 
 /// Parse [`FUNCTIONAL_CARRIER_LEDGER`] into its sorted IRI set (ignoring `#` comments / blanks).

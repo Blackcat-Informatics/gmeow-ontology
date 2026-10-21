@@ -9,9 +9,10 @@
 # This file is NEVER auto-updated — it is a deliberate re-bless, exactly like the
 # `dl_oracle_gold` frozen verdicts and the `reasoning_session_semver` drift-pins.
 # To re-bless after an INTENTIONAL carrier add/remove: regenerate the body from the
-# current corpus (the sorted `frontend::functional_carrier_property_iris` set — the
-# `functional_carrier_ledger_matches_corpus` pinning test prints the exact expected
-# body on a mismatch) and commit it in the SAME change that moves the carrier.
+# current corpus (the sorted `frontend::functional_carrier_property_iris` set) and
+# commit it in the SAME change that moves the carrier. The pipeline's
+# `compile_logic` stage checks the merged corpus with `functional_carrier_integrity`
+# and reports each missing or unexpected property on a mismatch.
 #
 # Lines beginning with `#` and blank lines are ignored.
 https://blackcatinformatics.ca/gmeow/acceptanceStatus
@@ -400,7 +401,6 @@ https://blackcatinformatics.ca/gmeow/modelIdentifier
 https://blackcatinformatics.ca/gmeow/modelRevision
 https://blackcatinformatics.ca/gmeow/modulationFromFrame
 https://blackcatinformatics.ca/gmeow/modulationToFrame
-https://blackcatinformatics.ca/gmeow/monetaryValue
 https://blackcatinformatics.ca/gmeow/mythFrame
 https://blackcatinformatics.ca/gmeow/nameLanguage
 https://blackcatinformatics.ca/gmeow/namePartType
