@@ -1,0 +1,20 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Parent: #1717. Blocks: #1717. This is one complete cluster from the original quantitative-grounding contract; the parent remains open until every remaining cluster and its production acceptance are complete.\n\n## Scope and acceptance\n\nAudit evidence/trust strength and confidence consumers. Keep epistemic confidence on the canonical logic:/claim-confidence surface; probabilistic claims require a math: probability model. Preserve Principle 19 probability-versus-confidence and standpoint/source separation, categorical trust and authority as distinct concepts. Reuse existing grounded claim/observation owners instead of manufacturing numeric properties. Where inherently quantitative claims exist, connect real math artifacts, matching manifest dependencies and guarded retirement of superseded scalar paths. Exercise actual consumers with positive and negative confidence/probability/model controls and full required gates. Distinguish already complete inherited grounding from missing semantic links with evidence.\n\nPrinciples 4, 7, 9, 11, 17 and 19 govern this delivery. No requirement is waived by this decomposition. External repository implementation or model/service lifecycle actions require separate authorization.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-21T02:36:45Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1896,
+  "state": "OPEN",
+  "title": "Ground evidence and trust strengths without conflating confidence and probability",
+  "updatedAt": "2026-10-21T02:36:45Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1896"
+}

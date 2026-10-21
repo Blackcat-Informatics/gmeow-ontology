@@ -1,0 +1,5 @@
+feat: ground OpenPGP introducer weights in mathematical quantities
+
+Preserve the protocol integer scale and explicit scalar frame through the shared quantity owner. Retire the bare introducer amount, preserve categorical trust/depth/confidence distinctions and keep probability values separate.
+
+Principles 4, 7, 9, 11, 17 and 19.

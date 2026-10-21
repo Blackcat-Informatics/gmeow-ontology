@@ -1,0 +1,7 @@
+# Trust review dispositions
+
+Independent review inspected the actual amount callers, canonical contract, frame owner, scalar retirement and consumer boundaries. It found incomplete ReferenceFrame data and a probability distinction tested only by out-of-range120. Both were repaired: full scalar profile and actual places owner products; explicit narrow disjointness with zero/one negative controls and a separate-object positive. Root read back the final source and scoped dependency graph.
+
+TrustAssertion is a Relator; no Observation presence requirements were invented. The protocol scalar remains optional and functional. The integer depth policy and categorical trust levels are unchanged. No implemented propagation solver was found, and this source change claims no propagation capability.
+
+Six selected existing synthetic/native checks passed. They establish the reused mechanisms and confidence distinction, not actual authored-module runtime. Final strict producer-independent Clippy and signed commit hook passed exit0; normal signed push hook passed exit0. PR1900 is open. Current complete captures contain 0 submitted reviews, 0 inline comments and 0 threads. Bot processing remains informational; no approval is inferred and any later substantive feedback remains work. Actual corpus and shipped acceptance remains unrun under the explicit current exception; no issue closure is requested.
