@@ -1,0 +1,6 @@
+Source: gh pr view1924 statusCheckRollup (pr-state.json)
+IN_PROGRESS producer-build
+SUCCESS helpers
+SUCCESS lint
+IN_PROGRESS rust-prebuild
+state: pending; recorded sequential merge ignoring CI exception applies.

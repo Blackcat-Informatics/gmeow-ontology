@@ -1,0 +1,3 @@
+The i18n lint diagnostic identity writer is migrated in PR #1924. It now uses native JSON for the compact `[rule,[subjects...]]` tuple, preserving string escapes, subject order/empty inputs and the surrounding diagnostic context. Four focused controls passed, along with strict producer-independent Clippy, helpers, source admission, formatting and normal hooks; independent review found no actionable issue.
+
+This completes one source family. Repository i18n lint, produced catalog parity, installed/full-consumer validation and the rest of this issue remain open under the recorded campaign exception. Other docs-model Serde owners are unchanged. Principles 4 and 7.
