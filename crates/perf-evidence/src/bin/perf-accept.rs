@@ -9,6 +9,7 @@
 //! correctness never depends on runner speed or a historical speedup claim.
 
 use gmeow_perf_evidence::{PerfResult, write_json_atomic};
+use purrdf_lex::json::{self, Object, Value, record::ToJson as _};
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -43,7 +44,7 @@ struct Args {
 #[derive(Debug, Clone)]
 struct Sample {
     path: PathBuf,
-    value: serde_json::Value,
+    value: Value,
     command: String,
     pair_id: String,
     variant: String,
@@ -300,23 +301,32 @@ fn run(args: Args) -> PerfResult<bool> {
                 );
                 counters.insert(
                     counter.clone(),
-                    serde_json::json!({
-                        "baseline_median": baseline,
-                        "candidate_median": candidate,
-                        "reduction": baseline - candidate,
-                    }),
+                    Value::from(
+                        Object::new()
+                            .with("baseline_median", baseline.to_json())
+                            .with("candidate_median", candidate.to_json())
+                            .with("reduction", (baseline - candidate).to_json()),
+                    ),
                 );
             }
-            summaries.push(serde_json::json!({
-                "node_class": node,
-                "cache_state": cache,
-                "pair_count": pairs.len(),
-                "baseline_median_wall_ms": baseline_median,
-                "candidate_median_wall_ms": candidate_median,
-                "speedup": speedup,
-                "work_counters": counters,
-                "pairs": pairs.iter().map(pair_json).collect::<Vec<_>>(),
-            }));
+            summaries.push(Value::from(
+                Object::new()
+                    .with("node_class", node.to_json())
+                    .with("cache_state", cache.to_json())
+                    .with("pair_count", (pairs.len()).to_json())
+                    .with("baseline_median_wall_ms", baseline_median.to_json())
+                    .with("candidate_median_wall_ms", candidate_median.to_json())
+                    .with("speedup", speedup.to_json())
+                    .with("work_counters", counters.to_json())
+                    .with(
+                        "pairs",
+                        (pairs
+                            .iter()
+                            .map(pair_json)
+                            .collect::<PerfResult<Vec<_>>>()?)
+                        .to_json(),
+                    ),
+            ));
         }
     }
 
@@ -328,7 +338,7 @@ fn run(args: Args) -> PerfResult<bool> {
     let slow_speedup = number(slow_headline, "/speedup")?;
     let reduced_counter = slow_headline
         .pointer("/work_counters")
-        .and_then(serde_json::Value::as_object)
+        .and_then(Value::as_object)
         .is_some_and(|counters| {
             counters
                 .values()
@@ -350,29 +360,50 @@ fn run(args: Args) -> PerfResult<bool> {
     );
 
     let accepted = failures.is_empty();
-    let report = serde_json::json!({
-        "schema_version": SCHEMA_VERSION,
-        "command": "perf-accept",
-        "accepted": accepted,
-        "timing_targets_declared": args.slow_speedup_target.is_some()
-            || args.comparison_regression_limit_pct.is_some(),
-        "headline_work_counter_reduced": reduced_counter,
-        "contract": {
-            "slow_node_class": args.slow_node_class,
-            "comparison_node_class": args.comparison_node_class,
-            "headline_cache_state": args.headline_cache_state,
-            "required_cache_states": args.required_cache_states,
-            "minimum_complete_pairs": args.min_pairs,
-            "slow_speedup_target": args.slow_speedup_target,
-            "comparison_regression_limit_pct": args.comparison_regression_limit_pct,
-            "semantic_identities": args.semantic_identities,
-            "proof_inventories": args.proof_inventories,
-            "work_counters": args.work_counters,
-        },
-        "comparison_regression_pct": comparison_regression_pct,
-        "failures": failures,
-        "groups": summaries,
-    });
+    let report = Value::from(
+        Object::new()
+            .with("schema_version", SCHEMA_VERSION.to_json())
+            .with("command", "perf-accept".to_json())
+            .with("accepted", accepted.to_json())
+            .with(
+                "timing_targets_declared",
+                (args.slow_speedup_target.is_some()
+                    || args.comparison_regression_limit_pct.is_some())
+                .to_json(),
+            )
+            .with("headline_work_counter_reduced", reduced_counter.to_json())
+            .with(
+                "contract",
+                Value::from(
+                    Object::new()
+                        .with("slow_node_class", args.slow_node_class.to_json())
+                        .with(
+                            "comparison_node_class",
+                            args.comparison_node_class.to_json(),
+                        )
+                        .with("headline_cache_state", args.headline_cache_state.to_json())
+                        .with(
+                            "required_cache_states",
+                            args.required_cache_states.to_json(),
+                        )
+                        .with("minimum_complete_pairs", args.min_pairs.to_json())
+                        .with("slow_speedup_target", args.slow_speedup_target.to_json())
+                        .with(
+                            "comparison_regression_limit_pct",
+                            args.comparison_regression_limit_pct.to_json(),
+                        )
+                        .with("semantic_identities", args.semantic_identities.to_json())
+                        .with("proof_inventories", args.proof_inventories.to_json())
+                        .with("work_counters", args.work_counters.to_json()),
+                ),
+            )
+            .with(
+                "comparison_regression_pct",
+                comparison_regression_pct.to_json(),
+            )
+            .with("failures", failures.to_json())
+            .with("groups", summaries.to_json()),
+    );
     write_json_atomic(&args.output, &report)?;
     println!("{}", args.output.display());
     Ok(accepted)
@@ -404,21 +435,23 @@ fn timing_failures(
 
 fn read_sample(path: &Path, counters: &[(String, String)]) -> PerfResult<Sample> {
     let bytes = fs::read(path).map_err(|error| format!("read {}: {error}", path.display()))?;
-    let value: serde_json::Value = serde_json::from_slice(&bytes)
+    decode_sample(path, &bytes, counters)
+}
+
+fn decode_sample(path: &Path, bytes: &[u8], counters: &[(String, String)]) -> PerfResult<Sample> {
+    let value = json::record::read_document(bytes)
         .map_err(|error| format!("parse {}: {error}", path.display()))?;
-    let schema = value
-        .pointer("/schema_version")
-        .and_then(serde_json::Value::as_u64);
+    let schema = value.pointer("/schema_version").and_then(Value::as_u64);
     let command = value
         .pointer("/command")
-        .and_then(serde_json::Value::as_str)
+        .and_then(Value::as_str)
         .ok_or_else(|| format!("{} lacks a command", path.display()))?
         .to_string();
     let wall_pointer = match (schema, command.as_str()) {
         (Some(2), "perf-sample") => {
             if value
                 .pointer("/observations/exit/success")
-                .and_then(serde_json::Value::as_bool)
+                .and_then(Value::as_bool)
                 != Some(true)
             {
                 return Err(format!("{} measured a failed command", path.display()).into());
@@ -428,7 +461,7 @@ fn read_sample(path: &Path, counters: &[(String, String)]) -> PerfResult<Sample>
         (Some(2) | Some(3), "ci-run-receipt") => {
             if value
                 .pointer("/observations/conclusion")
-                .and_then(serde_json::Value::as_str)
+                .and_then(Value::as_str)
                 != Some("success")
             {
                 return Err(format!("{} records an unsuccessful CI run", path.display()).into());
@@ -454,7 +487,7 @@ fn read_sample(path: &Path, counters: &[(String, String)]) -> PerfResult<Sample>
     let text = |pointer: &str| -> PerfResult<String> {
         Ok(value
             .pointer(pointer)
-            .and_then(serde_json::Value::as_str)
+            .and_then(Value::as_str)
             .map(ToString::to_string)
             .ok_or_else(|| format!("{} lacks string {pointer}", path.display()))?)
     };
@@ -467,7 +500,7 @@ fn read_sample(path: &Path, counters: &[(String, String)]) -> PerfResult<Sample>
     validate_cache_protocol(&value, &cache_state, path)?;
     let sample_index = value
         .pointer("/sample_identity/sample_index")
-        .and_then(serde_json::Value::as_u64)
+        .and_then(Value::as_u64)
         .ok_or_else(|| format!("{} lacks sample index", path.display()))?;
     let wall_ms = number(&value, wall_pointer)?;
     if wall_ms == 0.0 {
@@ -543,11 +576,7 @@ fn verify_pair(
     Ok(())
 }
 
-fn validate_cache_protocol(
-    value: &serde_json::Value,
-    cache_state: &str,
-    path: &Path,
-) -> PerfResult<()> {
+fn validate_cache_protocol(value: &Value, cache_state: &str, path: &Path) -> PerfResult<()> {
     let classes = cache_classes(value, path)?;
     let (witness, allowed): (&str, &[&str]) = match cache_state {
         "cold" => ("cold", &["cold", "absent", "not-applicable"]),
@@ -610,10 +639,10 @@ fn verify_paired_cache_classes(pair: &Pair) -> PerfResult<()> {
     Ok(())
 }
 
-fn cache_classes(value: &serde_json::Value, path: &Path) -> PerfResult<BTreeMap<String, String>> {
+fn cache_classes(value: &Value, path: &Path) -> PerfResult<BTreeMap<String, String>> {
     let object = value
         .pointer("/sample_identity/cache_classes")
-        .and_then(serde_json::Value::as_object)
+        .and_then(Value::as_object)
         .ok_or_else(|| format!("{} lacks an object cache-class census", path.display()))?;
     let actual = object.keys().map(String::as_str).collect::<BTreeSet<_>>();
     let required = CACHE_CLASSES.into_iter().collect::<BTreeSet<_>>();
@@ -652,7 +681,7 @@ fn baseline_is_subset(pair: &Pair, pointer: &str, label: &str) -> PerfResult<()>
         let values = sample
             .value
             .pointer(pointer)
-            .and_then(serde_json::Value::as_array)
+            .and_then(Value::as_array)
             .ok_or_else(|| {
                 format!(
                     "{} lacks array proof inventory {label}",
@@ -714,39 +743,53 @@ fn equal_pointer(pair: &Pair, pointer: &str, label: &str) -> PerfResult<()> {
     Ok(())
 }
 
-fn pair_json(pair: &Pair) -> serde_json::Value {
-    serde_json::json!({
-        "pair_id": pair.baseline.pair_id,
-        "sample_index": pair.baseline.sample_index,
-        "baseline": {
-            "path": pair.baseline.path,
-            "wall_ms": pair.baseline.wall_ms,
-            "work": pair.baseline.work,
-        },
-        "candidate": {
-            "path": pair.candidate.path,
-            "wall_ms": pair.candidate.wall_ms,
-            "work": pair.candidate.work,
-        },
-        "speedup": pair.baseline.wall_ms / pair.candidate.wall_ms,
-    })
+fn pair_json(pair: &Pair) -> PerfResult<Value> {
+    Ok(Value::from(
+        Object::new()
+            .with("pair_id", pair.baseline.pair_id.to_json())
+            .with("sample_index", pair.baseline.sample_index.to_json())
+            .with(
+                "baseline",
+                Value::from(
+                    Object::new()
+                        .with("path", path_text(&pair.baseline.path)?)
+                        .with("wall_ms", pair.baseline.wall_ms.to_json())
+                        .with("work", pair.baseline.work.to_json()),
+                ),
+            )
+            .with(
+                "candidate",
+                Value::from(
+                    Object::new()
+                        .with("path", path_text(&pair.candidate.path)?)
+                        .with("wall_ms", pair.candidate.wall_ms.to_json())
+                        .with("work", pair.candidate.work.to_json()),
+                ),
+            )
+            .with(
+                "speedup",
+                (pair.baseline.wall_ms / pair.candidate.wall_ms).to_json(),
+            ),
+    ))
 }
 
-fn summary<'a>(
-    summaries: &'a [serde_json::Value],
-    node: &str,
-    cache: &str,
-) -> PerfResult<&'a serde_json::Value> {
+fn path_text(path: &Path) -> PerfResult<&str> {
+    Ok(path
+        .to_str()
+        .ok_or_else(|| format!("non-UTF-8 sample path {}", path.display()))?)
+}
+
+fn summary<'a>(summaries: &'a [Value], node: &str, cache: &str) -> PerfResult<&'a Value> {
     Ok(summaries
         .iter()
         .find(|summary| summary["node_class"] == node && summary["cache_state"] == cache)
         .ok_or_else(|| format!("missing summary node={node} cache={cache}"))?)
 }
 
-fn number(value: &serde_json::Value, pointer: &str) -> PerfResult<f64> {
+fn number(value: &Value, pointer: &str) -> PerfResult<f64> {
     Ok(value
         .pointer(pointer)
-        .and_then(serde_json::Value::as_f64)
+        .and_then(Value::as_f64)
         .filter(|number| number.is_finite() && !number.is_sign_negative())
         .ok_or_else(|| format!("{pointer} is not a finite non-negative number"))?)
 }
@@ -762,180 +805,5 @@ fn median(mut values: Vec<f64>) -> f64 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn timing_acceptance_has_no_implicit_speedup_or_regression_target() {
-        assert!(timing_failures(0.5, 100.0, None, None).is_empty());
-        assert!(timing_failures(1.2, 8.0, Some(1.1), Some(10.0)).is_empty());
-        assert_eq!(timing_failures(1.2, 8.0, Some(1.3), Some(5.0)).len(), 2);
-    }
-
-    #[test]
-    fn median_handles_odd_and_even_complete_pair_counts() {
-        assert_eq!(median(vec![9.0, 1.0, 5.0]), 5.0);
-        assert_eq!(median(vec![9.0, 1.0, 5.0, 3.0]), 4.0);
-    }
-
-    #[test]
-    fn missing_or_changed_pair_identity_fails_closed() {
-        let value = serde_json::json!({
-            "sample_identity": {
-                "cache_classes": {
-                    "bundle_import": "absent",
-                    "cargo": "cold",
-                    "fixture": "absent",
-                    "nextest_archive": "absent",
-                    "pipeline": "cold",
-                    "sync_manifest": "cold"
-                },
-                "partial_change": null,
-                "measured_command": ["make", "check"],
-                "dependency_resolution_sha256": "a",
-                "rustc_vv": "rustc",
-                "cargo_version": "cargo",
-                "nextest_version": "nextest",
-                "build_environment": {},
-                "runner_image": "image",
-                "generated_tree": {"sha256": "product"}
-            }
-        });
-        let sample = |variant: &str, value: serde_json::Value| Sample {
-            path: PathBuf::from(format!("{variant}.json")),
-            value,
-            command: "perf-sample".to_string(),
-            pair_id: "pair".to_string(),
-            variant: variant.to_string(),
-            sample_index: 1,
-            node_class: "node".to_string(),
-            cache_state: "cold".to_string(),
-            wall_ms: 1.0,
-            work: BTreeMap::new(),
-        };
-        let baseline = sample("baseline", value.clone());
-        let mut changed = value;
-        changed["sample_identity"]["runner_image"] = serde_json::json!("other");
-        let candidate = sample("candidate", changed);
-        let pair = Pair {
-            baseline,
-            candidate,
-        };
-        assert!(
-            verify_pair(
-                &pair,
-                &[(
-                    "generated".to_string(),
-                    "/sample_identity/generated_tree/sha256".to_string()
-                )],
-                &[],
-            )
-            .is_err()
-        );
-    }
-
-    #[test]
-    fn cache_protocol_requires_exact_classes_and_a_protocol_witness() {
-        let sample = |classes: serde_json::Value| serde_json::json!({"sample_identity": {"cache_classes": classes}});
-        let complete = sample(serde_json::json!({
-            "bundle_import": "absent",
-            "cargo": "warm",
-            "fixture": "not-applicable",
-            "nextest_archive": "absent",
-            "pipeline": "partial",
-            "sync_manifest": "warm"
-        }));
-        assert!(validate_cache_protocol(&complete, "partial", Path::new("sample.json")).is_ok());
-        assert!(validate_cache_protocol(&complete, "warm", Path::new("sample.json")).is_err());
-
-        let missing = sample(serde_json::json!({
-            "cargo": "cold",
-            "fixture": "absent",
-            "nextest_archive": "absent",
-            "pipeline": "cold",
-            "sync_manifest": "cold"
-        }));
-        assert!(validate_cache_protocol(&missing, "cold", Path::new("sample.json")).is_err());
-
-        let no_witness = sample(serde_json::json!({
-            "bundle_import": "absent",
-            "cargo": "absent",
-            "fixture": "not-applicable",
-            "nextest_archive": "absent",
-            "pipeline": "absent",
-            "sync_manifest": "not-applicable"
-        }));
-        assert!(validate_cache_protocol(&no_witness, "cold", Path::new("sample.json")).is_err());
-    }
-
-    #[test]
-    fn paired_cache_protocol_allows_new_mechanisms_but_not_shared_state_drift() {
-        let sample = |variant: &str, pipeline: &str, bundle_import: &str| Sample {
-            path: PathBuf::from(format!("{variant}.json")),
-            value: serde_json::json!({
-                "sample_identity": {
-                    "cache_classes": {
-                        "bundle_import": bundle_import,
-                        "cargo": "warm",
-                        "fixture": "absent",
-                        "nextest_archive": "absent",
-                        "pipeline": pipeline,
-                        "sync_manifest": "warm"
-                    }
-                }
-            }),
-            command: "perf-sample".to_string(),
-            pair_id: "pair".to_string(),
-            variant: variant.to_string(),
-            sample_index: 1,
-            node_class: "node".to_string(),
-            cache_state: "warm".to_string(),
-            wall_ms: 1.0,
-            work: BTreeMap::new(),
-        };
-        let new_mechanism = Pair {
-            baseline: sample("baseline", "warm", "absent"),
-            candidate: sample("candidate", "warm", "warm"),
-        };
-        assert!(verify_paired_cache_classes(&new_mechanism).is_ok());
-
-        let shared_drift = Pair {
-            baseline: sample("baseline", "warm", "absent"),
-            candidate: sample("candidate", "partial", "warm"),
-        };
-        assert!(verify_paired_cache_classes(&shared_drift).is_err());
-    }
-
-    #[test]
-    fn proof_inventory_allows_additions_but_rejects_drops_and_duplicates() {
-        let sample = |variant: &str, inventory: serde_json::Value| Sample {
-            path: PathBuf::from(format!("{variant}.json")),
-            value: serde_json::json!({"proofs": inventory}),
-            command: "ci-run-receipt".to_string(),
-            pair_id: "pair".to_string(),
-            variant: variant.to_string(),
-            sample_index: 1,
-            node_class: "node".to_string(),
-            cache_state: "cold".to_string(),
-            wall_ms: 1.0,
-            work: BTreeMap::new(),
-        };
-        let pair = Pair {
-            baseline: sample("baseline", serde_json::json!(["a", "b"])),
-            candidate: sample("candidate", serde_json::json!(["a", "b", "c"])),
-        };
-        assert!(baseline_is_subset(&pair, "/proofs", "required").is_ok());
-
-        let dropped = Pair {
-            baseline: sample("baseline", serde_json::json!(["a", "b"])),
-            candidate: sample("candidate", serde_json::json!(["a"])),
-        };
-        assert!(baseline_is_subset(&dropped, "/proofs", "required").is_err());
-
-        let duplicate = Pair {
-            baseline: sample("baseline", serde_json::json!(["a"])),
-            candidate: sample("candidate", serde_json::json!(["a", "a"])),
-        };
-        assert!(baseline_is_subset(&duplicate, "/proofs", "required").is_err());
-    }
-}
+#[path = "perf-accept.tests.rs"]
+mod tests;

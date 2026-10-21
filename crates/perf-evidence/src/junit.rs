@@ -8,6 +8,7 @@
 //! comparisons prove that both variants executed the same selected tests.
 
 use crate::{PerfResult as InventoryResult, write_json_atomic};
+use purrdf_lex::json::{Object, Value, record::ToJson as _};
 
 use std::collections::BTreeSet;
 use std::fs;
@@ -67,12 +68,23 @@ fn run(output: &Path, inputs: &[PathBuf]) -> InventoryResult<()> {
         let text = std::str::from_utf8(&bytes)
             .map_err(|error| format!("{} is not UTF-8: {error}", input.display()))?;
         testcases.extend(parse_junit(text, input)?);
-        input_receipts.push(serde_json::json!({
-            "path": input.display().to_string(),
-            "sha256": sha256(&bytes),
-            "bytes": bytes.len(),
-        }));
+        input_receipts.push(Value::from(
+            Object::new()
+                .with("path", (input.display().to_string()).to_json())
+                .with("sha256", (sha256(&bytes)).to_json())
+                .with("bytes", (bytes.len()).to_json()),
+        ));
     }
+    let payload = inventory_payload(testcases, input_receipts)?;
+    write_json_atomic(output, &payload)?;
+    println!("{}", output.display());
+    Ok(())
+}
+
+fn inventory_payload(
+    mut testcases: Vec<Testcase>,
+    input_receipts: Vec<Value>,
+) -> InventoryResult<Value> {
     testcases.sort();
 
     let mut identities = BTreeSet::new();
@@ -104,34 +116,64 @@ fn run(output: &Path, inputs: &[PathBuf]) -> InventoryResult<()> {
         .iter()
         .filter(|testcase| testcase.status == "skipped")
         .count();
-    let payload = serde_json::json!({
-        "schema_version": SCHEMA_VERSION,
-        "command": "junit-inventory",
-        "deterministic_work": {
-            "inventory_sha256": inventory_sha256,
-            "test_count": testcases.len(),
-            "identities": testcases.iter().map(|testcase| serde_json::json!({
-                "classname": testcase.classname,
-                "name": testcase.name,
-            })).collect::<Vec<_>>(),
-        },
-        "observations": {
-            "duration_micros": duration_micros,
-            "passed": passed,
-            "failed": failed,
-            "skipped": skipped,
-            "testcases": testcases.iter().map(|testcase| serde_json::json!({
-                "classname": testcase.classname,
-                "name": testcase.name,
-                "status": testcase.status,
-                "duration_micros": testcase.duration_micros,
-            })).collect::<Vec<_>>(),
-            "inputs": input_receipts,
-        },
-    });
-    write_json_atomic(output, &payload)?;
-    println!("{}", output.display());
-    Ok(())
+    let payload = Value::from(
+        Object::new()
+            .with("schema_version", SCHEMA_VERSION.to_json())
+            .with("command", "junit-inventory".to_json())
+            .with(
+                "deterministic_work",
+                Value::from(
+                    Object::new()
+                        .with("inventory_sha256", inventory_sha256.to_json())
+                        .with("test_count", (testcases.len()).to_json())
+                        .with(
+                            "identities",
+                            (testcases
+                                .iter()
+                                .map(|testcase| {
+                                    Value::from(
+                                        Object::new()
+                                            .with("classname", testcase.classname.to_json())
+                                            .with("name", testcase.name.to_json()),
+                                    )
+                                })
+                                .collect::<Vec<_>>())
+                            .to_json(),
+                        ),
+                ),
+            )
+            .with(
+                "observations",
+                Value::from(
+                    Object::new()
+                        .with("duration_micros", duration_micros.to_json())
+                        .with("passed", passed.to_json())
+                        .with("failed", failed.to_json())
+                        .with("skipped", skipped.to_json())
+                        .with(
+                            "testcases",
+                            (testcases
+                                .iter()
+                                .map(|testcase| {
+                                    Value::from(
+                                        Object::new()
+                                            .with("classname", testcase.classname.to_json())
+                                            .with("name", testcase.name.to_json())
+                                            .with("status", testcase.status.to_json())
+                                            .with(
+                                                "duration_micros",
+                                                testcase.duration_micros.to_json(),
+                                            ),
+                                    )
+                                })
+                                .collect::<Vec<_>>())
+                            .to_json(),
+                        )
+                        .with("inputs", input_receipts.to_json()),
+                ),
+            ),
+    );
+    Ok(payload)
 }
 
 fn parse_junit(text: &str, path: &Path) -> InventoryResult<Vec<Testcase>> {
@@ -206,36 +248,5 @@ fn sha256(bytes: &[u8]) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn inventory_is_order_independent_and_duration_is_observational() {
-        let a = parse_junit(
-            r#"<testsuite><testcase classname="c" name="b" time="2.5"/><testcase classname="c" name="a" time="1"><skipped/></testcase></testsuite>"#,
-            Path::new("a.xml"),
-        )
-        .unwrap();
-        let b = parse_junit(
-            r#"<testsuite><testcase classname="c" name="a" time="99"><skipped/></testcase><testcase classname="c" name="b" time="0"/></testsuite>"#,
-            Path::new("b.xml"),
-        )
-        .unwrap();
-        let mut a = a;
-        let mut b = b;
-        a.sort();
-        b.sort();
-        assert_eq!(digest_inventory(&a), digest_inventory(&b));
-        assert_ne!(
-            a.iter().map(|case| case.duration_micros).sum::<u64>(),
-            b.iter().map(|case| case.duration_micros).sum::<u64>()
-        );
-    }
-
-    #[test]
-    fn malformed_and_negative_durations_fail_closed() {
-        assert!(parse_duration_micros("-1").is_err());
-        assert!(parse_duration_micros("NaN").is_err());
-        assert!(parse_duration_micros("forever").is_err());
-    }
-}
+#[path = "junit.tests.rs"]
+mod tests;

@@ -170,6 +170,24 @@ a timing judgment. Work-counter changes remain observations. Semantic identity,
 proof inventory and sample authentication always fail closed. This tool is
 intentionally not a `make check` prerequisite.
 
+The performance evidence tools use `purrdf_lex::json` for reading, values and
+publication. Free-form documents retain the last occurrence of a repeated member;
+objects are recursively sorted before pretty publication, with a terminal newline.
+Generated finite observations retain the existing two-space layout, string escaping
+and shortest binary64 spelling. Atomic publication synchronizes a sibling temporary
+file before replacement and removes it on failure. Sample paths serialized into a
+pair report must be UTF-8; invalid paths are refused rather than replaced lossily.
+
+Two numeric rules are explicit. Embedded receipt and telemetry numbers retain their
+input lexemes: `1.2300e+2` stays `1.2300e+2` when re-emitted, instead of a binary64
+normalization. Semantic identity pointers compare exact decimal values, so `1`,
+`1.0` and `1e0` agree, while adjacent large integers remain distinct. Arrays still
+compare in order and missing identity pointers fail. Schema versions and sample
+indices require unsigned integer lexemes in range; fraction and exponent forms do
+not satisfy those selectors. Timing and work-counter observations must still be
+finite and nonnegative, with strictly positive wall time: a valid JSON number such
+as `1e400` is retained as embedded evidence but refused as a binary64 observation.
+
 For hosted critical-path samples, `scripts/ci-run-receipt.sh` reads one completed,
 successful Actions run through the GitHub CLI. It binds the exact head/workflow digest,
 extracts the authored `needs` graph, groups matrix instances by job, computes the longest
