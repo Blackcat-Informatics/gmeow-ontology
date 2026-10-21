@@ -1590,6 +1590,7 @@ dependencies = [
  "insta",
  "purrdf-core",
  "purrdf-hash",
+ "purrdf-lex",
  "serde",
  "serde_json",
  "static_assertions",

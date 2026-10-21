@@ -28,6 +28,8 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+mod json;
+
 use crate::diag::{
     Advice, Diag, DiagRef, Guidance, Label, Remediation, Slot, SourceContext, StageId,
 };

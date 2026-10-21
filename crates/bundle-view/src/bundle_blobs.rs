@@ -101,7 +101,9 @@ pub const REP_AXIOMS: &str = "axioms-archive";
 /// JSON (NOT a tar) of the saturation refusal set (the alignment-lint ERROR rows).
 pub const REP_DENIED: &str = "transform:denied";
 /// JSON (NOT a tar) of a diagnostics producer's FORWARD-projected
-/// `Vec<gmeow_errors::DiagNode>` — the pre-lowered run-ledger nodes. On the pipeline
+/// `Vec<gmeow_errors::DiagNode>` on the public reader surface. The pipeline
+/// stage-cache contribution uses an explicit `(stage, nodes)` tuple to bind its producer.
+/// These are distinct operation contracts. On the pipeline
 /// CARRIER this rides `stage-validate` / `stage-compile-logic` / `stage-reason` product
 /// bundles (the run ledger's single source); on the SHIPPED gts it is absent (the run ledger is a
 /// build-time projection, not a folded gts surface), so `diag_nodes` resolves to an
@@ -530,11 +532,7 @@ impl Bundle {
         let Some(raw) = self.blob_by_rep(REP_DIAG_NODES)? else {
             return Ok(Vec::new());
         };
-        serde_json::from_slice(&raw).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleJson {
-                message: format!("diagnostics nodes JSON: {e}"),
-            })
-        })
+        diag_nodes_from_json(&raw)
     }
 
     /// The precomputed saturation refusal set (the alignment-lint ERROR rows) as
@@ -547,6 +545,18 @@ impl Bundle {
         denied_cells_from_json(&raw).map(Some)
     }
 }
+
+fn diag_nodes_from_json(raw: &[u8]) -> gmeow_errors::Result<Vec<gmeow_errors::DiagNode>> {
+    purrdf_lex::json::record::from_slice(raw).map_err(|error| {
+        gmeow_errors::Diag::of_kind(BundleJson {
+            message: format!("diagnostics nodes JSON: {error}"),
+        })
+    })
+}
+
+#[cfg(test)]
+#[path = "bundle_blobs.diag_json.tests.rs"]
+mod diag_json_tests;
 
 /// Extract only object-valued `$defs` keys, preserving the existing empty-shape
 /// policy. The native owner resolves every duplicate name last, recursively;
