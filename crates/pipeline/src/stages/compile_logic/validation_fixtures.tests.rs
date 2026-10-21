@@ -71,36 +71,33 @@ fn malformed_constraints_remain_visible_in_the_record() {
 #[test]
 fn result_contract_checks_presence_and_every_value_without_cross_record_leaks() {
     // Independently authored synthetic law: no repository module or corpus is loaded.
-    let product = compile(
-        r#"
-        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+    let text = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
         @prefix ex: <urn:result-contract:> .
         @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-        ex:contract a logic:Constraint ; logic:integrity [ a logic:Formula ;
-          logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
-                                  [ logic:termIndex 1 ; logic:termVariable "result" ] ;
-          logic:forall [ a logic:Formula ;
-            logic:antecedent [ a logic:Formula ; logic:and
-              [ a logic:Formula ; logic:relation rdf:type ; logic:argument
-                [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ],
-              [ a logic:Formula ; logic:relation ex:result ; logic:argument
-                [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ;
-            logic:consequent [ a logic:Formula ; logic:and
-              [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
-                logic:exists [ a logic:Formula ; logic:and
-                  [ a logic:Formula ; logic:relation ex:value ; logic:argument
-                    [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ],
-                  [ a logic:Formula ; logic:relation rdf:type ; logic:argument
-                    [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri ex:Value ] ] ] ],
-              [ a logic:Formula ; logic:not [ a logic:Formula ;
-                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] ;
-                logic:exists [ a logic:Formula ; logic:and
-                  [ a logic:Formula ; logic:relation ex:value ; logic:argument
-                    [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "other" ] ],
-                  [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ; logic:argument
-                    [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termIri ex:Value ] ] ] ] ] ] ] ] ] .
-        "#,
+        ex:contract a logic:Constraint ; gmeow:enforcesFailureClass ex:Failure ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ],
+[ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ],
+[ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:relation ex:value ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ],
+[ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "valueTyped" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ],
+[ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ],
+[ a logic:Formula ; logic:relation ex:value ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "valueTyped" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "valueTyped" ], [ logic:termIndex 1 ; logic:termIri ex:Value ] ] ] ] , [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+ [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Report ] ],
+ [ a logic:Formula ; logic:relation ex:result ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or
+ [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "target" ] ; logic:exists [ a logic:Formula ; logic:relation ex:target ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ],
+ [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parameter" ] ; logic:exists [ a logic:Formula ; logic:relation ex:parameter ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "parameter" ] ] ] ] ] ] ] ] ."#;
+    let product = compile(text);
+    let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
+    let prepared = PreparedLogicSource::new(&dataset).unwrap();
+    let (constraints, diagnostics) = prepared.constraints();
+    assert!(diagnostics.is_empty());
+    let program =
+        LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), None).with_constraints(constraints);
+    let (rules, residue) = gmeow_logic_compile::relational_core::lower_violation_constraints_to_rc(
+        &program,
+        &Default::default(),
     );
+    assert!(residue.is_empty(), "{residue:?}");
+    assert_eq!(rules.len(), 3);
     assert!(product.diagnostics.is_empty(), "{:?}", product.diagnostics);
     assert!(
         product
@@ -110,7 +107,13 @@ fn result_contract_checks_presence_and_every_value_without_cross_record_leaks() 
     let shapes = parse_shapes(&product.procedural_shacl, None).unwrap();
     for (name, body, valid) in [
         ("typed value", "ex:result ex:value ex:good .", true),
+        (
+            "alternative target",
+            "ex:result ex:value ex:good . ex:result ex:parameter ex:goal .",
+            true,
+        ),
         ("missing value", "", false),
+        ("missing target", "ex:result ex:value ex:good .", false),
         ("untyped value", "ex:result ex:value ex:bad .", false),
         (
             "valid plus malformed extra",
@@ -129,8 +132,13 @@ fn result_contract_checks_presence_and_every_value_without_cross_record_leaks() 
             false,
         ),
     ] {
+        let target = if name == "alternative target" || name == "missing target" {
+            ""
+        } else {
+            "ex:result ex:target ex:goal ."
+        };
         let input = format!(
-            "@prefix ex: <urn:result-contract:> . ex:good a ex:Value . ex:report a ex:Report ; ex:result ex:result . {body}"
+            "@prefix ex: <urn:result-contract:> . ex:good a ex:Value . ex:report a ex:Report ; ex:result ex:result . {target} {body}"
         );
         let data = purrdf::parse_dataset(input.as_bytes(), "text/turtle", None).unwrap();
         let report = validate_dataset(&data, &shapes).unwrap();

@@ -42,23 +42,30 @@ fn quality_results_preserve_dimensions_estimators_and_categorical_verdicts() {
     let shapes = parse_shapes(&text, None).expect("actual quality and math projections");
     let prefixes = "@prefix g: <https://blackcatinformatics.ca/gmeow/> .
         @prefix m: <https://blackcatinformatics.ca/math/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
         @prefix ex: <urn:quality:> .
+        g:QuantitativeQualityAssessment rdfs:subClassOf g:QualityAssessment .
+        g:AggregateQualityAssessment rdfs:subClassOf g:QualityAssessment .
         ex:dataset a g:Entity . ex:dimension a m:Dimension .
         ex:quantity a m:Quantity ; m:hasDimension ex:dimension ; m:quantityValue 0.985 .
         ex:procedure a m:Estimator .";
-    let quantitative = "ex:a a g:QuantitativeQualityAssessment ;
+    let quantitative = "ex:a a g:QuantitativeQualityAssessment ; g:assessedEntity ex:dataset ;
         g:observationResult ex:quantity .";
-    let aggregate = "ex:a a g:AggregateQualityAssessment ; g:observationResult ex:estimate .
+    let aggregate = "ex:a a g:AggregateQualityAssessment ; g:assessedEntity ex:dataset ; g:observationResult ex:estimate .
         ex:estimate a m:Estimate ; m:estimateValue ex:quantity ;
         m:estimator ex:procedure ; m:estimatedParameter ex:parameter .";
     let cases = [
         ("dimensioned magnitude", quantitative.to_owned(), true),
-        ("missing magnitude", "ex:a a g:QuantitativeQualityAssessment .".into(), false),
+        ("unasserted assessed entity remains open-world on magnitude", quantitative.replace("g:assessedEntity ex:dataset ;", ""), true),
+        ("inherited entity type on magnitude", quantitative.replace("g:assessedEntity ex:dataset", "g:assessedEntity ex:wrong"), false),
+        ("missing magnitude", "ex:a a g:QuantitativeQualityAssessment ; g:assessedEntity ex:dataset .".into(), false),
         ("categorical result on quantitative assessment", quantitative.replace("ex:quantity", "ex:category"), false),
         ("mixed quantitative results", quantitative.replace("ex:quantity", "ex:quantity, ex:category"), false),
         ("complete aggregate", aggregate.into(), true),
+        ("unasserted assessed entity remains open-world on aggregate", aggregate.replace("g:assessedEntity ex:dataset ;", ""), true),
+        ("inherited entity type on aggregate", aggregate.replace("g:assessedEntity ex:dataset", "g:assessedEntity ex:wrong"), false),
         ("estimand target", aggregate.replace("m:estimatedParameter", "m:estimatesEstimand"), true),
-        ("missing aggregate result", "ex:a a g:AggregateQualityAssessment .".into(), false),
+        ("missing aggregate result", "ex:a a g:AggregateQualityAssessment ; g:assessedEntity ex:dataset .".into(), false),
         ("wrong aggregate result type", aggregate.replace("a m:Estimate", "a g:Entity"), false),
         ("missing estimator", aggregate.replace("m:estimator ex:procedure ;", ""), false),
         ("wrong estimator type", aggregate.replace("m:estimator ex:procedure", "m:estimator ex:wrong"), false),
@@ -68,7 +75,7 @@ fn quality_results_preserve_dimensions_estimators_and_categorical_verdicts() {
         ("malformed extra value", aggregate.replace("m:estimateValue ex:quantity", "m:estimateValue ex:quantity, ex:category"), false),
         ("missing target", aggregate.replace("m:estimatedParameter ex:parameter", ""), false),
         ("malformed extra result", format!("{aggregate} ex:a g:observationResult ex:bad . ex:bad a m:Estimate ."), false),
-        ("good neighbor cannot supply missing value", format!("{aggregate} ex:other a g:AggregateQualityAssessment ; g:observationResult ex:empty . ex:empty a m:Estimate ; m:estimator ex:procedure ; m:estimatedParameter ex:parameter ."), false),
+        ("good neighbor cannot supply missing value", format!("{aggregate} ex:other a g:AggregateQualityAssessment ; g:assessedEntity ex:dataset ; g:observationResult ex:empty . ex:empty a m:Estimate ; m:estimator ex:procedure ; m:estimatedParameter ex:parameter ."), false),
         ("base categorical verdict", "ex:a a g:QualityAssessment ; g:assessedEntity ex:dataset ; g:observationResult ex:category .".into(), true),
         ("base multidimensional multivalued report", "ex:a a g:QualityAssessment ; g:assessedEntity ex:dataset ; g:qualityDimension ex:firstDimension, ex:secondDimension ; g:observationResult ex:firstVerdict, ex:secondVerdict .".into(), true),
         ("coexisting assessments", format!("{} {aggregate}", quantitative.replace("ex:a ", "ex:direct ")), true),

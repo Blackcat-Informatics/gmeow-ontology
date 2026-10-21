@@ -31,6 +31,8 @@ metres, completeness as a normalized dimensionless ratio) or a categorical confo
 canonical axiom guarantees every assessment assesses *at least one* entity.
 Closed-world requirements are authored as `logic:` closure metadata; SHACL is
 their generated validation view.
+The `assessedEntity` existential does not itself require an explicitly asserted
+value in validation; supplied values must be entities.
 
 ### Quantitative and aggregate results
 
