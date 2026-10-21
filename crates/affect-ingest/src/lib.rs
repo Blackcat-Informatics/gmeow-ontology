@@ -49,7 +49,10 @@ use gmeow_math::{
     has_type, index_graph, index_turtle, subjects,
 };
 use purrdf::RdfLiteral;
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::{
+    Object, Value,
+    record::{DecodeError, FromJson, Record, ToJson, Within as _},
+};
 
 // ───────────────────────────── namespaces ──────────────────────────────────
 
@@ -83,8 +86,7 @@ fn g(local: &str) -> String {
 /// What a classifier score MEANS — the open `gmeow:ScoreSemantics` vocabulary,
 /// seeded here with the terms the affect module authors. A raw sigmoid/softmax
 /// score is evidence strength, NEVER a calibrated confidence.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ScoreSemantics {
     /// `gmeow:scoreSigmoid` — a per-label sigmoid activation (GoEmotions default).
     Sigmoid,
@@ -100,6 +102,15 @@ pub enum ScoreSemantics {
     /// `gmeow:scoreMargin` — a decision margin (unbounded).
     Margin,
 }
+
+::purrdf_lex::json_string_enum!(ScoreSemantics {
+    Sigmoid => "sigmoid",
+    Softmax => "softmax",
+    CalibratedProbability => "calibrated_probability",
+    Entailment => "entailment",
+    Logit => "logit",
+    Margin => "margin",
+});
 
 impl ScoreSemantics {
     /// The `gmeow:ScoreSemantics` individual IRI this maps onto.
@@ -140,8 +151,7 @@ impl ScoreSemantics {
 
 /// The threshold policy that travels with a run — a single global 0.5 must NOT be
 /// assumed canonical (GoEmotions documents per-label threshold optimization).
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ThresholdPolicy {
     /// One threshold applied to every label.
     Global { value: f64 },
@@ -158,29 +168,89 @@ impl ThresholdPolicy {
     }
 }
 
+impl FromJson for ThresholdPolicy {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct ThresholdPolicy")?;
+        let kind: String = fields.required("kind")?;
+        // Unknown members remain ignored; known members retain duplicate checks.
+        match kind.as_str() {
+            "global" => Ok(Self::Global {
+                value: fields.required("value")?,
+            }),
+            "per_label" => Ok(Self::PerLabel {
+                thresholds: fields.required("thresholds")?,
+            }),
+            other => {
+                Err(DecodeError::unknown_variant(other, &["global", "per_label"]).within("kind"))
+            }
+        }
+    }
+}
+
+impl ToJson for ThresholdPolicy {
+    fn to_json(&self) -> Value {
+        Value::from(match self {
+            Self::Global { value } => Object::new().with("kind", "global").with("value", *value),
+            Self::PerLabel { thresholds } => Object::new()
+                .with("kind", "per_label")
+                .with("thresholds", thresholds.to_json()),
+        })
+    }
+}
+
 /// One emitted `(label, score)` cell over a target. The score's *meaning* is the
 /// run-level `score_semantics` (a logit-valued run sets `score_semantics = Logit`);
 /// there is no separate per-output raw-logit field, because the ontology authors
 /// no property to emit one — carrying an unpreservable logit would make the
 /// losslessness round-trip a lie.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct LabelScore {
     pub label: String,
     pub score: f64,
 }
 
+impl FromJson for LabelScore {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct LabelScore")?;
+        Ok(Self {
+            label: fields.required("label")?,
+            score: fields.required("score")?,
+        })
+    }
+}
+
+::purrdf_lex::json_record!(impl ToJson for LabelScore {
+    "label" => label,
+    "score" => score,
+});
+
 /// One classified target span and the model's per-label scores over it.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TargetInput {
     /// The IRI of the classified span/document/segment (`gmeow:classifiedTarget`).
     pub target_iri: String,
     pub scores: Vec<LabelScore>,
 }
 
+impl FromJson for TargetInput {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct TargetInput")?;
+        Ok(Self {
+            target_iri: fields.required("target_iri")?,
+            scores: fields.required("scores")?,
+        })
+    }
+}
+
+::purrdf_lex::json_record!(impl ToJson for TargetInput {
+    "target_iri" => target_iri,
+    "scores" => scores,
+});
+
 /// A captured classifier run — the producer's input schema, carrying the full
 /// run provenance hard-fail rule 1 demands. Captured once from a real model run
 /// and checked in; never produced by on-gate inference (determinism/no-network).
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ClassifierRunCapture {
     pub model_identifier: String,
     /// The pinned model revision/commit — MANDATORY (a name without a revision is
@@ -204,26 +274,76 @@ pub struct ClassifierRunCapture {
     /// REQUIRED iff `score_semantics == CalibratedProbability`: a raw score stored
     /// as a calibrated probability without this profile is a hard fail. Genuinely
     /// N/A (absent) for a raw sigmoid/softmax score.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub score_calibration: Option<String>,
     /// The pinned tokenizer revision, when the capture recorded it (a tokenizer
     /// change silently shifts scores). Genuinely-absent source data ⇒ optional.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tokenizer_revision: Option<String>,
     /// The pinned label-set revision, when recorded (a zero-shot candidate set is
     /// part of run identity). Genuinely-absent source data ⇒ optional.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label_set_revision: Option<String>,
     /// The NLI hypothesis template a zero-shot run instantiated per candidate
     /// (`This text expresses {}.`). Present iff this is a run-scoped (zero-shot)
     /// capture; absent for a fixed-label classifier.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hypothesis_template: Option<String>,
     /// The run-scoped candidate label surfaces a zero-shot run classified against —
     /// part of the run identity, NOT a static `gmeow:AffectLabelSet`. Present iff
     /// this is a zero-shot capture; the labels in `targets` must be exactly this set.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub candidate_labels: Option<Vec<String>>,
+}
+
+impl FromJson for ClassifierRunCapture {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct ClassifierRunCapture")?;
+        Ok(Self {
+            model_identifier: fields.required("model_identifier")?,
+            model_revision: fields.required("model_revision")?,
+            model_framework: fields.required("model_framework")?,
+            model_task: fields.required("model_task")?,
+            function_to_apply: fields.required("function_to_apply")?,
+            return_all_scores: fields.required("return_all_scores")?,
+            label_set_id: fields.required("label_set_id")?,
+            score_semantics: fields.required("score_semantics")?,
+            threshold_policy: fields.required("threshold_policy")?,
+            targets: fields.required("targets")?,
+            score_calibration: fields.optional("score_calibration")?,
+            tokenizer_revision: fields.optional("tokenizer_revision")?,
+            label_set_revision: fields.optional("label_set_revision")?,
+            hypothesis_template: fields.optional("hypothesis_template")?,
+            candidate_labels: fields.optional("candidate_labels")?,
+        })
+    }
+}
+
+impl ToJson for ClassifierRunCapture {
+    fn to_json(&self) -> Value {
+        let mut fields = Object::new()
+            .with("model_identifier", self.model_identifier.to_json())
+            .with("model_revision", self.model_revision.to_json())
+            .with("model_framework", self.model_framework.to_json())
+            .with("model_task", self.model_task.to_json())
+            .with("function_to_apply", self.function_to_apply.to_json())
+            .with("return_all_scores", self.return_all_scores)
+            .with("label_set_id", self.label_set_id.to_json())
+            .with("score_semantics", self.score_semantics.to_json())
+            .with("threshold_policy", self.threshold_policy.to_json())
+            .with("targets", self.targets.to_json());
+        if let Some(value) = &self.score_calibration {
+            fields.insert("score_calibration", value.to_json());
+        }
+        if let Some(value) = &self.tokenizer_revision {
+            fields.insert("tokenizer_revision", value.to_json());
+        }
+        if let Some(value) = &self.label_set_revision {
+            fields.insert("label_set_revision", value.to_json());
+        }
+        if let Some(value) = &self.hypothesis_template {
+            fields.insert("hypothesis_template", value.to_json());
+        }
+        if let Some(value) = &self.candidate_labels {
+            fields.insert("candidate_labels", value.to_json());
+        }
+        Value::from(fields)
+    }
 }
 
 // ───────────────────────────── errors ──────────────────────────────────────
@@ -1552,673 +1672,5 @@ fn required_decimal(index: &TripleIndex, s: &str, p: &str) -> Result<f64, Ingest
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn produce_refusal(capture: &ClassifierRunCapture, config: &IngestConfig) -> IngestError {
-        let failure = produce(capture, config).expect_err("the capture must be refused");
-        failure
-            .downcast_ref::<IngestError>()
-            .expect("original typed capture refusal")
-            .clone()
-    }
-
-    /// A minimal ontology fixture: a two-label GoEmotions set (`joy` mapped to an
-    /// EmotionType, `neutral` unmapped) with the closeMatch cell authored the way
-    /// `mappings/equivalences.ttl` authors it.
-    const ONTO: &str = concat!(
-        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
-        "@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .\n",
-        "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
-        "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n",
-        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
-        "gmeow-labelset:GoEmotions gmeow:labelSetDecision gmeow:decisionIndependentThreshold .\n",
-        "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
-        "gmeow-goemotions:neutral a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
-        "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
-        "gmeow-goemotions:joy skos:closeMatch gmeow:emotionJoy {| gmeow:sssomFile \"gmeow-affect.sssom.tsv\" |} .\n",
-    );
-
-    fn config() -> IngestConfig {
-        let index = index_turtle(ONTO.as_bytes()).expect("index onto fixture");
-        IngestConfig::config_for_label_set(&index, "GoEmotions").expect("goemotions config")
-    }
-
-    fn capture() -> ClassifierRunCapture {
-        ClassifierRunCapture {
-            model_identifier: "SamLowe/roberta-base-go_emotions".to_owned(),
-            model_revision: "a1b2c3d4e5f6".to_owned(),
-            model_framework: "transformers".to_owned(),
-            model_task: "text-classification".to_owned(),
-            function_to_apply: "sigmoid".to_owned(),
-            return_all_scores: true,
-            label_set_id: "GoEmotions".to_owned(),
-            score_semantics: ScoreSemantics::Sigmoid,
-            threshold_policy: ThresholdPolicy::Global { value: 0.5 },
-            targets: vec![TargetInput {
-                target_iri: "https://example.org/affect/chunk-1".to_owned(),
-                scores: vec![
-                    LabelScore {
-                        label: "joy".to_owned(),
-                        score: 0.84,
-                    },
-                    LabelScore {
-                        label: "neutral".to_owned(),
-                        score: 0.10,
-                    },
-                ],
-            }],
-            score_calibration: None,
-            tokenizer_revision: Some("tok-9".to_owned()),
-            label_set_revision: None,
-            hypothesis_template: None,
-            candidate_labels: None,
-        }
-    }
-
-    #[test]
-    fn sample_fixture_deserializes_with_28_labels() {
-        let json = include_str!("../fixtures/goemotions-sample.json");
-        let cap: ClassifierRunCapture = serde_json::from_str(json).expect("valid fixture");
-        assert_eq!(
-            cap.model_revision,
-            "d75048347613a25d77de8cf6412eaae9fa7b26be"
-        );
-        assert_eq!(cap.score_semantics, ScoreSemantics::Sigmoid);
-        assert!(cap.return_all_scores);
-        assert!(!cap.targets.is_empty(), "at least one captured target");
-        for target in &cap.targets {
-            assert_eq!(target.scores.len(), 28, "GoEmotions emits 28 labels");
-        }
-    }
-
-    /// Labels + canonical EmotionType typing but NO in-graph closeMatch — the
-    /// shape of the compiled bundle, where the mapping arrives via SSSOM.
-    const ONTO_NO_MAPPING: &str = concat!(
-        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
-        "@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .\n",
-        "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
-        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
-        "gmeow-labelset:GoEmotions gmeow:labelSetDecision gmeow:decisionIndependentThreshold .\n",
-        "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
-        "gmeow-goemotions:grief a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
-        "gmeow-goemotions:desire a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
-        "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
-        "gmeow:emotionSadness a gmeow:EmotionType ; rdfs:label \"sadness\"@x-gmeow-english .\n",
-        "gmeow:Desire a gmeow:Kind .\n",
-    );
-
-    /// An SSSOM surface shaped like `generated/mappings/gmeow-affect.sssom.tsv`:
-    /// a curie_map header, a column header, and rows — including the broadMatch
-    /// (grief) and closeMatch-to-non-EmotionType (desire) rows that must NOT route.
-    const SSSOM: &str = concat!(
-        "# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)\n",
-        "# curie_map:\n",
-        "#   gmeow: https://blackcatinformatics.ca/gmeow/\n",
-        "#   gmeow-goemotions: https://blackcatinformatics.ca/gmeow-registry/goemotions/\n",
-        "#   skos: http://www.w3.org/2004/02/skos/core#\n",
-        "#   semapv: https://w3id.org/semapv/vocab/\n",
-        "subject_id\tpredicate_id\tobject_id\tmapping_justification\tconfidence\tcomment\n",
-        "gmeow-goemotions:joy\tskos:closeMatch\tgmeow:emotionJoy\tsemapv:ManualMappingCuration\t0.9\t\n",
-        "gmeow-goemotions:grief\tskos:broadMatch\tgmeow:emotionSadness\tsemapv:ManualMappingCuration\t0.8\tnarrower\n",
-        "gmeow-goemotions:desire\tskos:closeMatch\tgmeow:Desire\tsemapv:ManualMappingCuration\t0.85\tconative\n",
-    );
-
-    #[test]
-    fn sssom_correspondences_route_only_closematch_emotiontypes() {
-        let index = index_turtle(ONTO_NO_MAPPING.as_bytes()).expect("index onto");
-        let mut cfg =
-            IngestConfig::config_for_label_set(&index, "GoEmotions").expect("goemotions config");
-        // the bundle-shaped graph carries NO in-graph closeMatch.
-        assert!(cfg.emotion_close_match.is_empty());
-
-        cfg.add_sssom_correspondences(SSSOM, &index)
-            .expect("well-formed sssom");
-        // joy: closeMatch → EmotionType → routed, glossed by the CANONICAL term.
-        assert_eq!(cfg.emotion_close_match[&cfg.label_iri("joy")].word, "joy");
-        // grief: broadMatch (not closeMatch) → excluded.
-        assert!(
-            !cfg.emotion_close_match
-                .contains_key(&cfg.label_iri("grief"))
-        );
-        // desire: closeMatch but object is teleology's gmeow:Desire, not an
-        // EmotionType → excluded.
-        assert!(
-            !cfg.emotion_close_match
-                .contains_key(&cfg.label_iri("desire"))
-        );
-    }
-
-    #[test]
-    fn config_loads_labels_and_only_closematch_emotiontypes() {
-        let c = config();
-        let mut labels: Vec<&str> = c.registered_labels().collect();
-        labels.sort_unstable();
-        assert_eq!(labels, vec!["joy", "neutral"]);
-        // joy reviews onto an EmotionType; neutral does not.
-        assert!(c.emotion_close_match.contains_key(&c.label_iri("joy")));
-        assert!(!c.emotion_close_match.contains_key(&c.label_iri("neutral")));
-        assert_eq!(c.emotion_close_match[&c.label_iri("joy")].word, "joy");
-    }
-
-    #[test]
-    fn produce_emits_run_all_labels_and_a_mapped_claim() {
-        let ttl = produce(&capture(), &config()).expect("produce");
-        assert!(ttl.contains("ModelInferenceRun"));
-        assert!(ttl.contains("SamLowe/roberta-base-go_emotions"));
-        // lossless: an output for BOTH labels, incl. the below-threshold neutral.
-        assert!(ttl.contains("gmeow-registry/goemotions/joy"));
-        assert!(ttl.contains("gmeow-registry/goemotions/neutral"));
-        // the claim references the CANONICAL word, not the raw label string source.
-        assert!(ttl.contains("the text expresses joy"));
-        assert!(ttl.contains("AffectiveClaim"));
-        // rule 5: the output never carries emotionType directly.
-        assert!(!ttl.contains("gmeow:emotionType"));
-    }
-
-    #[test]
-    fn produce_is_idempotent() {
-        let (cap, cfg) = (capture(), config());
-        assert_eq!(produce(&cap, &cfg).unwrap(), produce(&cap, &cfg).unwrap());
-    }
-
-    #[test]
-    fn round_trip_recover_produce_is_identity() {
-        let (cap, cfg) = (capture(), config());
-        let ttl = produce(&cap, &cfg).unwrap();
-        // recover is authored independently of produce; the round-trip is the
-        // losslessness proof, compared against the canonical normal form.
-        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
-    }
-
-    #[test]
-    fn round_trip_multi_target() {
-        let cfg = config();
-        let mut cap = capture();
-        cap.threshold_policy = ThresholdPolicy::PerLabel {
-            thresholds: BTreeMap::from([("joy".to_owned(), 0.4), ("neutral".to_owned(), 0.6)]),
-        };
-        cap.targets.push(TargetInput {
-            target_iri: "https://example.org/affect/chunk-2".to_owned(),
-            scores: vec![
-                LabelScore {
-                    label: "neutral".to_owned(),
-                    score: 0.72,
-                },
-                LabelScore {
-                    label: "joy".to_owned(),
-                    score: 0.20,
-                },
-            ],
-        });
-        let ttl = produce(&cap, &cfg).unwrap();
-        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
-    }
-
-    #[test]
-    fn recover_hard_fails_on_missing_required_triple() {
-        let (cap, cfg) = (capture(), config());
-        let ttl = produce(&cap, &cfg).unwrap();
-        // drop the mandatory modelRevision line: the graph is no longer a
-        // well-formed run and the get leg must refuse it.
-        let broken: String = ttl
-            .lines()
-            .filter(|l| !l.contains("modelRevision"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        assert!(matches!(
-            recover(&broken, &cfg),
-            Err(IngestError::MalformedGraph { .. })
-        ));
-    }
-
-    #[test]
-    fn concluded_when_nothing_crosses_threshold() {
-        let mut cap = capture();
-        for cell in &mut cap.targets[0].scores {
-            cell.score = 0.10; // everything sub-threshold
-        }
-        let ttl = produce(&cap, &config()).unwrap();
-        assert!(ttl.contains("AffectEvaluationConcluded"));
-        assert!(!ttl.contains("AffectiveClaim"));
-    }
-
-    #[test]
-    fn hard_fail_missing_revision() {
-        let mut cap = capture();
-        cap.model_revision = "  ".to_owned();
-        assert_eq!(
-            produce_refusal(&cap, &config()),
-            IngestError::MissingModelRevision
-        );
-    }
-
-    #[test]
-    fn hard_fail_unregistered_label() {
-        let mut cap = capture();
-        cap.return_all_scores = false;
-        cap.targets[0].scores = vec![LabelScore {
-            label: "notALabel".to_owned(),
-            score: 0.9,
-        }];
-        assert_eq!(
-            produce_refusal(&cap, &config()),
-            IngestError::UnregisteredLabel {
-                label: "notALabel".to_owned()
-            }
-        );
-    }
-
-    #[test]
-    fn hard_fail_calibrated_without_calibration() {
-        let mut cap = capture();
-        cap.score_semantics = ScoreSemantics::CalibratedProbability;
-        cap.function_to_apply = "sigmoid".to_owned(); // n/a for calibrated → no activation check
-        assert_eq!(
-            produce_refusal(&cap, &config()),
-            IngestError::MissingScoreCalibration
-        );
-    }
-
-    #[test]
-    fn hard_fail_score_out_of_range_and_nan() {
-        let mut cap = capture();
-        cap.targets[0].scores[0].score = 1.5;
-        assert!(matches!(
-            produce_refusal(&cap, &config()),
-            IngestError::ScoreOutOfRange { .. }
-        ));
-        cap.targets[0].scores[0].score = f64::NAN;
-        assert!(matches!(
-            produce_refusal(&cap, &config()),
-            IngestError::ScoreOutOfRange { .. }
-        ));
-    }
-
-    #[test]
-    fn hard_fail_duplicate_label() {
-        let mut cap = capture();
-        cap.return_all_scores = false;
-        cap.targets[0].scores = vec![
-            LabelScore {
-                label: "joy".to_owned(),
-                score: 0.8,
-            },
-            LabelScore {
-                label: "joy".to_owned(),
-                score: 0.7,
-            },
-        ];
-        assert!(matches!(
-            produce_refusal(&cap, &config()),
-            IngestError::DuplicateLabel { .. }
-        ));
-    }
-
-    #[test]
-    fn hard_fail_invalid_and_duplicate_target_iri() {
-        let mut cap = capture();
-        cap.targets[0].target_iri = "not an iri".to_owned();
-        assert!(matches!(
-            produce_refusal(&cap, &config()),
-            IngestError::InvalidTargetIri { .. }
-        ));
-
-        let mut cap = capture();
-        let dup = cap.targets[0].clone();
-        cap.targets.push(dup);
-        assert!(matches!(
-            produce_refusal(&cap, &config()),
-            IngestError::DuplicateTargetIri { .. }
-        ));
-    }
-
-    #[test]
-    fn hard_fail_incomplete_when_return_all_scores() {
-        let mut cap = capture();
-        // drop neutral while claiming completeness
-        cap.targets[0].scores = vec![LabelScore {
-            label: "joy".to_owned(),
-            score: 0.8,
-        }];
-        assert!(matches!(
-            produce_refusal(&cap, &config()),
-            IngestError::IncompleteScores { .. }
-        ));
-    }
-
-    #[test]
-    fn hard_fail_activation_mismatch() {
-        let mut cap = capture();
-        cap.function_to_apply = "softmax".to_owned();
-        assert!(matches!(
-            produce_refusal(&cap, &config()),
-            IngestError::ActivationMismatch { .. }
-        ));
-    }
-
-    /// A minimal zero-shot (run-scoped) capture: NLI entailment over a candidate set
-    /// declared per run, not read from a static label set.
-    fn zeroshot_capture() -> ClassifierRunCapture {
-        ClassifierRunCapture {
-            model_identifier: "facebook/bart-large-mnli".to_owned(),
-            model_revision: "deadbeef".to_owned(),
-            model_framework: "transformers".to_owned(),
-            model_task: "zero-shot-classification".to_owned(),
-            function_to_apply: "entailment".to_owned(),
-            return_all_scores: true,
-            label_set_id: "ZeroShotEmotion2".to_owned(),
-            score_semantics: ScoreSemantics::Entailment,
-            threshold_policy: ThresholdPolicy::Global { value: 0.5 },
-            targets: vec![TargetInput {
-                target_iri: "https://example.org/affect/passage-1".to_owned(),
-                scores: vec![
-                    LabelScore {
-                        label: "joy".to_owned(),
-                        score: 0.97,
-                    },
-                    LabelScore {
-                        label: "fear".to_owned(),
-                        score: 0.02,
-                    },
-                ],
-            }],
-            score_calibration: None,
-            tokenizer_revision: None,
-            label_set_revision: Some("candidates:fear,joy".to_owned()),
-            hypothesis_template: Some("This text expresses {}.".to_owned()),
-            candidate_labels: Some(vec!["joy".to_owned(), "fear".to_owned()]),
-        }
-    }
-
-    #[test]
-    fn zeroshot_run_scoped_round_trips_and_routes_no_claim() {
-        let cap = zeroshot_capture();
-        let cfg = IngestConfig::run_scoped_from_capture(&cap).expect("run-scoped config");
-        let ttl = produce(&cap, &cfg).expect("produce zeroshot");
-        // Entailment semantics + run-scoped provenance are emitted; the candidate
-        // set is minted in-graph (not a static registry).
-        assert!(ttl.contains("scoreEntailment"));
-        assert!(ttl.contains("hypothesisTemplate"));
-        assert!(ttl.contains("AffectLabelSet"));
-        // Evidence only — a run-scoped prompt candidate routes NO expresses-claim.
-        assert!(!ttl.contains("the text expresses"));
-        // recover reads the candidate set + template back from the graph.
-        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
-    }
-
-    #[test]
-    fn zeroshot_hard_fails_without_template_or_candidates() {
-        let cfg = IngestConfig::run_scoped_from_capture(&zeroshot_capture()).unwrap();
-        let mut no_template = zeroshot_capture();
-        no_template.hypothesis_template = None;
-        assert_eq!(
-            produce_refusal(&no_template, &cfg),
-            IngestError::MissingHypothesisTemplate
-        );
-    }
-
-    /// Score lexical forms stay decimal-compatible for whole, tiny and signed values.
-    #[test]
-    fn f64_decimal_lexical_is_always_a_valid_xsd_decimal() {
-        // xsd:decimal forbids scientific notation. A tiny in-range score must
-        // still serialize as a plain decimal (and round-trip through the lexical).
-        for v in [0.0, 1.0, 0.84, 0.0000001, 1e-12, 0.5_f64] {
-            let s = f64_decimal_lexical(v);
-            assert!(
-                !s.contains(['e', 'E']),
-                "f64_decimal_lexical({v}) = {s:?} must not use scientific notation"
-            );
-            assert!(
-                s.contains('.'),
-                "f64_decimal_lexical({v}) = {s:?} must carry a point"
-            );
-            assert_eq!(renormalize_decimal(v), s.parse::<f64>().unwrap());
-        }
-    }
-
-    // ── label-set exclusivity ──────────────────────────────────────────────
-
-    /// A single-label (argmax) set: a 3-label Ekman-style softmax set with one
-    /// reviewed closeMatch (joy → emotionJoy), declared gmeow:decisionArgmax.
-    const ARGMAX_ONTO: &str = concat!(
-        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
-        "@prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .\n",
-        "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
-        "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n",
-        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
-        "gmeow-labelset:Ekman7 gmeow:labelSetDecision gmeow:decisionArgmax .\n",
-        "gmeow-hf:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
-        "gmeow-hf:anger a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
-        "gmeow-hf:neutral a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
-        "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
-        "gmeow-hf:joy skos:closeMatch gmeow:emotionJoy {| gmeow:sssomFile \"gmeow-affect.sssom.tsv\" |} .\n",
-    );
-
-    fn argmax_config() -> IngestConfig {
-        let index = index_turtle(ARGMAX_ONTO.as_bytes()).expect("index argmax onto");
-        IngestConfig::config_for_label_set(&index, "Ekman7").expect("ekman7 config")
-    }
-
-    /// A softmax capture whose argmax (neutral, 0.45) falls BELOW the 0.5 threshold.
-    fn argmax_capture() -> ClassifierRunCapture {
-        ClassifierRunCapture {
-            model_identifier: "j-hartmann/emotion-english-distilroberta-base".to_owned(),
-            model_revision: "rev-ek".to_owned(),
-            model_framework: "transformers".to_owned(),
-            model_task: "text-classification".to_owned(),
-            function_to_apply: "softmax".to_owned(),
-            return_all_scores: true,
-            label_set_id: "Ekman7".to_owned(),
-            score_semantics: ScoreSemantics::Softmax,
-            threshold_policy: ThresholdPolicy::Global { value: 0.5 },
-            targets: vec![TargetInput {
-                target_iri: "https://example.org/affect/chunk-e".to_owned(),
-                scores: vec![
-                    LabelScore {
-                        label: "joy".to_owned(),
-                        score: 0.20,
-                    },
-                    LabelScore {
-                        label: "anger".to_owned(),
-                        score: 0.35,
-                    },
-                    LabelScore {
-                        label: "neutral".to_owned(),
-                        score: 0.45,
-                    },
-                ],
-            }],
-            score_calibration: None,
-            tokenizer_revision: None,
-            label_set_revision: None,
-            hypothesis_template: None,
-            candidate_labels: None,
-        }
-    }
-
-    fn sole_decision(ttl: &str) -> (String, TripleIndex) {
-        let idx = index_turtle(ttl.as_bytes()).expect("index evidence");
-        let decision = subjects(&idx)
-            .find(|s| has_type(&idx, s, &g("AffectDecision")))
-            .expect("an AffectDecision node")
-            .clone();
-        (decision, idx)
-    }
-
-    #[test]
-    fn argmax_decision_recorded_faithfully_below_threshold() {
-        let ttl = produce(&argmax_capture(), &argmax_config()).unwrap();
-        let (decision, idx) = sole_decision(&ttl);
-        // the argmax winner (neutral) is recorded even though nothing crossed.
-        assert_eq!(
-            first_iri(&idx, &decision, &g("decidedLabel")).as_deref(),
-            Some("https://blackcatinformatics.ca/gmeow-registry/hf/neutral")
-        );
-        assert_eq!(
-            first_literal(&idx, &decision, &g("decisionCrossedThreshold")).as_deref(),
-            Some("false")
-        );
-        // margin = 0.45 − 0.35 = 0.10, recorded as the argmax confidence.
-        let margin: f64 = first_literal(&idx, &decision, &g("decisionMargin"))
-            .expect("a margin (≥2 scores)")
-            .parse()
-            .expect("decimal margin");
-        assert!((margin - 0.10).abs() < 1e-9, "margin {margin}");
-        assert_eq!(
-            first_iri(&idx, &decision, &g("derivedByFunction")).as_deref(),
-            Some(g("fnArgmax").as_str())
-        );
-        // faithful evidence, NOT a forced claim; and NOT the multi-label concluded node.
-        assert!(!ttl.contains("AffectiveClaim"));
-        assert!(!ttl.contains("AffectEvaluationConcluded"));
-    }
-
-    #[test]
-    fn single_score_argmax_decision_has_no_margin() {
-        let mut cap = argmax_capture();
-        cap.return_all_scores = false;
-        cap.targets[0].scores = vec![LabelScore {
-            label: "joy".to_owned(),
-            score: 0.90,
-        }];
-        let ttl = produce(&cap, &argmax_config()).unwrap();
-        let (decision, idx) = sole_decision(&ttl);
-        // decision minted from a single top-1 score, with no runner-up → no margin,
-        // and NEVER a hard fail on a declared partial capture.
-        assert!(first_iri(&idx, &decision, &g("decidedLabel")).is_some());
-        assert_eq!(
-            first_literal(&idx, &decision, &g("decisionCrossedThreshold")).as_deref(),
-            Some("true")
-        );
-        assert!(first_literal(&idx, &decision, &g("decisionMargin")).is_none());
-    }
-
-    #[test]
-    fn exclusivity_violation_on_two_crossings() {
-        let mut cap = argmax_capture();
-        // low per-label thresholds so both anger (0.35) and neutral (0.45) cross.
-        cap.threshold_policy = ThresholdPolicy::PerLabel {
-            thresholds: BTreeMap::from([
-                ("joy".to_owned(), 0.5),
-                ("anger".to_owned(), 0.3),
-                ("neutral".to_owned(), 0.3),
-            ]),
-        };
-        assert!(matches!(
-            produce_refusal(&cap, &argmax_config()),
-            IngestError::ExclusivityViolation { .. }
-        ));
-    }
-
-    #[test]
-    fn ambiguous_argmax_on_exact_tie() {
-        let mut cap = argmax_capture();
-        cap.targets[0].scores = vec![
-            LabelScore {
-                label: "joy".to_owned(),
-                score: 0.40,
-            },
-            LabelScore {
-                label: "anger".to_owned(),
-                score: 0.40,
-            },
-            LabelScore {
-                label: "neutral".to_owned(),
-                score: 0.20,
-            },
-        ];
-        assert!(matches!(
-            produce_refusal(&cap, &argmax_config()),
-            IngestError::AmbiguousArgmax { .. }
-        ));
-    }
-
-    #[test]
-    fn non_normalized_softmax_over_exclusive_set_hard_fails() {
-        let mut cap = argmax_capture();
-        // sums to 0.6 — off the probability simplex.
-        cap.targets[0].scores = vec![
-            LabelScore {
-                label: "joy".to_owned(),
-                score: 0.20,
-            },
-            LabelScore {
-                label: "anger".to_owned(),
-                score: 0.20,
-            },
-            LabelScore {
-                label: "neutral".to_owned(),
-                score: 0.20,
-            },
-        ];
-        assert!(matches!(
-            produce_refusal(&cap, &argmax_config()),
-            IngestError::NonNormalizedExclusiveScores { .. }
-        ));
-    }
-
-    #[test]
-    fn score_semantics_decision_rule_mismatch_hard_fails() {
-        let mut cap = argmax_capture();
-        // a sigmoid (multi-label) semantics over an exclusive (argmax) set.
-        cap.score_semantics = ScoreSemantics::Sigmoid;
-        cap.function_to_apply = "sigmoid".to_owned();
-        assert!(matches!(
-            produce_refusal(&cap, &argmax_config()),
-            IngestError::ScoreSemanticsDecisionMismatch { .. }
-        ));
-    }
-
-    #[test]
-    fn multilabel_two_crossings_no_guard_no_decision() {
-        let mut cap = capture(); // GoEmotions, sigmoid, multi-label
-        cap.targets[0].scores = vec![
-            LabelScore {
-                label: "joy".to_owned(),
-                score: 0.84,
-            },
-            LabelScore {
-                label: "neutral".to_owned(),
-                score: 0.72,
-            },
-        ];
-        // two crossings are legitimate for a multi-label set — no hard fail.
-        let ttl = produce(&cap, &config()).unwrap();
-        assert!(!ttl.contains("AffectDecision"));
-        assert!(ttl.contains("AffectiveClaim")); // joy still routes its claim
-    }
-
-    #[test]
-    fn missing_label_set_decision_hard_fails() {
-        const NO_RULE: &str = concat!(
-            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
-            "@prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .\n",
-            "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
-            "gmeow-hf:pos a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:SST2 .\n",
-        );
-        let index = index_turtle(NO_RULE.as_bytes()).expect("index");
-        assert!(matches!(
-            IngestConfig::config_for_label_set(&index, "SST2"),
-            Err(IngestError::MissingLabelSetDecision { .. })
-        ));
-    }
-
-    #[test]
-    fn argmax_round_trip_with_decision_is_identity() {
-        let (cap, cfg) = (argmax_capture(), argmax_config());
-        let ttl = produce(&cap, &cfg).unwrap();
-        // the decision node is present in the graph…
-        assert!(ttl.contains("AffectDecision"));
-        // …but recover ignores it (derived interpretation), so losslessness holds.
-        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
-    }
-
-    #[test]
-    fn run_scoped_mints_no_decision() {
-        let cap = zeroshot_capture();
-        let cfg = IngestConfig::run_scoped_from_capture(&cap).unwrap();
-        let ttl = produce(&cap, &cfg).unwrap();
-        assert!(!ttl.contains("AffectDecision"));
-    }
-}
+#[path = "lib.tests.rs"]
+mod tests;

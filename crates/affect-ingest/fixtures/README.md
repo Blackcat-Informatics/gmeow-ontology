@@ -31,6 +31,32 @@ so the fixtures can be refreshed.
 | `ekman7-sample.json` | `j-hartmann/emotion-english-distilroberta-base` | `0e1cd914e3d46199ed785853e12b57304e04178b` | softmax, Ekman-7 |
 | `zeroshot-sample.json` | `facebook/bart-large-mnli` | `d7645e127eaf1aefc7862fd59a17a5aa8558b8ce` | NLI entailment, run-scoped candidates |
 
+## Capture JSON contract
+
+Capture envelopes, targets, label scores and threshold policies are JSON objects.
+`score_semantics` is a string: `sigmoid`, `softmax`, `calibrated_probability`,
+`entailment`, `logit` or `margin`. Thresholds use
+`{"kind":"global","value":0.5}` or
+`{"kind":"per_label","thresholds":{"joy":0.5,"neutral":0.5}}`.
+Required members must be present with their declared types. Unknown members are
+ignored; repeated known members are refused with their JSON location. Threshold
+map entries retain their last repeated label, matching ordinary map semantics.
+
+The five optional members (`score_calibration`, `tokenizer_revision`,
+`label_set_revision`, `hypothesis_template` and `candidate_labels`) accept either
+absence or `null`; recovered output omits absent members. Record members retain
+their declared order and threshold labels sort by name. Scores and thresholds
+decode as finite binary64 numbers: strings, nulls and overflow such as `1e400`
+are refused. Input numeric spellings normalize to the shortest binary64 spelling
+on output (`1e0` becomes `1.0`); captures do not carry free-form numeric lexemes.
+
+The native JSON record and enum owner requires object records and string enums.
+Positional record arrays and singleton-map unit enums, which the former serde
+decoder incidentally admitted, are now refused. Write `{"label":"joy","score":0.5}`
+instead of `["joy",0.5]`, and `"sigmoid"` instead of `{"sigmoid":null}`.
+The committed captures already use the object/string forms. This rule applies
+equally to `gmeow affect ingest` and the decoded output of `gmeow affect recover`.
+
 ## What every fixture proves
 
 - **Lossless ingest** — every emitted `(target, label)` becomes a

@@ -366,17 +366,19 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
                     );
                 }
             };
-            let capture =
-                match serde_json::from_str::<gmeow_affect_ingest::ClassifierRunCapture>(&json) {
-                    Ok(capture) => capture,
-                    Err(e) => {
-                        return fail(
-                            reporter,
-                            "gmeow-cli.affect.capture-json",
-                            format!("Error: invalid classifier capture JSON: {e}"),
-                        );
-                    }
-                };
+            let capture = match purrdf_lex::json::record::from_slice::<
+                gmeow_affect_ingest::ClassifierRunCapture,
+            >(json.as_bytes())
+            {
+                Ok(capture) => capture,
+                Err(e) => {
+                    return fail(
+                        reporter,
+                        "gmeow-cli.affect.capture-json",
+                        format!("Error: invalid classifier capture JSON: {e}"),
+                    );
+                }
+            };
             let sssom_texts = match bundled_sssom_texts() {
                 Ok(texts) => texts,
                 Err(e) => return fail(reporter, "gmeow-cli.affect.sssom", format!("Error: {e}")),
@@ -429,17 +431,11 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
                     }
                 };
             match gmeow_affect_ingest::recover(&ttl, &config) {
-                Ok(capture) => match serde_json::to_string_pretty(&capture) {
-                    Ok(json) => {
-                        println!("{json}");
-                        0
-                    }
-                    Err(e) => fail(
-                        reporter,
-                        "gmeow-cli.affect.recover-json",
-                        format!("Error: {e}"),
-                    ),
-                },
+                Ok(capture) => {
+                    let value = purrdf_lex::json::record::ToJson::to_json(&capture);
+                    println!("{}", purrdf_lex::json::write_pretty(&value));
+                    0
+                }
                 Err(e) => fail(reporter, "gmeow-cli.affect.recover", format!("Error: {e}")),
             }
         }

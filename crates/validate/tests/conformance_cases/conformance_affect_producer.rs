@@ -86,7 +86,8 @@ fn fixture(name: &str) -> ClassifierRunCapture {
     let root = repo_root();
     let json = fs::read_to_string(root.join("crates/affect-ingest/fixtures").join(name))
         .unwrap_or_else(|e| panic!("read fixture {name}: {e}"));
-    serde_json::from_str(&json).unwrap_or_else(|e| panic!("deserialize fixture {name}: {e}"))
+    purrdf_lex::json::record::from_slice(json.as_bytes())
+        .unwrap_or_else(|e| panic!("deserialize fixture {name}: {e}"))
 }
 
 #[gmeow_test_batch_macros::batch_test]
@@ -311,7 +312,8 @@ fn zeroshot_run_scoped_output_conforms_and_round_trips() {
     let root = repo_root();
     let json = fs::read_to_string(root.join("crates/affect-ingest/fixtures/zeroshot-sample.json"))
         .expect("read zeroshot fixture");
-    let cap: ClassifierRunCapture = serde_json::from_str(&json).expect("deserialize zeroshot");
+    let cap: ClassifierRunCapture =
+        purrdf_lex::json::record::from_slice(json.as_bytes()).expect("deserialize zeroshot");
     // The candidate set is declared per run, not read from a static AffectLabelSet.
     let cfg = IngestConfig::run_scoped_from_capture(&cap).expect("run-scoped config");
     let ttl = produce(&cap, &cfg).expect("produce zeroshot");
@@ -357,7 +359,8 @@ fn zeroshot_hard_fails_without_run_scoped_provenance() {
     let root = repo_root();
     let json = fs::read_to_string(root.join("crates/affect-ingest/fixtures/zeroshot-sample.json"))
         .expect("read zeroshot fixture");
-    let cap: ClassifierRunCapture = serde_json::from_str(&json).expect("deserialize zeroshot");
+    let cap: ClassifierRunCapture =
+        purrdf_lex::json::record::from_slice(json.as_bytes()).expect("deserialize zeroshot");
     let cfg = IngestConfig::run_scoped_from_capture(&cap).expect("run-scoped config");
 
     // Strip the hypothesis template: an entailment run without it is a hard fail.
