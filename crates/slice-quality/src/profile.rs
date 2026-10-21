@@ -7,6 +7,7 @@
 use std::collections::BTreeMap;
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
+use purrdf_lex::json::{self, Object, Value, record::ToJson};
 use serde::Serialize;
 
 use crate::graph::{g, instances_of};
@@ -30,6 +31,22 @@ pub enum Applicability {
     Unsupported { reason: String },
 }
 
+impl ToJson for Applicability {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Measured => Object::new().with("status", "measured").into(),
+            Self::NotApplicable { reason } => Object::new()
+                .with("status", "not_applicable")
+                .with("reason", reason.as_str())
+                .into(),
+            Self::Unsupported { reason } => Object::new()
+                .with("status", "unsupported")
+                .with("reason", reason.as_str())
+                .into(),
+        }
+    }
+}
+
 /// A profile resolved against the exact measurement standard before evaluation.
 #[derive(Debug, Clone, Serialize)]
 pub struct QualityProfile {
@@ -42,6 +59,13 @@ pub struct QualityProfile {
     /// Every rubric axis, including explicit exclusions and unsupported measurements.
     pub axes: BTreeMap<String, Applicability>,
 }
+
+::purrdf_lex::json_record!(impl ToJson for QualityProfile {
+    "iri" => iri,
+    "key" => key,
+    "target_tier" => target_tier,
+    "axes" => axes,
+});
 
 /// One reported outcome; an excluded axis never carries an invented numeric score.
 #[derive(Debug, Clone, Serialize)]
@@ -167,8 +191,7 @@ impl ProfileAssessment {
                 });
             }
         }
-        let profile_bytes = serde_json::to_vec(profile)
-            .map_err(|error| invalid(format!("encode selected profile identity: {error}")))?;
+        let profile_bytes = json::record::to_vec(profile);
         Ok(Self {
             profile: profile.clone(),
             profile_identity: format!(

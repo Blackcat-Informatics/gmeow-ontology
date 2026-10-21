@@ -98,6 +98,64 @@ fn files() -> BTreeMap<String, Vec<u8>> {
 }
 
 #[test]
+fn profile_native_json_preserves_record_enum_and_axis_order() {
+    let profile = QualityProfile {
+        iri: "urn:profile".into(),
+        key: "tiny".into(),
+        target_tier: "urn:tier".into(),
+        axes: BTreeMap::from([
+            (
+                "z".into(),
+                Applicability::Unsupported {
+                    reason: "later".into(),
+                },
+            ),
+            ("a".into(), Applicability::Measured),
+            (
+                "m".into(),
+                Applicability::NotApplicable {
+                    reason: "outside".into(),
+                },
+            ),
+        ]),
+    };
+    assert_eq!(
+        json::record::to_vec(&profile),
+        br#"{"iri":"urn:profile","key":"tiny","target_tier":"urn:tier","axes":{"a":{"status":"measured"},"m":{"status":"not_applicable","reason":"outside"},"z":{"status":"unsupported","reason":"later"}}}"#,
+    );
+}
+
+#[test]
+fn profile_native_json_preserves_empty_fields_and_string_bytes() {
+    let profile = QualityProfile {
+        iri: "urn:é/🦀\u{2028}\u{2029}".into(),
+        key: "\"\n\\\0".into(),
+        target_tier: String::new(),
+        axes: BTreeMap::new(),
+    };
+    let expected = concat!(
+        r#"{"iri":"urn:é/🦀"#,
+        "\u{2028}\u{2029}",
+        r#"","key":"\"\n\\\u0000","target_tier":"","axes":{}}"#,
+    );
+    assert_eq!(json::record::to_vec(&profile), expected.as_bytes());
+}
+
+#[test]
+fn profile_native_json_actual_assessment_keeps_independent_identity_golden() {
+    let standard = standards(&model(), "external-sacred").unwrap();
+    let report = score_external_slice_from_files(&standard, &files()).unwrap();
+    let assessment = report.profile.as_ref().unwrap();
+    // Independent /usr/bin/b3sum over this exact literal, no trailing newline.
+    let expected = br#"{"iri":"https://consumer.example/external","key":"external-sacred","target_tier":"https://blackcatinformatics.ca/gmeow/tierMaximal","axes":{"https://blackcatinformatics.ca/gmeow/axisGmn1Coverage":{"status":"not_applicable","reason":"This corpus does not adopt the GMN dictionary."},"https://blackcatinformatics.ca/gmeow/axisInformation":{"status":"measured"},"https://blackcatinformatics.ca/gmeow/axisProjection":{"status":"measured"}}}"#;
+    assert_eq!(json::record::to_vec(&assessment.profile), expected);
+    assert_eq!(
+        assessment.profile_identity,
+        "blake3:42c9ff08d0beb6a25638ac0e8c7f516484ee82113aa096110619f697bb3606b3",
+    );
+}
+
+#[test]
 fn selected_profiles_admit_capabilities_before_measurement_without_fallback() {
     let model = model();
     let error = standards(&model, "full")

@@ -26,6 +26,7 @@ purrdf-hash.workspace = true
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 purrdf-core.workspace = true
+purrdf-lex.workspace = true
 gmeow-errors = { path = "../errors" }
 # The validate crate owns the annotation invariants and structural lints the
 # information/prose axes report; the slice-quality kernel composes its verdicts
