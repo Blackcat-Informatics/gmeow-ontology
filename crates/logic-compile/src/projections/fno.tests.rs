@@ -410,6 +410,78 @@ fn canonical_callables_preserve_order_identity_types_and_rdf12_metadata() {
     );
 }
 
+/// Input and output slots require their authored labels, definitions and owners
+/// before projection; catalog annotation completion must not invent source coats.
+#[test]
+fn canonical_callable_slot_metadata_is_required_before_projection() {
+    for (slot, coat, label, definition) in [
+        (
+            "z",
+            "rdfs:label \"first input\"@en ; skos:definition \"integer slot\"@en ; rdfs:isDefinedBy ex:owner .",
+            "rdfs:label \"first input\"@en ; ",
+            "skos:definition \"integer slot\"@en ; ",
+        ),
+        (
+            "result",
+            "rdfs:label \"result\"@en ;\n    skos:definition \"decimal result\"@en ; rdfs:isDefinedBy ex:owner .",
+            "rdfs:label \"result\"@en ;",
+            "skos:definition \"decimal result\"@en ; ",
+        ),
+    ] {
+        for (removed, expected) in [
+            (label, RDFS_LABEL),
+            (definition, SKOS_DEFINITION),
+            (
+                " ; rdfs:isDefinedBy ex:owner",
+                "rdfs:isDefinedBy requires a source owner IRI",
+            ),
+        ] {
+            let source = CALLABLE_FIXTURE.replace(coat, &coat.replace(removed, ""));
+            let error = match lower_callable_fixture(&source) {
+                Ok(_) => panic!("{slot}: missing {expected} must refuse admission"),
+                Err(error) => error,
+            };
+            let detail = error.to_string();
+            assert!(
+                detail.contains(&format!("https://example.org/{slot}")),
+                "{detail}"
+            );
+            assert!(detail.contains(expected), "{detail}");
+        }
+    }
+}
+
+/// Independently authored slot coats survive the actual FnO path, including the
+/// source ownership link; the input and output identities are not replaced.
+#[test]
+fn canonical_callable_slot_metadata_preserves_authored_input_and_output_values() {
+    let original = purrdf::parse_dataset(CALLABLE_FIXTURE.as_bytes(), "text/turtle", None).unwrap();
+    let original = DslView::new(&original);
+    for (dsl, ontology) in [(CALLABLE_FIXTURE, ""), ("", CALLABLE_FIXTURE)] {
+        let lowering = lower_callable_views(dsl, ontology).expect("complete authored slot coats");
+        let dataset =
+            purrdf::parse_dataset(lowering.catalog.as_bytes(), "text/turtle", None).unwrap();
+        let view = DslView::new(&dataset);
+        for slot in ["z", "a", "result"] {
+            let subject = format!("https://example.org/{slot}");
+            for predicate in [
+                RDFS_LABEL,
+                SKOS_DEFINITION,
+                gmeow_errors::abox::RDFS_IS_DEFINED_BY,
+            ] {
+                let expected = original.objects_of(&subject, predicate);
+                let actual = view.objects_of(&subject, predicate);
+                assert_eq!(
+                    expected.len(),
+                    1,
+                    "the fixture supplies {subject}: {predicate}"
+                );
+                assert_eq!(actual, expected, "preserve {subject}: {predicate}");
+            }
+        }
+    }
+}
+
 #[test]
 fn canonical_callables_fail_closed_on_invalid_or_unrepresentable_declarations() {
     let cases = [

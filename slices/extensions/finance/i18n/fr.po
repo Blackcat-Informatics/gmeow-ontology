@@ -980,3 +980,60 @@ msgstr "Impose la relation déclarée return-currency-match pour chaque entrée 
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding names one exact HoldingAssetQuantity object, whose magnitude, asset identity and count frame remain explicit. Competing holdings remain standpoint-indexed statements. This characteristic is reasoned from its canonical carrier, not restated on a shape surface."
 msgstr "Affirme sur le porteur canonique que gmeow:holdingQuantity est fonctionnel : une détention nomme un objet HoldingAssetQuantity exact dont la grandeur, l’actif et le repère de comptage restent explicites. Les détentions concurrentes restent des affirmations indexées par point de vue. Cette caractéristique est déduite du porteur canonique, non réaffirmée sur une surface de forme."
+
+
+msgctxt "urn:gmeow:finance:simple:principal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal parameter"
+msgstr "paramètre de capital pour l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:principal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required MonetaryAmount input slot of methodSimpleInterest, supplied through principalAmount and associated with the principal mathematical symbol. It names the parameter definition, not the bound amount or its numeric value."
+msgstr "Le paramètre d’entrée MonetaryAmount requis par methodSimpleInterest, fourni par principalAmount et associé au symbole mathématique du capital. Il désigne la définition du paramètre, et non le montant lié ou sa valeur numérique."
+
+msgctxt "urn:gmeow:finance:simple:rate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest rate parameter"
+msgstr "paramètre de taux pour l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:rate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required FinancialPeriodRate input slot of methodSimpleInterest, supplied through interestRate and associated with the rate mathematical symbol. Its quantity must use the same explicit period basis as the period count and calculation."
+msgstr "Le paramètre d’entrée FinancialPeriodRate requis par methodSimpleInterest, fourni par interestRate et associé au symbole mathématique du taux. Sa quantité doit employer la même base de période explicite que le nombre de périodes et le calcul."
+
+msgctxt "urn:gmeow:finance:simple:count|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count parameter"
+msgstr "paramètre de nombre de périodes pour l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:count|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required FinancialPeriodCount input slot of methodSimpleInterest, supplied through interestPeriodCount and associated with the period-count mathematical symbol. The bound quantity counts periods on the rate's explicit basis; it is distinct from the parameter and symbol definitions."
+msgstr "Le paramètre d’entrée FinancialPeriodCount requis par methodSimpleInterest, fourni par interestPeriodCount et associé au symbole mathématique du nombre de périodes. La quantité liée compte les périodes selon la base explicite du taux ; elle est distincte des définitions du paramètre et du symbole."
+
+msgctxt "urn:gmeow:finance:return:opening|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount parameter"
+msgstr "paramètre de montant initial pour le rendement sur période de détention"
+
+msgctxt "urn:gmeow:finance:return:opening|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required opening MonetaryAmount input slot of methodHoldingPeriodReturn, supplied through openingAmount. Its mathematical symbol occurs in both the subtraction and denominator of (closing-opening)/opening; the bound opening amount must be nonzero and share the closing amount's currency."
+msgstr "Le paramètre d’entrée MonetaryAmount initial requis par methodHoldingPeriodReturn, fourni par openingAmount. Son symbole mathématique apparaît dans la soustraction et au dénominateur de (closing-opening)/opening ; le montant initial lié doit être non nul et libellé dans la même devise que le montant final."
+
+msgctxt "urn:gmeow:finance:return:closing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount parameter"
+msgstr "paramètre de montant final pour le rendement sur période de détention"
+
+msgctxt "urn:gmeow:finance:return:closing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required closing MonetaryAmount input slot of methodHoldingPeriodReturn, supplied through closingAmount and associated with the closing mathematical symbol. The bound amount must share the opening amount's currency; this slot does not perform currency conversion."
+msgstr "Le paramètre d’entrée MonetaryAmount final requis par methodHoldingPeriodReturn, fourni par closingAmount et associé au symbole mathématique du montant final. Le montant lié doit être libellé dans la même devise que le montant initial ; ce paramètre n’effectue aucune conversion de devises."
+
+msgctxt "urn:gmeow:finance:simple:result|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest amount result slot"
+msgstr "emplacement de résultat du montant d’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:result|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The MonetaryAmount output slot of methodSimpleInterest, returned through observationResult. Native execution derives the interest amount P*r*n in the principal's currency; this slot defines the result role rather than asserting an amount."
+msgstr "L’emplacement de sortie MonetaryAmount de methodSimpleInterest, renvoyé par observationResult. L’exécution native dérive le montant d’intérêt P*r*n dans la devise du capital ; cet emplacement définit le rôle du résultat plutôt que d’affirmer un montant."
+
+msgctxt "urn:gmeow:finance:return:result|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return ratio result slot"
+msgstr "emplacement de résultat du ratio de rendement sur période de détention"
+
+msgctxt "urn:gmeow:finance:return:result|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FinancialReturnRatio output slot of methodHoldingPeriodReturn, returned through observationResult. Native execution derives (closing-opening)/opening on the calculation's explicit period basis; this slot defines the result role rather than asserting a ratio."
+msgstr "L’emplacement de sortie FinancialReturnRatio de methodHoldingPeriodReturn, renvoyé par observationResult. L’exécution native dérive (closing-opening)/opening selon la base de période explicite du calcul ; cet emplacement définit le rôle du résultat plutôt que d’affirmer un ratio."
