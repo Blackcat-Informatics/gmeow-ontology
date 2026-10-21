@@ -3,6 +3,9 @@
 
 //! Producer-owned reviewed translation coverage and catalog parse observations.
 
+mod paths;
+pub use paths::{golden_path, repo_root};
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 

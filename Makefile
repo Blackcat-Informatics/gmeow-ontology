@@ -1278,7 +1278,7 @@ maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
 maint-refresh-reviewed-coverage-golden: ## Refresh the deterministic reviewed-translation coverage golden from all live slice catalogs.
-	cargo run -p gmeow-docs --example refresh-reviewed-coverage-golden
+	cargo run -p gmeow-docs-model --example refresh-reviewed-coverage-golden
 
 maint-refresh-describe-witness: ## Refresh the verified explorer description attestation using O3/full LTO.
 	cargo run --profile pipeline -p gmeow-mcp --example refresh-witness-describe
