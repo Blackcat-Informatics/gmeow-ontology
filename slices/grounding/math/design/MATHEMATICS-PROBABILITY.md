@@ -172,6 +172,16 @@ ex:normalSigma
 
 ## Probability value representation
 
+Exact values retain their `math:RationalValue` numerator/denominator carrier.
+`math:RationalProbabilityRangeConstraint` checks the unit interval with integer
+sign comparisons: for positive denominators, zero ≤ numerator ≤ denominator;
+for negative denominators, denominator ≤ numerator ≤ zero. Both signs are legal.
+The existing rational owner rejects zero denominators and incomplete or mistyped
+pairs. The same law projects to validation and native failure markers, without
+division, decimal approximation or narrowing an integer to a machine word.
+Rational exactness metadata, when supplied, is one boolean value; consumers
+selecting an explicit exact branch can require true.
+
 A probability value is a quantity/result object, never a bare literal, and a `math:ProbabilityValue`
 is **always** in `[0, 1]`. Odds and log-odds are *not* probabilities; they are probability-scale
 transforms and are modeled as their own kinds:

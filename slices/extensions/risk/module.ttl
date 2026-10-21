@@ -4,6 +4,8 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Cascade
@@ -203,12 +205,17 @@ gmeow:linkNext
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkStrength
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:CausalLink ;
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CausalLink ;
+    logic:range math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link strength"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    skos:definition "A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional design review: strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing OWL sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention)."@x-gmeow-english ;
+    skos:definition "A dimensioned solver-input weight for a causal link. The math:Quantity carries its numeric or exact rational value, dimension and declared analysis interpretation through gmeow:hasReferenceFrame. The consuming analysis defines the scale; weights outside the unit interval remain valid. A weight is neither a probability nor epistemic confidence, and solver outputs are never written back as asserted input weights."@x-gmeow-english ;
+    gmeow:useWhen "Use when an analysis consumes a numerically weighted causal link."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a literal weight, interpret the weight as probability, or replace categorical causal modality and severity with a number."@x-gmeow-english ;
+    gmeow:howToUse "Point to a math:Quantity with math:hasDimension and a typed gmeow:ReferenceFrame declaring the analysis scale. Supply finite math:quantityValue magnitudes or co-type it math:RationalValue with math:isExact true and integer numerator and non-zero denominator. Omit linkStrength when no numerical weight is asserted."@x-gmeow-english ;
+    skos:scopeNote "The property remains optional and non-functional; divergent source-bound weights coexist through the statement layer."@x-gmeow-english ;
+    skos:example "ex:link gmeow:linkStrength ex:weight . ex:weight a math:Quantity ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:analysisScale ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:manifestedAsType
@@ -491,7 +498,7 @@ logic:mictIsHazard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/2
 <https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/causalModality> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/linkAntecedent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
 <https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/linkConsequent> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
-<https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/linkStrength> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/CausalLink> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/linkStrength> ; logic:allValuesFrom math:Quantity ] .
 <https://blackcatinformatics.ca/gmeow/Hazard> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hazardBearer> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Hazard> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/manifestedAsType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/EventType> ] .
 <https://blackcatinformatics.ca/gmeow/Mitigation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; logic:allValuesFrom logic:Thing ] .
@@ -518,7 +525,7 @@ gmeow:CausalLink logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:linkAntecedent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:linkConsequent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:causalModality ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:linkStrength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:linkStrength ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ] .
 
 # gmeow:CausalLinkShape — gmeow:linkMechanism carries at most one value per language tag (the
 # localizable-prose per-language-tag uniqueness convention). A declarative logic: sugar record grounds the sh:uniqueLang
@@ -651,3 +658,95 @@ gmeow:causalLinkDistinctness
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:CausalLink and nothing else. It is not a definition of gmeow:CausalLink (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:causalLinkDistinctness logic:characterizes gmeow:CausalLink ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:RiskLikelihoodAssessment
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "Risk Likelihood Assessment"@x-gmeow-english ;
+    skos:definition "A held assessment of modeled risk occurrence probability. Its results are math:ProbabilityValue objects, each naming a typed probability model and a probability event in a probability space. It does not assert an occurrence, reinterpret a causal weight or collapse epistemic confidence into probability."@x-gmeow-english ;
+    gmeow:useWhen "Use for a model-bound likelihood of feared outcomes, including a numeric risk score only when that score denotes a calibrated occurrence probability."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for ordinal severity, arbitrary solver weights, odds, log odds or an unsupported confidence-to-probability conversion."@x-gmeow-english ;
+    gmeow:howToUse "Use observedFeature for the risk factor or cascade, observationResult for each modeled probability, probabilityOfEvent from its mathematical event, and eventInSpace for the event context."@x-gmeow-english ;
+    skos:scopeNote "Bayesian risk analyses retain explicit prior, likelihood and posterior artifacts; other probability models do not become Bayesian by default."@x-gmeow-english ;
+    skos:example "ex:assessment a gmeow:RiskLikelihoodAssessment ; gmeow:observationResult ex:p . ex:event math:probabilityOfEvent ex:p ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:Observation ,
+        [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:Entity ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom math:ProbabilityValue ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RiskLikelihoodAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RiskLikelihoodAssessment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:LinkStrengthQuantityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "Link strength quantity constraint"@x-gmeow-english ;
+    skos:definition "Every asserted causal weight is a dimensioned quantity with finite numeric or exact rational magnitudes and a typed analysis reference frame."@x-gmeow-english ;
+    gmeow:useWhen "Validate asserted numerical causal weights."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not require a weight on an unweighted causal link."@x-gmeow-english ;
+    gmeow:howToUse "Supply a quantity and declared analysis scale for every linkStrength value."@x-gmeow-english ;
+    skos:scopeNote "No unit-interval bound or probability interpretation is imposed. An exact rational carrier has one boolean true exactness flag and no parallel quantityValue."@x-gmeow-english ;
+    skos:example "ex:link gmeow:linkStrength ex:weight ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:linkStrength ;
+    logic:message "Every asserted causal weight is a dimensioned quantity with finite numeric or exact rational magnitudes and a typed analysis reference frame." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "selectedWeight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "selectedWeight" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "weight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "weight" ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termIri math:Quantity ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "weight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "weight" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "frame" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "weight" ] ],
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "weight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "weight" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "magnitude" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termIri math:RationalValue ] ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "weight" ] ],
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "magnitude" ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "weight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "weight" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termIri math:RationalValue ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation math:isExact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termLiteral true ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "weight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:linkStrength ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "weight" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termIri math:RationalValue ] ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "decimalValue" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "weight" ], [ logic:termIndex 1 ; logic:termVariable "decimalValue" ] ] ] ] ] ] ] ] ] .
+
+gmeow:RiskLikelihoodResultsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "Risk likelihood results constraint"@x-gmeow-english ;
+    skos:definition "Every reported risk probability has finite numeric or exact rational magnitudes, typed probability models and at least one typed probability event context."@x-gmeow-english ;
+    gmeow:useWhen "Validate every reported model-bound risk probability."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not apply this probability contract to causal weights or categorical severity."@x-gmeow-english ;
+    gmeow:howToUse "Declare each probability model and the event assigned the reported probability."@x-gmeow-english ;
+    skos:scopeNote "Every supplied model must be typed; neighboring probabilities cannot supply missing context. An exact rational carrier has one boolean true exactness flag and no parallel quantityValue."@x-gmeow-english ;
+    skos:example "ex:p logic:probabilityModel ex:model . ex:event math:probabilityOfEvent ex:p ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:RiskLikelihoodAssessment ;
+    logic:message "Every reported risk probability has finite numeric or exact rational magnitudes, typed probability models and at least one typed probability event context." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "model" ] ; logic:exists [ a logic:Formula ; logic:relation logic:probabilityModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+        [ a logic:Formula ; logic:relation logic:probabilityModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termIri logic:ProbabilityModel ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "event" ] ; logic:exists [ a logic:Formula ; logic:relation math:probabilityOfEvent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "magnitude" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termIri math:RationalValue ] ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "magnitude" ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termIri math:RationalValue ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation math:isExact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termLiteral true ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termIri math:RationalValue ] ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "decimalValue" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "decimalValue" ] ] ] ] ] ] ] ] ] .
+
+gmeow:RiskProbabilityEventContextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    rdfs:label "Risk probability event context constraint"@x-gmeow-english ;
+    skos:definition "Every event assigning a reported risk probability is a mathematical probability event with a typed probability space."@x-gmeow-english ;
+    gmeow:useWhen "Validate the event context of a reported risk likelihood."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not equate a mathematical event set with an event occurrence or event type."@x-gmeow-english ;
+    gmeow:howToUse "Link each probability event to its probability space through math:eventInSpace."@x-gmeow-english ;
+    skos:scopeNote "The imported mathematical owner validates complete sample space, sigma algebra and measure structure."@x-gmeow-english ;
+    skos:example "ex:event a math:ProbabilityEvent ; math:eventInSpace ex:space ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:RiskLikelihoodAssessment ;
+    logic:message "Every event assigning a reported risk probability is a mathematical probability event with a typed probability space." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "event" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+        [ a logic:Formula ; logic:relation math:probabilityOfEvent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ], [ logic:termIndex 1 ; logic:termIri math:ProbabilityEvent ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "event" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+        [ a logic:Formula ; logic:relation math:probabilityOfEvent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "space" ] ; logic:exists [ a logic:Formula ; logic:relation math:eventInSpace ; logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ], [ logic:termIndex 1 ; logic:termVariable "space" ] ] ] ] ],
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "event" ], [ logic:termIndex 2 ; logic:termVariable "space" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RiskLikelihoodAssessment ] ],
+        [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+        [ a logic:Formula ; logic:relation math:probabilityOfEvent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+        [ a logic:Formula ; logic:relation math:eventInSpace ; logic:argument [ logic:termIndex 0 ; logic:termVariable "event" ], [ logic:termIndex 1 ; logic:termVariable "space" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "space" ], [ logic:termIndex 1 ; logic:termIri math:ProbabilitySpace ] ] ] ] ] ] ] .

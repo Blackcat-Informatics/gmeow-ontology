@@ -1,10 +1,11 @@
-# Coverage fixture for the risk slice (#354, EPIC #348): exercises hazard,
+# Coverage fixture for the risk slice : exercises hazard,
 # flat + reified causation, cascade, severity, and mitigation in instance
 # data — types only, nothing occurred.
 
 @prefix ex:    <https://example.org/coverage/risk/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:etSpark a gmeow:EventType ; rdfs:label "coverage spark kind"@en .
@@ -23,7 +24,15 @@ ex:link a gmeow:CausalLink ;
     gmeow:linkConsequent ex:etFire ;
     gmeow:causalModality gmeow:causallyPromotes ;
     gmeow:linkMechanism "ignition"@x-gmeow-english ;
-    gmeow:linkStrength 0.7 .
+    gmeow:linkStrength ex:weight .
+ex:weight a math:Quantity ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:analysisScale .
+ex:analysisScale a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false .
 
 ex:cascade a gmeow:Cascade ;
     rdfs:label "coverage cascade"@en ;

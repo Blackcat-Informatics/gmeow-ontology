@@ -465,3 +465,52 @@ fn equality_expression_errors_drop_only_the_affected_candidate() {
         bad_record()
     );
 }
+
+/// The native integer comparison path must preserve exact rational probability bounds.
+#[test]
+fn exact_rational_bounds_keep_big_integers_and_both_denominator_signs() {
+    let law = r#"@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:KindLaw a logic:Constraint ; gmeow:enforcesFailureClass ex:BadMetadata ; logic:formalizes ex:Projection ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "n" ], [ logic:termIndex 2 ; logic:termVariable "d" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Probability ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Rational ] ], [ a logic:Formula ; logic:relation ex:n ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "n" ] ], [ a logic:Formula ; logic:relation ex:d ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "d" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "d" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termVariable "d" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "d" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ], [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "n" ], [ logic:termIndex 1 ; logic:termVariable "d" ] ] ] ] ] ] ."#;
+    for (n, d, valid) in [
+        ("1", "3", true),
+        ("-1", "-3", true),
+        ("0", "-3", true),
+        ("3", "2", false),
+        ("-3", "-2", false),
+        ("1", "-3", false),
+        ("1", "0", false),
+        (
+            "340282366920938463463374607431768211456",
+            "340282366920938463463374607431768211457",
+            true,
+        ),
+        (
+            "340282366920938463463374607431768211457",
+            "340282366920938463463374607431768211456",
+            false,
+        ),
+        (
+            "-340282366920938463463374607431768211456",
+            "-340282366920938463463374607431768211457",
+            true,
+        ),
+        (
+            "-340282366920938463463374607431768211457",
+            "-340282366920938463463374607431768211456",
+            false,
+        ),
+    ] {
+        let data = format!("ex:bad a ex:Probability, ex:Rational ; ex:n {n} ; ex:d {d} .");
+        let findings = authored_findings(law, &data, 9);
+        if valid {
+            assert!(findings.is_empty(), "{n}/{d}: {findings:?}");
+        } else {
+            assert!(
+                findings.iter().any(|finding| finding.0.ends_with("bad")
+                    && finding.1.ends_with("KindLaw")
+                    && finding.2.ends_with("BadMetadata")),
+                "{n}/{d}: {findings:?}"
+            );
+        }
+    }
+}

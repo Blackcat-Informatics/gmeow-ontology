@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix m: <https://blackcatinformatics.ca/math/> .
+@prefix l: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/risk/modeled/> .
+
+ex:spark a g:EventType . ex:fire a g:EventType .
+ex:link a g:CausalLink ; g:linkAntecedent ex:spark ; g:linkConsequent ex:fire ;
+    g:causalModality g:causallyPromotes ; g:linkStrength ex:weight .
+ex:weight a m:Quantity ; m:hasDimension m:dimensionless ; m:quantityValue 2.5 ;
+    g:hasReferenceFrame ex:analysisScale .
+ex:analysisScale a g:ReferenceFrame ;
+    g:frameRealm g:frameRealmMathematical ;
+    g:frameKind g:frameKindScalar ;
+    g:determinacyModel g:determinacyCrisp ;
+    g:hasAxis g:axisScalar ;
+    g:dimensionCount "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+    g:requiresHost false .
+ex:auditor a g:Organization .
+# The held probability is independent of the solver weight and categorical modality.
+ex:assessment a g:RiskLikelihoodAssessment ; g:observedFeature ex:link ;
+    g:vantage ex:auditor ; g:observationResult ex:probability .
+ex:probability a m:ProbabilityValue ; m:hasDimension m:dimensionless ;
+    m:quantityValue 0.2 ; l:probabilityModel ex:model .
+ex:model a l:ProbabilityModel .
+ex:fireOutcomes a m:ProbabilityEvent ; m:probabilityOfEvent ex:probability ;
+    m:eventInSpace ex:space .
+ex:space a m:ProbabilitySpace ; m:sampleSpace ex:outcomes ;
+    m:eventSigmaAlgebra ex:algebra ; m:probabilityMeasure ex:measure .
+ex:outcomes a m:SampleSpace . ex:algebra a m:SigmaAlgebra .
+ex:measure a m:ProbabilityMeasure ; m:totalMass 1 ; m:measureOn ex:space .

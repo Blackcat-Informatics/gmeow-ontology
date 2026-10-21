@@ -208,3 +208,143 @@ msgstr "范围：该记录仅承载关于 gmeow:linkNext 的一项完整性义�
 msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:CausalLink and nothing else. It is not a definition of gmeow:CausalLink (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:CausalLink 的一项完整性义务，别无其他。它不是 gmeow:CausalLink 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|rdfs:label"
+msgid "link strength"
+msgstr "因果链接强度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|skos:definition"
+msgid "A dimensioned solver-input weight for a causal link. The math:Quantity carries its numeric or exact rational value, dimension and declared analysis interpretation through gmeow:hasReferenceFrame. The consuming analysis defines the scale; weights outside the unit interval remain valid. A weight is neither a probability nor epistemic confidence, and solver outputs are never written back as asserted input weights."
+msgstr "因果链接的有量纲求解器输入权重。math:Quantity 记录数值、量纲及通过 gmeow:hasReferenceFrame 声明的分析解释。分析定义其尺度，单位区间之外的权重仍有效。权重既非概率也非认识置信度；求解器输出不得写回为已断言的输入权重。 精确值同时定型为 math:RationalValue，具有 math:isExact true、整数分子及非零整数分母，不要求十进制近似。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|gmeow:useWhen"
+msgid "Use when an analysis consumes a numerically weighted causal link."
+msgstr "用于分析需要数值加权因果链接时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|gmeow:avoidWhen"
+msgid "Do not use a literal weight, interpret the weight as probability, or replace categorical causal modality and severity with a number."
+msgstr "不要使用字面量权重、将权重解释为概率，或用数值取代分类因果模态和严重性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|gmeow:howToUse"
+msgid "Point to a math:Quantity with math:hasDimension and a typed gmeow:ReferenceFrame declaring the analysis scale. Supply finite math:quantityValue magnitudes or co-type it math:RationalValue with math:isExact true and integer numerator and non-zero denominator. Omit linkStrength when no numerical weight is asserted."
+msgstr "指向具有 math:quantityValue、math:hasDimension 和已定型 gmeow:ReferenceFrame 分析尺度的 math:Quantity。未断言数值权重时省略 linkStrength。 精确值同时定型为 math:RationalValue，具有 math:isExact true、整数分子及非零整数分母，不要求十进制近似。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|skos:scopeNote"
+msgid "The property remains optional and non-functional; divergent source-bound weights coexist through the statement layer."
+msgstr "该属性保持可选且非函数性；不同来源的权重通过陈述层共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkStrength|skos:example"
+msgid "ex:link gmeow:linkStrength ex:weight . ex:weight a math:Quantity ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:analysisScale ."
+msgstr "ex:link gmeow:linkStrength ex:weight . ex:weight a math:Quantity ; math:quantityValue 2.5 ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:analysisScale ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|rdfs:label"
+msgid "Risk Likelihood Assessment"
+msgstr "风险发生概率评估"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|skos:definition"
+msgid "A held assessment of modeled risk occurrence probability. Its results are math:ProbabilityValue objects, each naming a typed probability model and a probability event in a probability space. It does not assert an occurrence, reinterpret a causal weight or collapse epistemic confidence into probability."
+msgstr "关于模型化风险发生概率的持有评估。结果为 math:ProbabilityValue，每个结果声明已定型的概率模型及概率空间中的概率事件。它不宣称实际发生，不重新解释因果权重，也不将认识置信度混同于概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|gmeow:useWhen"
+msgid "Use for a model-bound likelihood of feared outcomes, including a numeric risk score only when that score denotes a calibrated occurrence probability."
+msgstr "用于模型约束下的不利结果发生概率；数值风险评分仅在表示校准发生概率时适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|gmeow:avoidWhen"
+msgid "Do not use for ordinal severity, arbitrary solver weights, odds, log odds or an unsupported confidence-to-probability conversion."
+msgstr "不要用于有序严重性、任意求解器权重、几率、对数几率或无依据的置信度概率转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|gmeow:howToUse"
+msgid "Use observedFeature for the risk factor or cascade, observationResult for each modeled probability, probabilityOfEvent from its mathematical event, and eventInSpace for the event context."
+msgstr "用 observedFeature 指明风险因素或级联，observationResult 指明各模型概率，从数学事件通过 probabilityOfEvent 连接结果，并以 eventInSpace 声明上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|skos:scopeNote"
+msgid "Bayesian risk analyses retain explicit prior, likelihood and posterior artifacts; other probability models do not become Bayesian by default."
+msgstr "贝叶斯风险分析保留明确的先验、似然和后验对象；其他概率模型不会默认变为贝叶斯模型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodAssessment|skos:example"
+msgid "ex:assessment a gmeow:RiskLikelihoodAssessment ; gmeow:observationResult ex:p . ex:event math:probabilityOfEvent ex:p ."
+msgstr "ex:assessment a gmeow:RiskLikelihoodAssessment ; gmeow:observationResult ex:p . ex:event math:probabilityOfEvent ex:p ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|rdfs:label"
+msgid "Link strength quantity constraint"
+msgstr "链接强度数量约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|skos:definition"
+msgid "Every asserted causal weight is a dimensioned quantity with finite numeric or exact rational magnitudes and a typed analysis reference frame."
+msgstr "每个已断言的因果权重均为有量纲数量，具有有限数值及已定型的分析参考框架。 精确值同时定型为 math:RationalValue，具有 math:isExact true、整数分子及非零整数分母，不要求十进制近似。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|gmeow:useWhen"
+msgid "Validate asserted numerical causal weights."
+msgstr "用于验证已断言的数值因果权重。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|gmeow:avoidWhen"
+msgid "Do not require a weight on an unweighted causal link."
+msgstr "不要要求未加权因果链接具有权重。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|gmeow:howToUse"
+msgid "Supply a quantity and declared analysis scale for every linkStrength value."
+msgstr "为每个 linkStrength 值提供数量及明确的分析尺度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|skos:scopeNote"
+msgid "No unit-interval bound or probability interpretation is imposed. An exact rational carrier has one boolean true exactness flag and no parallel quantityValue."
+msgstr "不强加单位区间界限或概率解释。 精确有理数载体具有唯一布尔值 true 的精确标记，且不具有并行的 quantityValue 小数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkStrengthQuantityConstraint|skos:example"
+msgid "ex:link gmeow:linkStrength ex:weight ."
+msgstr "ex:link gmeow:linkStrength ex:weight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|rdfs:label"
+msgid "Risk likelihood results constraint"
+msgstr "风险概率结果约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|skos:definition"
+msgid "Every reported risk probability has finite numeric or exact rational magnitudes, typed probability models and at least one typed probability event context."
+msgstr "每个报告的风险概率均有有限数值、已定型概率模型及至少一个已定型概率事件上下文。 精确值同时定型为 math:RationalValue，具有 math:isExact true、整数分子及非零整数分母，不要求十进制近似。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|gmeow:useWhen"
+msgid "Validate every reported model-bound risk probability."
+msgstr "用于验证每个报告的模型约束风险概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|gmeow:avoidWhen"
+msgid "Do not apply this probability contract to causal weights or categorical severity."
+msgstr "不要将概率约束应用于因果权重或分类严重性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|gmeow:howToUse"
+msgid "Declare each probability model and the event assigned the reported probability."
+msgstr "声明每个概率模型及获赋所报告概率的事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|skos:scopeNote"
+msgid "Every supplied model must be typed; neighboring probabilities cannot supply missing context. An exact rational carrier has one boolean true exactness flag and no parallel quantityValue."
+msgstr "每个提供的模型都必须定型；相邻概率不能补足缺失的上下文。 精确有理数载体具有唯一布尔值 true 的精确标记，且不具有并行的 quantityValue 小数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskLikelihoodResultsConstraint|skos:example"
+msgid "ex:p logic:probabilityModel ex:model . ex:event math:probabilityOfEvent ex:p ."
+msgstr "ex:p logic:probabilityModel ex:model . ex:event math:probabilityOfEvent ex:p ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|rdfs:label"
+msgid "Risk probability event context constraint"
+msgstr "风险概率事件上下文约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|skos:definition"
+msgid "Every event assigning a reported risk probability is a mathematical probability event with a typed probability space."
+msgstr "每个赋予风险报告概率的事件均为数学概率事件，并具有已定型的概率空间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|gmeow:useWhen"
+msgid "Validate the event context of a reported risk likelihood."
+msgstr "用于验证风险概率报告的事件上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|gmeow:avoidWhen"
+msgid "Do not equate a mathematical event set with an event occurrence or event type."
+msgstr "不要将数学事件集合等同于实际发生事件或事件类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|gmeow:howToUse"
+msgid "Link each probability event to its probability space through math:eventInSpace."
+msgstr "通过 math:eventInSpace 将各概率事件连接至其概率空间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|skos:scopeNote"
+msgid "The imported mathematical owner validates complete sample space, sigma algebra and measure structure."
+msgstr "导入的数学所有者验证完整的样本空间、σ代数及测度结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RiskProbabilityEventContextConstraint|skos:example"
+msgid "ex:event a math:ProbabilityEvent ; math:eventInSpace ex:space ."
+msgstr "ex:event a math:ProbabilityEvent ; math:eventInSpace ex:space ."

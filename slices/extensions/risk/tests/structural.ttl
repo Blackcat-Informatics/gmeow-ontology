@@ -227,3 +227,27 @@ ASK {
         rdfs:subClassOf gmeow:Entity .
 }""" ;
     gmeow:saRationale "gmeow:RiskFactor MUST be an owl:Class typed logic:Category and a subclass of gmeow:Entity — a named umbrella so mitigationCounters carries a generator-visible range (never instantiated directly)." .
+
+ex:saStrengthHasOneMathematicalOwner a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { VALUES ?propertyKind { l:ObjectProperty owl:ObjectProperty }
+       g:linkStrength a ?propertyKind ; (l:range|rdfs:range) m:Quantity .
+       g:RiskLikelihoodAssessment (l:subClassOf|rdfs:subClassOf) g:Observation .
+       g:RiskLikelihoodResultsConstraint a l:Constraint . }""" ;
+    gmeow:saRationale "Weights use the canonical quantity owner and modeled likelihoods retain their ordinary held observation contract." .
+ex:saNoRetiredScalarWeight a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK { { VALUES ?datatypeKind { l:DatatypeProperty <http://www.w3.org/2002/07/owl#DatatypeProperty> } g:linkStrength a ?datatypeKind } UNION
+      { g:linkStrength (l:range|rdfs:range) xsd:decimal } UNION
+      { ?r l:onProperty g:linkStrength ; l:onDataRange xsd:decimal } UNION
+      { ?r l:onProperty g:linkStrength ; l:allValuesFrom xsd:decimal } }""" ;
+    gmeow:saRationale "The retired scalar path must not coexist with the canonical object-valued weight contract." .

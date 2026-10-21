@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix l: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/risk/tests/> .
+ex:modeledRisk a g:CompetencyQuestion ;
+    g:cqDataFile "examples/modeled-risk.ttl" ;
+    g:cqQuery """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+SELECT ?weight ?probability WHERE {
+  ?link g:linkStrength [ m:quantityValue ?weight ] .
+  ?assessment a g:RiskLikelihoodAssessment ; g:observedFeature ?link ; g:observationResult ?p .
+  ?p m:quantityValue ?probability ; l:probabilityModel ?model .
+  ?model a l:ProbabilityModel . ?event m:probabilityOfEvent ?p ; m:eventInSpace ?space .
+}""" ;
+    g:cqRationale "The declared-scale solver weight remains distinct from the event probability and its explicit model." ;
+    g:cqResultShape ex:resultShape ; g:cqExpectRow ex:row .
+ex:resultShape a l:ResultShape ; l:shapeCardinality l:RowsExact ;
+    l:declaresColumn [ l:columnVariable "weight" ; l:columnTermKind l:TermKindLiteral ; l:columnBinding l:BindingRequired ],
+                    [ l:columnVariable "probability" ; l:columnTermKind l:TermKindLiteral ; l:columnBinding l:BindingRequired ] .
+ex:row a g:ExpectedRow ; g:rowCell
+    [ a g:ExpectedCell ; g:cellVar "weight" ; g:cellValueLiteral 2.5 ],
+    [ a g:ExpectedCell ; g:cellVar "probability" ; g:cellValueLiteral 0.2 ] .
