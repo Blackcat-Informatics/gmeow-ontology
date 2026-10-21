@@ -311,8 +311,7 @@ fn build_output_from_report(
     let json = gmeow_errors::render::to_json(&report)
         .map_err(|e| stage_err(format!("render normalized verify report JSON: {e}")))?;
     let nodes = crate::stages::diag_render::finding_nodes(&report, stage_id);
-    let diag_blob = crate::node::encode_diag_nodes(stage_id, &nodes)
-        .map_err(|e| stage_err(format!("encode verify diagnostic nodes: {e}")))?;
+    let diag_blob = crate::node::encode_diag_nodes(stage_id, &nodes);
     let artifacts = BTreeMap::from([
         (VERIFY_JSON_PATH.to_string(), json.into_bytes()),
         (

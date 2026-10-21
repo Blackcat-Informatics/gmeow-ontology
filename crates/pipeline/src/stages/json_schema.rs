@@ -174,12 +174,7 @@ fn publish_schema(
         &mut builder,
     )?;
     let dataset = builder.freeze()?;
-    let diag_blob = crate::node::encode_diag_nodes(stage, &nodes).map_err(|error| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: stage.to_owned(),
-            message: format!("encode schema projection diagnostics: {error}"),
-        })
-    })?;
+    let diag_blob = crate::node::encode_diag_nodes(stage, &nodes);
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(
         JSON_SCHEMA_PATH.to_string(),

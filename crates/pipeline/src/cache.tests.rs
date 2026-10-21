@@ -89,7 +89,7 @@ fn diagnostic_test_product(
         purrdf::provenance::DatasetProvenance::new(),
         crate::stages::carrier::REP_DIAG_NODES,
         "application/json",
-        crate::node::encode_diag_nodes(encoded_producer, nodes).unwrap(),
+        crate::node::encode_diag_nodes(encoded_producer, nodes),
     );
     StageProduct::from_bundle(producer, Arc::new(bundle))
 }
@@ -122,8 +122,8 @@ fn diagnostic_contributions_survive_persistent_cache_and_warm_replay() {
         let restored = cache.get(&context).unwrap().unwrap().product;
         assert_eq!(restored.digest, product.digest);
         assert_eq!(
-            serde_json::to_vec(&restored.diag_nodes()).unwrap(),
-            serde_json::to_vec(&nodes).unwrap()
+            purrdf_lex::json::record::to_vec(&restored.diag_nodes()),
+            purrdf_lex::json::record::to_vec(&nodes)
         );
         let mut replay = gmeow_errors::DiagLedger::new();
         replay.replay(restored.diag_nodes());
@@ -140,8 +140,8 @@ fn diagnostic_contributions_survive_persistent_cache_and_warm_replay() {
 #[should_panic(expected = "diagnostic contribution has the wrong producer")]
 fn diagnostic_contribution_rejects_wrong_producer_even_when_empty() {
     assert_ne!(
-        crate::node::encode_diag_nodes("stage-validate", &[]).unwrap(),
-        crate::node::encode_diag_nodes("stage-export-json-schema", &[]).unwrap()
+        crate::node::encode_diag_nodes("stage-validate", &[]),
+        crate::node::encode_diag_nodes("stage-export-json-schema", &[])
     );
     diagnostic_test_product("stage-validate", "stage-export-json-schema", &[]).diag_nodes();
 }

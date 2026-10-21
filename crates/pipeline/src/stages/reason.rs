@@ -831,12 +831,7 @@ impl Stage for ReasonStage {
         // pinned to that graph (C7) — dual carriage.
         let dataset = reasoned.dataset;
         let nodes = crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
-        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: self.id().to_owned(),
-                message: format!("encode chase certificate diagnostic nodes: {e}"),
-            })
-        })?;
+        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes);
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
         artifacts.insert(

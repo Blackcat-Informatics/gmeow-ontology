@@ -18,6 +18,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
+mod diagnostic_json;
+
 use purrdf::provenance::DatasetProvenance;
 use purrdf::{PipelineBundle, RdfDataset};
 
@@ -130,11 +132,8 @@ pub struct StageProduct {
 
 /// Encode one producer-owned diagnostic contribution, including an empty one.
 /// Stage identity makes empty contributions distinct without synthetic events.
-pub(crate) fn encode_diag_nodes(
-    stage: &str,
-    nodes: &[gmeow_errors::DiagNode],
-) -> Result<Vec<u8>, serde_json::Error> {
-    serde_json::to_vec(&(stage, nodes))
+pub(crate) fn encode_diag_nodes(stage: &str, nodes: &[gmeow_errors::DiagNode]) -> Vec<u8> {
+    purrdf_lex::json::record::to_vec(&(stage, nodes))
 }
 
 impl StageProduct {
@@ -284,10 +283,7 @@ impl StageProduct {
     pub fn diag_nodes(&self) -> Vec<gmeow_errors::DiagNode> {
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_DIAG_NODES) {
             Some(bytes) => {
-                let (stage, nodes): (String, Vec<gmeow_errors::DiagNode>) = serde_json::from_slice(
-                    bytes,
-                )
-                .expect(
+                let (stage, nodes) = diagnostic_json::decode_contribution(bytes).expect(
                     "diagnostics:nodes blob is our own JSON; a decode failure is a corrupt cache",
                 );
                 assert_eq!(
