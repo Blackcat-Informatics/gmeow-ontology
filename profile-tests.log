@@ -1,0 +1,31 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(profile_native_json_) | test(selected_profiles_admit_capabilities_before_measurement_without_fallback) | test(excluded_and_unsupported_axes_have_distinct_honest_denominators) | test(profile_changes_do_not_change_shared_measurements_or_hide_input_identity) | test(malformed_or_ambiguous_profile_contracts_fail_instead_of_shrinking_the_roster) | test(profile_results_and_reasons_survive_consumer_report_formats)' --no-tests=fail
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-quality)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-catalog)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-brief)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-core-wasm)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 3m 38s
+────────────
+ Nextest run ID 9a0f4ab2-32f9-4c18-b04b-8e2a92ac72d1 with nextest profile: ci
+    Starting 8 tests across 226 binaries (7981 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.007s] (1/8) gmeow-slice-quality profile::tests::profile_native_json_preserves_record_enum_and_axis_order
+        PASS [   0.007s] (2/8) gmeow-slice-quality profile::tests::profile_native_json_preserves_empty_fields_and_string_bytes
+        PASS [   0.013s] (3/8) gmeow-slice-quality profile::tests::profile_native_json_actual_assessment_keeps_independent_identity_golden
+        PASS [   0.013s] (4/8) gmeow-slice-quality profile::tests::excluded_and_unsupported_axes_have_distinct_honest_denominators
+        PASS [   0.013s] (5/8) gmeow-slice-quality profile::tests::malformed_or_ambiguous_profile_contracts_fail_instead_of_shrinking_the_roster
+        PASS [   0.013s] (6/8) gmeow-slice-quality profile::tests::profile_changes_do_not_change_shared_measurements_or_hide_input_identity
+        PASS [   0.013s] (7/8) gmeow-slice-quality profile::tests::profile_results_and_reasons_survive_consumer_report_formats
+        PASS [   0.015s] (8/8) gmeow-slice-quality profile::tests::selected_profiles_admit_capabilities_before_measurement_without_fallback
+────────────
+     Summary [   0.084s] 8 tests run: 8 passed, 7981 skipped

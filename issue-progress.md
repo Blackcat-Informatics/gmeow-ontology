@@ -1,0 +1,5 @@
+PR #1926 migrates the actual selected quality-profile identity writer to the pinned native JSON codec. Declaration/status/reason order, sorted axes, explicit empty fields, string escaping, no trailing newline and existing BLAKE3 identity are preserved. The separate diagnostic metadata exit still requires Serde; this does not complete the dependency migration.
+
+Eight selected tiny-input tests passed, including three new exact-byte/independent-digest controls and five existing profile/refusal/report controls. Strict producer-independent Clippy, helper hygiene, source-input validation, formatting and normal commit/push hooks passed. Initial compilation caught a missing direct codec dependency; the existing workspace dependency and lock edge were added and the complete selected checks rerun successfully. Six source files are committed.
+
+The same unit corrects two stale cost/soak comments identified after an earlier merge; generated artifacts remain ignored and producer-owned. Under the recorded campaign exception, actual corpus/installed/full consumer acceptance remains unrun and the parent stays open. Principles 4 and 7.

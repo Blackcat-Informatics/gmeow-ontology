@@ -1,0 +1,2 @@
+Independent /usr/bin/b3sum over exactly profile-hash-input.json bytes, no trailing newline.
+42c9ff08d0beb6a25638ac0e8c7f516484ee82113aa096110619f697bb3606b3  -

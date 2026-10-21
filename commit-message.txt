@@ -1,0 +1,7 @@
+refactor: use native JSON for quality profile identity
+
+Preserve the selected profile's exact record bytes and BLAKE3 identity while
+using the pinned native codec. Keep separate diagnostic metadata ownership
+explicit and correct the generated cost-output documentation.
+
+Principles 4 and 7.
