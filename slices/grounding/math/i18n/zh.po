@@ -3224,3 +3224,227 @@ msgstr "对一般 ExpressionType 描述符可选。张量值空间在不加载�
 msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."
 msgstr "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bilinear Form"
+msgstr "双线性型"
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."
+msgstr "向量空间上的双线性型 B：映射 B(·, ·) 对每个参数分别线性。它是 math:MathematicalObject 的子类。其定号性（math:definiteness）记录正定、半正定、不定或负定；在某个 math:Basis 中表示时得到 math:Matrix。内积是正定的对称（或埃尔米特）双线性型；对称情形为 math:SymmetricBilinearForm。"
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."
+msgstr "用于对两个向量参数分别线性的标量值配对，而不依赖表示该配对所选择的坐标。"
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify an arbitrary two-argument function as bilinear, or infer symmetry or positive-definiteness from bilinearity alone."
+msgstr "不要把任意二元函数归类为双线性型，也不要仅凭双线性就推断对称性或正定性。"
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the form separately from its coordinate matrix. Record its definiteness with math:definiteness; use math:SymmetricBilinearForm when exchanging the arguments preserves the value."
+msgstr "将型与其坐标矩阵分别命名。用 math:definiteness 记录其定号性；当交换参数不改变值时，使用 math:SymmetricBilinearForm。"
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A form is the pairing itself. A math:Matrix represents it in a chosen basis, so changing coordinates changes the representation rather than creating a different kind of pairing."
+msgstr "型指配对本身。math:Matrix 是它在所选基下的表示；改变坐标改变的是表示，而不是产生另一类配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram math:representsForm ex:intensityForm . ex:intensityForm a math:SymmetricBilinearForm ."
+msgstr "ex:intensityGram math:representsForm ex:intensityForm . ex:intensityForm a math:SymmetricBilinearForm ."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Symmetric Bilinear Form"
+msgstr "对称双线性型"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A symmetric bilinear form: a math:BilinearForm B with B(x, y) = B(y, x). A subclass of math:BilinearForm. Represented in a basis it is a math:SymmetricMatrix (a math:GramMatrix); when positive-definite it induces a math:Norm and a metric math:Distance. A math:MetricTensor is the tangent-space instance of this idiom — a symmetric bilinear form on each tangent space giving lengths and angles — so the geometry charter's metric and this numeric layer share one notion of a symmetric form."
+msgstr "对称双线性型：满足 B(x, y) = B(y, x) 的 math:BilinearForm B。它是 math:BilinearForm 的子类。在某个基下表示时得到 math:SymmetricMatrix（math:GramMatrix）；正定时诱导 math:Norm 和度量距离 math:Distance。math:MetricTensor 是这一模式在切空间上的实例，即每个切空间上给出长度和角度的对称双线性型，因此几何章程的度量与此数值层共享同一个对称型概念。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bilinear pairing satisfies B(x, y) = B(y, x), including the real forms underlying the Gram-matrix norm construction."
+msgstr "用于满足 B(x, y) = B(y, x) 的双线性配对，包括格拉姆矩阵范数构造所依赖的实数型。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat symmetry as proof of positive-definiteness. An indefinite symmetric form does not induce the math:Norm described here."
+msgstr "不要把对称性当作正定性的证明。不定的对称型不能诱导此处描述的 math:Norm。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the form as symmetric and declare math:definiteness explicitly. A math:GramMatrix names it through math:representsForm; a math:Norm names a positive-definite form through math:inducedByForm."
+msgstr "将型声明为对称型，并显式声明 math:definiteness。math:GramMatrix 通过 math:representsForm 指向它；math:Norm 通过 math:inducedByForm 指向一个正定型。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Symmetry exchanges arguments without conjugation. For the complex inner-product case, use math:HermitianInnerProduct rather than identifying Hermitian symmetry with ordinary bilinear symmetry."
+msgstr "对称性交换参数而不取共轭。对于复内积，使用 math:HermitianInnerProduct，不要把埃尔米特对称性等同于普通双线性对称性。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityForm a math:SymmetricBilinearForm ; math:definiteness math:positiveDefinite ."
+msgstr "ex:intensityForm a math:SymmetricBilinearForm ; math:definiteness math:positiveDefinite ."
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Matrix"
+msgstr "矩阵"
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A matrix: a rectangular array of scalars representing a math:LinearMap or a math:BilinearForm relative to a chosen math:Basis. A subclass of math:MathematicalObject carrying its scalars as indexed math:MatrixEntry cells through math:hasEntry (each a math:atRow / math:atColumn / math:entryValue triple over an exact math:RationalValue) and, where relevant, its math:definiteness. The specialized math:CartanMatrix (integer Cartan matrix of a root system) and math:DatasetMatrix (a data frame held by reference) are their own classes and are not reparented here."
+msgstr "矩阵：相对于所选 math:Basis 表示 math:LinearMap 或 math:BilinearForm 的标量矩形数组。它是 math:MathematicalObject 的子类，通过 math:hasEntry 携带带索引的 math:MatrixEntry 单元来表示标量（每个单元包含 math:atRow、math:atColumn 和指向精确 math:RationalValue 的 math:entryValue），并在适用时携带 math:definiteness。专门的 math:CartanMatrix（根系的整数嘉当矩阵）和 math:DatasetMatrix（以引用方式持有的数据表）各有自己的类，此处不重新调整其父类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a scalar array whose individual coordinates must remain inspectable, such as the exact entries representing a bilinear form."
+msgstr "用于需要逐项检查坐标的标量数组，例如表示双线性型的精确矩阵元素。"
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this class merely for a tabular dataset, or reclassify math:DatasetMatrix or math:CartanMatrix through it solely because their names contain matrix."
+msgstr "不要仅为普通表格数据使用此类，也不要仅因 math:DatasetMatrix 或 math:CartanMatrix 的名称含有矩阵就将它们重新归入此类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach math:MatrixEntry nodes with math:hasEntry. Give each entry zero-based math:atRow and math:atColumn indices and a math:entryValue carried by an exact math:RationalValue."
+msgstr "用 math:hasEntry 连接 math:MatrixEntry 节点。为每个元素提供从零开始的 math:atRow 和 math:atColumn 索引，以及由精确 math:RationalValue 承载的 math:entryValue。"
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The array records coordinates rather than the coordinate-independent linear map or form. Symmetry is expressed by the math:SymmetricMatrix specialization, not by the Matrix type alone."
+msgstr "数组记录的是坐标，而不是与坐标无关的线性映射或型。对称性由 math:SymmetricMatrix 特化表达，单独的 Matrix 类型并不表达对称性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram math:hasEntry ex:g00 . ex:g00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratOne ."
+msgstr "ex:intensityGram math:hasEntry ex:g00 . ex:g00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratOne ."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Symmetric Matrix"
+msgstr "对称矩阵"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A symmetric matrix: a square math:Matrix equal to its transpose (Aᵢⱼ = Aⱼᵢ). A subclass of math:Matrix; the matrix of a math:SymmetricBilinearForm in a basis. Its symmetry is checkable on its math:MatrixEntry cells (every entry has a transpose entry of equal value); a math:GramMatrix is the distinguished symmetric matrix of an inner-product-defining form."
+msgstr "对称矩阵：等于自身转置（Aᵢⱼ = Aⱼᵢ）的方形 math:Matrix。它是 math:Matrix 的子类，也是 math:SymmetricBilinearForm 在某个基下的矩阵表示。其对称性可通过 math:MatrixEntry 单元检查（每个元素都有一个值相等的转置元素）；math:GramMatrix 是定义内积的型所对应的特定对称矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a square coordinate matrix whose entry at (i, j) equals its entry at (j, i)."
+msgstr "用于 (i, j) 位置的元素与 (j, i) 位置的元素相等的方形坐标矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer positive-definiteness from matching transpose entries, or call an asymmetric array symmetric because it represents related variables."
+msgstr "不要从转置元素相等推断正定性，也不要因为数组表示相关变量就把非对称数组称为对称数组。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Represent both off-diagonal positions with indexed math:MatrixEntry cells carrying equal exact values. Use math:GramMatrix when the matrix also identifies its symmetric form and basis."
+msgstr "用带索引的 math:MatrixEntry 单元表示两个非对角位置，并赋予相等的精确值。当矩阵还标识其对称型和基时，使用 math:GramMatrix。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "SymmetricMatrix states an entry-wise property. GramMatrix adds the representational connection to a form and basis; the two notions are not interchangeable authoring instructions."
+msgstr "SymmetricMatrix 陈述逐元素的性质。GramMatrix 还建立与型和基的表示关系；两者的编写要求不能互换。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram a math:GramMatrix ; math:hasEntry ex:g01, ex:g10 . ex:g01 math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:ratQuarter . ex:g10 math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:ratQuarter ."
+msgstr "ex:intensityGram a math:GramMatrix ; math:hasEntry ex:g01, ex:g10 . ex:g01 math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:ratQuarter . ex:g10 math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:ratQuarter ."
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Gram Matrix"
+msgstr "格拉姆矩阵"
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Gram matrix G: the math:SymmetricMatrix of a math:SymmetricBilinearForm in a math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). A subclass of math:SymmetricMatrix that names the form it represents through math:representsForm and the basis it is taken in through math:inBasis. A Gram matrix is the matrix of a symmetric form, and its symmetry is checked entry-wise — every math:MatrixEntry at (row, column) has a transpose entry at (column, row) carrying the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix). When the form is positive-definite the Gram matrix is positive-definite and the quadratic form xᵀGx is a squared norm; the affect-intensity norm √(xᵀGx) is grounded on such a Gram matrix of exact math:RationalValue entries."
+msgstr "格拉姆矩阵 G：math:SymmetricBilinearForm 在 math:Basis 下的 math:SymmetricMatrix，Gᵢⱼ = B(eᵢ, eⱼ)。它是 math:SymmetricMatrix 的子类，通过 math:representsForm 指明所表示的型，通过 math:inBasis 指明所用的基。格拉姆矩阵是对称型的矩阵，其对称性逐项检查：位于（行，列）的每个 math:MatrixEntry 都有一个位于（列，行）、携带相同 math:entryValue 的转置元素；转置元素缺失或不匹配即为不良形式（math:AsymmetricGramMatrix）。当型正定时，格拉姆矩阵也正定，二次型 xᵀGx 是范数的平方；情感强度范数 √(xᵀGx) 以这样一个具有精确 math:RationalValue 元素的格拉姆矩阵为基础。"
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the coordinate matrix of a particular symmetric bilinear form in a particular basis, making a quadratic form such as xᵀGx inspectable."
+msgstr "用于记录某个具体对称双线性型在某个具体基下的坐标矩阵，使 xᵀGx 这样的二次型可以检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not leave the represented form or basis implicit, and do not claim a norm merely because the matrix is symmetric."
+msgstr "不要省略所表示的型或所用的基，也不要仅因矩阵对称就声称它给出范数。"
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link math:representsForm to the math:SymmetricBilinearForm and math:inBasis to its math:Basis. Supply indexed rational entries, including matching transpose entries; declare positive-definiteness separately when grounding a norm."
+msgstr "将 math:representsForm 连接到 math:SymmetricBilinearForm，将 math:inBasis 连接到其 math:Basis。提供带索引的有理数元素，包括相匹配的转置元素；在为范数提供基础时，另行声明正定性。"
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Gram entries depend on the chosen basis. Compare or combine the matrix with vector coordinates only after establishing that their bases agree; a different coordinate representation need not have the same entry values."
+msgstr "格拉姆矩阵的元素取决于所选基。只有确定矩阵和向量坐标使用同一基后，才能比较或组合两者；不同的坐标表示不必具有相同的元素值。"
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram a math:GramMatrix ; math:representsForm ex:intensityForm ; math:inBasis ex:intensityBasis ."
+msgstr "ex:intensityGram a math:GramMatrix ; math:representsForm ex:intensityForm ; math:inBasis ex:intensityBasis ."
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Vector"
+msgstr "向量"
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A coordinate vector: an element of a math:VectorSpace given by its coordinates relative to a math:Basis. A subclass of math:MathematicalObject carrying its coordinates as indexed math:VectorComponent cells through math:hasComponent (each a math:atIndex / math:componentValue pair over an exact math:RationalValue) and naming its basis through math:inBasis. The x in the quadratic form xᵀGx is such a vector."
+msgstr "坐标向量：由其相对于 math:Basis 的坐标给出的 math:VectorSpace 元素。它是 math:MathematicalObject 的子类，通过 math:hasComponent 携带带索引的 math:VectorComponent 单元来表示坐标（每个单元包含 math:atIndex 与指向精确 math:RationalValue 的 math:componentValue），并通过 math:inBasis 指明所用的基。二次型 xᵀGx 中的 x 就是这样的向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a vector represented by explicit coordinates in a named basis, including the x supplied to a Gram-matrix quadratic form."
+msgstr "用于在命名基下由显式坐标表示的向量，包括提供给格拉姆矩阵二次型的 x。"
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat coordinate lists from different bases as directly comparable, or use a Vector individual where the containing math:VectorSpace is intended."
+msgstr "不要把不同基下的坐标列表视为可直接比较，也不要在意指容纳向量的 math:VectorSpace 时使用 Vector 个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name math:inBasis and attach math:VectorComponent nodes with math:hasComponent. Each component supplies a zero-based math:atIndex and an exact rational math:componentValue."
+msgstr "指明 math:inBasis，并用 math:hasComponent 连接 math:VectorComponent 节点。每个分量提供从零开始的 math:atIndex 和精确有理数 math:componentValue。"
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class records a coordinate representation. A basis change changes the components; the coordinate values alone do not determine the vector's geometric interpretation or an analyst's claim about its meaning."
+msgstr "此类记录坐标表示。换基会改变分量；仅凭坐标值既不能确定向量的几何解释，也不能确定分析者对其含义的主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:affectVector a math:Vector ; math:inBasis ex:intensityBasis ; math:hasComponent ex:x0, ex:x1 . ex:x1 math:atIndex 1 ; math:componentValue ex:ratQuarter ."
+msgstr "ex:affectVector a math:Vector ; math:inBasis ex:intensityBasis ; math:hasComponent ex:x0, ex:x1 . ex:x1 math:atIndex 1 ; math:componentValue ex:ratQuarter ."
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Norm"
+msgstr "范数"
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A norm ‖·‖: the length function induced by a positive-definite math:SymmetricBilinearForm, ‖x‖ = √⟨x, x⟩ = √(xᵀGx). A subclass of math:MathematicalObject that names the form inducing it through math:inducedByForm. A norm is well-defined only when its form is positive-definite (a math:NonPositiveDefiniteNorm otherwise); it induces a metric math:Distance d(x, y) = ‖x − y‖."
+msgstr "范数 ‖·‖：由正定 math:SymmetricBilinearForm 诱导的长度函数，‖x‖ = √⟨x, x⟩ = √(xᵀGx)。它是 math:MathematicalObject 的子类，通过 math:inducedByForm 指明诱导它的型。只有型正定时范数才良定义（否则为 math:NonPositiveDefiniteNorm）；它诱导度量距离 math:Distance，d(x, y) = ‖x − y‖。"
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the length function induced by a positive-definite symmetric form, so the chosen geometry behind a vector length is explicit."
+msgstr "用于命名正定对称型诱导的长度函数，以明确向量长度背后所选择的几何结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this norm construction for an indefinite form or assume a positive-semidefinite form gives a genuine norm; nonzero vectors can then have zero squared length."
+msgstr "不要对不定型使用此范数构造，也不要假定半正定型会给出真正的范数；此时非零向量可能具有为零的长度平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link math:inducedByForm to a math:SymmetricBilinearForm with math:definiteness math:positiveDefinite. Evaluate coordinates in the basis used by the form's Gram matrix rather than substituting the raw Euclidean coordinate length."
+msgstr "将 math:inducedByForm 连接到声明了 math:definiteness math:positiveDefinite 的 math:SymmetricBilinearForm。在该型的格拉姆矩阵所使用的基下求取坐标值，不要代入未经该型加权的欧几里得坐标长度。"
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exact rational coordinates and matrix entries give an exact quadratic form xᵀGx. Its square root need not be rational; naming this norm does not assert an exact finite decimal result."
+msgstr "精确有理数坐标和矩阵元素给出精确的二次型 xᵀGx。其平方根不一定是有理数；命名此范数并不声称存在精确的有限小数结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityNorm a math:Norm ; math:inducedByForm ex:intensityForm . ex:intensityForm math:definiteness math:positiveDefinite ."
+msgstr "ex:intensityNorm a math:Norm ; math:inducedByForm ex:intensityForm . ex:intensityForm math:definiteness math:positiveDefinite ."
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distance"
+msgstr "距离"
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A metric distance: the value d(x, y) = ‖x − y‖ of the metric induced by a math:Norm. A subclass of math:MathematicalObject that names the norm giving it through math:inducedByNorm. It is the length of the difference vector under the norm; the norm-induced metric satisfies the metric axioms because the norm comes from a positive-definite form."
+msgstr "度量距离：由 math:Norm 诱导的度量的值 d(x, y) = ‖x − y‖。它是 math:MathematicalObject 的子类，通过 math:inducedByNorm 指明给出该距离的范数。它是差向量在该范数下的长度；由于范数来自正定型，范数诱导的度量满足度量公理。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the metric distance obtained by applying a declared norm to a vector difference, d(x, y) = ‖x − y‖."
+msgstr "用于将声明的范数作用于向量之差而得到的度量距离，d(x, y) = ‖x − y‖。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify an arbitrary similarity score, affinity, or directed weight as this norm-induced distance without establishing the metric construction."
+msgstr "在尚未建立度量构造时，不要把任意相似度分数、亲和度或有向权重归类为这种范数诱导的距离。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the inducing math:Norm with math:inducedByNorm. Keep the compared vector coordinates in a common basis and use that norm's declared form for the difference vector."
+msgstr "通过 math:inducedByNorm 指明诱导该距离的 math:Norm。让所比较向量的坐标使用共同的基，并对差向量使用该范数所声明的型。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link to the norm records why this distance has a metric interpretation. It does not supply a numerical result for unspecified operands or make every pairwise score a metric."
+msgstr "连接到范数的关系记录了此距离为何具有度量解释。它不会为未指定的操作数提供数值结果，也不会使每个成对分数都成为度量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
+msgstr "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."

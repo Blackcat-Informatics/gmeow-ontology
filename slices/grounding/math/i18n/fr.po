@@ -3224,3 +3224,227 @@ msgstr "Facultatif sur les descripteurs ExpressionType généraux. Un espace de 
 msgctxt "https://blackcatinformatics.ca/math/expressionValueSpace|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."
 msgstr "ex:type a math:ExpressionType ; math:expressionValueSpace ex:values . ex:values a math:Set . ex:declaration a math:FreeVariableDeclaration ; math:variableDomain ex:values ."
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bilinear Form"
+msgstr "Forme bilinéaire"
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."
+msgstr "Une forme bilinéaire B sur un espace vectoriel : une application B(·, ·) linéaire séparément en chacun de ses arguments. Sous-classe de math:MathematicalObject. Sa classification selon le signe (math:definiteness) indique si elle est définie positive, semi-définie positive, indéfinie ou définie négative ; représentée dans une math:Basis, elle devient une math:Matrix. Un produit scalaire est une forme bilinéaire symétrique (ou hermitienne) définie positive ; le cas symétrique est math:SymmetricBilinearForm."
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."
+msgstr "Utiliser pour un appariement à valeurs scalaires, linéaire séparément en chacun de ses deux arguments vectoriels, indépendamment des coordonnées choisies pour le représenter."
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify an arbitrary two-argument function as bilinear, or infer symmetry or positive-definiteness from bilinearity alone."
+msgstr "Ne pas classer une fonction quelconque à deux arguments comme bilinéaire, ni déduire la symétrie ou le caractère défini positif de la seule bilinéarité."
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the form separately from its coordinate matrix. Record its definiteness with math:definiteness; use math:SymmetricBilinearForm when exchanging the arguments preserves the value."
+msgstr "Nommer la forme séparément de sa matrice de coordonnées. Indiquer sa classification selon le signe avec math:definiteness ; utiliser math:SymmetricBilinearForm lorsque permuter les arguments conserve la valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A form is the pairing itself. A math:Matrix represents it in a chosen basis, so changing coordinates changes the representation rather than creating a different kind of pairing."
+msgstr "La forme est l’appariement lui-même. Une math:Matrix la représente dans une base choisie : changer de coordonnées modifie donc la représentation, sans créer une autre sorte d’appariement."
+
+msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram math:representsForm ex:intensityForm . ex:intensityForm a math:SymmetricBilinearForm ."
+msgstr "ex:intensityGram math:representsForm ex:intensityForm . ex:intensityForm a math:SymmetricBilinearForm ."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Symmetric Bilinear Form"
+msgstr "Forme bilinéaire symétrique"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A symmetric bilinear form: a math:BilinearForm B with B(x, y) = B(y, x). A subclass of math:BilinearForm. Represented in a basis it is a math:SymmetricMatrix (a math:GramMatrix); when positive-definite it induces a math:Norm and a metric math:Distance. A math:MetricTensor is the tangent-space instance of this idiom — a symmetric bilinear form on each tangent space giving lengths and angles — so the geometry charter's metric and this numeric layer share one notion of a symmetric form."
+msgstr "Une forme bilinéaire symétrique : une math:BilinearForm B vérifiant B(x, y) = B(y, x). Sous-classe de math:BilinearForm. Représentée dans une base, elle donne une math:SymmetricMatrix (une math:GramMatrix) ; lorsqu’elle est définie positive, elle induit une math:Norm et une math:Distance métrique. Un math:MetricTensor est l’instance de cet idiome dans l’espace tangent : une forme bilinéaire symétrique sur chaque espace tangent donnant longueurs et angles ; la métrique de la charte géométrique et cette couche numérique partagent ainsi la même notion de forme symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bilinear pairing satisfies B(x, y) = B(y, x), including the real forms underlying the Gram-matrix norm construction."
+msgstr "Utiliser lorsqu’un appariement bilinéaire vérifie B(x, y) = B(y, x), notamment pour les formes réelles sous-jacentes à la construction d’une norme par matrice de Gram."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat symmetry as proof of positive-definiteness. An indefinite symmetric form does not induce the math:Norm described here."
+msgstr "Ne pas considérer la symétrie comme une preuve du caractère défini positif. Une forme symétrique indéfinie n’induit pas la math:Norm décrite ici."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the form as symmetric and declare math:definiteness explicitly. A math:GramMatrix names it through math:representsForm; a math:Norm names a positive-definite form through math:inducedByForm."
+msgstr "Typer la forme comme symétrique et déclarer explicitement math:definiteness. Une math:GramMatrix la nomme par math:representsForm ; une math:Norm nomme une forme définie positive par math:inducedByForm."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Symmetry exchanges arguments without conjugation. For the complex inner-product case, use math:HermitianInnerProduct rather than identifying Hermitian symmetry with ordinary bilinear symmetry."
+msgstr "La symétrie permute les arguments sans conjugaison. Pour le cas d’un produit scalaire complexe, utiliser math:HermitianInnerProduct plutôt que d’identifier la symétrie hermitienne à la symétrie bilinéaire ordinaire."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricBilinearForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityForm a math:SymmetricBilinearForm ; math:definiteness math:positiveDefinite ."
+msgstr "ex:intensityForm a math:SymmetricBilinearForm ; math:definiteness math:positiveDefinite ."
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Matrix"
+msgstr "Matrice"
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A matrix: a rectangular array of scalars representing a math:LinearMap or a math:BilinearForm relative to a chosen math:Basis. A subclass of math:MathematicalObject carrying its scalars as indexed math:MatrixEntry cells through math:hasEntry (each a math:atRow / math:atColumn / math:entryValue triple over an exact math:RationalValue) and, where relevant, its math:definiteness. The specialized math:CartanMatrix (integer Cartan matrix of a root system) and math:DatasetMatrix (a data frame held by reference) are their own classes and are not reparented here."
+msgstr "Une matrice : un tableau rectangulaire de scalaires représentant une math:LinearMap ou une math:BilinearForm relativement à une math:Basis choisie. Sous-classe de math:MathematicalObject portant ses scalaires sous forme de cellules math:MatrixEntry indexées, reliées par math:hasEntry (chacune portant math:atRow, math:atColumn et math:entryValue vers une math:RationalValue exacte), ainsi que, le cas échéant, math:definiteness. Les classes spécialisées math:CartanMatrix (matrice de Cartan entière d’un système de racines) et math:DatasetMatrix (table de données conservée par référence) restent distinctes et ne sont pas rattachées ici à un nouveau parent."
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a scalar array whose individual coordinates must remain inspectable, such as the exact entries representing a bilinear form."
+msgstr "Utiliser pour un tableau de scalaires dont les coordonnées individuelles doivent rester inspectables, comme les entrées exactes représentant une forme bilinéaire."
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this class merely for a tabular dataset, or reclassify math:DatasetMatrix or math:CartanMatrix through it solely because their names contain matrix."
+msgstr "Ne pas utiliser cette classe pour un simple jeu de données tabulaire, ni y rattacher math:DatasetMatrix ou math:CartanMatrix uniquement parce que leur nom contient matrice."
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach math:MatrixEntry nodes with math:hasEntry. Give each entry zero-based math:atRow and math:atColumn indices and a math:entryValue carried by an exact math:RationalValue."
+msgstr "Rattacher des nœuds math:MatrixEntry avec math:hasEntry. Donner à chaque entrée des indices math:atRow et math:atColumn commençant à zéro, et une math:entryValue portée par une math:RationalValue exacte."
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The array records coordinates rather than the coordinate-independent linear map or form. Symmetry is expressed by the math:SymmetricMatrix specialization, not by the Matrix type alone."
+msgstr "Le tableau enregistre des coordonnées plutôt que l’application linéaire ou la forme indépendante des coordonnées. La symétrie est exprimée par la spécialisation math:SymmetricMatrix, et non par le seul type Matrix."
+
+msgctxt "https://blackcatinformatics.ca/math/Matrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram math:hasEntry ex:g00 . ex:g00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratOne ."
+msgstr "ex:intensityGram math:hasEntry ex:g00 . ex:g00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratOne ."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Symmetric Matrix"
+msgstr "Matrice symétrique"
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A symmetric matrix: a square math:Matrix equal to its transpose (Aᵢⱼ = Aⱼᵢ). A subclass of math:Matrix; the matrix of a math:SymmetricBilinearForm in a basis. Its symmetry is checkable on its math:MatrixEntry cells (every entry has a transpose entry of equal value); a math:GramMatrix is the distinguished symmetric matrix of an inner-product-defining form."
+msgstr "Une matrice symétrique : une math:Matrix carrée égale à sa transposée (Aᵢⱼ = Aⱼᵢ). Sous-classe de math:Matrix ; c’est la matrice d’une math:SymmetricBilinearForm dans une base. Sa symétrie est vérifiable sur ses cellules math:MatrixEntry (chaque entrée possède une entrée transposée de même valeur) ; une math:GramMatrix est la matrice symétrique distinguée d’une forme définissant un produit scalaire."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a square coordinate matrix whose entry at (i, j) equals its entry at (j, i)."
+msgstr "Utiliser pour une matrice de coordonnées carrée dont l’entrée en (i, j) égale celle en (j, i)."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer positive-definiteness from matching transpose entries, or call an asymmetric array symmetric because it represents related variables."
+msgstr "Ne pas déduire le caractère défini positif de la concordance des entrées transposées, ni qualifier de symétrique un tableau asymétrique parce qu’il représente des variables liées."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Represent both off-diagonal positions with indexed math:MatrixEntry cells carrying equal exact values. Use math:GramMatrix when the matrix also identifies its symmetric form and basis."
+msgstr "Représenter les deux positions hors diagonale par des cellules math:MatrixEntry indexées portant des valeurs exactes égales. Utiliser math:GramMatrix lorsque la matrice identifie aussi sa forme symétrique et sa base."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "SymmetricMatrix states an entry-wise property. GramMatrix adds the representational connection to a form and basis; the two notions are not interchangeable authoring instructions."
+msgstr "SymmetricMatrix énonce une propriété entrée par entrée. GramMatrix ajoute le lien de représentation vers une forme et une base ; ces deux notions ne donnent pas des consignes de rédaction interchangeables."
+
+msgctxt "https://blackcatinformatics.ca/math/SymmetricMatrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram a math:GramMatrix ; math:hasEntry ex:g01, ex:g10 . ex:g01 math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:ratQuarter . ex:g10 math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:ratQuarter ."
+msgstr "ex:intensityGram a math:GramMatrix ; math:hasEntry ex:g01, ex:g10 . ex:g01 math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:ratQuarter . ex:g10 math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:ratQuarter ."
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Gram Matrix"
+msgstr "Matrice de Gram"
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Gram matrix G: the math:SymmetricMatrix of a math:SymmetricBilinearForm in a math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). A subclass of math:SymmetricMatrix that names the form it represents through math:representsForm and the basis it is taken in through math:inBasis. A Gram matrix is the matrix of a symmetric form, and its symmetry is checked entry-wise — every math:MatrixEntry at (row, column) has a transpose entry at (column, row) carrying the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix). When the form is positive-definite the Gram matrix is positive-definite and the quadratic form xᵀGx is a squared norm; the affect-intensity norm √(xᵀGx) is grounded on such a Gram matrix of exact math:RationalValue entries."
+msgstr "Une matrice de Gram G : la math:SymmetricMatrix d’une math:SymmetricBilinearForm dans une math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). Sous-classe de math:SymmetricMatrix nommant la forme qu’elle représente par math:representsForm et la base utilisée par math:inBasis. Une matrice de Gram est la matrice d’une forme symétrique, et sa symétrie est vérifiée entrée par entrée : chaque math:MatrixEntry en (ligne, colonne) possède une entrée transposée en (colonne, ligne) portant la même math:entryValue ; une entrée transposée absente ou différente est mal formée (math:AsymmetricGramMatrix). Lorsque la forme est définie positive, la matrice de Gram l’est aussi et la forme quadratique xᵀGx est un carré de norme ; la norme d’intensité affective √(xᵀGx) repose sur une telle matrice de Gram à entrées math:RationalValue exactes."
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the coordinate matrix of a particular symmetric bilinear form in a particular basis, making a quadratic form such as xᵀGx inspectable."
+msgstr "Utiliser pour enregistrer la matrice de coordonnées d’une forme bilinéaire symétrique précise dans une base précise, afin de rendre inspectable une forme quadratique telle que xᵀGx."
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not leave the represented form or basis implicit, and do not claim a norm merely because the matrix is symmetric."
+msgstr "Ne pas laisser implicites la forme représentée ou la base, et ne pas revendiquer une norme au seul motif que la matrice est symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link math:representsForm to the math:SymmetricBilinearForm and math:inBasis to its math:Basis. Supply indexed rational entries, including matching transpose entries; declare positive-definiteness separately when grounding a norm."
+msgstr "Relier math:representsForm à la math:SymmetricBilinearForm et math:inBasis à sa math:Basis. Fournir des entrées rationnelles indexées, dont les entrées transposées concordantes ; déclarer séparément le caractère défini positif pour fonder une norme."
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Gram entries depend on the chosen basis. Compare or combine the matrix with vector coordinates only after establishing that their bases agree; a different coordinate representation need not have the same entry values."
+msgstr "Les entrées de Gram dépendent de la base choisie. Ne comparer ou combiner la matrice avec des coordonnées vectorielles qu’après avoir établi que leurs bases concordent ; une autre représentation en coordonnées peut avoir des entrées différentes."
+
+msgctxt "https://blackcatinformatics.ca/math/GramMatrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityGram a math:GramMatrix ; math:representsForm ex:intensityForm ; math:inBasis ex:intensityBasis ."
+msgstr "ex:intensityGram a math:GramMatrix ; math:representsForm ex:intensityForm ; math:inBasis ex:intensityBasis ."
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Vector"
+msgstr "Vecteur"
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A coordinate vector: an element of a math:VectorSpace given by its coordinates relative to a math:Basis. A subclass of math:MathematicalObject carrying its coordinates as indexed math:VectorComponent cells through math:hasComponent (each a math:atIndex / math:componentValue pair over an exact math:RationalValue) and naming its basis through math:inBasis. The x in the quadratic form xᵀGx is such a vector."
+msgstr "Un vecteur de coordonnées : un élément d’un math:VectorSpace donné par ses coordonnées relativement à une math:Basis. Sous-classe de math:MathematicalObject portant ses coordonnées sous forme de cellules math:VectorComponent indexées, reliées par math:hasComponent (chacune portant un couple math:atIndex / math:componentValue vers une math:RationalValue exacte), et nommant sa base par math:inBasis. Le x de la forme quadratique xᵀGx est un tel vecteur."
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a vector represented by explicit coordinates in a named basis, including the x supplied to a Gram-matrix quadratic form."
+msgstr "Utiliser pour un vecteur représenté par des coordonnées explicites dans une base nommée, notamment le x fourni à une forme quadratique à matrice de Gram."
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat coordinate lists from different bases as directly comparable, or use a Vector individual where the containing math:VectorSpace is intended."
+msgstr "Ne pas considérer comme directement comparables des listes de coordonnées exprimées dans des bases différentes, ni utiliser un individu Vector lorsque l’on désigne le math:VectorSpace qui le contient."
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name math:inBasis and attach math:VectorComponent nodes with math:hasComponent. Each component supplies a zero-based math:atIndex and an exact rational math:componentValue."
+msgstr "Nommer math:inBasis et rattacher des nœuds math:VectorComponent avec math:hasComponent. Chaque composante fournit un math:atIndex commençant à zéro et une math:componentValue rationnelle exacte."
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class records a coordinate representation. A basis change changes the components; the coordinate values alone do not determine the vector's geometric interpretation or an analyst's claim about its meaning."
+msgstr "Cette classe enregistre une représentation en coordonnées. Un changement de base modifie les composantes ; les seules valeurs des coordonnées ne déterminent ni l’interprétation géométrique du vecteur ni l’affirmation d’un analyste sur sa signification."
+
+msgctxt "https://blackcatinformatics.ca/math/Vector|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:affectVector a math:Vector ; math:inBasis ex:intensityBasis ; math:hasComponent ex:x0, ex:x1 . ex:x1 math:atIndex 1 ; math:componentValue ex:ratQuarter ."
+msgstr "ex:affectVector a math:Vector ; math:inBasis ex:intensityBasis ; math:hasComponent ex:x0, ex:x1 . ex:x1 math:atIndex 1 ; math:componentValue ex:ratQuarter ."
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Norm"
+msgstr "Norme"
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A norm ‖·‖: the length function induced by a positive-definite math:SymmetricBilinearForm, ‖x‖ = √⟨x, x⟩ = √(xᵀGx). A subclass of math:MathematicalObject that names the form inducing it through math:inducedByForm. A norm is well-defined only when its form is positive-definite (a math:NonPositiveDefiniteNorm otherwise); it induces a metric math:Distance d(x, y) = ‖x − y‖."
+msgstr "Une norme ‖·‖ : la fonction de longueur induite par une math:SymmetricBilinearForm définie positive, ‖x‖ = √⟨x, x⟩ = √(xᵀGx). Sous-classe de math:MathematicalObject nommant la forme qui l’induit par math:inducedByForm. Une norme n’est bien définie que si sa forme est définie positive (sinon math:NonPositiveDefiniteNorm) ; elle induit une math:Distance métrique d(x, y) = ‖x − y‖."
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the length function induced by a positive-definite symmetric form, so the chosen geometry behind a vector length is explicit."
+msgstr "Utiliser pour nommer la fonction de longueur induite par une forme symétrique définie positive, afin d’expliciter la géométrie choisie derrière la longueur d’un vecteur."
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this norm construction for an indefinite form or assume a positive-semidefinite form gives a genuine norm; nonzero vectors can then have zero squared length."
+msgstr "Ne pas utiliser cette construction de norme avec une forme indéfinie, ni supposer qu’une forme semi-définie positive donne une véritable norme : des vecteurs non nuls peuvent alors avoir une longueur au carré nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link math:inducedByForm to a math:SymmetricBilinearForm with math:definiteness math:positiveDefinite. Evaluate coordinates in the basis used by the form's Gram matrix rather than substituting the raw Euclidean coordinate length."
+msgstr "Relier math:inducedByForm à une math:SymmetricBilinearForm portant math:definiteness math:positiveDefinite. Évaluer les coordonnées dans la base utilisée par la matrice de Gram de la forme, plutôt que de lui substituer la longueur euclidienne brute des coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exact rational coordinates and matrix entries give an exact quadratic form xᵀGx. Its square root need not be rational; naming this norm does not assert an exact finite decimal result."
+msgstr "Des coordonnées et des entrées matricielles rationnelles exactes donnent une forme quadratique xᵀGx exacte. Sa racine carrée peut être irrationnelle ; nommer cette norme n’affirme pas l’existence d’un résultat décimal fini exact."
+
+msgctxt "https://blackcatinformatics.ca/math/Norm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:intensityNorm a math:Norm ; math:inducedByForm ex:intensityForm . ex:intensityForm math:definiteness math:positiveDefinite ."
+msgstr "ex:intensityNorm a math:Norm ; math:inducedByForm ex:intensityForm . ex:intensityForm math:definiteness math:positiveDefinite ."
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distance"
+msgstr "Distance"
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A metric distance: the value d(x, y) = ‖x − y‖ of the metric induced by a math:Norm. A subclass of math:MathematicalObject that names the norm giving it through math:inducedByNorm. It is the length of the difference vector under the norm; the norm-induced metric satisfies the metric axioms because the norm comes from a positive-definite form."
+msgstr "Une distance métrique : la valeur d(x, y) = ‖x − y‖ de la métrique induite par une math:Norm. Sous-classe de math:MathematicalObject nommant la norme qui la donne par math:inducedByNorm. C’est la longueur du vecteur différence sous cette norme ; la métrique induite satisfait les axiomes métriques parce que la norme provient d’une forme définie positive."
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the metric distance obtained by applying a declared norm to a vector difference, d(x, y) = ‖x − y‖."
+msgstr "Utiliser pour la distance métrique obtenue en appliquant une norme déclarée à une différence de vecteurs, d(x, y) = ‖x − y‖."
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not classify an arbitrary similarity score, affinity, or directed weight as this norm-induced distance without establishing the metric construction."
+msgstr "Ne pas classer un score de similarité, une affinité ou un poids orienté quelconque comme cette distance induite par une norme sans établir la construction métrique."
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the inducing math:Norm with math:inducedByNorm. Keep the compared vector coordinates in a common basis and use that norm's declared form for the difference vector."
+msgstr "Identifier la math:Norm qui l’induit avec math:inducedByNorm. Conserver les coordonnées des vecteurs comparés dans une base commune et utiliser la forme déclarée de cette norme pour le vecteur différence."
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link to the norm records why this distance has a metric interpretation. It does not supply a numerical result for unspecified operands or make every pairwise score a metric."
+msgstr "Le lien vers la norme enregistre pourquoi cette distance possède une interprétation métrique. Il ne fournit pas de résultat numérique pour des opérandes non précisés et ne transforme pas tout score entre paires en métrique."
+
+msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
+msgstr "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."

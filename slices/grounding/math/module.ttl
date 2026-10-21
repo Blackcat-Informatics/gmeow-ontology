@@ -4969,6 +4969,11 @@ math:BilinearForm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Bilinear Form"@x-gmeow-english ;
     skos:definition "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."@x-gmeow-english ;
+    gmeow:useWhen "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not classify an arbitrary two-argument function as bilinear, or infer symmetry or positive-definiteness from bilinearity alone."@x-gmeow-english ;
+    gmeow:howToUse "Name the form separately from its coordinate matrix. Record its definiteness with math:definiteness; use math:SymmetricBilinearForm when exchanging the arguments preserves the value."@x-gmeow-english ;
+    skos:scopeNote "A form is the pairing itself. A math:Matrix represents it in a chosen basis, so changing coordinates changes the representation rather than creating a different kind of pairing."@x-gmeow-english ;
+    skos:example "ex:intensityGram math:representsForm ex:intensityForm . ex:intensityForm a math:SymmetricBilinearForm ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SymmetricBilinearForm
@@ -4977,6 +4982,11 @@ math:SymmetricBilinearForm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Symmetric Bilinear Form"@x-gmeow-english ;
     skos:definition "A symmetric bilinear form: a math:BilinearForm B with B(x, y) = B(y, x). A subclass of math:BilinearForm. Represented in a basis it is a math:SymmetricMatrix (a math:GramMatrix); when positive-definite it induces a math:Norm and a metric math:Distance. A math:MetricTensor is the tangent-space instance of this idiom — a symmetric bilinear form on each tangent space giving lengths and angles — so the geometry charter's metric and this numeric layer share one notion of a symmetric form."@x-gmeow-english ;
+    gmeow:useWhen "Use when a bilinear pairing satisfies B(x, y) = B(y, x), including the real forms underlying the Gram-matrix norm construction."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat symmetry as proof of positive-definiteness. An indefinite symmetric form does not induce the math:Norm described here."@x-gmeow-english ;
+    gmeow:howToUse "Type the form as symmetric and declare math:definiteness explicitly. A math:GramMatrix names it through math:representsForm; a math:Norm names a positive-definite form through math:inducedByForm."@x-gmeow-english ;
+    skos:scopeNote "Symmetry exchanges arguments without conjugation. For the complex inner-product case, use math:HermitianInnerProduct rather than identifying Hermitian symmetry with ordinary bilinear symmetry."@x-gmeow-english ;
+    skos:example "ex:intensityForm a math:SymmetricBilinearForm ; math:definiteness math:positiveDefinite ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Matrix
@@ -4985,6 +4995,11 @@ math:Matrix
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Matrix"@x-gmeow-english ;
     skos:definition "A matrix: a rectangular array of scalars representing a math:LinearMap or a math:BilinearForm relative to a chosen math:Basis. A subclass of math:MathematicalObject carrying its scalars as indexed math:MatrixEntry cells through math:hasEntry (each a math:atRow / math:atColumn / math:entryValue triple over an exact math:RationalValue) and, where relevant, its math:definiteness. The specialized math:CartanMatrix (integer Cartan matrix of a root system) and math:DatasetMatrix (a data frame held by reference) are their own classes and are not reparented here."@x-gmeow-english ;
+    gmeow:useWhen "Use for a scalar array whose individual coordinates must remain inspectable, such as the exact entries representing a bilinear form."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this class merely for a tabular dataset, or reclassify math:DatasetMatrix or math:CartanMatrix through it solely because their names contain matrix."@x-gmeow-english ;
+    gmeow:howToUse "Attach math:MatrixEntry nodes with math:hasEntry. Give each entry zero-based math:atRow and math:atColumn indices and a math:entryValue carried by an exact math:RationalValue."@x-gmeow-english ;
+    skos:scopeNote "The array records coordinates rather than the coordinate-independent linear map or form. Symmetry is expressed by the math:SymmetricMatrix specialization, not by the Matrix type alone."@x-gmeow-english ;
+    skos:example "ex:intensityGram math:hasEntry ex:g00 . ex:g00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue ex:ratOne ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SymmetricMatrix
@@ -4993,6 +5008,11 @@ math:SymmetricMatrix
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Symmetric Matrix"@x-gmeow-english ;
     skos:definition "A symmetric matrix: a square math:Matrix equal to its transpose (Aᵢⱼ = Aⱼᵢ). A subclass of math:Matrix; the matrix of a math:SymmetricBilinearForm in a basis. Its symmetry is checkable on its math:MatrixEntry cells (every entry has a transpose entry of equal value); a math:GramMatrix is the distinguished symmetric matrix of an inner-product-defining form."@x-gmeow-english ;
+    gmeow:useWhen "Use for a square coordinate matrix whose entry at (i, j) equals its entry at (j, i)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer positive-definiteness from matching transpose entries, or call an asymmetric array symmetric because it represents related variables."@x-gmeow-english ;
+    gmeow:howToUse "Represent both off-diagonal positions with indexed math:MatrixEntry cells carrying equal exact values. Use math:GramMatrix when the matrix also identifies its symmetric form and basis."@x-gmeow-english ;
+    skos:scopeNote "SymmetricMatrix states an entry-wise property. GramMatrix adds the representational connection to a form and basis; the two notions are not interchangeable authoring instructions."@x-gmeow-english ;
+    skos:example "ex:intensityGram a math:GramMatrix ; math:hasEntry ex:g01, ex:g10 . ex:g01 math:atRow 0 ; math:atColumn 1 ; math:entryValue ex:ratQuarter . ex:g10 math:atRow 1 ; math:atColumn 0 ; math:entryValue ex:ratQuarter ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:GramMatrix
@@ -5001,6 +5021,11 @@ math:GramMatrix
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Gram Matrix"@x-gmeow-english ;
     skos:definition "A Gram matrix G: the math:SymmetricMatrix of a math:SymmetricBilinearForm in a math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). A subclass of math:SymmetricMatrix that names the form it represents through math:representsForm and the basis it is taken in through math:inBasis. A Gram matrix is the matrix of a symmetric form, and its symmetry is checked entry-wise — every math:MatrixEntry at (row, column) has a transpose entry at (column, row) carrying the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix). When the form is positive-definite the Gram matrix is positive-definite and the quadratic form xᵀGx is a squared norm; the affect-intensity norm √(xᵀGx) is grounded on such a Gram matrix of exact math:RationalValue entries."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the coordinate matrix of a particular symmetric bilinear form in a particular basis, making a quadratic form such as xᵀGx inspectable."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not leave the represented form or basis implicit, and do not claim a norm merely because the matrix is symmetric."@x-gmeow-english ;
+    gmeow:howToUse "Link math:representsForm to the math:SymmetricBilinearForm and math:inBasis to its math:Basis. Supply indexed rational entries, including matching transpose entries; declare positive-definiteness separately when grounding a norm."@x-gmeow-english ;
+    skos:scopeNote "Gram entries depend on the chosen basis. Compare or combine the matrix with vector coordinates only after establishing that their bases agree; a different coordinate representation need not have the same entry values."@x-gmeow-english ;
+    skos:example "ex:intensityGram a math:GramMatrix ; math:representsForm ex:intensityForm ; math:inBasis ex:intensityBasis ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Vector
@@ -5009,6 +5034,11 @@ math:Vector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Vector"@x-gmeow-english ;
     skos:definition "A coordinate vector: an element of a math:VectorSpace given by its coordinates relative to a math:Basis. A subclass of math:MathematicalObject carrying its coordinates as indexed math:VectorComponent cells through math:hasComponent (each a math:atIndex / math:componentValue pair over an exact math:RationalValue) and naming its basis through math:inBasis. The x in the quadratic form xᵀGx is such a vector."@x-gmeow-english ;
+    gmeow:useWhen "Use for a vector represented by explicit coordinates in a named basis, including the x supplied to a Gram-matrix quadratic form."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat coordinate lists from different bases as directly comparable, or use a Vector individual where the containing math:VectorSpace is intended."@x-gmeow-english ;
+    gmeow:howToUse "Name math:inBasis and attach math:VectorComponent nodes with math:hasComponent. Each component supplies a zero-based math:atIndex and an exact rational math:componentValue."@x-gmeow-english ;
+    skos:scopeNote "This class records a coordinate representation. A basis change changes the components; the coordinate values alone do not determine the vector's geometric interpretation or an analyst's claim about its meaning."@x-gmeow-english ;
+    skos:example "ex:affectVector a math:Vector ; math:inBasis ex:intensityBasis ; math:hasComponent ex:x0, ex:x1 . ex:x1 math:atIndex 1 ; math:componentValue ex:ratQuarter ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Norm
@@ -5017,6 +5047,11 @@ math:Norm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Norm"@x-gmeow-english ;
     skos:definition "A norm ‖·‖: the length function induced by a positive-definite math:SymmetricBilinearForm, ‖x‖ = √⟨x, x⟩ = √(xᵀGx). A subclass of math:MathematicalObject that names the form inducing it through math:inducedByForm. A norm is well-defined only when its form is positive-definite (a math:NonPositiveDefiniteNorm otherwise); it induces a metric math:Distance d(x, y) = ‖x − y‖."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the length function induced by a positive-definite symmetric form, so the chosen geometry behind a vector length is explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this norm construction for an indefinite form or assume a positive-semidefinite form gives a genuine norm; nonzero vectors can then have zero squared length."@x-gmeow-english ;
+    gmeow:howToUse "Link math:inducedByForm to a math:SymmetricBilinearForm with math:definiteness math:positiveDefinite. Evaluate coordinates in the basis used by the form's Gram matrix rather than substituting the raw Euclidean coordinate length."@x-gmeow-english ;
+    skos:scopeNote "Exact rational coordinates and matrix entries give an exact quadratic form xᵀGx. Its square root need not be rational; naming this norm does not assert an exact finite decimal result."@x-gmeow-english ;
+    skos:example "ex:intensityNorm a math:Norm ; math:inducedByForm ex:intensityForm . ex:intensityForm math:definiteness math:positiveDefinite ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Distance
@@ -5025,6 +5060,11 @@ math:Distance
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distance"@x-gmeow-english ;
     skos:definition "A metric distance: the value d(x, y) = ‖x − y‖ of the metric induced by a math:Norm. A subclass of math:MathematicalObject that names the norm giving it through math:inducedByNorm. It is the length of the difference vector under the norm; the norm-induced metric satisfies the metric axioms because the norm comes from a positive-definite form."@x-gmeow-english ;
+    gmeow:useWhen "Use for the metric distance obtained by applying a declared norm to a vector difference, d(x, y) = ‖x − y‖."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not classify an arbitrary similarity score, affinity, or directed weight as this norm-induced distance without establishing the metric construction."@x-gmeow-english ;
+    gmeow:howToUse "Identify the inducing math:Norm with math:inducedByNorm. Keep the compared vector coordinates in a common basis and use that norm's declared form for the difference vector."@x-gmeow-english ;
+    skos:scopeNote "The link to the norm records why this distance has a metric interpretation. It does not supply a numerical result for unspecified operands or make every pairwise score a metric."@x-gmeow-english ;
+    skos:example "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DefinitenessKind
