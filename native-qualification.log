@@ -1,0 +1,33 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-slice-brief) and test(json_packet_)' --no-tests=fail
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-core-wasm)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-print)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-brief)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 05s
+────────────
+ Nextest run ID b0463f69-8ca6-4508-8e10-9ec9c605d972 with nextest profile: ci
+    Starting 12 tests across 5 binaries (17 tests and 222 binaries skipped)
+        PASS [   0.007s] ( 1/12) gmeow-slice-brief::json_packet json_packet_object_variants_keep_tagged_shapes_and_literal_content
+        PASS [   0.007s] ( 2/12) gmeow-slice-brief::json_packet json_packet_complete_empty_packet_keeps_literal_wire_bytes
+        PASS [   0.007s] ( 3/12) gmeow-slice-brief::json_packet json_packet_integer_members_keep_lexical_and_width_bounds
+        PASS [   0.007s] ( 4/12) gmeow-slice-brief::json_packet json_packet_grounding_names_preserve_pascal_case_instead_of_rdf_tags
+        PASS [   0.007s] ( 5/12) gmeow-slice-brief::json_packet json_packet_malformed_types_and_ambiguous_variants_are_refused
+        PASS [   0.007s] ( 6/12) gmeow-slice-brief::json_packet json_packet_native_export_refuses_manually_constructed_positive_infinity
+        PASS [   0.007s] ( 7/12) gmeow-slice-brief::json_packet json_packet_nested_records_round_trip_without_reordering_vectors
+        PASS [   0.007s] ( 8/12) gmeow-slice-brief::json_packet json_packet_optionals_accept_missing_or_null_and_emit_explicit_nulls
+        PASS [   0.007s] ( 9/12) gmeow-slice-brief::json_packet json_packet_public_export_refuses_manually_constructed_nan
+        PASS [   0.007s] (10/12) gmeow-slice-brief::json_packet json_packet_known_duplicates_fail_while_unknown_record_fields_are_ignored
+        PASS [   0.128s] (11/12) gmeow-slice-brief::json_packet json_packet_native_export_refuses_manually_constructed_negative_infinity
+        PASS [   0.128s] (12/12) gmeow-slice-brief::json_packet json_packet_confidence_is_finite_and_uses_native_binary64_spelling
+────────────
+     Summary [   0.138s] 12 tests run: 12 passed, 17 skipped
