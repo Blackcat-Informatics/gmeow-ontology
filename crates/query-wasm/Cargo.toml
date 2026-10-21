@@ -33,10 +33,10 @@ purrdf-hash.workspace = true
 [dev-dependencies]
 # `tests/witness_query.rs` reads the committed `js/tests/queries.json` corpus. A
 # hand-rolled string splitter cannot see JSON escaping and truncates any query
-# containing an embedded quoted literal; `serde_json` is a dev-only dependency
+# containing an embedded quoted literal; `purrdf-lex` is a dev-only dependency
 # (`tests/` is never linked into the `cdylib` wasm-bindgen artifact), so pulling it in
 # here adds nothing to the shipped engine's dependency tree.
-serde_json = "1"
+purrdf-lex.workspace = true
 # `tests/from_gts.rs` drives `Dataset::from_gts` on a real GTS bundle. This is the
 # mandated production entry point (`emit_gmeow_gts`), never a direct
 # `purrdf::gts_compose::emit_gts` call, so the fixture bundle is built the same way

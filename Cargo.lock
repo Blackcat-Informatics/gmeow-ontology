@@ -1806,7 +1806,7 @@ version = "0.3.0"
 dependencies = [
  "gmeow-bundle-import",
  "gmeow-mcp",
- "serde_json",
+ "purrdf-lex",
  "wasm-bindgen",
 ]
 
@@ -1831,7 +1831,7 @@ dependencies = [
  "gmeow-bundle-import",
  "gmeow-mcp",
  "purrdf",
- "serde_json",
+ "purrdf-lex",
  "wasm-bindgen",
 ]
 
@@ -1918,7 +1918,7 @@ dependencies = [
  "gmeow-gts-profile",
  "purrdf",
  "purrdf-hash",
- "serde_json",
+ "purrdf-lex",
  "wasm-bindgen",
 ]
 

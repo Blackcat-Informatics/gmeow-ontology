@@ -36,7 +36,7 @@
 use std::path::PathBuf;
 
 use gmeow_mcp_core_wasm::{init, mcp, ready};
-use serde_json::Value;
+use purrdf_lex::json::{Value, record::read_document};
 
 /// The `convert` frame, byte-for-byte the one `crates/mcp-wasm/tests/witness_mcp.rs` pins.
 const CORE_REQUEST: &str = concat!(
@@ -89,6 +89,117 @@ fn pin(frame: &str, name: &str) {
     );
 }
 
+/// Admit the core conversion response without loading an engine.
+/// Both protocol and product must succeed and preserve RDF-1.2 quoting.
+fn assert_core_answer(out: &str) {
+    let frame: Value = read_document(out.as_bytes()).expect("the response is a JSON-RPC frame");
+    assert_eq!(frame["jsonrpc"], "2.0", "JSON-RPC envelope: {out}");
+    assert_eq!(
+        frame["result"]["isError"],
+        Value::Bool(false),
+        "the convert tool must succeed in the lean image: {out}"
+    );
+    let text = frame["result"]["content"][0]["text"]
+        .as_str()
+        .unwrap_or_else(|| panic!("the tool envelope carries text content: {out}"));
+    let payload: Value = read_document(text.as_bytes()).expect("the convert payload is JSON");
+    assert_eq!(
+        payload["ok"],
+        Value::Bool(true),
+        "convert reports ok: {out}"
+    );
+    assert!(
+        payload["output"]
+            .as_str()
+            .is_some_and(|o| o.contains("<<(")),
+        "the RDF-1.2 quoted triple must survive the transcode: {out}"
+    );
+}
+
+/// Admit the actual reasoning-segment routing response.
+/// Deferral stays inside result content and names recall's declared segment.
+fn assert_deferred_answer(out: &str) {
+    let frame: Value = read_document(out.as_bytes()).expect("the response is a JSON-RPC frame");
+    assert!(
+        frame.get("error").is_none(),
+        "a deferral rides IN the result envelope, never as a protocol error: {out}"
+    );
+    let text = frame["result"]["content"][0]["text"]
+        .as_str()
+        .unwrap_or_else(|| panic!("the tool envelope carries text content: {out}"));
+    let payload: Value = read_document(text.as_bytes()).expect("the deferral payload is JSON");
+    assert_eq!(
+        payload["code"], "mcp.segment-not-loaded",
+        "the lean image must route, not refuse: {out}"
+    );
+    assert_eq!(
+        payload["tool"], "recall",
+        "the signal names the tool asked for: {out}"
+    );
+    assert_eq!(
+        payload["segment"],
+        gmeow_mcp::SegmentSet::segment_of(
+            payload["tool"].as_str().expect("the signal names its tool")
+        ),
+        "the signal names the segment to load: {out}"
+    );
+}
+
+const TINY_CORE_ANSWER: &str = r#"{"jsonrpc":"2.0","result":{"isError":false,"content":[{"text":"{\"ok\":true,\"output\":\"<<( <urn:s> <urn:p> <urn:o> )>> .\\n\"}"}]}}"#;
+const TINY_DEFERRED_ANSWER: &str = r#"{"jsonrpc":"2.0","result":{"isError":false,"content":[{"text":"{\"code\":\"mcp.segment-not-loaded\",\"tool\":\"recall\",\"segment\":\"reasoning\"}"}]}}"#;
+
+#[test]
+fn json_witness_core_decodes_conversion_and_reasoning_routing() {
+    assert_core_answer(TINY_CORE_ANSWER);
+    assert_deferred_answer(TINY_DEFERRED_ANSWER);
+}
+
+#[test]
+#[should_panic(expected = "the response is a JSON-RPC frame")]
+fn json_witness_core_refuses_malformed_outer_json() {
+    assert_core_answer("not JSON");
+}
+
+#[test]
+#[should_panic(expected = "the convert payload is JSON")]
+fn json_witness_core_refuses_malformed_product_json() {
+    assert_core_answer(
+        r#"{"jsonrpc":"2.0","result":{"isError":false,"content":[{"text":"not JSON"}]}}"#,
+    );
+}
+
+#[test]
+#[should_panic(expected = "the tool envelope carries text content")]
+fn json_witness_core_refuses_non_text_product_content() {
+    assert_core_answer(
+        r#"{"jsonrpc":"2.0","result":{"isError":false,"content":[{"text":false}]}}"#,
+    );
+}
+
+#[test]
+#[should_panic(expected = "convert reports ok")]
+fn json_witness_core_refuses_failed_conversion_products() {
+    assert_core_answer(&TINY_CORE_ANSWER.replace("true", "false"));
+}
+
+#[test]
+#[should_panic(expected = "the RDF-1.2 quoted triple must survive")]
+fn json_witness_core_refuses_lost_quoted_triples() {
+    assert_core_answer(&TINY_CORE_ANSWER.replace("<<(", "("));
+}
+
+#[test]
+#[should_panic(expected = "the signal names the tool asked for")]
+fn json_witness_core_refuses_misrouted_deferrals() {
+    assert_deferred_answer(&TINY_DEFERRED_ANSWER.replace("recall", "other"));
+}
+
+#[test]
+#[should_panic(expected = "the signal names the segment to load")]
+fn json_witness_core_refuses_wrong_segment_deferrals() {
+    assert_deferred_answer(&TINY_DEFERRED_ANSWER.replace("reasoning", "core"));
+}
+
 #[test]
 fn lean_core_native_witnesses_share_one_authenticated_import() {
     let bundle = snapshot();
@@ -107,28 +218,7 @@ fn lean_core_native_witnesses_share_one_authenticated_import() {
 
     // A REAL answered tools/call, not an error envelope — otherwise the witness would pin
     // a failure and prove nothing about the first-load surface.
-    let frame: Value = serde_json::from_str(&out).expect("the response is a JSON-RPC frame");
-    assert_eq!(frame["jsonrpc"], "2.0", "JSON-RPC envelope: {out}");
-    assert_eq!(
-        frame["result"]["isError"],
-        Value::Bool(false),
-        "the convert tool must succeed in the lean image: {out}"
-    );
-    let text = frame["result"]["content"][0]["text"]
-        .as_str()
-        .unwrap_or_else(|| panic!("the tool envelope carries text content: {out}"));
-    let payload: Value = serde_json::from_str(text).expect("the convert payload is JSON");
-    assert_eq!(
-        payload["ok"],
-        Value::Bool(true),
-        "convert reports ok: {out}"
-    );
-    assert!(
-        payload["output"]
-            .as_str()
-            .is_some_and(|o| o.contains("<<(")),
-        "the RDF-1.2 quoted triple must survive the transcode: {out}"
-    );
+    assert_core_answer(&out);
 
     pin(&out, "WITNESS.core.json");
 
@@ -142,30 +232,7 @@ fn lean_core_native_witnesses_share_one_authenticated_import() {
         "the routing signal is deterministic"
     );
 
-    let frame: Value = serde_json::from_str(&out).expect("the response is a JSON-RPC frame");
-    assert!(
-        frame.get("error").is_none(),
-        "a deferral rides IN the result envelope, never as a protocol error: {out}"
-    );
-    let text = frame["result"]["content"][0]["text"]
-        .as_str()
-        .unwrap_or_else(|| panic!("the tool envelope carries text content: {out}"));
-    let payload: Value = serde_json::from_str(text).expect("the deferral payload is JSON");
-    assert_eq!(
-        payload["code"], "mcp.segment-not-loaded",
-        "the lean image must route, not refuse: {out}"
-    );
-    assert_eq!(
-        payload["tool"], "recall",
-        "the signal names the tool asked for: {out}"
-    );
-    assert_eq!(
-        payload["segment"],
-        gmeow_mcp::SegmentSet::segment_of(
-            payload["tool"].as_str().expect("the signal names its tool")
-        ),
-        "the signal names the segment to load: {out}"
-    );
+    assert_deferred_answer(&out);
 
     pin(&out, "WITNESS.core-deferral.json");
 }

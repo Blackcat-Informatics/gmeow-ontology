@@ -44,7 +44,7 @@ use std::path::PathBuf;
 
 use gmeow_mcp::McpServer;
 use gmeow_mcp_wasm::{init, mcp, ready};
-use serde_json::Value;
+use purrdf_lex::json::{Value, record::read_document};
 
 /// The exact JSON-RPC 2.0 request frame both halves send. A literal (not a `json!`
 /// build) so the two halves provably send the same bytes: the JS test carries this
@@ -86,6 +86,91 @@ fn attestation_path() -> PathBuf {
 fn snapshot() -> Vec<u8> {
     gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
         .expect("authenticated bundle; tests never produce it")
+}
+
+/// Admit the reasoning witness's answered JSON product and decode its judgment.
+/// Require completed corroboration; RDF parsing and byte attestation remain
+/// with the real authenticated witness.
+fn judgment_from_answer(out: &str) -> String {
+    let frame: Value = read_document(out.as_bytes()).expect("the response is a JSON-RPC frame");
+    assert_eq!(frame["jsonrpc"], "2.0", "JSON-RPC envelope: {out}");
+    assert_eq!(frame["id"], 1, "the response echoes the request id: {out}");
+    assert_eq!(
+        frame["result"]["isError"],
+        Value::Bool(false),
+        "the conjecture_test tool must succeed: {out}"
+    );
+    let text = frame["result"]["content"][0]["text"]
+        .as_str()
+        .unwrap_or_else(|| panic!("the tool envelope carries text content: {out}"));
+    let payload: Value =
+        read_document(text.as_bytes()).expect("the conjecture_test payload is JSON");
+    assert_eq!(
+        payload["ok"],
+        Value::Bool(true),
+        "conjecture_test reports ok: {out}"
+    );
+    // Retain the real witness's proof-leg requirement. Pure JSON controls test
+    // admission of this product; engine execution remains in the authenticated caller.
+    assert!(
+        !text.contains("mcp.segment-not-loaded"),
+        "conjecture_test is a REASONING-segment tool and this image IS that segment — it \
+         must answer, never defer: {out}"
+    );
+    assert_eq!(
+        payload["verdict"]["lifecycle"], "corroborated",
+        "the proof leg `KB ⊨ φ` must corroborate: {out}"
+    );
+    assert_eq!(
+        payload["verdict"]["evaluation"], "completed",
+        "the evaluation must COMPLETE, not exhaust its budget: {out}"
+    );
+    payload["judgment_nquads"]
+        .as_str()
+        .unwrap_or_else(|| panic!("the answered payload carries judgment_nquads: {out}"))
+        .to_owned()
+}
+
+const TINY_REASONING_ANSWER: &str = r#"{"jsonrpc":"2.0","id":1,"result":{"isError":false,"content":[{"text":"{\"ok\":true,\"verdict\":{\"lifecycle\":\"corroborated\",\"evaluation\":\"completed\"},\"judgment_nquads\":\"<urn:s> <urn:p> \\\"é\\\" .\\n\"}"}]}}"#;
+
+#[test]
+fn json_witness_reasoning_preserves_decoded_judgment_text() {
+    assert_eq!(
+        judgment_from_answer(TINY_REASONING_ANSWER),
+        "<urn:s> <urn:p> \"é\" .\n"
+    );
+}
+
+#[test]
+#[should_panic(expected = "the response is a JSON-RPC frame")]
+fn json_witness_reasoning_refuses_malformed_outer_json() {
+    judgment_from_answer("not JSON");
+}
+
+#[test]
+#[should_panic(expected = "the conjecture_test payload is JSON")]
+fn json_witness_reasoning_refuses_malformed_product_json() {
+    judgment_from_answer(
+        r#"{"jsonrpc":"2.0","id":1,"result":{"isError":false,"content":[{"text":"not JSON"}]}}"#,
+    );
+}
+
+#[test]
+#[should_panic(expected = "must corroborate")]
+fn json_witness_reasoning_refuses_uncorroborated_products() {
+    judgment_from_answer(&TINY_REASONING_ANSWER.replace("corroborated", "open"));
+}
+
+#[test]
+#[should_panic(expected = "must COMPLETE")]
+fn json_witness_reasoning_refuses_incomplete_products() {
+    judgment_from_answer(&TINY_REASONING_ANSWER.replace("completed", "exhausted"));
+}
+
+#[test]
+#[should_panic(expected = "the answered payload carries judgment_nquads")]
+fn json_witness_reasoning_refuses_missing_judgment_text() {
+    judgment_from_answer(&TINY_REASONING_ANSWER.replace("judgment_nquads", "missing"));
 }
 
 #[test]
@@ -134,42 +219,7 @@ fn native_mcp_frame_matches_the_witness_attestation() {
 
     // It must be a REAL answered tools/call, not an error envelope — otherwise the
     // witness would pin a failure and prove nothing about the tool surface.
-    let frame: Value = serde_json::from_str(&out).expect("the response is a JSON-RPC frame");
-    assert_eq!(frame["jsonrpc"], "2.0", "JSON-RPC envelope: {out}");
-    assert_eq!(frame["id"], 1, "the response echoes the request id: {out}");
-    assert_eq!(
-        frame["result"]["isError"],
-        Value::Bool(false),
-        "the conjecture_test tool must succeed: {out}"
-    );
-    let text = frame["result"]["content"][0]["text"]
-        .as_str()
-        .unwrap_or_else(|| panic!("the tool envelope carries text content: {out}"));
-    let payload: Value = serde_json::from_str(text).expect("the conjecture_test payload is JSON");
-    assert_eq!(
-        payload["ok"],
-        Value::Bool(true),
-        "conjecture_test reports ok: {out}"
-    );
-    // The REASONER actually ran: this is the proof leg, so the verdict must be the
-    // corroborated one. A witness that merely parsed the frame would pass on an engine
-    // that answered "open" for everything.
-    assert!(
-        !text.contains("mcp.segment-not-loaded"),
-        "conjecture_test is a REASONING-segment tool and this image IS that segment — it \
-         must answer, never defer: {out}"
-    );
-    assert_eq!(
-        payload["verdict"]["lifecycle"], "corroborated",
-        "the proof leg `KB ⊨ φ` must corroborate: {out}"
-    );
-    assert_eq!(
-        payload["verdict"]["evaluation"], "completed",
-        "the evaluation must COMPLETE, not exhaust its budget: {out}"
-    );
-    let judgment = payload["judgment_nquads"]
-        .as_str()
-        .unwrap_or_else(|| panic!("the answered payload carries judgment_nquads: {out}"));
+    let judgment = judgment_from_answer(&out);
     assert!(
         !judgment
             .chars()
