@@ -1,0 +1,9 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+ERROR: tests may never rebuild the corpus; producer-reachable test code is malicious:
+  crates/gmeow-cli/tests/finance_evaluation_cli.rs:34: authored-source bytes reach std::fs::write through local test flow
+  crates/gmeow-cli/tests/finance_evaluation_cli.rs:67: authored-source bytes reach std::fs::write through local test flow
+  crates/pipeline/src/stages/compile_logic/validation_fixtures/corpus_tests/finance_grounding.rs:170: authored-source bytes reach purrdf::parse_dataset through local test flow
+  crates/pipeline/src/stages/compile_logic/validation_fixtures/corpus_tests/finance_grounding.rs:50: authored-source bytes reach purrdf::parse_dataset through local test flow
+make: *** [Makefile:257: test-corpus-purity] Error 1

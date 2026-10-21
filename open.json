@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1894,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices",
+  "branch": "paudley/1894-ground-financial-amounts-rates-prices",
+  "slug": "ground-financial-amounts-rates-prices",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/.stage/ground-financial-amounts-rates-prices",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "3fe37d90e62a995b4e1ec6182c40eb74ba261225",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices",
+    "branch:paudley/1894-ground-financial-amounts-rates-prices",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/.stage/ground-financial-amounts-rates-prices",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1894-ground-financial-amounts-rates-prices/.stage/ground-financial-amounts-rates-prices/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-20T23:23:14-0600"
+}

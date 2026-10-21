@@ -1,0 +1,7 @@
+Financial amounts now use the shared `math:Quantity` magnitude with explicit currency frames. The existing MonetaryAmount owner is retained, its parallel monetaryValue path is retired across financial consumers, and holdings carry framed counts of a named asset.
+
+The public `gmeow finance evaluate` caller admits exact simple-interest and holding-period-return requests against bundled signatures, AST recipes and complete generated owner constraints. It derives typed/framed results and observationResult through the shared native math execution, retaining original subclass typing and normal proof evidence. Currency and period conversion are explicit; zero and nonterminating division fail. The operation-contract projection does not claim whole-ontology native completion.
+
+Principles 4, 7, 9, 11, 17 and 19. Refs #1894 and #1717; both remain open for complete production acceptance. Canonical laws, worked inputs, translations and authenticated corpus/installed-consumer tests accompany the production caller. Tests consume exact producer-selected bytes and never construct corpus products.
+
+Validation: all13 focused native finance and standalone-math tests passed, formatting and corpus-purity checks passed. Strict producer-independent prebuild Clippy passed. Normal signed commit hooks passed. The campaign exception leaves actual generated-owner/corpus, installed CLI, translation floors, consumer-inclusive full Clippy and full-gate acceptance unrun.
