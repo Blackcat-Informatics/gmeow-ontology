@@ -68,6 +68,39 @@ fn json_capture_preserves_literal_bytes_and_real_put_get_round_trip() {
 }
 
 #[test]
+fn json_recovery_refuses_nonfinite_scores_and_thresholds_before_export() {
+    let capture = decode_capture(TINY_CAPTURE).unwrap();
+    let cfg = config();
+    let turtle = produce(&capture, &cfg).unwrap();
+    let index = index_turtle(turtle.as_bytes()).unwrap();
+    for (finite, field) in [("0.84", "classifierScore"), ("0.5", "thresholdApplied")] {
+        let predicate = g(field);
+        let expected_subjects: Vec<_> = subjects(&index)
+            .filter(|subject| first_literal(&index, subject, &predicate).as_deref() == Some(finite))
+            .cloned()
+            .collect();
+        assert!(!expected_subjects.is_empty(), "missing source {predicate}");
+        let quoted = format!("\"{finite}\"");
+        assert!(turtle.contains(&quoted), "missing finite source {finite}");
+        for invalid in ["NaN", "inf", "-inf", "1e400", "-1e400"] {
+            let changed = turtle.replace(&quoted, &format!("\"{invalid}\""));
+            let error = recover(&changed, &cfg).unwrap_err().to_string();
+            assert!(
+                error.contains("finite decimal"),
+                "{finite} -> {invalid}: {error}"
+            );
+            assert!(error.contains(&predicate), "missing predicate: {error}");
+            assert!(
+                expected_subjects
+                    .iter()
+                    .any(|subject| error.contains(subject)),
+                "missing subject: {error}"
+            );
+        }
+    }
+}
+
+#[test]
 fn json_unknown_members_are_ignored_but_known_duplicates_are_refused() {
     let baseline = decode_capture(TINY_CAPTURE).unwrap();
     let unknown = TINY_CAPTURE

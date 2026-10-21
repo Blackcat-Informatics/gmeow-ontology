@@ -1665,10 +1665,14 @@ fn required_iri(index: &TripleIndex, s: &str, p: &str) -> Result<String, IngestE
 }
 
 fn required_decimal(index: &TripleIndex, s: &str, p: &str) -> Result<f64, IngestError> {
-    required_literal(index, s, p)?
+    let value = required_literal(index, s, p)?
         .trim()
-        .parse()
-        .map_err(|_| malformed(format!("{s} {p} is not a decimal")))
+        .parse::<f64>()
+        .map_err(|_| malformed(format!("{s} {p} is not a decimal")))?;
+    if !value.is_finite() {
+        return Err(malformed(format!("{s} {p} requires a finite decimal")));
+    }
+    Ok(value)
 }
 
 #[cfg(test)]

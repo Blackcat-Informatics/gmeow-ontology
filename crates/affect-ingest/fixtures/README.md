@@ -49,6 +49,9 @@ their declared order and threshold labels sort by name. Scores and thresholds
 decode as finite binary64 numbers: strings, nulls and overflow such as `1e400`
 are refused. Input numeric spellings normalize to the shortest binary64 spelling
 on output (`1e0` becomes `1.0`); captures do not carry free-form numeric lexemes.
+Recovery also refuses nonfinite RDF scores and thresholds, including NaN,
+infinities and binary64 overflow. Its error names the affected subject and
+predicate before any JSON is written.
 
 The native JSON record and enum owner requires object records and string enums.
 Positional record arrays and singleton-map unit enums, which the former serde
