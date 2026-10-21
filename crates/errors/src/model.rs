@@ -934,6 +934,8 @@ impl Report {
     }
 }
 
+mod json;
+
 #[path = "model.tests.rs"]
 #[cfg(test)]
 mod tests;

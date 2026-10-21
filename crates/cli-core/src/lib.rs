@@ -25,8 +25,9 @@ use std::path::{Component, Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_errors::render;
-use gmeow_errors::{Diag, DiagLedger, Finding, Report, StageId};
-use serde::Serialize;
+use gmeow_errors::{Diag, DiagLedger, Report, StageId};
+mod ndjson;
+use ndjson::NdjsonEvent;
 
 pub mod error;
 
@@ -600,39 +601,12 @@ impl Reporter for HumanReporter {
     }
 }
 
-/// The line-framed NDJSON envelope every [`NdjsonReporter`] event serializes to.
-///
-/// The `event` tag is the stable discriminator (`stage_start`, `stage_end`,
-/// `finding`, `summary`). A `finding` event embeds the canonical
-/// [`gmeow_errors::Finding`] serde form verbatim under `finding` — there is
-/// no second finding schema.
-#[derive(Serialize)]
-#[serde(tag = "event", rename_all = "snake_case")]
-enum NdjsonEvent<'a> {
-    StageStart {
-        stage: &'a str,
-    },
-    StageEnd {
-        stage: &'a str,
-        elapsed_ms: u128,
-    },
-    Finding {
-        tool: &'a str,
-        finding: &'a Finding,
-    },
-    Summary {
-        tool: &'a str,
-        ok: bool,
-        errors: usize,
-        warnings: usize,
-    },
-}
-
 /// A machine-facing reporter: one JSON object per line to stdout, each carrying
 /// a stable `event` field. Findings are line-framed from the canonical
-/// [`gmeow_errors::Finding`] serde form — the same schema the JSON/SARIF
+/// [`gmeow_errors::Finding`] record — the same schema the JSON/SARIF
 /// renderers project — so an agent consuming the stream never has to reconcile a
 /// second shape.
+/// A required stdout write failure is terminal; events are never silently dropped.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct NdjsonReporter;
 
@@ -642,12 +616,13 @@ impl NdjsonReporter {
         Self
     }
 
-    /// Serialize one event as a single line to stdout.
+    /// Write one complete event under the stdout lock.
+    /// A required sink failure is terminal because `Reporter` cannot return it.
     fn emit(&self, event: &NdjsonEvent<'_>) {
-        if let Ok(line) = serde_json::to_string(event) {
-            let mut out = std::io::stdout();
-            let _ = writeln!(out, "{line}");
-        }
+        let mut out = std::io::stdout().lock();
+        event.write_to(&mut out).unwrap_or_else(|error| {
+            panic!("writing required NDJSON diagnostic event to stdout: {error}")
+        });
     }
 }
 

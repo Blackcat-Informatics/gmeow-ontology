@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use gmeow_errors::Finding;
 
 #[test]
 fn auto_resolves_to_pretty_on_a_tty() {
