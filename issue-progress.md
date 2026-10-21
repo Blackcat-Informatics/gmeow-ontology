@@ -1,0 +1,3 @@
+PR #1928 replaces the documentation shell context and its private navigation wrapper with native Minijinja values at the actual renderer. It preserves the nine context keys, ordered nested links, language fallback and ordinary string safety. Principles4 and7.
+
+Four tiny authored-model controls passed, including the existing translation/fallback control; strict prebuild, helpers, source-input recipe, formatting and normal signed commit/push hooks passed. Independent source review is clear. The template and dependencies are unchanged. Full-site/installed/authenticated corpus acceptance and the remaining Serde owners are still open; this does not close #1776. Delivery follows the recorded no-local-corpus/full-gate and sequential-merge CI exception.

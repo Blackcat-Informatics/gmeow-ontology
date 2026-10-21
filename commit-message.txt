@@ -1,0 +1,7 @@
+refactor: build shell context with native template values
+
+Remove the private Serde navigation wrapper and context conversion at the
+actual renderer boundary. Preserve ordered navigation and all existing
+shell fields, localization, links and string behavior.
+
+Principles 4 and 7.

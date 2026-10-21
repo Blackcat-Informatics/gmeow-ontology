@@ -1,0 +1,17 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-docs) & (test(navigation_template_native_) | test(render_site_lang_uses_translation_with_english_fallback))' --no-tests=fail
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+    Finished `test` profile [optimized] target(s) in 14.44s
+────────────
+ Nextest run ID 93b6d9b2-eb27-4616-914d-dbf159388d6b with nextest profile: ci
+    Starting 4 tests across 31 binaries (246 tests and 196 binaries skipped)
+        PASS [   0.006s] (1/4) gmeow-docs render::tests::navigation_template_native_values_preserve_empty_and_unicode_strings
+        PASS [   0.006s] (2/4) gmeow-docs render::tests::navigation_template_native_playground_stays_last_when_selected
+        PASS [   0.009s] (3/4) gmeow-docs render::tests::navigation_template_native_shell_keeps_nested_links_and_language_fallback
+        PASS [   0.012s] (4/4) gmeow-docs render::tests::render_site_lang_uses_translation_with_english_fallback
+────────────
+     Summary [   0.015s] 4 tests run: 4 passed, 246 skipped
