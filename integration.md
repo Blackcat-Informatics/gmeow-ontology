@@ -1,0 +1,5 @@
+# Integration assessment
+
+Fetched actual origin/main after publication. Base697e06f2122e287ed87303b075559752691fa803 has no intervening source delta. Head552c7e093d8bd52b08e14831477e32e48bcec572 is the qualified normal signed commit. git merge-tree --write-tree --no-messages origin/main HEAD returned0 and candidate0458b168809ed6c17809828b4e8166a214172285. No conflict or base dependency change invalidates the focused qualification. Source delta12paths904insertions/13deletions; no manifest/lock change. ghprsq alone publishes the result; main stays protected.
+
+Exact-head run39742653235 producer/helpers/lint/prebuild is in progress; bot review is pending. Complete paginated feedback is0formal/0inline/1comment/0threads, processing-only, read in full. User exception permits sequential merges ignoring CI and excludes local optimized production/corpus/full gates. No unrun production/wasm/embedded/installed criterion is relabeled as passed. Full1776 remains open. After landing, compare the actual result tree and all archived Stage bytes before ordinary cleanup.
