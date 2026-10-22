@@ -221,12 +221,12 @@ impl<'a> Sources<'a> {
                 action_policy::BUNDLE_MEMBER,
                 action_policy::MAX_BYTES,
             ),
-            contextual_results::ARTIFACT => {
-                serde_json::to_vec(&contextual_results::observe(self.dataset()?)).map_err(fail)
-            }
+            contextual_results::ARTIFACT => Ok(purrdf_lex::json::record::to_vec(
+                &contextual_results::observe(self.dataset()?),
+            )),
             flagship_unwired::ARTIFACT => {
                 let observation = flagship_unwired::observe(self.prepared_shapes()?)?;
-                serde_json::to_vec(&observation).map_err(fail)
+                Ok(purrdf_lex::json::record::to_vec(&observation))
             }
             advice_wing::ARTIFACT => {
                 let observation = advice_wing::observe(self.prepared_shapes()?, self.dataset()?)?;

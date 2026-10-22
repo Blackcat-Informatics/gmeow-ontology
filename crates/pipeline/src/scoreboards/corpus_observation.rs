@@ -5,6 +5,8 @@
 
 use super::*;
 
+mod json;
+
 pub const ARTIFACT: &str = "claim-audit-observation-v1.json";
 
 const INPUT: &str = include_str!("../../../../tests/fixtures/coverage/hallucination-kg.ttl");
@@ -35,7 +37,6 @@ const QUERIES: &[(&str, &str)] = &[
     ),
 ];
 
-#[derive(Serialize)]
 struct Recorded<'a> {
     schema: u32,
     query_rows: &'a AuditRows,
@@ -43,8 +44,7 @@ struct Recorded<'a> {
     claims: &'a [FlatClaim],
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug)]
 struct Stored {
     schema: u32,
     query_rows: AuditRows,
@@ -53,13 +53,12 @@ struct Stored {
 }
 
 fn encode(report: &ClaimAuditReport) -> gmeow_errors::Result<Vec<u8>> {
-    serde_json::to_vec(&Recorded {
+    Ok(purrdf_lex::json::record::to_vec(&Recorded {
         schema: 1,
         query_rows: &report.query_rows,
         nodes: report.ledger.emit_sorted(),
         claims: &report.claims,
-    })
-    .ctx("encode produced claim audit")
+    }))
 }
 
 /// Run only in the explicit fixture producer, over its selected ontology and shapes.
@@ -87,7 +86,8 @@ pub fn produce_claim_audit_observation(
 /// Restore native diagnostic nodes without parsing, assembling or producing corpus.
 /// Callers must first authenticate the artifact through the selected fixture receipt.
 pub fn restore(bytes: &[u8]) -> gmeow_errors::Result<ClaimAuditReport> {
-    let stored: Stored = serde_json::from_slice(bytes).ctx("decode produced claim audit")?;
+    let stored: Stored =
+        purrdf_lex::json::record::from_slice(bytes).ctx("decode produced claim audit")?;
     if stored.schema != 1 {
         return Err(Diag::of_kind(crate::error::Scoreboard {
             message: format!("unsupported produced claim audit schema {}", stored.schema),
