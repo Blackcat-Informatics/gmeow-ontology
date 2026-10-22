@@ -237,12 +237,20 @@ gmeow:cqDataFile a logic:DatatypeProperty  ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:cqRationale a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range rdfs:Literal ;
     rdfs:label "competency rationale"@x-gmeow-english ;
-    skos:definition "The human-readable rationale for a competency question: why this query and this expected outcome are an acceptance criterion for the slice's modelling decisions."@x-gmeow-english ;
-    skos:example "ex:cq gmeow:cqRationale \"A person with no retrievable name is not usefully modelled.\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the modelling intent a competency question protects, so a reader understands what would be lost if the query stopped answering as expected."@x-gmeow-english ;
+    skos:definition "A human-readable reason why a competency question and its expected outcome are an acceptance criterion for the slice's modelling decisions. Rationales may coexist as untagged strings, language-tagged strings or directional language-tagged strings; each literal retains its own language and base direction."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqRationale \"A retrievable name is necessary.\"@en, \"Un nom doit être accessible.\"@fr ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record every modelling intent the question protects, preserving private-use or public language tags and a stated base direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid numeric codes, IRIs and query source in a rationale; keep executable SPARQL in cqQuery or cqQueryFile."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more prose literals to the question. Leave language unspecified when it was not stated; otherwise retain the authored language tag and optional ltr or rtl direction. No rationale is a preferred winner."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:CompetencyQuestion logic:subClassOf [
+    a logic:Restriction ;
+    logic:onProperty gmeow:cqRationale ;
+    logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ]
+] .
 
 gmeow:cqExpectAsk a logic:DatatypeProperty  ;
     logic:range xsd:boolean ;
@@ -497,7 +505,7 @@ gmeow:CompetencyQuestionRationaleRequiredConstraint
     logic:onClass gmeow:CompetencyQuestion ;
     logic:anyOf gmeow:cqRationale ;
     logic:formalizes gmeow:CompetencyQuestion ;
-    logic:message "CompetencyQuestion must have at least one gmeow:cqRationale (xsd:string)"@x-gmeow-english .
+    logic:message "CompetencyQuestion must have at least one prose gmeow:cqRationale"@x-gmeow-english .
 
 gmeow:CompetencyQuestionQueryChoiceConstraint
     a logic:ChoiceGroupConstraint ;

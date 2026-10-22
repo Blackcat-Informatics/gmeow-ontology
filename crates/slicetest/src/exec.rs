@@ -1544,3 +1544,7 @@ fn join_codes(codes: &BTreeSet<String>) -> String {
 #[path = "exec.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "exec.cq_rationale.tests.rs"]
+mod cq_rationale_tests;

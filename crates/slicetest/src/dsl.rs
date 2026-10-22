@@ -80,7 +80,8 @@ pub struct CompetencyQuestion {
     /// declared output (`gmeow:cqResultShape`) must satisfy this question's
     /// `gmeow:cqInputShape` before execution (composition pre-check).
     pub consumes: Option<String>,
-    pub rationale: Option<String>,
+    /// All coexisting rationale literals, sorted by complete RDF term identity.
+    pub rationales: Vec<purrdf::RdfLiteral>,
 }
 
 /// One enumerated SELECT result row (`gmeow:ExpectedRow`).
@@ -228,7 +229,7 @@ pub enum ReasoningProfile {
 const PREFIX: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n";
 
 const Q_COMPETENCY: &str = "
-SELECT ?cq ?queryFile ?query ?project ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?consumes ?rationale WHERE {
+SELECT ?cq ?queryFile ?query ?project ?expectAsk ?rowCount ?exactRows ?reasoning ?dataFile ?resultShape ?inputShape ?consumes WHERE {
   ?cq a gmeow:CompetencyQuestion .
   OPTIONAL { ?cq gmeow:cqQueryFile ?queryFile }
   OPTIONAL { ?cq gmeow:cqQuery ?query }
@@ -241,7 +242,6 @@ SELECT ?cq ?queryFile ?query ?project ?expectAsk ?rowCount ?exactRows ?reasoning
   OPTIONAL { ?cq gmeow:cqResultShape ?resultShape }
   OPTIONAL { ?cq gmeow:cqInputShape ?inputShape }
   OPTIONAL { ?cq gmeow:cqConsumes ?consumes }
-  OPTIONAL { ?cq gmeow:cqRationale ?rationale }
 }";
 
 const Q_ROWS: &str = "
@@ -330,7 +330,7 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>> 
             result_shape: opt_shape(store, &sol, "resultShape")?,
             input_shape: opt_shape(store, &sol, "inputShape")?,
             consumes: opt_string(&sol, "consumes"),
-            rationale: opt_string(&sol, "rationale"),
+            rationales: Vec::new(),
         };
         // A multi-valued OPTIONAL (or a duplicated triple) can yield more than one
         // ?cq solution for the same question. Identical repeats are harmless, but
@@ -352,6 +352,50 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>> 
                 }
             }
         }
+    }
+
+    // Rationale is nonfunctional. Keep it out of the scalar OPTIONAL join so
+    // coexisting literal terms cannot masquerade as conflicting query definitions.
+    let mut rationales = BTreeMap::<String, BTreeMap<_, purrdf::RdfLiteral>>::new();
+    for solution in select(
+        store,
+        &with_prefix(
+            "SELECT ?cq ?value WHERE { ?cq a gmeow:CompetencyQuestion ; gmeow:cqRationale ?value . }",
+        ),
+    )? {
+        let cq = require_iri(&solution, "cq")?;
+        let Some(value) = solution.get("value") else {
+            return Err(Diag::of_kind(SpecCell {
+                detail: format!("competency question <{cq}> has an unbound cqRationale"),
+            }));
+        };
+        let purrdf::RdfTerm::Literal(literal) = value.to_rdf_term().map_err(|error| {
+            Diag::of_kind(SpecCell {
+                detail: error.to_string(),
+            })
+        })?
+        else {
+            return Err(Diag::of_kind(SpecCell {
+                detail: format!("competency question <{cq}> cqRationale must be a literal"),
+            }));
+        };
+        let key = (
+            literal.lexical_form.clone(),
+            literal.datatype_iri().to_owned(),
+            literal.language.clone(),
+            literal
+                .direction
+                .map(|direction| direction.as_str().to_owned()),
+        );
+        rationales.entry(cq).or_default().insert(key, literal);
+    }
+    for (cq, values) in rationales {
+        let Some(question) = by_iri.get_mut(&cq) else {
+            return Err(Diag::of_kind(SpecCell {
+                detail: format!("cqRationale subject <{cq}> has no competency definition"),
+            }));
+        };
+        question.rationales = values.into_values().collect();
     }
 
     // 2. Rows: group cells by (cq, row), preserving one cell per variable.

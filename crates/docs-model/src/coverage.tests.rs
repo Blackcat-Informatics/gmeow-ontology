@@ -291,7 +291,9 @@ fn demonstration_dims_are_existential_per_term_dims_universal() {
         ],
         competencies: vec![DocCompetency {
             iri: format!("{GMEOW}cq/one"),
-            rationale: Some("why the ontology must answer this".to_string()),
+            rationales: vec![purrdf::RdfLiteral::simple(
+                "why the ontology must answer this",
+            )],
             exercises: vec![one_iri.clone()],
             owner_slice: slice.clone(),
             ..Default::default()

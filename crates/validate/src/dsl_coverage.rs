@@ -13,8 +13,8 @@
 //!   liveness tests all read this table; `docs/DSL-VALIDATION-COVERAGE.md` is
 //!   its prose companion.
 //! * [`authored_dsl_shacl_inputs`] — resolves the three committed central-DSL
-//!   trees (`dsl/{mappings,statements,tests}`) and their committed shape files
-//!   (`shapes/{mapping,statement,test}-dsl-shapes.ttl`) for the live gate,
+//!   trees (`dsl/{mappings,statements,tests}`), their residual shape files, and
+//!   the canonical test-rationale obligations for the live gate,
 //!   **hard-failing** (never silently skipping) when a selected surface's inputs
 //!   are absent, empty, or unreadable. This is what makes a "dark DSL phase"
 //!   impossible on the real repository: a missing input is a loud error, not a
@@ -28,6 +28,8 @@
 use std::path::Path;
 
 use gmeow_errors::Diag;
+
+mod rationale;
 
 /// Where a validate phase actually executes on `make check`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -82,8 +84,9 @@ pub const VALIDATE_PHASE_COVERAGE: &[PhaseCoverage] = &[
     },
 ];
 
-/// The committed central-DSL SHACL inputs the live `validate` gate wires: one
-/// (directory, shapes-text) pair per surface, all mandatory.
+/// The central-DSL SHACL inputs the live `validate` gate wires: one
+/// (directory, shapes-text) pair per surface, all mandatory. Test shapes compose
+/// canonical rationale projections with the unchanged residual shape surface.
 #[derive(Debug, Clone)]
 pub struct AuthoredDslShacl {
     pub mapping_dir: String,
@@ -107,7 +110,8 @@ const TEST_SHAPES: &str = "shapes/test-dsl-shapes.ttl";
 /// rooted at `root` (the repository root).
 ///
 /// Every declared surface is mandatory. A missing directory, a directory that
-/// holds zero `.ttl` files, or an unreadable/empty shapes file is a **hard fail**
+/// holds zero `.ttl` files, an unreadable/empty shapes file or missing canonical
+/// test-rationale obligations is a **hard fail**
 /// with a distinct diagnostic — never a silent skip and never a "no-inputs" pass.
 /// That is the no-optionality guarantee for the live gate, and the thing the
 /// liveness test in `crates/validate/tests/dsl_shacl_live.rs` proves cannot
@@ -118,13 +122,20 @@ const TEST_SHAPES: &str = "shapes/test-dsl-shapes.ttl";
 /// Returns `Err` naming the specific failure (absent dir / empty dir / unreadable
 /// shapes / empty shapes) for the first surface that cannot be resolved.
 pub fn authored_dsl_shacl_inputs(root: &Path) -> gmeow_errors::Result<AuthoredDslShacl> {
+    let vocabulary_path = root.join("dsl/tests/vocabulary.ttl");
+    let vocabulary = std::fs::read(&vocabulary_path).map_err(|error| {
+        io_err(format!(
+            "cannot read required canonical test-DSL vocabulary {}: {error}",
+            vocabulary_path.display()
+        ))
+    })?;
     Ok(AuthoredDslShacl {
         mapping_dir: require_dsl_dir(root, MAPPING_DIR)?,
         statement_dir: require_dsl_dir(root, STATEMENT_DIR)?,
         test_dir: require_dsl_dir(root, TEST_DIR)?,
         mapping_shapes: require_shapes(root, MAPPING_SHAPES)?,
         statement_shapes: require_shapes(root, STATEMENT_SHAPES)?,
-        test_shapes: require_shapes(root, TEST_SHAPES)?,
+        test_shapes: rationale::compose(&vocabulary, &require_shapes(root, TEST_SHAPES)?)?,
     })
 }
 

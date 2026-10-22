@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "competency rationale"
+msgstr "justification de la question de compétence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A human-readable reason why a competency question and its expected outcome are an acceptance criterion for the slice's modelling decisions. Rationales may coexist as untagged strings, language-tagged strings or directional language-tagged strings; each literal retains its own language and base direction."
+msgstr "Une raison lisible expliquant pourquoi une question de compétence et son résultat attendu constituent un critère d'acceptation des décisions de modélisation de la tranche. Plusieurs justifications peuvent coexister sous forme de chaînes sans étiquette, de chaînes avec une étiquette de langue ou de chaînes avec une langue et une direction ; chaque littéral conserve sa langue et sa direction de base."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cq gmeow:cqRationale \"A retrievable name is necessary.\"@en, \"Un nom doit être accessible.\"@fr ."
+msgstr "ex:cq gmeow:cqRationale \"Le nom doit pouvoir être retrouvé.\"@fr, \"Un nom doit être accessible.\"@fr--ltr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record every modelling intent the question protects, preserving private-use or public language tags and a stated base direction."
+msgstr "À utiliser pour consigner chaque intention de modélisation que protège la question, en conservant les étiquettes de langue privées ou publiques et la direction de base déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid numeric codes, IRIs and query source in a rationale; keep executable SPARQL in cqQuery or cqQueryFile."
+msgstr "Éviter les codes numériques, les IRI et le texte source des requêtes dans une justification ; placer le SPARQL exécutable dans cqQuery ou cqQueryFile."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cqRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one or more prose literals to the question. Leave language unspecified when it was not stated; otherwise retain the authored language tag and optional ltr or rtl direction. No rationale is a preferred winner."
+msgstr "Associer un ou plusieurs littéraux en prose à la question. Laisser la langue non spécifiée si elle n'a pas été indiquée ; sinon, conserver l'étiquette de langue et l'éventuelle direction ltr ou rtl d'origine. Aucune justification n'est privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyQuestionRationaleRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CompetencyQuestion rationale requiredness constraint"
+msgstr "contrainte imposant une justification à une question de compétence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyQuestionRationaleRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:CompetencyQuestion must carry at least one gmeow:cqRationale."
+msgstr "Une contrainte d'obligation en monde clos : une gmeow:CompetencyQuestion doit porter au moins une gmeow:cqRationale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyQuestionRationaleRequiredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "CompetencyQuestion must have at least one prose gmeow:cqRationale"
+msgstr "Une CompetencyQuestion doit avoir au moins une gmeow:cqRationale en prose"

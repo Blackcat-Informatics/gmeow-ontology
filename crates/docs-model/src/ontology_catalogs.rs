@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Explicit ontology-owned translation inputs. Slice ontologies retain their
-//! actual manifest identity; the mapping DSL is a separate ontology, never a
+//! actual manifest identity; each registered DSL is a separate ontology, never a
 //! fabricated slice. No other repository directory acquires catalog authority.
 
 use purrdf::slice::{ArtifactRole, SliceCatalog};
@@ -12,6 +12,37 @@ pub const MAPPING_DSL_OWNER: &str = "https://blackcatinformatics.ca/gmeow/mappin
 pub const MAPPING_DSL_SOURCES: [&str; 2] = [
     "dsl/mappings/vocabulary.ttl",
     "dsl/mappings/catalog-families.ttl",
+];
+
+pub const TEST_DSL_OWNER: &str = "https://blackcatinformatics.ca/gmeow/test-dsl";
+pub const TEST_DSL_SOURCES: [&str; 1] = ["dsl/tests/vocabulary.ttl"];
+
+/// One explicitly registered ontology source and catalog directory.
+pub struct DslCatalogUnit {
+    /// Human-readable owner name for input diagnostics.
+    pub name: &'static str,
+    /// Canonical ontology identity admitted from the vocabulary.
+    pub owner_iri: &'static str,
+    /// Repository-relative directory holding the ontology and its catalogs.
+    pub directory: &'static str,
+    /// All mandatory authored sources of this ontology.
+    pub sources: &'static [&'static str],
+}
+
+/// The complete selected non-slice catalog owner inventory.
+pub const DSL_CATALOG_UNITS: &[DslCatalogUnit] = &[
+    DslCatalogUnit {
+        name: "mapping-DSL",
+        owner_iri: MAPPING_DSL_OWNER,
+        directory: "dsl/mappings",
+        sources: &MAPPING_DSL_SOURCES,
+    },
+    DslCatalogUnit {
+        name: "test-DSL",
+        owner_iri: TEST_DSL_OWNER,
+        directory: "dsl/tests",
+        sources: &TEST_DSL_SOURCES,
+    },
 ];
 
 /// One original catalog artifact and its explicit owning ontology.
@@ -42,24 +73,62 @@ pub fn from_slice_catalog(catalog: &SliceCatalog) -> Vec<OntologyCatalogSource> 
     sources
 }
 
-/// Admit the explicitly registered mapping-DSL ontology when it is part of the
-/// selected repository. An existing owner requires both source files and its
-/// catalog directory; absent files cannot silently turn it into slice-only mode.
-pub fn mapping_dsl_sources(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
-    let vocabulary = root.join(MAPPING_DSL_SOURCES[0]);
-    let directory = root.join("dsl/mappings/i18n");
+/// Resolve authored inputs of every explicitly selected non-slice ontology.
+/// Fully absent owners are outside the operation. Any partial owner refuses.
+pub fn dsl_sources(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let mut paths = Vec::new();
+    for unit in DSL_CATALOG_UNITS {
+        paths.extend(admit_dsl_unit(root, unit)?);
+    }
+    Ok(paths)
+}
+
+/// Exact authored sources and PO catalogs of every selected registered DSL.
+/// Fully absent owners contribute nothing; partial or malformed owners refuse.
+pub fn dsl_input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let mut paths = Vec::new();
+    for unit in DSL_CATALOG_UNITS {
+        let sources = admit_dsl_unit(root, unit)?;
+        if sources.is_empty() {
+            continue;
+        }
+        paths.extend(sources);
+        paths.extend(dsl_catalog_paths(root, unit)?);
+    }
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
+}
+
+fn dsl_catalog_paths(root: &Path, unit: &DslCatalogUnit) -> gmeow_errors::Result<Vec<PathBuf>> {
+    Ok(
+        crate::i18n_compile::directory_entries(&root.join(unit.directory).join("i18n"))?
+            .into_iter()
+            .filter(|path| path.extension().and_then(|value| value.to_str()) == Some("po"))
+            .collect(),
+    )
+}
+
+fn admit_dsl_unit(root: &Path, unit: &DslCatalogUnit) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let vocabulary = root.join(unit.sources[0]);
+    let directory = root.join(unit.directory).join("i18n");
     match std::fs::metadata(&vocabulary) {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            if directory.try_exists()? || root.join(MAPPING_DSL_SOURCES[1]).try_exists()? {
-                return Err(invalid(
-                    "selected mapping-DSL sources or catalogs have no required vocabulary owner",
-                ));
+            let mut selected = directory.try_exists()?;
+            for source in &unit.sources[1..] {
+                selected |= root.join(source).try_exists()?;
+            }
+            if selected {
+                return Err(invalid(format!(
+                    "selected {} sources or catalogs have no required vocabulary owner",
+                    unit.name
+                )));
             }
             return Ok(Vec::new());
         }
         Err(error) => return Err(error.into()),
         Ok(metadata) if !metadata.is_file() => {
-            return Err(invalid("mapping-DSL vocabulary is not a file"));
+            return Err(invalid(format!("{} vocabulary is not a file", unit.name)));
         }
         Ok(_) => {}
     }
@@ -76,19 +145,18 @@ pub fn mapping_dsl_sources(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
         })
         .map(|quad| quad.subject)
         .collect();
-    if owners != [purrdf::RdfTerm::Iri(MAPPING_DSL_OWNER.to_owned())] {
-        return Err(invalid(
-            "mapping-DSL vocabulary requires exactly its canonical ontology owner declaration",
-        ));
+    if owners != [purrdf::RdfTerm::Iri(unit.owner_iri.to_owned())] {
+        return Err(invalid(format!(
+            "{} vocabulary requires exactly its canonical ontology owner declaration",
+            unit.name
+        )));
     }
-    let sources: Vec<_> = MAPPING_DSL_SOURCES
-        .iter()
-        .map(|path| root.join(path))
-        .collect();
+    let sources: Vec<_> = unit.sources.iter().map(|path| root.join(path)).collect();
     for source in &sources {
         if !std::fs::metadata(source)?.is_file() {
             return Err(invalid(format!(
-                "required mapping-DSL source {} is not a file",
+                "required {} source {} is not a file",
+                unit.name,
                 source.display()
             )));
         }
@@ -100,35 +168,36 @@ pub fn mapping_dsl_sources(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     Ok(sources)
 }
 
-/// Extend an existing repository inventory with the one registered non-slice
-/// ontology. Every consumer uses these same owner/artifact records.
+/// Extend an existing repository inventory with registered non-slice
+/// ontologies. Every consumer uses these same owner/artifact records.
 pub fn for_repository(
     root: &Path,
     catalog: &SliceCatalog,
 ) -> gmeow_errors::Result<Vec<OntologyCatalogSource>> {
     let mut sources = from_slice_catalog(catalog);
-    append_mapping_dsl(root, &mut sources)?;
+    append_dsl_catalogs(root, &mut sources)?;
     sources.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(sources)
 }
 
-fn append_mapping_dsl(
+fn append_dsl_catalogs(
     root: &Path,
     sources: &mut Vec<OntologyCatalogSource>,
 ) -> gmeow_errors::Result<()> {
-    if !mapping_dsl_sources(root)?.is_empty() {
-        let owner_path = root.join("dsl/mappings");
-        for path in crate::i18n_compile::directory_entries(&owner_path.join("i18n"))? {
-            if path.extension().and_then(|value| value.to_str()) == Some("po") {
-                sources.push(OntologyCatalogSource {
-                    owner_iri: MAPPING_DSL_OWNER.to_owned(),
-                    owner_path: owner_path.clone(),
-                    content: std::fs::read(&path).map_err(|error| {
-                        crate::i18n_compile::source_io_error(&path, "read catalog", error)
-                    })?,
-                    path,
-                });
-            }
+    for unit in DSL_CATALOG_UNITS {
+        if admit_dsl_unit(root, unit)?.is_empty() {
+            continue;
+        }
+        let owner_path = root.join(unit.directory);
+        for path in dsl_catalog_paths(root, unit)? {
+            sources.push(OntologyCatalogSource {
+                owner_iri: unit.owner_iri.to_owned(),
+                owner_path: owner_path.clone(),
+                content: std::fs::read(&path).map_err(|error| {
+                    crate::i18n_compile::source_io_error(&path, "read catalog", error)
+                })?,
+                path,
+            });
         }
     }
     Ok(())
@@ -174,7 +243,7 @@ pub fn discover(root: &Path) -> gmeow_errors::Result<Vec<OntologyCatalogSource>>
             }
         }
     }
-    append_mapping_dsl(root, &mut sources)?;
+    append_dsl_catalogs(root, &mut sources)?;
     sources.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(sources)
 }

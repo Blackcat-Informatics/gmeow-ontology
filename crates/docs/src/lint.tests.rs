@@ -300,7 +300,9 @@ fn fully_covered_terms_emit_no_coverage_warnings() {
         });
         model.competencies.push(DocCompetency {
             iri: format!("{GMEOW}cq/{local}"),
-            rationale: Some("Every animal is a living thing.".to_string()),
+            rationales: vec![purrdf::RdfLiteral::simple(
+                "Every animal is a living thing.",
+            )],
             exercises: vec![iri.clone()],
             owner_slice: format!("{GMEOW}slice/zoo"),
             ..Default::default()

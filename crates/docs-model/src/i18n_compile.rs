@@ -740,7 +740,7 @@ pub fn authored_turtle_files(root: &Path) -> Result<Vec<PathBuf>> {
             }
         }
     }
-    paths.extend(crate::ontology_catalogs::mapping_dsl_sources(root)?);
+    paths.extend(crate::ontology_catalogs::dsl_sources(root)?);
     paths.sort();
     Ok(paths)
 }
@@ -1255,7 +1255,10 @@ pub fn iter_po_catalogs(root: &Path) -> Result<Vec<CatalogExportEntry>> {
         let language = language_from_po(text)?.unwrap_or_default();
         // Historical slice columns remain unchanged for slice owners. A DSL
         // catalog names its actual ontology, never an invented slice slug.
-        let slice = if source.owner_iri == crate::ontology_catalogs::MAPPING_DSL_OWNER {
+        let slice = if crate::ontology_catalogs::DSL_CATALOG_UNITS
+            .iter()
+            .any(|unit| unit.owner_iri == source.owner_iri)
+        {
             source.owner_iri.clone()
         } else {
             source

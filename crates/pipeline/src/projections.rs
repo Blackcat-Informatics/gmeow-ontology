@@ -723,3 +723,7 @@ fn n3_term(term: &RdfTerm) -> String {
 #[path = "projections.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "projections.cq_rationale.tests.rs"]
+mod cq_rationale_tests;

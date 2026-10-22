@@ -136,15 +136,86 @@ fn projection_literal_i18n_refuses_missing_or_ambiguous_selected_owner_and_requi
 #[test]
 fn projection_literal_i18n_refuses_family_only_partial_dsl_owner_but_allows_fully_absent_owner() {
     let root = tempfile::tempdir().unwrap();
-    assert!(mapping_dsl_sources(root.path()).unwrap().is_empty());
+    assert!(dsl_sources(root.path()).unwrap().is_empty());
     std::fs::create_dir_all(root.path().join("dsl/mappings")).unwrap();
     std::fs::write(
         root.path().join(MAPPING_DSL_SOURCES[1]),
         "# selected registry\n",
     )
     .unwrap();
-    let error = mapping_dsl_sources(root.path()).unwrap_err().to_string();
+    let error = dsl_sources(root.path()).unwrap_err().to_string();
     assert!(error.contains("required vocabulary owner"));
     assert!(crate::i18n_compile::authored_turtle_files(root.path()).is_err());
+    assert!(discover(root.path()).is_err());
+}
+
+#[test]
+fn cq_rationale_i18n_test_dsl_owner_reaches_all_shared_catalog_consumers() {
+    let root = authored_root();
+    std::fs::create_dir_all(root.path().join("dsl/tests/i18n")).unwrap();
+    std::fs::write(root.path().join(TEST_DSL_SOURCES[0]), r#"
+<https://blackcatinformatics.ca/gmeow/test-dsl> a <https://blackcatinformatics.ca/logic/Ontology> .
+<urn:authored:rationale> <http://www.w3.org/2000/01/rdf-schema#label> "authored rationale"@x-gmeow-english .
+"#).unwrap();
+    let po = "msgid \"\"\nmsgstr \"\"\n\"Language: fr\\n\"\n\nmsgctxt \"urn:authored:rationale|http://www.w3.org/2000/01/rdf-schema#label\"\nmsgid \"authored rationale\"\nmsgstr \"justification rédigée\"\n";
+    std::fs::write(root.path().join("dsl/tests/i18n/fr.po"), po).unwrap();
+    let catalog =
+        SliceCatalog::discover(&root.path().join("slices"), gmeow_ns::gmeow_slice_vocab()).unwrap();
+    let sources = for_repository(root.path(), &catalog).unwrap();
+    assert_eq!(sources.len(), 2);
+    let selected = sources
+        .iter()
+        .find(|source| source.owner_iri == TEST_DSL_OWNER)
+        .unwrap();
+    assert_eq!(selected.owner_path, root.path().join("dsl/tests"));
+    assert_eq!(selected.content, po.as_bytes());
+    assert_eq!(discover(root.path()).unwrap().len(), 2);
+    let translations = crate::i18n::Translations::from_ontology_catalogs(&catalog, &sources);
+    assert_eq!(
+        translations.lookup(
+            "urn:authored:rationale",
+            "http://www.w3.org/2000/01/rdf-schema#label",
+            "fr"
+        ),
+        Some("justification rédigée")
+    );
+    let exported = crate::i18n_compile::iter_po_catalogs(root.path()).unwrap();
+    assert!(
+        exported
+            .iter()
+            .any(|record| record.slice == TEST_DSL_OWNER && record.slice_path == "dsl/tests")
+    );
+    let coverage = crate::reviewed_coverage::reviewed_coverage_map(root.path()).unwrap();
+    assert_eq!(
+        coverage["dsl/tests/i18n/fr.po"],
+        ["urn:authored:rationale|http://www.w3.org/2000/01/rdf-schema#label"]
+    );
+    let inputs = crate::reviewed_coverage::input_files(root.path()).unwrap();
+    assert!(inputs.contains(&root.path().join(TEST_DSL_SOURCES[0])));
+    assert!(inputs.contains(&root.path().join("dsl/tests/i18n/fr.po")));
+    assert!(!inputs.contains(&root.path().join("dsl/tests/manifest.ttl")));
+    assert!(
+        crate::i18n_compile::authored_turtle_files(root.path())
+            .unwrap()
+            .contains(&root.path().join(TEST_DSL_SOURCES[0]))
+    );
+    assert!(crate::i18n_compile::lint_po_files(root.path(), 100.0).ok());
+}
+
+#[test]
+fn cq_rationale_i18n_refuses_partial_wrong_or_ambiguous_test_dsl_owners() {
+    let root = authored_root();
+    std::fs::create_dir_all(root.path().join("dsl/tests/i18n")).unwrap();
+    assert!(dsl_sources(root.path()).is_err());
+    for source in [
+        "<urn:wrong> a <https://blackcatinformatics.ca/logic/Ontology> .",
+        "<https://blackcatinformatics.ca/gmeow/test-dsl> a <https://blackcatinformatics.ca/logic/Ontology> . [] a <https://blackcatinformatics.ca/logic/Ontology> .",
+        "# absent owner",
+    ] {
+        std::fs::write(root.path().join(TEST_DSL_SOURCES[0]), source).unwrap();
+        assert!(discover(root.path()).is_err());
+    }
+    std::fs::write(root.path().join(TEST_DSL_SOURCES[0]), "<https://blackcatinformatics.ca/gmeow/test-dsl> a <https://blackcatinformatics.ca/logic/Ontology> .").unwrap();
+    std::fs::remove_dir(root.path().join("dsl/tests/i18n")).unwrap();
     assert!(discover(root.path()).is_err());
 }

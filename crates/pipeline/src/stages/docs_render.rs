@@ -903,6 +903,9 @@ pub(crate) fn docs_source_files(
     // which shares this list, embeds the rendered site whose per-term provenance
     // rides in via the same `stage-term-manifest` fold, so it needs no disk read either.
     walk_files(&root.join("i18n"), &mut files)?;
+    // These ontology-owned catalogs are read directly by DocsModel and by the
+    // source-load self-description caller, independently of mappings products.
+    files.extend(gmeow_docs::ontology_catalogs::dsl_input_files(root)?);
     walk_files(&root.join("shapes"), &mut files)?;
     // The shared repo-root query tree (`queries/competency/*.rq`, `queries/qc/*.rq`,
     // …) — many `gmeow:cqQueryFile` values resolve here rather than into a slice's
@@ -1056,3 +1059,7 @@ pub(crate) mod reasoning_tests;
 #[path = "docs_render.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[path = "docs_render.cq_rationale.tests.rs"]
+#[cfg(test)]
+mod cq_rationale_tests;
