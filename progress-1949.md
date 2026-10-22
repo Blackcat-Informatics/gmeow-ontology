@@ -1,0 +1,5 @@
+The documentation-observation delivery is merged in [PR #1949](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1949). Reviewed coverage and dimension publishers and their authenticated readers now share native JSON. Strict catalog counts, exact success/error envelopes and recorded causes are preserved; the remaining golden reader is native, while the golden producer and frozen bytes remain unchanged.
+
+All eleven focused controls, strict producer-independent all-target compilation, helpers, source admission, lint, formatting/diff checks and normal commit/push hooks passed. Independent review covered actual callers and failure paths. The merge result and all signed evidence were verified, and its completed checkout was cleaned up.
+
+The next bounded delivery shares one native glyph-legend value builder between the existing String API and the actual MCP envelope, preserving pinned costs and dictionary authentication. Actual authenticated corpus/golden, excluded embedded/installed and full dependency-migration acceptance remain open. CI continues under the recorded campaign exception; no corpus or full-gate pass is claimed.
