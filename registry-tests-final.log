@@ -1,0 +1,62 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-errors) & (test(json_diag_) | test(json_recorded_diag_))) | (package(gmeow-pipeline) & (test(json_source_medium_) | test(json_medium_baseline_) | test(json_norm_claims_) | test(json_source_contracts_) | test(=medium::registry::tests::reads_dictionaries_corpora_schemas_media_and_the_assignment) | test(=medium::registry::tests::an_unknown_rep_and_an_unassigned_rep_raise_different_failures) | test(=medium::registry::tests::a_dictionary_missing_an_exactly_one_field_is_rejected) | test(=medium::registry::tests::an_unrecognized_strategy_individual_is_rejected)))' --no-tests=fail
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-core-wasm)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 16s
+────────────
+ Nextest run ID c6da8985-8b6b-4077-9529-7b2cad72574a with nextest profile: ci
+    Starting 43 tests across 26 binaries (1344 tests and 201 binaries skipped)
+        PASS [   0.004s] ( 1/43) gmeow-errors ledger::json::tests::json_diag_records_refuse_positional_struct_arrays_and_wrong_newtype_kinds
+        PASS [   0.004s] ( 2/43) gmeow-errors ledger::json::tests::json_diag_duplicate_known_fields_refuse_while_unknown_members_remain_ignored
+        PASS [   0.005s] ( 3/43) gmeow-errors ledger::json::tests::json_diag_fingerprint_requires_exactly_sixteen_strict_unsigned_bytes
+        PASS [   0.004s] ( 4/43) gmeow-errors ledger::json::tests::json_recorded_diag_native_roundtrip_preserves_causal_fingerprints_and_replay
+        PASS [   0.004s] ( 5/43) gmeow-errors ledger::json::tests::json_diag_minimal_literal_preserves_required_empty_and_explicit_null_fields
+        PASS [   0.005s] ( 6/43) gmeow-errors ledger::json::tests::json_diag_graph_identity_uses_native_absolute_iri_admission
+        PASS [   0.005s] ( 7/43) gmeow-errors ledger::json::tests::json_diag_defaults_distinguish_missing_vectors_from_explicit_null
+        PASS [   0.004s] ( 8/43) gmeow-errors ledger::json::tests::json_diag_unsigned_fields_refuse_negative_zero_fraction_exponent_and_overflow
+        PASS [   0.004s] ( 9/43) gmeow-errors ledger::json::tests::json_diag_native_replay_preserves_causal_closure_and_original_identity
+        PASS [   0.005s] (10/43) gmeow-errors ledger::json::tests::json_diag_enum_forms_preserve_typed_spellings_and_exact_unit_object_policy
+        PASS [   0.005s] (11/43) gmeow-errors ledger::json::tests::json_diag_supplied_fingerprint_tampering_is_not_recomputed_or_hidden
+        PASS [   0.005s] (12/43) gmeow-errors ledger::json::tests::json_diag_complete_literal_round_trips_every_payload_and_exact_bytes
+        PASS [   0.008s] (13/43) gmeow-errors ledger::json::tests::json_recorded_diag_literal_envelope_keeps_required_causes_and_original_node
+        PASS [   0.012s] (14/43) gmeow-pipeline stages::superset::source_contracts::json::tests::json_source_contracts_optional_suffix_distinguishes_empty_from_missing_and_null
+        PASS [   0.012s] (15/43) gmeow-pipeline stages::validate::norm_claims::json::tests::json_norm_claims_counts_require_unsigned_integer_tokens_with_host_bounds
+        PASS [   0.021s] (16/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_schema_first_and_malformed_refusals
+        PASS [   0.017s] (17/43) gmeow-pipeline stages::superset::source_contracts::json::tests::json_source_contracts_all_pascal_variants_retain_unit_null_objects_and_data_payloads
+        PASS [   0.016s] (18/43) gmeow-pipeline stages::superset::source_contracts::json::tests::json_source_contracts_typed_records_refuse_missing_null_duplicates_and_keep_unknowns
+        PASS [   0.022s] (19/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_unsigned_tokens_and_host_bounds_keep_nested_field_pointers
+        PASS [   0.016s] (20/43) gmeow-pipeline stages::validate::norm_claims::json::tests::json_norm_claims_literal_success_envelope_pins_bytes_and_set_order
+        PASS [   0.022s] (21/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_real_decoder_keeps_wrong_source_refusal_without_revalidating_rdf
+        PASS [   0.022s] (22/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_selection_and_corpus_variants_require_exact_single_string_payloads
+        PASS [   0.023s] (23/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_record_defaults_nulls_duplicates_unknowns_and_map_last_wins_are_preserved
+        PASS [   0.023s] (24/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_complete_literal_pins_all_record_fields_and_declaration_order
+        PASS [   0.023s] (25/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_signed_levels_preserve_i32_token_admission
+        PASS [   0.022s] (26/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_unit_enums_preserve_pascal_strings_and_single_null_objects
+        PASS [   0.022s] (27/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_signed_levels_keep_exact_i32_contract_without_grid_restrictions
+        PASS [   0.017s] (28/43) gmeow-pipeline stages::superset::source_contracts::json::tests::json_source_contracts_definition_failure_preserves_actual_causal_record
+        PASS [   0.014s] (29/43) gmeow-pipeline stages::validate::norm_claims::json::tests::json_norm_claims_records_and_result_refuse_missing_null_duplicate_and_mixed_variants
+        PASS [   0.016s] (30/43) gmeow-pipeline stages::validate::norm_claims::json::tests::json_norm_claims_recorded_failure_retains_causal_identity
+        PASS [   0.022s] (31/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_unsigned_fields_keep_exact_tokens_and_bounds
+        PASS [   0.022s] (32/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_literal_pretty_order_unicode_and_roundtrip
+        PASS [   0.018s] (33/43) gmeow-pipeline stages::superset::source_contracts::json::tests::json_source_contracts_literal_envelope_preserves_record_vector_and_sorted_collection_order
+        PASS [   0.017s] (34/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_winner_target_never_saturates_or_changes_strategy
+        PASS [   0.022s] (35/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_full_decoder_keeps_nested_error_paths_and_types
+        PASS [   0.022s] (36/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_empty_vectors_and_literal_fraction_string
+        PASS [   0.023s] (37/43) gmeow-pipeline medium::sweep::json_tests::json_medium_baseline_each_record_missing_null_duplicates_and_unknowns
+        PASS [   0.019s] (38/43) gmeow-pipeline stages::superset::source_contracts::json::tests::json_source_contracts_hydration_admits_only_the_supported_nquads_dispatch_graph
+        PASS [   0.030s] (39/43) gmeow-pipeline medium::registry::tests::reads_dictionaries_corpora_schemas_media_and_the_assignment
+        PASS [   0.030s] (40/43) gmeow-pipeline medium::registry::tests::an_unknown_rep_and_an_unassigned_rep_raise_different_failures
+        PASS [   0.030s] (41/43) gmeow-pipeline medium::registry::json::tests::json_source_medium_authored_fixture_registry_lookup_and_assignment_survive_transport
+        PASS [   0.030s] (42/43) gmeow-pipeline medium::registry::tests::an_unrecognized_strategy_individual_is_rejected
+        PASS [   0.030s] (43/43) gmeow-pipeline medium::registry::tests::a_dictionary_missing_an_exactly_one_field_is_rejected
+────────────
+     Summary [   0.045s] 43 tests run: 43 passed, 1344 skipped
