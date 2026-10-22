@@ -1,0 +1,36 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...............................................................Passed
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1807-term-literal-typing-language-on-words 15ca1f744] fix: preserve competency rationale language and direction
+ 47 files changed, 1837 insertions(+), 156 deletions(-)
+ create mode 100644 crates/docs-model/COMPETENCY-LITERALS.md
+ create mode 100644 crates/docs-model/src/fixture.cq_rationale.tests.rs
+ create mode 100644 crates/docs-model/src/model.cq_rationale.tests.rs
+ create mode 100644 crates/docs-model/src/model/literal_values.rs
+ create mode 100644 crates/docs-model/src/model/literal_values/tests.rs
+ create mode 100644 crates/docs/src/render.cq_rationale.tests.rs
+ create mode 100644 crates/mcp/src/competency.rs
+ create mode 100644 crates/mcp/src/competency/tests.rs
+ create mode 100644 crates/pipeline/src/projections.cq_rationale.tests.rs
+ create mode 100644 crates/pipeline/src/stages/docs_render.cq_rationale.tests.rs
+ create mode 100644 crates/slicetest/src/exec.cq_rationale.tests.rs
+ create mode 100644 crates/validate/src/dsl_coverage/rationale.rs
+ create mode 100644 crates/validate/src/dsl_coverage/rationale/tests.rs
+ create mode 100644 dsl/tests/i18n/fr.po
+ create mode 100644 dsl/tests/i18n/zh.po

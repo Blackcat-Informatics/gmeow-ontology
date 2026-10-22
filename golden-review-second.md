@@ -1,0 +1,7 @@
+# Current native golden acceptance
+
+Replacement hosted native run39696346422 succeeded at exact source7395104749b00a66778862399a51928437fd1a62. Artifact12390872977, reviewed-coverage-7395104749b00a66778862399a51928437fd1a62, has complete3013376byte reviewed_coverage_golden.json. Metadata and downloaded exact JSON retained under golden-second-artifact.json/native-golden-second.
+
+Root reviewed complete structural delta, not a sample: all146existing catalog context lists are exactly equal; no owner/context removals. Exactly two new catalogs, dsl/tests/i18n/fr.po and zh.po, each contain9unique sorted contexts. Each new list equals every authored msgctxt in its PO, including the full-IRI logic:message predicate and corrected skos:example. Compared with first output, each gains only its previously excluded example. Total146→148catalogs and28009→28027contexts,18additions/0retirements. No floor, ceiling, classifier or baseline weakening.
+
+Root copied the exact native artifact into the tracked golden and cmp verified complete bytes. Normal signed golden commit f41f63a9b20f873e8e5a2ea9e6d012e390865b06 and push hooks passed; exact cmp passed after both hooks. Current source admission also passed. Existing implementation control/strict/helper evidence stays valid because this commit changes only the native frozen expectation; no local regeneration or corpus/producer/fullgate was run. Actual full pipeline/installed and remaining parent contracts remain open.

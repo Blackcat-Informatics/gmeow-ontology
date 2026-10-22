@@ -1,0 +1,69 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(cq_rationale_) | test(projection_literal_i18n_) | test(demonstration_dims_are_existential_per_term_dims_universal) | test(fully_covered_terms_emit_no_coverage_warnings) | test(=gmeow_rdf_projection_golden) | test(=gmeow_rdf_projection_is_deterministic) | test(=gmeow_rdf_carries_the_documentation_vocabulary_in_the_named_graph) | test(=gmeow_rdf_types_the_definition_flag_as_xsd_boolean) | test(=gmeow_rdf_reparses_through_native_codec) | test(=render_typ_is_golden) | test(=every_doc_evidence_node_is_grounded) | test(competency_query_paths_are_confined_to_the_hashed_roots) | test(competency_query_outside_the_hashed_roots_hard_fails) | test(a_model_envelope_written_to_disk_verifies_when_read_back)' --no-tests=fail
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-print)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/pipeline)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 2m 10s
+────────────
+ Nextest run ID 635972e3-49f0-45d9-a6a7-1ea39c63e241 with nextest profile: ci
+    Starting 44 tests across 226 binaries (8035 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.009s] ( 1/44) gmeow-docs::rdf_golden gmeow_rdf_projection_is_deterministic
+        PASS [   0.010s] ( 2/44) gmeow-docs::rdf_golden gmeow_rdf_types_the_definition_flag_as_xsd_boolean
+        PASS [   0.012s] ( 3/44) gmeow-docs-model model::tests::competency_query_paths_are_confined_to_the_hashed_roots
+        PASS [   0.013s] ( 4/44) gmeow-docs::rdf_golden gmeow_rdf_carries_the_documentation_vocabulary_in_the_named_graph
+        PASS [   0.015s] ( 5/44) gmeow-docs::rdf_golden gmeow_rdf_reparses_through_native_codec
+        PASS [   0.021s] ( 6/44) gmeow-docs-model coverage::tests::demonstration_dims_are_existential_per_term_dims_universal
+        PASS [   0.021s] ( 7/44) gmeow-docs-model model::cq_rationale_tests::cq_rationale_coverage_reads_all_values_instead_of_a_single_lexical_winner
+        PASS [   0.022s] ( 8/44) gmeow-docs-model model::tests::competency_query_outside_the_hashed_roots_hard_fails
+        PASS [   0.023s] ( 9/44) gmeow-docs-model fixture::cq_rationale_tests::cq_rationale_fixture_key_ignores_foreign_catalog_and_allows_fully_absent_dsl
+        PASS [   0.023s] (10/44) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_family_only_partial_dsl_owner_but_allows_fully_absent_owner
+        PASS [   0.023s] (11/44) gmeow-docs-model model::literal_values::tests::cq_rationale_literal_transport_refuses_inconsistent_language_direction_and_datatype
+        PASS [   0.023s] (12/44) gmeow-docs-model model::literal_values::tests::cq_rationale_literal_transport_has_complete_typed_fields_and_exact_utf8
+        PASS [   0.027s] (13/44) gmeow-docs::doc_evidence every_doc_evidence_node_is_grounded
+        PASS [   0.116s] (14/44) gmeow-docs render::cq_rationale_tests::cq_rationale_actual_index_and_term_display_every_lexical_value_without_preference
+        PASS [   0.116s] (15/44) gmeow-docs lint::tests::fully_covered_terms_emit_no_coverage_warnings
+        PASS [   0.181s] (16/44) gmeow-docs-model model::cq_rationale_tests::cq_rationale_model_retains_coexisting_term_identities_and_query_result_metadata
+        PASS [   0.181s] (17/44) gmeow-docs-model model::cq_rationale_tests::cq_rationale_model_distinguishes_absence_from_empty_prose_and_refuses_nonliteral_loss
+        PASS [   0.181s] (18/44) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_refuses_missing_or_ambiguous_selected_owner_and_required_dsl_sources
+        PASS [   0.181s] (19/44) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_discovery_does_not_load_unrelated_slice_artifacts_or_foreign_catalogs
+        PASS [   0.181s] (20/44) gmeow-docs-model model::cq_rationale_tests::cq_rationale_model_cache_record_round_trip_retains_language_datatype_and_direction
+        PASS [   0.181s] (21/44) gmeow-docs-model model::cq_rationale_tests::cq_rationale_model_rdf_uses_complete_native_literal_syntax_without_retagging
+        PASS [   0.181s] (22/44) gmeow-docs-model fixture::cq_rationale_tests::cq_rationale_fixture_key_binds_test_vocabulary_and_both_catalogs
+        PASS [   0.181s] (23/44) gmeow-docs-model fixture::cq_rationale_tests::cq_rationale_fixture_key_refuses_partial_or_wrong_selected_dsl_owner
+        PASS [   0.182s] (24/44) gmeow-docs-model ontology_catalogs::tests::cq_rationale_i18n_refuses_partial_wrong_or_ambiguous_test_dsl_owners
+        PASS [   0.185s] (25/44) gmeow-docs-model ontology_catalogs::tests::projection_literal_i18n_uses_actual_dsl_owner_across_native_index_export_and_reviewed_inputs
+        PASS [   0.185s] (26/44) gmeow-docs-model ontology_catalogs::tests::cq_rationale_i18n_test_dsl_owner_reaches_all_shared_catalog_consumers
+        PASS [   0.189s] (27/44) gmeow-docs-model fixture::tests::a_model_envelope_written_to_disk_verifies_when_read_back
+        PASS [   0.209s] (28/44) gmeow-docs::rdf_golden gmeow_rdf_projection_golden
+        PASS [   0.237s] (29/44) docs-print::render render_typ_is_golden
+        PASS [   0.197s] (30/44) gmeow-pipeline stages::docs_render::cq_rationale_tests::cq_rationale_pipeline_source_controllers_refuse_partial_registered_dsl_owner
+        PASS [   0.271s] (31/44) gmeow-validate dsl_coverage::rationale::tests::cq_rationale_selected_canonical_inputs_are_required_and_fail_closed
+        PASS [   0.293s] (32/44) gmeow-slicetest exec::cq_rationale_tests::cq_rationale_slicetest_nonliteral_values_refuse_and_query_conflicts_remain_errors
+        PASS [   0.294s] (33/44) gmeow-slicetest exec::cq_rationale_tests::cq_rationale_slicetest_actual_ask_and_select_results_are_unchanged_by_rationale_multiplicity
+        PASS [   0.294s] (34/44) gmeow-slicetest exec::cq_rationale_tests::cq_rationale_slicetest_preserves_all_terms_without_conflicting_scalar_definitions
+        PASS [   0.348s] (35/44) gmeow-pipeline projections::cq_rationale_tests::cq_rationale_public_exit_uses_only_supplied_tag_map_and_preserves_direction
+        PASS [   0.465s] (36/44) gmeow-mcp competency::tests::cq_rationale_mcp_actual_caller_retains_all_native_literal_terms_and_expectations
+        PASS [   0.465s] (37/44) gmeow-mcp competency::tests::cq_rationale_mcp_absence_and_reordered_duplicate_terms_are_deterministic
+        PASS [   0.467s] (38/44) gmeow-mcp competency::tests::cq_rationale_mcp_actual_caller_refuses_malformed_and_conflicting_fields
+        PASS [   0.523s] (39/44) gmeow-pipeline stages::lang_docs_rendering::selected_tests::projection_literal_i18n_rendering_selects_actual_pages_without_discarding_catalog_translations
+        PASS [   0.685s] (40/44) gmeow-pipeline stages::docs_render::cq_rationale_tests::cq_rationale_pipeline_source_controllers_bind_registered_dsl_sources_and_catalogs
+        PASS [   0.745s] (41/44) gmeow-validate dsl_coverage::rationale::tests::cq_rationale_canonical_projection_refuses_numeric_iri_absence_and_mixed_bad_values
+        PASS [   0.745s] (42/44) gmeow-validate dsl_coverage::rationale::tests::cq_rationale_composition_preserves_untouched_legacy_failure_counts_without_duplicates
+        PASS [   0.746s] (43/44) gmeow-validate dsl_coverage::rationale::tests::cq_rationale_live_dsl_resolver_and_validator_use_the_required_canonical_projection
+        PASS [   0.747s] (44/44) gmeow-validate dsl_coverage::rationale::tests::cq_rationale_canonical_projection_admits_all_prose_kinds_and_coexisting_values
+────────────
+     Summary [   0.925s] 44 tests run: 44 passed, 8035 skipped

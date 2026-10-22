@@ -1,0 +1,5 @@
+The source-span transport delivery is merged in [PR #1938](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1938). Both actual production ends now use native JSON records while retaining source coordinates, path-table ordering and sharing, strict integer widths and selected-product commitments. An overflow diagnostic found during qualification now includes the index in its primary message and retains its original conversion cause.
+
+All14focused authored controls, strict producer-independent prebuild, helpers, source admission, lint and normal signing/commit/push hooks passed. The landed tree and signed evidence archive were verified, and the completed worktree was cleaned up. The recorded exception excludes local optimized producer/corpus/fixture/sync/fullgate; hosted checks do not block sequential delivery. Full Report metadata/digests, arbitrary profiles, foundational IRI writers, other Serde owners and complete corpus/embedded/installed acceptance remain open.
+
+The next bounded unit is the catalog-family observation transport through its actual mappings writer and authenticated selected reader.

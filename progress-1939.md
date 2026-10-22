@@ -1,0 +1,5 @@
+The catalog-family observation transport is merged in [PR #1939](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1939). All four records, the actual mappings publisher and authenticated selected reader now use native JSON, preserving compact bytes, vector/set semantics and strict counts. Authentication still precedes decoding; refusals retain native pointers and typed causes. Existing registry admission and floor/exemption rules remain intact.
+
+All9focused authored controls, strict producer-independent prebuild, helpers, source admission, lint, format and normal signing/commit/push hooks passed. The landed tree and signed evidence archive were verified, main advanced and the completed worktree was cleaned. Current hosted checks remain separate under the recorded CI exception; no local optimized producer/corpus/fixture/sync/fullgate was run.
+
+The next bounded unit is projection-profile inventory transport through its actual writer and authenticated consumer. Full remaining dependency removal and authenticated shipped/corpus/embedded/installed acceptance stay open.

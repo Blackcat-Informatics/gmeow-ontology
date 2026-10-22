@@ -1,0 +1,32 @@
+./scripts/test-check-sync-prerequisites.sh
+check-sync prerequisites fail closed OK
+pre-commit run --all-files --show-diff-on-failure
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check json...............................................................Passed
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Failed
+- hook id: codespell
+- exit code: 65
+
+crates/docs/src/render.cq_rationale.tests.rs:21: raison ==> reason, raisin
+crates/docs/src/render.cq_rationale.tests.rs:43: raison ==> reason, raisin
+crates/pipeline/src/projections.cq_rationale.tests.rs:27: raison ==> reason, raisin
+crates/pipeline/src/projections.cq_rationale.tests.rs:63: raison ==> reason, raisin
+crates/validate/src/dsl_coverage/rationale/tests.rs:151: raison ==> reason, raisin
+
+yamllint.................................................................Passed
+Lint GitHub Actions workflow files.......................................Passed
+markdownlint-cli2........................................................Passed
+shellcheck...............................................................Passed
+zizmor...................................................................Passed
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+make: *** [Makefile:260: lint] Error 1

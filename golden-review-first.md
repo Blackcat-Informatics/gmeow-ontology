@@ -1,0 +1,7 @@
+# First native golden review: source repair required
+
+Native workflow39694498391 succeeded at exact source15ca1f7445d515e362f4e35f7245c6cd026decdb. Artifact12390701096, reviewed-coverage-15ca1f7445d515e362f4e35f7245c6cd026decdb, downloaded complete3013186bytes. The artifact metadata and native JSON are retained here.
+
+Root compared every existing catalog and context: all146existing catalog lists are exactly equal; no removals. New test-DSL French and Chinese catalogs each contain8contexts; total28009→28025. The missing context in both is cqRationale skos:example. Each source PO had9authored entries, but that example copied msgid into msgstr unchanged. Current counts_as_reviewed_coverage delegates to translation_integrity_issue, which rejects copied multiword English unless a technical invariant; these entries are not counted. The native artifact was not copied into the tracked golden and no classifier/floor/ceiling was weakened.
+
+Source author localized only those two example msgstr values. Root independently reviewed the delta: French and Chinese prose now match the authored language tags, preserve two coexisting rationale literals and demonstrate an explicit ltr value. Source msgids and all other source remain unchanged. Normal source commit/push hooks are required, then a fresh exact-head hosted native golden. Existing44controls/strict/helper evidence remains applicable to unchanged implementation and authored synthetic inputs; actual new catalog eligibility is qualified by the fresh native artifact.
