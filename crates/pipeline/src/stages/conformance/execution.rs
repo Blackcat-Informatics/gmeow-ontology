@@ -357,22 +357,39 @@ pub(super) fn cached_observation<T: serde::Serialize + serde::de::DeserializeOwn
     operation: &str,
     observe: impl Fn(&[u8]) -> Result<T, gmeow_errors::Diag>,
 ) -> gmeow_errors::Result<T> {
+    let (bytes, input) = observation_input(root, path)?;
+    cached_inputs(store, operation, vec![input], || observe(&bytes))
+}
+
+/// Cache one native typed observation over the same exact selected file input.
+pub(super) fn cached_native_observation<
+    T: purrdf_lex::json::record::ToJson + purrdf_lex::json::record::FromJson,
+>(
+    root: &Path,
+    path: &Path,
+    store: &ActionStore,
+    operation: &str,
+    observe: impl Fn(&[u8]) -> Result<T, gmeow_errors::Diag>,
+) -> gmeow_errors::Result<T> {
+    let (bytes, input) = observation_input(root, path)?;
+    cached_native_inputs(store, operation, vec![input], || observe(&bytes))
+}
+
+/// Read the selected file once and retain the existing path/digest admission.
+/// Read errors still precede relative-path admission, as in the original adapter.
+fn observation_input(root: &Path, path: &Path) -> gmeow_errors::Result<(Vec<u8>, ActionInput)> {
     let bytes = std::fs::read(path).map_err(fail)?;
-    cached_inputs(
-        store,
-        operation,
-        vec![ActionInput::Raw {
-            logical_path: path
-                .strip_prefix(root)
-                .map_err(fail)?
-                .to_string_lossy()
-                .into_owned(),
-            file_kind: FileKind::File,
-            executable: false,
-            digest: bytes_digest(&bytes),
-        }],
-        || observe(&bytes),
-    )
+    let input = ActionInput::Raw {
+        logical_path: path
+            .strip_prefix(root)
+            .map_err(fail)?
+            .to_string_lossy()
+            .into_owned(),
+        file_kind: FileKind::File,
+        executable: false,
+        digest: bytes_digest(&bytes),
+    };
+    Ok((bytes, input))
 }
 
 /// Reuse an observation whose operation reads several independently authenticated inputs.

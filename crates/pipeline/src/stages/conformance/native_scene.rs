@@ -6,6 +6,8 @@
 //! expression fixture has a separate exact-input action and never joins the
 //! source catalog, an example world, or the production ontology implicitly.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -52,12 +54,16 @@ pub(super) struct DimensionFindings {
     pub findings: Vec<Finding>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct AuxiliaryObservation {
     pub source_path: String,
     pub source_digest: String,
     pub findings: Vec<Finding>,
 }
+
+/// Standalone auxiliary operation outcome, outside the grounding composite.
+#[derive(Debug)]
+pub(super) struct AuxiliaryOutcome(pub Result<AuxiliaryObservation, gmeow_errors::RecordedDiag>);
 
 pub(super) fn input_files(root: &Path) -> Vec<PathBuf> {
     [MODAL, DIMENSION, MATH_MODULE, ALPHA_DRIFT]
@@ -165,7 +171,7 @@ pub(super) fn record(
         StoreLimits::default(),
     )
     .map_err(|error| super::stage_err(&error.to_string()))?;
-    let observed = super::execution::cached_observation(
+    let observed = super::execution::cached_native_observation(
         root,
         &root.join(ALPHA_DRIFT),
         &store,
@@ -187,7 +193,7 @@ pub(super) fn record(
     .map_err(super::record_failure);
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(|error| super::stage_err(&error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&AuxiliaryOutcome(observed)),
     );
     Ok(())
 }

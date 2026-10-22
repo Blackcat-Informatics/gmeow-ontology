@@ -13,7 +13,7 @@
 //! the English source skeleton with the declared-homograph escape (as the `.po` lint groups)
 //! — and asserts both agree with each fixture's declared conformance outcome.
 
-use super::super::glossary::Triple;
+use super::super::glossary::{Observations, Triple};
 use purrdf::TermValue;
 
 use gmeow_validate::distinctiveness::{distinctiveness_violations, skeleton};
@@ -23,12 +23,11 @@ const LANG: &str = "https://blackcatinformatics.ca/lang/";
 
 /// Read exact native source coordinates; the independent detectors below own their judgments.
 fn triples(fixture: &str) -> &'static [Triple] {
-    type Observations =
-        std::collections::BTreeMap<String, Result<Vec<Triple>, gmeow_errors::RecordedDiag>>;
     static OBSERVATIONS: std::sync::OnceLock<
         Result<super::source_artifact::Selected<Observations>, gmeow_errors::Diag>,
     > = std::sync::OnceLock::new();
-    super::source_artifact::get(&OBSERVATIONS, super::super::glossary::CHANNEL)
+    super::source_artifact::get_native(&OBSERVATIONS, super::super::glossary::CHANNEL)
+        .0
         .get(fixture)
         .expect("selected glossary fixture")
         .as_ref()
