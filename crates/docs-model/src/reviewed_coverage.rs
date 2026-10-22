@@ -3,6 +3,7 @@
 
 //! Producer-owned reviewed translation coverage and catalog parse observations.
 
+mod json;
 mod paths;
 pub use paths::{golden_path, repo_root};
 
@@ -38,13 +39,21 @@ pub fn docs_template_pos(root: &Path) -> std::io::Result<Vec<PathBuf>> {
 }
 
 /// Compact producer observations consumed by coverage and parser controls.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug)]
 pub struct ReviewedCoverageObservation {
     /// Every successfully parsed catalog and its entry count.
     pub parsed_catalogs: BTreeMap<String, usize>,
     /// Reviewed term/predicate identities for every slice catalog.
     pub reviewed_coverage: BTreeMap<String, Vec<String>>,
 }
+
+/// One producer observation or its original recorded rejection.
+/// The wrapper owns this channel's externally tagged success/error wire form;
+/// it does not turn a recorded rejection into a live diagnostic or a verdict.
+#[derive(Debug)]
+pub struct ReviewedCoverageOutcome(
+    pub Result<ReviewedCoverageObservation, gmeow_errors::RecordedDiag>,
+);
 
 /// Declare all selected catalog files before recording an observation.
 pub fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {

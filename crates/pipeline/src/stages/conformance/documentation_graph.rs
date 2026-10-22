@@ -29,9 +29,7 @@ pub(super) fn record(
         .collect();
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&declared).map_err(|error| {
-            super::stage_err(&format!("encode documentation dimensions: {error}"))
-        })?,
+        purrdf_lex::json::record::to_vec(&declared),
     );
     Ok(())
 }

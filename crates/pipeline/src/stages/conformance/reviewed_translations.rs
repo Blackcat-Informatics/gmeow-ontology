@@ -16,12 +16,12 @@ pub(super) fn record(
     root: &Path,
     artifacts: &mut BTreeMap<String, Vec<u8>>,
 ) -> gmeow_errors::Result<()> {
-    let observation = gmeow_docs::reviewed_coverage::observe(root).map_err(super::record_failure);
+    let observation = gmeow_docs::reviewed_coverage::ReviewedCoverageOutcome(
+        gmeow_docs::reviewed_coverage::observe(root).map_err(super::record_failure),
+    );
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observation).map_err(|error| {
-            super::stage_err(&format!("encode translation observation: {error}"))
-        })?,
+        purrdf_lex::json::record::to_vec(&observation),
     );
     Ok(())
 }

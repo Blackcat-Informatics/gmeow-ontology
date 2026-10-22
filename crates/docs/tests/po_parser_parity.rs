@@ -24,9 +24,11 @@ fn observation() -> gmeow_docs_model::reviewed_coverage::ReviewedCoverageObserva
         "pipeline/reviewed-translation-observation.json",
     )
     .expect("authenticated translation observation");
-    let observation: Result<_, gmeow_errors::RecordedDiag> =
-        serde_json::from_slice(&bytes).expect("typed translation observation");
-    observation.expect("producer parsed every declared translation catalog")
+    let observation: gmeow_docs_model::reviewed_coverage::ReviewedCoverageOutcome =
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed translation observation");
+    observation
+        .0
+        .expect("producer parsed every declared translation catalog")
 }
 
 /// ENH-A: every live slice PO, every `ontology-docs-templates.*.po`, and the two
@@ -57,7 +59,7 @@ fn corpus_reviewed_coverage_matches_frozen_golden() {
         )
     });
     let golden: std::collections::BTreeMap<String, Vec<String>> =
-        serde_json::from_str(&text).expect("parse golden JSON");
+        purrdf_lex::json::record::from_slice(text.as_bytes()).expect("parse golden JSON");
     assert_eq!(
         golden, computed,
         "survivor reviewed-coverage drifted from the frozen golden"
