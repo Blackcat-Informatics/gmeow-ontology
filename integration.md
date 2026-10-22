@@ -1,0 +1,7 @@
+# Current receipt/verdict integration
+
+PR1946 sourceff2a25764fbcf24a73a9c15b31d9ff9a35e12f0c is based on actual remote main89f06fa0aac10e0a73701b4d2e2c0259caa0218a. No intervening delta. Merge-tree exits0, candidate2e08055e22d6f053f50e2bb8eef35a259a549065 equals qualified source tree. No synchronization/conflict resolution needed. All77controls/strict/helpers/source admission/lint/fmt/diff/normal signed commit/push hooks passed on settled source.
+
+Current paginated formal reviews/inline comments/GraphQL threads0/0/0; all outer/nested pagination complete. Full bot body read and captured, processing only/no substantive finding. It excludes Cargo.lock from its path selection; root independently reviewed that file and both manifest substitutions, and source/dependency qualification passes. Prior1944/1945 postmerge complete formal/inline/thread inventories also0/0/0, full processing comments retained. Only decorative origin markers omitted consistently from JSON/rendered captures; no checkbox/autofix action activated.
+
+CI39715088782 exact source head has producer/prebuild/helpers/lint running and bot pending at capture. User explicitly directs sequential merging ignoring CI and excludes local optimized producer/corpus/fixture/sync/fullgate. Pending is not passed. Actual authenticated import/selector/corpus, repository workers/sweep, two old synthetic-GTS controls, excluded embedded consumers, installed acceptance and full1776 remain unrun/open. No parent closure. Any substantive late feedback remains owned.

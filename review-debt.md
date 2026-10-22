@@ -1,0 +1,7 @@
+# Receipt/verdict review disposition
+
+Root independent review covers all17settled paths and every actual product caller, including compact digest material, pretty envelope, authenticated loader, GC, both standalone publications/replay validators and their declared enclosing owners. All77authored controls, helper structural/dependency/hash checks, strict producer-independent all-target Clippy, source admission/lint/fmt/diff/normal signed commit/push hooks PASS. No source/assertion repair needed. Shared unsigned admission moves unchanged; both replay-census overflow additions now refuse actionably. See independent-review.md and validation.md.
+
+Current complete paginated formal/inline/thread feedback is empty, full bot processing body has no substantive finding. Root reviews Cargo.lock even though bot path selection excludes it. Prior1944/1945 complete postmerge feedback has no substantive finding; full bodies/metadata retained, decorative origin marker alone omitted consistently from JSON/rendered copies. No autopilot/checkbox command activated. Later substantive feedback remains owned.
+
+User's explicit sequential CI exception applies to current pending hosted checks, not source/hook correctness. Actual authenticated corpus/import/selector, repository workers/sweep, two old synthetic-GTS tests, excluded embedded consumers, installed acceptance and full1776 remain open. No claim of global Serde removal or full gate. No compatibility engine, copied parser/hash, helper exemption/config weakening, altered native expectation or test-triggered producer.

@@ -1,0 +1,5 @@
+The [complete terminal observation family](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1945) is merged. Contextual, flagship and claim-audit publishers/readers now use native JSON, including the public claim view and exact query diagnostic identity. Authentication, schema checks, observation computation and causal replay are preserved.
+
+All twenty-two focused authored controls passed, along with helper checks, strict producer-independent compilation, source admission, lint and normal hooks. The landed tree and complete signed evidence archive were verified; the completed checkout was cleaned up. Actual worked/contextual/flagship corpus, excluded embedded consumers, installed acceptance and full dependency removal remain open.
+
+The next grouped operation covers bundle-import receipt digest/publication/replay/GC and slice-spec verdict products. It also repairs an unchecked census sum in the actual replay validator, with explicit overflow refusal. Tests will use inert authored receipts and entries; no local corpus producer or worker will run under the campaign exception.
