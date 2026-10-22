@@ -64,7 +64,8 @@ fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(&root, ARTIFACT)
         .expect("explicit producer supplies exact advice observations");
-    let observed: Observation = serde_json::from_slice(&bytes).expect("typed advice observations");
+    let observed: Observation =
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed advice observations");
     assert_eq!(observed.profile, super::super::production_shapes::PROFILE);
     assert_shape_source(
         &observed,

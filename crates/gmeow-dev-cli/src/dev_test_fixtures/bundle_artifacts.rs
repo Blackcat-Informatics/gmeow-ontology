@@ -213,9 +213,9 @@ impl<'a> Sources<'a> {
                 gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH,
                 gmeow_lang_bridge::gmn1_codec::native::MAX_NATIVE_CODEBOOK_BYTES,
             ),
-            "mcp-action-policy-statements.json" => {
-                serde_json::to_vec(&action_policy::policy_statements(self.dataset()?)).map_err(fail)
-            }
+            "mcp-action-policy-statements.json" => Ok(purrdf_lex::json::record::to_vec(
+                &action_policy::policy_statements(self.dataset()?),
+            )),
             action_policy::CORPUS_ARTIFACT => self.member(
                 archive::REASONING_REP,
                 action_policy::BUNDLE_MEMBER,
@@ -230,7 +230,7 @@ impl<'a> Sources<'a> {
             }
             advice_wing::ARTIFACT => {
                 let observation = advice_wing::observe(self.prepared_shapes()?, self.dataset()?)?;
-                serde_json::to_vec(&observation).map_err(fail)
+                observation.to_json_bytes()
             }
             norm_claims::ARTIFACT => {
                 let observation = norm_claims::observe_shipped(self.dataset()?)?;

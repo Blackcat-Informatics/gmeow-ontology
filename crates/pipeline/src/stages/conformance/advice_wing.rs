@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_validate::advisory::{project_compliance_assessment, split_advisory_results};
 use purrdf::{RdfDataset, TermRef};
-use serde::{Deserialize, Serialize};
+mod json;
 
 use super::production_shapes::PreparedProductionShapes;
 
@@ -28,7 +28,7 @@ const INPUT: &str = concat!(
 
 /// Exact source attribution and both advisory projection wings; retained hard
 /// findings stay visible independently from the advisory count.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Observation {
     pub profile: String,
     pub shapes_digest: String,
@@ -41,7 +41,7 @@ pub struct Observation {
 }
 
 /// Preserve hard-finding severity and its exact shape-to-failure-class binding.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct RetainedFinding {
     pub focus: String,
     pub component: String,
@@ -51,7 +51,7 @@ pub struct RetainedFinding {
 }
 
 /// The actual graded advisory and its claim, paired by one projection call.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Advisory {
     pub code: String,
     pub message: String,
