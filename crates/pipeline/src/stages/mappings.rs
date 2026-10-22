@@ -323,12 +323,7 @@ fn compile_mappings_with_sources(
         };
         artifacts.insert(
             crate::catalog_families::REGISTRY_CHANNEL.to_owned(),
-            serde_json::to_vec(&observations).map_err(|error| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_owned(),
-                    message: format!("encode catalog-family observations: {error}"),
-                })
-            })?,
+            purrdf_lex::json::record::to_vec(&observations),
         );
     }
 
