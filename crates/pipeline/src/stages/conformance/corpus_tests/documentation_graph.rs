@@ -15,7 +15,7 @@ fn every_coverage_key_maps_to_a_declared_doc_coverage_dimension_individual() {
         super::super::documentation_graph::CHANNEL,
     )
     .expect("authenticated original documentation declarations");
-    let declared: BTreeSet<String> = serde_json::from_slice(&bytes)
+    let declared: BTreeSet<String> = purrdf_lex::json::record::from_slice(&bytes)
         .expect("typed documentation coverage dimension declarations");
     // Non-vacuity: the eighteen dimensions must genuinely be declared.
     assert_eq!(
