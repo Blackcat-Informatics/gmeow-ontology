@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Shared inference-validation transport, independent of data construction and authentication.
+// Native observation transport uses the native-only JSON dependency.
+#[cfg(not(target_arch = "wasm32"))]
 mod json;
 use std::collections::BTreeMap;
 
