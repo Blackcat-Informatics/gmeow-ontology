@@ -1,0 +1,80 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'test(json_retained_term_) | test(json_glossary_) | test(json_auxiliary_scene_) | test(json_native_file_cache_) | test(json_recorded_result_writer_) | test(json_reviewed_coverage_) | test(retained_native_rule_keeps_polarity_builtin_tags_and_complete_value_identity) | test(native_observation_reuse_binds_operation_and_input_without_rerunning_hits)' --no-tests=fail
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/errors)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/lang-form)
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/build-inputs)
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/license)
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/cost-measure)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/ns)
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/test-batch-macros)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/foundation-corpus)
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/perf-evidence)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/query-wasm)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slicetest)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gts-profile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/math-lift)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/cli-core)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/xtask)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/helper-census)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/logic-compile)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/music)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/affect-ingest)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-print)
+   Compiling gmeow-mcp-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-wasm)
+   Compiling gmeow-mcp-core-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-core-wasm)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 6m 38s
+────────────
+ Nextest run ID 0303f827-83c3-4eac-9174-c76ee4a595b2 with nextest profile: ci
+    Starting 23 tests across 226 binaries (8220 tests and 1 binary skipped, including 1 binary via profile.default.default-filter)
+        PASS [   0.009s] ( 1/23) gmeow-errors json::tests::json_recorded_result_writer_success_literal_and_reader_preserve_exact_text
+        PASS [   0.010s] ( 2/23) gmeow-docs-model reviewed_coverage::json::tests::json_reviewed_coverage_typed_map_duplicates_admit_every_value_before_last_wins
+        PASS [   0.011s] ( 3/23) gmeow-docs-model reviewed_coverage::json::tests::json_reviewed_coverage_counts_require_unsigned_tokens_and_host_width_inside_native_maps
+        PASS [   0.012s] ( 4/23) gmeow-pipeline stages::conformance::glossary::json::tests::json_glossary_and_auxiliary_refusals_preserve_causal_identity_and_replay
+        PASS [   0.011s] ( 5/23) gmeow-docs-model reviewed_coverage::json::tests::json_reviewed_coverage_records_keep_required_fields_duplicate_refusal_and_unknown_policy
+        PASS [   0.012s] ( 6/23) gmeow-docs-model reviewed_coverage::json::tests::json_reviewed_coverage_literal_observation_and_success_outcome_preserve_order_and_multiplicity
+        PASS [   0.011s] ( 7/23) gmeow-errors json::tests::json_recorded_result_writer_complete_refusal_literal_roundtrips_unchanged
+        PASS [   0.013s] ( 8/23) gmeow-pipeline stages::conformance::native_scene::json::tests::json_auxiliary_scene_complete_literal_keeps_finding_order_and_duplicate_rows
+        PASS [   0.013s] ( 9/23) gmeow-pipeline stages::conformance::execution::tests::json_native_file_cache_preserves_source_identity_and_never_executes_a_hit
+        PASS [   0.014s] (10/23) gmeow-docs-model reviewed_coverage::json::tests::json_reviewed_coverage_literal_error_outcome_retains_original_diagnostic_payload
+        PASS [   0.014s] (11/23) gmeow-docs-model reviewed_coverage::json::tests::json_reviewed_coverage_outcomes_refuse_mixed_unknown_wrong_payload_and_trailing_inputs
+        PASS [   0.014s] (12/23) gmeow-pipeline stages::conformance::native_scene::json::tests::json_auxiliary_scene_required_fields_and_outcomes_refuse_malformed_records
+        PASS [   0.015s] (13/23) gmeow-pipeline stages::conformance::glossary::json::tests::json_glossary_exact_tuple_results_and_typed_map_values_refuse_malformed_input
+        PASS [   0.014s] (14/23) gmeow-docs-model reviewed_coverage::json::tests::json_reviewed_coverage_recorded_causal_identity_survives_outcome_roundtrip_and_replay
+        PASS [   0.015s] (15/23) gmeow-pipeline stages::conformance::execution::tests::json_native_file_cache_malformed_hit_is_terminal_without_producer_retry
+        PASS [   0.014s] (16/23) gmeow-logic-compile term_serde::json::tests::json_retained_term_blank_scope_uses_strict_u32_tokens_and_nested_pointers
+        PASS [   0.016s] (17/23) gmeow-logic-compile term_serde::json::tests::json_retained_term_refuses_bad_variants_missing_fields_and_known_duplicates
+        PASS [   0.015s] (18/23) gmeow-pipeline stages::conformance::glossary::json::tests::json_glossary_literal_triples_and_sorted_outcomes_preserve_duplicate_rows
+        PASS [   0.017s] (19/23) gmeow-pipeline stages::conformance::execution::tests::native_observation_reuse_binds_operation_and_input_without_rerunning_hits
+        PASS [   0.019s] (20/23) gmeow-logic-compile term_serde::json::tests::json_retained_term_complete_nested_literal_preserves_identity_and_order
+        PASS [   0.019s] (21/23) gmeow-logic-compile term_serde::json::tests::json_retained_term_options_direction_forms_and_verbatim_strings
+        PASS [   0.028s] (22/23) gmeow-logic term_serde::tests::json_retained_term_facade_reexports_native_owner_without_altering_scope
+        PASS [   0.032s] (23/23) gmeow-logic term_serde::tests::retained_native_rule_keeps_polarity_builtin_tags_and_complete_value_identity
+────────────
+     Summary [   0.117s] 23 tests run: 23 passed, 8220 skipped
