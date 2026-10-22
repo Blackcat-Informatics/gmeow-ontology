@@ -1,0 +1,7 @@
+# Native projection inventory acceptance
+
+Base9bd3458ee3cc5422c88a7bc608b9a8f0056c974b after1939. Five source files frozen/independently reviewed,331insertions4deletions explicitly staged. Formatting/cached diff check passed. Complete native record family and actual producer/authenticated selected reader wired, source/check/auth/channel unchanged. Seven new authored controls individually reviewed corpus-independent; broad existing three corpus consumers deliberately unselected.
+
+make nextest-synthetic with test(json_projection_inventory_) passed all7authored controls, compile3m24/runtime.111s,226binaries/8086tests outside selection (inventory-tests.log retains exact command). Strict producer-independent all-target prebuild is running; helpers/source/lint and normal signed commit/push hooks remain pending. No local optimized producer/corpus/fixture/sync/fullgate per scoped campaign exception; CI does not block sequential merges. Normal hooks mandatory, host configuration untouched, all local jobs serial. Full1776 remaining owners, selected shipped/corpus/excludedembedded/installed acceptance remain open.
+
+Final local qualification: strict producer-independent prebuild35.37s, helpers68jobs/45enforced/0variants/881unenforced/0distinct/1989files with dependency/hash selfchecks, source admission, all-file lint and normal signed commit/push hooks passed. Source468da816fac5ccf2b12a72a8cc66f77c53e0c69a/tree5a2b0f0201fd00ba5ebc65787612a9c630b3c2a0, PR1941 published. Complete feedback/integration disposition in review-debt.md.
