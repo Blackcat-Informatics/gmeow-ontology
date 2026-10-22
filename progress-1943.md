@@ -1,0 +1,3 @@
+The [reviewed ONNX parity witness](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1943) is merged. The fixture now matches the complete actual hosted producer graph after reconciling every prior triple, the intentional framed tensor identities, and the added value-space/domain facts. The query expectation and production lifter were preserved.
+
+Lint, source admission, normal hooks and independent review passed. The new automatic hosted run has passed prebuild, helpers and lint; production is still running. Actual ONNX parity, downstream corpus, numerical/model-serving behavior and installed acceptance remain open. No local corpus or duplicate workflow dispatch was run.

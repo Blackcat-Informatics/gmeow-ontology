@@ -1,0 +1,5 @@
+Delivered the complete native projection-profile inventory transport in [PR #1941](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1941), including its actual mappings publisher and authenticated selected reader. Seven authored controls, strict producer-independent compilation, hygiene and normal hooks passed. Inventory checks and artifact authentication remain intact.
+
+The next grouped unit moves norm-claim and source-contract observations, sharing the recorded-diagnostic codec and covering both norm publishers. Its source is independently reviewed and focused qualification is running. Generic execution-cache leaves require their own complete transport migration; this update does not close them or the remaining dependency-removal contract.
+
+The recorded campaign exception still excludes local optimized producer/corpus/fixture/sync/fullgate and allows sequential merges ignoring CI. Produced/authenticated corpus, excluded embedded consumers and installed acceptance remain unverified.

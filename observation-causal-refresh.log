@@ -1,0 +1,20 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E '(package(gmeow-errors) & test(json_recorded_diag_native_roundtrip_preserves_causal_fingerprints_and_replay)) | (package(gmeow-pipeline) & (test(json_norm_claims_recorded_failure_retains_causal_identity) | test(json_source_contracts_definition_failure_preserves_actual_causal_record)))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/errors)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+    Finished `test` profile [optimized] target(s) in 2m 26s
+────────────
+ Nextest run ID ac9ba6b1-829d-4be1-a32e-d2ab7a38989e with nextest profile: ci
+    Starting 3 tests across 26 binaries (1354 tests and 201 binaries skipped)
+        PASS [   0.005s] (1/3) gmeow-errors ledger::json::tests::json_recorded_diag_native_roundtrip_preserves_causal_fingerprints_and_replay
+        PASS [   0.009s] (2/3) gmeow-pipeline stages::validate::norm_claims::json::tests::json_norm_claims_recorded_failure_retains_causal_identity
+        PASS [   0.011s] (3/3) gmeow-pipeline stages::superset::source_contracts::json::tests::json_source_contracts_definition_failure_preserves_actual_causal_record
+────────────
+     Summary [   0.028s] 3 tests run: 3 passed, 1354 skipped
