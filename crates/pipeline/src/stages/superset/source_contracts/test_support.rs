@@ -51,7 +51,8 @@ fn selected() -> &'static Observation {
                 CHANNEL,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let observation = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let observation =
+                purrdf_lex::json::record::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
             Ok(Selected {
                 selector: selector.clone(),
                 observation,

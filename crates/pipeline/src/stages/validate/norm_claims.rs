@@ -12,7 +12,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::{Diag, DiagLedger, RecordedDiag, StageId};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfTerm};
-use serde::{Deserialize, Serialize};
+mod json;
 
 use crate::stages::parse_sources::SourceCatalog;
 
@@ -26,7 +26,7 @@ pub const NORMS_SOURCE: &str = "slices/core/norms/module.ttl";
 pub const GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 
 /// Native graph commitment and advisory census, without a serialized graph copy.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ShippedObservation {
     /// Exact named graph selected from the producer's dataset.
     pub graph: String,
@@ -39,7 +39,7 @@ pub struct ShippedObservation {
 }
 
 /// Successful closure evidence tied to the original standalone source identity.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct ClosureObservation {
     /// Original source path within the admitted parse catalog.
     pub source_path: String,
@@ -52,7 +52,7 @@ pub struct ClosureObservation {
 }
 
 /// The producer records failures as failures; the read-only consumer grades them.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Observation {
     /// Exact graph passed to the closure, compared with the terminal observation.
     pub claims: ShippedObservation,
@@ -109,7 +109,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(Diag::from)?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }

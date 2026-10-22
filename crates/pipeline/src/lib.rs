@@ -61,6 +61,7 @@ pub mod gmn_dialect;
 pub mod graph;
 mod handle_identity;
 pub mod ingest;
+mod json_counts;
 pub mod loader;
 pub mod mapping_purity;
 pub mod medium;
