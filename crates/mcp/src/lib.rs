@@ -1165,7 +1165,7 @@ fn search_documentation(
                 .to_string(),
         }));
     }
-    let value = sparql_result_to_json(gmeow_bundle_view::native_query::query(
+    let value = query_results::envelope(gmeow_bundle_view::native_query::query(
         docs,
         DOC_SEARCH_QUERY,
     )?)?;
@@ -1263,25 +1263,27 @@ fn search_documentation(
     Ok(hits)
 }
 
-/// Extract the `results.bindings` of a SPARQL-1.1 JSON envelope into flat
-/// `var → lexical-value` rows (each binding's `"value"`). Shared by
-/// [`McpView::docs_select_rows`] and [`search_documentation`].
+/// Extract the `results.bindings` of a native SPARQL JSON envelope into flat
+/// `var → lexical-value` rows for explicitly lexical display panels. This exit
+/// retains string-valued cells, not complete RDF terms; generic query tools use
+/// the complete native envelope. Shared by [`McpView::docs_select_rows`] and
+/// [`search_documentation`].
 #[cfg(feature = "core")]
-fn select_rows(value: &Value) -> Vec<BTreeMap<String, String>> {
+fn select_rows(value: &purrdf_lex::json::Value) -> Vec<BTreeMap<String, String>> {
     value
         .get("results")
         .and_then(|r| r.get("bindings"))
-        .and_then(Value::as_array)
+        .and_then(purrdf_lex::json::Value::as_array)
         .map(|bindings| {
             bindings
                 .iter()
-                .filter_map(Value::as_object)
+                .filter_map(purrdf_lex::json::Value::as_object)
                 .map(|binding| {
                     binding
                         .iter()
                         .filter_map(|(var, cell)| {
                             cell.get("value")
-                                .and_then(Value::as_str)
+                                .and_then(purrdf_lex::json::Value::as_str)
                                 .map(|v| (var.clone(), v.to_owned()))
                         })
                         .collect::<BTreeMap<String, String>>()
@@ -1797,11 +1799,11 @@ impl McpView {
         self.with_terms(requested, export::okf_index_envelope)
     }
 
-    /// Run a SELECT / ASK SPARQL query over the `gmeow:graph/documentation` named
+    /// Run a SPARQL query over the `gmeow:graph/documentation` named
     /// graph (re-rooted to the default graph so a plain query with no `GRAPH`
-    /// clause reaches it), returning a standard SPARQL-1.1 JSON-results envelope
-    /// under `"ok"`. CONSTRUCT / DESCRIBE are rejected — the tool serves one result
-    /// shape (bindings or a boolean), never a graph.
+    /// clause reaches it), returning a native RDF 1.2 SPARQL JSON-results envelope
+    /// under `"ok"`. SELECT retains complete RDF terms; ASK returns a boolean;
+    /// CONSTRUCT / DESCRIBE return native N-Quads and a quad count.
     #[cfg(feature = "core")]
     fn query_docs_json(&self, sparql: &str) -> String {
         match self.run_docs_query(sparql) {
@@ -1811,14 +1813,14 @@ impl McpView {
     }
 
     #[cfg(feature = "core")]
-    fn run_docs_query(&self, sparql: &str) -> gmeow_errors::Result<Value> {
+    fn run_docs_query(&self, sparql: &str) -> gmeow_errors::Result<purrdf_lex::json::Value> {
         let docs = self.documentation()?;
         let result = gmeow_bundle_view::native_query::query(docs, sparql)?;
-        sparql_result_to_json(result)
+        query_results::envelope(result)
     }
 
     /// Run a SELECT over the documentation graph and return its rows as flat
-    /// `var → lexical-value` maps (the `results.bindings` of the SPARQL-1.1 JSON
+    /// `var → lexical-value` maps (the `results.bindings` of the native JSON
     /// envelope, with each binding's `"value"` extracted). A missing/optional
     /// variable is simply absent from a row's map.
     #[cfg(feature = "core")]
@@ -1986,9 +1988,9 @@ impl McpView {
         Ok(self.entailment_map.get_or_init(|| entailments_by_term))
     }
 
-    /// Run a SELECT / ASK SPARQL query over the bundle canon UNIONED with a
+    /// Run a SPARQL query over the bundle canon UNIONED with a
     /// READ-ONLY external overlay parsed from the caller's inline `data` in the
-    /// EXPLICITLY declared `format`, returning a standard SPARQL-1.1 JSON-results
+    /// EXPLICITLY declared `format`, returning a native RDF 1.2 SPARQL JSON-results
     /// envelope under `"ok"`. See [`Self::run_local_query`] for the read-only /
     /// external-provenance contract.
     #[cfg(feature = "core")]
@@ -2024,7 +2026,7 @@ impl McpView {
     ///   NEVER folded into `gmeow.gts`, and NEVER written back to the canon or the
     ///   overlay file (the memory-write triad only ever touches `memory.gts`);
     /// * SELECT, ASK, CONSTRUCT and DESCRIBE are all accepted — the result FORM is
-    ///   declared in the envelope (see [`sparql_result_to_json`]).
+    ///   declared in the envelope (see [`query_results::envelope`]).
     ///
     /// `scope` chooses WHAT the overlay is queried against, and it is an explicit
     /// first-class selection rather than a hidden default: see [`QueryScope`].
@@ -2035,7 +2037,7 @@ impl McpView {
         format: &str,
         sparql: &str,
         scope: QueryScope,
-    ) -> gmeow_errors::Result<Value> {
+    ) -> gmeow_errors::Result<purrdf_lex::json::Value> {
         // The media type comes from the DECLARED format, never from a filename: an
         // unrecognized token hard-fails here naming the accepted set.
         let media = rdf_media_type("query_local", format)?;
@@ -2054,7 +2056,7 @@ impl McpView {
         let canon = (scope == QueryScope::BundleUnion).then_some(self.dataset.as_ref());
         let dataset = overlay_routing::transient_union(canon, &overlay)?;
         let result = gmeow_bundle_view::native_query::query(&dataset, sparql)?;
-        sparql_result_to_json(result)
+        query_results::envelope(result)
     }
 
     /// Run the native reasoned-graph verify over the bundle canon UNIONED with a
@@ -2510,102 +2512,8 @@ impl McpView {
     }
 }
 
-/// A native SPARQL result rendered as a JSON envelope under `"ok"`: an ASK boolean,
-/// SELECT bindings (SPARQL-1.1 JSON-results shape), or a CONSTRUCT / DESCRIBE graph
-/// serialized as canonical N-Quads.
-///
-/// The graph arm used to be a hard error reading "this tool accepts only SELECT and ASK
-/// queries". That was a REFUSAL STANDING IN FOR A CAPABILITY: the native engine evaluates
-/// CONSTRUCT and DESCRIBE perfectly well and hands back
-/// [`SparqlResult::Graph`](purrdf::SparqlResult::Graph); the surface simply declined to
-/// serialize it. A caller asking `DESCRIBE gmeow:Foo` — the single most natural question to
-/// ask a bundle — got a refusal for a query the engine had already answered. The result form
-/// is now DECLARED in the envelope (`form`: `bindings` | `boolean` | `graph`) so a client
-/// dispatches on a field rather than on a parse failure.
 #[cfg(feature = "core")]
-fn sparql_result_to_json(result: purrdf::SparqlResult) -> gmeow_errors::Result<Value> {
-    match result {
-        purrdf::SparqlResult::Boolean(value) => {
-            Ok(json!({"ok": true, "form": "boolean", "boolean": value}))
-        }
-        purrdf::SparqlResult::Graph(graph) => {
-            // Canonical N-Quads: the ONE lossless RDF-1.2 text form every other surface here
-            // hands back (the conjecture verdict, the GMN expansion, the reasoned closure), so
-            // a caller that wants Turtle or JSON-LD pipes this through `convert` rather than
-            // getting a second, differently-shaped serializer here.
-            let bytes = purrdf::serialize_dataset(
-                graph.as_ref(),
-                "application/n-quads",
-                purrdf::SerializeGraph::Dataset,
-            )
-            .with_ctx(|| "serialize CONSTRUCT/DESCRIBE graph result".to_string())?;
-            let nquads = String::from_utf8(bytes).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("graph result N-Quads are not UTF-8: {e}"),
-                })
-            })?;
-            Ok(json!({
-                "ok": true,
-                "form": "graph",
-                "quad_count": graph.quad_count(),
-                "graph_nquads": nquads,
-            }))
-        }
-        purrdf::SparqlResult::Solutions {
-            variables, rows, ..
-        } => {
-            let bindings: Vec<Value> = rows
-                .iter()
-                .map(|row| {
-                    let mut obj = serde_json::Map::new();
-                    for (i, cell) in row.iter().enumerate() {
-                        if let (Some(name), Some(term)) = (variables.get(i), cell.as_ref())
-                            && let Some(value) = sparql_term_to_json(term)
-                        {
-                            obj.insert(name.clone(), value);
-                        }
-                    }
-                    Value::Object(obj)
-                })
-                .collect();
-            Ok(json!({
-                "ok": true,
-                "form": "bindings",
-                "head": {"vars": variables},
-                "results": {"bindings": bindings},
-            }))
-        }
-    }
-}
-
-/// One SPARQL binding rendered as a SPARQL-1.1 JSON-results term object. A quoted
-/// triple term (rare in the documentation graph) has no standard binding shape and
-/// is omitted.
-#[cfg(feature = "core")]
-fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
-    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-    match term {
-        purrdf::TermValue::Iri(iri) => Some(json!({"type": "uri", "value": iri})),
-        purrdf::TermValue::Blank { label, .. } => Some(json!({"type": "bnode", "value": label})),
-        purrdf::TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            ..
-        } => {
-            let mut obj = serde_json::Map::new();
-            obj.insert("type".to_string(), json!("literal"));
-            obj.insert("value".to_string(), json!(lexical_form));
-            if let Some(lang) = language {
-                obj.insert("xml:lang".to_string(), json!(lang));
-            } else if datatype != XSD_STRING {
-                obj.insert("datatype".to_string(), json!(datatype));
-            }
-            Some(Value::Object(obj))
-        }
-        purrdf::TermValue::Triple { .. } => None,
-    }
-}
+mod query_results;
 
 impl McpView {
     /// The documentation graph re-rooted to the default graph, projected once and
@@ -3027,8 +2935,10 @@ fn builtin_tool_descriptors() -> Vec<Value> {
         ),
         tool(
             "query_docs",
-            "Run a SELECT or ASK SPARQL query over the bundled documentation graph \
-                 (gmeow:graph/documentation) and return SPARQL-1.1 JSON results.",
+            "Run SELECT, ASK, CONSTRUCT or DESCRIBE over the bundled documentation graph \
+                 (gmeow:graph/documentation). Return native RDF 1.2 SPARQL JSON bindings \
+                 with direction, triple terms and scoped blanks, a boolean, or a N-Quads graph; \
+                 the envelope declares its form.",
             &[("query", "string")],
         ),
         tool(
@@ -3056,7 +2966,8 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  triples are isolable via GRAPH <urn:gmeow:mcp:overlay:external> but are NEVER \
                  merged into the signed gmeow: canon and NEVER written anywhere. The result \
                  FORM is declared in the envelope: `bindings` (head/results), `boolean`, or \
-                 `graph` (graph_nquads + quad_count). A missing or unrecognized `format` or \
+                 `graph` (graph_nquads + quad_count). Bindings retain RDF 1.2 language and \
+                 direction, recursive triple terms and scoped blank-node identity. A missing or unrecognized `format` or \
                  `scope`, or an oversized payload, is a hard error — neither is ever guessed.",
             &[
                 ("data", "string"),

@@ -2437,8 +2437,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             "bundle scope must retain a signed ontology row: {seen}"
         );
 
-        // CONSTRUCT/DESCRIBE are ANSWERED and the form is declared — see
-        // `sparql_result_to_json` on why the old refusal was a capability gap, not a policy.
+        // CONSTRUCT/DESCRIBE return native N-Quads and declare the graph form.
         let construct = text_payload(server.call_tool_result(
             "query_local",
             &json!({
