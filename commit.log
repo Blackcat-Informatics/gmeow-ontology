@@ -1,0 +1,24 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1807-term-literal-typing-language-on-words 2383ed904] fix: preserve native RDF terms in MCP query results
+ 5 files changed, 483 insertions(+), 120 deletions(-)
+ create mode 100644 crates/mcp/SPARQL-RESULTS.md
+ create mode 100644 crates/mcp/src/query_results.rs
+ create mode 100644 crates/mcp/src/query_results/tests.rs

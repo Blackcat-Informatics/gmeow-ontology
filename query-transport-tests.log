@@ -1,0 +1,85 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-mcp) & test(query_transport_)' --no-tests=fail
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/errors)
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/lang-form)
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/build-inputs)
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/license)
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/cost-measure)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/ns)
+   Compiling gmeow-test-batch-macros v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/test-batch-macros)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/foundation-corpus)
+   Compiling gmeow-perf-evidence v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/perf-evidence)
+   Compiling gmeow-query-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/query-wasm)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/gts-profile)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/cli-core)
+   Compiling helper-census v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/helper-census)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/math-lift)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/action-cache)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/logic)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/bundle-import)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/pipeline)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slicetest)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/logic-compile)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/music)
+   Compiling xtask v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/xtask)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/math)
+   Compiling gmeow-affect-ingest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/affect-ingest)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/transcode)
+   Compiling gmeow-gmn-cost-matrix v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/gmn-cost-matrix)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/validate)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/conformance)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/affect)
+   Compiling gmeow-reason-wasm v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/reason-wasm)
+   Compiling gmeow-bench-engines v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/bench-engines)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/slice-brief)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/docs-print)
+error[E0509]: cannot move out of type `JsonValue`, which implements the `Drop` trait
+  --> crates/mcp/src/query_results.rs:65:37
+   |
+65 |       let Value::Object(mut object) = read_document(&outcome.bytes)
+   |  _______________________----------____^
+   | |                       |
+   | |                       data moved here because `object` has type `purrdf_lex::json::Object`, which does not implement the `Copy` trait
+66 | |         .with_ctx(|| "read native MCP SPARQL result envelope".to_owned())?
+   | |__________________________________________________________________________^ cannot move out of here
+   |
+help: consider borrowing the pattern binding
+   |
+65 |     let Value::Object(ref mut object) = read_document(&outcome.bytes)
+   |                       +++
+
+For more information about this error, try `rustc --explain E0509`.
+error: could not compile `gmeow-mcp` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error[E0277]: the trait bound `DatasetHandle: From<Arc<Arc<purrdf::RdfDataset>>>` is not satisfied
+   --> crates/mcp/src/query_results/tests.rs:48:67
+    |
+ 48 |         aux: Arc::new(RdfDatasetBuilder::new().freeze().unwrap()).into(),
+    |                                                                   ^^^^ the trait `From<Arc<Arc<purrdf::RdfDataset>>>` is not implemented for `DatasetHandle`
+    |
+help: the trait `From<Arc<Arc<RdfDataset>>>` is not implemented for `DatasetHandle`
+      but trait `From<Arc<RdfDataset>>` is implemented for it
+   --> /kache/.cargo/git/checkouts/purrdf-97037606e49ad484/017f552/crates/rdf-core/src/backend.rs:163:1
+    |
+163 | impl From<Arc<RdfDataset>> for DatasetHandle {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for that trait implementation, expected `purrdf::RdfDataset`, found `Arc<purrdf::RdfDataset>`
+    = note: required for `Arc<Arc<purrdf::RdfDataset>>` to implement `Into<DatasetHandle>`
+
+Some errors have detailed explanations: E0277, E0509.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `gmeow-mcp` (lib test) due to 2 previous errors
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm` exited with code 101
+make: *** [Makefile:717: nextest-synthetic] Error 101

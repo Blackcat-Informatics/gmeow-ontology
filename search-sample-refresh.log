@@ -1,0 +1,14 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-mcp) & test(query_transport_search_keeps_lexical_facets_and_deterministic_ranking)' --no-tests=fail
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1807-term-literal-typing-language-on-words/crates/mcp)
+    Finished `test` profile [optimized] target(s) in 2m 37s
+────────────
+ Nextest run ID 1411ee99-fe74-4f97-ac40-b76549b946f0 with nextest profile: ci
+    Starting 1 test across 2 binaries (38 tests and 225 binaries skipped)
+        PASS [   0.054s] (1/1) gmeow-mcp query_results::tests::query_transport_search_keeps_lexical_facets_and_deterministic_ranking
+────────────
+     Summary [   0.096s] 1 test run: 1 passed, 38 skipped
