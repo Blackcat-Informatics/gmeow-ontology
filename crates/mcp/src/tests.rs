@@ -1861,7 +1861,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
         )
         .expect("independent bundle policy statements have an exact producer selection");
         let bundled: BTreeSet<String> =
-            serde_json::from_slice(&projected).expect("bundle policy statements");
+            purrdf_lex::json::record::from_slice(&projected).expect("bundle policy statements");
         assert!(
             !bundled.is_empty(),
             "gmeow.gts carries NO action-theory quads. The producer folds every slice's \
