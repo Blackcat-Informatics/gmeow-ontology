@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Independently authored tiny registry; no canonical source or dictionary entries.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex: <urn:legend:> .
+
+gmeow:gmnCodebookCurrent a gmeow:GmnCodebook ;
+    gmeow:references ex:dictionary, ex:script, ex:math, ex:logic ;
+    gmeow:gmnDictionaryVersion "3" ; gmeow:gmnGlyphTableVersion "2" .
+ex:dictionary a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion "3" .
+ex:script a lang:Script ; lang:hasGrapheme ex:subsumption, ex:negation, ex:plus .
+ex:math gmeow:gmnSigilGlyph "@μ" .
+ex:logic gmeow:gmnSigilGlyph "@ℒ" .
+
+# Executable bindings
+ex:subsumption gmeow:gmnCodepoints "U+2291" ; gmeow:gmnSigilScope ex:logic .
+ex:subForm gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:subDenotation a lang:Denotation ; lang:denotedForm ex:subForm ;
+    lang:denotationTarget <https://blackcatinformatics.ca/logic/subsumes> ;
+    gmeow:gmnDenotationGrapheme ex:subsumption .
+ex:subCandidate a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:subDenotation ; gmeow:gmnAsciiFallback "sub" ;
+    gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+
+ex:negation gmeow:gmnCodepoints "U+00AC" ; gmeow:gmnSigilScope ex:logic .
+ex:notForm gmeow:gmnFixity gmeow:gmnFixityPrefix ; gmeow:gmnArity 1 .
+ex:notDenotation a lang:Denotation ; lang:denotedForm ex:notForm ;
+    lang:denotationTarget <https://blackcatinformatics.ca/logic/not> ;
+    gmeow:gmnDenotationGrapheme ex:negation .
+ex:notCandidate a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:notDenotation ; gmeow:gmnAsciiFallback "not" ;
+    gmeow:gmnArity 1 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+
+ex:plus gmeow:gmnCodepoints "U+002B" ; gmeow:gmnSigilScope ex:math .
+ex:addForm gmeow:gmnFixity gmeow:gmnFixityInfix ; gmeow:gmnArity 2 .
+ex:addDenotation a lang:Denotation ; lang:denotedForm ex:addForm ;
+    lang:denotationTarget <https://blackcatinformatics.ca/math/Addition> ;
+    gmeow:gmnDenotationGrapheme ex:plus .
+ex:addCandidate a gmeow:GmnSymbolCandidate ;
+    gmeow:gmnCandidateDenotation ex:addDenotation ; gmeow:gmnAsciiFallback "add" ;
+    gmeow:gmnArity 2 ; gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .

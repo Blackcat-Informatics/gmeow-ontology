@@ -26,7 +26,8 @@
 use std::path::{Path, PathBuf};
 
 use crate::McpServer;
-use serde_json::{Value, json};
+use purrdf_lex::json::Value;
+use serde_json::json;
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -62,13 +63,14 @@ fn tool_legend(server: &McpServer) -> Value {
     let text = envelope["content"][0]["text"]
         .as_str()
         .unwrap_or_else(|| panic!("gmn_glyph_legend returned no text: {envelope}"));
-    let payload: Value = serde_json::from_str(text).expect("tool text is JSON");
+    let payload: Value =
+        purrdf_lex::json::record::from_slice(text.as_bytes()).expect("tool text is JSON");
     assert_eq!(
         envelope.get("isError"),
         Some(&json!(false)),
-        "gmn_glyph_legend hard-failed: {payload}"
+        "gmn_glyph_legend hard-failed: {payload:?}"
     );
-    assert_eq!(payload["ok"], json!(true), "{payload}");
+    assert_eq!(payload["ok"].as_bool(), Some(true), "{payload:?}");
     payload["legend"].clone()
 }
 
@@ -76,7 +78,8 @@ fn tool_legend(server: &McpServer) -> Value {
 #[gmeow_test_batch_macros::batch_mcp_test]
 fn the_mcp_tool_returns_the_same_legend_the_wasm_shim_returns() {
     let legend = tool_legend(&server());
-    let shim: Value = serde_json::from_str(&shim_legend()).expect("shim legend is JSON");
+    let shim: Value = purrdf_lex::json::record::from_slice(shim_legend().as_bytes())
+        .expect("shim legend is JSON");
     assert_eq!(
         legend, shim,
         "the MCP legend (built from the bundle's gmnDictV3 registry) must equal the wasm \
@@ -97,13 +100,16 @@ fn the_legend_prices_every_glyph_it_lists() {
     );
     for row in rows {
         let glyph = row["glyph"].as_str().unwrap_or_else(|| {
-            panic!("every legend row carries a `glyph` string: {row}");
+            panic!("every legend row carries a `glyph` string: {row:?}");
         });
         assert!(!glyph.is_empty(), "a legend row carries an empty glyph");
         let cost = row["tokenCost"]
             .as_u64()
-            .unwrap_or_else(|| panic!("every legend row carries a `tokenCost` number: {row}"));
-        assert!(cost > 0, "glyph {glyph:?} is priced at zero tokens: {row}");
+            .unwrap_or_else(|| panic!("every legend row carries a `tokenCost` number: {row:?}"));
+        assert!(
+            cost > 0,
+            "glyph {glyph:?} is priced at zero tokens: {row:?}"
+        );
     }
 }
 
@@ -136,10 +142,16 @@ fn the_wasm_shim_carries_no_second_legend_implementation() {
     );
 
     let mcp = read("crates/mcp/src/lib.rs");
+    let composition = read("crates/mcp/src/glyph_legend.rs");
     assert!(
-        mcp.contains("gmeow_lang_bridge::glyph_legend_json(dict.glyph_registry())"),
+        mcp.contains("glyph_legend::response(dict.glyph_registry())")
+            && composition.contains("gmeow_lang_bridge::glyph_legend_value(registry)"),
         "the MCP tool must call the hoisted implementation over the BUNDLE's glyph \
          registry, never re-compose a legend"
+    );
+    assert!(
+        !composition.contains("serde_json::from"),
+        "the MCP payload must compose the shared native value without reparsing a legend String"
     );
     assert!(
         !mcp.contains("gmeow_gmn_wasm"),

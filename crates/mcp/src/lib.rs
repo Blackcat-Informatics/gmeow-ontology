@@ -136,6 +136,8 @@
 #![cfg_attr(feature = "reasoning", feature(once_cell_try))]
 
 pub mod error;
+#[cfg(feature = "core")]
+mod glyph_legend;
 
 #[cfg(feature = "reasoning")]
 pub mod corpus_observations;
@@ -4470,20 +4472,14 @@ impl McpServer {
     /// write GMN-1 at all.
     ///
     /// The legend is composed by the ONE implementation
-    /// ([`gmeow_lang_bridge::glyph_legend_json`]) the browser codec shim also marshals, over
+    /// ([`gmeow_lang_bridge::glyph_legend_value`]) the browser codec shim's String exit also marshals, over
     /// the glyph registry of THIS bundle's shipped `gmeow:gmnDictV3` codebook — so the
     /// agent's legend and the docs widget's legend are the same rows in the same order, and
     /// there is no second table to drift.
     #[cfg(feature = "core")]
     fn tool_gmn_glyph_legend(&self, _args: &Value) -> gmeow_errors::Result<String> {
         let dict = self.gmn_dictionary()?;
-        let legend_text = gmeow_lang_bridge::glyph_legend_json(dict.glyph_registry())?;
-        let legend: Value = serde_json::from_str(&legend_text).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("gmn_glyph_legend: the composed legend is not valid JSON: {e}"),
-            })
-        })?;
-        Ok(json!({ "ok": true, "legend": legend }).to_string())
+        glyph_legend::response(dict.glyph_registry())
     }
 
     /// `convert` — the fourth verb of parse / reason / validate / SERIALIZE: transcode an

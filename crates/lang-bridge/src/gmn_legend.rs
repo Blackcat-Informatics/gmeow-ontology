@@ -37,6 +37,7 @@
 //! row.
 
 use gmeow_errors::Diag;
+use purrdf_lex::json::{Object, Value};
 
 use crate::error::GmnUnpinnedGlyphCost;
 use crate::gmn1_codec::GmnGlyphRegistry;
@@ -320,35 +321,41 @@ pub fn pinned_symbol_audit_token_cost(token: &str) -> Result<usize, Diag> {
         })
 }
 
-/// The GMN-1 glyph legend for `registry`, as a deterministic JSON array of
+/// The GMN-1 glyph legend for `registry`, as a deterministic native JSON array of
 /// `{ "glyph": <token>, "tokenCost": <n> }`.
 ///
 /// The row order is [`GmnGlyphRegistry::glyph_tokens`]'s order (longest-match first, then
 /// lexicographic) — already deterministic, because the registry is `BTreeMap`-backed — so
-/// two calls over the same codebook produce byte-identical text. Glyph tokens are
-/// JSON-escaped defensively even though no current glyph needs it.
-///
-/// The JSON is assembled by hand rather than through `serde_json`: this crate ships no
-/// JSON encoder in its normal dependency set, and the shape is two scalar fields.
+/// two calls over the same registry produce identical ordered rows. The native
+/// JSON owner supplies string escaping and numeric spelling. This builder remains
+/// available without the `glyph-cost` feature; it never invokes a tokenizer.
 ///
 /// # Errors
 ///
 /// [`GmnUnpinnedGlyphCost`] when the registry carries a glyph [`GLYPH_TOKEN_COSTS`] does
 /// not price.
+pub fn glyph_legend_value(registry: &GmnGlyphRegistry) -> Result<Value, Diag> {
+    registry
+        .glyph_tokens()
+        .into_iter()
+        .map(|glyph| {
+            Ok(Object::new()
+                .with("glyph", glyph)
+                .with("tokenCost", pinned_glyph_token_cost(glyph)?)
+                .into())
+        })
+        .collect::<Result<Vec<_>, Diag>>()
+        .map(Value::Array)
+}
+
+/// The same ordered native legend as compact UTF-8 JSON, without a final newline.
+///
+/// # Errors
+/// Returns the original [`GmnUnpinnedGlyphCost`] if any registry glyph is unpriced.
 pub fn glyph_legend_json(registry: &GmnGlyphRegistry) -> Result<String, Diag> {
-    let mut out = String::from("[");
-    for (i, glyph) in registry.glyph_tokens().iter().enumerate() {
-        if i > 0 {
-            out.push(',');
-        }
-        let escaped = glyph.replace('\\', "\\\\").replace('"', "\\\"");
-        out.push_str(&format!(
-            "{{\"glyph\":\"{escaped}\",\"tokenCost\":{}}}",
-            pinned_glyph_token_cost(glyph)?
-        ));
-    }
-    out.push(']');
-    Ok(out)
+    Ok(purrdf_lex::json::write_compact(&glyph_legend_value(
+        registry,
+    )?))
 }
 
 /// The anti-rot gate for [`GLYPH_TOKEN_COSTS`]: assert the pinned table prices EVERY glyph

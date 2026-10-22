@@ -80,8 +80,8 @@ pub use gmn_consume::{
     consume_project,
 };
 pub use gmn_legend::{
-    GLYPH_TOKEN_COSTS, GMN_SYMBOL_AUDIT_TOKEN_COSTS, glyph_legend_json, pinned_glyph_token_cost,
-    pinned_symbol_audit_token_cost,
+    GLYPH_TOKEN_COSTS, GMN_SYMBOL_AUDIT_TOKEN_COSTS, glyph_legend_json, glyph_legend_value,
+    pinned_glyph_token_cost, pinned_symbol_audit_token_cost,
 };
 #[cfg(feature = "glyph-cost")]
 pub use gmn_legend::{
