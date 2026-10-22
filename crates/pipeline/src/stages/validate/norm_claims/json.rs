@@ -74,36 +74,14 @@ impl FromJson for Observation {
         let mut fields = Record::new(value, "struct Observation")?;
         Ok(Self {
             claims: fields.required("claims")?,
-            closure: fields.required_with("closure", closure_result)?,
+            closure: fields.required_with("closure", |value| {
+                gmeow_errors::json::read_recorded_result(
+                    value,
+                    "closure Result",
+                    "one closure Result variant",
+                )
+            })?,
         })
-    }
-}
-
-/// The closure is exactly one externally tagged success or recorded rejection.
-fn closure_result(
-    value: &Value,
-) -> Result<Result<ClosureObservation, gmeow_errors::RecordedDiag>, DecodeError> {
-    let object = value
-        .as_object()
-        .ok_or_else(|| DecodeError::invalid_type(value, "closure Result"))?;
-    let mut entries = object.iter();
-    let Some((tag, _)) = entries.next() else {
-        return Err(DecodeError::invalid_value(
-            value,
-            "one closure Result variant",
-        ));
-    };
-    if entries.next().is_some() {
-        return Err(DecodeError::invalid_value(
-            value,
-            "one closure Result variant",
-        ));
-    }
-    let mut fields = Record::new(value, "closure Result")?;
-    match tag.as_str() {
-        "Ok" => fields.required("Ok").map(Ok),
-        "Err" => fields.required("Err").map(Err),
-        name => Err(DecodeError::unknown_variant(name, &["Ok", "Err"])),
     }
 }
 

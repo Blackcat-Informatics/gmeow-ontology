@@ -7,7 +7,6 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use purrdf::TermRef;
-use serde::{Deserialize, Serialize};
 
 use super::registry::MediumRegistry;
 
@@ -17,7 +16,7 @@ pub const SOURCE: &str = "slices/core/gts/module.ttl";
 pub const CHANNEL: &str = "pipeline/source-medium-registry.json";
 
 /// Validated typed source registry and each producer's independently authored medium.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct SourceMediumRegistry {
     /// Exact original document path; never a generated carrier projection.
     pub source_path: String,
@@ -54,7 +53,16 @@ pub fn authenticated(root: &Path) -> gmeow_errors::Result<SourceMediumRegistry> 
     let bytes =
         gmeow_action_cache::selection::source_artifacts::load(root, "stage-conformance", CHANNEL)
             .map_err(|error| super::invalid_declaration(error.to_string()))?;
-    let observed: SourceMediumRegistry = serde_json::from_slice(&bytes)
+    decode(&bytes)
+}
+
+/// Decode the typed source observation and retain its original-source boundary.
+/// This restores produced state without rerunning RDF registry validation.
+///
+/// # Errors
+/// Refuses malformed records and a different original source path.
+pub(super) fn decode(bytes: &[u8]) -> gmeow_errors::Result<SourceMediumRegistry> {
+    let observed: SourceMediumRegistry = purrdf_lex::json::record::from_slice(bytes)
         .map_err(|error| super::invalid_declaration(error.to_string()))?;
     if observed.source_path != SOURCE {
         return Err(super::invalid_declaration(
@@ -111,8 +119,7 @@ pub(crate) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed)
-            .map_err(|error| super::invalid_declaration(error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }

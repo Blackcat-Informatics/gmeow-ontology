@@ -29,15 +29,8 @@ struct SweepLevel(i32);
 
 impl FromJson for SweepLevel {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        value
-            .as_number()
-            .filter(|number| number.lexeme() != "-0")
-            .and_then(|number| number.as_i128())
-            .and_then(|number| i32::try_from(number).ok())
+        gmeow_errors::json::read_signed_i32(value, "a signed i32 integer level token, excluding -0")
             .map(Self)
-            .ok_or_else(|| {
-                DecodeError::invalid_value(value, "a signed i32 integer level token, excluding -0")
-            })
     }
 }
 

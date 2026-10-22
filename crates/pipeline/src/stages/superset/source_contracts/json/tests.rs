@@ -5,6 +5,7 @@
 
 use super::*;
 use purrdf_lex::json::record::{from_slice, to_vec};
+use std::collections::BTreeSet;
 
 const RULE: &str = r#"{"path":"z/中\n\"\\","match_prefix":true,"suffix":null,"family":"RdfFanout","form":"Turtle"}"#;
 const DEFINITION_FAILURE: &str = r#"{"text":"original text","values":{"Err":{"root":{"fingerprint":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"stage":"values","grade":{"severity":"error","category":"data-shape-violation","standpoint":"binding"},"code":"authored.values","observations":[],"frames":[],"antecedents":[],"source_ctx":{"location":{},"focus":null,"term_role":null},"attributions":[],"advice":[],"labels":[],"tags":[],"knowledge":"supported","emitted_at":{"file":"authored.rs","line":1,"column":2}},"causes":[]}}}"#;
