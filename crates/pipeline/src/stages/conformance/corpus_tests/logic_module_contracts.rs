@@ -30,7 +30,8 @@ fn observations() -> &'static Observations {
                 CHANNEL,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let observed = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let observed =
+                purrdf_lex::json::record::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
             Ok(Selected {
                 selector: selector.clone(),
                 observed,

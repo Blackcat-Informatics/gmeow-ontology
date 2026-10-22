@@ -169,24 +169,75 @@ pub(crate) mod single {
             Option<String>,
             Option<String>,
         ) = Deserialize::deserialize(deserializer)?;
-        let direction = direction
-            .as_deref()
+        let direction = base_direction(direction.as_deref()).map_err(serde::de::Error::custom)?;
+        from_components(lexical_form, datatype, language, direction)
+            .map_err(serde::de::Error::custom)
+    }
+
+    /// The existing single-literal direction vocabulary, shared by both codecs.
+    fn base_direction(direction: Option<&str>) -> Result<Option<RdfTextDirection>, &'static str> {
+        direction
             .map(|value| match value {
                 "ltr" => Ok(RdfTextDirection::Ltr),
                 "rtl" => Ok(RdfTextDirection::Rtl),
-                _ => Err(serde::de::Error::custom(
-                    "unknown RDF literal base direction",
-                )),
+                _ => Err("unknown RDF literal base direction"),
             })
-            .transpose()?;
+            .transpose()
+    }
+
+    /// Admit the same complete single literal after its typed components are read.
+    fn from_components(
+        lexical_form: String,
+        datatype: String,
+        language: Option<String>,
+        direction: Option<RdfTextDirection>,
+    ) -> Result<RdfLiteral, &'static str> {
         let mut literal = RdfLiteral {
             lexical_form,
             datatype: Some(datatype),
             language,
             direction,
         };
-        normalize(&mut literal).map_err(serde::de::Error::custom)?;
+        normalize(&mut literal)?;
         Ok(literal)
+    }
+
+    /// Encode the exact four-component single-literal wire without RDF rendering.
+    pub(crate) fn to_json(literal: &RdfLiteral) -> purrdf_lex::json::Value {
+        use purrdf_lex::json::{Value, record::ToJson};
+        Value::Array(vec![
+            literal.lexical_form.to_json(),
+            literal.datatype_iri().to_json(),
+            literal.language.to_json(),
+            literal.direction.map(RdfTextDirection::as_str).to_json(),
+        ])
+    }
+
+    /// Decode the same checked single literal from exactly four native JSON cells.
+    pub(crate) fn from_json(
+        value: &purrdf_lex::json::Value,
+    ) -> Result<RdfLiteral, purrdf_lex::json::record::DecodeError> {
+        use purrdf_lex::json::record::{DecodeError, FromJson, Within};
+        let cells = value
+            .as_array()
+            .ok_or_else(|| DecodeError::invalid_type(value, "four-component RDF literal"))?;
+        if cells.len() != 4 {
+            return Err(DecodeError::invalid_value(
+                value,
+                "exactly four RDF literal components",
+            ));
+        }
+        let lexical_form =
+            String::from_json(&cells[0]).map_err(|error| error.within_index_native(0, None))?;
+        let datatype =
+            String::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?;
+        let language = Option::<String>::from_json(&cells[2])
+            .map_err(|error| error.within_index_native(2, None))?;
+        let direction = Option::<String>::from_json(&cells[3])
+            .map_err(|error| error.within_index_native(3, None))?;
+        let direction = base_direction(direction.as_deref())
+            .map_err(|error| DecodeError::custom(error).within_index_native(3, None))?;
+        from_components(lexical_form, datatype, language, direction).map_err(DecodeError::custom)
     }
 }
 

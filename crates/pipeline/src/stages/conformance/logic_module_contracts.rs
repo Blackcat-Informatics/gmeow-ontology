@@ -5,6 +5,8 @@
 //! The shared standalone compilation supplies the actual asserted formula/axiom sets;
 //! reconstructing an advice root never promotes it into that asserted theory.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -14,7 +16,6 @@ use gmeow_action_cache::{
 use gmeow_logic_compile::frontend::{Diagnostic, reconstruct_formula};
 use gmeow_logic_compile::ir::Formula;
 use purrdf::{RdfDataset, RdfTerm};
-use serde::{Deserialize, Serialize};
 
 use crate::cache::BuildIdentity;
 use crate::stages::parse_sources::SourceCatalog;
@@ -23,7 +24,7 @@ pub(super) const CHANNEL: &str = "pipeline/logic-module-contract-observations.js
 pub(super) const SOURCE: &str = "slices/grounding/logic/module.ttl";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observations {
     pub producer: BuildIdentity,
     pub source_path: String,
@@ -37,7 +38,7 @@ pub(super) struct Observations {
     pub grounding_laws: BTreeMap<String, Endpoints>,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub(super) struct Endpoints {
     pub sources: Vec<String>,
     pub targets: Vec<String>,
@@ -60,7 +61,7 @@ pub(super) fn record(
         StoreLimits::default(),
     )
     .map_err(fail)?;
-    let observed = super::execution::cached_inputs(
+    let observed = super::execution::cached_native_inputs(
         &store,
         "logic-module-contracts-v1:original-default-graph",
         vec![
@@ -125,7 +126,7 @@ pub(super) fn record(
     )?;
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(fail)?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }
