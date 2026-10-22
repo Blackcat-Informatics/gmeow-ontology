@@ -35,6 +35,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+mod json;
+
 /// Repo-relative path of the authored catalog-family registry.
 pub const CATALOG_FAMILIES_PATH: &str = "dsl/mappings/catalog-families.ttl";
 
@@ -42,7 +44,7 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// One registered external catalog family, as authored.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CatalogFamily {
     /// IRI of the `gmeow:CatalogFamily` individual (identity).
     pub iri: String,
@@ -73,7 +75,7 @@ fn registry_err(message: String) -> gmeow_errors::Diag {
 /// a silently defaulted row. An empty registry, a duplicate family name, and a
 /// namespace stem that is a prefix of another family's stem (which would make some
 /// target match two families by construction) are equally hard failures.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone)]
 pub struct CatalogRegistry {
     /// Admitted external catalog families.
     pub families: Vec<CatalogFamily>,
@@ -82,7 +84,7 @@ pub struct CatalogRegistry {
 }
 
 /// Compact production observations shared by registry and bundle consumers.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug)]
 pub struct RegistryObservations {
     /// Both native registry views from the exact original document.
     pub registry: CatalogRegistry,
@@ -110,11 +112,7 @@ pub fn load_catalog_registry(root: &Path) -> Result<CatalogRegistry, gmeow_error
 /// Missing or stale fixture identities fail closed; no loader fallback exists.
 pub fn authenticated_registry(root: &Path) -> Result<RegistryObservations, gmeow_errors::Diag> {
     let bytes = crate::fixture::authenticated_artifact(root, "stage-mappings", REGISTRY_CHANNEL)?;
-    serde_json::from_slice(&bytes).map_err(|error| {
-        registry_err(format!(
-            "decode authenticated registry observations: {error}"
-        ))
-    })
+    json::decode_observations(&bytes)
 }
 
 /// Lower and validate the family declarations in one original registry document.
@@ -364,7 +362,7 @@ where
 /// The complement of a guarded `gmeow:ProjectionVocabulary`: a catalog family the
 /// residue ratchet does NOT guard because it has no single grounding-slice owner, made
 /// countable so the carve-out cannot widen without a reviewed ontology edit.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResidueExemption {
     /// IRI of the `gmeow:ResidueRatchetExemption` individual (identity).
     pub iri: String,
