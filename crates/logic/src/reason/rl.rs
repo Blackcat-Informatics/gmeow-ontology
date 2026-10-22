@@ -58,6 +58,8 @@
 //! triples it actually asks about. OWL 2 RL has no existential heads, so every derived
 //! conclusion has a checkable derivation and the attribution never refuses.
 
+mod json;
+
 use crate::facts::{SKOLEM_PREFIX, skolem_iri};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 
@@ -90,7 +92,7 @@ pub const DEFAULT_WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/rl-d
 /// The firing rule of a derived triple is NOT stored here — it is attributed on
 /// demand by [`RlClosure::rule_name`]; see the module docs for why eager attribution
 /// is `O(derived × closure)` under purrdf's public API.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RlTriple {
     pub subject: String,
     pub predicate: String,

@@ -10,6 +10,9 @@
 //!
 //! Engine-core separation: this module is pure Rust with no binding surface.
 
+/// Closed source-lint observations shared with the explicit producer.
+pub mod source_observation;
+
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use regex::Regex;

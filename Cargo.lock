@@ -1708,6 +1708,7 @@ dependencies = [
  "purrdf",
  "purrdf-core",
  "purrdf-hash",
+ "purrdf-lex",
  "rayon",
  "serde",
  "serde_json",

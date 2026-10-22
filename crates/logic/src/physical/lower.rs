@@ -47,6 +47,8 @@ mod test_support;
 #[cfg(test)]
 pub(crate) use test_support::structural_digest;
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::{Diag, Result};

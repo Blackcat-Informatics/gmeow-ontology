@@ -4,6 +4,8 @@
 //! Authenticated source-only math lowering observations. Required rejection and
 //! structural-identity evidence is produced before tests, without a reasoned union.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -24,7 +26,7 @@ pub(super) const SHADOW: &str =
     "slices/grounding/math/tests/conformance-fixtures/alpha-equivalent-shadowing.ttl";
 const STRUCTURAL_KEY: &str = "https://blackcatinformatics.ca/math/structuralKey";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(super) struct SourceObservation {
     /// All values remain visible so duplicate or malformed source fields fail grading.
     pub finite_value_spaces: BTreeMap<String, FiniteValueSpace>,
@@ -41,13 +43,13 @@ pub(super) struct SourceObservation {
     pub source_lint: Option<super::source_lint::SourceRecord>,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub(super) struct FiniteValueSpace {
     pub datatypes: BTreeSet<String>,
     pub counts: BTreeSet<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observations {
     pub depth_limit: usize,
     pub source_digests: BTreeMap<String, String>,
@@ -195,7 +197,7 @@ pub(super) fn record(
         if super::source_lint::selected(relative) {
             inputs.push(super::source_lint::configuration_input()?);
         }
-        let mut observed = super::execution::cached_inputs(
+        let mut observed = super::execution::cached_native_inputs(
             &store,
             "source-only-math-lowering-v3-datatype-inventory",
             inputs,
@@ -215,12 +217,11 @@ pub(super) fn record(
     }
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&Observations {
+        purrdf_lex::json::record::to_vec(&Observations {
             depth_limit: analysis::depth_limit(),
             source_digests,
             sources,
-        })
-        .map_err(|error| fail(error.to_string()))?,
+        }),
     );
     Ok(source_lints)
 }
