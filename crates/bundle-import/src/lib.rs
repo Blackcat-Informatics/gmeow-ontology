@@ -71,6 +71,8 @@ const BUNDLE_FIXTURE_SELECTOR_SCHEMA_VERSION: u32 = 1;
 /// rustc, target, profile, features, and code-generation flags.
 pub const BUILD_FINGERPRINT: &str = env!("GMEOW_BUNDLE_IMPORT_BUILD_FINGERPRINT");
 
+mod receipt_json;
+
 /// Immutable identity and structural census for one imported dataset.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ImportReceipt {
@@ -92,12 +94,12 @@ impl ImportReceipt {
     pub fn receipt_digest(&self) -> String {
         digest(&[
             b"gmeow:bundle-import-receipt:v1",
-            &serde_json::to_vec(self).expect("closed receipt JSON"),
+            &purrdf_lex::json::record::to_vec(self),
         ])
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 struct ReceiptEnvelope {
     receipt_digest: String,
     receipt: ImportReceipt,
@@ -1009,8 +1011,9 @@ fn import_graph_preserving_under_root(
         receipt_digest: receipt.receipt_digest(),
         receipt: receipt.clone(),
     };
-    let receipt_bytes = serde_json::to_vec_pretty(&envelope)
-        .map_err(|error| diag(format!("bundle import: encode receipt: {error}")))?;
+    let receipt_bytes =
+        purrdf_lex::json::write_pretty(&purrdf_lex::json::record::ToJson::to_json(&envelope))
+            .into_bytes();
     publish_identical(&namespace.join(format!("blobs/{pack_digest}")), &pack)?;
     publish_identical(
         &namespace.join(format!("receipts/{action_key}.json")),
@@ -1160,7 +1163,7 @@ fn load_import_receipt(
         return Ok(None);
     }
     let bytes = read_bounded(&receipt_path, MAX_RECEIPT_BYTES, "receipt")?;
-    let envelope: ReceiptEnvelope = serde_json::from_slice(&bytes)
+    let envelope: ReceiptEnvelope = purrdf_lex::json::record::from_slice(&bytes)
         .map_err(|error| diag(format!("bundle import: corrupt receipt: {error}")))?;
     if envelope.receipt_digest != envelope.receipt.receipt_digest() {
         return Err(diag("bundle import: receipt envelope digest mismatch"));
@@ -1327,7 +1330,7 @@ fn prune_namespace(namespace: &Path, protected_action: &str) -> gmeow_errors::Re
             .and_then(|metadata| metadata.modified())
             .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
         let bytes = read_bounded(&path, MAX_RECEIPT_BYTES, "GC receipt root")?;
-        let envelope: ReceiptEnvelope = serde_json::from_slice(&bytes)
+        let envelope: ReceiptEnvelope = purrdf_lex::json::record::from_slice(&bytes)
             .map_err(|error| diag(format!("bundle import: corrupt GC root: {error}")))?;
         if envelope.receipt_digest != envelope.receipt.receipt_digest() {
             return Err(diag(format!(

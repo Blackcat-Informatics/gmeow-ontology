@@ -35,6 +35,7 @@ const CODEC: &str = "gmeow-slice-spec-verdict-json-v3";
 const TASK_CODEC: &str = "gmeow-slice-spec-task-verdict-json-v1";
 const VERDICT_SCHEMA_VERSION: u32 = 3;
 const TASK_VERDICT_SCHEMA_VERSION: u32 = 1;
+mod verdict_json;
 static WORKER_SNAPSHOT_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 /// Deterministic census carried by the authenticated all-specs verdict.
@@ -170,8 +171,7 @@ pub fn produce_repository_verdict(
         &store,
         context.inputs.len(),
     )?;
-    let bytes = serde_json::to_vec(&verdict)
-        .map_err(|error| fail(format!("encode slice-spec verdict: {error}")))?;
+    let bytes = purrdf_lex::json::record::to_vec(&verdict);
     let receipt = store
         .publish(&context, bytes_digest(&bytes), verdict.clone(), &bytes)
         .map_err(|error| fail(format!("publish slice-spec verdict: {error}")))?;
@@ -212,7 +212,7 @@ fn outcome_from_entry(
     built: bool,
     expected_inputs: usize,
 ) -> Result<SliceSpecOutcome> {
-    let decoded: SliceSpecVerdict = serde_json::from_slice(&entry.bytes)
+    let decoded: SliceSpecVerdict = purrdf_lex::json::record::from_slice(&entry.bytes)
         .map_err(|error| fail(format!("decode slice-spec verdict product: {error}")))?;
     if decoded != entry.receipt.payload {
         return Err(fail(
@@ -231,14 +231,20 @@ fn outcome_from_entry(
             decoded.input_files
         )));
     }
-    if decoded.spec_files() == 0 {
+    let spec_files = decoded.competency_files.checked_add(decoded.structural_files)
+        .and_then(|total| total.checked_add(decoded.conformance_files))
+        .ok_or_else(|| fail(format!(
+            "slice-spec verdict declarative census overflows usize: competency={}, structural={}, conformance={}",
+            decoded.competency_files, decoded.structural_files, decoded.conformance_files
+        )))?;
+    if spec_files == 0 {
         return Err(fail("slice-spec verdict covers no declarative spec files"));
     }
-    if decoded.task_receipts.len() != decoded.spec_files() {
+    if decoded.task_receipts.len() != spec_files {
         return Err(fail(format!(
             "slice-spec verdict carries {} task receipts for {} declarative specs",
             decoded.task_receipts.len(),
-            decoded.spec_files()
+            spec_files
         )));
     }
     let identities = decoded
@@ -896,7 +902,7 @@ fn task_identity_from_entry(
     task: &SpecTask,
     entry: VerifiedEntry<SpecTaskVerdict>,
 ) -> Result<SliceSpecTaskIdentity> {
-    let decoded: SpecTaskVerdict = serde_json::from_slice(&entry.bytes)
+    let decoded: SpecTaskVerdict = purrdf_lex::json::record::from_slice(&entry.bytes)
         .map_err(|error| fail(format!("decode slice-spec task verdict: {error}")))?;
     let expected = SpecTaskVerdict {
         schema_version: TASK_VERDICT_SCHEMA_VERSION,
@@ -1288,8 +1294,7 @@ fn publish_task_receipt(
         kind: task.kind.name().to_owned(),
         path: logical_path(repo_root, &task.path)?,
     };
-    let bytes = serde_json::to_vec(&payload)
-        .map_err(|error| fail(format!("encode slice-spec task verdict: {error}")))?;
+    let bytes = purrdf_lex::json::record::to_vec(&payload);
     let receipt = store
         .publish(&context, bytes_digest(&bytes), payload.clone(), &bytes)
         .map_err(|error| {

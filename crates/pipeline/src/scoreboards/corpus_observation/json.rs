@@ -24,10 +24,7 @@ impl FromJson for Stored {
         let mut fields = Record::new(value, "struct Stored")?;
         let stored = Self {
             schema: fields.required_with("schema", |value| {
-                value
-                    .as_u64()
-                    .and_then(|number| u32::try_from(number).ok())
-                    .ok_or_else(|| DecodeError::invalid_value(value, "u32"))
+                gmeow_errors::json::read_unsigned(value, "u32")
             })?,
             query_rows: fields.required("query_rows")?,
             nodes: fields.required("nodes")?,

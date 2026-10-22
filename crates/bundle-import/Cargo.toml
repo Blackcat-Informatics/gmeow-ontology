@@ -18,9 +18,9 @@ path = "src/lib.rs"
 gmeow-action-cache = { path = "../action-cache" }
 gmeow-errors = { path = "../errors" }
 purrdf.workspace = true
+purrdf-lex.workspace = true
 purrdf-hash.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 sha2.workspace = true
 
 [build-dependencies]
