@@ -234,7 +234,7 @@ impl<'a> Sources<'a> {
             }
             norm_claims::ARTIFACT => {
                 let observation = norm_claims::observe_shipped(self.dataset()?)?;
-                serde_json::to_vec(&observation).map_err(fail)
+                Ok(purrdf_lex::json::record::to_vec(&observation))
             }
             coherence::DISJOINT_ARTIFACT => {
                 let observation =

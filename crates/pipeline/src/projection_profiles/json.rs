@@ -35,11 +35,7 @@ struct ProfileCellCount(usize);
 
 impl FromJson for ProfileCellCount {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        value
-            .as_u64()
-            .and_then(|number| usize::try_from(number).ok())
-            .map(Self)
-            .ok_or_else(|| DecodeError::invalid_value(value, "usize"))
+        crate::json_counts::read_usize(value, "usize").map(Self)
     }
 }
 

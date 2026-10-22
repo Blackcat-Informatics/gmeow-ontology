@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use purrdf::{RdfDataset, RdfTerm};
-use serde::{Deserialize, Serialize};
+mod json;
 
 use super::{FanoutFamily, FanoutRule, GraphForm};
 use crate::stages::parse_sources::SourceCatalog;
@@ -17,7 +17,7 @@ pub(crate) const CHANNEL: &str = "pipeline/superset-source-contracts.json";
 const SOURCE: &str = "slices/core/pipeline/module.ttl";
 const VALUE_MARKER: &str = "are exactly:";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 struct Observation {
     source_path: String,
     source_digest: String,
@@ -26,13 +26,13 @@ struct Observation {
     definitions: BTreeMap<String, Definition>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 struct Definition {
     text: String,
     values: Result<BTreeSet<String>, gmeow_errors::RecordedDiag>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 struct OwnedRule {
     path: String,
     match_prefix: bool,
@@ -43,7 +43,7 @@ struct OwnedRule {
 
 /// Unlike the native dispatch enum, this wire record owns its graph IRI. Hydration
 /// admits only the graph actually supported by the native N-Quads dispatch arm.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 enum OwnedForm {
     Turtle,
     NTriples,
@@ -100,7 +100,7 @@ pub(crate) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(|error| super::stage_err(&error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }

@@ -7,6 +7,64 @@
 use super::*;
 use purrdf_lex::json::record::{from_slice, to_vec};
 
+#[test]
+fn json_recorded_diag_literal_envelope_keeps_required_causes_and_original_node() {
+    let expected = format!("{{\"root\":{MINIMAL},\"causes\":[]}}");
+    let record: RecordedDiag = from_slice(expected.as_bytes()).unwrap();
+    assert_eq!(to_vec(&record), expected.as_bytes());
+    let unknown = expected.replacen('{', "{\"unknown\":null,", 1);
+    assert_eq!(
+        to_vec(&from_slice::<RecordedDiag>(unknown.as_bytes()).unwrap()),
+        expected.as_bytes()
+    );
+    for invalid in [
+        "{}".to_owned(),
+        format!("{{\"root\":{MINIMAL}}}"),
+        format!("{{\"root\":{MINIMAL},\"causes\":null}}"),
+        format!("{{\"root\":{MINIMAL},\"causes\":[],\"causes\":[]}}"),
+        "{\"root\":null,\"causes\":[]}".to_owned(),
+        "[]".to_owned(),
+    ] {
+        assert!(
+            from_slice::<RecordedDiag>(invalid.as_bytes()).is_err(),
+            "{invalid}"
+        );
+    }
+}
+
+#[test]
+fn json_recorded_diag_native_roundtrip_preserves_causal_fingerprints_and_replay() {
+    use crate::{Diag, DiagLedger};
+    let mut ledger = DiagLedger::new();
+    let cause = ledger.attach(
+        Diag::from(std::io::Error::other("premise 中"))
+            .with_focus("urn:recorded:premise")
+            .with_derived_from_quads(["urn:premise".to_owned()]),
+        StageId::new("premise"),
+    );
+    let recorded = ledger.record(
+        Diag::from(std::io::Error::other("rejection"))
+            .with_focus("urn:recorded:rejection")
+            .with_context("exact source")
+            .with_antecedents([cause]),
+        StageId::new("observation"),
+    );
+    let restored: RecordedDiag = from_slice(&to_vec(&recorded)).unwrap();
+    assert_eq!(restored, recorded);
+    assert_eq!(restored.causes.len(), 1);
+    assert_ne!(restored.root.fingerprint, restored.causes[0].fingerprint);
+    assert_eq!(
+        restored.root.antecedents.as_ref(),
+        &[restored.causes[0].fingerprint]
+    );
+    assert_eq!(restored.causes[0].derived_from_quads, ["urn:premise"]);
+    let mut replay = DiagLedger::new();
+    replay.replay(restored.causes);
+    replay.replay([*restored.root]);
+    assert_eq!(replay.len(), 2);
+    assert_eq!(replay.verdict(), ledger.verdict());
+}
+
 const MINIMAL: &str = r#"{"fingerprint":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"stage":"tiny","grade":{"severity":"error","category":"data-shape-violation","standpoint":"binding"},"code":"authored.code","observations":[],"frames":[],"antecedents":[],"source_ctx":{"location":{},"focus":null,"term_role":null},"attributions":[],"advice":[],"labels":[],"tags":[],"knowledge":"supported","emitted_at":{"file":"authored.rs","line":1,"column":2}}"#;
 
 const COMPLETE: &str = r#"{"fingerprint":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"stage":"étape\n😀","grade":{"severity":"warning","category":"projection-loss","standpoint":"perspectival"},"code":"authored.code","observations":[{"message":"nul\u0000\t\"\\中","observed":{"lexical":"01","datatype":"urn:datatype"},"expected":{"lexical":"1","datatype":null}}],"frames":[{"message":"frame","at":{"file":"authored.rs","line":4294967295,"column":2}}],"antecedents":[[15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0]],"source_ctx":{"location":{"path":"a.ttl","line":18446744073709551615,"column":4294967295,"logical":"urn:logical","gts_term_id":1,"gts_quad_index":2,"gts_reifier_id":3,"gts_frame_index":4,"gts_segment_index":5},"graph":"https://example.org/graph","focus":"urn:focus","term_role":"object"},"attributions":[{"slice_iri":"urn:slice","role":"evaluation-scope","evidence":"original"}],"advice":[{"standpoint":"advisory","text":"advice","help_uri":null}],"remediation":[{"text":"repair","standpoint":"binding","help_uri":"https://example.org/help","artifact_change":{"artifact_uri":"a.ttl","region":{"start_line":1,"start_column":2,"end_line":3,"end_column":4},"replacement":"x\n"}}],"guidance":[{"modality":"HowToUse","source":"DocumentedTerm","term_iri":"urn:term","text":"usage","standpoint":"advisory","help_uri":"https://example.org/term"}],"derived_from_quads":["urn:quad"],"cited_iris":["urn:citation"],"labels":[{"location":{"path":"other.ttl"},"text":"other"}],"tags":["tag"],"documented_terms":["urn:term"],"failure_class":"urn:failure","knowledge":"both","emitted_at":{"file":"authored.rs","line":1,"column":2},"locus_stage":"original-stage"}"#;

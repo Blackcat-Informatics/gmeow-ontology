@@ -332,7 +332,7 @@ struct GraphRep {
 
 /// The reconstruction-graph namespace family of a `gmeow:FanoutExtraction` row: how
 /// the per-file named-graph IRI derives from the committed path.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FanoutFamily {
     /// `graph/fanout/<path-without-the-generated/-prefix>`.
     RdfFanout,

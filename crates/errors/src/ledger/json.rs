@@ -6,7 +6,7 @@
 //! Structs admit named records only. Unit enums also retain their exact
 //! single-key null-object form. Unknown record fields remain ignored.
 
-use super::{DiagFingerprint, DiagNode, Observation, SerFrame, SerLocation};
+use super::{DiagFingerprint, DiagNode, Observation, RecordedDiag, SerFrame, SerLocation};
 use crate::diag::{
     Advice, ArtifactChange, Focus, Guidance, GuidanceModality, GuidanceSource, Label, Region,
     Remediation, Slot, SourceContext, StageId, TermRole,
@@ -23,6 +23,25 @@ fn unsigned<T: TryFrom<u64>>(value: &Value, expected: &str) -> Result<T, DecodeE
         .as_u64()
         .and_then(|number| T::try_from(number).ok())
         .ok_or_else(|| DecodeError::invalid_value(value, expected))
+}
+
+impl ToJson for RecordedDiag {
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("root", self.root.to_json())
+            .with("causes", self.causes.to_json())
+            .into()
+    }
+}
+
+impl FromJson for RecordedDiag {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut record = Record::new(value, "struct RecordedDiag")?;
+        Ok(Self {
+            root: record.required("root")?,
+            causes: record.required("causes")?,
+        })
+    }
 }
 
 fn unit_name<'a>(value: &'a Value, expected: &str) -> Result<&'a str, DecodeError> {

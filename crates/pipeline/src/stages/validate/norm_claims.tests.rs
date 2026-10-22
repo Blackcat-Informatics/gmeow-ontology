@@ -95,11 +95,12 @@ fn shipped_norm_claims_abox_carries_the_advisory_assessment_and_reasons_cleanly(
     let bytes =
         gmeow_action_cache::selection::source_artifacts::load(&root, "stage-validate", CHANNEL)
             .expect("exact producer-selected norm-claims closure observation");
-    let observed: Observation = serde_json::from_slice(&bytes).expect("typed closure evidence");
+    let observed: Observation =
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed closure evidence");
     let shipped = gmeow_bundle_import::load_authenticated_corpus_artifact(&root, ARTIFACT)
         .expect("exact selected terminal norm-claims observation");
     let shipped: ShippedObservation =
-        serde_json::from_slice(&shipped).expect("typed terminal census");
+        purrdf_lex::json::record::from_slice(&shipped).expect("typed terminal census");
     assert_eq!(shipped.graph, GRAPH);
     assert_eq!(
         observed.claims, shipped,

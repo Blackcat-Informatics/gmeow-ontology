@@ -50,14 +50,6 @@ impl ToJson for RegistryObservations {
     }
 }
 
-/// Registry counts require unsigned integer tokens within the host's usize width.
-fn row_count(value: &Value) -> Result<usize, DecodeError> {
-    value
-        .as_u64()
-        .and_then(|number| usize::try_from(number).ok())
-        .ok_or_else(|| DecodeError::invalid_value(value, "usize"))
-}
-
 impl FromJson for CatalogFamily {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut record = Record::new(value, "struct CatalogFamily")?;
@@ -66,7 +58,9 @@ impl FromJson for CatalogFamily {
             name: record.required("name")?,
             namespaces: record.required("namespaces")?,
             owners: record.required("owners")?,
-            minimum: record.required_with("minimum", row_count)?,
+            minimum: record.required_with("minimum", |value| {
+                crate::json_counts::read_usize(value, "usize")
+            })?,
         })
     }
 }
@@ -78,7 +72,9 @@ impl FromJson for ResidueExemption {
             iri: record.required("iri")?,
             family_iri: record.required("family_iri")?,
             rationale: record.required("rationale")?,
-            row_ceiling: record.required_with("row_ceiling", row_count)?,
+            row_ceiling: record.required_with("row_ceiling", |value| {
+                crate::json_counts::read_usize(value, "usize")
+            })?,
         })
     }
 }
