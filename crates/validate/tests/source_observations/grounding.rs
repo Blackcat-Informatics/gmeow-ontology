@@ -30,7 +30,7 @@ pub struct Cell {
     pub morphism_class: Option<String>,
     pub morphism_kind: Option<String>,
     pub preservation: Option<String>,
-    pub confidence: Option<String>,
+    pub confidence: Option<gmeow_logic_compile::ir::UnitInterval>,
     pub grounding: bool,
 }
 
@@ -42,6 +42,7 @@ pub fn observations() -> &'static Observations {
         &OBSERVED,
         "stage-conformance",
         "pipeline/grounding-catalog-observations.json",
+        |bytes| serde_json::from_slice(bytes).map_err(gmeow_errors::Diag::from),
     );
     let expected = [
         "slices/grounding/logic/mappings/grounding-bridges.ttl",
@@ -81,3 +82,7 @@ pub fn transpilation(path: &str) -> &'static Result<usize, gmeow_errors::Recorde
         .get(path)
         .unwrap_or_else(|| panic!("missing original transpilation {path}"))
 }
+
+#[cfg(test)]
+#[path = "grounding.confidence.tests.rs"]
+mod confidence_tests;

@@ -66,6 +66,8 @@
 //! is re-hashed and compared to the indexed digest — a mismatch is a HARD failure,
 //! never a silent repair (no-optionality).
 
+mod build_identity_json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;

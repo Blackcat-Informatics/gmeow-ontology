@@ -105,7 +105,11 @@ fn native_bridge_records(path: &str) -> Vec<BridgeRecord> {
             class: c.morphism_class.clone().unwrap_or_default(),
             kind: c.morphism_kind.clone().unwrap_or_default(),
             preservation: c.preservation.clone().unwrap_or_default(),
-            confidence: c.confidence.clone().unwrap_or_default(),
+            confidence: c
+                .confidence
+                .as_ref()
+                .map(|value| value.literal().lexical_form.clone())
+                .unwrap_or_default(),
         })
         .collect()
 }

@@ -11,11 +11,13 @@ pub struct Selected<T> {
 }
 
 /// Cache only this explicitly selected compact observation, including load failure.
+/// The caller must select its decoder; a decode refusal never selects another codec.
 /// A changed selector in the same process is rejected before any cached value is read.
-pub fn selected<'a, T: serde::de::DeserializeOwned>(
+pub fn selected<'a, T>(
     cache: &'a OnceLock<gmeow_errors::Result<Selected<T>>>,
     stage: &str,
     channel: &str,
+    decode: impl FnOnce(&[u8]) -> gmeow_errors::Result<T>,
 ) -> &'a T {
     let selector = std::env::var(gmeow_action_cache::selection::MANIFEST_SHA256_ENV)
         .expect("validation requires the exact optimized producer selector");
@@ -25,7 +27,7 @@ pub fn selected<'a, T: serde::de::DeserializeOwned>(
             let bytes =
                 gmeow_action_cache::selection::source_artifacts::load(&root, stage, channel)
                     .map_err(gmeow_errors::Diag::from)?;
-            let observation = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let observation = decode(&bytes)?;
             Ok(Selected {
                 selector: selector.clone(),
                 observation,

@@ -3,38 +3,9 @@
 
 //! Read the two produced GMEOW-specific validation reports without building data.
 
-use serde::Deserialize;
-use std::collections::{BTreeMap, BTreeSet};
+use gmeow_validate::inference_observation::{Control, Observations};
+use std::collections::BTreeSet;
 use std::sync::OnceLock;
-
-#[derive(Deserialize)]
-struct Observations {
-    profile: String,
-    sources: BTreeMap<String, String>,
-    controls: BTreeMap<String, Control>,
-}
-
-#[derive(Deserialize)]
-pub struct Control {
-    input_digest: String,
-    results: Vec<ResultMessage>,
-}
-
-#[derive(Deserialize)]
-struct ResultMessage {
-    severity: String,
-    message: Option<String>,
-}
-
-impl Control {
-    pub fn violations(&self) -> Vec<&str> {
-        self.results
-            .iter()
-            .filter(|result| result.severity == "http://www.w3.org/ns/shacl#Violation")
-            .map(|result| result.message.as_deref().unwrap_or_default())
-            .collect()
-    }
-}
 
 pub fn report(name: &str) -> &'static Control {
     static OBSERVED: OnceLock<
@@ -44,6 +15,7 @@ pub fn report(name: &str) -> &'static Control {
         &OBSERVED,
         "stage-validate",
         "pipeline/inference-validation-observations.json",
+        |bytes| purrdf_lex::json::record::from_slice(bytes).map_err(gmeow_errors::Diag::from),
     );
     assert_eq!(
         observed.profile,
