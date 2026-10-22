@@ -1,0 +1,7 @@
+# Math lowering, source lint and epistemics transports
+
+Implement native codecs at the actual MathLoweringError and RlTriple owners, plus the three complete conformance channels. Reuse the landed native cache and authenticated reader adapters without changing action identities, selected profiles, inventory, selectors, source digests or algorithms. Retain genuine grounding-composite Serde embeddings.
+
+Math errors preserve all 23 externally tagged struct variants, field order, signed i128 including negative zero, and strict unsigned host-width fields. Source-lint configuration must retain exact compact bytes and configuration-input digest. Epistemics preserves rendered strings/world/EDB state, duplicate vector rows and full-closure counts independently of the selected row count. The two real source-lint callers share one concrete DTO/native-codec owner in validate::lint::source_observation; selection and authenticated loading remain outside it. The consumer retains its independently constructed expected Configuration literal.
+
+Add independently authored literal/error/bounds/duplicate/optional/causal controls and external owner tests. Actual corpus consumers are source-updated but not executed. Root owns formatting, helper/source gates, strict caller compilation before focused runtime, normal lock resolution, hooks and publication. No checks, generators, corpus builds or host changes run by this source lane.
