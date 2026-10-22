@@ -31,6 +31,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+mod json;
+
 /// Repo-relative path of the authored projection-profile inventory.
 pub const PROJECTION_PROFILES_PATH: &str = "dsl/mappings/projection-profiles.ttl";
 /// Repo-relative directory the inventory must exactly cover.
@@ -40,7 +42,7 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// One declared projection-profile source document.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectionProfile {
     /// IRI of the `gmeow:ProjectionProfile` individual (identity).
     pub iri: String,
@@ -212,7 +214,7 @@ fn authored_cell_count(dataset: &purrdf::RdfDataset) -> usize {
 }
 
 /// Compact original-source inventory and independently observed profile cell counts.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone)]
 pub(crate) struct ProjectionInventory {
     declared: Vec<ProjectionProfile>,
     measured: BTreeMap<String, usize>,
@@ -240,7 +242,7 @@ pub(crate) fn record_projection_profile_inventory(
         .collect::<Result<_, gmeow_errors::Diag>>()?;
     let observed = ProjectionInventory { declared, measured };
     observed.check()?;
-    serde_json::to_vec(&observed).map_err(|error| inventory_err(error.to_string()))
+    Ok(purrdf_lex::json::record::to_vec(&observed))
 }
 
 impl ProjectionInventory {
