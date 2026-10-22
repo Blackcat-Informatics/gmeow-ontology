@@ -212,7 +212,8 @@ fn gufo_store() -> &'static SourceObservation {
     static OBSERVATIONS: std::sync::OnceLock<
         Result<super::source_artifact::Selected<SourceObservation>, gmeow_errors::Diag>,
     > = std::sync::OnceLock::new();
-    let observed = super::source_artifact::get(&OBSERVATIONS, super::super::gufo_superset::CHANNEL);
+    let observed =
+        super::source_artifact::get_native(&OBSERVATIONS, super::super::gufo_superset::CHANNEL);
     assert_eq!(observed.source_path, GUFO_TTL);
     observed
 }

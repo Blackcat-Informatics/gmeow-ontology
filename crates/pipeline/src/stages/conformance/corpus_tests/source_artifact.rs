@@ -16,6 +16,27 @@ pub(super) fn get<'a, T: DeserializeOwned>(
     cell: &'a OnceLock<Result<Selected<T>, gmeow_errors::Diag>>,
     channel: &str,
 ) -> &'a T {
+    get_decoded(cell, channel, |bytes| {
+        serde_json::from_slice(bytes).map_err(gmeow_errors::Diag::from)
+    })
+}
+
+/// Decode the selected native channel through the same selector-bound authority.
+pub(super) fn get_native<'a, T: purrdf_lex::json::record::FromJson>(
+    cell: &'a OnceLock<Result<Selected<T>, gmeow_errors::Diag>>,
+    channel: &str,
+) -> &'a T {
+    get_decoded(cell, channel, |bytes| {
+        purrdf_lex::json::record::from_slice(bytes).map_err(gmeow_errors::Diag::from)
+    })
+}
+
+/// Authenticate once, retaining selector equality on every access regardless of codec.
+fn get_decoded<'a, T>(
+    cell: &'a OnceLock<Result<Selected<T>, gmeow_errors::Diag>>,
+    channel: &str,
+    decode: impl FnOnce(&[u8]) -> Result<T, gmeow_errors::Diag>,
+) -> &'a T {
     let selector = std::env::var(gmeow_action_cache::selection::MANIFEST_SHA256_ENV)
         .expect("source contracts require the exact producer selector");
     let selected = cell
@@ -26,7 +47,7 @@ pub(super) fn get<'a, T: DeserializeOwned>(
                 channel,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let value = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let value = decode(&bytes)?;
             Ok(Selected {
                 selector: selector.clone(),
                 value,

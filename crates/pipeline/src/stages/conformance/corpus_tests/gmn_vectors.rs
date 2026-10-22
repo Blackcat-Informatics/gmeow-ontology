@@ -12,7 +12,7 @@ fn observation() -> &'static Observation {
     static OBSERVATION: OnceLock<
         Result<super::source_artifact::Selected<Observation>, gmeow_errors::Diag>,
     > = OnceLock::new();
-    super::source_artifact::get(&OBSERVATION, CHANNEL)
+    super::source_artifact::get_native(&OBSERVATION, CHANNEL)
 }
 
 #[test]

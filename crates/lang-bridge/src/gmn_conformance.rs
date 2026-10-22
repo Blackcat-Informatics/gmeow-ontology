@@ -5,7 +5,7 @@
 //! Executing a vector and comparing its frozen bytes are separate operations:
 //! changing an expectation never requires recompiling its source model.
 
-use serde::{Deserialize, Serialize};
+mod json;
 
 use crate::{
     Gmn0Model, GmnDictionary, gmn1_read, gmn1_write, idempotence_check, per_claim_round_trip_check,
@@ -28,7 +28,7 @@ pub fn codec_verdict<T>(
 }
 
 /// Actual output and independent witnesses from one positive vector execution.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct PositiveObservation {
     /// Complete emitted surface, compared against the independently frozen bytes.
     pub text: String,

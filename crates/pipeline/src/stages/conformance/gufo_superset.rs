@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
 
+mod json;
+
 pub(crate) const CHANNEL: &str = "pipeline/gufo-superset-import-observation.json";
 pub(super) const GUFO_TTL: &str = "imports/gufo.ttl";
 pub(super) const MODULE_TTL: &str = "slices/grounding/logic/module.ttl";
@@ -39,7 +41,7 @@ impl ObservedTerm {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(super) struct SourceObservation {
     pub source_path: String,
     pub default_quad_count: usize,
@@ -106,7 +108,7 @@ pub(super) fn record(
         StoreLimits::default(),
     )
     .map_err(|error| fail(error.to_string()))?;
-    let result = super::execution::cached_inputs(
+    let result = super::execution::cached_native_inputs(
         &store,
         "gufo-superset-import-v1",
         vec![ActionInput::Raw {
@@ -119,7 +121,7 @@ pub(super) fn record(
     )?;
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&result).map_err(|error| fail(error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&result),
     );
     Ok(())
 }
