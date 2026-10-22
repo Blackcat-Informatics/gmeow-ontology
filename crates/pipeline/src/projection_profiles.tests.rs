@@ -18,7 +18,7 @@ fn inventory() -> ProjectionInventory {
         CHANNEL,
     )
     .expect("producer-selected projection inventory; no source construction in tests");
-    serde_json::from_slice(&bytes).expect("native projection inventory")
+    purrdf_lex::json::record::from_slice(&bytes).expect("native projection inventory")
 }
 
 #[test]
