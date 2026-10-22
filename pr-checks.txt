@@ -1,0 +1,3 @@
+$ stagectl pr-checks 1954
+PENDING    CodeRabbit
+state: pending

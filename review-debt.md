@@ -1,0 +1,9 @@
+# Review dispositions
+
+Full paginated reviews, inline comments, issue comments and GraphQL threads were captured successfully. One formal review, one inline finding, one bot summary and one thread; outer and nested pageInfo report no additional pages. Root read all visible bodies, retaining complete feedback JSON and omitting only decorative coderabbit origin markers.
+
+The wasm finding is valid and repaired: the new inference JSON submodule alone matches the native-only purrdf-lex dependency boundary; shared records and the pure violations view remain portable. Independent source reviewer audit_gmn verified the exact manifest and actual callers, finding no remaining source defect. Native JSON code and controls are unchanged. Actual wasm compilation remains unrun, not passed.
+
+The separate grounding-confidence finding is repaired using the existing producer UnitInterval owner. Root reviewed the complete repair independently of its author; two literal controls passed. Existing corpus assertions remain unchanged and unrun.
+
+The bot docstring percentage is a recorded check under the explicit ignore-CI exception, not a runtime failure or missing behavior. No bot-generated checkbox, autofix or review command was invoked. Pending hosted production and excluded embedded/installed/corpus acceptance remain unverified; parent1776 stays open. Final capture after the repair push contains1formal/1inline/2comments/1resolved thread; both outer and nested pagination are complete. Review and inline bodies match the complete earlier capture. The changed bot body and new repair progress comment were read in full; bot processing is pending and has no new substantive finding. ci-final.json binds pending run39739250395 to the repair head. Stagectl has no PR-edit command, so the existing PR body was updated once with gh pr edit --body-file.

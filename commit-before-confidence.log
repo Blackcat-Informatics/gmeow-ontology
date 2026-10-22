@@ -1,0 +1,29 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1776-deps-replace-serde-serde-json-with af0cdc7d2] refactor: native expression and inference observation transports
+ 17 files changed, 714 insertions(+), 63 deletions(-)
+ create mode 100644 crates/pipeline/src/cache/build_identity_json.rs
+ create mode 100644 crates/pipeline/src/cache/build_identity_json/tests.rs
+ create mode 100644 crates/pipeline/src/stages/conformance/EXPRESSION-SUBSTRATE-JSON.md
+ create mode 100644 crates/pipeline/src/stages/conformance/expression_substrate/json.rs
+ create mode 100644 crates/pipeline/src/stages/conformance/expression_substrate/json/tests.rs
+ create mode 100644 crates/validate/src/inference_observation.rs
+ create mode 100644 crates/validate/src/inference_observation/json.rs
+ create mode 100644 crates/validate/src/inference_observation/json/tests.rs

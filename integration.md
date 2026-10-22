@@ -1,0 +1,5 @@
+# Integration assessment
+
+Fetched actual origin/main after the repair push. Base b0984a64f967e3474ffe04d647e01c8565d0e41d has no intervening source delta. PR head011d747f3ca90252f83526f8a6ad959071c9151e contains both normal signed commits. git merge-tree --write-tree --no-messages origin/main HEAD returned0 and candidate c6cdd799a088a291a73b9289960b8ace0ec7d6b7. No conflict or base dependency change invalidates the recorded focused checks. The19path source delta has794insertions/65deletions and no manifest/lock changes. Main remains protected; ghprsq alone publishes the result.
+
+Exact-head hosted run39739250395 has queued producer/helpers and in-progress lint/prebuild; bot review is pending. The user explicitly permits sequential merges ignoring CI, with local optimized production/corpus/full gates excluded. These are unverified acceptance, not passes. The one substantive forge finding is source-repaired and its thread resolved; final complete feedback captures and independent review describe all limits. Parent1776 stays open.
