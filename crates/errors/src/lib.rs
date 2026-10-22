@@ -23,6 +23,7 @@ pub mod dag;
 pub mod diag;
 pub mod error;
 pub mod grade;
+pub mod json;
 pub mod ledger;
 pub mod lower;
 pub mod model;

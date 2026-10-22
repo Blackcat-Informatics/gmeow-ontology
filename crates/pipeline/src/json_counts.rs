@@ -15,8 +15,5 @@ use purrdf_lex::json::{Value, record::DecodeError};
 /// # Errors
 /// Returns the native value refusal for invalid token syntax or host overflow.
 pub(crate) fn read_usize(value: &Value, expected: &str) -> Result<usize, DecodeError> {
-    value
-        .as_u64()
-        .and_then(|number| usize::try_from(number).ok())
-        .ok_or_else(|| DecodeError::invalid_value(value, expected))
+    gmeow_errors::json::read_unsigned(value, expected)
 }

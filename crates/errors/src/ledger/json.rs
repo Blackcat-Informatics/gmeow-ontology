@@ -12,18 +12,12 @@ use crate::diag::{
     Remediation, Slot, SourceContext, StageId, TermRole,
 };
 use crate::grade::{Belnap, Grade, Standpoint};
+use crate::json::read_unsigned as unsigned;
 use crate::model::{DiagnosticAttribution, FindingCategory, Location, Severity};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson, items_with},
 };
-
-fn unsigned<T: TryFrom<u64>>(value: &Value, expected: &str) -> Result<T, DecodeError> {
-    value
-        .as_u64()
-        .and_then(|number| T::try_from(number).ok())
-        .ok_or_else(|| DecodeError::invalid_value(value, expected))
-}
 
 impl ToJson for RecordedDiag {
     fn to_json(&self) -> Value {

@@ -327,7 +327,7 @@ fn structurally_invalid_digest_valid_pack_hard_fails() {
     };
     fs::write(
         namespace.join(format!("receipts/{}.json", envelope.receipt.action_key)),
-        serde_json::to_vec_pretty(&envelope).unwrap(),
+        purrdf_lex::json::write_pretty(&purrdf_lex::json::record::ToJson::to_json(&envelope)),
     )
     .unwrap();
     let error = synthetic_import(root.path(), &bytes)
@@ -384,7 +384,7 @@ fn gc_retains_only_reachable_recent_imports() {
         .iter()
         .map(|entry| {
             let bytes = read_bounded(&entry.path(), MAX_RECEIPT_BYTES, "test receipt").unwrap();
-            serde_json::from_slice::<ReceiptEnvelope>(&bytes)
+            purrdf_lex::json::record::from_slice::<ReceiptEnvelope>(&bytes)
                 .unwrap()
                 .receipt
                 .pack_digest
