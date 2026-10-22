@@ -1,0 +1,5 @@
+The [native import-receipt and slice-spec verdict operation](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1946) is merged. All five standalone products and their publication/replay/GC sites use native JSON, and both crates’ unused direct serde_json dependencies are removed. Genuine enclosing selector and ActionReceipt Serde contracts remain intact.
+
+Receipt digest bytes, field policy and authentication/GC checks are preserved. The actual aggregate replay validator now refuses either census-addition overflow actionably. All seventy-seven authored controls, helper checks, strict producer-independent compilation, source admission, lint and normal hooks passed. The landed tree and complete signed evidence archive were verified, and the completed checkout was cleaned up.
+
+Actual authenticated corpus/imports, repository workers, embedded/installed acceptance and full dependency removal remain open under the campaign exception. The next complete operation covers advice-wing observations with explicit nonfinite confidence refusal and the independent policy-statement snapshot’s native publisher/reader.

@@ -1,0 +1,8 @@
+$ stagectl pr-checks 1947
+QUEUED     producer-build
+QUEUED     helpers
+QUEUED     lint
+QUEUED     rust-prebuild
+PENDING    CodeRabbit
+SUCCESS    license/cla
+state: pending

@@ -1,0 +1,24 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1776-deps-replace-serde-serde-json-with 5b0c490a1] refactor: use native JSON for advice and policy observations
+ 7 files changed, 477 insertions(+), 10 deletions(-)
+ create mode 100644 crates/pipeline/ADVICE-WING-JSON.md
+ create mode 100644 crates/pipeline/src/stages/conformance/advice_wing/json.rs
+ create mode 100644 crates/pipeline/src/stages/conformance/advice_wing/json/tests.rs
