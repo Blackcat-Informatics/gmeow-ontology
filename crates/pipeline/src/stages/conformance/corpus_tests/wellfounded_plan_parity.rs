@@ -14,7 +14,7 @@ fn authored_phase_plan_matches_runtime_phase_order() {
     static OBSERVED: OnceLock<
         Result<super::source_artifact::Selected<Observation>, gmeow_errors::Diag>,
     > = OnceLock::new();
-    let observed = super::source_artifact::get(&OBSERVED, CHANNEL);
+    let observed = super::source_artifact::get_native(&OBSERVED, CHANNEL);
     assert_eq!(observed.source_path, SOURCE);
     assert_eq!(
         observed.source_digest.len(),

@@ -15,9 +15,10 @@ use gmeow_action_cache::{
 };
 use purrdf::sparql::{NativeSparqlEngine, PreparedQuery, QueryOptions};
 use purrdf::{DatasetMut, MutableDataset, RdfDataset, SparqlResult, parse_dataset};
-use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
+
+mod json;
 
 mod logic;
 mod math;
@@ -35,13 +36,13 @@ struct Case {
     injection: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observations {
     pub modules: BTreeMap<String, String>,
     pub cases: BTreeMap<String, CaseObservation>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct CaseObservation {
     pub query_path: String,
     pub query_digest: String,
@@ -180,7 +181,7 @@ pub(super) fn record(
                 digest: digest.clone(),
             });
         }
-        let rows = super::execution::cached_inputs(
+        let rows = super::execution::cached_native_inputs(
             &store,
             &format!("gmn-signature-v1:{}", case.name),
             inputs,
@@ -191,9 +192,10 @@ pub(super) fn record(
                         .prepare_query(&query.text, None)
                         .map_err(gmeow_errors::Diag::from)
                 })?;
-                observe(&engine, base, prepared, case.injection.as_deref())
+                observe(&engine, base, prepared, case.injection.as_deref()).map(json::RowCount)
             },
         )
+        .map(|count| count.0)
         .map_err(super::record_failure);
         if observed
             .insert(
@@ -212,11 +214,10 @@ pub(super) fn record(
     }
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&Observations {
+        purrdf_lex::json::record::to_vec(&Observations {
             modules,
             cases: observed,
-        })
-        .map_err(|error| fail(error.to_string()))?,
+        }),
     );
     Ok(())
 }

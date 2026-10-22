@@ -40,8 +40,8 @@ fn independent_byte_and_semantic_failures_survive_observation_transport() {
         observed.content_digest,
         crate::content_digest(&model).unwrap()
     );
-    let bytes = serde_json::to_vec(&observed).unwrap();
-    let mut restored: PositiveObservation = serde_json::from_slice(&bytes).unwrap();
+    let bytes = purrdf_lex::json::record::to_vec(&observed);
+    let mut restored: PositiveObservation = purrdf_lex::json::record::from_slice(&bytes).unwrap();
     assert!(restored.failures(expected).is_empty());
     assert_eq!(restored.failures(b"corrupted bytes").len(), 1);
     restored.reconstructed = Ok(String::new());

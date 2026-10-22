@@ -9,16 +9,17 @@ use std::path::{Path, PathBuf};
 
 use gmeow_action_cache::{ActionInput, ActionStore, FileKind, STORE_FORMAT_VERSION, StoreLimits};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
-use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
+
+mod json;
 
 pub(super) const CHANNEL: &str = "pipeline/wellfounded-plan-observation.json";
 pub(super) const SOURCE: &str = "slices/grounding/logic/module.ttl";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observation {
     pub source_path: String,
     pub source_digest: String,
@@ -27,7 +28,7 @@ pub(super) struct Observation {
     pub walk: Result<PhaseWalk, gmeow_errors::RecordedDiag>,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub(super) struct PhaseWalk {
     pub phases: Vec<String>,
     pub iterated: Vec<String>,
@@ -50,7 +51,7 @@ pub(super) fn record(
     )
     .map_err(|error| fail(error.to_string()))?;
     let digest = catalog.document_digest(SOURCE)?.to_owned();
-    let observed = super::execution::cached_inputs(
+    let observed = super::execution::cached_native_inputs(
         &store,
         "wellfounded-phase-plan-v1:original-default-graph",
         vec![ActionInput::Raw {
@@ -79,7 +80,7 @@ pub(super) fn record(
     )?;
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(|error| fail(error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }

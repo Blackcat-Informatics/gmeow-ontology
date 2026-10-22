@@ -212,3 +212,114 @@ fn case_actions_bind_execution_inputs_without_coupling_goldens_or_other_cases() 
         context(root, &case, "library-second").unwrap().key()
     );
 }
+
+#[test]
+fn json_conformance_native_cache_reuses_exact_bytes_without_execution() {
+    let directory = tempfile::tempdir().unwrap();
+    let store = ActionStore::open(
+        ActionStore::default_root(directory.path()),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap();
+    let inputs = vec![ActionInput::Raw {
+        logical_path: "authored-native-input".into(),
+        file_kind: FileKind::File,
+        executable: false,
+        digest: bytes_digest(b"independent input"),
+    }];
+    // gmeow-test-input: synthetic-only; the selected operation returns a plain string.
+    let observed = cached_native_inputs(&store, "native-authored", inputs.clone(), || {
+        Ok("中\n\"\\".to_owned())
+    })
+    .unwrap();
+    assert_eq!(observed, "中\n\"\\");
+    // gmeow-test-input: synthetic-only; authenticated action hit must not execute.
+    let hit = cached_native_inputs::<String>(&store, "native-authored", inputs, || {
+        panic!("native hit executed")
+    })
+    .unwrap();
+    assert_eq!(hit, observed);
+    let bytes = cached_bytes(
+        &store,
+        "native-authored",
+        vec![ActionInput::Raw {
+            logical_path: "authored-native-input".into(),
+            file_kind: FileKind::File,
+            executable: false,
+            digest: bytes_digest(b"independent input"),
+        }],
+        || panic!("byte hit executed"),
+    )
+    .unwrap();
+    assert_eq!(bytes, r#""中\n\"\\""#.as_bytes());
+}
+
+#[test]
+fn json_conformance_native_cache_decode_failure_is_terminal_without_retry() {
+    let directory = tempfile::tempdir().unwrap();
+    let store = ActionStore::open(
+        ActionStore::default_root(directory.path()),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap();
+    // gmeow-test-input: synthetic-only; publish authored malformed bytes through the real core.
+    assert_eq!(
+        cached_bytes(&store, "malformed-native", Vec::new(), || Ok(b"{".to_vec())).unwrap(),
+        b"{"
+    );
+    let calls = std::cell::Cell::new(0);
+    // gmeow-test-input: synthetic-only; a corrupt decoded observation cannot trigger recovery.
+    let error = cached_native_inputs::<String>(&store, "malformed-native", Vec::new(), || {
+        calls.set(calls.get() + 1);
+        Ok("replacement".into())
+    })
+    .unwrap_err();
+    assert!(error.is::<purrdf_lex::json::record::DecodeError>());
+    assert_eq!(calls.get(), 0);
+    // gmeow-test-input: synthetic-only; the invalid completed action remains unchanged.
+    assert_eq!(
+        cached_bytes(&store, "malformed-native", Vec::new(), || panic!(
+            "retry producer executed"
+        ))
+        .unwrap(),
+        b"{"
+    );
+}
+
+#[test]
+fn json_conformance_native_cache_live_failure_keeps_context_and_no_action() {
+    let directory = tempfile::tempdir().unwrap();
+    let store = ActionStore::open(
+        ActionStore::default_root(directory.path()),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap();
+    // gmeow-test-input: synthetic-only; this is a live initializer refusal.
+    let error = cached_native_inputs::<String>(&store, "native-live-refusal", Vec::new(), || {
+        Err(
+            gmeow_errors::Diag::from(std::io::Error::other("authored live refusal"))
+                .with_context("retain native initializer context"),
+        )
+    })
+    .unwrap_err();
+    assert_eq!(
+        error.downcast_ref::<std::io::Error>().unwrap().to_string(),
+        "authored live refusal"
+    );
+    assert_eq!(
+        error.inner().context[0].label,
+        "retain native initializer context"
+    );
+    let calls = std::cell::Cell::new(0);
+    // gmeow-test-input: synthetic-only; only a subsequent explicit operation may initialize.
+    let value = cached_native_inputs(&store, "native-live-refusal", Vec::new(), || {
+        calls.set(calls.get() + 1);
+        Ok("explicit new attempt".to_owned())
+    })
+    .unwrap();
+    assert_eq!(value, "explicit new attempt");
+    assert_eq!(calls.get(), 1);
+}

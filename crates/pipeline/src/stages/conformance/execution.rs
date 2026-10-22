@@ -385,6 +385,36 @@ pub(super) fn cached_inputs<T: serde::Serialize + serde::de::DeserializeOwned>(
     inputs: Vec<ActionInput>,
     observe: impl Fn() -> Result<T, gmeow_errors::Diag>,
 ) -> gmeow_errors::Result<T> {
+    let bytes = cached_bytes(store, operation, inputs, || {
+        serde_json::to_vec(&observe()?).map_err(gmeow_errors::Diag::from)
+    })?;
+    serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)
+}
+
+/// Use native record admission around the same coordinated byte action.
+/// A hit with malformed bytes is terminal and never executes the producer again.
+pub(super) fn cached_native_inputs<
+    T: purrdf_lex::json::record::ToJson + purrdf_lex::json::record::FromJson,
+>(
+    store: &ActionStore,
+    operation: &str,
+    inputs: Vec<ActionInput>,
+    observe: impl Fn() -> Result<T, gmeow_errors::Diag>,
+) -> gmeow_errors::Result<T> {
+    let bytes = cached_bytes(store, operation, inputs, || {
+        Ok(purrdf_lex::json::record::to_vec(&observe()?))
+    })?;
+    purrdf_lex::json::record::from_slice(&bytes).map_err(gmeow_errors::Diag::from)
+}
+
+/// Coordinate and publish exactly one completed byte observation, retaining the
+/// existing action identity and live initializer failure before publication.
+fn cached_bytes(
+    store: &ActionStore,
+    operation: &str,
+    inputs: Vec<ActionInput>,
+    produce: impl Fn() -> Result<Vec<u8>, gmeow_errors::Diag>,
+) -> gmeow_errors::Result<Vec<u8>> {
     let build = crate::cache::BuildIdentity::current();
     let context = ActionContext::new(
         "logic-conformance",
@@ -403,13 +433,12 @@ pub(super) fn cached_inputs<T: serde::Serialize + serde::de::DeserializeOwned>(
         &context.key(),
         || store.get::<()>(&context).map_err(gmeow_errors::Diag::from),
         || {
-            let observed = observe()?;
-            let bytes = serde_json::to_vec(&observed)?;
+            let bytes = produce()?;
             let receipt = store.publish(&context, bytes_digest(&bytes), (), &bytes)?;
             Ok(gmeow_action_cache::VerifiedEntry { receipt, bytes })
         },
     )?;
-    serde_json::from_slice::<T>(&hit.value.bytes).map_err(gmeow_errors::Diag::from)
+    Ok(hit.value.bytes)
 }
 
 #[path = "execution.tests.rs"]

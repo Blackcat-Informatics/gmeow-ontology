@@ -13,9 +13,10 @@ use gmeow_action_cache::{
 use gmeow_lang_bridge::gmn_conformance::{PositiveObservation, observe_positive};
 use gmeow_lang_bridge::{Gmn0Model, Gmn1Document, codebook_digest, gmn1_read, gmn1_write};
 use purrdf::{NativeRdfFormat, RdfTerm, parse_dataset};
-use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
+
+mod json;
 
 pub(crate) const CHANNEL: &str = "pipeline/gmn-vector-observations.json";
 pub(super) const ROOT: &str = "slices/grounding/lang/tests/gmn1-vectors";
@@ -23,7 +24,7 @@ const LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnCodebookDigest";
 const CLASS: &str = "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observation {
     pub codebook_digest: String,
     pub declared_digests: BTreeSet<String>,
@@ -136,7 +137,7 @@ pub(super) fn record(
             continue;
         };
         let bytes = std::fs::read(&path).map_err(fail)?;
-        let observed = super::execution::cached_inputs(
+        let observed = super::execution::cached_native_inputs(
             &store,
             "gmn-vector-positive-v1",
             vec![
@@ -159,7 +160,7 @@ pub(super) fn record(
     for filename in expected_negatives.keys() {
         let path = format!("{ROOT}/negative-codec/{filename}");
         let bytes = std::fs::read(root.join(&path)).map_err(fail)?;
-        let observed = super::execution::cached_inputs(
+        let observed = super::execution::cached_native_inputs(
             &store,
             "gmn-vector-negative-v1",
             vec![raw(&path, bytes_digest(&bytes)), language_input.clone()],
@@ -188,7 +189,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(fail)?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }
