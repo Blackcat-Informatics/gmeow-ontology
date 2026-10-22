@@ -7,7 +7,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
-use serde::{Deserialize, Serialize};
+mod json;
 
 /// Authenticated bundle-derived action, required by the fixture selector.
 pub const ARTIFACT: &str = "contextual-corpus-observations-v1.json";
@@ -23,7 +23,7 @@ mod tests;
 /// A diagnostic projection of native metadata objects, retaining their RDF term
 /// spelling (IRI brackets, literal datatype/language/direction, or quotation).
 /// Consumers compare these values directly; none are reparsed as pipeline data.
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub struct Node {
     /// Predicate IRI to the exact set of observed object terms.
     pub properties: BTreeMap<String, BTreeSet<String>>,
@@ -31,7 +31,7 @@ pub struct Node {
 
 /// Selected request/result/prefix/proof metadata, bounded by thirteen requests
 /// and their direct result components. No corpus graph or engine state is cached.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Observations {
     /// Requests, their results, and the linked prefix/proof component nodes.
     pub nodes: BTreeMap<String, Node>,

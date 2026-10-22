@@ -14,7 +14,8 @@ fn shared_flagship_shape_bites_on_a_missing_required_link() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(&root, ARTIFACT)
         .expect("explicit producer supplies authenticated flagship observation");
-    let observed: Observation = serde_json::from_slice(&bytes).expect("typed flagship observation");
+    let observed: Observation =
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed flagship observation");
     assert_eq!(observed.profile, PROFILE);
     assert!(!observed.conforms, "unwired scenario must fail validation");
     let mincount: Vec<_> = observed

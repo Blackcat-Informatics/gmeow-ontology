@@ -28,7 +28,9 @@ use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfLiteral, SerializeGraph, TermRef, TermValue,
     flat_dataset_from_quads, parse_dataset, serialize_dataset,
 };
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::record::ToJson;
+
+mod json;
 
 pub mod corpus_observation;
 
@@ -243,6 +245,10 @@ impl ClaimAuditReport {
                             (variable, cell.as_ref().map(TermValue::to_canonical_bytes))
                         })
                         .collect();
+                    let bindings_json: purrdf_lex::json::Object = bindings
+                        .iter()
+                        .map(|(variable, cell)| (variable.as_str(), cell.to_json()))
+                        .collect();
                     let mut diag = Diag::new(
                         register_code(code),
                         Grade::new(
@@ -256,9 +262,7 @@ impl ClaimAuditReport {
                             .collect::<Vec<_>>()
                             .join(" | "),
                     )
-                    .with_focus(
-                        serde_json::to_string(&bindings).expect("typed audit bindings serialize"),
-                    )
+                    .with_focus(purrdf_lex::json::write_compact(&bindings_json.into()))
                     .with_location(Location::new(
                         Some(path.to_string_lossy().into_owned()),
                         None,
@@ -316,7 +320,7 @@ impl ClaimAuditReport {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct FlatClaim {
     pub claim: String,
     pub text: Option<String>,
@@ -328,7 +332,7 @@ pub struct FlatClaim {
     pub contradicts: Vec<String>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ClaimEvidence {
     pub span: String,
     pub chunk: Option<String>,
@@ -338,7 +342,7 @@ pub struct ClaimEvidence {
     pub polarity: Option<String>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ClaimFlags {
     pub ungrounded: bool,
     pub contradicted: bool,
@@ -603,8 +607,11 @@ pub fn render_claim_audit_text(report: &ClaimAuditReport) -> String {
 }
 
 pub fn render_claim_audit_json(report: &ClaimAuditReport) -> gmeow_errors::Result<String> {
-    serde_json::to_string_pretty(&serde_json::json!({ "claims": report.claims }))
-        .ctx("render claim audit JSON")
+    let mut value = purrdf_lex::json::Value::from(
+        purrdf_lex::json::Object::new().with("claims", report.claims.to_json()),
+    );
+    value.sort_keys();
+    Ok(purrdf_lex::json::write_pretty(&value))
 }
 
 pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {

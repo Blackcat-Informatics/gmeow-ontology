@@ -5,7 +5,7 @@
 //! The exact archived production shape profile is prepared only by the explicit
 //! fixture producer; tests consume the recorded findings without loading shapes.
 
-use serde::{Deserialize, Serialize};
+mod json;
 
 use super::production_shapes::PreparedProductionShapes;
 
@@ -31,7 +31,7 @@ const UNWIRED_SCENARIO: &str = r#"
 
 /// Compact validation evidence tied to the producer's exact shape and control
 /// bytes. All findings are retained, so consumer counts cannot hide extra hits.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Observation {
     pub profile: String,
     pub shapes_digest: String,
@@ -43,7 +43,7 @@ pub struct Observation {
 /// The owning shape and its resolved failure class stay paired on each finding;
 /// a blank property shape is resolved through `FailureClassIndex`, never guessed
 /// from a named parent or the result path.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Finding {
     pub focus: String,
     pub path: Option<String>,

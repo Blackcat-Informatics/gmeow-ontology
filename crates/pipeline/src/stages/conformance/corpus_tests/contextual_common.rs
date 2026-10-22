@@ -20,7 +20,7 @@ pub(super) fn observations() -> &'static Observations {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(&root, ARTIFACT)
             .expect("explicit producer supplies exact contextual observations");
-        serde_json::from_slice(&bytes).expect("typed contextual observations")
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed contextual observations")
     })
 }
 
