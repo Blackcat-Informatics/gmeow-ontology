@@ -1,0 +1,7 @@
+# Terminal observation review disposition
+
+Independent root source/caller/control review covers all16settled paths, including the actual terminal publisher arms, authenticated contextual/flagship readers, complete claim producer/restore, public renderer and diagnostic query identity. All22authored controls pass; strict producer-independent all-target Clippy/helpers/source admission/lint/fmt/diff/normal signed commit/push hooks pass. See independent-review.md and validation.md for source and execution limits.
+
+The compile-time borrowed JsonKey finding is repaired using the native Object owner; its initial failure and full22refresh remain preserved, all literal/fingerprint assertions unchanged. No compatibility trait/wrapper/parser, source policy exemption or test weakening. Root also caught a non-ASCII byte-literal error before qualification and required full nested evidence in the independent pretty literal; both repaired before first build.
+
+Current paginated formal/inline/thread inventories are empty; bot/CI pending is disclosed under the explicit sequential-merge exception, not approved/passed. Prior1944 full postmerge feedback has no substantive finding. Capture omits only the decorative origin marker consistently from JSON/rendered copies. Any later substantive feedback remains owned. Full1776, actual authenticated corpus, excluded embedded consumers and installed acceptance remain open; no claim of whole dependency retirement or full gate.

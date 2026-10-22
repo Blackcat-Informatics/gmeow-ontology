@@ -1,0 +1,23 @@
+# Terminal observation acceptance
+
+Current verdict: settled16sourcepaths859insertions28deletions pass all22authored controls, helpers, strict producer-independent all-target Clippy45.17s, source admission, lint, formatting/diff checks and normal signed commit/push hooks. PR1945 source61bc31aa5; current feedback/integration clear under the explicit CI exception. Chronological pending statements below are superseded by the final results. Real authenticated corpus, excluded embedded consumers, installed acceptance and full1776 remain open.
+
+Settled16sourcepaths855insertions28deletions. Root independent source/caller/control review clear, make fmt/staged diff check/unstaged-source check PASS. Twenty-two source-inspected authored controls running through make nextest-synthetic, exact filter/output in terminal-tests.log. Fifteen new literal/schema/bounds/identity/replay controls plus seven unchanged tiny graph/diagnostic controls. No runtime pass yet. Strict producer-independent all-target Clippy/helpers/source admission/lint/normal signed commit/push hooks pending. Original failures, if any, remain with narrowed repair evidence.
+
+Current user exception excludes local optimized producer/corpus/fixture construction/sync/fullgate and directs sequential merges ignoring CI. Normal hooks mandatory, host/toolchain configuration untouched, no probes/caps/process changes and all local Cargo/helpers/fmt/hooks serial. Real worked claim audit and flat JSON controls, authenticated contextual/temporal consumers and actual flagship production-profile consumer remain unrun; full1776, excluded embedded consumers and installed acceptance stay open. Source-recipe admission resolves identity only, no producer.
+
+First qualification terminal makeexit2, compiler E0599/zero tests (terminal-tests.log): native BTreeMap ToJson requires JsonKey; the actual borrowed String key lacks that trait. Root read exact native JsonKey/String and Object FromIterator APIs. Source author assigned a minimal actual boundary repair: retain sorted borrowed map and canonical RDF bytes, create native Object from sorted entries using existing scalar/container codecs. No trait adapter/compatibility layer or assertion change. Reformat and full22refresh pending; no runtime acceptance claimed.
+
+One-file query-key repair independently reviewed, formatting/staged diff/unstaged-source checks PASS. All22authored controls PASS, compile1m52/runtime.112s, terminalexit0 (terminal-query-key-refresh.log). All15new and7existing selected cases executed; exact public/compact literals, fingerprint, numeric admission and native replay pass. No assertion change or corpus execution. Helpers running before strict/source/lint/normal hooks; full authenticated/embedded/installed acceptance remains open.
+
+Helpers PASS, terminalexit0 (helpers.log), including full dependency/hash-domain selfchecks. Source remains frozen. Strict producer-independent all-target Clippy running, then source admission/lint/normal hooks. Settled scope16paths859insertions28deletions after the four-line sorted native Object boundary repair. Full actual corpus/embedded/installed/parent acceptance remains open.
+
+Final helpers verdict68jobs/45enforced/0reasonedvariants/881unenforcedcopies/0distinctrows/2016files. Strict producer-independent all-target Clippy PASS45.17s, terminalexit0 (strict-prebuild.log). Source-admission recipe running; lint and normal hooks pending. No new source or changed assertion since all22controls passed.
+
+Exact current source-recipe admission PASS, terminalexit0 (source-recipe.log). Identity/admission only, no producer. All-file lint running before normal signed hooks. No source changes.
+
+All-file lint PASS, terminalexit0 (lint.log), including formatting, spelling, corpus-purity and source-reference seals. Final staged diff and unstaged-source checks PASS. Normal signed commit hooks running; push hooks/publication/current feedback/integration still pending.
+
+Normal signed commit hooks PASS (commit.log), complete16sourcepaths committed. Normal push running next; no source changed after qualification. Original compile failure preserved with exact full22refresh, every assertion unchanged.
+
+Normal push hooks PASS (push.log), PR1945 published; stagectl created the PR then returned its known JSON parse error, recovered once by exact open head, no duplicate attempt. Source61bc31aa59255f360e78759bfca2e5bab197ea4b/currentbasecdd0f2e28 clean candidate9352ff8babfd80767ba5fb4b1a8484cb11908abf; no intervening delta. Full current feedback/check capture and integration limits in integration.md/review-debt.md. Pending hosted checks are waived for this campaign, not passes.

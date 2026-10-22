@@ -1,0 +1,7 @@
+# Current terminal observation integration
+
+PR1945 head61bc31aa59255f360e78759bfca2e5bab197ea4b is based on actual remote main cdd0f2e28ae5a6083469f47773ee1ab0c2fb9861. No intervening base delta. Clean merge-tree exits0 with candidate9352ff8babfd80767ba5fb4b1a8484cb11908abf, the qualified source tree. No synchronization or conflict resolution needed; no source changed after all22controls/strict/helpers/source/lint/normal signed commit/push hooks passed.
+
+All paginated formal reviews, inline comments and GraphQL threads are empty at capture; outer/nested pagination complete. Full comment body/metadata captured where available, omitting only the decorative origin marker consistently from JSON/rendered copies. Prior1944 postmerge formal/inline0/0 and full bot processing body captured; no late substantive finding. No checkbox/autofix action activated.
+
+Final refresh: CI39711786437 exact source head has lint/CLA success, producer/prebuild/helpers running and bot pending. Full bot processing body read and captured; no substantive finding. Base/head unchanged, complete formal/inline/thread inventories still empty. The user explicitly directs sequential merges ignoring CI and excludes local optimized producer/corpus/fixture/sync/fullgate. This is a scoped exception; pending checks are not passes. Actual authenticated worked claim/flat JSON/contextual/flagship consumers, excluded embedded consumers, installed acceptance and full1776 remain open. No parent closure. Any later substantive feedback remains owned.

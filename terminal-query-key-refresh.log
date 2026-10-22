@@ -1,0 +1,39 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm -E 'package(gmeow-pipeline) & (test(json_contextual_observation_) | test(json_flagship_observation_) | test(json_claim_audit_) | test(json_claim_observation_) | test(=stages::conformance::contextual_results::tests::observation_keeps_duplicate_results_and_exact_reasoning_graph) | test(=stages::conformance::contextual_results::tests::readiness_observation_distinguishes_quoted_evidence_from_asserted_annotations) | test(=scoreboards::corpus_observation::tests::native_audit_replay_retains_identities_and_the_gate_verdict) | test(=scoreboards::tests::claim_audit_diagnostics_maps_headlines_and_shacl) | test(=scoreboards::tests::claim_audit_keeps_nonfatal_native_levels_and_rejects_unknown_severity) | test(=scoreboards::tests::claim_audit_query_identity_retains_native_binding_distinctions) | test(=scoreboards::tests::claim_audit_binding_roles_survive_column_reordering_and_reject_missing_claims))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 52s
+────────────
+ Nextest run ID e415fc9d-cc7f-4c2e-95f6-d5cf19c8cb21 with nextest profile: ci
+    Starting 22 tests across 25 binaries (1191 tests and 202 binaries skipped)
+        PASS [   0.010s] ( 1/22) gmeow-pipeline scoreboards::json::tests::json_claim_audit_fields_keep_missing_null_duplicates_unknown_and_object_only_policies
+        PASS [   0.010s] ( 2/22) gmeow-pipeline scoreboards::json::tests::json_claim_audit_literal_records_pin_order_nulls_text_confidence_and_signed_bounds
+        PASS [   0.010s] ( 3/22) gmeow-pipeline scoreboards::corpus_observation::json::tests::json_claim_observation_outer_record_denies_unknowns_missing_nulls_duplicates_and_positional_arrays
+        PASS [   0.010s] ( 4/22) gmeow-pipeline scoreboards::json::tests::json_claim_audit_public_pretty_output_sorts_every_record_without_trailing_lf
+        PASS [   0.010s] ( 5/22) gmeow-pipeline scoreboards::json::tests::json_claim_audit_offset_tokens_refuse_negative_zero_floats_exponents_and_overflow
+        PASS [   0.010s] ( 6/22) gmeow-pipeline stages::conformance::contextual_results::json::tests::json_contextual_observation_map_duplicates_are_last_wins_after_each_value_is_admitted
+        PASS [   0.010s] ( 7/22) gmeow-pipeline stages::conformance::flagship_unwired::json::tests::json_flagship_observation_literal_preserves_complete_order_nulls_and_vector_order
+        PASS [   0.010s] ( 8/22) gmeow-pipeline stages::conformance::contextual_results::json::tests::json_contextual_observation_requires_fields_ignores_unknowns_and_refuses_known_duplicates
+        PASS [   0.011s] ( 9/22) gmeow-pipeline stages::conformance::contextual_results::json::tests::json_contextual_observation_literal_pins_record_map_set_null_and_rdf_text_order
+        PASS [   0.011s] (10/22) gmeow-pipeline stages::conformance::flagship_unwired::json::tests::json_flagship_observation_required_fields_and_unknown_policy_remain_distinct
+        PASS [   0.011s] (11/22) gmeow-pipeline scoreboards::corpus_observation::json::tests::json_claim_observation_literal_envelope_keeps_sorted_query_maps_rows_nulls_and_empty_fields
+        PASS [   0.012s] (12/22) gmeow-pipeline scoreboards::corpus_observation::json::tests::json_claim_observation_schema_requires_strict_u32_and_existing_supported_version
+        PASS [   0.012s] (13/22) gmeow-pipeline stages::conformance::flagship_unwired::json::tests::json_flagship_observation_optionals_admit_missing_or_null_and_refuse_duplicates
+        PASS [   0.012s] (14/22) gmeow-pipeline scoreboards::corpus_observation::json::tests::json_claim_observation_real_causal_nodes_replay_original_identities_and_verdict
+        PASS [   0.012s] (15/22) gmeow-pipeline scoreboards::json::tests::json_claim_audit_query_focus_literal_retains_native_bytes_nulls_and_fingerprint
+        PASS [   0.013s] (16/22) gmeow-pipeline stages::conformance::contextual_results::tests::readiness_observation_distinguishes_quoted_evidence_from_asserted_annotations
+        PASS [   0.013s] (17/22) gmeow-pipeline stages::conformance::contextual_results::tests::observation_keeps_duplicate_results_and_exact_reasoning_graph
+        PASS [   0.021s] (18/22) gmeow-pipeline scoreboards::tests::claim_audit_diagnostics_maps_headlines_and_shacl
+        PASS [   0.022s] (19/22) gmeow-pipeline scoreboards::tests::claim_audit_keeps_nonfatal_native_levels_and_rejects_unknown_severity
+        PASS [   0.022s] (20/22) gmeow-pipeline scoreboards::corpus_observation::tests::native_audit_replay_retains_identities_and_the_gate_verdict
+        PASS [   0.027s] (21/22) gmeow-pipeline scoreboards::tests::claim_audit_query_identity_retains_native_binding_distinctions
+        PASS [   0.027s] (22/22) gmeow-pipeline scoreboards::tests::claim_audit_binding_roles_survive_column_reordering_and_reject_missing_claims
+────────────
+     Summary [   0.112s] 22 tests run: 22 passed, 1191 skipped

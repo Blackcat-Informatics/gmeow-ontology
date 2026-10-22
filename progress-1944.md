@@ -1,0 +1,5 @@
+The [complete norm/source-contract observation transport](https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1944) is merged. Both norm publishers and the authenticated norm/source-contract readers now use native JSON, preserving causal diagnostic identities, dispatch variants, strict count admission and supported graph hydration. Catalog and projection count readers share the same native primitive adapter.
+
+All thirty focused authored controls passed, along with helper checks, strict producer-independent compilation, source admission, lint and normal hooks. The landed tree and complete signed evidence archive were verified; the completed checkout was cleaned up. Actual authenticated corpus, embedded consumers, installed acceptance and full dependency removal remain open under the recorded campaign exception.
+
+The next complete unit groups contextual and flagship observations with claim-audit transport, public JSON and query-binding identity. It will preserve exact compact/pretty output profiles, schema admission and diagnostic replay rather than leaving a partial caller migration.
