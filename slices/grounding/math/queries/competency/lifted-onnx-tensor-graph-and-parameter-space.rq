@@ -4,7 +4,7 @@
 #
 # The producer-namespace twin of onnx-tensor-graph-and-parameter-space.rq. That query
 # interrogates the prose-authored tests/fixtures/bridges.ttl scene; this one interrogates
-# tests/fixtures/lifted-onnx.ttl — the byte-exact output of
+# tests/fixtures/lifted-onnx.ttl — the canonical graph from
 # gmeow_math::producers::onnx_lift, which decodes the real protobuf ModelProto at
 # crates/math-lift/fixtures/mlp.onnx through the hand-written wire reader and lifts it.
 # Operator types, tensor shapes, and the declared opset are read off actual bytes, so the
