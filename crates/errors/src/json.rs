@@ -3,7 +3,10 @@
 
 //! Native JSON admission shared by diagnostic and receipt transports.
 
-use purrdf_lex::json::{Value, record::DecodeError};
+use purrdf_lex::json::{
+    Value,
+    record::{DecodeError, FromJson, Record},
+};
 
 /// Read an unsigned integer token followed by a checked target-width conversion.
 ///
@@ -18,4 +21,74 @@ pub fn read_unsigned<T: TryFrom<u64>>(value: &Value, expected: &str) -> Result<T
         .as_u64()
         .and_then(|number| T::try_from(number).ok())
         .ok_or_else(|| DecodeError::invalid_value(value, expected))
+}
+
+/// Read a signed i32 integer token, excluding the float-like spelling `-0`.
+///
+/// # Errors
+/// Returns a native value refusal for invalid token syntax or i32 overflow.
+pub fn read_signed_i32(value: &Value, expected: &str) -> Result<i32, DecodeError> {
+    value
+        .as_number()
+        .filter(|number| number.lexeme() != "-0")
+        .and_then(|number| number.as_i128())
+        .and_then(|number| i32::try_from(number).ok())
+        .ok_or_else(|| DecodeError::invalid_value(value, expected))
+}
+
+/// Borrow the single member of an externally tagged enum object.
+/// Separate type/cardinality expectations retain the owning transport's wording.
+///
+/// # Errors
+/// Refuses nonobjects, empty objects and multiple members, including duplicates.
+pub fn read_variant<'a>(
+    value: &'a Value,
+    type_expected: &str,
+    cardinality_expected: &str,
+) -> Result<(&'a str, &'a Value), DecodeError> {
+    let object = value
+        .as_object()
+        .ok_or_else(|| DecodeError::invalid_type(value, type_expected))?;
+    let mut entries = object.iter();
+    let Some((name, payload)) = entries.next() else {
+        return Err(DecodeError::invalid_value(value, cardinality_expected));
+    };
+    if entries.next().is_some() {
+        return Err(DecodeError::invalid_value(value, cardinality_expected));
+    }
+    Ok((name, payload))
+}
+
+/// Read a unit enum's string or its exact singleton-null-object form.
+///
+/// # Errors
+/// Refuses any other representation; the owning enum admits the returned name.
+pub fn read_unit_name<'a>(value: &'a Value, expected: &str) -> Result<&'a str, DecodeError> {
+    if let Some(name) = value.as_str() {
+        return Ok(name);
+    }
+    let (name, payload) = read_variant(value, expected, expected)?;
+    if !matches!(payload, Value::Null) {
+        return Err(DecodeError::invalid_value(value, expected));
+    }
+    Ok(name)
+}
+
+/// Read a producer outcome carrying either its typed value or a recorded diagnostic.
+/// The owning transport supplies its existing type and cardinality wording.
+///
+/// # Errors
+/// Refuses malformed variants or payloads, retaining the `Ok`/`Err` field pointer.
+pub fn read_recorded_result<T: FromJson>(
+    value: &Value,
+    type_expected: &str,
+    cardinality_expected: &str,
+) -> Result<Result<T, crate::RecordedDiag>, DecodeError> {
+    let (tag, _) = read_variant(value, type_expected, cardinality_expected)?;
+    let mut fields = Record::new(value, type_expected)?;
+    match tag {
+        "Ok" => fields.required("Ok").map(Ok),
+        "Err" => fields.required("Err").map(Err),
+        name => Err(DecodeError::unknown_variant(name, &["Ok", "Err"])),
+    }
 }

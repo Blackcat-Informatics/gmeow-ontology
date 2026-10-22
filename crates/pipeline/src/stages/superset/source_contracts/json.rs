@@ -8,7 +8,6 @@ use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson},
 };
-use std::collections::BTreeSet;
 
 impl ToJson for Observation {
     fn to_json(&self) -> Value {
@@ -50,23 +49,17 @@ impl FromJson for Definition {
         let mut fields = Record::new(value, "struct Definition")?;
         Ok(Self {
             text: fields.required("text")?,
-            values: fields.required_with("values", definition_result)?,
+            values: fields.required_with("values", |value| {
+                gmeow_errors::json::read_recorded_result(
+                    value,
+                    "externally tagged variant",
+                    "one variant",
+                )
+            })?,
         })
     }
 }
 
-/// Definitions record either the ordered value set or the original causal rejection.
-fn definition_result(
-    value: &Value,
-) -> Result<Result<BTreeSet<String>, gmeow_errors::RecordedDiag>, DecodeError> {
-    let (tag, _) = contract_variant(value)?;
-    let mut fields = Record::new(value, "definition Result")?;
-    match tag {
-        "Ok" => fields.required("Ok").map(Ok),
-        "Err" => fields.required("Err").map(Err),
-        name => Err(DecodeError::unknown_variant(name, &["Ok", "Err"])),
-    }
-}
 impl ToJson for OwnedRule {
     fn to_json(&self) -> Value {
         Object::new()
@@ -91,27 +84,13 @@ impl FromJson for OwnedRule {
     }
 }
 
-/// Externally tagged payloads must contain exactly one member, including duplicates.
-fn contract_variant(value: &Value) -> Result<(&str, &Value), DecodeError> {
-    let object = value
-        .as_object()
-        .ok_or_else(|| DecodeError::invalid_type(value, "externally tagged variant"))?;
-    let mut entries = object.iter();
-    let Some((tag, payload)) = entries.next() else {
-        return Err(DecodeError::invalid_value(value, "one variant"));
-    };
-    if entries.next().is_some() {
-        return Err(DecodeError::invalid_value(value, "one variant"));
-    }
-    Ok((tag, payload))
-}
-
 /// Unit dispatch variants retain both strings and exact singleton null objects.
 fn dispatch_unit(value: &Value) -> Result<&str, DecodeError> {
     if let Some(name) = value.as_str() {
         return Ok(name);
     }
-    let (name, payload) = contract_variant(value)?;
+    let (name, payload) =
+        gmeow_errors::json::read_variant(value, "externally tagged variant", "one variant")?;
     if !matches!(payload, Value::Null) {
         return Err(DecodeError::invalid_value(
             value,
@@ -159,7 +138,11 @@ impl ToJson for OwnedForm {
 impl FromJson for OwnedForm {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         if value.as_object().is_some() {
-            let (name, _) = contract_variant(value)?;
+            let (name, _) = gmeow_errors::json::read_variant(
+                value,
+                "externally tagged variant",
+                "one variant",
+            )?;
             if name == "NQuads" {
                 return Record::new(value, "NQuads variant")?
                     .required("NQuads")

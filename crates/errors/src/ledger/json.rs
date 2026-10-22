@@ -12,7 +12,7 @@ use crate::diag::{
     Remediation, Slot, SourceContext, StageId, TermRole,
 };
 use crate::grade::{Belnap, Grade, Standpoint};
-use crate::json::read_unsigned as unsigned;
+use crate::json::{read_unit_name as unit_name, read_unsigned as unsigned};
 use crate::model::{DiagnosticAttribution, FindingCategory, Location, Severity};
 use purrdf_lex::json::{
     Object, Value,
@@ -36,23 +36,6 @@ impl FromJson for RecordedDiag {
             causes: record.required("causes")?,
         })
     }
-}
-
-fn unit_name<'a>(value: &'a Value, expected: &str) -> Result<&'a str, DecodeError> {
-    if let Some(name) = value.as_str() {
-        return Ok(name);
-    }
-    let object = value
-        .as_object()
-        .ok_or_else(|| DecodeError::invalid_type(value, expected))?;
-    let mut entries = object.iter();
-    let Some((name, payload)) = entries.next() else {
-        return Err(DecodeError::invalid_value(value, expected));
-    };
-    if entries.next().is_some() || !matches!(payload, Value::Null) {
-        return Err(DecodeError::invalid_value(value, expected));
-    }
-    Ok(name)
 }
 
 impl ToJson for DiagFingerprint {

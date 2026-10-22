@@ -90,7 +90,7 @@ const RECOGNIZED_SELECTORS: [&str; 4] = [
 const EXCLUDED_GRAPHS: [&str; 2] = [MEDIUM_REGISTRY_GRAPH, MEDIUM_MEASUREMENT_GRAPH];
 
 /// One declared corpus selector.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CorpusSelector {
     /// `gmeow:corpusSelectsBlobRep` — an archive rep; every member is one sample.
     BlobRep(String),

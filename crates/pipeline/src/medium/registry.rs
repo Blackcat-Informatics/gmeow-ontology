@@ -45,6 +45,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
+mod json;
+
 use purrdf::gts_compose::{
     DictSelection as WireDictSelection, FrameSlot, MediumPlan as WireMediumPlan,
 };
@@ -60,9 +62,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// Both an AUTHORED intent on `gmeow:CompressionDictionary` and a MEASURED fact on
 /// `gmeow:CompressionDictionaryRealization` — a trainer that fell back to raw
 /// content must say so, because the two produce different decode-side expectations.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DictionaryStrategy {
     /// The zstd FastCOVER trainer.
     Trained,
@@ -107,9 +107,7 @@ impl fmt::Display for DictionaryStrategy {
 }
 
 /// How a medium resolves the dictionary for a payload (`gmeow:MediumSourceKind`).
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MediumSourceKind {
     /// One dictionary per registered payload schema.
     PerRep,
@@ -134,7 +132,7 @@ impl MediumSourceKind {
 /// the build measures. Deliberately no digest / byte length / `Dictionary_ID` —
 /// those live on the generated realization, because requiring them here would be an
 /// unsatisfiable obligation (the digest cannot exist before training).
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DictionaryDef {
     /// The `gmeow:CompressionDictionary` individual's IRI.
     pub iri: String,
@@ -154,7 +152,7 @@ pub struct DictionaryDef {
 
 /// A declared training corpus: a SELECTOR, re-resolved every build, never a frozen
 /// file list.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CorpusDef {
     /// The `gmeow:DictionaryCorpus` individual's IRI.
     pub iri: String,
@@ -185,7 +183,7 @@ pub struct CorpusDef {
 /// split would silently do nothing, which is the failure mode it exists to prevent.
 /// Ranking makes the held-out side non-empty for every corpus with more members than
 /// the offset, and the training side non-empty for every corpus with at least two.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TrainingSplitDef {
     /// The `gmeow:CorpusTrainingSplit` individual's IRI.
     pub iri: String,
@@ -211,7 +209,7 @@ impl TrainingSplitDef {
 }
 
 /// A registered payload representation (`gmeow:PayloadSchema`).
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SchemaDef {
     /// The `gmeow:PayloadSchema` individual's IRI.
     pub iri: String,
@@ -220,7 +218,7 @@ pub struct SchemaDef {
 }
 
 /// A declared medium: the lawful `(encode, decode)` pair's coordinates.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MediumDef {
     /// The `gmeow:Medium` / `gmeow:ZstdDictMedium` individual's IRI.
     pub iri: String,
@@ -273,7 +271,7 @@ impl MediumDef {
 /// let "the registry forgot this rep" and "this rep is deliberately unprimed" be the
 /// same value, and they are not — the first is a bug that silently costs density,
 /// the second is a declaration.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DictSelection {
     /// Prime with this `gmeow:CompressionDictionary` (by IRI).
     Named(String),
@@ -320,7 +318,7 @@ impl MediumSelection {
 }
 
 /// One row of the rep→medium assignment.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RepAssignment {
     /// The `gmeow:PayloadSchema` IRI this row is keyed on.
     pub schema: String,
@@ -331,7 +329,7 @@ pub struct RepAssignment {
 }
 
 /// The typed medium registry: the whole medium axis, read once off the carrier.
-#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct MediumRegistry {
     dictionaries: BTreeMap<String, DictionaryDef>,
     dictionary_by_id: BTreeMap<String, String>,
