@@ -5,55 +5,26 @@
 //! Math lowering passes its already parsed negative fixtures through this seam;
 //! remaining inputs execute in independent bounded source actions.
 
+#[cfg(test)]
+#[path = "source_lint.json.tests.rs"]
+mod json_tests;
+
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_action_cache::{
     ActionInput, ActionStore, FileKind, STORE_FORMAT_VERSION, StoreLimits, bytes_digest,
 };
-use gmeow_errors::ledger::DiagNode;
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use purrdf::RdfDataset;
-use serde::{Deserialize, Serialize};
 
 mod sources;
 
 pub(super) const CHANNEL: &str = "pipeline/authored-lint-observations.json";
 const PROFILE: &str = "structural-source-fixtures:original-native:v1";
 
-#[derive(Serialize, Deserialize)]
-struct Observations {
-    profile: String,
-    configuration: Configuration,
-    sources: BTreeMap<String, SourceRecord>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(super) struct SourceRecord {
-    pub source_digest: String,
-    pub diagnostics: Vec<DiagNode>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct Configuration {
-    namespace: String,
-    ontology_iri: String,
-    selector_tokens: BTreeSet<String>,
-    core_slice_iris: BTreeSet<String>,
-    annotation_predicates: BTreeSet<String>,
-}
-
-impl From<&LintConfig> for Configuration {
-    fn from(config: &LintConfig) -> Self {
-        Self {
-            namespace: config.namespace.clone(),
-            ontology_iri: config.ontology_iri.clone(),
-            selector_tokens: config.selector_tokens.clone(),
-            core_slice_iris: config.core_slice_iris.iter().cloned().collect(),
-            annotation_predicates: config.annotation_predicates.iter().cloned().collect(),
-        }
-    }
-}
+pub(super) use gmeow_validate::lint::source_observation::SourceRecord;
+use gmeow_validate::lint::source_observation::{Configuration, Observations};
 
 fn configuration() -> LintConfig {
     LintConfig {
@@ -82,7 +53,7 @@ pub(super) fn selected(path: &str) -> bool {
 }
 
 pub(super) fn configuration_input() -> gmeow_errors::Result<ActionInput> {
-    let bytes = serde_json::to_vec(&Configuration::from(&configuration())).map_err(fail)?;
+    let bytes = purrdf_lex::json::record::to_vec(&Configuration::from(&configuration()));
     Ok(ActionInput::Raw {
         logical_path: "structural-source-fixtures/configuration".to_owned(),
         file_kind: FileKind::Aggregate,
@@ -136,7 +107,7 @@ pub(super) fn record(
         }
         let bytes = std::fs::read(root.join(path)).map_err(fail)?;
         let digest = bytes_digest(&bytes);
-        let record = super::execution::cached_inputs(
+        let record = super::execution::cached_native_inputs(
             &store,
             PROFILE,
             vec![
@@ -171,12 +142,11 @@ pub(super) fn record(
     }
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&Observations {
+        purrdf_lex::json::record::to_vec(&Observations {
             profile: PROFILE.to_owned(),
             configuration: Configuration::from(&configuration()),
             sources: observations,
-        })
-        .map_err(fail)?,
+        }),
     );
     Ok(())
 }

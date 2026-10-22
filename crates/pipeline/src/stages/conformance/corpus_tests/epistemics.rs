@@ -47,7 +47,7 @@ fn observation() -> &'static super::super::epistemics::Observation {
             gmeow_errors::Diag,
         >,
     > = std::sync::OnceLock::new();
-    super::source_artifact::get(&OBSERVATION, super::super::epistemics::CHANNEL)
+    super::source_artifact::get_native(&OBSERVATION, super::super::epistemics::CHANNEL)
 }
 
 fn scoped_closure(probe: &str) -> &Probe {

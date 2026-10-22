@@ -24,6 +24,8 @@ purrdf-hash.workspace = true
 purrdf.workspace = true
 # Native composite-literal blank identities share the upstream core's authority.
 purrdf-core.workspace = true
+# Native closed-record observation transports.
+purrdf-lex.workspace = true
 # The native SPARQL engine over `Arc<RdfDataset>`: the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (purrdf's rdf-core/sparql-algebra/xsd

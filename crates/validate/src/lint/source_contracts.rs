@@ -3,26 +3,12 @@
 
 //! Exact selected source-lint findings; no authored fixture parsing in unit tests.
 
-use gmeow_errors::{Severity, ledger::DiagNode};
+use super::source_observation::{Configuration, Observations, SourceRecord};
+use gmeow_errors::Severity;
 use gmeow_logic::verify::PreparedVerification;
-use serde::Deserialize;
 use std::cell::OnceCell;
-use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 use std::sync::OnceLock;
-
-#[derive(Deserialize)]
-struct Observations {
-    profile: String,
-    configuration: Configuration,
-    sources: BTreeMap<String, SourceRecord>,
-}
-
-#[derive(Deserialize)]
-pub(super) struct SourceRecord {
-    source_digest: String,
-    diagnostics: Vec<DiagNode>,
-}
 
 impl SourceRecord {
     pub(super) fn errors(&self) -> Vec<String> {
@@ -36,15 +22,6 @@ impl SourceRecord {
             })
             .collect()
     }
-}
-
-#[derive(Debug, PartialEq, Eq, Deserialize)]
-struct Configuration {
-    namespace: String,
-    ontology_iri: String,
-    selector_tokens: BTreeSet<String>,
-    core_slice_iris: BTreeSet<String>,
-    annotation_predicates: BTreeSet<String>,
 }
 
 pub(super) fn report(path: &str, config: &super::LintConfig) -> &'static SourceRecord {
@@ -64,7 +41,8 @@ pub(super) fn report(path: &str, config: &super::LintConfig) -> &'static SourceR
                 "pipeline/authored-lint-observations.json",
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let observed = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let observed =
+                purrdf_lex::json::record::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
             Ok(Selected {
                 selector: selector.clone(),
                 observed,

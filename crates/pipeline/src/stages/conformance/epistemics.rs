@@ -5,13 +5,14 @@
 //! Each selected ABox is independently cached; expected memberships remain solely
 //! in the consumer. No source parse or cumulative closure cache is introduced.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use gmeow_action_cache::{ActionInput, ActionStore, FileKind, STORE_FORMAT_VERSION, StoreLimits};
 use gmeow_logic::reason::{RlTriple, rl_closure};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
-use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
 
@@ -23,7 +24,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observation {
     pub universe: BTreeSet<String>,
     pub probes: BTreeMap<String, Result<Probe, gmeow_errors::RecordedDiag>>,
@@ -32,7 +33,7 @@ pub(super) struct Observation {
 /// The complete probe answer domain plus the size of its actual full closure.
 /// Retaining untouched module facts five times would inflate the intermediate
 /// without adding any evidence to the selected instance queries.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Probe {
     pub total_triples: usize,
     pub triples: Vec<RlTriple>,
@@ -102,7 +103,7 @@ pub(super) fn record(
     );
     let mut probes = BTreeMap::new();
     for (name, abox) in selections {
-        let observed = super::execution::cached_inputs(
+        let observed = super::execution::cached_native_inputs(
             &store,
             &format!("epistemics-instance-v1:{name}"),
             vec![ActionInput::Raw {
@@ -142,8 +143,7 @@ pub(super) fn record(
     }
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&Observation { universe, probes })
-            .map_err(|error| super::stage_err(&error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&Observation { universe, probes }),
     );
     Ok(())
 }
