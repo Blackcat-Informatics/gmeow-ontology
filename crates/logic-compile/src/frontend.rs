@@ -28,6 +28,8 @@
 //! 4. **Rules** — `logic:Rule` nodes with `logic:head` / `logic:body` /
 //!    `logic:negatedBody` / `logic:distinctBody` links.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]

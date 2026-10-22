@@ -18,6 +18,8 @@
 //! atomic term algebra. Their framed keys bind object kind and every RDF literal
 //! component; contextual scope is bound separately by the complete content key.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::{self, Write as _};
 
