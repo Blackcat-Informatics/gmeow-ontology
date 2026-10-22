@@ -11,8 +11,8 @@ use gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES;
 use gmeow_logic::result_rdf::GRAPH_REASONING;
 
 use super::super::native_scene::{
-    ALPHA_DRIFT, AuxiliaryObservation, CHANNEL, DIMENSION, DimensionFindings, MATH_MODULE, MODAL,
-    Scene,
+    ALPHA_DRIFT, AuxiliaryObservation, AuxiliaryOutcome, CHANNEL, DIMENSION, DimensionFindings,
+    MATH_MODULE, MODAL, Scene,
 };
 
 fn scene(path: &str) -> &'static Scene {
@@ -68,13 +68,10 @@ fn real_math_module_force_dimension_is_clean_under_the_reasoned_gate() {
 
 fn alpha_drift() -> &'static AuxiliaryObservation {
     static OBSERVED: OnceLock<
-        gmeow_errors::Result<
-            super::source_artifact::Selected<
-                Result<AuxiliaryObservation, gmeow_errors::RecordedDiag>,
-            >,
-        >,
+        gmeow_errors::Result<super::source_artifact::Selected<AuxiliaryOutcome>>,
     > = OnceLock::new();
-    let observed = super::source_artifact::get(&OBSERVED, CHANNEL)
+    let observed = super::source_artifact::get_native(&OBSERVED, CHANNEL)
+        .0
         .as_ref()
         .expect("native alpha-equivalence scene evaluation");
     assert_eq!(observed.source_path, ALPHA_DRIFT);

@@ -3,17 +3,21 @@
 
 //! Original glossary coordinates for independent executable/spec agreement.
 
+mod json;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_action_cache::{ActionStore, STORE_FORMAT_VERSION, StoreLimits};
 use purrdf::{NativeRdfFormat, TermRef, parse_dataset};
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub(super) struct Triple(
-    pub String,
-    pub String,
-    #[serde(with = "gmeow_logic::term_serde")] pub purrdf::TermValue,
+#[derive(Clone, Debug)]
+pub(super) struct Triple(pub String, pub String, pub purrdf::TermValue);
+
+/// Complete source outcomes, including failed parses retained by the producer.
+#[derive(Debug)]
+pub(super) struct Observations(
+    pub BTreeMap<String, Result<Vec<Triple>, gmeow_errors::RecordedDiag>>,
 );
 
 pub(crate) const CHANNEL: &str = "pipeline/glossary-source-observations.json";
@@ -39,7 +43,7 @@ pub(super) fn record(
     .map_err(|error| super::stage_err(&error.to_string()))?;
     let mut observations = BTreeMap::new();
     for source in SOURCES {
-        let observed = super::execution::cached_observation(
+        let observed = super::execution::cached_native_observation(
             root,
             &root.join(source),
             &store,
@@ -65,11 +69,11 @@ pub(super) fn record(
             },
         )
         .map_err(super::record_failure);
-        observations.insert(source, observed);
+        observations.insert((*source).to_owned(), observed);
     }
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observations).map_err(|error| super::stage_err(&error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&Observations(observations)),
     );
     Ok(())
 }

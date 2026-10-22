@@ -4,10 +4,12 @@
 //! Shared value-only codec for retained native reasoning terms and presentation
 //! metadata. No dataset-local term IDs and no execution certificates.
 
+mod json;
+
 use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 enum Value {
     Iri(String),
     Blank {
@@ -27,7 +29,7 @@ enum Value {
     },
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 enum Direction {
     Ltr,
     Rtl,
@@ -144,4 +146,21 @@ pub mod vec {
         Vec::<Value>::deserialize(deserializer)
             .map(|values| values.into_iter().map(Into::into).collect())
     }
+}
+
+/// Encode a retained native term through the same value-only representation.
+#[must_use]
+pub fn to_json(value: &TermValue) -> purrdf_lex::json::Value {
+    purrdf_lex::json::record::ToJson::to_json(&Value::from(value))
+}
+
+/// Decode retained term structure, preserving its blank scope and rendered fields.
+/// No RDF role validation or lexical normalization is performed.
+///
+/// # Errors
+/// Returns the native shape or field refusal with its complete member pointer.
+pub fn from_json(
+    value: &purrdf_lex::json::Value,
+) -> Result<TermValue, purrdf_lex::json::record::DecodeError> {
+    <Value as purrdf_lex::json::record::FromJson>::from_json(value).map(Into::into)
 }

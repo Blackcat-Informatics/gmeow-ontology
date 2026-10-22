@@ -58,3 +58,21 @@ fn retained_native_rule_keeps_polarity_builtin_tags_and_complete_value_identity(
         "the executable native law must survive its fixture transport exactly"
     );
 }
+
+#[test]
+fn json_retained_term_facade_reexports_native_owner_without_altering_scope() {
+    let literal = r#"{"Blank":{"label":"same","scope":4294967295}}"#;
+    let value = purrdf_lex::json::read(literal).unwrap();
+    let term = crate::term_serde::from_json(&value).unwrap();
+    assert_eq!(
+        term,
+        TermValue::Blank {
+            label: "same".into(),
+            scope: BlankScope(u32::MAX)
+        }
+    );
+    assert_eq!(
+        purrdf_lex::json::write_compact(&crate::term_serde::to_json(&term)),
+        literal
+    );
+}

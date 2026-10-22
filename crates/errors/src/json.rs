@@ -4,8 +4,8 @@
 //! Native JSON admission shared by diagnostic and receipt transports.
 
 use purrdf_lex::json::{
-    Value,
-    record::{DecodeError, FromJson, Record},
+    Object, Value,
+    record::{DecodeError, FromJson, Record, ToJson},
 };
 
 /// Read an unsigned integer token followed by a checked target-width conversion.
@@ -92,3 +92,16 @@ pub fn read_recorded_result<T: FromJson>(
         name => Err(DecodeError::unknown_variant(name, &["Ok", "Err"])),
     }
 }
+
+/// Write a producer outcome with the same singleton tags as its recorded-result reader.
+/// The failure payload is always the complete owned RecordedDiag, including causes.
+#[must_use]
+pub fn recorded_result_to_json<T: ToJson>(outcome: &Result<T, crate::RecordedDiag>) -> Value {
+    match outcome {
+        Ok(value) => Object::new().with("Ok", value.to_json()).into(),
+        Err(error) => Object::new().with("Err", error.to_json()).into(),
+    }
+}
+
+#[cfg(test)]
+mod tests;

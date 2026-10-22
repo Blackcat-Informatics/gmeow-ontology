@@ -44,10 +44,7 @@ impl FromJson for ReviewedCoverageObservation {
 }
 impl ToJson for ReviewedCoverageOutcome {
     fn to_json(&self) -> Value {
-        match &self.0 {
-            Ok(observation) => Object::new().with("Ok", observation.to_json()).into(),
-            Err(error) => Object::new().with("Err", error.to_json()).into(),
-        }
+        gmeow_errors::json::recorded_result_to_json(&self.0)
     }
 }
 impl FromJson for ReviewedCoverageOutcome {

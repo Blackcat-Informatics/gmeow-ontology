@@ -323,3 +323,83 @@ fn json_conformance_native_cache_live_failure_keeps_context_and_no_action() {
     assert_eq!(value, "explicit new attempt");
     assert_eq!(calls.get(), 1);
 }
+
+#[test]
+fn json_native_file_cache_preserves_source_identity_and_never_executes_a_hit() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("tiny.txt");
+    std::fs::write(&path, "first").unwrap();
+    let store = ActionStore::open(
+        ActionStore::default_root(directory.path()),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap();
+    let (bytes, input) = observation_input(directory.path(), &path).unwrap();
+    assert_eq!(bytes, b"first");
+    match input {
+        ActionInput::Raw {
+            logical_path,
+            file_kind,
+            executable,
+            digest,
+        } => {
+            assert_eq!(logical_path, "tiny.txt");
+            assert_eq!(file_kind, FileKind::File);
+            assert!(!executable);
+            assert_eq!(digest, bytes_digest(b"first"));
+        }
+        other => panic!("wrong input {other:?}"),
+    }
+    // gmeow-test-input: synthetic-only; this file action decodes a plain temporary string.
+    let first =
+        cached_native_observation(directory.path(), &path, &store, "native-file", |bytes| {
+            String::from_utf8(bytes.to_vec()).map_err(gmeow_errors::Diag::from)
+        })
+        .unwrap();
+    assert_eq!(first, "first");
+    // gmeow-test-input: synthetic-only; the exact native hit must never execute.
+    let hit =
+        cached_native_observation::<String>(directory.path(), &path, &store, "native-file", |_| {
+            panic!("file cache hit executed")
+        })
+        .unwrap();
+    assert_eq!(hit, first);
+    std::fs::write(&path, "second").unwrap();
+    // gmeow-test-input: synthetic-only; changed selected file bytes require a new action.
+    assert_eq!(
+        cached_native_observation(directory.path(), &path, &store, "native-file", |bytes| {
+            String::from_utf8(bytes.to_vec()).map_err(gmeow_errors::Diag::from)
+        })
+        .unwrap(),
+        "second"
+    );
+}
+#[test]
+fn json_native_file_cache_malformed_hit_is_terminal_without_producer_retry() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("input.txt");
+    std::fs::write(&path, "source").unwrap();
+    let store = ActionStore::open(
+        ActionStore::default_root(directory.path()),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap();
+    let (_, input) = observation_input(directory.path(), &path).unwrap();
+    // gmeow-test-input: synthetic-only; preserve actual bytes and action admission with bad JSON.
+    assert_eq!(
+        cached_bytes(&store, "bad-native-file", vec![input], || Ok(b"{".to_vec())).unwrap(),
+        b"{"
+    );
+    // gmeow-test-input: synthetic-only; decode refusal cannot re-enter the file producer.
+    let error = cached_native_observation::<String>(
+        directory.path(),
+        &path,
+        &store,
+        "bad-native-file",
+        |_| panic!("malformed hit retried"),
+    )
+    .unwrap_err();
+    assert!(error.is::<purrdf_lex::json::record::DecodeError>());
+}
