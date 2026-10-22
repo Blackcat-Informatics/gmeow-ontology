@@ -13,35 +13,17 @@ use gmeow_action_cache::{
 };
 use purrdf::shapes::engine::{PreparedShapes, parse_shapes};
 use purrdf::{RdfDataset, RdfDatasetBuilder};
-use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
 
 mod controls;
 
+use gmeow_validate::inference_observation::{Control, Observations, ResultMessage};
+
 pub(crate) const CHANNEL: &str = "pipeline/inference-validation-observations.json";
 const MODULE: &str = "slices/core/inference/module.ttl";
 const SHAPES: &str = "slices/core/inference/shapes.ttl";
 const PROFILE: &str = "inference-slice-plus-constraint-shapes:flattened-default:v1";
-
-#[derive(Serialize, Deserialize)]
-struct Observations {
-    profile: String,
-    sources: BTreeMap<String, String>,
-    controls: BTreeMap<String, Control>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct Control {
-    input_digest: String,
-    results: Vec<ResultMessage>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct ResultMessage {
-    severity: String,
-    message: Option<String>,
-}
 
 pub(crate) fn input_files(root: &Path) -> Vec<PathBuf> {
     [MODULE, SHAPES]
@@ -104,7 +86,7 @@ pub(crate) fn record(
             executable: false,
             digest: input_digest.clone(),
         });
-        let observed = super::execution::cached_inputs(&store, PROFILE, inputs, || {
+        let observed = super::execution::cached_native_inputs(&store, PROFILE, inputs, || {
             let (module, shapes) = prepared.get_or_try_init(|| -> gmeow_errors::Result<_> {
                 let module = flatten(catalog.document(MODULE)?)?;
                 // Both sources are already serialization-boundary inputs. Parse their
@@ -148,7 +130,7 @@ pub(crate) fn record(
     }
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observations).map_err(fail)?,
+        purrdf_lex::json::record::to_vec(&observations),
     );
     Ok(())
 }

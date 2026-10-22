@@ -42,6 +42,7 @@ pub fn observations() -> &'static Observations {
         &OBSERVED,
         "stage-conformance",
         "pipeline/grounding-catalog-observations.json",
+        |bytes| serde_json::from_slice(bytes).map_err(gmeow_errors::Diag::from),
     );
     let expected = [
         "slices/grounding/logic/mappings/grounding-bridges.ttl",

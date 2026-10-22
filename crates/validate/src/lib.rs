@@ -44,6 +44,8 @@ pub mod findings;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod grounding_catalog;
 pub mod gufo;
+/// Closed producer observations for the authored inference validation controls.
+pub mod inference_observation;
 // The loop-closure enrichment join (correspondence of a validation Report against
 // the documentation projection). Pure serde over the wasm-clean Finding/Report model
 // and `rule_catalog::help_uri_for` — no RDF store, pipeline carrier, or reasoner — so

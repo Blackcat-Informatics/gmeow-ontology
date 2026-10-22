@@ -160,6 +160,7 @@ fn gts_module() -> &'static Observations {
         &OBSERVED,
         "stage-conformance",
         "pipeline/medium-axis-observations.json",
+        |bytes| serde_json::from_slice(bytes).map_err(gmeow_errors::Diag::from),
     );
     assert_eq!(observed.source_path, "slices/core/gts/module.ttl");
     assert!(

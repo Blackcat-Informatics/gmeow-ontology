@@ -21,12 +21,12 @@ use gmeow_logic::math_expression::check_math_expression_findings;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::verify::{ReasonedGraphOutcome, materialize_reasoned_closure};
 use purrdf::{CanonHash, CompositeDatasetView, RdfDataset, RdfDatasetBuilder, RdfTerm, ViewLimits};
-use serde::{Deserialize, Serialize};
 
 use crate::cache::BuildIdentity;
 use crate::stages::parse_sources::SourceCatalog;
 
 mod controls;
+mod json;
 
 pub(super) const CHANNEL: &str = "pipeline/expression-substrate-observations.json";
 pub(super) const MATH: &str = "slices/grounding/math/module.ttl";
@@ -48,7 +48,7 @@ const ON_CLASS: &str = "https://blackcatinformatics.ca/logic/onClass";
 const THING: &str = "https://blackcatinformatics.ca/logic/Thing";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Profile {
     Reference,
     Twins,
@@ -56,7 +56,7 @@ pub(super) enum Profile {
     Control,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observations {
     pub producer: BuildIdentity,
     pub context_path: String,
@@ -65,7 +65,7 @@ pub(super) struct Observations {
     pub scenes: BTreeMap<String, Scene>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Scene {
     pub source_path: String,
     pub source_digest: String,
@@ -75,7 +75,7 @@ pub(super) struct Scene {
     pub multi_graph_findings: Option<Vec<Finding>>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Reasoned {
     pub alpha_classes: BTreeMap<String, String>,
     pub operator_less_root_operator_edges: usize,
@@ -148,7 +148,7 @@ pub(super) fn record(
                 &reasoning_projection_digest,
             ),
         ];
-        let observed = super::execution::cached_inputs(
+        let observed = super::execution::cached_native_inputs(
             &store,
             &format!("expression-substrate-v4:{profile:?}"),
             inputs,
@@ -202,7 +202,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observations).map_err(fail)?,
+        purrdf_lex::json::record::to_vec(&observations),
     );
     Ok(())
 }
