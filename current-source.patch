@@ -1,0 +1,2596 @@
+diff --git crates/build-inputs/src/modules.rs crates/build-inputs/src/modules.rs
+index 3b2ab3935..67949abdf 100644
+--- crates/build-inputs/src/modules.rs
++++ crates/build-inputs/src/modules.rs
+@@ -1,7 +1,10 @@
+ // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
++mod exported_macros;
++
+ use crate::{InputInventory, InputRole, Result, UnitSelection, checked_path, fail, relative};
++use exported_macros::{Exports, OwnerId};
+ use proc_macro2::{Delimiter, TokenStream, TokenTree};
+ use std::collections::{BTreeMap, BTreeSet};
+ use std::path::{Path, PathBuf};
+@@ -81,44 +84,35 @@ fn collect_selected(
+ ) -> Result<()> {
+     let units = inventory.selection.units.clone();
+     let mut excluded = BTreeSet::new();
++    let mut exports = Exports::default();
+     for unit in &units {
+-        let Some(source) = &unit.source else { continue };
+-        let path = checked_path(workspace, Path::new(source))?;
+-        let tracing_names = unit
+-            .dependency_names
+-            .iter()
+-            .zip(&unit.dependencies)
+-            .filter(|(_, index)| {
+-                matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
+-                    && crate::cargo::package_parts(&units[**index].package)
+-                        .is_ok_and(|(_, name, _)| name == "tracing")
+-            })
+-            .map(|(name, _)| name.clone())
+-            .collect();
+-        let mut scanner = Scanner {
+-            tracing_names,
+-            json_names: crate::json_macros::selected(workspace, unit, &units)?,
++        if unit.source.is_none() {
++            continue;
++        }
++        scan_unit(
+             workspace,
+             inventory,
+             unit,
+-            file: path.clone(),
+-            directory: path
+-                .parent()
+-                .ok_or_else(|| fail("crate root has no parent"))?
+-                .to_path_buf(),
+-            attribute_directory: path.parent().unwrap().to_path_buf(),
+-            stack: Vec::new(),
+-            scope_depth: 0,
+-            seen: BTreeSet::new(),
+-            excluded: &mut excluded,
+-            macros: BTreeSet::new(),
+-            semantic: false,
++            Some(&units),
++            &mut excluded,
++            ScanMode {
++                extraction_planning,
++                ownership_only: false,
++            },
++            &mut exports,
++        )?;
++    }
++    finish_exports(
++        workspace,
++        inventory,
++        Some(&units),
++        &mut excluded,
++        ScanMode {
+             extraction_planning,
+             ownership_only: false,
+-            error: None,
+-        };
+-        scanner.file(&path, true)?;
+-    }
++        },
++        &mut exports,
++    )?;
+     for excluded in excluded {
+         if inventory
+             .files
+@@ -193,6 +187,7 @@ fn semantic_inventory(
+         environment_owners: BTreeMap::new(),
+     };
+     let mut excluded = BTreeSet::new();
++    let mut exports = Exports::default();
+     for source in roots {
+         let path = checked_path(workspace, Path::new(source))?;
+         let manifest = path
+@@ -222,57 +217,30 @@ fn semantic_inventory(
+                 .collect(),
+             controller: false,
+         };
+-        let tracing_names =
+-            if ownership_only && matches!(unit.edition.as_str(), "2018" | "2021" | "2024") {
+-                crate::cargo::portable_tracing_names(workspace, &declarations, &dependencies)?
+-            } else {
+-                BTreeSet::new()
+-            };
+-        let json_names = if !dependencies.is_empty()
+-            && matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
+-        {
+-            let owners = crate::json_macros::portable(workspace, &declarations, &dependencies)?;
+-            if !ownership_only && !owners.is_empty() {
+-                // Native semantic identity already binds this exact substrate source.
+-                // A separately pinned macro implementation must not enter that identity.
+-                let substrate = crate::native_substrate_source(workspace)?;
+-                let (repository, revision) = substrate
+-                    .rsplit_once('#')
+-                    .ok_or_else(|| fail("native substrate identity has no revision"))?;
+-                let expected = format!("git+{repository}?rev={revision}");
+-                if owners.values().any(|source| source != &expected) {
+-                    return Err(fail(format!(
+-                        "native JSON macro owner must match native substrate {substrate}"
+-                    )));
+-                }
+-            }
+-            owners.into_keys().collect()
+-        } else {
+-            BTreeSet::new()
+-        };
+-        let mut scanner = Scanner {
+-            // Portable policy has declarations, not selected Cargo units. Only
+-            // an unambiguous crates.io tracing declaration grants this macro.
+-            tracing_names,
+-            json_names,
++        scan_unit(
+             workspace,
+-            inventory: &mut inventory,
+-            unit: &unit,
+-            file: path.clone(),
+-            directory: path.parent().unwrap().to_path_buf(),
+-            attribute_directory: path.parent().unwrap().to_path_buf(),
+-            stack: Vec::new(),
+-            scope_depth: 0,
+-            seen: BTreeSet::new(),
+-            excluded: &mut excluded,
+-            macros: BTreeSet::new(),
+-            semantic: true,
++            &mut inventory,
++            &unit,
++            None,
++            &mut excluded,
++            ScanMode {
++                extraction_planning,
++                ownership_only,
++            },
++            &mut exports,
++        )?;
++    }
++    finish_exports(
++        workspace,
++        &mut inventory,
++        None,
++        &mut excluded,
++        ScanMode {
+             extraction_planning,
+             ownership_only,
+-            error: None,
+-        };
+-        scanner.file(&path, true)?;
+-    }
++        },
++        &mut exports,
++    )?;
+     for path in &excluded {
+         if !ownership_only && inventory.files.contains_key(path) {
+             return Err(fail(format!(
+@@ -283,6 +251,128 @@ fn semantic_inventory(
+     Ok((inventory, excluded))
+ }
+ 
++/// Both capability discovery and validation use the ordinary module/cfg walk.
++/// No preliminary export is an admitted result until finish_exports succeeds.
++#[derive(Clone, Copy)]
++struct ScanMode {
++    extraction_planning: bool,
++    ownership_only: bool,
++}
++
++fn scan_unit(
++    workspace: &Path,
++    inventory: &mut InputInventory,
++    unit: &UnitSelection,
++    selected: Option<&[UnitSelection]>,
++    excluded: &mut BTreeSet<String>,
++    mode: ScanMode,
++    exports: &mut Exports,
++) -> Result<()> {
++    let ScanMode {
++        extraction_planning,
++        ownership_only,
++    } = mode;
++    let Some(export_owner) = exports.begin_scan(unit) else {
++        return Ok(());
++    };
++    let source = unit
++        .source
++        .as_deref()
++        .ok_or_else(|| fail("local macro owner has no crate root"))?;
++    let path = checked_path(workspace, Path::new(source))?;
++    let semantic = selected.is_none();
++    let manifest = unit
++        .manifest
++        .as_deref()
++        .ok_or_else(|| fail("local source has no manifest"))?;
++    let declarations = std::fs::read_to_string(checked_path(workspace, Path::new(manifest))?)
++        .map_err(fail)?
++        .parse::<toml::Value>()
++        .map_err(fail)?;
++    let dependencies = crate::cargo::declared_dependencies(&declarations);
++    let modern = matches!(unit.edition.as_str(), "2018" | "2021" | "2024");
++    let tracing_names = if let Some(units) = selected {
++        unit.dependency_names
++            .iter()
++            .zip(&unit.dependencies)
++            .filter(|(_, index)| {
++                modern
++                    && crate::cargo::package_parts(&units[**index].package)
++                        .is_ok_and(|(_, name, _)| name == "tracing")
++            })
++            .map(|(name, _)| name.clone())
++            .collect()
++    } else if ownership_only && modern {
++        crate::cargo::portable_tracing_names(workspace, &declarations, &dependencies)?
++    } else {
++        BTreeSet::new()
++    };
++    let json_names = if let Some(units) = selected {
++        crate::json_macros::selected(workspace, unit, units)?
++    } else if !dependencies.is_empty() && modern {
++        let owners = crate::json_macros::portable(workspace, &declarations, &dependencies)?;
++        if !ownership_only && !owners.is_empty() {
++            let substrate = crate::native_substrate_source(workspace)?;
++            let (repository, revision) = substrate
++                .rsplit_once('#')
++                .ok_or_else(|| fail("native substrate identity has no revision"))?;
++            let expected = format!("git+{repository}?rev={revision}");
++            if owners.values().any(|source| source != &expected) {
++                return Err(fail(format!(
++                    "native JSON macro owner must match native substrate {substrate}"
++                )));
++            }
++        }
++        owners.into_keys().collect()
++    } else {
++        BTreeSet::new()
++    };
++    let mut scanner = Scanner {
++        tracing_names,
++        json_names,
++        workspace,
++        inventory,
++        unit,
++        file: path.clone(),
++        directory: path.parent().unwrap().to_path_buf(),
++        attribute_directory: path.parent().unwrap().to_path_buf(),
++        stack: Vec::new(),
++        scope_depth: 0,
++        seen: BTreeSet::new(),
++        excluded,
++        macros: BTreeSet::new(),
++        semantic,
++        extraction_planning,
++        ownership_only,
++        exports,
++        export_owner,
++        module: Vec::new(),
++        public_module: true,
++        certain_export: true,
++        error: None,
++    };
++    scanner.file(&path, true)
++}
++
++fn finish_exports(
++    workspace: &Path,
++    inventory: &mut InputInventory,
++    selected: Option<&[UnitSelection]>,
++    excluded: &mut BTreeSet<String>,
++    mode: ScanMode,
++    exports: &mut Exports,
++) -> Result<()> {
++    while let Some(owner) = exports.next_owner(workspace, selected, inventory)? {
++        if !exports.is_scanned(owner) {
++            let unit = exports.unit(owner).clone();
++            scan_unit(
++                workspace, inventory, &unit, selected, excluded, mode, exports,
++            )?;
++        }
++    }
++    exports.finish()
++}
++
+ struct Scanner<'a> {
+     tracing_names: BTreeSet<String>,
+     json_names: BTreeSet<String>,
+@@ -297,12 +387,50 @@ struct Scanner<'a> {
+     seen: BTreeSet<(PathBuf, PathBuf, bool)>,
+     excluded: &'a mut BTreeSet<String>,
+     macros: BTreeSet<String>,
++    exports: &'a mut Exports,
++    export_owner: OwnerId,
++    module: Vec<String>,
++    public_module: bool,
++    certain_export: bool,
+     semantic: bool,
+     extraction_planning: bool,
+     ownership_only: bool,
+     error: Option<crate::InputError>,
+ }
+ impl Scanner<'_> {
++    fn export_is_certain(&self, attrs: &[Attribute]) -> Result<bool> {
++        for attr in attrs {
++            if !["cfg", "doc", "path", "macro_export"]
++                .iter()
++                .any(|name| attr.path().is_ident(name))
++            {
++                return Ok(false);
++            }
++            if self.semantic && attr.path().is_ident("cfg") {
++                let Meta::List(list) = &attr.meta else {
++                    return Ok(false);
++                };
++                let condition = syn::parse2(list.tokens.clone()).map_err(fail)?;
++                if self.unit.cfg.portable(&condition)?.no {
++                    return Ok(false);
++                }
++            }
++        }
++        Ok(true)
++    }
++
++    fn macro_path(&mut self, path: &syn::Path, tokens: TokenStream) -> Result<()> {
++        if let Some(qualified) = qualified_macro(path, &self.tracing_names, &self.json_names) {
++            return self.macro_input(qualified, tokens, None);
++        }
++        let name = path
++            .segments
++            .last()
++            .map(|part| part.ident.to_string())
++            .unwrap_or_default();
++        self.macro_input(&name, tokens, Some(path))
++    }
++
+     fn file(&mut self, path: &Path, root: bool) -> Result<()> {
+         self.file_with_directory(path, root, None)
+     }
+@@ -559,7 +687,7 @@ impl Scanner<'_> {
+                         start -= 2;
+                         if start > 0
+                             && matches!(&tokens[start - 1], TokenTree::Ident(ident)
+-                                if syn::parse2::<syn::Ident>(TokenStream::from(
++                                if matches!(ident.to_string().as_str(), "crate" | "self" | "super") || syn::parse2::<syn::Ident>(TokenStream::from(
+                                     TokenTree::Ident(ident.clone())
+                                 )).is_ok())
+                         {
+@@ -569,11 +697,8 @@ impl Scanner<'_> {
+                         }
+                     }
+                     let path = tokens[start..=index].iter().cloned().collect();
+-                    let owner = syn::parse2::<syn::Path>(path).ok().and_then(|path| {
+-                        qualified_macro(&path, &self.tracing_names, &self.json_names)
+-                    });
+-                    let name = owner.map(str::to_owned).unwrap_or_else(|| name.to_string());
+-                    self.macro_input(&name, group.stream())?;
++                    let path = syn::parse2::<syn::Path>(path).map_err(fail)?;
++                    self.macro_path(&path, group.stream())?;
+                     index += 3;
+                     continue;
+                 }
+@@ -585,7 +710,12 @@ impl Scanner<'_> {
+         }
+         Ok(())
+     }
+-    fn macro_input(&mut self, name: &str, tokens: TokenStream) -> Result<()> {
++    fn macro_input(
++        &mut self,
++        name: &str,
++        tokens: TokenStream,
++        path: Option<&syn::Path>,
++    ) -> Result<()> {
+         if contains_opaque_source_syntax(tokens.clone(), MacroSyntaxContext::Argument) {
+             return Err(fail(format!(
+                 "opaque macro input for {name}! needs an explicit source owner in {}",
+@@ -705,7 +835,21 @@ impl Scanner<'_> {
+             | "quote"
+             | "parse_macro_input"
+             | "submit" => self.tokens(tokens),
+-            local if self.macros.contains(local) => self.tokens(tokens),
++            local
++                if path.is_some_and(|path| {
++                    path.leading_colon.is_none() && path.segments.len() == 1
++                }) && self.macros.contains(local) =>
++            {
++                self.tokens(tokens)
++            }
++            _ if path.is_some_and(|path| self.exports.defer(self.export_owner, path)) => {
++                if contains_module_declaration(tokens.clone()) {
++                    return Err(fail(
++                        "local exported macro contains a module declaration with no source owner",
++                    ));
++                }
++                self.tokens(tokens)
++            }
+             _ => Err(fail(format!(
+                 "macro {name}! has no selected source-input capability owner in {}",
+                 self.file.display()
+@@ -798,6 +942,17 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
+         }
+     }
+     fn visit_item_mod(&mut self, module: &'ast syn::ItemMod) {
++        let previous_public = self.public_module;
++        let previous_certain = self.certain_export;
++        self.public_module &= matches!(module.vis, syn::Visibility::Public(_));
++        match self.export_is_certain(&module.attrs) {
++            Ok(certain) => self.certain_export &= certain,
++            Err(error) => {
++                self.error = Some(error);
++                return;
++            }
++        }
++        self.module.push(module.ident.to_string());
+         self.scope_depth += 1;
+         let result = (|| {
+             let Some(attrs) = self.attributes(&module.attrs)? else {
+@@ -837,6 +992,9 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
+             }
+         })();
+         self.scope_depth -= 1;
++        self.module.pop();
++        self.public_module = previous_public;
++        self.certain_export = previous_certain;
+         if let Err(e) = result {
+             self.error = Some(e);
+         }
+@@ -856,6 +1014,9 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
+             .map_or(&item.ident, |(_, alias)| alias)
+             .unraw()
+             .to_string();
++        if self.scope_depth == 0 && source != binding {
++            self.exports.shadow(self.export_owner, binding.clone());
++        }
+         if self.scope_depth == 0
+             && ((self.tracing_names.contains(&binding) && !self.tracing_names.contains(&source))
+                 || (self.json_names.contains(&binding) && !self.json_names.contains(&source)))
+@@ -872,6 +1033,16 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
+         if item.mac.path.is_ident("macro_rules")
+             && let Some(name) = &item.ident
+         {
++            if self.certain_export && self.scope_depth == self.module.len() {
++                match (self.attributes(&item.attrs), self.export_is_certain(&item.attrs)) {
++                    (Ok(Some(attrs)), Ok(true)) if attrs.iter().any(|attr|
++                        matches!(attr, Meta::Path(path) if path.is_ident("macro_export"))) => {
++                        self.exports.definition(self.export_owner, name.to_string());
++                    }
++                    (Err(error), _) | (_, Err(error)) => { self.error = Some(error); return; }
++                    _ => {}
++                }
++            }
+             self.macros.insert(name.to_string());
+             for attr in &item.attrs {
+                 self.visit_attribute(attr);
+@@ -889,19 +1060,39 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
+         if self.error.is_some() {
+             return;
+         }
+-        let mut name = mac
+-            .path
+-            .segments
+-            .last()
+-            .map(|part| part.ident.to_string())
+-            .unwrap_or_default();
+-        if let Some(qualified) = qualified_macro(&mac.path, &self.tracing_names, &self.json_names) {
+-            name = qualified.into();
+-        }
+-        if let Err(e) = self.macro_input(&name, mac.tokens.clone()) {
++        if let Err(e) = self.macro_path(&mac.path, mac.tokens.clone()) {
+             self.error = Some(e);
+         }
+     }
++    fn visit_item_use(&mut self, item: &'ast syn::ItemUse) {
++        if self.public_module
++            && self.certain_export
++            && self.scope_depth == self.module.len()
++            && matches!(item.vis, syn::Visibility::Public(_))
++            && item.leading_colon.is_none()
++        {
++            let result = (|| {
++                if !self.export_is_certain(&item.attrs)? {
++                    return Ok(());
++                }
++                if let syn::UseTree::Path(root) = &item.tree
++                    && root.ident == "crate"
++                    && let syn::UseTree::Name(name) = root.tree.as_ref()
++                {
++                    self.exports.reexport(
++                        self.export_owner,
++                        self.module.clone(),
++                        name.ident.to_string(),
++                    );
++                }
++                Ok(())
++            })();
++            if let Err(error) = result {
++                self.error = Some(error);
++            }
++        }
++        visit::visit_item_use(self, item);
++    }
+     fn visit_attribute(&mut self, attr: &'ast Attribute) {
+         if self.error.is_some() {
+             return;
+diff --git crates/build-inputs/src/modules/exported_macros.rs crates/build-inputs/src/modules/exported_macros.rs
+new file mode 100644
+index 000000000..c0f2ca6dd
+--- /dev/null
++++ crates/build-inputs/src/modules/exported_macros.rs
+@@ -0,0 +1,414 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Restricted local exports: one selected macro_export definition, either at its
++//! root export or a direct public `use crate::name` in public modules. Resolution
++//! waits until the ordinary traversal has scanned every definition and invocation.
++
++use crate::{InputInventory, InputRole, Result, UnitSelection, checked_path, fail, relative};
++use std::collections::{BTreeMap, BTreeSet};
++use std::path::Path;
++
++/// Valid only within one collection. Equality includes every selected unit field.
++#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
++pub(super) struct OwnerId(usize);
++
++#[derive(Clone)]
++struct Invocation {
++    owner: OwnerId,
++    path: Vec<String>,
++    external: bool,
++}
++
++#[derive(Default)]
++pub(super) struct Exports {
++    units: Vec<UnitSelection>,
++    definitions: BTreeMap<(OwnerId, String), usize>,
++    reexports: BTreeMap<(OwnerId, Vec<String>), usize>,
++    shadows: BTreeSet<(OwnerId, String)>,
++    scanned: BTreeSet<OwnerId>,
++    pending: Vec<Invocation>,
++    resolved: BTreeMap<(OwnerId, String), OwnerId>,
++    cursor: usize,
++}
++
++impl Exports {
++    fn intern(&mut self, unit: &UnitSelection) -> OwnerId {
++        if let Some(index) = self.units.iter().position(|known| known == unit) {
++            return OwnerId(index);
++        }
++        let id = OwnerId(self.units.len());
++        self.units.push(unit.clone());
++        id
++    }
++
++    pub fn begin_scan(&mut self, unit: &UnitSelection) -> Option<OwnerId> {
++        let id = self.intern(unit);
++        self.scanned.insert(id).then_some(id)
++    }
++
++    pub fn is_scanned(&self, id: OwnerId) -> bool {
++        self.scanned.contains(&id)
++    }
++
++    pub fn unit(&self, id: OwnerId) -> &UnitSelection {
++        &self.units[id.0]
++    }
++
++    pub fn definition(&mut self, owner: OwnerId, name: String) {
++        *self.definitions.entry((owner, name)).or_default() += 1;
++    }
++
++    pub fn reexport(&mut self, owner: OwnerId, mut module: Vec<String>, name: String) {
++        module.push(name);
++        *self.reexports.entry((owner, module)).or_default() += 1;
++    }
++
++    pub fn shadow(&mut self, owner: OwnerId, binding: String) {
++        self.shadows.insert((owner, binding));
++    }
++
++    pub fn defer(&mut self, owner: OwnerId, path: &syn::Path) -> bool {
++        if path.segments.len() < 2 || path.segments.iter().any(|part| !part.arguments.is_empty()) {
++            return false;
++        }
++        let parts: Vec<_> = path
++            .segments
++            .iter()
++            .map(|part| part.ident.to_string())
++            .collect();
++        let external = path.leading_colon.is_some();
++        if (!external && parts[0] != "crate") || (external && parts[0] == "crate") {
++            return false;
++        }
++        self.pending.push(Invocation {
++            owner,
++            path: parts,
++            external,
++        });
++        true
++    }
++
++    /// Return the next owner to traverse, not an accepted capability. `finish`
++    /// checks every invocation only after all recursively needed sources pass.
++    pub fn next_owner(
++        &mut self,
++        workspace: &Path,
++        selected: Option<&[UnitSelection]>,
++        inventory: &mut InputInventory,
++    ) -> Result<Option<OwnerId>> {
++        let Some(invocation) = self.pending.get(self.cursor).cloned() else {
++            return Ok(None);
++        };
++        self.cursor += 1;
++        let binding = (invocation.owner, invocation.path[0].clone());
++        let id = match self.resolved.get(&binding) {
++            Some(id) => *id,
++            None => {
++                let unit = resolve_owner(
++                    workspace,
++                    self.unit(invocation.owner),
++                    &invocation,
++                    selected,
++                    inventory,
++                )?;
++                let id = self.intern(&unit);
++                self.resolved.insert(binding, id);
++                id
++            }
++        };
++        if invocation.external
++            && self
++                .shadows
++                .contains(&(invocation.owner, invocation.path[0].clone()))
++        {
++            return Err(fail(
++                "extern crate alias shadows a selected local macro owner",
++            ));
++        }
++        Ok(Some(id))
++    }
++
++    pub fn finish(&self) -> Result<()> {
++        for invocation in &self.pending {
++            let binding = (invocation.owner, invocation.path[0].clone());
++            let key = *self
++                .resolved
++                .get(&binding)
++                .ok_or_else(|| fail("exported macro owner was not scanned"))?;
++            let name = invocation.path.last().unwrap();
++            if !self.scanned.contains(&key)
++                || self.definitions.get(&(key, name.clone())) != Some(&1)
++                || (invocation.path.len() > 2
++                    && self.reexports.get(&(key, invocation.path[1..].to_vec())) != Some(&1))
++            {
++                return Err(fail(format!(
++                    "macro {}! has no unique selected local export or matching direct public reexport",
++                    invocation.path.join("::")
++                )));
++            }
++            if invocation.external
++                && self
++                    .shadows
++                    .contains(&(invocation.owner, invocation.path[0].clone()))
++            {
++                return Err(fail(
++                    "extern crate alias shadows a selected local macro owner",
++                ));
++            }
++        }
++        Ok(())
++    }
++}
++
++fn document(workspace: &Path, path: &str, inventory: &mut InputInventory) -> Result<toml::Value> {
++    inventory.add_file(workspace, path, "local-macro-selection", InputRole::Policy)?;
++    std::fs::read_to_string(checked_path(workspace, Path::new(path))?)
++        .map_err(fail)?
++        .parse()
++        .map_err(fail)
++}
++
++fn library_source(workspace: &Path, manifest: &str, value: &toml::Value) -> Result<String> {
++    if value.get("lib").is_some_and(|lib| !lib.is_table()) {
++        return Err(fail("local macro library declaration is not a table"));
++    }
++    if value.get("lib").and_then(|lib| lib.get("proc-macro")) == Some(&toml::Value::Boolean(true))
++        || (value.get("lib").is_none()
++            && value
++                .get("package")
++                .and_then(|package| package.get("autolib"))
++                == Some(&toml::Value::Boolean(false)))
++    {
++        return Err(fail(
++            "local exported macro requires a declared ordinary library",
++        ));
++    }
++    let source = value.get("lib").and_then(|lib| lib.get("path"));
++    let source = match source {
++        Some(source) => source
++            .as_str()
++            .ok_or_else(|| fail("local macro library path is not a string"))?,
++        None => "src/lib.rs",
++    };
++    let path = Path::new(manifest).parent().unwrap().join(source);
++    relative(workspace, &checked_path(workspace, &path)?)
++}
++
++fn declared_owner(
++    workspace: &Path,
++    unit: &UnitSelection,
++    alias: &str,
++    inventory: &mut InputInventory,
++) -> Result<(String, toml::Value)> {
++    let manifest = unit
++        .manifest
++        .as_deref()
++        .ok_or_else(|| fail("local macro caller has no manifest"))?;
++    let own = document(workspace, manifest, inventory)?;
++    let root = document(workspace, "Cargo.toml", inventory)?;
++    let declared = crate::cargo::declared_dependencies(&own);
++    let declarations: Vec<_> = declared
++        .iter()
++        .filter(|(name, _)| name.replace('-', "_") == alias)
++        .flat_map(|(_, values)| values.iter().copied())
++        .collect();
++    if declarations.is_empty() {
++        return Err(fail("local macro owner is not a declared dependency"));
++    }
++    let mut owners = BTreeSet::new();
++    let mut package = None;
++    for declaration in declarations {
++        let inherited = declaration.get("workspace").and_then(toml::Value::as_bool) == Some(true);
++        if inherited
++            && declaration.as_table().is_none_or(|fields| {
++                fields.keys().any(|key| {
++                    !matches!(
++                        key.as_str(),
++                        "workspace" | "optional" | "features" | "default-features"
++                    )
++                })
++            })
++        {
++            return Err(fail("unsupported inherited local macro declaration"));
++        }
++        let dependency = if inherited {
++            let name = declared
++                .keys()
++                .find(|name| name.replace('-', "_") == alias)
++                .unwrap();
++            root.get("workspace")
++                .and_then(|value| value.get("dependencies"))
++                .and_then(|value| value.get(name))
++                .ok_or_else(|| fail("missing inherited local macro owner"))?
++        } else {
++            declaration
++        };
++        if dependency.as_table().is_none_or(|fields| {
++            fields.keys().any(|key| {
++                !matches!(
++                    key.as_str(),
++                    "path" | "package" | "version" | "optional" | "features" | "default-features"
++                )
++            })
++        }) {
++            return Err(fail(
++                "exported macro owner must be an unambiguous local path declaration",
++            ));
++        }
++        let path = dependency
++            .get("path")
++            .and_then(toml::Value::as_str)
++            .ok_or_else(|| fail("exported macro owner has no declared local path"))?;
++        let base = if inherited {
++            Path::new("")
++        } else {
++            Path::new(manifest).parent().unwrap()
++        };
++        let target = checked_path(workspace, &base.join(path).join("Cargo.toml"))?;
++        owners.insert(relative(workspace, &target)?);
++        let name = match dependency.get("package") {
++            Some(name) => name
++                .as_str()
++                .ok_or_else(|| fail("local macro package is not a string"))?
++                .to_owned(),
++            None => declared
++                .keys()
++                .find(|name| name.replace('-', "_") == alias)
++                .unwrap()
++                .clone(),
++        };
++        if package.as_ref().is_some_and(|previous| previous != &name) {
++            return Err(fail("ambiguous local macro dependency package"));
++        }
++        package = Some(name);
++    }
++    if owners.len() != 1 {
++        return Err(fail("ambiguous local macro dependency path"));
++    }
++    let target = owners.into_iter().next().unwrap();
++    let value = document(workspace, &target, inventory)?;
++    if value
++        .get("package")
++        .and_then(|value| value.get("name"))
++        .and_then(toml::Value::as_str)
++        != package.as_deref()
++    {
++        return Err(fail(
++            "local macro dependency package differs from its manifest",
++        ));
++    }
++    Ok((target, value))
++}
++
++fn selected_library(
++    workspace: &Path,
++    unit: &UnitSelection,
++    manifest: &str,
++    value: &toml::Value,
++) -> Result<()> {
++    let source = library_source(workspace, manifest, value)?;
++    let (package_source, package, _) = crate::cargo::package_parts(&unit.package)?;
++    if unit.manifest.as_deref() != Some(manifest)
++        || unit.source.as_deref() != Some(source.as_str())
++        || !unit
++            .kinds
++            .iter()
++            .any(|kind| matches!(kind.as_str(), "lib" | "rlib"))
++        || !package_source.starts_with("path+file://")
++        || unit.edition != crate::cargo::source_edition(workspace, &source)?
++        || value
++            .get("package")
++            .and_then(|value| value.get("name"))
++            .and_then(toml::Value::as_str)
++            != Some(package)
++    {
++        return Err(fail(format!(
++            "selected local macro owner {} target {} ({:?}, source {:?}) differs from declared library {manifest}:{source}",
++            unit.package, unit.target, unit.kinds, unit.source
++        )));
++    }
++    Ok(())
++}
++
++fn resolve_owner(
++    workspace: &Path,
++    caller: &UnitSelection,
++    invocation: &Invocation,
++    selected: Option<&[UnitSelection]>,
++    inventory: &mut InputInventory,
++) -> Result<UnitSelection> {
++    if !invocation.external {
++        let manifest = caller
++            .manifest
++            .as_deref()
++            .ok_or_else(|| fail("local macro has no crate owner"))?;
++        let value = document(workspace, manifest, inventory)?;
++        if selected.is_some() {
++            selected_library(workspace, caller, manifest, &value)?;
++        } else if caller.source.as_deref()
++            != Some(library_source(workspace, manifest, &value)?.as_str())
++        {
++            return Err(fail(
++                "portable local macro source differs from its declared library",
++            ));
++        }
++        return Ok(caller.clone());
++    }
++    if !matches!(caller.edition.as_str(), "2018" | "2021" | "2024") {
++        return Err(fail(
++            "external local macro path requires the external prelude",
++        ));
++    }
++    let alias = &invocation.path[0];
++    let (manifest, declarations) = declared_owner(workspace, caller, alias, inventory)?;
++    let source = library_source(workspace, &manifest, &declarations)?;
++    if let Some(units) = selected {
++        if caller.dependencies.len() != caller.dependency_names.len() {
++            return Err(fail("selected macro dependency names and indices differ"));
++        }
++        let owners: Vec<_> = caller
++            .dependency_names
++            .iter()
++            .zip(&caller.dependencies)
++            .filter(|(name, _)| *name == alias)
++            .collect();
++        if owners.len() != 1 {
++            return Err(fail("local macro has no unique selected dependency"));
++        }
++        let target = units
++            .get(*owners[0].1)
++            .ok_or_else(|| fail("dangling selected local macro owner"))?;
++        selected_library(workspace, target, &manifest, &declarations)?;
++        return Ok(target.clone());
++    }
++    // Portable source ownership has no Cargo unit graph. Only an exact declared
++    // path library may supply it; replacements/config overrides are not resolved.
++    for path in ["Cargo.toml", ".cargo/config", ".cargo/config.toml"] {
++        if !workspace.join(path).is_file() {
++            continue;
++        }
++        let policy = document(workspace, path, inventory)?;
++        if ["patch", "replace", "source", "paths"]
++            .iter()
++            .any(|key| policy.get(key).is_some())
++        {
++            return Err(fail(
++                "portable local macro ownership cannot resolve Cargo overrides",
++            ));
++        }
++    }
++    let mut target = caller.clone();
++    target.package = format!("portable-local:{manifest}");
++    target.manifest = Some(manifest);
++    target.source = Some(source.clone());
++    target.edition = crate::cargo::source_edition(workspace, &source)?;
++    target.kinds = vec!["lib".into()];
++    target.controller = false;
++    target.dependencies.clear();
++    target.dependency_names = crate::cargo::declared_dependencies(&declarations)
++        .keys()
++        .map(|name| name.replace('-', "_"))
++        .collect();
++    Ok(target)
++}
+diff --git crates/build-inputs/tests/inventory.rs crates/build-inputs/tests/inventory.rs
+index d034a3714..0d39cad11 100644
+--- crates/build-inputs/tests/inventory.rs
++++ crates/build-inputs/tests/inventory.rs
+@@ -1221,6 +1221,330 @@ fn json_declaration(alias: &str) -> String {
+     )
+ }
+ 
++const LOCAL_EXPORT: &str = r#"
++#[macro_export]
++macro_rules! wrap {
++    ($type:ty) => { impl $type { pub fn proof() -> &'static str { "first proof" } } };
++}
++pub use crate::wrap;
++"#;
++
++fn local_export_fixture(alias: &str, caller: &str) -> (tempfile::TempDir, ProductionSelection) {
++    let root = fixture(caller);
++    write(
++        root.path(),
++        "Cargo.toml",
++        "[workspace]\nmembers=['crate','provider']\n",
++    );
++    write(
++        root.path(),
++        "crate/Cargo.toml",
++        &format!(
++            "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{alias}={{package='provider',path='../provider'}}\n"
++        ),
++    );
++    write(
++        root.path(),
++        "provider/Cargo.toml",
++        "[package]\nname='provider'\nversion='1.0.0'\nedition='2024'\n",
++    );
++    // The owner-relative call deliberately precedes the definition's module.
++    write(
++        root.path(),
++        "provider/src/lib.rs",
++        "mod caller; pub mod json;\n",
++    );
++    write(
++        root.path(),
++        "provider/src/caller.rs",
++        "struct Own; crate::json::wrap!(Own); crate::wrap!(Root); fn quoted() { quote! { crate::json::wrap!(Other); crate::wrap!(QuotedRoot); } }\n",
++    );
++    write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
++    write(root.path(), "crate/src/argument.txt", "nested argument");
++    let mut selected = selection();
++    selected.units.push(UnitSelection {
++        package: "path+file://<workspace>/provider#provider@1".into(),
++        manifest: Some("provider/Cargo.toml".into()),
++        source: Some("provider/src/lib.rs".into()),
++        target: "provider".into(),
++        kinds: vec!["rlib".into()],
++        ..selected.units[0].clone()
++    });
++    selected.units[0].dependencies.push(1);
++    selected.units[0]
++        .dependency_names
++        .push(alias.replace('-', "_"));
++    (root, selected)
++}
++
++#[test]
++fn local_exported_macros_bind_selected_sources_aliases_and_nested_inputs() {
++    for alias in ["provider", "evidence-owner"] {
++        let binding = alias.replace('-', "_");
++        let source = format!(
++            "pub struct Wrap<const N: usize>; ::{binding}::json::wrap!(Wrap<{{ include_str!(\"argument.txt\").len() }}>); ::{binding}::wrap!(Root); fn quoted() {{ quote! {{ ::{binding}::json::wrap!(Other); ::{binding}::wrap!(QuotedRoot); }} }}"
++        );
++        let (root, mut selected) = local_export_fixture(alias, &source);
++        if alias == "evidence-owner" {
++            // The controller graph has its own selected ordinary libraries too.
++            for unit in &mut selected.units {
++                unit.controller = true;
++            }
++            write(
++                root.path(),
++                "Cargo.toml",
++                &format!(
++                    "[workspace]\nmembers=['crate','provider']\n[workspace.dependencies]\n{alias}={{package='provider',path='provider'}}\n"
++                ),
++            );
++            write(
++                root.path(),
++                "crate/Cargo.toml",
++                &format!(
++                    "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{alias}={{workspace=true}}\n"
++                ),
++            );
++        }
++        let first = InputInventory::collect(root.path(), &selected).unwrap();
++        for path in [
++            "provider/src/lib.rs",
++            "provider/src/json.rs",
++            "provider/src/caller.rs",
++            "crate/src/argument.txt",
++            "provider/Cargo.toml",
++            "crate/Cargo.toml",
++        ] {
++            assert!(first.files.contains_key(path), "{path}");
++        }
++        write(
++            root.path(),
++            "provider/src/json.rs",
++            &LOCAL_EXPORT.replace("pub fn proof", "pub fn changed_proof"),
++        );
++        assert_ne!(
++            first.digest().unwrap(),
++            InputInventory::collect(root.path(), &selected)
++                .unwrap()
++                .digest()
++                .unwrap()
++        );
++        write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
++        write(root.path(), "crate/src/argument.txt", "changed argument");
++        assert_ne!(
++            first.digest().unwrap(),
++            InputInventory::collect(root.path(), &selected)
++                .unwrap()
++                .digest()
++                .unwrap()
++        );
++    }
++    // Root exports require no module re-export, as with the diagnostics macros.
++    let (root, selected) = local_export_fixture("provider", "::provider::wrap!(External);");
++    write(root.path(), "provider/src/caller.rs", "crate::wrap!(Own);");
++    let definition = LOCAL_EXPORT.replace("pub use crate::wrap;", "");
++    write(root.path(), "provider/src/json.rs", &definition);
++    assert!(InputInventory::collect(root.path(), &selected).is_ok());
++    write(
++        root.path(),
++        "provider/src/json.rs",
++        &definition.replace("#[macro_export]", ""),
++    );
++    assert!(InputInventory::collect(root.path(), &selected).is_err());
++}
++
++#[test]
++fn local_exported_macros_refuse_unselected_fake_and_shadowed_owners() {
++    for mutation in [
++        "unselected",
++        "wrong-index",
++        "wrong-source",
++        "wrong-kind",
++        "wrong-package",
++        "same-root-different-package",
++        "wrong-path",
++        "relative",
++        "shadow-before",
++        "shadow-after",
++        "qualified-lexical",
++        "quoted-relative",
++        "opaque",
++        "nested-unknown",
++    ] {
++        let mut source = "::provider::json::wrap!(Wrap);".to_owned();
++        match mutation {
++            "relative" => source = "provider::json::wrap!(Wrap);".into(),
++            "shadow-before" => source = format!("extern crate self as provider; {source}"),
++            "shadow-after" => source.push_str("extern crate self as provider;"),
++            "qualified-lexical" => source = "macro_rules! wrap { () => {} } fake::wrap!();".into(),
++            "quoted-relative" => {
++                source = "macro_rules! wrap { () => {} } quote! { fake::wrap!(); }".into()
++            }
++            "opaque" => source = "::provider::json::wrap!(${concat(Wrap)});".into(),
++            "nested-unknown" => source = "::provider::json::wrap!(unknown_input!());".into(),
++            _ => {}
++        }
++        let (root, mut selected) = local_export_fixture("provider", &source);
++        match mutation {
++            "unselected" => {
++                selected.units.truncate(1);
++                selected.units[0].dependencies.clear();
++                selected.units[0].dependency_names.clear();
++            }
++            "wrong-index" => selected.units[0].dependencies[0] = 0,
++            "wrong-source" => selected.units[1].source = Some("provider/src/caller.rs".into()),
++            "wrong-kind" => selected.units[1].kinds = vec!["proc-macro".into()],
++            "wrong-package" => {
++                selected.units[1].package = "path+file://<workspace>/provider#fake@1".into()
++            }
++            "same-root-different-package" => {
++                let mut other = selected.units[1].clone();
++                other.package = "path+file://<workspace>/provider#fake@1".into();
++                selected.units.push(other);
++            }
++            "wrong-path" => {
++                write(
++                    root.path(),
++                    "fake/Cargo.toml",
++                    "[package]\nname='provider'\nversion='1.0.0'\nedition='2024'\n",
++                );
++                write(root.path(), "fake/src/lib.rs", "");
++                write(
++                    root.path(),
++                    "crate/Cargo.toml",
++                    "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\nprovider={path='../fake'}\n",
++                );
++            }
++            _ => {}
++        }
++        assert!(
++            InputInventory::collect(root.path(), &selected).is_err(),
++            "{mutation}"
++        );
++    }
++}
++
++#[test]
++fn local_exported_macros_require_unique_active_pure_definitions_and_direct_reexports() {
++    for mutation in [
++        "no-export",
++        "no-reexport",
++        "renamed-reexport",
++        "private-module",
++        "excluded-definition",
++        "excluded-reexport",
++        "duplicate-definition",
++        "duplicate-reexport",
++        "source-producing",
++        "unsupported-export",
++    ] {
++        let (root, selected) = local_export_fixture("provider", "::provider::json::wrap!(Wrap);");
++        let definition = match mutation {
++            "no-export" => LOCAL_EXPORT.replace("#[macro_export]", ""),
++            "no-reexport" => LOCAL_EXPORT.replace("pub use crate::wrap;", ""),
++            "renamed-reexport" => {
++                LOCAL_EXPORT.replace("pub use crate::wrap;", "pub use crate::wrap as renamed;")
++            }
++            "excluded-definition" => LOCAL_EXPORT.replace(
++                "#[macro_export]",
++                "#[cfg(feature=\"not-selected\")] #[macro_export]",
++            ),
++            "excluded-reexport" => LOCAL_EXPORT.replace(
++                "pub use crate::wrap;",
++                "#[cfg(feature=\"not-selected\")] pub use crate::wrap;",
++            ),
++            "duplicate-definition" => {
++                format!("{LOCAL_EXPORT}\n#[macro_export] macro_rules! wrap {{ () => {{}} }}")
++            }
++            "duplicate-reexport" => format!("{LOCAL_EXPORT}\npub use crate::wrap;"),
++            "source-producing" => LOCAL_EXPORT.replace("impl $type", "mod hidden; impl $type"),
++            "unsupported-export" => {
++                LOCAL_EXPORT.replace("#[macro_export]", "#[macro_export(local_inner_macros)]")
++            }
++            _ => LOCAL_EXPORT.into(),
++        };
++        write(root.path(), "provider/src/json.rs", &definition);
++        if mutation == "private-module" {
++            write(
++                root.path(),
++                "provider/src/lib.rs",
++                "mod caller; mod json;\n",
++            );
++        }
++        assert!(
++            InputInventory::collect(root.path(), &selected).is_err(),
++            "{mutation}"
++        );
++    }
++}
++
++#[test]
++fn native_local_export_proof_captures_declared_owner_and_refuses_portable_ambiguity() {
++    use gmeow_build_inputs::NativeSources;
++    let (root, _) = local_export_fixture("provider", "");
++    for name in ["logic", "logic-compile", "term-arena", "ns"] {
++        write(
++            root.path(),
++            &format!("crates/{name}/Cargo.toml"),
++            &format!(
++                "[package]\nname='{name}'\nversion='1.0.0'\nedition='2024'\n[dependencies]\nprovider={{path='../../provider'}}\n"
++            ),
++        );
++        write(root.path(), &format!("crates/{name}/src/lib.rs"), "");
++    }
++    write(
++        root.path(),
++        "crates/logic/src/lib.rs",
++        "::provider::json::wrap!(Wrap);",
++    );
++    let first = NativeSources::collect(root.path()).unwrap();
++    for path in [
++        "provider/src/lib.rs",
++        "provider/src/json.rs",
++        "provider/Cargo.toml",
++        "crates/logic/Cargo.toml",
++        "Cargo.toml",
++    ] {
++        assert!(first.files.contains_key(path), "{path}");
++    }
++    write(
++        root.path(),
++        "provider/src/json.rs",
++        &LOCAL_EXPORT.replace("pub fn proof", "pub fn changed_proof"),
++    );
++    assert_ne!(
++        first.digest().unwrap(),
++        NativeSources::collect(root.path())
++            .unwrap()
++            .digest()
++            .unwrap()
++    );
++    write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
++    write(
++        root.path(),
++        "provider/Cargo.toml",
++        "[package]\nname='provider'\nversion='1.0.0'\nedition='2024'\n# changed selection bytes\n",
++    );
++    assert_ne!(
++        first.digest().unwrap(),
++        NativeSources::collect(root.path())
++            .unwrap()
++            .digest()
++            .unwrap()
++    );
++    write(
++        root.path(),
++        "provider/src/json.rs",
++        &LOCAL_EXPORT.replace(
++            "#[macro_export]",
++            "#[cfg(feature=\"uncertain\")] #[macro_export]",
++        ),
++    );
++    assert!(NativeSources::collect(root.path()).is_err());
++    write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
++    write(root.path(), ".cargo/config.toml", "paths=['elsewhere']\n");
++    assert!(NativeSources::collect(root.path()).is_err());
++}
++
+ #[test]
+ fn pinned_json_macros_bind_alias_package_revision_and_nested_inputs() {
+     for (alias, inherited, nested) in [
+diff --git crates/errors/src/json.rs crates/errors/src/json.rs
+index 33f93519f..c94ba015d 100644
+--- crates/errors/src/json.rs
++++ crates/errors/src/json.rs
+@@ -8,6 +8,31 @@ use purrdf_lex::json::{
+     record::{DecodeError, FromJson, Record, ToJson},
+ };
+ 
++/// Implement native JSON for a tuple newtype holding one unconstrained String.
++///
++/// GMEOW owns the typed wrapper; PurRDF owns string admission and writing.
++/// This adapter deliberately has no validation or alternate construction hook.
++#[macro_export]
++macro_rules! json_string_newtype {
++    ($type:ty) => {
++        impl ::purrdf_lex::json::record::ToJson for $type {
++            fn to_json(&self) -> ::purrdf_lex::json::Value {
++                ::purrdf_lex::json::record::ToJson::to_json(&self.0)
++            }
++        }
++        impl ::purrdf_lex::json::record::FromJson for $type {
++            fn from_json(
++                value: &::purrdf_lex::json::Value,
++            ) -> ::std::result::Result<Self, ::purrdf_lex::json::record::DecodeError> {
++                <::std::string::String as ::purrdf_lex::json::record::FromJson>::from_json(value)
++                    .map(Self)
++            }
++        }
++    };
++}
++
++pub use crate::json_string_newtype;
++
+ /// Read an unsigned integer token followed by a checked target-width conversion.
+ ///
+ /// Signed zero, negative, fraction and exponent tokens are refused. `expected`
+diff --git crates/errors/src/ledger/json.rs crates/errors/src/ledger/json.rs
+index 217686167..452f267bb 100644
+--- crates/errors/src/ledger/json.rs
++++ crates/errors/src/ledger/json.rs
+@@ -65,16 +65,7 @@ impl FromJson for StageId {
+     }
+ }
+ 
+-impl ToJson for Focus {
+-    fn to_json(&self) -> Value {
+-        self.0.to_json()
+-    }
+-}
+-impl FromJson for Focus {
+-    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+-        String::from_json(value).map(Self)
+-    }
+-}
++crate::json::json_string_newtype!(Focus);
+ 
+ impl ToJson for Severity {
+     fn to_json(&self) -> Value {
+diff --git crates/lang-bridge/src/lib.rs crates/lang-bridge/src/lib.rs
+index 7aceb6fd7..999804410 100644
+--- crates/lang-bridge/src/lib.rs
++++ crates/lang-bridge/src/lib.rs
+@@ -55,6 +55,7 @@ pub mod gmn_symbology;
+ pub mod grammar;
+ pub mod lower;
+ pub mod nif;
++mod observation_json;
+ pub mod ontolex;
+ pub mod plain_text;
+ pub mod rdf_scan;
+diff --git crates/lang-bridge/src/observation_json.rs crates/lang-bridge/src/observation_json.rs
+new file mode 100644
+index 000000000..6b29cd13a
+--- /dev/null
++++ crates/lang-bridge/src/observation_json.rs
+@@ -0,0 +1,397 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Native transport of complete GMN and grammar observations, without normalization.
++use crate::bridge::{IngestDiagnostic, LangFailure};
++use crate::gmn1_codec::{Gmn1ConstructCategory, Gmn1Error, QuadCoverage, UncoveredTerm};
++use crate::gmn1_witness::StandaloneReport;
++use crate::grammar::{GrammarRule, RuleExpr};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within as _},
++};
++
++::gmeow_errors::json::json_string_newtype!(UncoveredTerm);
++::purrdf_lex::json_record!(impl ToJson for StandaloneReport {
++    "checked" => checked,
++    "skipped" => skipped,
++});
++impl FromJson for StandaloneReport {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct StandaloneReport")?;
++        Ok(Self {
++            checked: fields.required("checked")?,
++            skipped: fields.required("skipped")?,
++        })
++    }
++}
++impl ToJson for Gmn1Error {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Uncovered(value) => Object::new().with("Uncovered", value.to_json()).into(),
++            Self::NamedGraphOutOfDomain { graph } => Object::new()
++                .with(
++                    "NamedGraphOutOfDomain",
++                    Object::new().with("graph", graph.as_str()),
++                )
++                .into(),
++            Self::NonCanonicalOrder { detail } => Object::new()
++                .with(
++                    "NonCanonicalOrder",
++                    Object::new().with("detail", detail.as_str()),
++                )
++                .into(),
++            Self::MalformedNumber { token } => Object::new()
++                .with(
++                    "MalformedNumber",
++                    Object::new().with("token", token.as_str()),
++                )
++                .into(),
++            Self::UndeclaredDialectVersion { detail } => Object::new()
++                .with(
++                    "UndeclaredDialectVersion",
++                    Object::new().with("detail", detail.as_str()),
++                )
++                .into(),
++            Self::NonDecodableGrammar { detail } => Object::new()
++                .with(
++                    "NonDecodableGrammar",
++                    Object::new().with("detail", detail.as_str()),
++                )
++                .into(),
++            Self::NonNfcLiteral { lexical } => Object::new()
++                .with(
++                    "NonNfcLiteral",
++                    Object::new().with("lexical", lexical.as_str()),
++                )
++                .into(),
++            Self::PerClaimMismatch { subject } => Object::new()
++                .with(
++                    "PerClaimMismatch",
++                    Object::new().with("subject", subject.as_str()),
++                )
++                .into(),
++        }
++    }
++}
++impl FromJson for Gmn1Error {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "Gmn1Error", "one Gmn1Error variant")?;
++        let decode = || -> Result<Self, DecodeError> {
++            match tag {
++                "Uncovered" => UncoveredTerm::from_json(payload).map(Self::Uncovered),
++                "NamedGraphOutOfDomain" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant Gmn1Error::NamedGraphOutOfDomain")?;
++                    fields
++                        .required("graph")
++                        .map(|graph| Self::NamedGraphOutOfDomain { graph })
++                }
++                "NonCanonicalOrder" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant Gmn1Error::NonCanonicalOrder")?;
++                    fields
++                        .required("detail")
++                        .map(|detail| Self::NonCanonicalOrder { detail })
++                }
++                "MalformedNumber" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant Gmn1Error::MalformedNumber")?;
++                    fields
++                        .required("token")
++                        .map(|token| Self::MalformedNumber { token })
++                }
++                "UndeclaredDialectVersion" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant Gmn1Error::UndeclaredDialectVersion",
++                    )?;
++                    fields
++                        .required("detail")
++                        .map(|detail| Self::UndeclaredDialectVersion { detail })
++                }
++                "NonDecodableGrammar" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant Gmn1Error::NonDecodableGrammar")?;
++                    fields
++                        .required("detail")
++                        .map(|detail| Self::NonDecodableGrammar { detail })
++                }
++                "NonNfcLiteral" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant Gmn1Error::NonNfcLiteral")?;
++                    fields
++                        .required("lexical")
++                        .map(|lexical| Self::NonNfcLiteral { lexical })
++                }
++                "PerClaimMismatch" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant Gmn1Error::PerClaimMismatch")?;
++                    fields
++                        .required("subject")
++                        .map(|subject| Self::PerClaimMismatch { subject })
++                }
++                name => Err(DecodeError::unknown_variant(
++                    name,
++                    &[
++                        "Uncovered",
++                        "NamedGraphOutOfDomain",
++                        "NonCanonicalOrder",
++                        "MalformedNumber",
++                        "UndeclaredDialectVersion",
++                        "NonDecodableGrammar",
++                        "NonNfcLiteral",
++                        "PerClaimMismatch",
++                    ],
++                )),
++            }
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
++impl ToJson for Gmn1ConstructCategory {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::IriGlyph => "IriGlyph".to_json(),
++            Self::IriDictAlias => "IriDictAlias".to_json(),
++            Self::IriPrefixMangled => "IriPrefixMangled".to_json(),
++            Self::IriPrefixMangledSlashEscaped => "IriPrefixMangledSlashEscaped".to_json(),
++            Self::IriBareNamespaceRoot => "IriBareNamespaceRoot".to_json(),
++            Self::IriExternalByReference => "IriExternalByReference".to_json(),
++            Self::BlankNode => "BlankNode".to_json(),
++            Self::LiteralIdentifier => "LiteralIdentifier".to_json(),
++            Self::LiteralInteger => "LiteralInteger".to_json(),
++            Self::LiteralDecimal => "LiteralDecimal".to_json(),
++            Self::LiteralByReference => "LiteralByReference".to_json(),
++            Self::TripleTerm => "TripleTerm".to_json(),
++        }
++    }
++}
++impl FromJson for Gmn1ConstructCategory {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "Gmn1ConstructCategory")? {
++            "IriGlyph" => Ok(Self::IriGlyph),
++            "IriDictAlias" => Ok(Self::IriDictAlias),
++            "IriPrefixMangled" => Ok(Self::IriPrefixMangled),
++            "IriPrefixMangledSlashEscaped" => Ok(Self::IriPrefixMangledSlashEscaped),
++            "IriBareNamespaceRoot" => Ok(Self::IriBareNamespaceRoot),
++            "IriExternalByReference" => Ok(Self::IriExternalByReference),
++            "BlankNode" => Ok(Self::BlankNode),
++            "LiteralIdentifier" => Ok(Self::LiteralIdentifier),
++            "LiteralInteger" => Ok(Self::LiteralInteger),
++            "LiteralDecimal" => Ok(Self::LiteralDecimal),
++            "LiteralByReference" => Ok(Self::LiteralByReference),
++            "TripleTerm" => Ok(Self::TripleTerm),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "IriGlyph",
++                    "IriDictAlias",
++                    "IriPrefixMangled",
++                    "IriPrefixMangledSlashEscaped",
++                    "IriBareNamespaceRoot",
++                    "IriExternalByReference",
++                    "BlankNode",
++                    "LiteralIdentifier",
++                    "LiteralInteger",
++                    "LiteralDecimal",
++                    "LiteralByReference",
++                    "TripleTerm",
++                ],
++            )),
++        }
++    }
++}
++impl ToJson for QuadCoverage {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Uncovered(value) => Object::new().with("Uncovered", value.to_json()).into(),
++            Self::Covered {
++                subject,
++                predicate,
++                object,
++            } => Object::new()
++                .with(
++                    "Covered",
++                    Object::new()
++                        .with("subject", subject.to_json())
++                        .with("predicate", predicate.to_json())
++                        .with("object", object.to_json()),
++                )
++                .into(),
++        }
++    }
++}
++impl FromJson for QuadCoverage {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "QuadCoverage", "one QuadCoverage variant")?;
++        let decode = || -> Result<Self, DecodeError> {
++            match tag {
++                "Uncovered" => UncoveredTerm::from_json(payload).map(Self::Uncovered),
++                "Covered" => {
++                    let mut fields = Record::new(payload, "struct variant QuadCoverage::Covered")?;
++                    Ok(Self::Covered {
++                        subject: fields.required("subject")?,
++                        predicate: fields.required("predicate")?,
++                        object: fields.required("object")?,
++                    })
++                }
++                name => Err(DecodeError::unknown_variant(
++                    name,
++                    &["Covered", "Uncovered"],
++                )),
++            }
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
++impl ToJson for LangFailure {
++    fn to_json(&self) -> Value {
++        self.as_str().to_json()
++    }
++}
++impl FromJson for LangFailure {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "LangFailure")? {
++            "SilentIngestDrop" => Ok(Self::SilentIngestDrop),
++            "NonUtf8Surface" => Ok(Self::NonUtf8Surface),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["SilentIngestDrop", "NonUtf8Surface"],
++            )),
++        }
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for IngestDiagnostic {
++    "failure_class" => failure_class,
++    "construct" => construct,
++});
++impl FromJson for IngestDiagnostic {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct IngestDiagnostic")?;
++        Ok(Self {
++            failure_class: fields.required("failure_class")?,
++            construct: fields.required("construct")?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for GrammarRule {
++    "name" => name,
++    "body" => body,
++});
++impl FromJson for GrammarRule {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct GrammarRule")?;
++        Ok(Self {
++            name: fields.required("name")?,
++            body: fields.required("body")?,
++        })
++    }
++}
++impl ToJson for RuleExpr {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Ref(value) => Object::new().with("Ref", value.to_json()).into(),
++            Self::Terminal(value) => Object::new().with("Terminal", value.to_json()).into(),
++            Self::CharClass(value) => Object::new().with("CharClass", value.to_json()).into(),
++            Self::Hex(value) => Object::new().with("Hex", value.to_json()).into(),
++            Self::Seq(value) => Object::new().with("Seq", value.to_json()).into(),
++            Self::Alt(value) => Object::new().with("Alt", value.to_json()).into(),
++            Self::Star(value) => Object::new().with("Star", value.to_json()).into(),
++            Self::Plus(value) => Object::new().with("Plus", value.to_json()).into(),
++            Self::Opt(value) => Object::new().with("Opt", value.to_json()).into(),
++            Self::Group(value) => Object::new().with("Group", value.to_json()).into(),
++            Self::Range(low, high) => Object::new().with("Range", (low, high).to_json()).into(),
++            Self::Diff(left, right) => Object::new().with("Diff", (left, right).to_json()).into(),
++            Self::Repeat(low, high, inner) => Object::new()
++                .with("Repeat", (low, high, inner).to_json())
++                .into(),
++        }
++    }
++}
++fn operands<'a>(
++    value: &'a Value,
++    width: usize,
++    expected: &str,
++) -> Result<&'a [Value], DecodeError> {
++    let items = value
++        .as_array()
++        .ok_or_else(|| DecodeError::invalid_type(value, expected))?;
++    if items.len() != width {
++        return Err(DecodeError::invalid_value(value, expected));
++    }
++    Ok(items)
++}
++impl FromJson for RuleExpr {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "RuleExpr", "one RuleExpr variant")?;
++        let decode = || -> Result<Self, DecodeError> {
++            Ok(match tag {
++                "Ref" => Self::Ref(String::from_json(payload)?),
++                "Terminal" => Self::Terminal(String::from_json(payload)?),
++                "CharClass" => Self::CharClass(String::from_json(payload)?),
++                "Hex" => Self::Hex(String::from_json(payload)?),
++                "Seq" => Self::Seq(Vec::<Self>::from_json(payload)?),
++                "Alt" => Self::Alt(Vec::<Self>::from_json(payload)?),
++                "Star" => Self::Star(Box::<Self>::from_json(payload)?),
++                "Plus" => Self::Plus(Box::<Self>::from_json(payload)?),
++                "Opt" => Self::Opt(Box::<Self>::from_json(payload)?),
++                "Group" => Self::Group(Box::<Self>::from_json(payload)?),
++                "Range" => {
++                    let [low, high] = gmeow_errors::json::read_string_row(payload)?;
++                    Self::Range(low, high)
++                }
++                "Diff" => {
++                    let items = operands(payload, 2, "two RuleExpr operands")?;
++                    Self::Diff(
++                        Box::new(Self::from_json(&items[0]).map_err(|error| error.within("0"))?),
++                        Box::new(Self::from_json(&items[1]).map_err(|error| error.within("1"))?),
++                    )
++                }
++                "Repeat" => {
++                    let items = operands(payload, 3, "three RuleExpr repeat operands")?;
++                    let bound = |index: usize| -> Result<Option<u32>, DecodeError> {
++                        if matches!(items[index], Value::Null) {
++                            Ok(None)
++                        } else {
++                            gmeow_errors::json::read_unsigned(&items[index], "u32 repeat bound")
++                                .map(Some)
++                                .map_err(|error| error.within(&index.to_string()))
++                        }
++                    };
++                    Self::Repeat(
++                        bound(0)?,
++                        bound(1)?,
++                        Box::new(Self::from_json(&items[2]).map_err(|error| error.within("2"))?),
++                    )
++                }
++                name => {
++                    return Err(DecodeError::unknown_variant(
++                        name,
++                        &[
++                            "Ref",
++                            "Terminal",
++                            "CharClass",
++                            "Hex",
++                            "Range",
++                            "Seq",
++                            "Alt",
++                            "Diff",
++                            "Star",
++                            "Plus",
++                            "Opt",
++                            "Repeat",
++                            "Group",
++                        ],
++                    ));
++                }
++            })
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
++#[cfg(test)]
++mod tests;
+diff --git crates/lang-bridge/src/observation_json/tests.rs crates/lang-bridge/src/observation_json/tests.rs
+new file mode 100644
+index 000000000..172ed6b2e
+--- /dev/null
++++ crates/lang-bridge/src/observation_json/tests.rs
+@@ -0,0 +1,172 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Authored domain transport controls; no dictionary or repository corpus.
++use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++#[test]
++fn native_gmn_refusals_and_coverage_preserve_every_typed_payload() {
++    let errors = [
++        (
++            Gmn1Error::Uncovered(UncoveredTerm("raw\\n中".into())),
++            r#"{"Uncovered":"raw\\n中"}"#,
++        ),
++        (
++            Gmn1Error::NamedGraphOutOfDomain {
++                graph: "urn:graph".into(),
++            },
++            r#"{"NamedGraphOutOfDomain":{"graph":"urn:graph"}}"#,
++        ),
++        (
++            Gmn1Error::NonCanonicalOrder {
++                detail: "order".into(),
++            },
++            r#"{"NonCanonicalOrder":{"detail":"order"}}"#,
++        ),
++        (
++            Gmn1Error::MalformedNumber {
++                token: "1e400".into(),
++            },
++            r#"{"MalformedNumber":{"token":"1e400"}}"#,
++        ),
++        (
++            Gmn1Error::UndeclaredDialectVersion {
++                detail: "future".into(),
++            },
++            r#"{"UndeclaredDialectVersion":{"detail":"future"}}"#,
++        ),
++        (
++            Gmn1Error::NonDecodableGrammar {
++                detail: "grammar".into(),
++            },
++            r#"{"NonDecodableGrammar":{"detail":"grammar"}}"#,
++        ),
++        (
++            Gmn1Error::NonNfcLiteral {
++                lexical: "é".into(),
++            },
++            r#"{"NonNfcLiteral":{"lexical":"é"}}"#,
++        ),
++        (
++            Gmn1Error::PerClaimMismatch {
++                subject: "urn:claim".into(),
++            },
++            r#"{"PerClaimMismatch":{"subject":"urn:claim"}}"#,
++        ),
++    ];
++    for (value, wire) in errors {
++        assert_eq!(to_vec(&value), wire.as_bytes());
++        assert_eq!(from_slice::<Gmn1Error>(wire.as_bytes()).unwrap(), value);
++    }
++    for name in [
++        "IriGlyph",
++        "IriDictAlias",
++        "IriPrefixMangled",
++        "IriPrefixMangledSlashEscaped",
++        "IriBareNamespaceRoot",
++        "IriExternalByReference",
++        "BlankNode",
++        "LiteralIdentifier",
++        "LiteralInteger",
++        "LiteralDecimal",
++        "LiteralByReference",
++        "TripleTerm",
++    ] {
++        let wire = format!(r#""{name}""#);
++        let value: Gmn1ConstructCategory = from_slice(wire.as_bytes()).unwrap();
++        assert_eq!(to_vec(&value), wire.as_bytes());
++    }
++    let covered = r#"{"Covered":{"subject":"IriExternalByReference","predicate":"IriGlyph","object":"TripleTerm"}}"#;
++    let value: QuadCoverage = from_slice(covered.as_bytes()).unwrap();
++    assert_eq!(to_vec(&value), covered.as_bytes());
++    let uncovered = QuadCoverage::Uncovered(UncoveredTerm("outside".into()));
++    assert_eq!(to_vec(&uncovered), br#"{"Uncovered":"outside"}"#);
++    for class in ["SilentIngestDrop", "NonUtf8Surface"] {
++        let wire = format!(r#"{{"failure_class":"{class}","construct":"raw\\n中"}}"#);
++        assert_eq!(
++            to_vec(&from_slice::<IngestDiagnostic>(wire.as_bytes()).unwrap()),
++            wire.as_bytes()
++        );
++    }
++    let wire = br#"{"checked":["z","a"],"skipped":["shared"]}"#;
++    assert_eq!(to_vec(&from_slice::<StandaloneReport>(wire).unwrap()), wire);
++}
++
++#[test]
++fn native_grammar_transport_preserves_all_branches_groups_and_raw_repeat_bounds() {
++    let reference = || Box::new(RuleExpr::Ref("x".into()));
++    let rule = GrammarRule {
++        name: "authored".into(),
++        body: RuleExpr::Seq(vec![
++            RuleExpr::Ref("x".into()),
++            RuleExpr::Terminal("中\\n".into()),
++            RuleExpr::CharClass("^a-z".into()),
++            RuleExpr::Hex("00aF".into()),
++            RuleExpr::Range("09".into(), "0A".into()),
++            RuleExpr::Seq(vec![]),
++            RuleExpr::Alt(vec![
++                RuleExpr::Terminal("a".into()),
++                RuleExpr::Ref("b".into()),
++            ]),
++            RuleExpr::Diff(reference(), Box::new(RuleExpr::Ref("y".into()))),
++            RuleExpr::Star(reference()),
++            RuleExpr::Plus(reference()),
++            RuleExpr::Opt(reference()),
++            RuleExpr::Repeat(Some(8), Some(3), reference()),
++            RuleExpr::Group(reference()),
++            RuleExpr::Repeat(None, Some(u32::MAX), reference()),
++        ]),
++    };
++    let wire = r#"{"name":"authored","body":{"Seq":[{"Ref":"x"},{"Terminal":"中\\n"},{"CharClass":"^a-z"},{"Hex":"00aF"},{"Range":["09","0A"]},{"Seq":[]},{"Alt":[{"Terminal":"a"},{"Ref":"b"}]},{"Diff":[{"Ref":"x"},{"Ref":"y"}]},{"Star":{"Ref":"x"}},{"Plus":{"Ref":"x"}},{"Opt":{"Ref":"x"}},{"Repeat":[8,3,{"Ref":"x"}]},{"Group":{"Ref":"x"}},{"Repeat":[null,4294967295,{"Ref":"x"}]}]}}"#;
++    assert_eq!(to_vec(&rule), wire.as_bytes());
++    assert_eq!(from_slice::<GrammarRule>(wire.as_bytes()).unwrap(), rule);
++    for token in ["-0", "-1", "1.0", "1e0", "4294967296", r#""1""#] {
++        let bad = format!(r#"{{"Repeat":[{token},null,{{"Ref":"x"}}]}}"#);
++        assert_eq!(
++            from_slice::<RuleExpr>(bad.as_bytes())
++                .unwrap_err()
++                .pointer(),
++            "/Repeat/0"
++        );
++    }
++}
++
++#[test]
++fn native_gmn_and_grammar_admission_refuses_ambiguous_or_incomplete_records() {
++    for wire in [
++        r#"{"NamedGraphOutOfDomain":{}}"#,
++        r#"{"NamedGraphOutOfDomain":{"graph":null}}"#,
++        r#"{"NamedGraphOutOfDomain":{"graph":"a","graph":"b"}}"#,
++        r#"{"Uncovered":"a","MalformedNumber":{"token":"b"}}"#,
++        r#"{"Unknown":"a"}"#,
++    ] {
++        assert!(from_slice::<Gmn1Error>(wire.as_bytes()).is_err(), "{wire}");
++    }
++    for wire in [
++        r#"{"Range":["a"]}"#,
++        r#"{"Range":["a","b","c"]}"#,
++        r#"{"Diff":[{"Ref":"x"}]}"#,
++        r#"{"Repeat":[1,2]}"#,
++        r#"{"Ref":"a","Ref":"b"}"#,
++        r#"{"Group":null}"#,
++        r#"{"Unknown":[]}"#,
++    ] {
++        assert!(from_slice::<RuleExpr>(wire.as_bytes()).is_err(), "{wire}");
++    }
++    for wire in [
++        r#"["x",{"Ref":"x"}]"#,
++        r#"{"name":"x"}"#,
++        r#"{"name":"x","name":"y","body":{"Ref":"x"}}"#,
++    ] {
++        assert!(
++            from_slice::<GrammarRule>(wire.as_bytes()).is_err(),
++            "{wire}"
++        );
++    }
++    let extended = br#"{"name":"x","body":{"Group":{"Ref":"x"}},"extension":false}"#;
++    assert_eq!(
++        to_vec(&from_slice::<GrammarRule>(extended).unwrap()),
++        br#"{"name":"x","body":{"Group":{"Ref":"x"}}}"#
++    );
++}
+diff --git crates/pipeline/src/stages/conformance/corpus_tests/gmn_dictionary.rs crates/pipeline/src/stages/conformance/corpus_tests/gmn_dictionary.rs
+index cde0a54c7..afd4c4ebf 100644
+--- crates/pipeline/src/stages/conformance/corpus_tests/gmn_dictionary.rs
++++ crates/pipeline/src/stages/conformance/corpus_tests/gmn_dictionary.rs
+@@ -14,7 +14,7 @@ pub(super) fn observations() -> &'static Observations {
+             CHANNEL,
+         )
+         .expect("authenticated native dictionary observations");
+-        serde_json::from_slice(&bytes).expect("typed dictionary observations")
++        purrdf_lex::json::record::from_slice(&bytes).expect("typed dictionary observations")
+     })
+ }
+ 
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary.rs crates/pipeline/src/stages/conformance/gmn_dictionary.rs
+index 1464942b1..0ac791db4 100644
+--- crates/pipeline/src/stages/conformance/gmn_dictionary.rs
++++ crates/pipeline/src/stages/conformance/gmn_dictionary.rs
+@@ -10,19 +10,19 @@ use gmeow_lang_bridge::{
+     per_claim_standalone_check,
+ };
+ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple};
+-use serde::{Deserialize, Serialize};
+ 
+ use crate::stages::parse_sources::{SourceCatalog, language::LANG};
+ 
+ mod cases;
+ pub(super) mod costs;
++mod json;
+ mod notation;
+ mod stamps;
+ 
+ pub(super) const CHANNEL: &str = "pipeline/gmn-dictionary-observations.json";
+ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+ 
+-#[derive(Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(super) struct Observations {
+     pub aliases: BTreeMap<String, String>,
+     pub nec_reverse: Option<String>,
+@@ -40,7 +40,7 @@ pub(super) struct Observations {
+ }
+ 
+ /// Raw authored coordinates, independent of the dictionary's validated registry.
+-#[derive(Default, Serialize, Deserialize)]
++#[derive(Debug, Default)]
+ pub(super) struct GlyphSource {
+     pub codepoints: BTreeSet<String>,
+     pub scopes: BTreeSet<String>,
+@@ -155,7 +155,7 @@ pub(super) fn record(
+     };
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&observed).map_err(|error| super::stage_err(&error.to_string()))?,
++        purrdf_lex::json::record::to_vec(&observed),
+     );
+     Ok(())
+ }
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary/cases.rs crates/pipeline/src/stages/conformance/gmn_dictionary/cases.rs
+index 58446de9a..917228225 100644
+--- crates/pipeline/src/stages/conformance/gmn_dictionary/cases.rs
++++ crates/pipeline/src/stages/conformance/gmn_dictionary/cases.rs
+@@ -8,7 +8,6 @@ use gmeow_lang_bridge::{
+     classify_model, gmn0_canonically_equal, gmn1_read, gmn1_write,
+ };
+ use purrdf::{RdfDatasetBuilder, RdfLiteral};
+-use serde::{Deserialize, Serialize};
+ 
+ const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+@@ -23,20 +22,20 @@ const PRED_GMN_REPAIR_ID: &str = "https://blackcatinformatics.ca/gmeow/gmnRepair
+ const PRED_GMN_REPAIR_CLASS: &str = "https://blackcatinformatics.ca/gmeow/gmnRepairClass";
+ const PRED_OCCURRENT_BOUNDARY: &str = "https://blackcatinformatics.ca/logic/occurrentBoundary";
+ 
+-#[derive(Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct Records {
+     pub sigils: Result<Written, Gmn1Error>,
+     pub scoped: Result<Scoped, Gmn1Error>,
+     pub process: Result<Process, Gmn1Error>,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct Written {
+     pub text: String,
+     pub canonical_equal: bool,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct Scoped {
+     pub written: Written,
+     pub fallback: Result<bool, Gmn1Error>,
+@@ -44,7 +43,7 @@ pub(in crate::stages::conformance) struct Scoped {
+     pub wrong_fallback_scope: Result<(), Gmn1Error>,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct Process {
+     pub written: Written,
+     pub primary: Option<QuadCoverage>,
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary/costs.rs crates/pipeline/src/stages/conformance/gmn_dictionary/costs.rs
+index e01824515..acc39195a 100644
+--- crates/pipeline/src/stages/conformance/gmn_dictionary/costs.rs
++++ crates/pipeline/src/stages/conformance/gmn_dictionary/costs.rs
+@@ -7,7 +7,6 @@ use std::collections::{BTreeMap, BTreeSet};
+ 
+ use gmeow_lang_bridge::{Gmn0Model, Gmn1Error, GmnDictionary, gmn_glyph_token_cost, gmn1_write};
+ use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
+-use serde::{Deserialize, Serialize};
+ 
+ const COST: &str = "https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost";
+ const CODEPOINTS: &str = "https://blackcatinformatics.ca/gmeow/gmnCodepoints";
+@@ -16,7 +15,7 @@ const ENTRY_TERM: &str = "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntr
+ const ENTRY_ALIAS: &str = "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias";
+ const DENOTATION: &str = "https://blackcatinformatics.ca/gmeow/gmnFormDenotation";
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct Costs {
+     pub rows: Vec<CostRow>,
+     pub spellings: BTreeSet<String>,
+@@ -25,7 +24,7 @@ pub(in crate::stages::conformance) struct Costs {
+     pub emitted: BTreeMap<String, Result<String, Gmn1Error>>,
+ }
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct CostRow {
+     pub codepoints: Vec<String>,
+     pub values: Vec<String>,
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary/json.rs crates/pipeline/src/stages/conformance/gmn_dictionary/json.rs
+new file mode 100644
+index 000000000..5094d3d7b
+--- /dev/null
++++ crates/pipeline/src/stages/conformance/gmn_dictionary/json.rs
+@@ -0,0 +1,327 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete selected-dictionary observations. Hydration never reruns the dictionary
++//! or grammar producers; all observed values and typed refusals remain data.
++
++use super::{
++    GlyphSource, Observations,
++    cases::{Process, Records, Scoped, Written},
++    costs::{CostRow, Costs},
++    notation::Notation,
++    stamps::Stamps,
++};
++use gmeow_lang_bridge::{Gmn1Error, IngestDiagnostic, gmn1_witness::StandaloneReport};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within as _},
++};
++use std::collections::BTreeMap;
++
++fn outcome<T, E: ToJson>(result: &Result<T, E>, write: impl FnOnce(&T) -> Value) -> Value {
++    match result {
++        Ok(value) => Object::new().with("Ok", write(value)).into(),
++        Err(error) => Object::new().with("Err", error.to_json()).into(),
++    }
++}
++fn read_outcome<T, E: FromJson>(
++    value: &Value,
++    read: impl FnOnce(&Value) -> Result<T, DecodeError>,
++) -> Result<Result<T, E>, DecodeError> {
++    let (tag, payload) = gmeow_errors::json::read_variant(
++        value,
++        "dictionary outcome",
++        "one dictionary outcome variant",
++    )?;
++    match tag {
++        "Ok" => read(payload).map(Ok),
++        "Err" => E::from_json(payload).map(Err),
++        name => Err(DecodeError::unknown_variant(name, &["Ok", "Err"])),
++    }
++    .map_err(|error| error.within(tag))
++}
++fn unit(value: &Value) -> Result<(), DecodeError> {
++    if matches!(value, Value::Null) {
++        Ok(())
++    } else {
++        Err(DecodeError::invalid_type(value, "null unit witness"))
++    }
++}
++fn acceptance(value: &Value) -> Result<(u32, u32), DecodeError> {
++    let items = value
++        .as_array()
++        .ok_or_else(|| DecodeError::invalid_type(value, "two u32 acceptance coordinates"))?;
++    if items.len() != 2 {
++        return Err(DecodeError::invalid_value(
++            value,
++            "two u32 acceptance coordinates",
++        ));
++    }
++    let read = |index: usize| {
++        gmeow_errors::json::read_unsigned(&items[index], "u32 acceptance coordinate")
++            .map_err(|error| error.within(&index.to_string()))
++    };
++    Ok((read(0)?, read(1)?))
++}
++struct Count(usize);
++impl FromJson for Count {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        gmeow_errors::json::read_unsigned(value, "usize measured token cost").map(Self)
++    }
++}
++struct GmnOutcome<T>(Result<T, Gmn1Error>);
++impl<T: FromJson> FromJson for GmnOutcome<T> {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_outcome(value, T::from_json).map(Self)
++    }
++}
++fn emitted(value: &Value) -> Result<BTreeMap<String, Result<String, Gmn1Error>>, DecodeError> {
++    BTreeMap::<String, GmnOutcome<String>>::from_json(value).map(|rows| {
++        rows.into_iter()
++            .map(|(name, value)| (name, value.0))
++            .collect()
++    })
++}
++struct GrammarOutcome(Result<Vec<gmeow_lang_bridge::GrammarRule>, IngestDiagnostic>);
++impl FromJson for GrammarOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_outcome(value, Vec::from_json).map(Self)
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for GlyphSource { "codepoints" => codepoints, "scopes" => scopes });
++impl FromJson for GlyphSource {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct GlyphSource")?;
++        Ok(Self {
++            codepoints: fields.required("codepoints")?,
++            scopes: fields.required("scopes")?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for Written { "text" => text, "canonical_equal" => canonical_equal });
++impl FromJson for Written {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Written")?;
++        Ok(Self {
++            text: fields.required("text")?,
++            canonical_equal: fields.required("canonical_equal")?,
++        })
++    }
++}
++impl ToJson for Scoped {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("written", self.written.to_json())
++            .with("fallback", outcome(&self.fallback, ToJson::to_json))
++            .with("wrong_scope", outcome(&self.wrong_scope, |_| Value::Null))
++            .with(
++                "wrong_fallback_scope",
++                outcome(&self.wrong_fallback_scope, |_| Value::Null),
++            )
++            .into()
++    }
++}
++impl FromJson for Scoped {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Scoped")?;
++        Ok(Self {
++            written: fields.required("written")?,
++            fallback: fields
++                .required_with("fallback", |value| read_outcome(value, bool::from_json))?,
++            wrong_scope: fields.required_with("wrong_scope", |value| read_outcome(value, unit))?,
++            wrong_fallback_scope: fields
++                .required_with("wrong_fallback_scope", |value| read_outcome(value, unit))?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for Process { "written" => written, "primary" => primary, "glyph_count" => glyph_count });
++impl FromJson for Process {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Process")?;
++        Ok(Self {
++            written: fields.required("written")?,
++            primary: fields.optional("primary")?,
++            glyph_count: fields.required_with("glyph_count", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize glyph count")
++            })?,
++        })
++    }
++}
++impl ToJson for Records {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("sigils", outcome(&self.sigils, ToJson::to_json))
++            .with("scoped", outcome(&self.scoped, ToJson::to_json))
++            .with("process", outcome(&self.process, ToJson::to_json))
++            .into()
++    }
++}
++impl FromJson for Records {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Records")?;
++        Ok(Self {
++            sigils: fields
++                .required_with("sigils", |value| read_outcome(value, Written::from_json))?,
++            scoped: fields
++                .required_with("scoped", |value| read_outcome(value, Scoped::from_json))?,
++            process: fields
++                .required_with("process", |value| read_outcome(value, Process::from_json))?,
++        })
++    }
++}
++impl ToJson for CostRow {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("codepoints", self.codepoints.to_json())
++            .with("values", self.values.to_json())
++            .with(
++                "measured",
++                gmeow_errors::json::recorded_result_to_json(&self.measured),
++            )
++            .into()
++    }
++}
++impl FromJson for CostRow {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CostRow")?;
++        Ok(Self {
++            codepoints: fields.required("codepoints")?,
++            values: fields.required("values")?,
++            measured: fields.required_with("measured", |value| {
++                gmeow_errors::json::read_recorded_result::<Count>(
++                    value,
++                    "measured cost outcome",
++                    "one measured cost outcome variant",
++                )
++                .map(|value| value.map(|count| count.0))
++            })?,
++        })
++    }
++}
++impl ToJson for Costs {
++    fn to_json(&self) -> Value {
++        let emitted: Object = self
++            .emitted
++            .iter()
++            .map(|(name, value)| (name.as_str(), outcome(value, ToJson::to_json)))
++            .collect();
++        Object::new()
++            .with("rows", self.rows.to_json())
++            .with("spellings", self.spellings.to_json())
++            .with("denotation_form_present", self.denotation_form_present)
++            .with("aliases", self.aliases.to_json())
++            .with("emitted", emitted)
++            .into()
++    }
++}
++impl FromJson for Costs {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Costs")?;
++        Ok(Self {
++            rows: fields.required("rows")?,
++            spellings: fields.required("spellings")?,
++            denotation_form_present: fields.required("denotation_form_present")?,
++            aliases: fields.required("aliases")?,
++            emitted: fields.required_with("emitted", emitted)?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for Stamps {
++    "resolved" => resolved, "dictionary_major" => dictionary_major, "acceptance_major" => acceptance_major,
++    "values" => values, "repeated_quad_equal" => repeated_quad_equal,
++});
++impl FromJson for Stamps {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Stamps")?;
++        Ok(Self {
++            resolved: fields.required("resolved")?,
++            dictionary_major: fields.required("dictionary_major")?,
++            acceptance_major: fields.required("acceptance_major")?,
++            values: fields.required("values")?,
++            repeated_quad_equal: fields.required("repeated_quad_equal")?,
++        })
++    }
++}
++impl ToJson for Notation {
++    fn to_json(&self) -> Value {
++        let views: Object = self
++            .views
++            .iter()
++            .map(|(name, value)| (name.as_str(), outcome(value, ToJson::to_json)))
++            .collect();
++        Object::new()
++            .with("production", self.production.to_json())
++            .with("canonical", self.canonical.to_json())
++            .with("views", views)
++            .into()
++    }
++}
++impl FromJson for Notation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Notation")?;
++        let production = fields.required("production")?;
++        let canonical = fields.required("canonical")?;
++        let views: BTreeMap<String, GrammarOutcome> = fields.required("views")?;
++        Ok(Self {
++            production,
++            canonical,
++            views: views
++                .into_iter()
++                .map(|(name, value)| (name, value.0))
++                .collect(),
++        })
++    }
++}
++impl ToJson for Observations {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("aliases", self.aliases.to_json())
++            .with("nec_reverse", self.nec_reverse.to_json())
++            .with("acceptance", self.acceptance.to_json())
++            .with("resolved_acceptance", self.resolved_acceptance.to_json())
++            .with(
++                "current_header",
++                outcome(&self.current_header, |_| Value::Null),
++            )
++            .with(
++                "future_header",
++                outcome(&self.future_header, |_| Value::Null),
++            )
++            .with("per_claim", outcome(&self.per_claim, |_| Value::Null))
++            .with("standalone", outcome(&self.standalone, ToJson::to_json))
++            .with("glyphs", self.glyphs.to_json())
++            .with("records", self.records.to_json())
++            .with("costs", self.costs.to_json())
++            .with("stamps", self.stamps.to_json())
++            .with("notation", outcome(&self.notation, ToJson::to_json))
++            .into()
++    }
++}
++impl FromJson for Observations {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observations")?;
++        Ok(Self {
++            aliases: fields.required("aliases")?,
++            nec_reverse: fields.optional("nec_reverse")?,
++            acceptance: fields.required_with("acceptance", acceptance)?,
++            resolved_acceptance: fields.required_with("resolved_acceptance", acceptance)?,
++            current_header: fields
++                .required_with("current_header", |value| read_outcome(value, unit))?,
++            future_header: fields
++                .required_with("future_header", |value| read_outcome(value, unit))?,
++            per_claim: fields.required_with("per_claim", |value| read_outcome(value, unit))?,
++            standalone: fields.required_with("standalone", |value| {
++                read_outcome(value, StandaloneReport::from_json)
++            })?,
++            glyphs: fields.required("glyphs")?,
++            records: fields.required("records")?,
++            costs: fields.required("costs")?,
++            stamps: fields.required("stamps")?,
++            notation: fields
++                .required_with("notation", |value| read_outcome(value, Notation::from_json))?,
++        })
++    }
++}
++#[cfg(test)]
++mod tests;
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary/json/tests.rs crates/pipeline/src/stages/conformance/gmn_dictionary/json/tests.rs
+new file mode 100644
+index 000000000..0cb02261f
+--- /dev/null
++++ crates/pipeline/src/stages/conformance/gmn_dictionary/json/tests.rs
+@@ -0,0 +1,174 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Independently authored observations; no source catalog, tokenizer or corpus production.
++use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const WIRE: &str = r#"{"aliases":{"a":"first","z":"last"},"nec_reverse":null,"acceptance":[3,1],"resolved_acceptance":[3,2],"current_header":{"Ok":null},"future_header":{"Err":{"UndeclaredDialectVersion":{"detail":"future"}}},"per_claim":{"Ok":null},"standalone":{"Ok":{"checked":["z","a"],"skipped":["shared"]}},"glyphs":{"urn:glyph":{"codepoints":["U+002B","U+002D"],"scopes":["logic","math"]}},"records":{"sigils":{"Ok":{"text":"@S{中}","canonical_equal":true}},"scoped":{"Ok":{"written":{"text":"@L{raw}","canonical_equal":false},"fallback":{"Ok":true},"wrong_scope":{"Err":{"Uncovered":"+"}},"wrong_fallback_scope":{"Ok":null}}},"process":{"Ok":{"written":{"text":"@P{raw}","canonical_equal":true},"primary":{"Covered":{"subject":"IriExternalByReference","predicate":"IriGlyph","object":"TripleTerm"}},"glyph_count":2}}},"costs":{"rows":[{"codepoints":["U+002B"],"values":["01","2"],"measured":{"Ok":7}}],"spellings":["+","add"],"denotation_form_present":true,"aliases":{"urn:add":["add","plus"]},"emitted":{"term":{"Ok":"exact\n中"}}},"stamps":{"resolved":"3","dictionary_major":"3","acceptance_major":"4","values":{"urn:record":["3","3"]},"repeated_quad_equal":true},"notation":{"Ok":{"production":"raw production","canonical":[{"name":"glyph","body":{"Group":{"Repeat":[8,3,{"Terminal":"+"}]}}}],"views":{"Abnf":{"Err":{"failure_class":"SilentIngestDrop","construct":"authored refusal"}},"Ebnf":{"Ok":[{"name":"glyph","body":{"Ref":"raw"}}]}}}}}"#;
++
++#[test]
++fn native_dictionary_observation_preserves_complete_wire_and_unmodified_grammar() {
++    let observed: Observations = from_slice(WIRE.as_bytes()).unwrap();
++    assert_eq!(to_vec(&observed), WIRE.as_bytes());
++    assert_eq!(observed.acceptance, (3, 1));
++    assert_eq!(observed.resolved_acceptance, (3, 2));
++    assert_eq!(observed.standalone.as_ref().unwrap().checked, ["z", "a"]);
++    assert_eq!(observed.costs.rows[0].values, ["01", "2"]);
++    assert_eq!(observed.costs.rows[0].measured.as_ref().unwrap(), &7);
++    assert_eq!(
++        observed.notation.as_ref().unwrap().canonical[0].body,
++        gmeow_lang_bridge::RuleExpr::Group(Box::new(gmeow_lang_bridge::RuleExpr::Repeat(
++            Some(8),
++            Some(3),
++            Box::new(gmeow_lang_bridge::RuleExpr::Terminal("+".into()))
++        )))
++    );
++    let absent = WIRE.replace(r#""nec_reverse":null,"#, "");
++    assert_eq!(
++        to_vec(&from_slice::<Observations>(absent.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let extended = WIRE.replacen('{', r#"{"extension":true,"#, 1);
++    assert_eq!(
++        to_vec(&from_slice::<Observations>(extended.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let repeated = WIRE.replace(
++        r#""aliases":{"a":"first","z":"last"}"#,
++        r#""aliases":{"a":"old","a":"first","z":"last"}"#,
++    );
++    assert_eq!(
++        to_vec(&from_slice::<Observations>(repeated.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++}
++
++#[test]
++fn native_dictionary_observation_refuses_bad_coordinates_records_and_outcomes() {
++    for row in ["[]", "[3]", "[3,1,2]", "null"] {
++        let bad = WIRE.replace(r#""acceptance":[3,1]"#, &format!(r#""acceptance":{row}"#));
++        assert_eq!(
++            from_slice::<Observations>(bad.as_bytes())
++                .unwrap_err()
++                .pointer(),
++            "/acceptance"
++        );
++    }
++    for token in ["-0", "-1", "1.0", "1e0", "4294967296", r#""1""#] {
++        let bad = WIRE.replace(
++            r#""acceptance":[3,1]"#,
++            &format!(r#""acceptance":[3,{token}]"#),
++        );
++        assert_eq!(
++            from_slice::<Observations>(bad.as_bytes())
++                .unwrap_err()
++                .pointer(),
++            "/acceptance/1"
++        );
++    }
++    for token in ["-0", "-1", "1.0", "1e0", "18446744073709551616", "null"] {
++        let bad = WIRE.replace(
++            r#""measured":{"Ok":7}"#,
++            &format!(r#""measured":{{"Ok":{token}}}"#),
++        );
++        assert_eq!(
++            from_slice::<Observations>(bad.as_bytes())
++                .unwrap_err()
++                .pointer(),
++            "/costs/rows/0/measured/Ok"
++        );
++    }
++    for bad in [
++        WIRE.replace(
++            r#""current_header":{"Ok":null}"#,
++            r#""current_header":{"Ok":false}"#,
++        ),
++        WIRE.replace(
++            r#""current_header":{"Ok":null}"#,
++            r#""current_header":{"Ok":null,"Err":{"Uncovered":"x"}}"#,
++        ),
++        WIRE.replace(r#""aliases":{"a":"first","z":"last"},"#, ""),
++        WIRE.replacen('{', r#"{"aliases":{},"#, 1),
++        WIRE.replace(r#""checked":["z","a"]"#, r#""checked":null"#),
++        WIRE.replace(r#""glyph_count":2"#, r#""glyph_count":2.0"#),
++        WIRE.replace(
++            r#""emitted":{"term":{"Ok":"exact\n中"}}"#,
++            r#""emitted":{"term":{"Ok":null},"term":{"Ok":"valid"}}"#,
++        ),
++        WIRE.replace(r#""resolved":"3","#, ""),
++        "[]".to_owned(),
++    ] {
++        assert!(
++            from_slice::<Observations>(bad.as_bytes()).is_err(),
++            "accepted {bad}"
++        );
++    }
++    let object = purrdf_lex::json::read(WIRE).unwrap();
++    let positional = Value::Array(
++        object
++            .as_object()
++            .unwrap()
++            .iter()
++            .map(|(_, value)| value.clone())
++            .collect(),
++    );
++    assert!(
++        Observations::from_json(&positional).is_err(),
++        "a complete positional inventory is not a named record"
++    );
++    assert!(
++        from_slice::<Written>(br#"["text",true]"#).is_err(),
++        "a complete positional nested record is refused"
++    );
++}
++
++#[test]
++fn native_dictionary_observation_retains_measured_cost_causal_refusals() {
++    use gmeow_errors::{Diag, DiagLedger, StageId};
++    let mut ledger = DiagLedger::new();
++    let cause = ledger.attach(
++        Diag::from(std::io::Error::other("authored cost premise")).with_focus("urn:cost:premise"),
++        StageId::new("cost-input"),
++    );
++    let refusal = ledger.record(
++        Diag::from(std::io::Error::other("authored cost refusal"))
++            .with_focus("urn:cost:refusal")
++            .with_antecedents([cause]),
++        StageId::new("cost"),
++    );
++    let mut observed: Observations = from_slice(WIRE.as_bytes()).unwrap();
++    observed.costs.rows[0].measured = Err(refusal.clone());
++    observed.current_header = Err(Gmn1Error::MalformedNumber {
++        token: "raw".into(),
++    });
++    observed.per_claim = Err(Gmn1Error::PerClaimMismatch {
++        subject: "urn:claim".into(),
++    });
++    observed.standalone = Err(Gmn1Error::NonDecodableGrammar {
++        detail: "standalone".into(),
++    });
++    observed.notation = Err(IngestDiagnostic {
++        failure_class: gmeow_lang_bridge::LangFailure::NonUtf8Surface,
++        construct: "raw notation".into(),
++    });
++    let encoded = to_vec(&observed);
++    let decoded: Observations = from_slice(&encoded).unwrap();
++    assert_eq!(to_vec(&decoded), encoded);
++    assert_eq!(
++        decoded.costs.rows[0].measured.as_ref().unwrap_err(),
++        &refusal
++    );
++    assert_eq!(decoded.current_header, observed.current_header);
++    assert_eq!(decoded.per_claim, observed.per_claim);
++    assert_eq!(decoded.standalone, observed.standalone);
++    assert_eq!(
++        decoded.notation.as_ref().unwrap_err(),
++        observed.notation.as_ref().unwrap_err()
++    );
++    let mut replay = DiagLedger::new();
++    replay.replay(refusal.causes);
++    replay.replay([*refusal.root]);
++    assert_eq!(replay.len(), 2);
++    assert_eq!(replay.verdict(), ledger.verdict());
++}
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary/notation.rs crates/pipeline/src/stages/conformance/gmn_dictionary/notation.rs
+index e0692d459..5b9560656 100644
+--- crates/pipeline/src/stages/conformance/gmn_dictionary/notation.rs
++++ crates/pipeline/src/stages/conformance/gmn_dictionary/notation.rs
+@@ -9,9 +9,8 @@ use gmeow_lang_bridge::{
+     Formalism, GmnDictionary, Grammar, GrammarRule, IngestDiagnostic, parse_grammar,
+     serialize_grammar,
+ };
+-use serde::{Deserialize, Serialize};
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct Notation {
+     pub production: String,
+     pub canonical: Vec<GrammarRule>,
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary/stamps.rs crates/pipeline/src/stages/conformance/gmn_dictionary/stamps.rs
+index e5e3c9ad1..103c9820e 100644
+--- crates/pipeline/src/stages/conformance/gmn_dictionary/stamps.rs
++++ crates/pipeline/src/stages/conformance/gmn_dictionary/stamps.rs
+@@ -9,9 +9,8 @@ use gmeow_lang_bridge::{
+     GmnDictionary, PRED_GMN_SCHEMA_VERSION, resolved_schema_version, tag_schema_version,
+ };
+ use purrdf::RdfTerm;
+-use serde::{Deserialize, Serialize};
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(in crate::stages::conformance) struct Stamps {
+     pub resolved: String,
+     pub dictionary_major: String,

@@ -1,0 +1,9 @@
+Complete GMN dictionary observations now use PurRDF native JSON from the publisher through the authenticated reader and cost-feed consumer. All ten local records and their complete GMN error, coverage, ingest, standalone and recursive grammar families preserve the observed data, raw grammar structure, exact numeric domains and full recorded diagnostic causes. Fixed records refuse positional arrays and duplicate known fields. Genuine binary and other protocol Serde owners remain intact.
+
+A shared native String adapter handles the distinct Focus and UncoveredTerm wrappers. Its source admission resolves the selected local exported definition and any required direct public re-export through the existing strict scanner, capturing definition and nested input bytes. Exact selected units, dependency aliases, manifests, package names, editions and library roots bind ownership. Root exports and ordinary rlib dependencies in both production and controller graphs are supported; ambiguous, shadowed, inactive, opaque and unowned inputs fail closed.
+
+Validation: independent design and complete source reviews passed. Eleven authored GMN and diagnostic controls passed. All eight settled source-ownership controls passed after a 13.55 second build and 0.017 seconds execution. Strict all-target diagnostics for build-inputs, errors, bridge, pipeline and developer CLI passed in 1 minute 3 seconds. The actual producer-recipe admission, helper ownership checks, formatting and diff hygiene passed. Normal signed commit and push hooks passed.
+
+The standing exception excludes local optimized production, corpus construction, sync and the full local gate; hosted CI may remain pending under the existing merge instruction. Authenticated corpus, embedded/installed and browser execution remain unverified and belong to the open parent contracts. This source operation does not close #1776 or #1858 through #1861. Principles 4, 7, 12, 15, 17 and 18 apply.
+
+Closes #1977.
