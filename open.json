@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1982,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1982-use-native-json-for-complete-logic",
+  "branch": "paudley/1982-use-native-json-for-complete-logic",
+  "slug": "use-native-json-for-complete-logic",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1982-use-native-json-for-complete-logic/.stage/use-native-json-for-complete-logic",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "f3f378b9d15cf2ee23417dbbc463a98cd20e6da9",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1982-use-native-json-for-complete-logic",
+    "branch:paudley/1982-use-native-json-for-complete-logic",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1982-use-native-json-for-complete-logic/.stage/use-native-json-for-complete-logic",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1982-use-native-json-for-complete-logic/.stage/use-native-json-for-complete-logic/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T17:13:28-0600"
+}

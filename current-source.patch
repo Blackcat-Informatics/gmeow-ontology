@@ -1,0 +1,292 @@
+diff --git crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.rs crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.rs
+index a880ace0e..7341f98d5 100644
+--- crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.rs
++++ crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.rs
+@@ -4,12 +4,13 @@
+ //! Native vocabulary observations from the retained grounding document. The
+ //! producer records declarations; authenticated consumers compare them to Rust.
+ 
++mod json;
++
+ use std::collections::{BTreeMap, BTreeSet};
+ 
+ use gmeow_logic_compile::graphutil::default_graph_pattern;
+ use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
+ use purrdf::{RdfDataset, TermId, TermRef};
+-use serde::{Deserialize, Serialize};
+ 
+ const CHANNEL: &str = "pipeline/logic-vocabulary-fixtures.json";
+ const CLASSES: [&str; 12] = [
+@@ -27,7 +28,7 @@ const CLASSES: [&str; 12] = [
+     "DischargeCondition",
+ ];
+ 
+-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
++#[derive(Debug, PartialEq, Eq)]
+ struct Observation {
+     source: String,
+     members: BTreeMap<String, Result<BTreeSet<String>, gmeow_errors::RecordedDiag>>,
+@@ -40,8 +41,7 @@ pub(super) fn record(
+ ) -> gmeow_errors::Result<()> {
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&observe(dataset))
+-            .map_err(|error| super::stage_err(format!("encode vocabulary observation: {error}")))?,
++        purrdf_lex::json::record::to_vec(&observe(dataset)),
+     );
+     Ok(())
+ }
+diff --git crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.tests.rs crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.tests.rs
+index 7ed973994..e2e260024 100644
+--- crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.tests.rs
++++ crates/pipeline/src/stages/compile_logic/vocabulary_fixtures.tests.rs
+@@ -2,6 +2,7 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+ use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
+ 
+ #[test]
+ fn observations_bind_native_typing_and_selected_graph_without_text_extraction() {
+@@ -22,7 +23,8 @@ fn observations_bind_native_typing_and_selected_graph_without_text_extraction()
+     .unwrap();
+     let mut artifacts = BTreeMap::new();
+     record(&dataset, &mut artifacts).unwrap();
+-    let observation: Observation = serde_json::from_slice(&artifacts[CHANNEL]).unwrap();
++    let observation: Observation =
++        purrdf_lex::json::record::from_slice(&artifacts[CHANNEL]).unwrap();
+     assert_eq!(observation, observe(&dataset));
+     assert_eq!(
+         observation.members["ReasoningPreset"].as_ref().unwrap(),
+@@ -50,7 +52,10 @@ fn malformed_members_and_facets_remain_explicit_observation_failures() {
+             None,
+         )
+         .unwrap();
+-        let observation = observe(&dataset);
++        let mut artifacts = BTreeMap::new();
++        record(&dataset, &mut artifacts).unwrap();
++        let observation: Observation =
++            purrdf_lex::json::record::from_slice(&artifacts[CHANNEL]).unwrap();
+         assert!(
+             observation
+                 .preset_facets
+@@ -60,3 +65,132 @@ fn malformed_members_and_facets_remain_explicit_observation_failures() {
+         );
+     }
+ }
++
++const VOCABULARY_WIRE: &str = r#"{"source":"slices/grounding/logic/module.ttl","members":{"NodeKind":{"Ok":["urn:a","urn:z"]},"ReasoningPreset":{"Ok":["urn:Preset"]}},"preset_facets":{"Ok":{"urn:Preset":["urn:facet-a","urn:facet-z"]}}}"#;
++
++#[test]
++fn native_vocabulary_wire_retains_sorted_sets_maps_and_complete_causal_outcomes() {
++    let observation: Observation = from_slice(VOCABULARY_WIRE.as_bytes()).unwrap();
++    assert_eq!(observation.source, super::super::SOURCE_PATH);
++    assert_eq!(to_vec(&observation), VOCABULARY_WIRE.as_bytes());
++    let unsorted = VOCABULARY_WIRE
++        .replace("[\"urn:a\",\"urn:z\"]", "[\"urn:z\",\"urn:a\",\"urn:z\"]")
++        .replace(
++            "[\"urn:facet-a\",\"urn:facet-z\"]",
++            "[\"urn:facet-z\",\"urn:facet-a\",\"urn:facet-z\"]",
++        );
++    assert_eq!(
++        to_vec(&from_slice::<Observation>(unsorted.as_bytes()).unwrap()),
++        VOCABULARY_WIRE.as_bytes()
++    );
++    let repeated = VOCABULARY_WIRE
++        .replace(
++            "\"NodeKind\":{\"Ok\":[\"urn:a\",\"urn:z\"]}",
++            "\"NodeKind\":{\"Ok\":[\"urn:discarded\"]},\"NodeKind\":{\"Ok\":[\"urn:last\"]}",
++        )
++        .replace(
++            "\"urn:Preset\":[\"urn:facet-a\",\"urn:facet-z\"]",
++            "\"urn:Preset\":[\"urn:discarded\"],\"urn:Preset\":[\"urn:last\"]",
++        );
++    let repeated: Observation = from_slice(repeated.as_bytes()).unwrap();
++    assert_eq!(
++        repeated.members["NodeKind"].as_ref().unwrap(),
++        &BTreeSet::from(["urn:last".into()])
++    );
++    assert_eq!(
++        repeated.preset_facets.as_ref().unwrap()["urn:Preset"],
++        BTreeSet::from(["urn:last".into()])
++    );
++
++    use gmeow_errors::{Diag, DiagLedger, StageId};
++    let mut ledger = DiagLedger::new();
++    let premise = ledger.attach(
++        Diag::from(std::io::Error::other("authored premise")).with_focus("urn:premise"),
++        StageId::new("vocabulary-input"),
++    );
++    let refusal = ledger.record(
++        Diag::from(std::io::Error::other("authored refusal"))
++            .with_focus("urn:member")
++            .with_antecedents([premise]),
++        StageId::new("vocabulary-observation"),
++    );
++    let observation = Observation {
++        source: super::super::SOURCE_PATH.into(),
++        members: BTreeMap::from([
++            ("Refused".into(), Err(refusal.clone())),
++            ("Empty".into(), Ok(BTreeSet::new())),
++        ]),
++        preset_facets: Err(refusal.clone()),
++    };
++    let restored: Observation = from_slice(&to_vec(&observation)).unwrap();
++    assert_eq!(restored, observation);
++    assert_eq!(restored.members["Refused"].as_ref().unwrap_err(), &refusal);
++    let retained = restored.preset_facets.unwrap_err();
++    assert_eq!(retained.causes.len(), 1);
++    assert_eq!(
++        retained.root.antecedents.as_ref(),
++        &[retained.causes[0].fingerprint]
++    );
++}
++
++#[test]
++fn native_vocabulary_admission_refuses_ambiguous_records_and_shadowed_invalid_values() {
++    let unknown = VOCABULARY_WIRE.replacen('{', "{\"future\":null,", 1);
++    assert_eq!(
++        to_vec(&from_slice::<Observation>(unknown.as_bytes()).unwrap()),
++        VOCABULARY_WIRE.as_bytes()
++    );
++    let named = purrdf_lex::json::read(VOCABULARY_WIRE).unwrap();
++    let positional = purrdf_lex::json::Value::from(
++        named
++            .as_object()
++            .unwrap()
++            .iter()
++            .map(|(_, value)| value.clone())
++            .collect::<Vec<_>>(),
++    );
++    assert!(from_slice::<Observation>(&to_vec(&positional)).is_err());
++    for invalid in [
++        VOCABULARY_WIRE.replace("\"source\":", "\"source\":\"duplicate\",\"source\":"),
++        VOCABULARY_WIRE.replace(
++            "\"preset_facets\":",
++            "\"preset_facets\":null,\"preset_facets\":",
++        ),
++        VOCABULARY_WIRE.replace("\"source\":\"slices/grounding/logic/module.ttl\",", ""),
++        VOCABULARY_WIRE.replace(
++            "\"ReasoningPreset\":{\"Ok\":[\"urn:Preset\"]}",
++            "\"ReasoningPreset\":{\"Ok\":[\"urn:Preset\"],\"Err\":null}",
++        ),
++        VOCABULARY_WIRE.replace(
++            "\"Ok\":{\"urn:Preset\":[\"urn:facet-a\",\"urn:facet-z\"]}",
++            "\"Err\":null",
++        ),
++        "{".into(),
++    ] {
++        assert!(
++            from_slice::<Observation>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++    for (invalid, pointer) in [
++        (
++            VOCABULARY_WIRE.replace(
++                "\"NodeKind\":",
++                "\"NodeKind\":{\"Ok\":[false]},\"NodeKind\":",
++            ),
++            "/members/NodeKind/Ok/0",
++        ),
++        (
++            VOCABULARY_WIRE.replace(
++                "\"urn:Preset\":[\"urn:facet-a\",\"urn:facet-z\"]",
++                "\"urn:Preset\":[false],\"urn:Preset\":[\"urn:facet-a\",\"urn:facet-z\"]",
++            ),
++            "/preset_facets/Ok/urn:Preset/0",
++        ),
++    ] {
++        let error = from_slice::<Observation>(invalid.as_bytes())
++            .unwrap_err()
++            .to_string();
++        assert!(error.contains(pointer), "{error}");
++    }
++}
+diff --git crates/pipeline/src/stages/compile_logic/vocabulary_fixtures/corpus_tests.rs crates/pipeline/src/stages/compile_logic/vocabulary_fixtures/corpus_tests.rs
+index fa3bb1fcc..dd3b2b9ae 100644
+--- crates/pipeline/src/stages/compile_logic/vocabulary_fixtures/corpus_tests.rs
++++ crates/pipeline/src/stages/compile_logic/vocabulary_fixtures/corpus_tests.rs
+@@ -15,7 +15,7 @@ fn corpus_logic_vocabulary_surface() {
+     let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
+         .expect("producer-authenticated native vocabulary observation");
+     let observation: Observation =
+-        serde_json::from_slice(&bytes).expect("decode vocabulary observation");
++        purrdf_lex::json::record::from_slice(&bytes).expect("decode vocabulary observation");
+     assert_eq!(observation.source, super::super::SOURCE_PATH);
+     let contracts: [VocabularyContract; 13] = [
+         (
+diff --git crates/pipeline/src/stages/compile_logic/vocabulary_fixtures/json.rs crates/pipeline/src/stages/compile_logic/vocabulary_fixtures/json.rs
+new file mode 100644
+index 000000000..3471dc34b
+--- /dev/null
++++ crates/pipeline/src/stages/compile_logic/vocabulary_fixtures/json.rs
+@@ -0,0 +1,68 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete declaration and facet outcomes; decoding never reopens source RDF.
++
++use super::Observation;
++use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++use std::collections::{BTreeMap, BTreeSet};
++
++struct MemberOutcome(Result<BTreeSet<String>, gmeow_errors::RecordedDiag>);
++
++impl FromJson for MemberOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_recorded_result(
++            value,
++            "vocabulary member outcome",
++            "one vocabulary member outcome variant",
++        )
++        .map(Self)
++    }
++}
++
++impl ToJson for Observation {
++    fn to_json(&self) -> Value {
++        let members: Object = self
++            .members
++            .iter()
++            .map(|(name, outcome)| (name.as_str(), recorded_result_to_json(outcome)))
++            .collect();
++        Object::new()
++            .with("source", self.source.to_json())
++            .with("members", Value::from(members))
++            .with(
++                "preset_facets",
++                recorded_result_to_json(&self.preset_facets),
++            )
++            .into()
++    }
++}
++
++impl FromJson for Observation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observation")?;
++        let source = fields.required("source")?;
++        // Native map admission visits every supplied value before last-wins
++        // replacement. A malformed shadowed outcome is never discarded unread.
++        let members: BTreeMap<String, MemberOutcome> = fields.required("members")?;
++        let preset_facets = fields.required_with("preset_facets", |value| {
++            read_recorded_result(
++                value,
++                "vocabulary facet outcome",
++                "one vocabulary facet outcome variant",
++            )
++        })?;
++        Ok(Self {
++            source,
++            members: members
++                .into_iter()
++                .map(|(name, outcome)| (name, outcome.0))
++                .collect(),
++            preset_facets,
++        })
++    }
++}

@@ -1,0 +1,57 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Migrate the complete logic-vocabulary observation operation to PurRDF native JSON. The private Observation record carries source, members and preset_facets. Preserve the entire members map of recorded set outcomes and the independent recorded map-of-sets facet outcome, including complete diagnostic causes.\n\nUpdate the actual CompileLogicStage publisher, the selector-authenticated vocabulary reader and both tiny authored test readers. Reuse native records, string maps/sets and the existing complete RecordedDiag outcome owner. Remove this record's obsolete Serde derives; there is no additional binary or nested compiler-IR owner. The stage cache retains the published artifact bytes.\n\nKeep every record field required, tolerate unknown members, reject duplicate known fields and positional arrays, preserve declaration order and sorted containers, and retain last-wins map behavior while validating every supplied value before replacement. Preserve all source identities, default-graph selection, named-IRI typing, observation algorithms and thirteen authenticated vocabulary assertions. No generic JSON/RDF parser, source extraction or compatibility layer.\n\nAcceptance:\n\n- The complete publisher-to-authenticated-reader operation uses the intended native codecs, including both levels of recorded refusal.\n- Both existing authored tiny RDF controls pass. Complete literal wire and causal-outcome controls cover sorted sets/maps, malformed records and malformed map entries even when a later duplicate would otherwise replace them.\n- Actual pipeline and developer CLI callers compile under strict diagnostics. Source admission, helper ownership, independent review, formatting and normal signed hooks pass.\n\nTests never construct or discover corpus; corpus_logic_vocabulary_surface remains reserved for authenticated producer output. The standing exception excludes local optimized production, corpus construction, sync and the full gate. Actual authenticated corpus and installed/browser release acceptance remain unverified. Remaining contracts: #1776 and the full logic/release contracts. Principles 4, 7, 12, 17 and 18 apply.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-26T23:12:12Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1982,
+  "state": "OPEN",
+  "title": "Use native JSON for complete logic vocabulary observations",
+  "updatedAt": "2026-10-26T23:12:44Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1982"
+}
