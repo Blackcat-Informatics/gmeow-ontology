@@ -520,7 +520,10 @@ pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
 /// Native fragment inventory or its observed authored projection. Exact equality
 /// checks both directions, including undeclared patterns and stray characterizations.
 /// This descriptive surface does not authorize execution or optimization rewrites.
-#[derive(Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+/// JSON uses a named record with every field required. Duplicate record fields and
+/// positional arrays are refused; unknown fields are ignored. String maps retain
+/// native last-wins admission after checking every supplied value.
+#[derive(Debug, Default, PartialEq, Eq)]
 pub struct NativeFragmentRegistry {
     /// Stable local names of every refutation pattern.
     pub pattern_ids: BTreeSet<String>,
@@ -539,6 +542,8 @@ pub struct NativeFragmentRegistry {
     /// Technical reason for withholding, keyed by boundary local name.
     pub boundary_reasons: BTreeMap<String, String>,
 }
+
+mod registry_json;
 
 impl NativeFragmentRegistry {
     /// Read the authored registry once from its parsed native source. Source admission

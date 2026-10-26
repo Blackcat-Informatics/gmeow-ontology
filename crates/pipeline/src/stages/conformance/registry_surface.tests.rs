@@ -28,10 +28,13 @@ fn registry_preserves_both_poles_and_their_characterizations() {
     );
     let mut artifacts = BTreeMap::new();
     record(&source, &mut artifacts).unwrap();
-    let observed: Result<RegistrySurface, gmeow_errors::RecordedDiag> =
-        serde_json::from_slice(&artifacts[CHANNEL]).unwrap();
     assert_eq!(
-        observed.unwrap(),
+        std::str::from_utf8(&artifacts[CHANNEL]).unwrap(),
+        r#"{"Ok":{"pattern_ids":["pattern"],"decided_ids":["decided"],"source_admission_ids":["admission"],"source_admission_requirements":{"admission":"selected owned list grammar"},"boundary_ids":["boundary"],"deciding_patterns":{"decided":"pattern"},"completeness_bounds":{"decided":"finite fragment"},"boundary_reasons":{"boundary":"unbounded fragment"}}}"#
+    );
+    let observed: Observation = record::from_slice(&artifacts[CHANNEL]).unwrap();
+    assert_eq!(
+        observed.0.unwrap(),
         RegistrySurface {
             pattern_ids: BTreeSet::from(["pattern".to_owned()]),
             decided_ids: BTreeSet::from(["decided".to_owned()]),
@@ -55,6 +58,45 @@ fn registry_preserves_both_poles_and_their_characterizations() {
 }
 
 #[test]
+fn registry_native_json_requires_a_complete_named_inventory() {
+    const EMPTY: &str = r#"{"pattern_ids":[],"decided_ids":[],"source_admission_ids":[],"source_admission_requirements":{},"boundary_ids":[],"deciding_patterns":{},"completeness_bounds":{},"boundary_reasons":{}}"#;
+    let decode = |json: &str| record::from_slice::<RegistrySurface>(json.as_bytes());
+    assert_eq!(decode(EMPTY).unwrap(), RegistrySurface::default());
+    for invalid in [
+        EMPTY.replace(r#""pattern_ids":[],"#, ""),
+        EMPTY.replace(r#""boundary_reasons":{}"#, r#""unrelated":{}"#),
+        EMPTY.replace(r#""pattern_ids":[]"#, r#""pattern_ids":null"#),
+        EMPTY.replace(r#""boundary_reasons":{}"#, r#""boundary_reasons":[]"#),
+        EMPTY.replace(
+            r#""pattern_ids":[]"#,
+            r#""pattern_ids":[],"pattern_ids":[]"#,
+        ),
+        "[[],[],[],{},[],{},{},{}]".to_owned(),
+        EMPTY.replace(
+            r#""deciding_patterns":{}"#,
+            r#""deciding_patterns":{"decided":null,"decided":"pattern"}"#,
+        ),
+    ] {
+        assert!(decode(&invalid).is_err(), "accepted {invalid}");
+    }
+    let extended = EMPTY.replace(
+        r#""deciding_patterns":{}"#,
+        r#""unknown":true,"deciding_patterns":{"decided":"old","decided":"pattern"}"#,
+    );
+    assert_eq!(
+        decode(&extended).unwrap().deciding_patterns,
+        BTreeMap::from([("decided".to_owned(), "pattern".to_owned())])
+    );
+    // Both outcomes would lose the source refusal if an ambiguous envelope won.
+    for invalid in [
+        format!(r#"{{"Ok":{EMPTY},"Err":null}}"#),
+        format!(r#"{{"Ok":{EMPTY},"Ok":{EMPTY}}}"#),
+    ] {
+        assert!(record::from_slice::<Observation>(invalid.as_bytes()).is_err());
+    }
+}
+
+#[test]
 fn registry_refuses_ambiguous_or_nonliteral_characterizations() {
     for body in [
         r#"logic:x logic:fragmentCompletenessBound "one", "two" ."#,
@@ -62,7 +104,12 @@ fn registry_refuses_ambiguous_or_nonliteral_characterizations() {
         "logic:x logic:fragmentCompletenessBound logic:Other .",
         "logic:x logic:fragmentBoundaryReason logic:Other .",
     ] {
-        assert!(observe(&dataset(body)).is_err(), "accepted {body}");
+        let source = dataset(body);
+        let expected = super::super::record_failure(observe(&source).unwrap_err());
+        let mut artifacts = BTreeMap::new();
+        record(&source, &mut artifacts).unwrap();
+        let observed: Observation = record::from_slice(&artifacts[CHANNEL]).unwrap();
+        assert_eq!(observed.0.unwrap_err(), expected, "accepted {body}");
     }
 }
 
