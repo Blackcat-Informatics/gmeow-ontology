@@ -1,0 +1,159 @@
+{
+  "issue": 1961,
+  "pr_number": 1968,
+  "branch": "paudley/1961-qualify-and-split-independent",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1961-qualify-and-split-independent/.stage/qualify-and-split-independent",
+  "observed_at": "2026-10-26T17:02:23.485135+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1961-qualify-and-split-independent/.stage/qualify-and-split-independent/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1961-qualify-and-split-independent/.stage/qualify-and-split-independent/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1961-qualify-and-split-independent/.stage/qualify-and-split-independent/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1961-qualify-and-split-independent/.stage/qualify-and-split-independent/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1961-qualify-and-split-independent/.stage/qualify-and-split-independent/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "1529e5051799e9abba00ced38292a45f13aab6af",
+    "headRefName": "paudley/1961-qualify-and-split-independent",
+    "headRefOid": "51c27174af0c5c0a5d7d4babb475fb9ac8d6abe0",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1968,
+    "state": "OPEN",
+    "title": "Overlap independent math conformance recording",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1968"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40364750354/job/121719298897",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40364750354/job/121719298867",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40364750354/job/121719298503",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40364750354/job/121719298783",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "51c27174af0c5c0a5d7d4babb475fb9ac8d6abe0",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "c8fe3f257a70fe038bfb5614289dc4957b31e5ef9b910a51d9c00a18178b5787"
+  },
+  "local": {
+    "head": "51c27174af0c5c0a5d7d4babb475fb9ac8d6abe0",
+    "branch": "paudley/1961-qualify-and-split-independent",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1968,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1968 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABfstfxg",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1968#issuecomment-6422224838",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 12,
+      "bytes": 30232,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "1529e5051799e9abba00ced38292a45f13aab6af",
+      "head": "51c27174af0c5c0a5d7d4babb475fb9ac8d6abe0",
+      "status": "clean"
+    }
+  }
+}
