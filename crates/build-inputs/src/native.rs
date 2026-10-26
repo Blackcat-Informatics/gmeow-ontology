@@ -71,10 +71,30 @@ impl NativeSources {
         ))
     }
 
-    /// Emit only selected files and module-owning files, not test subtree watchers.
+    /// Watch selected sources and the manifests/configuration proving macro ownership.
+    /// Test subtrees remain outside this source contract.
     pub fn emit_cargo_rerun_directives(&self, workspace: &Path) {
         for path in self.files.keys() {
             println!("cargo:rerun-if-changed={}", workspace.join(path).display());
         }
+        for path in [
+            "Cargo.toml",
+            "Cargo.lock",
+            "crates/logic/Cargo.toml",
+            "crates/logic-compile/Cargo.toml",
+            "crates/term-arena/Cargo.toml",
+            "crates/ns/Cargo.toml",
+        ] {
+            println!("cargo:rerun-if-changed={}", workspace.join(path).display());
+        }
+        // Cargo recursively watches a directory, including new config files. An
+        // absent file watch would instead make every invocation rerun this build.
+        let config_directory = workspace.join(".cargo");
+        let config_owner = if config_directory.is_dir() {
+            config_directory.as_path()
+        } else {
+            workspace
+        };
+        println!("cargo:rerun-if-changed={}", config_owner.display());
     }
 }

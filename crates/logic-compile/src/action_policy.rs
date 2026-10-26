@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 use std::sync::{Arc, OnceLock};
 
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTextDirection};
-use serde::{Deserialize, Serialize};
+mod json;
 
 /// Canonical authored action-policy document.
 pub const SOURCE_PATH: &str = "slices/core/agentic/examples/mcp-action-policy.ttl";
@@ -34,8 +34,7 @@ const ANNOTATIONS: [&str; 2] = [
     "http://www.w3.org/2000/01/rdf-schema#comment",
 ];
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug)]
 enum Object {
     Iri(String),
     Literal {
@@ -86,8 +85,7 @@ impl Object {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug)]
 struct Row {
     subject: String,
     predicate: String,
@@ -116,8 +114,7 @@ impl Row {
 
 /// Complete source identity, projected native rows and presentation bytes for one policy.
 /// The source statements retain annotations independently of the executable projection.
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug)]
 pub struct PreparedActionPolicy {
     schema_version: u32,
     source_path: String,
@@ -126,7 +123,6 @@ pub struct PreparedActionPolicy {
     rows: Vec<Row>,
     omitted_annotations: BTreeSet<String>,
     nquads: String,
-    #[serde(skip)]
     dataset: OnceLock<Arc<RdfDataset>>,
 }
 

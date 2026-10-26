@@ -179,7 +179,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             )
             .expect("original policy has an exact producer selection");
             let policy: PreparedActionPolicy =
-                serde_json::from_slice(&bytes).expect("native source policy");
+                PreparedActionPolicy::decode_json(&bytes).expect("native source policy");
             policy
                 .validate()
                 .expect("selected policy identity and native rows");
@@ -224,7 +224,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
                     "pipeline/mcp-action-policy-controls.json",
                 )
                 .expect("policy projection controls have an exact producer selection");
-                serde_json::from_slice(&bytes).expect("native policy control observations")
+                purrdf_lex::json::record::from_slice(&bytes).expect("native policy control observations")
             })
             .get(name)
             .expect("required policy control was produced")

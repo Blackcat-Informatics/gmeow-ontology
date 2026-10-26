@@ -13,8 +13,9 @@ use gmeow_action_cache::{
 };
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::{correspondence_frontend, sssom};
+use gmeow_validate::grounding_observation::{Cell, Observations, TranspilationOutcome};
 use purrdf::{RdfDataset, TermRef};
-use serde::{Deserialize, Serialize};
+mod json;
 
 use crate::stages::parse_sources::SourceCatalog;
 
@@ -35,52 +36,25 @@ const CONTROLS: [&str; 2] = [
     "slices/grounding/logic/tests/counter-examples/grounding-bridge-missing-preservation.ttl",
 ];
 
-#[derive(Serialize, Deserialize)]
-struct Observations {
-    sources: BTreeMap<String, String>,
-    catalogs: BTreeMap<String, Vec<Cell>>,
-    transpilation: BTreeMap<String, Result<usize, gmeow_errors::RecordedDiag>>,
-    declared_subjects: BTreeMap<String, BTreeSet<String>>,
-    imported_classes: BTreeMap<String, BTreeSet<String>>,
-    bfo_labels: BTreeMap<String, BTreeSet<String>>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct Cell {
-    iri: String,
-    subject: String,
-    predicate: String,
-    obj: String,
-    source_endpoint: Option<String>,
-    target_endpoint: Option<String>,
-    sssom_file: String,
-    morphism_class: Option<String>,
-    morphism_kind: Option<String>,
-    preservation: Option<String>,
-    confidence: Option<gmeow_logic_compile::ir::UnitInterval>,
-    grounding: bool,
-}
-
-impl From<sssom::EquivalenceCell> for Cell {
-    fn from(cell: sssom::EquivalenceCell) -> Self {
-        Self {
-            iri: correspondence_frontend::alignment_provenance_iri(
-                &cell.subject,
-                &cell.predicate,
-                &cell.obj,
-            ),
-            subject: cell.subject,
-            predicate: cell.predicate,
-            obj: cell.obj,
-            source_endpoint: cell.source_endpoint,
-            target_endpoint: cell.target_endpoint,
-            sssom_file: cell.sssom_file,
-            morphism_class: cell.morphism_class,
-            morphism_kind: cell.morphism_kind,
-            preservation: cell.preservation,
-            confidence: cell.confidence,
-            grounding: cell.grounding,
-        }
+/// Retain each extracted correspondence coordinate under the shared transport owner.
+fn cell(cell: sssom::EquivalenceCell) -> Cell {
+    Cell {
+        iri: correspondence_frontend::alignment_provenance_iri(
+            &cell.subject,
+            &cell.predicate,
+            &cell.obj,
+        ),
+        subject: cell.subject,
+        predicate: cell.predicate,
+        obj: cell.obj,
+        source_endpoint: cell.source_endpoint,
+        target_endpoint: cell.target_endpoint,
+        sssom_file: cell.sssom_file,
+        morphism_class: cell.morphism_class,
+        morphism_kind: cell.morphism_kind,
+        preservation: cell.preservation,
+        confidence: cell.confidence,
+        grounding: cell.grounding,
     }
 }
 
@@ -119,7 +93,7 @@ pub(super) fn record(
         let bytes = std::fs::read(root.join(path)).map_err(fail)?;
         let digest = bytes_digest(&bytes);
         let (cells, transpiled): (Vec<Cell>, Option<Result<usize, gmeow_errors::RecordedDiag>>) =
-            super::execution::cached_inputs(
+            super::execution::cached_native_inputs(
                 &store,
                 "grounding-catalog-v1:original-native-envelope",
                 vec![source_input(path, &digest)],
@@ -129,13 +103,14 @@ pub(super) fn record(
                     let view = DslView::new(&dataset);
                     let cells = sssom::equivalence_cells(&view)?
                         .into_iter()
-                        .map(Cell::from)
+                        .map(cell)
                         .collect();
                     let transpiled =
                         (path == QUANTITY).then(|| transpile(&view).map_err(super::record_failure));
-                    Ok((cells, transpiled))
+                    Ok(json::Catalog((cells, transpiled)))
                 },
-            )?;
+            )?
+            .0;
         observed.sources.insert(path.to_owned(), digest);
         observed.catalogs.insert(path.to_owned(), cells);
         if let Some(result) = transpiled {
@@ -145,27 +120,35 @@ pub(super) fn record(
     for path in CONTROLS {
         let bytes = std::fs::read(root.join(path)).map_err(fail)?;
         let digest = bytes_digest(&bytes);
-        let result = super::execution::cached_inputs(
+        let result = super::execution::cached_native_inputs(
             &store,
             "grounding-envelope-control-v1",
             vec![source_input(path, &digest)],
             || {
                 let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
                     .map_err(gmeow_errors::Diag::from)?;
-                Ok(transpile(&DslView::new(&dataset)).map_err(super::record_failure))
+                Ok(TranspilationOutcome(
+                    transpile(&DslView::new(&dataset)).map_err(super::record_failure),
+                ))
             },
         )?;
         observed.sources.insert(path.to_owned(), digest);
-        observed.transpilation.insert(path.to_owned(), result);
+        observed.transpilation.insert(path.to_owned(), result.0);
     }
     for path in [LOGIC, MATH, GUFO] {
         let digest = catalog.document_digest(path)?;
-        let (subjects, classes, _labels) = super::execution::cached_inputs(
+        let (subjects, classes, _labels) = super::execution::cached_native_inputs(
             &store,
             "grounding-source-declarations-v1",
             vec![source_input(path, digest)],
-            || Ok(declarations(catalog.document(path)?, false)),
-        )?;
+            || {
+                Ok(json::Declaration(declarations(
+                    catalog.document(path)?,
+                    false,
+                )))
+            },
+        )?
+        .0;
         observed.sources.insert(path.to_owned(), digest.to_owned());
         observed.declared_subjects.insert(path.to_owned(), subjects);
         observed.imported_classes.insert(path.to_owned(), classes);
@@ -173,22 +156,23 @@ pub(super) fn record(
     // The by-reference BFO target is not an asserted SourceCatalog import.
     let bytes = std::fs::read(root.join(BFO)).map_err(fail)?;
     let digest = bytes_digest(&bytes);
-    let (_, classes, labels) = super::execution::cached_inputs(
+    let (_, classes, labels) = super::execution::cached_native_inputs(
         &store,
         "grounding-source-declarations-v1",
         vec![source_input(BFO, &digest)],
         || {
             let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
                 .map_err(gmeow_errors::Diag::from)?;
-            Ok(declarations(&dataset, true))
+            Ok(json::Declaration(declarations(&dataset, true)))
         },
-    )?;
+    )?
+    .0;
     observed.sources.insert(BFO.to_owned(), digest);
     observed.imported_classes.insert(BFO.to_owned(), classes);
     observed.bfo_labels = labels;
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(fail)?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }

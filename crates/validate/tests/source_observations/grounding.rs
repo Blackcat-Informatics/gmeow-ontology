@@ -3,36 +3,10 @@
 
 //! Read-only extracted correspondence envelopes and original declaration inventories.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::sync::OnceLock;
 
-use serde::Deserialize;
-
-#[derive(Deserialize)]
-pub struct Observations {
-    pub sources: BTreeMap<String, String>,
-    pub catalogs: BTreeMap<String, Vec<Cell>>,
-    pub transpilation: BTreeMap<String, Result<usize, gmeow_errors::RecordedDiag>>,
-    pub declared_subjects: BTreeMap<String, BTreeSet<String>>,
-    pub imported_classes: BTreeMap<String, BTreeSet<String>>,
-    pub bfo_labels: BTreeMap<String, BTreeSet<String>>,
-}
-
-#[derive(Clone, Deserialize)]
-pub struct Cell {
-    pub iri: String,
-    pub subject: String,
-    pub predicate: String,
-    pub obj: String,
-    pub source_endpoint: Option<String>,
-    pub target_endpoint: Option<String>,
-    pub sssom_file: String,
-    pub morphism_class: Option<String>,
-    pub morphism_kind: Option<String>,
-    pub preservation: Option<String>,
-    pub confidence: Option<gmeow_logic_compile::ir::UnitInterval>,
-    pub grounding: bool,
-}
+pub use gmeow_validate::grounding_observation::{Cell, Observations};
 
 pub fn observations() -> &'static Observations {
     static OBSERVED: OnceLock<
@@ -42,7 +16,7 @@ pub fn observations() -> &'static Observations {
         &OBSERVED,
         "stage-conformance",
         "pipeline/grounding-catalog-observations.json",
-        |bytes| serde_json::from_slice(bytes).map_err(gmeow_errors::Diag::from),
+        |bytes| purrdf_lex::json::record::from_slice(bytes).map_err(gmeow_errors::Diag::from),
     );
     let expected = [
         "slices/grounding/logic/mappings/grounding-bridges.ttl",
@@ -82,7 +56,3 @@ pub fn transpilation(path: &str) -> &'static Result<usize, gmeow_errors::Recorde
         .get(path)
         .unwrap_or_else(|| panic!("missing original transpilation {path}"))
 }
-
-#[cfg(test)]
-#[path = "grounding.confidence.tests.rs"]
-mod confidence_tests;

@@ -46,8 +46,8 @@ fn tiny_source(extra: Option<RdfQuad>) -> Arc<RdfDataset> {
 fn native_policy_transport_preserves_context_literal_metadata_and_complement() {
     let source = tiny_source(None);
     let policy = PreparedActionPolicy::from_dataset(&source, SOURCE_SHA256).unwrap();
-    let bytes = serde_json::to_vec(&policy).unwrap();
-    let restored: PreparedActionPolicy = serde_json::from_slice(&bytes).unwrap();
+    let bytes = purrdf_lex::json::record::to_vec(&policy);
+    let restored: PreparedActionPolicy = PreparedActionPolicy::decode_json(&bytes).unwrap();
     restored.validate().unwrap();
     assert_eq!(restored.nquads(), policy.nquads());
     assert_eq!(restored.source_statements(), &policy_statements(&source));
@@ -69,7 +69,7 @@ fn native_policy_transport_preserves_context_literal_metadata_and_complement() {
     };
     assert_eq!(value.language.as_deref(), Some("en"));
     assert_eq!(value.direction, Some(RdfTextDirection::Rtl));
-    assert_eq!(serde_json::to_vec(&restored).unwrap(), bytes);
+    assert_eq!(purrdf_lex::json::record::to_vec(&restored), bytes);
 }
 
 #[test]

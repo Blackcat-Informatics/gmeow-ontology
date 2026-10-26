@@ -202,20 +202,11 @@ fn semantic_inventory(
             .map(|parent| parent.join("Cargo.toml"))
             .find(|candidate| candidate.is_file())
             .ok_or_else(|| fail("kernel root has no manifest owner"))?;
-        let declarations = if ownership_only {
-            Some(
-                std::fs::read_to_string(&manifest)
-                    .map_err(fail)?
-                    .parse::<toml::Value>()
-                    .map_err(fail)?,
-            )
-        } else {
-            None
-        };
-        let dependencies = declarations
-            .as_ref()
-            .map(crate::cargo::declared_dependencies)
-            .unwrap_or_default();
+        let declarations = std::fs::read_to_string(&manifest)
+            .map_err(fail)?
+            .parse::<toml::Value>()
+            .map_err(fail)?;
+        let dependencies = crate::cargo::declared_dependencies(&declarations);
         let unit = UnitSelection {
             package: "native-semantic-kernel".into(),
             manifest: Some(relative(workspace, &manifest)?),
@@ -231,13 +222,31 @@ fn semantic_inventory(
                 .collect(),
             controller: false,
         };
-        let tracing_names = if matches!(unit.edition.as_str(), "2018" | "2021" | "2024") {
-            match &declarations {
-                Some(owner) => {
-                    crate::cargo::portable_tracing_names(workspace, owner, &dependencies)?
+        let tracing_names =
+            if ownership_only && matches!(unit.edition.as_str(), "2018" | "2021" | "2024") {
+                crate::cargo::portable_tracing_names(workspace, &declarations, &dependencies)?
+            } else {
+                BTreeSet::new()
+            };
+        let json_names = if !dependencies.is_empty()
+            && matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
+        {
+            let owners = crate::json_macros::portable(workspace, &declarations, &dependencies)?;
+            if !ownership_only && !owners.is_empty() {
+                // Native semantic identity already binds this exact substrate source.
+                // A separately pinned macro implementation must not enter that identity.
+                let substrate = crate::native_substrate_source(workspace)?;
+                let (repository, revision) = substrate
+                    .rsplit_once('#')
+                    .ok_or_else(|| fail("native substrate identity has no revision"))?;
+                let expected = format!("git+{repository}?rev={revision}");
+                if owners.values().any(|source| source != &expected) {
+                    return Err(fail(format!(
+                        "native JSON macro owner must match native substrate {substrate}"
+                    )));
                 }
-                None => BTreeSet::new(),
             }
+            owners.into_keys().collect()
         } else {
             BTreeSet::new()
         };
@@ -245,16 +254,7 @@ fn semantic_inventory(
             // Portable policy has declarations, not selected Cargo units. Only
             // an unambiguous crates.io tracing declaration grants this macro.
             tracing_names,
-            json_names: if matches!(unit.edition.as_str(), "2018" | "2021" | "2024") {
-                match &declarations {
-                    Some(owner) => crate::json_macros::portable(workspace, owner, &dependencies)?
-                        .into_keys()
-                        .collect(),
-                    None => BTreeSet::new(),
-                }
-            } else {
-                BTreeSet::new()
-            },
+            json_names,
             workspace,
             inventory: &mut inventory,
             unit: &unit,

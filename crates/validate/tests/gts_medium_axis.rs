@@ -25,54 +25,35 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use gmeow_validate::medium_observation::{Node, Observations, Value};
 use std::sync::OnceLock;
 
 #[path = "source_observations/reader.rs"]
 mod observation_reader;
 
-#[derive(Deserialize)]
-struct Observations {
-    source_path: String,
-    source_digest: String,
-    dictionaries: Vec<Node>,
-    corpora: Vec<Node>,
-    splits: Vec<Node>,
-    schemas: Vec<Node>,
-    classes: BTreeMap<String, Option<Node>>,
-    gmn_terms: BTreeSet<String>,
-    shacl_terms: BTreeSet<String>,
+trait ValueView {
+    fn iri(&self) -> &str;
+    fn literal(&self) -> &str;
 }
-
-#[derive(Deserialize)]
-struct Node {
-    name: Value,
-    values: BTreeMap<String, Vec<Value>>,
+trait NodeView {
+    fn objects(&self, predicate: &str) -> &[Value];
 }
-
-#[derive(Debug, PartialEq, Eq, Deserialize)]
-enum Value {
-    Iri(String),
-    Literal(String),
-    Other(String),
-}
-
-impl Value {
+impl ValueView for Value {
     fn iri(&self) -> &str {
         match self {
-            Self::Iri(iri) => iri,
+            Value::Iri(iri) => iri,
             other => panic!("expected an IRI term, got {other:?}"),
         }
     }
     fn literal(&self) -> &str {
         match self {
-            Self::Literal(lexical) => lexical,
+            Value::Literal(lexical) => lexical,
             other => panic!("expected a literal term, got {other:?}"),
         }
     }
 }
 
-impl Node {
+impl NodeView for Node {
     fn objects(&self, predicate: &str) -> &[Value] {
         self.values
             .get(predicate)
@@ -160,7 +141,7 @@ fn gts_module() -> &'static Observations {
         &OBSERVED,
         "stage-conformance",
         "pipeline/medium-axis-observations.json",
-        |bytes| serde_json::from_slice(bytes).map_err(gmeow_errors::Diag::from),
+        |bytes| purrdf_lex::json::record::from_slice(bytes).map_err(gmeow_errors::Diag::from),
     );
     assert_eq!(observed.source_path, "slices/core/gts/module.ttl");
     assert!(
