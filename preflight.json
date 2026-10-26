@@ -1,0 +1,148 @@
+{
+  "issue": 1956,
+  "pr_number": 1964,
+  "branch": "paudley/1956-retire-serde-json-from-grounding-medium",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1956-retire-serde-json-from-grounding-medium/.stage/retire-serde-json-from-grounding-medium",
+  "observed_at": "2026-10-26T11:26:48.997994+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1956-retire-serde-json-from-grounding-medium/.stage/retire-serde-json-from-grounding-medium/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1956-retire-serde-json-from-grounding-medium/.stage/retire-serde-json-from-grounding-medium/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1956-retire-serde-json-from-grounding-medium/.stage/retire-serde-json-from-grounding-medium/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1956-retire-serde-json-from-grounding-medium/.stage/retire-serde-json-from-grounding-medium/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1956-retire-serde-json-from-grounding-medium/.stage/retire-serde-json-from-grounding-medium/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "34b4719bbd335e2e922a6aca595e4ca449dd609f",
+    "headRefName": "paudley/1956-retire-serde-json-from-grounding-medium",
+    "headRefOid": "b6120ca87d71ff28353725660d65704c8f7f6f63",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1964,
+    "state": "OPEN",
+    "title": "fix(build-inputs): admit exact native configuration directory watches",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1964"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40314531795/job/121543692993",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40314531795/job/121543692893",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40314531795/job/121543692521",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40314531795/job/121543692885",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "b6120ca87d71ff28353725660d65704c8f7f6f63",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "e5892547af5679df3112b8ad942b9dc47e743c48dddaed60b121c226ebec267c"
+  },
+  "local": {
+    "head": "b6120ca87d71ff28353725660d65704c8f7f6f63",
+    "branch": "paudley/1956-retire-serde-json-from-grounding-medium",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1964,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1964 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 12,
+      "bytes": 36529,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "34b4719bbd335e2e922a6aca595e4ca449dd609f",
+      "head": "b6120ca87d71ff28353725660d65704c8f7f6f63",
+      "status": "clean"
+    }
+  }
+}
