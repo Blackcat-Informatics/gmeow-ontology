@@ -45,7 +45,7 @@ pub(super) fn record(
             purrdf::parse_dataset(&source, "text/turtle", None).map_err(gmeow_errors::Diag::from)
         })
     };
-    let policy: PreparedActionPolicy = super::execution::cached_inputs(
+    let policy: PreparedActionPolicy = super::execution::cached_native_inputs(
         &store,
         "mcp-action-policy-native-v1",
         inputs.clone(),
@@ -54,9 +54,9 @@ pub(super) fn record(
     policy.validate()?;
     artifacts.insert(
         action_policy::SOURCE_ARTIFACT.to_owned(),
-        serde_json::to_vec(&policy).map_err(|error| fail(error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&policy),
     );
-    let controls: BTreeMap<String, String> = super::execution::cached_inputs(
+    let controls: BTreeMap<String, String> = super::execution::cached_native_inputs(
         &store,
         "mcp-action-policy-bijection-controls-v1",
         inputs,
@@ -119,7 +119,7 @@ pub(super) fn record(
     )?;
     artifacts.insert(
         CONTROLS.to_owned(),
-        serde_json::to_vec(&controls).map_err(|error| fail(error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&controls),
     );
     Ok(())
 }

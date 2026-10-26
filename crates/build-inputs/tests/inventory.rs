@@ -1000,6 +1000,98 @@ fn tracing_selection(root: &Path, alias: &str) -> ProductionSelection {
 
 const JSON_REVISION: &str = "0123456789abcdef0123456789abcdef01234567";
 
+#[test]
+fn native_semantic_json_macro_binds_substrate_and_nested_source_bytes() {
+    use gmeow_build_inputs::{NativeSources, native_substrate_source};
+    let root = tempfile::tempdir().unwrap();
+    let repository = "https://github.com/Blackcat-Informatics/purrdf";
+    let manifest = format!(
+        "[workspace]\n[workspace.dependencies]\npurrdf={{git='{repository}',rev='{JSON_REVISION}'}}\n{}\n",
+        json_declaration("purrdf-lex")
+    );
+    write(root.path(), "Cargo.toml", &manifest);
+    let lock = format!(
+        "version=4\n[[package]]\nname='purrdf-lex'\nversion='3.0.0'\nsource='git+{repository}?rev={JSON_REVISION}#{JSON_REVISION}'\n"
+    );
+    write(root.path(), "Cargo.lock", &lock);
+    for name in ["logic", "logic-compile", "term-arena", "ns"] {
+        write(
+            root.path(),
+            &format!("crates/{name}/Cargo.toml"),
+            "[package]\nedition='2024'\n[dependencies]\npurrdf-lex={workspace=true}\n",
+        );
+        write(root.path(), &format!("crates/{name}/src/lib.rs"), "");
+    }
+    let source = "::purrdf_lex::json_record!(impl ToJson for Row { include_str!(\"field.txt\") => value }); #[cfg(test)] mod tests;";
+    write(root.path(), "crates/logic-compile/src/lib.rs", source);
+    write(root.path(), "crates/logic-compile/src/field.txt", "first");
+    write(
+        root.path(),
+        "crates/logic-compile/src/tests.rs",
+        "fn first() {}",
+    );
+    let first = NativeSources::collect(root.path()).unwrap();
+    assert!(
+        first
+            .files
+            .contains_key("crates/logic-compile/src/field.txt")
+    );
+    write(
+        root.path(),
+        "crates/logic-compile/src/tests.rs",
+        "fn changed() {}",
+    );
+    assert_eq!(first, NativeSources::collect(root.path()).unwrap());
+    write(root.path(), "crates/logic-compile/src/field.txt", "second");
+    assert_ne!(
+        first.digest().unwrap(),
+        NativeSources::collect(root.path())
+            .unwrap()
+            .digest()
+            .unwrap()
+    );
+
+    let changed = "abcdef0123456789abcdef0123456789abcdef01";
+    let mismatched = manifest.replace(
+        &json_declaration("purrdf-lex"),
+        &json_declaration("purrdf-lex").replace(JSON_REVISION, changed),
+    );
+    write(root.path(), "Cargo.toml", &mismatched);
+    write(
+        root.path(),
+        "Cargo.lock",
+        &lock.replace(JSON_REVISION, changed),
+    );
+    assert!(
+        NativeSources::collect(root.path())
+            .unwrap_err()
+            .to_string()
+            .contains("must match native substrate")
+    );
+    write(
+        root.path(),
+        "Cargo.toml",
+        &manifest.replace(JSON_REVISION, changed),
+    );
+    NativeSources::collect(root.path()).unwrap();
+    assert_eq!(
+        native_substrate_source(root.path()).unwrap(),
+        format!("{repository}#{changed}")
+    );
+
+    for invalid in [
+        source.replace("::purrdf_lex::", "purrdf_lex::"),
+        source.replace("include_str!(\"field.txt\")", "unknown_input!()"),
+        format!("extern crate self as purrdf_lex; {source}"),
+    ] {
+        write(root.path(), "crates/logic-compile/src/lib.rs", &invalid);
+        assert!(NativeSources::collect(root.path()).is_err(), "{invalid}");
+    }
+    write(root.path(), "crates/logic-compile/src/lib.rs", source);
+    write(root.path(), ".cargo/config.toml", "paths=['other']\n");
+    assert!(NativeSources::collect(root.path()).is_err());
+}
+
 fn json_selection(root: &Path, alias: &str) -> ProductionSelection {
     let source = format!("git+https://github.com/Blackcat-Informatics/purrdf?rev={JSON_REVISION}");
     write(

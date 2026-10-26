@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Literal reader controls only; no authenticated artifact or corpus is loaded.
-use super::Cell;
+use super::super::Cell;
 
 const CELL: &str = r#"{"iri":"urn:cell","subject":"urn:subject","predicate":"urn:predicate","obj":"urn:object","source_endpoint":"urn:source","target_endpoint":"urn:target","sssom_file":"grounding.ttl","morphism_class":"urn:class","morphism_kind":"urn:kind","preservation":"urn:preservation","confidence":["0.95","http://www.w3.org/2001/XMLSchema#decimal",null,null],"grounding":true}"#;
 
@@ -10,7 +10,7 @@ const CELL: &str = r#"{"iri":"urn:cell","subject":"urn:subject","predicate":"urn
 fn json_grounding_cell_confidence_reads_actual_decimal_tuple_and_preserves_owner_bytes() {
     for lexical in ["0.95", "0.9"] {
         let input = CELL.replace("\"0.95\"", &format!("\"{lexical}\""));
-        let cell: Cell = serde_json::from_str(&input).unwrap();
+        let cell: Cell = purrdf_lex::json::record::from_slice(input.as_bytes()).unwrap();
         assert_eq!(cell.iri, "urn:cell");
         assert_eq!(cell.subject, "urn:subject");
         assert_eq!(cell.predicate, "urn:predicate");
@@ -33,6 +33,10 @@ fn json_grounding_cell_confidence_reads_actual_decimal_tuple_and_preserves_owner
         let expected =
             format!("[\"{lexical}\",\"http://www.w3.org/2001/XMLSchema#decimal\",null,null]");
         assert_eq!(serde_json::to_string(confidence).unwrap(), expected);
+        assert_eq!(
+            purrdf_lex::json::record::to_vec(confidence),
+            expected.as_bytes()
+        );
     }
 }
 
@@ -47,18 +51,21 @@ fn json_grounding_cell_confidence_refuses_stale_string_and_invalid_coordinate_bu
         r#"["not-a-number","http://www.w3.org/2001/XMLSchema#decimal",null,null]"#,
     ] {
         let bad = CELL.replace(tuple, invalid);
-        assert!(serde_json::from_str::<Cell>(&bad).is_err(), "{bad}");
+        assert!(
+            purrdf_lex::json::record::from_slice::<Cell>(bad.as_bytes()).is_err(),
+            "{bad}"
+        );
     }
     let null = CELL.replace(tuple, "null");
     assert!(
-        serde_json::from_str::<Cell>(&null)
+        purrdf_lex::json::record::from_slice::<Cell>(null.as_bytes())
             .unwrap()
             .confidence
             .is_none()
     );
     let absent = CELL.replace(&format!("\"confidence\":{tuple},"), "");
     assert!(
-        serde_json::from_str::<Cell>(&absent)
+        purrdf_lex::json::record::from_slice::<Cell>(absent.as_bytes())
             .unwrap()
             .confidence
             .is_none()

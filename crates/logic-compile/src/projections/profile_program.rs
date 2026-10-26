@@ -566,27 +566,11 @@ fn mandatory_source(
     })
 }
 
-impl FromJson for PropertyPremise {
-    fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        let mut fields = Record::new(value, "canonical property premise")?;
-        let result = Self {
-            subject: fields.required("subject")?,
-            predicate: fields.required("predicate")?,
-            object: fields.required("object")?,
-        };
-        fields.deny_unknown()?;
-        Ok(result)
-    }
-}
-impl ToJson for PropertyPremise {
-    fn to_json(&self) -> Value {
-        purrdf_lex::json::Object::new()
-            .with("subject", self.subject.to_json())
-            .with("predicate", self.predicate.to_json())
-            .with("object", self.object.to_json())
-            .into()
-    }
-}
+::purrdf_lex::json_record!(PropertyPremise as "canonical property premise" {
+    "subject" => subject: required,
+    "predicate" => predicate: required,
+    "object" => object: required,
+});
 
 impl FromJson for LiteralProjectionSupport {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {

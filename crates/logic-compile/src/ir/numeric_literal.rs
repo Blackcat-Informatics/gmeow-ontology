@@ -4,6 +4,8 @@
 //! Quantitative coordinates retain RDF term identity independently of numeric value.
 //! PurRDF owns decoding and comparison; construction caches the decoded value once.
 
+mod json;
+
 use std::cmp::Ordering;
 
 use purrdf::{

@@ -24,7 +24,7 @@ fn decode_policy(bytes: &[u8]) -> gmeow_errors::Result<PreparedActionPolicy> {
     if bytes.len() > action_policy::MAX_BYTES {
         return Err(fail("prepared action policy exceeds its size bound"));
     }
-    let policy: PreparedActionPolicy = serde_json::from_slice(bytes)
+    let policy: PreparedActionPolicy = PreparedActionPolicy::decode_json(bytes)
         .map_err(|error| fail(format!("decode prepared action policy: {error}")))?;
     policy.validate()?;
     Ok(policy)

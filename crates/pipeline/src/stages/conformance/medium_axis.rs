@@ -9,8 +9,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_action_cache::{ActionInput, ActionStore, FileKind, STORE_FORMAT_VERSION, StoreLimits};
+use gmeow_validate::medium_observation::{Node, Observations, Value};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
-use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::SourceCatalog;
 
@@ -40,32 +40,6 @@ const CLASSES: [&str; 19] = [
     "ZstdDictMedium",
 ];
 
-#[derive(Serialize, Deserialize)]
-struct Observations {
-    source_path: String,
-    source_digest: String,
-    dictionaries: Vec<Node>,
-    corpora: Vec<Node>,
-    splits: Vec<Node>,
-    schemas: Vec<Node>,
-    classes: BTreeMap<String, Option<Node>>,
-    gmn_terms: BTreeSet<String>,
-    shacl_terms: BTreeSet<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct Node {
-    name: Value,
-    values: BTreeMap<String, Vec<Value>>,
-}
-
-#[derive(Serialize, Deserialize)]
-enum Value {
-    Iri(String),
-    Literal(String),
-    Other(String),
-}
-
 fn value(term: TermRef<'_>) -> Value {
     match term {
         TermRef::Iri(iri) => Value::Iri(iri.to_owned()),
@@ -90,7 +64,7 @@ pub(super) fn record(
     )
     .map_err(fail)?;
     let digest = catalog.document_digest(SOURCE)?;
-    let observed = super::execution::cached_inputs(
+    let observed = super::execution::cached_native_inputs(
         &store,
         "medium-axis-v1:original-all-graphs",
         vec![ActionInput::Raw {
@@ -160,7 +134,7 @@ pub(super) fn record(
     )?;
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(fail)?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }
