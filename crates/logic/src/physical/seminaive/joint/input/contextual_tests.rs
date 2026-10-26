@@ -99,4 +99,36 @@ fn abstract_contextual_outputs_activate_only_their_owner_and_declared_markers() 
             .input(&facts, Arc::from([]), &[output("urn:missing")])
             .is_err()
     );
+
+    let possible_head = Fact {
+        subject: TermValue::iri("urn:assessment"),
+        predicate: type_predicate.into(),
+        object: TermValue::iri(marker),
+    };
+    let possible = template
+        .input(
+            &facts,
+            Arc::from([("urn:owner".into(), possible_head.clone())]),
+            &[],
+        )
+        .unwrap();
+    assert!(
+        !possible.world_effects["urn:owner"][0].writes.is_empty(),
+        "possible output must activate its explicitly selected empty world"
+    );
+    assert!(!possible.effects[0].writes.is_empty());
+    assert!(
+        possible.world_effects["urn:other"]
+            .iter()
+            .all(|effect| effect.writes.is_empty())
+    );
+    let refusal = template
+        .input(
+            &facts,
+            Arc::from([("urn:missing".into(), possible_head)]),
+            &[],
+        )
+        .err()
+        .expect("an unselected possible-output owner must fail admission");
+    assert!(refusal.message().contains("urn:missing"));
 }
