@@ -41,7 +41,7 @@ use gmeow_logic::reason::ExternalComparison;
 use purrdf_lex::json::record::{DecodeError, FromJson, Record, ToJson};
 use purrdf_lex::json::{self, Object, Value};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
 
 pub(crate) mod action_policy;
 pub mod advice_wing;
@@ -895,144 +895,216 @@ impl Stage for ConformanceStage {
         // Complete native observations before the single selected-operation grading
         // pass publishes semantic comparisons and source-admission evidence.
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        glossary::record(input.root, &mut artifacts)?;
-        cl_ingest::record(input.root, &mut artifacts)?;
-        epistemics::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
+        measure_stage_phase(self.id(), "record-glossary", || {
+            glossary::record(input.root, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-cl-ingest", || {
+            cl_ingest::record(input.root, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-epistemics", || {
+            epistemics::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
         // Launch case execution before consumers that need the standalone logic
         // module. Execution overlaps that one shared compilation with its native
         // observation set; the consumers below then borrow the completed value.
-        let admissions = execution::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        let prepared_operators = operator_rules::record(
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        registry_surface::record(
-            crate::stages::parse_sources::catalog(&input)?
-                .document(crate::stages::compile_logic::SOURCE_PATH)?,
-            &mut artifacts,
-        )?;
-        let graded = grade_external_corpora(input.root, &admissions)?;
-        let nq = full_conformance_nq(input.root, &graded)?;
-        let tallies = agreement_tallies_json(input.root, &graded)?;
+        let admissions = measure_stage_phase(self.id(), "record-execution", || {
+            execution::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        let prepared_operators = measure_stage_phase(self.id(), "record-operator-rules", || {
+            operator_rules::record(
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-registry-surface", || {
+            registry_surface::record(
+                crate::stages::parse_sources::catalog(&input)?
+                    .document(crate::stages::compile_logic::SOURCE_PATH)?,
+                &mut artifacts,
+            )
+        })?;
+        let graded = measure_stage_phase(self.id(), "grade-external-corpora", || {
+            grade_external_corpora(input.root, &admissions)
+        })?;
+        let nq = measure_stage_phase(self.id(), "render-conformance-nq", || {
+            full_conformance_nq(input.root, &graded)
+        })?;
+        let tallies = measure_stage_phase(self.id(), "render-agreement-tallies", || {
+            agreement_tallies_json(input.root, &graded)
+        })?;
         // Attach the conformance graph (divergence findings + reified comparison and
         // tally individuals) as the carrier's `graph/conformance` named graph so the
         // presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never re-parses the
         // byte artifact. Every graded comparison now folds, so the graph is non-empty
         // whenever the committed corpus grades anything. The byte lane is kept for readers.
-        let dataset = crate::stages::carrier::parse_into_graph(
-            &nq,
-            "application/n-quads",
-            crate::stages::carrier::GRAPH_CONFORMANCE,
-        )?;
+        let dataset = measure_stage_phase(self.id(), "parse-conformance-graph", || {
+            crate::stages::carrier::parse_into_graph(
+                &nq,
+                "application/n-quads",
+                crate::stages::carrier::GRAPH_CONFORMANCE,
+            )
+        })?;
         artifacts.insert(CONFORMANCE_NQ_PATH.to_string(), nq);
         artifacts.insert(AGREEMENT_TALLIES_PATH.to_string(), tallies);
-        gmn_vectors::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        supplemental::record(input.root, &mut artifacts)?;
-        diagnostics::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        language_catalog::record(
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        documentation_graph::record(
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        source_glyph_legend::record(
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        crate::medium::source_observation::record(
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        native_scene::record(input.root, &mut artifacts)?;
-        verify_gates::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        expression_substrate::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        logic_module_contracts::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        gufo_superset::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        let lint_math = math_lowering::record(input.root, &mut artifacts)?;
-        source_lint::record(input.root, lint_math, &mut artifacts)?;
-        reviewed_translations::record(input.root, &mut artifacts)?;
-        wasm_gmn::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        wellfounded_plan::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        grounding_catalogs::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        action_policy::record(input.root, &mut artifacts)?;
-        medium_axis::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        crate::stages::superset::source_contracts::record(
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        crate::stages::yaml_ld::source_observation::record(input.root, &mut artifacts)?;
+        measure_stage_phase(self.id(), "record-gmn-vectors", || {
+            gmn_vectors::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-supplemental", || {
+            supplemental::record(input.root, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-diagnostics", || {
+            diagnostics::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-language-catalog", || {
+            language_catalog::record(
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-documentation-graph", || {
+            documentation_graph::record(
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-source-glyph-legend", || {
+            source_glyph_legend::record(
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-source-medium", || {
+            crate::medium::source_observation::record(
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-native-scene", || {
+            native_scene::record(input.root, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-verify-gates", || {
+            verify_gates::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-expression-substrate", || {
+            expression_substrate::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-logic-module-contracts", || {
+            logic_module_contracts::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-gufo-superset", || {
+            gufo_superset::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        let lint_math = measure_stage_phase(self.id(), "record-math-lowering", || {
+            math_lowering::record(input.root, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-source-lint", || {
+            source_lint::record(input.root, lint_math, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-reviewed-translations", || {
+            reviewed_translations::record(input.root, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-wasm-gmn", || {
+            wasm_gmn::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-wellfounded-plan", || {
+            wellfounded_plan::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-grounding-catalogs", || {
+            grounding_catalogs::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-action-policy", || {
+            action_policy::record(input.root, &mut artifacts)
+        })?;
+        measure_stage_phase(self.id(), "record-medium-axis", || {
+            medium_axis::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-source-contracts", || {
+            crate::stages::superset::source_contracts::record(
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-yaml-ld-source", || {
+            crate::stages::yaml_ld::source_observation::record(input.root, &mut artifacts)
+        })?;
         let gmn_started = std::time::Instant::now();
-        gmn_dictionary::record(
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        gmn_signatures::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &mut artifacts,
-        )?;
-        let grounding_operators = gmn_grounding::record(
-            input.root,
-            crate::stages::parse_sources::catalog(&input)?,
-            &prepared_operators,
-            &mut artifacts,
-        )?;
-        operator_scenes::record(
-            input.root,
-            &prepared_operators,
-            grounding_operators,
-            &mut artifacts,
-        )?;
+        measure_stage_phase(self.id(), "record-gmn-dictionary", || {
+            gmn_dictionary::record(
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-gmn-signatures", || {
+            gmn_signatures::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &mut artifacts,
+            )
+        })?;
+        let grounding_operators = measure_stage_phase(self.id(), "record-gmn-grounding", || {
+            gmn_grounding::record(
+                input.root,
+                crate::stages::parse_sources::catalog(&input)?,
+                &prepared_operators,
+                &mut artifacts,
+            )
+        })?;
+        measure_stage_phase(self.id(), "record-operator-scenes", || {
+            operator_scenes::record(
+                input.root,
+                &prepared_operators,
+                grounding_operators,
+                &mut artifacts,
+            )
+        })?;
         let gmn_timing = crate::node::StageRunTiming {
             phase: "gmn-grounding-observations".to_owned(),
             elapsed_ms: gmn_started.elapsed().as_millis(),
