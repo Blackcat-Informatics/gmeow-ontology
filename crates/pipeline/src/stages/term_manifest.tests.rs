@@ -74,10 +74,19 @@ fn native_release_authority_reader_refuses_ambiguous_or_invalid_evidence() {
             ),
             "changed_versions",
         ),
-        ("positional envelope", "[]".to_owned(), "authority object"),
+        (
+            "positional envelope",
+            format!(
+                r#"["gmeow.term-content-authority.v1","1.2.0",{{"{AUTHORITY_TERM}":{PRIOR_TERM_WIRE}}}]"#
+            ),
+            "authority object",
+        ),
         (
             "positional term record",
-            wire.replace(PRIOR_TERM_WIRE, "[]"),
+            wire.replace(
+                PRIOR_TERM_WIRE,
+                &format!(r#"["blake3:{}","1.0.0",[]]"#, "0".repeat(64)),
+            ),
             "prior term authority object",
         ),
         (
