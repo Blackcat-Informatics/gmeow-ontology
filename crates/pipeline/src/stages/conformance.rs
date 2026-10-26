@@ -829,6 +829,25 @@ fn external_case_input_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::
     Ok(files)
 }
 
+/// Run the independent math/lint chain beside the preceding recorders, then
+/// admit both complete results at the original boundary. Earlier recorder errors
+/// win; no branch may replace another branch's logical artifact, even byte-for-byte.
+fn record_parallel_math<T: Send>(
+    preceding: impl FnOnce() -> gmeow_errors::Result<(T, BTreeMap<String, Vec<u8>>)> + Send,
+    math: impl FnOnce() -> gmeow_errors::Result<BTreeMap<String, Vec<u8>>> + Send,
+) -> gmeow_errors::Result<(T, BTreeMap<String, Vec<u8>>)> {
+    let (preceding, math) = rayon::join(preceding, math);
+    let (recorded, mut artifacts) = preceding?;
+    let math = math?;
+    if let Some(path) = math.keys().find(|path| artifacts.contains_key(*path)) {
+        return Err(stage_err(&format!(
+            "independent conformance recorders both own logical artifact {path:?}"
+        )));
+    }
+    artifacts.extend(math);
+    Ok((recorded, artifacts))
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
 /// The `stage-conformance` Transform stage: grades the committed external corpus
@@ -859,7 +878,7 @@ impl Stage for ConformanceStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "conformance.v16-reviewed-translation-observations"
+        "conformance.v17-independent-math-recording"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = external_case_input_files(root)?;
@@ -892,146 +911,158 @@ impl Stage for ConformanceStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        // Complete native observations before the single selected-operation grading
-        // pass publishes semantic comparisons and source-admission evidence.
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        measure_stage_phase(self.id(), "record-glossary", || {
-            glossary::record(input.root, &mut artifacts)
-        })?;
-        measure_stage_phase(self.id(), "record-cl-ingest", || {
-            cl_ingest::record(input.root, &mut artifacts)
-        })?;
-        measure_stage_phase(self.id(), "record-epistemics", || {
-            epistemics::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        // Launch case execution before consumers that need the standalone logic
-        // module. Execution overlaps that one shared compilation with its native
-        // observation set; the consumers below then borrow the completed value.
-        let admissions = measure_stage_phase(self.id(), "record-execution", || {
-            execution::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        let prepared_operators = measure_stage_phase(self.id(), "record-operator-rules", || {
-            operator_rules::record(
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-registry-surface", || {
-            registry_surface::record(
-                crate::stages::parse_sources::catalog(&input)?
-                    .document(crate::stages::compile_logic::SOURCE_PATH)?,
-                &mut artifacts,
-            )
-        })?;
-        let graded = measure_stage_phase(self.id(), "grade-external-corpora", || {
-            grade_external_corpora(input.root, &admissions)
-        })?;
-        let nq = measure_stage_phase(self.id(), "render-conformance-nq", || {
-            full_conformance_nq(input.root, &graded)
-        })?;
-        let tallies = measure_stage_phase(self.id(), "render-agreement-tallies", || {
-            agreement_tallies_json(input.root, &graded)
-        })?;
-        // Attach the conformance graph (divergence findings + reified comparison and
-        // tally individuals) as the carrier's `graph/conformance` named graph so the
-        // presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never re-parses the
-        // byte artifact. Every graded comparison now folds, so the graph is non-empty
-        // whenever the committed corpus grades anything. The byte lane is kept for readers.
-        let dataset = measure_stage_phase(self.id(), "parse-conformance-graph", || {
-            crate::stages::carrier::parse_into_graph(
-                &nq,
-                "application/n-quads",
-                crate::stages::carrier::GRAPH_CONFORMANCE,
-            )
-        })?;
-        artifacts.insert(CONFORMANCE_NQ_PATH.to_string(), nq);
-        artifacts.insert(AGREEMENT_TALLIES_PATH.to_string(), tallies);
-        measure_stage_phase(self.id(), "record-gmn-vectors", || {
-            gmn_vectors::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-supplemental", || {
-            supplemental::record(input.root, &mut artifacts)
-        })?;
-        measure_stage_phase(self.id(), "record-diagnostics", || {
-            diagnostics::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-language-catalog", || {
-            language_catalog::record(
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-documentation-graph", || {
-            documentation_graph::record(
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-source-glyph-legend", || {
-            source_glyph_legend::record(
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-source-medium", || {
-            crate::medium::source_observation::record(
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-native-scene", || {
-            native_scene::record(input.root, &mut artifacts)
-        })?;
-        measure_stage_phase(self.id(), "record-verify-gates", || {
-            verify_gates::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-expression-substrate", || {
-            expression_substrate::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-logic-module-contracts", || {
-            logic_module_contracts::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        measure_stage_phase(self.id(), "record-gufo-superset", || {
-            gufo_superset::record(
-                input.root,
-                crate::stages::parse_sources::catalog(&input)?,
-                &mut artifacts,
-            )
-        })?;
-        let lint_math = measure_stage_phase(self.id(), "record-math-lowering", || {
-            math_lowering::record(input.root, &mut artifacts)
-        })?;
-        measure_stage_phase(self.id(), "record-source-lint", || {
-            source_lint::record(input.root, lint_math, &mut artifacts)
-        })?;
+        // Math lowering and its lint handoff are independent of the earlier
+        // recorders. Join at their original boundary before running the tail.
+        let ((dataset, prepared_operators), mut artifacts) = record_parallel_math(
+            || {
+                // Complete native observations before the single selected-operation grading
+                // pass publishes semantic comparisons and source-admission evidence.
+                let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+                measure_stage_phase(self.id(), "record-glossary", || {
+                    glossary::record(input.root, &mut artifacts)
+                })?;
+                measure_stage_phase(self.id(), "record-cl-ingest", || {
+                    cl_ingest::record(input.root, &mut artifacts)
+                })?;
+                measure_stage_phase(self.id(), "record-epistemics", || {
+                    epistemics::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                // Launch case execution before consumers that need the standalone logic
+                // module. Execution overlaps that one shared compilation with its native
+                // observation set; the consumers below then borrow the completed value.
+                let admissions = measure_stage_phase(self.id(), "record-execution", || {
+                    execution::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                let prepared_operators =
+                    measure_stage_phase(self.id(), "record-operator-rules", || {
+                        operator_rules::record(
+                            crate::stages::parse_sources::catalog(&input)?,
+                            &mut artifacts,
+                        )
+                    })?;
+                measure_stage_phase(self.id(), "record-registry-surface", || {
+                    registry_surface::record(
+                        crate::stages::parse_sources::catalog(&input)?
+                            .document(crate::stages::compile_logic::SOURCE_PATH)?,
+                        &mut artifacts,
+                    )
+                })?;
+                let graded = measure_stage_phase(self.id(), "grade-external-corpora", || {
+                    grade_external_corpora(input.root, &admissions)
+                })?;
+                let nq = measure_stage_phase(self.id(), "render-conformance-nq", || {
+                    full_conformance_nq(input.root, &graded)
+                })?;
+                let tallies = measure_stage_phase(self.id(), "render-agreement-tallies", || {
+                    agreement_tallies_json(input.root, &graded)
+                })?;
+                // Attach the conformance graph (divergence findings + reified comparison and
+                // tally individuals) as the carrier's `graph/conformance` named graph so the
+                // presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never re-parses the
+                // byte artifact. Every graded comparison now folds, so the graph is non-empty
+                // whenever the committed corpus grades anything. The byte lane is kept for readers.
+                let dataset = measure_stage_phase(self.id(), "parse-conformance-graph", || {
+                    crate::stages::carrier::parse_into_graph(
+                        &nq,
+                        "application/n-quads",
+                        crate::stages::carrier::GRAPH_CONFORMANCE,
+                    )
+                })?;
+                artifacts.insert(CONFORMANCE_NQ_PATH.to_string(), nq);
+                artifacts.insert(AGREEMENT_TALLIES_PATH.to_string(), tallies);
+                measure_stage_phase(self.id(), "record-gmn-vectors", || {
+                    gmn_vectors::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-supplemental", || {
+                    supplemental::record(input.root, &mut artifacts)
+                })?;
+                measure_stage_phase(self.id(), "record-diagnostics", || {
+                    diagnostics::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-language-catalog", || {
+                    language_catalog::record(
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-documentation-graph", || {
+                    documentation_graph::record(
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-source-glyph-legend", || {
+                    source_glyph_legend::record(
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-source-medium", || {
+                    crate::medium::source_observation::record(
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-native-scene", || {
+                    native_scene::record(input.root, &mut artifacts)
+                })?;
+                measure_stage_phase(self.id(), "record-verify-gates", || {
+                    verify_gates::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-expression-substrate", || {
+                    expression_substrate::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-logic-module-contracts", || {
+                    logic_module_contracts::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                measure_stage_phase(self.id(), "record-gufo-superset", || {
+                    gufo_superset::record(
+                        input.root,
+                        crate::stages::parse_sources::catalog(&input)?,
+                        &mut artifacts,
+                    )
+                })?;
+                Ok(((dataset, prepared_operators), artifacts))
+            },
+            || {
+                let mut artifacts = BTreeMap::new();
+                let lint_math = measure_stage_phase(self.id(), "record-math-lowering", || {
+                    math_lowering::record(input.root, &mut artifacts)
+                })?;
+                measure_stage_phase(self.id(), "record-source-lint", || {
+                    source_lint::record(input.root, lint_math, &mut artifacts)
+                })?;
+                Ok(artifacts)
+            },
+        )?;
         measure_stage_phase(self.id(), "record-reviewed-translations", || {
             reviewed_translations::record(input.root, &mut artifacts)
         })?;
