@@ -43,6 +43,10 @@ use crate::stages::archive_blobs::{
 use crate::stages::archive_blobs::AXIOM_FILES;
 
 use gmeow_ns::GMEOW_NS;
+use purrdf_lex::json::{
+    Value as JsonValue,
+    record::{DecodeError, FromJson, Record},
+};
 
 #[cfg(test)]
 mod test_support;
@@ -64,13 +68,36 @@ pub(crate) const PASS_ONE_RECEIPT_PATH: &str = "pipeline/gts-pass-one-receipt.js
 const PASS_ONE_RECEIPT_SCHEMA_VERSION: u32 = 1;
 const PASS_ONE_RECEIPT_ALGORITHM: &str = "gts-pass-one-canonical-identities-v1";
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct PassOneReceipt {
     schema_version: u32,
     algorithm: String,
     input_digest: String,
     snapshot_content_digest: String,
     stratum_digest: String,
+}
+
+::purrdf_lex::json_record!(impl ToJson for PassOneReceipt {
+    "schema_version" => schema_version,
+    "algorithm" => algorithm,
+    "input_digest" => input_digest,
+    "snapshot_content_digest" => snapshot_content_digest,
+    "stratum_digest" => stratum_digest,
+});
+
+impl FromJson for PassOneReceipt {
+    fn from_json(value: &JsonValue) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct PassOneReceipt")?;
+        Ok(Self {
+            schema_version: fields.required_with("schema_version", |value| {
+                gmeow_errors::json::read_unsigned(value, "u32 receipt schema version")
+            })?,
+            algorithm: fields.required("algorithm")?,
+            input_digest: fields.required("input_digest")?,
+            snapshot_content_digest: fields.required("snapshot_content_digest")?,
+            stratum_digest: fields.required("stratum_digest")?,
+        })
+    }
 }
 
 /// One terminal emission plus the authenticated intermediary evidence a second
@@ -1761,14 +1788,13 @@ fn serialize_snapshot(
         Some(("gts", emission.bytes.len())),
         None,
     ));
-    let pass_one_receipt = serde_json::to_vec(&PassOneReceipt {
+    let pass_one_receipt = purrdf_lex::json::record::to_vec(&PassOneReceipt {
         schema_version: PASS_ONE_RECEIPT_SCHEMA_VERSION,
         algorithm: PASS_ONE_RECEIPT_ALGORITHM.to_string(),
         input_digest: pass_one_input_digest,
         snapshot_content_digest,
         stratum_digest: snapshot_strata_digest,
-    })
-    .map_err(|e| stage_err(&format!("serialize the GTS pass-one receipt: {e}")))?;
+    });
     Ok(SerializedCarrierSnapshot {
         emission,
         pass_one_receipt,
@@ -1841,7 +1867,7 @@ fn reusable_pass_one_receipt(
             "stage-gts-sink is present but its required `{PASS_ONE_RECEIPT_PATH}` receipt is missing"
         ))
     })?;
-    let receipt: PassOneReceipt = serde_json::from_slice(bytes)
+    let receipt: PassOneReceipt = purrdf_lex::json::record::from_slice(bytes)
         .map_err(|e| stage_err(&format!("parse `{PASS_ONE_RECEIPT_PATH}`: {e}")))?;
     if receipt.schema_version != PASS_ONE_RECEIPT_SCHEMA_VERSION {
         return Err(stage_err(&format!(
