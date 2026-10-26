@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1960,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for",
+  "branch": "paudley/1960-reuse-admitted-world-local-effects-for",
+  "slug": "reuse-admitted-world-local-effects-for",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "97eac2554ab12d2ed01571c58362754d5c7faaf5",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for",
+    "branch:paudley/1960-reuse-admitted-world-local-effects-for",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T04:28:54-0600"
+}

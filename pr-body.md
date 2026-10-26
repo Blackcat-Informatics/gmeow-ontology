@@ -1,0 +1,9 @@
+Native reasoning input preparation now combines the required world-local effect analyses instead of computing another global closure over all worlds. The aggregate retains one atom per original slot, unions ranges in the shared value universe and preserves completed reads, producer metadata, constructor proofs and contextual transfers. Empty-map analysis remains complete; possible outputs naming an unselected world fail with an actionable diagnostic.
+
+Historical [generation A](https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/39742980452/job/119757176940) spent 1,530,300 ms in global refinement. This change removes that separate closure structurally. It does not establish an end-to-end speedup, RSS reduction or full production parity. Those measurements and authenticated acceptance remain in #1962; #1757 stays open. Generic execution and codecs remain PurRDF-owned. Principles 4, 7, 9, 17 and 18 apply.
+
+Two authored regressions cover split versus co-located joins, completed reads, both data-selected predicates and actual per-world execution. The contextual case also checks possible output in a selected empty world and refusal of an unknown owner. The eight original controls passed before the change; all eleven final focused cases passed. Strict all-target Clippy passed for `gmeow-logic`, `gmeow-pipeline` and `gmeow-dev-cli`. Independent combined review passed after its diagnostic-channel finding was repaired. Tests construct no repository corpus. Full local production and the full gate remain excluded by the recorded user instruction.
+
+Hosted qualification is also blocked by the separate build-input audit failure observed on #1959: optimized compilation completed, but the `.cargo` directory observation lacked declared ownership. #1956 is reopened and owns that repair. It does not change the focused effect-reuse results above.
+
+Closes #1960.

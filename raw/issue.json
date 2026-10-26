@@ -1,0 +1,20 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Blocked by: none.\nBlocks: #1757 and its final merged-pipeline qualification child.\n\nRemove the measured duplicate global abstract refinement from native reasoning input preparation by reusing all already-required world-local effect analyses. Hosted main run 39742980452, generation A job 119757176940, records 1,530,300 ms in global effect refinement and 1,894,935 ms in native input preparation. This is historical baseline evidence, not a current speedup claim. The same run completes source load in 39,074 ms; current source reports certified/native per-slice probe counts.\n\nThe selected implementation must form a conservative, deterministic, slot-aligned union of every final world-local effect envelope, retaining producer metadata, read dependency strength, completion obligations, contextual transfers, constructor proofs and exact world identities. Preserve the real empty-world-map analysis. Possible heads naming an unselected owner must fail explicitly; an explicitly selected empty world remains valid. Generic execution mechanisms and codecs remain PurRDF-owned.\n\nAcceptance:\n\n1. Protect split-world versus co-located join behavior, actual materialization, possible/contextual owner activation and missing-owner refusal with small authored inputs. Reuse existing termination, contextual, empty-map and list proof controls.\n2. Compile the changed production owner and actual pipeline callers with warnings denied; run focused Make checks, normal hooks and an independent combined source review. Tests must not construct the repository corpus.\n3. Record the removed structural work and preserve honest observation scope. No comparative end-to-end, RSS or intermediate-byte claim without matching evidence. Hosted before/after metrics and full production parity belong to the final qualification child; this source component closes only its bounded reuse contract.\n4. Retain authenticated O3/full-LTO production, all source/standpoint/provenance/complement/loss identities and source admission. No narrow producer feature, weaker fallback or separate production build lineage.\n\nPrinciples 4, 7, 9, 17 and 18. This is one bounded source change; it does not close #1757 or the program-aware acceptance in #1748.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-26T10:28:33Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1960,
+  "state": "OPEN",
+  "title": "perf(logic): reuse admitted world-local effects for the global envelope",
+  "updatedAt": "2026-10-26T10:28:33Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1960"
+}

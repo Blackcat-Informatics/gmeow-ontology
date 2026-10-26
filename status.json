@@ -1,0 +1,124 @@
+{
+  "issue": 1960,
+  "pr_number": 1963,
+  "branch": "paudley/1960-reuse-admitted-world-local-effects-for",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for",
+  "observed_at": "2026-10-26T11:01:35.242700+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1960-reuse-admitted-world-local-effects-for/.stage/reuse-admitted-world-local-effects-for/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "97eac2554ab12d2ed01571c58362754d5c7faaf5",
+    "headRefName": "paudley/1960-reuse-admitted-world-local-effects-for",
+    "headRefOid": "3e3a96036fa140ce3dd86a35a7bf43c674dd6291",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1963,
+    "state": "OPEN",
+    "title": "perf(logic): reuse world-local effects for global preparation",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1963"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40310913206/job/121531571867",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40310913206/job/121531571703",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40310913206/job/121531571684",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40310913206/job/121531571809",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "3e3a96036fa140ce3dd86a35a7bf43c674dd6291",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "93b8b13655b52882881a293b4de969430987da737eb870169af2b3ce79fdfae1"
+  },
+  "local": {
+    "head": "3e3a96036fa140ce3dd86a35a7bf43c674dd6291",
+    "branch": "paudley/1960-reuse-admitted-world-local-effects-for",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1963,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1963 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABflHokQ",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1963#issuecomment-6414264465",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
