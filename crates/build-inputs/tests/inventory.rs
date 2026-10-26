@@ -1030,6 +1030,105 @@ fn native_semantic_json_macro_binds_substrate_and_nested_source_bytes() {
         "crates/logic-compile/src/tests.rs",
         "fn first() {}",
     );
+    write(root.path(), "crates/logic/build.rs", "fn main() {}\n");
+    write(
+        root.path(),
+        "crates/logic/src/lib.rs",
+        "include!(concat!(env!(\"OUT_DIR\"),\"/native_semantic_sources.rs\"));\n",
+    );
+    let mut selected = json_selection(root.path(), "purrdf-lex");
+    selected.units[0].manifest = Some("crates/logic/Cargo.toml".into());
+    selected.units[0].source = Some("crates/logic/src/lib.rs".into());
+    let native_resolution = |selection: &ProductionSelection| {
+        CargoResolutionInputs::capture(
+            root.path(),
+            ["crates/logic/Cargo.toml".into()].into_iter().collect(),
+        )
+        .unwrap()
+        .bind(selection)
+        .unwrap()
+    };
+    let compiler_reads = |inventory: &InputInventory, directory: &str| CompilerInputs {
+        files: inventory
+            .files
+            .keys()
+            .map(|name| root.path().join(name))
+            .chain([root.path().join(directory)])
+            .collect(),
+        environments: Default::default(),
+    };
+    let absent = InputInventory::collect(root.path(), &selected).unwrap();
+    assert_eq!(absent.memberships.get(""), Some(&Vec::new()));
+    let absent_resolution = native_resolution(&selected);
+    compiler_reads(&absent, "")
+        .verify(root.path(), &absent, &absent_resolution, &[], &[])
+        .unwrap();
+
+    std::fs::create_dir(root.path().join(".cargo")).unwrap();
+    let empty = InputInventory::collect(root.path(), &selected).unwrap();
+    assert_eq!(empty.memberships.get(".cargo"), Some(&Vec::new()));
+    assert!(!empty.memberships.contains_key(""));
+    compiler_reads(&empty, ".cargo")
+        .verify(root.path(), &empty, &absent_resolution, &[], &[])
+        .unwrap();
+
+    write(root.path(), ".cargo/config.toml", "");
+    assert!(
+        InputInventory::collect(root.path(), &selected).is_err(),
+        "new configuration must invalidate policy membership"
+    );
+    assert!(
+        absent_resolution
+            .verify_current(root.path(), &selected)
+            .is_err()
+    );
+    selected.policy_files = gmeow_build_inputs::cargo_policy_files(root.path()).unwrap();
+    let configured = InputInventory::collect(root.path(), &selected).unwrap();
+    assert_eq!(configured.memberships[".cargo"], [".cargo/config.toml"]);
+    let configured_resolution = native_resolution(&selected);
+    compiler_reads(&configured, ".cargo")
+        .verify(root.path(), &configured, &configured_resolution, &[], &[])
+        .unwrap();
+    write(root.path(), ".cargo/unselected.txt", "not a selected input");
+    std::fs::create_dir(root.path().join(".cargo/unselected-dir")).unwrap();
+    std::fs::create_dir(root.path().join("outside")).unwrap();
+    assert_eq!(
+        configured,
+        InputInventory::collect(root.path(), &selected).unwrap(),
+        "unselected directory contents must not enter the inventory"
+    );
+    for unselected in [
+        "",
+        ".cargo/unselected.txt",
+        ".cargo/unselected-dir",
+        "outside",
+    ] {
+        let refusal = compiler_reads(&configured, unselected)
+            .verify(root.path(), &configured, &configured_resolution, &[], &[])
+            .unwrap_err()
+            .to_string();
+        assert!(
+            refusal.contains("undeclared inputs"),
+            "{unselected}: {refusal}"
+        );
+    }
+    write(
+        root.path(),
+        ".cargo/config.toml",
+        "# changed configuration bytes\n",
+    );
+    assert_eq!(
+        configured,
+        InputInventory::collect(root.path(), &selected).unwrap(),
+        "nonsemantic config comments must not change executable identity"
+    );
+    assert!(
+        configured_resolution
+            .verify_current(root.path(), &selected)
+            .is_err()
+    );
+    std::fs::remove_file(root.path().join(".cargo/config.toml")).unwrap();
+
     let first = NativeSources::collect(root.path()).unwrap();
     assert!(
         first

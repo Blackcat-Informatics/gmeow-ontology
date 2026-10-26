@@ -122,6 +122,18 @@ pub(crate) fn generated(
         }
         (Some("crates/logic/Cargo.toml"), "native_semantic_sources.rs") => {
             let native = crate::NativeSources::collect(workspace)?;
+            let config_owner = crate::native::configuration_watch_owner(workspace)?;
+            let config_members = inventory
+                .selection
+                .policy_files
+                .iter()
+                .filter(|path| Path::new(path).parent() == Some(Path::new(".cargo")))
+                .cloned()
+                .collect();
+            // Directory observation owns membership only. Config file bytes keep
+            // their existing Cargo policy and resolution owners; descendants gain
+            // no implicit compiler-read permission.
+            inventory.memberships.insert(config_owner, config_members);
             for path in native.files.keys() {
                 inventory.add_file(
                     workspace,
