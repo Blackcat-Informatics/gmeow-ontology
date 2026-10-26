@@ -162,12 +162,14 @@ pub struct LintOutcome {
 /// escalates. When the gate fails, one more synthetic
 /// `slice-quality.lint.below-min-tier` `Error` finding is added naming the
 /// measured roll-up and the bar.
-#[must_use]
+///
+/// # Errors
+/// Preserves failures projecting the selected profile's complete metadata.
 pub fn lint_report(
     report: &SliceReport,
     declared: Option<&Tier>,
     required: Option<&Tier>,
-) -> LintOutcome {
+) -> gmeow_errors::Result<LintOutcome> {
     let effective_bar = higher_rank(declared, required);
     let complete = report
         .profile
@@ -207,7 +209,7 @@ pub fn lint_report(
         findings.add_finding(finding);
     }
     if !complete {
-        let selected = report.to_report();
+        let selected = report.to_report()?;
         findings.metadata = selected.metadata;
         findings.findings.extend(
             selected
@@ -249,12 +251,12 @@ pub fn lint_report(
         findings.add_rule(rule);
     }
 
-    LintOutcome {
+    Ok(LintOutcome {
         findings,
         passed,
         effective_bar,
         issue_count: report.advisories.len(),
-    }
+    })
 }
 
 impl LintOutcome {

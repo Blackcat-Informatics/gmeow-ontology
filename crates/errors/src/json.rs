@@ -4,9 +4,26 @@
 //! Native JSON admission shared by diagnostic and receipt transports.
 
 use purrdf_lex::json::{
-    Object, Value,
+    self, Limits, Object, Value,
     record::{DecodeError, FromJson, Record, ToJson},
 };
+
+/// Diagnostic envelopes reserve 32 containers outside independently admitted
+/// depth-128 metadata. This includes Report, SARIF and cached verification
+/// observations; readers use this explicit profile rather than an accidental
+/// default that can reject metadata only after it has been nested.
+pub const DIAGNOSTIC_JSON_DEPTH: usize = crate::METADATA_JSON_DEPTH + 32;
+
+/// Decode a complete diagnostic document, including nested Report observations.
+///
+/// # Errors
+/// Returns the original native lexical, depth, physical or typed-shape refusal.
+pub fn read_diagnostic_document<T: FromJson>(bytes: &[u8]) -> Result<T, DecodeError> {
+    T::from_json(&json::read_slice(
+        bytes,
+        Limits::with_depth(DIAGNOSTIC_JSON_DEPTH),
+    )?)
+}
 
 /// Read an unsigned integer token followed by a checked target-width conversion.
 ///

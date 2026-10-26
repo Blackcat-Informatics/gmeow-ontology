@@ -176,7 +176,7 @@ fn run_sarif(argv: &[String], reporter: &dyn Reporter) -> io::Result<()> {
     if let Some(cat) = category {
         combined
             .metadata
-            .insert("category".to_owned(), serde_json::json!(cat));
+            .insert("category".to_owned(), gmeow_errors::JsonEvidence::from(cat));
     }
 
     for path in &files {

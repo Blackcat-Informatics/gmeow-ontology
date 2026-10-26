@@ -399,7 +399,7 @@ fn excluded_and_unsupported_axes_have_distinct_honest_denominators() {
     let report = score_external_slice_from_files(&standard, &files()).unwrap();
     let profile = report.profile.as_ref().unwrap();
     assert!(!profile.complete);
-    let lint = crate::lint::lint_report(&report, None, None);
+    let lint = crate::lint::lint_report(&report, None, None).unwrap();
     assert!(
         !lint.passed,
         "an incomplete operation must not pass an absent tier bar"
@@ -421,7 +421,7 @@ fn excluded_and_unsupported_axes_have_distinct_honest_denominators() {
         .iter()
         .find(|tier| tier.rank == 0)
         .unwrap();
-    let lint = crate::lint::lint_report(&report, None, Some(registered));
+    let lint = crate::lint::lint_report(&report, None, Some(registered)).unwrap();
     assert!(!lint.passed);
     assert!(
         !lint
@@ -447,6 +447,7 @@ fn excluded_and_unsupported_axes_have_distinct_honest_denominators() {
     assert!(
         report
             .to_report()
+            .unwrap()
             .findings
             .iter()
             .any(|finding| finding.code == "slice-quality.profile-axis"
@@ -819,7 +820,7 @@ fn corpus_identity_distinguishes_equal_concatenations_with_different_field_bound
 fn profile_results_and_reasons_survive_consumer_report_formats() {
     let standard = standards(&model(), "external-sacred").unwrap();
     let report = score_external_slice_from_files(&standard, &files()).unwrap();
-    let structured = report.to_report();
+    let structured = report.to_report().unwrap();
     let json = gmeow_errors::render::to_json(&structured).unwrap();
     let sarif = gmeow_errors::render::to_sarif(&structured).unwrap();
     let text = report.render_text();
@@ -833,12 +834,10 @@ fn profile_results_and_reasons_survive_consumer_report_formats() {
             "measured-axis identity must survive"
         );
     }
-    assert_eq!(structured.metadata["quality_profile"]["measured_axes"], 2);
-    assert_eq!(structured.metadata["quality_profile"]["total_axes"], 3);
-    let sarif: serde_json::Value = serde_json::from_str(&sarif).unwrap();
-    assert_eq!(
-        sarif["runs"][0]["properties"]["quality_profile"],
-        structured.metadata["quality_profile"]
-    );
+    let metadata = structured.metadata["quality_profile"].value().unwrap();
+    assert_eq!(metadata["measured_axes"].as_u64(), Some(2));
+    assert_eq!(metadata["total_axes"].as_u64(), Some(3));
+    let sarif = purrdf_lex::json::record::read_document(sarif.as_bytes()).unwrap();
+    assert_eq!(sarif["runs"][0]["properties"]["quality_profile"], metadata);
     assert!(text.contains("not applicable"));
 }

@@ -201,7 +201,8 @@ fn diagnostic_renderer_preserves_projection_bytes_and_native_gate_union() {
         crate::stages::superset::canonical_ntriples(&artifacts.dataset).unwrap(),
         "the carrier retains the same authored gate conclusions as the artifact"
     );
-    let rendered: Report = serde_json::from_slice(&artifacts.artifacts["report.json"]).unwrap();
+    let rendered: Report =
+        gmeow_errors::Report::from_json_slice(&artifacts.artifacts["report.json"]).unwrap();
     assert_eq!(rendered.findings[0].code, "synthetic.constraint");
     assert_eq!(rendered.findings[0].message, "retained evidence");
 }

@@ -11,6 +11,88 @@ const MINIMAL: &str = r#"{"severity":"error","code":"authored.code","message":"m
 const COMPLETE: &str = r#"{"severity":"warning","code":"authored.code","message":"nul\u0000\t\"\\中😀","source_graph":"https://example.org/Graph","source_focus":"urn:focus","tool":"tiny","locations":[{"path":"a.ttl","line":18446744073709551615,"column":4294967295,"logical":"urn:logical","gts_term_id":1,"gts_quad_index":2,"gts_reifier_id":3,"gts_frame_index":4,"gts_segment_index":5}],"related_locations":[{"path":"related.ttl"}],"related_labels":[{"location":{"path":"label.ttl"},"message":"defined here"}],"suggestions":["repair"],"advice":[{"standpoint":"advisory","text":"review","help_uri":null}],"remediation":[{"text":"replace","standpoint":"binding","help_uri":"urn:help","artifact_change":{"artifact_uri":"a.ttl","region":{"start_line":1,"start_column":2,"end_line":3,"end_column":4},"replacement":"x\n"}}],"finding_iri":"urn:finding","anchor_iri":"urn:anchor","anchor_non_trivial":true,"antecedents":["urn:antecedent"],"root_cause":"urn:root","cluster":"urn:cluster","cross_node_glut_with":["urn:opposite"],"tags":["tag"],"detail":"detail","failure_class":"urn:failure","category":"transient-chatter","standpoint":"perspectival","attributions":[{"slice_iri":"urn:slice","role":"definition-owner","evidence":"source"}],"documented_terms":["urn:term"],"guidance":[{"modality":"UseWhen","source":"DocumentedTerm","term_iri":"urn:term","text":"usage","standpoint":"advisory","help_uri":"urn:guide"}],"derived_from_quads":["urn:quad"],"cited_iris":["urn:citation"]}"#;
 
 #[test]
+fn report_native_json_retains_exact_metadata_and_all_diagnostic_fields() {
+    let wire = format!(
+        r#"{{"schema":"{REPORT_JSON_SCHEMA}","tool":"authored","findings":[{COMPLETE}],"rules":[{{"id":"authored.code","title":"label","description":"definition","help_uri":"urn:help","remediation":"repair","how_to_use":"use","default_severity":"warning"}}],"metadata":{{"raw":{{"z":[-0,1.00e+003,18446744073709551616],"n":1e400,"repeat":null,"repeat":true}},"category":"escaped\n中"}}}}"#
+    );
+    let report = Report::from_json_slice(wire.as_bytes()).unwrap();
+    assert_eq!(
+        report.metadata["raw"].canonical_json(),
+        r#"{"n":1e400,"repeat":true,"z":[-0,1.00e+003,18446744073709551616]}"#
+    );
+    assert_eq!(
+        report.metadata_string("category").unwrap().as_deref(),
+        Some("escaped\n中")
+    );
+    assert!(report.metadata_string("raw").unwrap().is_none());
+    let rendered = crate::render::to_json(&report).unwrap();
+    assert_eq!(
+        Report::from_json_slice(rendered.as_bytes()).unwrap(),
+        report.normalized()
+    );
+    let sarif = crate::json::read_diagnostic_document::<Value>(
+        crate::render::to_sarif(&report).unwrap().as_bytes(),
+    )
+    .unwrap();
+    assert!(
+        sarif["runs"][0]["properties"]["raw"].same_text(&report.metadata["raw"].value().unwrap())
+    );
+    assert_eq!(
+        sarif["runs"][0]["automationDetails"]["id"].as_str(),
+        Some("escaped\n中")
+    );
+    assert!(
+        serde_json::to_vec(&report)
+            .unwrap_err()
+            .to_string()
+            .contains("native diagnostics version 2")
+    );
+    assert!(
+        serde_json::from_slice::<Report>(wire.as_bytes())
+            .unwrap_err()
+            .to_string()
+            .contains("native diagnostics version 2")
+    );
+}
+
+#[test]
+fn report_metadata_depth_roundtrips_inside_selected_diagnostic_envelopes() {
+    let deep = format!(
+        "{}0{}",
+        "[".repeat(crate::METADATA_JSON_DEPTH),
+        "]".repeat(crate::METADATA_JSON_DEPTH)
+    );
+    let wire = format!(
+        r#"{{"schema":"{REPORT_JSON_SCHEMA}","tool":"depth","metadata":{{"deep":{deep}}}}}"#
+    );
+    let report = Report::from_json_slice(wire.as_bytes()).unwrap();
+    assert_eq!(report.metadata["deep"].canonical_json(), deep);
+    let rendered = crate::render::to_json(&report).unwrap();
+    assert_eq!(
+        Report::from_json_slice(rendered.as_bytes()).unwrap(),
+        report
+    );
+    let sarif = crate::json::read_diagnostic_document::<Value>(
+        crate::render::to_sarif(&report).unwrap().as_bytes(),
+    )
+    .unwrap();
+    assert!(
+        sarif["runs"][0]["properties"]["deep"].same_text(&report.metadata["deep"].value().unwrap())
+    );
+    for invalid in [
+        wire.replace(&deep, &format!("[{deep}]")),
+        wire.replace(r#""tool":"depth""#, r#""tool":"depth","tool":"depth""#),
+        wire.replace(REPORT_JSON_SCHEMA, "gmeow.diagnostics-report.v1"),
+        wire.replace(r#""metadata":{"#, r#""metadata":null,"unknown":{"#),
+    ] {
+        assert!(
+            Report::from_json_slice(invalid.as_bytes()).is_err(),
+            "accepted {invalid}"
+        );
+    }
+}
+
+#[test]
 fn json_finding_complete_literal_preserves_every_payload_and_exact_bytes() {
     let finding: Finding = from_slice(COMPLETE.as_bytes()).unwrap();
     assert_eq!(to_vec(&finding), COMPLETE.as_bytes());

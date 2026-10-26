@@ -112,7 +112,8 @@ fn installed_quality_profiles_run_without_a_checkout_and_keep_shared_scores(std:
     };
     let full = score_external_slice(std, &slice_dir)
         .expect("score default profile with the shared bundle decode")
-        .to_report();
+        .to_report()
+        .unwrap();
     let external = run("external-sacred");
     assert!(
         external.status.success(),
@@ -352,7 +353,7 @@ fn ac1_scores_external_slice_against_embedded_bundle(std: &BundleStandards) {
 
     // (g) at least one advisory carries a resolved help URI (attached per code on
     // the diagnostics report's rule registry via help_uri_for).
-    let diag = report.to_report();
+    let diag = report.to_report().unwrap();
     let advisory_code_set: std::collections::BTreeSet<&str> =
         codes.iter().map(String::as_str).collect();
     let resolved_help = diag.rules.iter().any(|r| {

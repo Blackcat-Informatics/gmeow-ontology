@@ -728,16 +728,19 @@ impl SliceReport {
 
     /// Build the advisory [`Report`] on the diagnostics substrate: every axis grade
     /// as an informational note, every uplift item as an `Advisory` warning.
-    #[must_use]
-    pub fn to_report(&self) -> Report {
+    ///
+    /// # Errors
+    /// Preserves failures projecting or admitting complete quality metadata.
+    pub fn to_report(&self) -> gmeow_errors::Result<Report> {
         // Register every slice-quality code before any finding is built, so the
         // emitted report carries registered (never bare) diagnostic codes.
         seed_finding_codes();
         let mut report = Report::new("slice-quality");
         if let Some(profile) = &self.profile {
-            report
-                .metadata
-                .insert("quality_profile".to_owned(), serde_json::json!(profile));
+            report.metadata.insert(
+                "quality_profile".to_owned(),
+                purrdf_lex::json::record::FromJson::from_json(&profile.json_value()?)?,
+            );
             for (axis, outcome) in &profile.outcomes {
                 let severity = if matches!(outcome, crate::profile::AxisOutcome::Unsupported { .. })
                 {
@@ -818,7 +821,7 @@ impl SliceReport {
             rule.help_uri = Some(help_uri_for(&code));
             report.add_rule(rule);
         }
-        report
+        Ok(report)
     }
 
     /// A deterministic human-facing text rendering.

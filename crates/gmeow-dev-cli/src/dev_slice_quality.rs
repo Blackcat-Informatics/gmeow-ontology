@@ -69,8 +69,8 @@ impl Format {
 fn render(report: &SliceReport, format: Format) -> gmeow_errors::Result<String> {
     match format {
         Format::Text => Ok(report.render_text()),
-        Format::Json => Ok(gmeow_errors::render::to_json(&report.to_report())?),
-        Format::Sarif => Ok(gmeow_errors::render::to_sarif(&report.to_report())?),
+        Format::Json => Ok(gmeow_errors::render::to_json(&report.to_report()?)?),
+        Format::Sarif => Ok(gmeow_errors::render::to_sarif(&report.to_report()?)?),
         Format::Rdf => Ok(report.to_gmeow_rdf()),
     }
 }
@@ -157,9 +157,14 @@ pub fn slice_quality(
                 Ok(text) => print!("{text}"),
                 Err(e) => return fail(e),
             }
-            let mut diag = report.to_report();
-            diag.metadata
-                .insert("category".into(), serde_json::json!(config.category));
+            let mut diag = match report.to_report() {
+                Ok(report) => report,
+                Err(error) => return fail(error),
+            };
+            diag.metadata.insert(
+                "category".into(),
+                gmeow_errors::JsonEvidence::from(config.category.clone()),
+            );
             if let Err(code) = write_artifacts(&diag, &config) {
                 return code;
             }
@@ -257,7 +262,10 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
                 }
                 // Always fold each slice's diagnostics into the aggregate: it backs
                 // both the single structured stdout document and the artifacts.
-                let diag = report.to_report();
+                let diag = match report.to_report() {
+                    Ok(report) => report,
+                    Err(error) => return fail(error),
+                };
                 for finding in diag.findings {
                     aggregate.add_finding(finding);
                 }
@@ -322,9 +330,10 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
             print!("{}", gmeow_slice_quality::prioritize::render_text(&rows));
         }
     }
-    aggregate
-        .metadata
-        .insert("category".into(), serde_json::json!(config.category));
+    aggregate.metadata.insert(
+        "category".into(),
+        gmeow_errors::JsonEvidence::from(config.category.clone()),
+    );
     if let Err(code) = write_artifacts(&aggregate, config) {
         return code;
     }

@@ -61,7 +61,10 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::SourceCatalog(catalog) => catalog.identity().to_owned(),
         PipelineHandle::Logic(program) => typed_digest(program.as_ref()),
         PipelineHandle::CompiledLogic(publication) => typed_digest(publication.as_ref()),
-        PipelineHandle::Diagnostics(publication) => typed_digest(publication.as_ref()),
+        PipelineHandle::Diagnostics(publication) => content_digest(&[
+            b"diagnostics-json-evidence-v2",
+            typed_digest(publication.as_ref()).as_bytes(),
+        ]),
         PipelineHandle::Reasoning(result) => typed_digest(result.as_ref()),
         PipelineHandle::RelationalCore(program) => typed_digest(program.as_ref()),
         PipelineHandle::Correspondence(program) => typed_digest(program.as_ref()),

@@ -252,7 +252,7 @@ fn merged_observations_have_one_canonical_order_on_every_projection_and_replay()
             nodes[0].observations[0].observed.as_ref().unwrap().lexical,
             "1"
         );
-        let report = serde_json::to_vec(&ledger.project_report("test")).unwrap();
+        let report = ledger.project_report("test").to_json().unwrap();
         if let Some(expected) = &expected {
             assert_eq!(&report, expected);
         } else {
@@ -262,10 +262,7 @@ fn merged_observations_have_one_canonical_order_on_every_projection_and_replay()
         nodes[0].observations.reverse();
         let mut replay = DiagLedger::new();
         replay.replay(nodes);
-        assert_eq!(
-            serde_json::to_vec(&replay.project_report("test")).unwrap(),
-            report
-        );
+        assert_eq!(replay.project_report("test").to_json().unwrap(), report);
     }
 }
 
