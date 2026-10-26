@@ -23,6 +23,16 @@ pub fn read_unsigned<T: TryFrom<u64>>(value: &Value, expected: &str) -> Result<T
         .ok_or_else(|| DecodeError::invalid_value(value, expected))
 }
 
+/// Read one fixed-width row of verbatim strings using native element admission.
+///
+/// # Errors
+/// Refuses nonarrays, nonstring cells and a row whose width differs from `N`.
+pub fn read_string_row<const N: usize>(value: &Value) -> Result<[String; N], DecodeError> {
+    Vec::<String>::from_json(value)?
+        .try_into()
+        .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} string cells")))
+}
+
 /// Read a signed i32 integer token, excluding the float-like spelling `-0`.
 ///
 /// # Errors

@@ -125,9 +125,9 @@ ex:trace a logic:Rule, gmeow:DiagnosticMetaRule ;
     );
     // Internal reachability evidence is retained without adding a public projection.
     assert!(derived.to_nquads(WORLD).is_empty());
-    let encoded = serde_json::to_vec(&derived).unwrap();
+    let encoded = purrdf_lex::json::record::to_vec(&derived);
     assert_eq!(
-        serde_json::from_slice::<MetaDerivation>(&encoded).unwrap(),
+        purrdf_lex::json::record::from_slice::<MetaDerivation>(&encoded).unwrap(),
         derived
     );
 }
