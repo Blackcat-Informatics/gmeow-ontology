@@ -27,6 +27,8 @@
 //! the production surface `conformance::corpus_tests::diagnostics_meta_findings`
 //! proves over the actual authored ontology.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
@@ -100,7 +102,7 @@ pub struct MetaProgram {
 /// The reasoner-derived meta-findings, collected from one chase over a projected
 /// finding graph. Every collection is a sorted set, so the re-projection and the
 /// report enrichment are deterministic regardless of the chase's emission order.
-#[derive(Debug, Default, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct MetaDerivation {
     /// Internal antecedent reachability evidence; retained for observation, not projected.
     pub traces: BTreeSet<(String, String)>,

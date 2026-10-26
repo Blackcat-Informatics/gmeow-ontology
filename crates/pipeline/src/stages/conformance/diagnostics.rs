@@ -17,13 +17,13 @@ use gmeow_ns::GMEOW_NS;
 use purrdf::{
     NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef, parse_dataset,
 };
-use serde::{Deserialize, Serialize};
 
 use crate::stages::gate_verdict::GateProgram;
 use crate::stages::meta_findings::{MetaDerivation, MetaProgram};
 use crate::stages::parse_sources::SourceCatalog;
 
 mod inputs;
+mod json;
 
 pub(super) const CHANNEL: &str = "pipeline/diagnostic-observations.json";
 const LOGIC: &str = crate::stages::compile_logic::SOURCE_PATH;
@@ -39,7 +39,7 @@ const META_CASES: &[&str] = &[
     "counter-examples/cross-node-glut-trivial-anchor.ttl",
 ];
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(crate) struct Observations {
     pub meta_sources: BTreeSet<String>,
     pub meta: BTreeMap<String, Result<MetaDerivation, gmeow_errors::RecordedDiag>>,
@@ -47,7 +47,7 @@ pub(crate) struct Observations {
     pub reports: BTreeMap<String, Result<MetaReportObservation, gmeow_errors::RecordedDiag>>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(crate) struct GateObservation {
     pub coordinates: BTreeMap<String, (String, String, String)>,
     pub category_blocking: BTreeMap<String, String>,
@@ -55,13 +55,13 @@ pub(crate) struct GateObservation {
     pub projections: BTreeMap<String, ProjectionObservation>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(crate) struct ProjectionObservation {
     pub nquads: String,
     pub fatal: BTreeSet<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(crate) struct MetaReportObservation {
     pub nquads: String,
     pub derivation: MetaDerivation,
@@ -145,26 +145,32 @@ pub(super) fn record(
         let bytes = std::fs::read(root.join(&path)).map_err(|error| fail(error.to_string()))?;
         let mut selected = shared.clone();
         selected.push(raw(&path, bytes_digest(&bytes)));
-        let observed =
-            super::execution::cached_inputs(&store, "diagnostic-meta-fixture", selected, || {
+        let observed = super::execution::cached_native_inputs(
+            &store,
+            "diagnostic-meta-fixture",
+            selected,
+            || {
                 let dataset = parse_dataset(&bytes, NativeRdfFormat::Turtle.media_type(), None)
                     .map_err(gmeow_errors::Diag::from)?;
                 programs()?.meta.derive_dataset(&dataset)
-            })
-            .map_err(super::record_failure);
+            },
+        )
+        .map_err(super::record_failure);
         meta.insert((*case).to_owned(), observed);
     }
-    let gate =
-        super::execution::cached_inputs(&store, "diagnostic-gate-matrix", shared.clone(), || {
-            gate_observation(&programs()?.gate)
-        })
-        .map_err(super::record_failure);
+    let gate = super::execution::cached_native_inputs(
+        &store,
+        "diagnostic-gate-matrix",
+        shared.clone(),
+        || gate_observation(&programs()?.gate),
+    )
+    .map_err(super::record_failure);
     let mut reports = BTreeMap::new();
     for (key, report) in [
         ("root", inputs::root_report as fn() -> Report),
         ("glut", inputs::glut_report),
     ] {
-        let observation = super::execution::cached_inputs(
+        let observation = super::execution::cached_native_inputs(
             &store,
             &format!("diagnostic-meta-report-{key}"),
             shared.clone(),
@@ -191,7 +197,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observation).map_err(|error| fail(error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&observation),
     );
     Ok(())
 }

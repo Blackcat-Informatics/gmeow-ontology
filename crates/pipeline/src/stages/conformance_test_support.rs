@@ -16,6 +16,6 @@ pub(crate) fn diagnostic_observations() -> &'static diagnostics::Observations {
             diagnostics::CHANNEL,
         )
         .expect("authenticated diagnostic observations");
-        serde_json::from_slice(&bytes).expect("typed diagnostic observations")
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed diagnostic observations")
     })
 }
