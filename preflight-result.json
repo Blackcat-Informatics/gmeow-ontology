@@ -1,0 +1,159 @@
+{
+  "issue": 1981,
+  "pr_number": 1983,
+  "branch": "paudley/1981-use-native-json-for-complete-internal",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1981-use-native-json-for-complete-internal/.stage/use-native-json-for-complete-internal",
+  "observed_at": "2026-10-26T23:35:57.262047+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1981-use-native-json-for-complete-internal/.stage/use-native-json-for-complete-internal/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1981-use-native-json-for-complete-internal/.stage/use-native-json-for-complete-internal/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1981-use-native-json-for-complete-internal/.stage/use-native-json-for-complete-internal/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1981-use-native-json-for-complete-internal/.stage/use-native-json-for-complete-internal/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1981-use-native-json-for-complete-internal/.stage/use-native-json-for-complete-internal/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "f3f378b9d15cf2ee23417dbbc463a98cd20e6da9",
+    "headRefName": "paudley/1981-use-native-json-for-complete-internal",
+    "headRefOid": "d04477c876a7c388285d33454de165c2bc5f3731",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1983,
+    "state": "OPEN",
+    "title": "Use native JSON for complete internal GTS snapshot receipt",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1983"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40420784327/job/121914381894",
+        "name": "producer-build",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40420784327/job/121914382042",
+        "name": "helpers",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40420784327/job/121914381957",
+        "name": "lint",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40420784327/job/121914381595",
+        "name": "rust-prebuild",
+        "state": "QUEUED"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "d04477c876a7c388285d33454de165c2bc5f3731",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "36b3de816487e949f0154cb7263f42b4a06bff2cd0a4c85466113cc625083a18"
+  },
+  "local": {
+    "head": "d04477c876a7c388285d33454de165c2bc5f3731",
+    "branch": "paudley/1981-use-native-json-for-complete-internal",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1983,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1983 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABf0BKvg",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1983#issuecomment-6429887166",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 14,
+      "bytes": 37312,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "f3f378b9d15cf2ee23417dbbc463a98cd20e6da9",
+      "head": "d04477c876a7c388285d33454de165c2bc5f3731",
+      "status": "clean"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Migrate the complete internal GTS snapshot receipt operation to PurRDF native JSON. The private PassOneReceipt has five fields: schema_version, algorithm, input_digest, snapshot_content_digest and stratum_digest. Its sole writer follows terminal emission; reusable_pass_one_receipt is its sole typed reader. The sink carries the exact bytes at pipeline/gts-pass-one-receipt.json as internal evidence. This artifact is not shipped inside the bundle or reconciled into generated files.\n\nReplace the record's obsolete Serde derives and both actual JSON boundaries. Preserve compact wire bytes and field order, every required field, unknown-field tolerance and strict u32 schema admission. Fixed records refuse duplicate known members and positional arrays. Reuse the native writer macro, Record reader and strict unsigned helper; no generic JSON engine, source parser or compatibility layer.\n\nKeep all existing reuse rules intact. Absence of the terminal is the initial miss. A present terminal with a missing or malformed receipt fails. Stale input, wrong schema or algorithm, and noncanonical content or stratum digests fail actionably. Never recompute silently after receipt refusal. Canonicalization, digest framing, receipt version, GTS emission, compression and source/action authentication remain with their current owners.\n\nAcceptance:\n\n- Both production boundaries use the intended native record and the sink retains the exact internal artifact.\n- Extend the existing authored present_pass_one_receipt_is_typed_and_fail_closed control to pin exact native wire and exercise field, numeric and existing reuse refusals. The control consumes authored digest strings and byte artifacts only; it never constructs GTS or corpus.\n- Actual pipeline and developer CLI consumers compile under strict diagnostics. Source admission, helper ownership, independent review, formatting and normal signed hooks pass.\n\nThe standing exception excludes local optimized production, corpus construction, sync and the full local gate. Actual terminal emission, authenticated corpus, installed/browser and cold parity acceptance remain unverified. Remaining contracts: #1776, #1962 and #1757. Principles 4, 7, 12 and 18 apply.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-26T22:58:16Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 1981,
+  "state": "OPEN",
+  "title": "Use native JSON for complete internal GTS snapshot receipt",
+  "updatedAt": "2026-10-26T22:58:45Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1981"
+}
