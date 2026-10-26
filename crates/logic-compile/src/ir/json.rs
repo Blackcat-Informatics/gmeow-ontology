@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Native canonical AST transport with checked term/atom admission.
-use super::{Formula, Term, literal_serde};
+use super::{Formula, PreservationKind, Term, literal_serde};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson, Within},
@@ -167,5 +167,45 @@ fn binary_operands(value: &Value) -> Result<(Box<Formula>, Box<Formula>), Decode
         Box::<Formula>::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?;
     Ok((left, right))
 }
+impl ToJson for PreservationKind {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Exact => "Exact",
+            Self::SoundUnder => "SoundUnder",
+            Self::CompleteOver => "CompleteOver",
+            Self::ValidationOnly => "ValidationOnly",
+            Self::InconsistencyPreserving => "InconsistencyPreserving",
+            Self::InconsistencyReflecting => "InconsistencyReflecting",
+            Self::Unsupported => "Unsupported",
+        }
+        .to_json()
+    }
+}
+impl FromJson for PreservationKind {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        match gmeow_errors::json::read_unit_name(value, "PreservationKind")? {
+            "Exact" => Ok(Self::Exact),
+            "SoundUnder" => Ok(Self::SoundUnder),
+            "CompleteOver" => Ok(Self::CompleteOver),
+            "ValidationOnly" => Ok(Self::ValidationOnly),
+            "InconsistencyPreserving" => Ok(Self::InconsistencyPreserving),
+            "InconsistencyReflecting" => Ok(Self::InconsistencyReflecting),
+            "Unsupported" => Ok(Self::Unsupported),
+            name => Err(DecodeError::unknown_variant(
+                name,
+                &[
+                    "Exact",
+                    "SoundUnder",
+                    "CompleteOver",
+                    "ValidationOnly",
+                    "InconsistencyPreserving",
+                    "InconsistencyReflecting",
+                    "Unsupported",
+                ],
+            )),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests;

@@ -54,9 +54,7 @@ pub trait TupleAnnotationAlgebra {
 }
 
 /// A semiring law a caller may explicitly declare its annotation algebra violates.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SemiringLaw {
     /// `a ⊕ b = b ⊕ a`.
     AddCommutative,
@@ -91,9 +89,7 @@ impl SemiringLaw {
 }
 
 /// Structural class certified for one annotated run.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum AnnotationQueryClass {
     /// Positive, finite Datalog with an acyclic IDB dependency graph.
     PositiveAcyclic,
@@ -149,7 +145,7 @@ impl AnnotationQueryClass {
 /// grounding during the one closure pass. Non-monotone solvers and the restricted
 /// chase already select deterministic physical proof rows, so their annotation fold
 /// follows those selected rows without re-running a second closure.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AnnotationLineageContract {
     /// Every direct positive grounding contributes to `add` (`oplus`).
     AllPhysicalDerivations,
@@ -274,7 +270,7 @@ impl<'a, A, F> AnnotationRequest<'a, A, F> {
 }
 
 /// Engine-certified scope and preservation polarity for one annotated run.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnnotationCertification {
     /// The structural class inspected from the actual rule program.
     pub query_class: AnnotationQueryClass,
@@ -288,9 +284,7 @@ pub struct AnnotationCertification {
 }
 
 /// Stable public identity of one world-scoped tuple in annotation lineage.
-#[derive(
-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct AnnotatedFactKey {
     /// Named graph/world IRI.
     pub graph: String,
@@ -303,9 +297,7 @@ pub struct AnnotatedFactKey {
 }
 
 /// Stable identity of an arity-generic world-scoped tuple in annotation lineage.
-#[derive(
-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct AnnotatedTupleKey {
     /// Named graph/world IRI.
     pub graph: String,
@@ -320,7 +312,7 @@ pub struct AnnotatedTupleKey {
 /// This is a one-hop lineage edge, not an eagerly-expanded proof tree.  Recursive
 /// consumers follow `sources` by key, preserving the repository's bounded-provenance
 /// doctrine while retaining the score attached to each alternative firing.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnnotationDerivation<E> {
     /// Rule that produced this contribution (`logic:assert` for an input tuple).
     pub rule_iri: String,
@@ -363,7 +355,7 @@ pub struct AnnotatedAnswerSet<E> {
 }
 
 /// One materialized quad plus its combined annotation and direct score lineage.
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AnnotatedQuad<E> {
     /// Existing world-scoped fact/proof carrier.
     pub quad: DerivedQuad,

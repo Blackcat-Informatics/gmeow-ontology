@@ -8,7 +8,7 @@ use super::{
     MediumRegistry, MediumSourceKind, RepAssignment, SchemaDef, TrainingSplitDef,
 };
 use crate::medium::source_observation::SourceMediumRegistry;
-use gmeow_errors::json::{read_signed_i32, read_unit_name, read_unsigned, read_variant};
+use gmeow_errors::json::{read_signed, read_unit_name, read_unsigned, read_variant};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson},
@@ -120,8 +120,7 @@ impl FromJson for MediumDef {
         Ok(Self {
             iri: fields.required("iri")?,
             codec: fields.required("codec")?,
-            zstd_level: fields
-                .required_with("zstd_level", |value| read_signed_i32(value, "i32"))?,
+            zstd_level: fields.required_with("zstd_level", |value| read_signed(value, "i32"))?,
             source_kind: fields.required("source_kind")?,
             dictionaries: fields.required("dictionaries")?,
             reader_capabilities: fields.required("reader_capabilities")?,

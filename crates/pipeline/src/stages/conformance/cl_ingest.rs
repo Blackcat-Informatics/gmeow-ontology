@@ -5,6 +5,8 @@
 //! Compact output retains the complete world-scoped quad and annotation lineage;
 //! the consumer grades it without loading or compiling the authored fixtures.
 
+mod json;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -21,7 +23,7 @@ use gmeow_logic::materialize::{
 use gmeow_logic::provenance::{ZWeightSemiring, term_display};
 use gmeow_logic::seam::DerivedQuad;
 use gmeow_logic_compile::{clif::parse_clif_str, frontend::Diagnostic};
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::record;
 
 pub(crate) const CHANNEL: &str = "pipeline/cl-ingest-observations.json";
 const SOURCES: [&str; 2] = [
@@ -30,18 +32,22 @@ const SOURCES: [&str; 2] = [
 ];
 const GENEALOGY: &str = "https://example.org/cl-ingest/genealogy/";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observation {
     pub diagnostics: Vec<Diagnostic>,
     pub plain: Result<Vec<DerivedQuad>, gmeow_errors::RecordedDiag>,
     pub annotated: Result<Annotated, gmeow_errors::RecordedDiag>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Annotated {
     pub certification: AnnotationCertification,
     pub quads: Vec<AnnotatedQuad<i64>>,
 }
+
+/// Original producer refusal or the complete plain and annotated observations.
+#[derive(Debug)]
+pub(super) struct ObservationOutcome(pub Result<Observation, gmeow_errors::RecordedDiag>);
 
 pub(super) fn input_files(root: &Path) -> Vec<PathBuf> {
     SOURCES.iter().map(|path| root.join(path)).collect()
@@ -71,7 +77,7 @@ pub(super) fn record(
             Ok((input, bytes))
         })
         .collect::<gmeow_errors::Result<Vec<_>>>()?;
-    let observed = super::execution::cached_inputs(
+    let observed = super::execution::cached_native_inputs(
         &store,
         "clif-ingest-native-v1",
         sources.iter().map(|(input, _)| input.clone()).collect(),
@@ -80,7 +86,7 @@ pub(super) fn record(
     .map_err(super::record_failure);
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(|error| fail(&error))?,
+        record::to_vec(&ObservationOutcome(observed)),
     );
     Ok(())
 }
