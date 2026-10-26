@@ -1,0 +1,124 @@
+{
+  "issue": 1979,
+  "pr_number": 1980,
+  "branch": "paudley/1979-use-native-json-for-complete-cl",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl",
+  "observed_at": "2026-10-26T22:53:56.988195+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "32b36c14ff59466f4cf6d304da269373809220f8",
+    "headRefName": "paudley/1979-use-native-json-for-complete-cl",
+    "headRefOid": "e2791c99257a01ebc6bcee48e4c8bf1985418a21",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1980,
+    "state": "OPEN",
+    "title": "Use native JSON for complete CL ingestion observations",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1980"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40415812764/job/121897739463",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40415812764/job/121897739301",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40415812764/job/121897739333",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40415812764/job/121897738967",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "e2791c99257a01ebc6bcee48e4c8bf1985418a21",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "c2cf253342bbf1f6df7ce964964b0bf79619940a2a7cf72cb7b87b8dfe2ce092"
+  },
+  "local": {
+    "head": "e2791c99257a01ebc6bcee48e4c8bf1985418a21",
+    "branch": "paudley/1979-use-native-json-for-complete-cl",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1980,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1980 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABfzZoVQ",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1980#issuecomment-6429239381",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

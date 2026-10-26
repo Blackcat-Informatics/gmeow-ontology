@@ -1,0 +1,1089 @@
+diff --git crates/errors/src/json.rs crates/errors/src/json.rs
+index c94ba015d..b10c2f39b 100644
+--- crates/errors/src/json.rs
++++ crates/errors/src/json.rs
+@@ -58,16 +58,17 @@ pub fn read_string_row<const N: usize>(value: &Value) -> Result<[String; N], Dec
+         .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} string cells")))
+ }
+ 
+-/// Read a signed i32 integer token, excluding the float-like spelling `-0`.
++/// Read a signed integer token followed by a checked target-width conversion.
++/// The float-like spelling `-0` is refused.
+ ///
+ /// # Errors
+-/// Returns a native value refusal for invalid token syntax or i32 overflow.
+-pub fn read_signed_i32(value: &Value, expected: &str) -> Result<i32, DecodeError> {
++/// Returns a native value refusal for invalid token syntax or target overflow.
++pub fn read_signed<T: TryFrom<i128>>(value: &Value, expected: &str) -> Result<T, DecodeError> {
+     value
+         .as_number()
+         .filter(|number| number.lexeme() != "-0")
+         .and_then(|number| number.as_i128())
+-        .and_then(|number| i32::try_from(number).ok())
++        .and_then(|number| T::try_from(number).ok())
+         .ok_or_else(|| DecodeError::invalid_value(value, expected))
+ }
+ 
+diff --git crates/logic-compile/src/ir/json.rs crates/logic-compile/src/ir/json.rs
+index 8ad68a021..15a3ed3fa 100644
+--- crates/logic-compile/src/ir/json.rs
++++ crates/logic-compile/src/ir/json.rs
+@@ -2,7 +2,7 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+ //! Native canonical AST transport with checked term/atom admission.
+-use super::{Formula, Term, literal_serde};
++use super::{Formula, PreservationKind, Term, literal_serde};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson, Within},
+@@ -167,5 +167,45 @@ fn binary_operands(value: &Value) -> Result<(Box<Formula>, Box<Formula>), Decode
+         Box::<Formula>::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?;
+     Ok((left, right))
+ }
++impl ToJson for PreservationKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Exact => "Exact",
++            Self::SoundUnder => "SoundUnder",
++            Self::CompleteOver => "CompleteOver",
++            Self::ValidationOnly => "ValidationOnly",
++            Self::InconsistencyPreserving => "InconsistencyPreserving",
++            Self::InconsistencyReflecting => "InconsistencyReflecting",
++            Self::Unsupported => "Unsupported",
++        }
++        .to_json()
++    }
++}
++impl FromJson for PreservationKind {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "PreservationKind")? {
++            "Exact" => Ok(Self::Exact),
++            "SoundUnder" => Ok(Self::SoundUnder),
++            "CompleteOver" => Ok(Self::CompleteOver),
++            "ValidationOnly" => Ok(Self::ValidationOnly),
++            "InconsistencyPreserving" => Ok(Self::InconsistencyPreserving),
++            "InconsistencyReflecting" => Ok(Self::InconsistencyReflecting),
++            "Unsupported" => Ok(Self::Unsupported),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "Exact",
++                    "SoundUnder",
++                    "CompleteOver",
++                    "ValidationOnly",
++                    "InconsistencyPreserving",
++                    "InconsistencyReflecting",
++                    "Unsupported",
++                ],
++            )),
++        }
++    }
++}
++
+ #[cfg(test)]
+ mod tests;
+diff --git crates/logic/src/annotation.rs crates/logic/src/annotation.rs
+index e9d67a63d..5cd0b3322 100644
+--- crates/logic/src/annotation.rs
++++ crates/logic/src/annotation.rs
+@@ -54,9 +54,7 @@ pub trait TupleAnnotationAlgebra {
+ }
+ 
+ /// A semiring law a caller may explicitly declare its annotation algebra violates.
+-#[derive(
+-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+-)]
++#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+ pub enum SemiringLaw {
+     /// `a ⊕ b = b ⊕ a`.
+     AddCommutative,
+@@ -91,9 +89,7 @@ impl SemiringLaw {
+ }
+ 
+ /// Structural class certified for one annotated run.
+-#[derive(
+-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+-)]
++#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+ pub enum AnnotationQueryClass {
+     /// Positive, finite Datalog with an acyclic IDB dependency graph.
+     PositiveAcyclic,
+@@ -149,7 +145,7 @@ impl AnnotationQueryClass {
+ /// grounding during the one closure pass. Non-monotone solvers and the restricted
+ /// chase already select deterministic physical proof rows, so their annotation fold
+ /// follows those selected rows without re-running a second closure.
+-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+ pub enum AnnotationLineageContract {
+     /// Every direct positive grounding contributes to `add` (`oplus`).
+     AllPhysicalDerivations,
+@@ -274,7 +270,7 @@ impl<'a, A, F> AnnotationRequest<'a, A, F> {
+ }
+ 
+ /// Engine-certified scope and preservation polarity for one annotated run.
+-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct AnnotationCertification {
+     /// The structural class inspected from the actual rule program.
+     pub query_class: AnnotationQueryClass,
+@@ -288,9 +284,7 @@ pub struct AnnotationCertification {
+ }
+ 
+ /// Stable public identity of one world-scoped tuple in annotation lineage.
+-#[derive(
+-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+-)]
++#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+ pub struct AnnotatedFactKey {
+     /// Named graph/world IRI.
+     pub graph: String,
+@@ -303,9 +297,7 @@ pub struct AnnotatedFactKey {
+ }
+ 
+ /// Stable identity of an arity-generic world-scoped tuple in annotation lineage.
+-#[derive(
+-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+-)]
++#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+ pub struct AnnotatedTupleKey {
+     /// Named graph/world IRI.
+     pub graph: String,
+@@ -320,7 +312,7 @@ pub struct AnnotatedTupleKey {
+ /// This is a one-hop lineage edge, not an eagerly-expanded proof tree.  Recursive
+ /// consumers follow `sources` by key, preserving the repository's bounded-provenance
+ /// doctrine while retaining the score attached to each alternative firing.
+-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct AnnotationDerivation<E> {
+     /// Rule that produced this contribution (`logic:assert` for an input tuple).
+     pub rule_iri: String,
+@@ -363,7 +355,7 @@ pub struct AnnotatedAnswerSet<E> {
+ }
+ 
+ /// One materialized quad plus its combined annotation and direct score lineage.
+-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
++#[derive(Debug, Clone, PartialEq)]
+ pub struct AnnotatedQuad<E> {
+     /// Existing world-scoped fact/proof carrier.
+     pub quad: DerivedQuad,
+diff --git crates/logic/src/external_relation.rs crates/logic/src/external_relation.rs
+index e6f64e95f..6491ebb82 100644
+--- crates/logic/src/external_relation.rs
++++ crates/logic/src/external_relation.rs
+@@ -657,9 +657,7 @@ impl<'provider, E> QueryRelationProviders<'provider, E> {
+ }
+ 
+ /// Stable provider provenance carried by an answer derivation.
+-#[derive(
+-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+-)]
++#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+ pub struct ProviderTupleSource {
+     /// Provider identity.
+     pub provider_iri: String,
+diff --git crates/logic/src/lib.rs crates/logic/src/lib.rs
+index c1bd3f650..3240bec8b 100644
+--- crates/logic/src/lib.rs
++++ crates/logic/src/lib.rs
+@@ -44,6 +44,7 @@ pub mod explain;
+ pub mod external_evidence;
+ /// Query-scoped annotated external relations and their deterministic receipts.
+ pub mod external_relation;
++mod observation_json;
+ // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
+ // exchanged between the store sweep and the reasoning adapters. Crate-internal.
+ pub(crate) mod facts;
+diff --git crates/logic/src/observation_json.rs crates/logic/src/observation_json.rs
+new file mode 100644
+index 000000000..1877b185b
+--- /dev/null
++++ crates/logic/src/observation_json.rs
+@@ -0,0 +1,336 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete source-observation transport. Hydration retains evidence and never
++//! executes a program, repairs graph identities or recomputes annotations.
++//! Annotation records use the CL observation profile's signed i64 element domain.
++
++use crate::annotation::{
++    AnnotatedFactKey, AnnotatedQuad, AnnotatedTupleKey, AnnotationCertification,
++    AnnotationDerivation, AnnotationLineageContract, AnnotationQueryClass, SemiringLaw,
++};
++use crate::external_relation::ProviderTupleSource;
++use crate::result::PreservationClaim;
++use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++
++::gmeow_errors::json::json_string_newtype!(DerivationId);
++
++impl ToJson for BudgetStatus {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Ok => "Ok",
++            Self::Partial => "Partial",
++            Self::Exhausted => "Exhausted",
++        }
++        .to_json()
++    }
++}
++impl FromJson for BudgetStatus {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "BudgetStatus")? {
++            "Ok" => Ok(Self::Ok),
++            "Partial" => Ok(Self::Partial),
++            "Exhausted" => Ok(Self::Exhausted),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Ok", "Partial", "Exhausted"],
++            )),
++        }
++    }
++}
++
++impl ToJson for SemiringLaw {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::AddCommutative => "AddCommutative",
++            Self::AddAssociative => "AddAssociative",
++            Self::AdditiveIdentity => "AdditiveIdentity",
++            Self::MultiplyAssociative => "MultiplyAssociative",
++            Self::MultiplicativeIdentity => "MultiplicativeIdentity",
++            Self::Distributive => "Distributive",
++            Self::ZeroAnnihilates => "ZeroAnnihilates",
++        }
++        .to_json()
++    }
++}
++impl FromJson for SemiringLaw {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "SemiringLaw")? {
++            "AddCommutative" => Ok(Self::AddCommutative),
++            "AddAssociative" => Ok(Self::AddAssociative),
++            "AdditiveIdentity" => Ok(Self::AdditiveIdentity),
++            "MultiplyAssociative" => Ok(Self::MultiplyAssociative),
++            "MultiplicativeIdentity" => Ok(Self::MultiplicativeIdentity),
++            "Distributive" => Ok(Self::Distributive),
++            "ZeroAnnihilates" => Ok(Self::ZeroAnnihilates),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "AddCommutative",
++                    "AddAssociative",
++                    "AdditiveIdentity",
++                    "MultiplyAssociative",
++                    "MultiplicativeIdentity",
++                    "Distributive",
++                    "ZeroAnnihilates",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for AnnotationQueryClass {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::PositiveAcyclic => "PositiveAcyclic",
++            Self::PositiveRecursive => "PositiveRecursive",
++            Self::PositiveNaryAcyclic => "PositiveNaryAcyclic",
++            Self::PositiveNaryRecursive => "PositiveNaryRecursive",
++            Self::StratifiedNaf => "StratifiedNaf",
++            Self::StratifiedAggregate => "StratifiedAggregate",
++            Self::StratifiedAggregateChase => "StratifiedAggregateChase",
++            Self::WellFounded => "WellFounded",
++            Self::StableModel => "StableModel",
++            Self::ExistentialChase => "ExistentialChase",
++        }
++        .to_json()
++    }
++}
++impl FromJson for AnnotationQueryClass {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "AnnotationQueryClass")? {
++            "PositiveAcyclic" => Ok(Self::PositiveAcyclic),
++            "PositiveRecursive" => Ok(Self::PositiveRecursive),
++            "PositiveNaryAcyclic" => Ok(Self::PositiveNaryAcyclic),
++            "PositiveNaryRecursive" => Ok(Self::PositiveNaryRecursive),
++            "StratifiedNaf" => Ok(Self::StratifiedNaf),
++            "StratifiedAggregate" => Ok(Self::StratifiedAggregate),
++            "StratifiedAggregateChase" => Ok(Self::StratifiedAggregateChase),
++            "WellFounded" => Ok(Self::WellFounded),
++            "StableModel" => Ok(Self::StableModel),
++            "ExistentialChase" => Ok(Self::ExistentialChase),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "PositiveAcyclic",
++                    "PositiveRecursive",
++                    "PositiveNaryAcyclic",
++                    "PositiveNaryRecursive",
++                    "StratifiedNaf",
++                    "StratifiedAggregate",
++                    "StratifiedAggregateChase",
++                    "WellFounded",
++                    "StableModel",
++                    "ExistentialChase",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for AnnotationLineageContract {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::AllPhysicalDerivations => "AllPhysicalDerivations",
++            Self::CompleteGroupSupport => "CompleteGroupSupport",
++            Self::SelectedPhysicalDerivation => "SelectedPhysicalDerivation",
++        }
++        .to_json()
++    }
++}
++impl FromJson for AnnotationLineageContract {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "AnnotationLineageContract")? {
++            "AllPhysicalDerivations" => Ok(Self::AllPhysicalDerivations),
++            "CompleteGroupSupport" => Ok(Self::CompleteGroupSupport),
++            "SelectedPhysicalDerivation" => Ok(Self::SelectedPhysicalDerivation),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "AllPhysicalDerivations",
++                    "CompleteGroupSupport",
++                    "SelectedPhysicalDerivation",
++                ],
++            )),
++        }
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for AnnotationCertification {
++    "query_class" => query_class,
++    "preservation" => preservation,
++    "declared_deviations" => declared_deviations,
++    "lineage_contract" => lineage_contract,
++});
++impl FromJson for AnnotationCertification {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct AnnotationCertification")?;
++        Ok(Self {
++            query_class: fields.required("query_class")?,
++            preservation: fields.required("preservation")?,
++            declared_deviations: fields.required("declared_deviations")?,
++            lineage_contract: fields.required("lineage_contract")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for AnnotatedFactKey {
++    "graph" => graph,
++    "subject" => subject,
++    "predicate" => predicate,
++    "object" => object,
++});
++impl FromJson for AnnotatedFactKey {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct AnnotatedFactKey")?;
++        Ok(Self {
++            graph: fields.required("graph")?,
++            subject: fields.required("subject")?,
++            predicate: fields.required("predicate")?,
++            object: fields.required("object")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for AnnotatedTupleKey {
++    "graph" => graph,
++    "relation" => relation,
++    "arguments" => arguments,
++});
++impl FromJson for AnnotatedTupleKey {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct AnnotatedTupleKey")?;
++        Ok(Self {
++            graph: fields.required("graph")?,
++            relation: fields.required("relation")?,
++            arguments: fields.required("arguments")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProviderTupleSource {
++    "provider_iri" => provider_iri,
++    "artifact_generation" => artifact_generation,
++    "model_iri" => model_iri,
++    "request_iri" => request_iri,
++    "relation_iri" => relation_iri,
++    "arguments" => arguments,
++    "annotation_dimension_iri" => annotation_dimension_iri,
++});
++impl FromJson for ProviderTupleSource {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProviderTupleSource")?;
++        Ok(Self {
++            provider_iri: fields.required("provider_iri")?,
++            artifact_generation: fields.required("artifact_generation")?,
++            model_iri: fields.required("model_iri")?,
++            request_iri: fields.required("request_iri")?,
++            relation_iri: fields.required("relation_iri")?,
++            arguments: fields.required("arguments")?,
++            annotation_dimension_iri: fields.required("annotation_dimension_iri")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PreservationClaim {
++    "polarities" => polarities,
++    "unsupported_constructs" => unsupported_constructs,
++});
++impl FromJson for PreservationClaim {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PreservationClaim")?;
++        let claim = Self {
++            polarities: fields.required("polarities")?,
++            unsupported_constructs: fields.required("unsupported_constructs")?,
++        };
++        claim
++            .validate()
++            .map_err(|error| DecodeError::custom(error).within("polarities"))?;
++        Ok(claim)
++    }
++}
++impl ToJson for DerivedQuad {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("graph", self.graph.to_json())
++            .with("subject", crate::term_serde::to_json(&self.subject))
++            .with("predicate", self.predicate.to_json())
++            .with("object", crate::term_serde::to_json(&self.object))
++            .with("graph_component", self.graph_component.to_json())
++            .with("derivation_id", self.derivation_id.to_json())
++            .with("rule_iri", self.rule_iri.to_json())
++            .with("source_quad_ids", self.source_quad_ids.to_json())
++            .with("profile", self.profile.to_json())
++            .with("budget_status", self.budget_status.to_json())
++            .into()
++    }
++}
++impl FromJson for DerivedQuad {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct DerivedQuad")?;
++        let quad = Self {
++            graph: fields.required("graph")?,
++            subject: fields.required_with("subject", crate::term_serde::from_json)?,
++            predicate: fields.required("predicate")?,
++            object: fields.required_with("object", crate::term_serde::from_json)?,
++            graph_component: fields.required("graph_component")?,
++            derivation_id: fields.required("derivation_id")?,
++            rule_iri: fields.required("rule_iri")?,
++            source_quad_ids: fields.required("source_quad_ids")?,
++            profile: fields.required("profile")?,
++            budget_status: fields.required("budget_status")?,
++        };
++        if quad.graph != quad.graph_component {
++            return Err(
++                DecodeError::custom("DerivedQuad.graph_component must equal graph")
++                    .within("graph_component"),
++            );
++        }
++        Ok(quad)
++    }
++}
++fn annotation_weight(value: &Value) -> Result<i64, DecodeError> {
++    gmeow_errors::json::read_signed(value, "i64 annotation integer excluding -0")
++}
++
++::purrdf_lex::json_record!(impl ToJson for AnnotationDerivation<i64> {
++    "rule_iri" => rule_iri,
++    "sources" => sources,
++    "tuple_sources" => tuple_sources,
++    "provider_sources" => provider_sources,
++    "annotation" => annotation,
++});
++impl FromJson for AnnotationDerivation<i64> {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct AnnotationDerivation")?;
++        Ok(Self {
++            rule_iri: fields.required("rule_iri")?,
++            sources: fields.required("sources")?,
++            tuple_sources: fields.required("tuple_sources")?,
++            provider_sources: fields.required("provider_sources")?,
++            annotation: fields.required_with("annotation", annotation_weight)?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for AnnotatedQuad<i64> {
++    "quad" => quad,
++    "annotation" => annotation,
++    "derivations" => derivations,
++});
++impl FromJson for AnnotatedQuad<i64> {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct AnnotatedQuad")?;
++        Ok(Self {
++            quad: fields.required("quad")?,
++            annotation: fields.required_with("annotation", annotation_weight)?,
++            derivations: fields.required("derivations")?,
++        })
++    }
++}
++
++#[cfg(test)]
++mod tests;
+diff --git crates/logic/src/observation_json/tests.rs crates/logic/src/observation_json/tests.rs
+new file mode 100644
+index 000000000..d6bed60e8
+--- /dev/null
++++ crates/logic/src/observation_json/tests.rs
+@@ -0,0 +1,192 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Authored evidence only: no source catalog, corpus or execution is loaded.
++
++use super::*;
++use gmeow_logic_compile::ir::PreservationKind;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const QUAD: &str = r#"{"graph":"urn:world","subject":{"Triple":{"s":{"Blank":{"label":"same","scope":17}},"p":{"Iri":"urn:states"},"o":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}}},"predicate":"urn:edge","object":{"Literal":{"lexical_form":"مرحبا","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}},"graph_component":"urn:world","derivation_id":"urn:derived","rule_iri":"urn:rule","source_quad_ids":["urn:second","urn:first"],"profile":"urn:profile","budget_status":"Exhausted"}"#;
++const DERIVATION: &str = r#"{"rule_iri":"urn:rule","sources":[{"graph":"urn:premise-world","subject":"_:same","predicate":"urn:p","object":"\"01\"^^<http://www.w3.org/2001/XMLSchema#integer>"}],"tuple_sources":[{"graph":"urn:tuple-world","relation":"urn:tuple","arguments":["<urn:z>","_:same","<urn:a>"]}],"provider_sources":[{"provider_iri":"urn:provider","artifact_generation":"generation-中","model_iri":"urn:model","request_iri":"urn:request","relation_iri":"urn:external","arguments":["<urn:z>","<urn:a>"],"annotation_dimension_iri":"urn:weight"}],"annotation":9223372036854775807}"#;
++
++fn complete() -> String {
++    format!(
++        "{{\"quad\":{QUAD},\"annotation\":-9223372036854775808,\"derivations\":[{DERIVATION}]}}"
++    )
++}
++
++fn retains_future_field<T: FromJson + ToJson>(record: &T) {
++    let mut extended = record.to_json();
++    extended
++        .as_object_mut()
++        .unwrap()
++        .insert("future", Value::Null);
++    assert_eq!(to_vec(&T::from_json(&extended).unwrap()), to_vec(record));
++}
++
++#[test]
++fn native_annotated_evidence_preserves_complete_terms_and_all_lineage_sources() {
++    let wire = complete();
++    let value: AnnotatedQuad<i64> = from_slice(wire.as_bytes()).unwrap();
++    assert_eq!(to_vec(&value), wire.as_bytes());
++    retains_future_field(&value);
++    retains_future_field(&value.quad);
++    retains_future_field(&value.derivations[0]);
++    retains_future_field(&value.derivations[0].sources[0]);
++    retains_future_field(&value.derivations[0].tuple_sources[0]);
++    retains_future_field(&value.derivations[0].provider_sources[0]);
++    retains_future_field(&PreservationClaim::exact());
++    assert_eq!(value.annotation, i64::MIN);
++    assert_eq!(value.derivations[0].annotation, i64::MAX);
++    assert_eq!(value.quad.source_quad_ids, ["urn:second", "urn:first"]);
++    assert_eq!(
++        value.derivations[0].tuple_sources[0].arguments,
++        ["<urn:z>", "_:same", "<urn:a>"]
++    );
++    assert_eq!(
++        value.derivations[0].provider_sources[0].arguments,
++        ["<urn:z>", "<urn:a>"]
++    );
++    assert_eq!(
++        value.quad.object,
++        purrdf::TermValue::Literal {
++            lexical_form: "مرحبا".into(),
++            datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".into(),
++            language: Some("ar".into()),
++            direction: Some(purrdf::RdfTextDirection::Rtl),
++        }
++    );
++    let unknown = wire.replacen('{', "{\"future\":null,", 1);
++    assert_eq!(
++        to_vec(&from_slice::<AnnotatedQuad<i64>>(unknown.as_bytes()).unwrap()),
++        wire.as_bytes()
++    );
++    let claim = br#"{"polarities":["Unsupported","Exact","Exact"],"unsupported_constructs":["urn:z","urn:a","urn:z"]}"#;
++    assert_eq!(
++        to_vec(&from_slice::<PreservationClaim>(claim).unwrap()),
++        br#"{"polarities":["Exact","Unsupported"],"unsupported_constructs":["urn:a","urn:z"]}"#
++    );
++}
++
++fn wire_variants<T: FromJson + ToJson>(names: &[&str]) {
++    for name in names {
++        let quoted = format!("\"{name}\"");
++        assert_eq!(
++            to_vec(&from_slice::<T>(quoted.as_bytes()).unwrap()),
++            quoted.as_bytes()
++        );
++        let unit_object = format!("{{\"{name}\":null}}");
++        assert_eq!(
++            to_vec(&from_slice::<T>(unit_object.as_bytes()).unwrap()),
++            quoted.as_bytes()
++        );
++        assert!(from_slice::<T>(format!("{{\"{name}\":false}}").as_bytes()).is_err());
++    }
++    assert!(from_slice::<T>(br#""unknown""#).is_err());
++}
++
++#[test]
++fn native_annotation_enum_transport_retains_rust_tags_independently_of_display() {
++    wire_variants::<BudgetStatus>(&["Ok", "Partial", "Exhausted"]);
++    wire_variants::<SemiringLaw>(&[
++        "AddCommutative",
++        "AddAssociative",
++        "AdditiveIdentity",
++        "MultiplyAssociative",
++        "MultiplicativeIdentity",
++        "Distributive",
++        "ZeroAnnihilates",
++    ]);
++    wire_variants::<AnnotationQueryClass>(&[
++        "PositiveAcyclic",
++        "PositiveRecursive",
++        "PositiveNaryAcyclic",
++        "PositiveNaryRecursive",
++        "StratifiedNaf",
++        "StratifiedAggregate",
++        "StratifiedAggregateChase",
++        "WellFounded",
++        "StableModel",
++        "ExistentialChase",
++    ]);
++    wire_variants::<AnnotationLineageContract>(&[
++        "AllPhysicalDerivations",
++        "CompleteGroupSupport",
++        "SelectedPhysicalDerivation",
++    ]);
++    wire_variants::<PreservationKind>(&[
++        "Exact",
++        "SoundUnder",
++        "CompleteOver",
++        "ValidationOnly",
++        "InconsistencyPreserving",
++        "InconsistencyReflecting",
++        "Unsupported",
++    ]);
++    assert!(from_slice::<BudgetStatus>(br#""ok""#).is_err());
++    assert!(from_slice::<SemiringLaw>(br#""add-commutative""#).is_err());
++    assert!(from_slice::<AnnotationQueryClass>(br#""positive-recursive""#).is_err());
++    assert!(from_slice::<PreservationKind>(br#""ExactPreservation""#).is_err());
++}
++
++#[test]
++fn native_evidence_admission_refuses_ambiguous_missing_and_contradictory_records() {
++    let wire = complete();
++    for invalid in [
++        wire.replace(
++            "\"graph_component\":\"urn:world\"",
++            "\"graph_component\":\"urn:other\"",
++        ),
++        wire.replace("\"source_quad_ids\":[\"urn:second\",\"urn:first\"],", ""),
++        wire.replace(
++            "\"tuple_sources\":[",
++            "\"tuple_sources\":[],\"tuple_sources\":[",
++        ),
++        wire.replace("\"artifact_generation\":\"generation-中\",", ""),
++        wire.replace("\"scope\":17", "\"scope\":17,\"scope\":19"),
++        format!("[{QUAD},-9223372036854775808,[{DERIVATION}]]"),
++    ] {
++        assert!(
++            from_slice::<AnnotatedQuad<i64>>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++    let mismatch = wire.replace(
++        "\"graph_component\":\"urn:world\"",
++        "\"graph_component\":\"urn:other\"",
++    );
++    let error = from_slice::<AnnotatedQuad<i64>>(mismatch.as_bytes())
++        .unwrap_err()
++        .to_string();
++    assert!(error.contains("/quad/graph_component"), "{error}");
++    assert!(error.contains("must equal graph"), "{error}");
++    let invalid = br#"{"polarities":["ValidationOnly"],"unsupported_constructs":[]}"#;
++    let error = from_slice::<PreservationClaim>(invalid)
++        .unwrap_err()
++        .to_string();
++    assert!(
++        error.contains("/polarities") && error.contains("ValidationOnly"),
++        "{error}"
++    );
++    for token in [
++        "-0",
++        "1.0",
++        "1e0",
++        "9223372036854775808",
++        "-9223372036854775809",
++        "null",
++        "\"1\"",
++    ] {
++        for (original, pointer) in [
++            ("-9223372036854775808", "/annotation"),
++            ("9223372036854775807", "/derivations/0/annotation"),
++        ] {
++            let invalid = wire.replace(original, token);
++            let error = from_slice::<AnnotatedQuad<i64>>(invalid.as_bytes())
++                .unwrap_err()
++                .to_string();
++            assert!(error.contains(pointer), "{error}");
++        }
++    }
++}
+diff --git crates/logic/src/seam.rs crates/logic/src/seam.rs
+index f15869687..a8b9a5f9f 100644
+--- crates/logic/src/seam.rs
++++ crates/logic/src/seam.rs
+@@ -45,8 +45,8 @@ pub type DerivationRecord = (DerivationId, String, Vec<String>);
+ 
+ /// Execution-budget status for a derivation step.
+ ///
+-/// Serializes to the canonical lowercase strings required by the conformance corpus:
+-/// `ok`, `partial`, or `exhausted`.
++/// Display and `as_str` use lowercase `ok`, `partial`, or `exhausted`.
++/// The typed JSON transport uses the Rust tags `Ok`, `Partial`, and `Exhausted`.
+ ///
+ /// - `Ok`        — derivation completed within budget.
+ /// - `Partial`   — derivation was cut short; result may be incomplete.
+@@ -64,8 +64,8 @@ pub enum BudgetStatus {
+ impl BudgetStatus {
+     /// Return the canonical lowercase string for this status.
+     ///
+-    /// These strings are the normative serialization used in the conformance corpus
+-    /// and in any JSON/text projection of [`DerivedQuad`].
++    /// These strings belong to display projections. The typed JSON transport retains
++    /// the Rust variant names independently.
+     pub fn as_str(self) -> &'static str {
+         match self {
+             BudgetStatus::Ok => "ok",
+@@ -99,7 +99,7 @@ impl std::fmt::Display for BudgetStatus {
+ ///   rule_iri:       IRI            # the rule that fired
+ ///   source_quad_ids: [IRI]         # the antecedent quads consumed
+ ///   profile:        IRI            # the semantic/decidability profile in force
+-///   budget_status:  enum           # ok | partial | exhausted
++///   budget_status:  enum           # Ok | Partial | Exhausted
+ /// ```
+ #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+ pub struct DerivedQuad {
+diff --git crates/pipeline/src/medium/registry/json.rs crates/pipeline/src/medium/registry/json.rs
+index 9c3a10da8..99f3675ed 100644
+--- crates/pipeline/src/medium/registry/json.rs
++++ crates/pipeline/src/medium/registry/json.rs
+@@ -8,7 +8,7 @@ use super::{
+     MediumRegistry, MediumSourceKind, RepAssignment, SchemaDef, TrainingSplitDef,
+ };
+ use crate::medium::source_observation::SourceMediumRegistry;
+-use gmeow_errors::json::{read_signed_i32, read_unit_name, read_unsigned, read_variant};
++use gmeow_errors::json::{read_signed, read_unit_name, read_unsigned, read_variant};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson},
+@@ -120,8 +120,7 @@ impl FromJson for MediumDef {
+         Ok(Self {
+             iri: fields.required("iri")?,
+             codec: fields.required("codec")?,
+-            zstd_level: fields
+-                .required_with("zstd_level", |value| read_signed_i32(value, "i32"))?,
++            zstd_level: fields.required_with("zstd_level", |value| read_signed(value, "i32"))?,
+             source_kind: fields.required("source_kind")?,
+             dictionaries: fields.required("dictionaries")?,
+             reader_capabilities: fields.required("reader_capabilities")?,
+diff --git crates/pipeline/src/medium/sweep/json.rs crates/pipeline/src/medium/sweep/json.rs
+index 3a775bfaf..d472dfe1e 100644
+--- crates/pipeline/src/medium/sweep/json.rs
++++ crates/pipeline/src/medium/sweep/json.rs
+@@ -29,7 +29,7 @@ struct SweepLevel(i32);
+ 
+ impl FromJson for SweepLevel {
+     fn from_json(value: &Value) -> Result<Self, DecodeError> {
+-        gmeow_errors::json::read_signed_i32(value, "a signed i32 integer level token, excluding -0")
++        gmeow_errors::json::read_signed(value, "a signed i32 integer level token, excluding -0")
+             .map(Self)
+     }
+ }
+diff --git crates/pipeline/src/stages/conformance/cl_ingest.rs crates/pipeline/src/stages/conformance/cl_ingest.rs
+index e1859c736..6e43be8e6 100644
+--- crates/pipeline/src/stages/conformance/cl_ingest.rs
++++ crates/pipeline/src/stages/conformance/cl_ingest.rs
+@@ -5,6 +5,8 @@
+ //! Compact output retains the complete world-scoped quad and annotation lineage;
+ //! the consumer grades it without loading or compiling the authored fixtures.
+ 
++mod json;
++
+ use std::collections::BTreeMap;
+ use std::path::{Path, PathBuf};
+ 
+@@ -21,7 +23,7 @@ use gmeow_logic::materialize::{
+ use gmeow_logic::provenance::{ZWeightSemiring, term_display};
+ use gmeow_logic::seam::DerivedQuad;
+ use gmeow_logic_compile::{clif::parse_clif_str, frontend::Diagnostic};
+-use serde::{Deserialize, Serialize};
++use purrdf_lex::json::record;
+ 
+ pub(crate) const CHANNEL: &str = "pipeline/cl-ingest-observations.json";
+ const SOURCES: [&str; 2] = [
+@@ -30,19 +32,23 @@ const SOURCES: [&str; 2] = [
+ ];
+ const GENEALOGY: &str = "https://example.org/cl-ingest/genealogy/";
+ 
+-#[derive(Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(super) struct Observation {
+     pub diagnostics: Vec<Diagnostic>,
+     pub plain: Result<Vec<DerivedQuad>, gmeow_errors::RecordedDiag>,
+     pub annotated: Result<Annotated, gmeow_errors::RecordedDiag>,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(super) struct Annotated {
+     pub certification: AnnotationCertification,
+     pub quads: Vec<AnnotatedQuad<i64>>,
+ }
+ 
++/// Original producer refusal or the complete plain and annotated observations.
++#[derive(Debug)]
++pub(super) struct ObservationOutcome(pub Result<Observation, gmeow_errors::RecordedDiag>);
++
+ pub(super) fn input_files(root: &Path) -> Vec<PathBuf> {
+     SOURCES.iter().map(|path| root.join(path)).collect()
+ }
+@@ -71,7 +77,7 @@ pub(super) fn record(
+             Ok((input, bytes))
+         })
+         .collect::<gmeow_errors::Result<Vec<_>>>()?;
+-    let observed = super::execution::cached_inputs(
++    let observed = super::execution::cached_native_inputs(
+         &store,
+         "clif-ingest-native-v1",
+         sources.iter().map(|(input, _)| input.clone()).collect(),
+@@ -80,7 +86,7 @@ pub(super) fn record(
+     .map_err(super::record_failure);
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&observed).map_err(|error| fail(&error))?,
++        record::to_vec(&ObservationOutcome(observed)),
+     );
+     Ok(())
+ }
+diff --git crates/pipeline/src/stages/conformance/cl_ingest/json.rs crates/pipeline/src/stages/conformance/cl_ingest/json.rs
+new file mode 100644
+index 000000000..13de7fe21
+--- /dev/null
++++ crates/pipeline/src/stages/conformance/cl_ingest/json.rs
+@@ -0,0 +1,74 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete CL ingestion outcomes, using the native owners of terms and lineage.
++
++use super::{Annotated, Observation, ObservationOutcome};
++use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++
++::purrdf_lex::json_record!(impl ToJson for Annotated {
++    "certification" => certification,
++    "quads" => quads,
++});
++impl FromJson for Annotated {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Annotated")?;
++        Ok(Self {
++            certification: fields.required("certification")?,
++            quads: fields.required("quads")?,
++        })
++    }
++}
++
++impl ToJson for Observation {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("diagnostics", self.diagnostics.to_json())
++            .with("plain", recorded_result_to_json(&self.plain))
++            .with("annotated", recorded_result_to_json(&self.annotated))
++            .into()
++    }
++}
++
++impl FromJson for Observation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observation")?;
++        Ok(Self {
++            diagnostics: fields.required("diagnostics")?,
++            plain: fields.required_with("plain", |value| {
++                read_recorded_result(value, "CL plain result", "one CL plain result variant")
++            })?,
++            annotated: fields.required_with("annotated", |value| {
++                read_recorded_result(
++                    value,
++                    "CL annotated result",
++                    "one CL annotated result variant",
++                )
++            })?,
++        })
++    }
++}
++
++impl ToJson for ObservationOutcome {
++    fn to_json(&self) -> Value {
++        recorded_result_to_json(&self.0)
++    }
++}
++
++impl FromJson for ObservationOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_recorded_result(
++            value,
++            "CL ingestion outcome",
++            "one CL ingestion outcome variant",
++        )
++        .map(Self)
++    }
++}
++
++#[cfg(test)]
++mod tests;
+diff --git crates/pipeline/src/stages/conformance/cl_ingest/json/tests.rs crates/pipeline/src/stages/conformance/cl_ingest/json/tests.rs
+new file mode 100644
+index 000000000..4a1223f9b
+--- /dev/null
++++ crates/pipeline/src/stages/conformance/cl_ingest/json/tests.rs
+@@ -0,0 +1,109 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Authored transport controls; neither test enters the CL producer or cache.
++
++use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const OBSERVATION: &str = r#"{"diagnostics":[{"severity":"Warning","code":"authored","message":"retained 中","subject":null}],"plain":{"Ok":[{"graph":"urn:world","subject":{"Iri":"urn:subject"},"predicate":"urn:edge","object":{"Blank":{"label":"object","scope":3}},"graph_component":"urn:world","derivation_id":"urn:derivation","rule_iri":"urn:rule","source_quad_ids":["urn:premise"],"profile":"urn:profile","budget_status":"Partial"}]},"annotated":{"Ok":{"certification":{"query_class":"StratifiedAggregate","preservation":{"polarities":["Exact"],"unsupported_constructs":[]},"declared_deviations":["AddAssociative"],"lineage_contract":"CompleteGroupSupport"},"quads":[{"quad":{"graph":"urn:world","subject":{"Iri":"urn:subject"},"predicate":"urn:edge","object":{"Blank":{"label":"object","scope":3}},"graph_component":"urn:world","derivation_id":"urn:derivation","rule_iri":"urn:rule","source_quad_ids":["urn:premise"],"profile":"urn:profile","budget_status":"Partial"},"annotation":-7,"derivations":[{"rule_iri":"urn:rule","sources":[{"graph":"urn:world","subject":"<urn:subject>","predicate":"urn:edge","object":"_:object"}],"tuple_sources":[],"provider_sources":[],"annotation":-7}]}]}}}"#;
++
++#[test]
++fn native_cl_observation_wire_preserves_diagnostics_and_refuses_ambiguous_outcomes() {
++    let wire = format!("{{\"Ok\":{OBSERVATION}}}");
++    let outcome: ObservationOutcome = from_slice(wire.as_bytes()).unwrap();
++    assert_eq!(to_vec(&outcome), wire.as_bytes());
++    let observation = outcome.0.unwrap();
++    assert_eq!(observation.diagnostics[0].message, "retained 中");
++    assert_eq!(observation.plain.unwrap()[0].graph, "urn:world");
++    let annotated = observation.annotated.unwrap();
++    assert_eq!(annotated.quads[0].annotation, -7);
++    assert_eq!(
++        annotated.quads[0].derivations[0].sources[0].object,
++        "_:object"
++    );
++    assert_eq!(
++        annotated.certification.lineage_contract,
++        gmeow_logic::annotation::AnnotationLineageContract::CompleteGroupSupport
++    );
++    let unknown = OBSERVATION
++        .replacen('{', "{\"future\":null,", 1)
++        .replace(
++            "\"annotated\":{\"Ok\":{",
++            "\"annotated\":{\"Ok\":{\"future\":null,",
++        )
++        .replace("\"certification\":{", "\"certification\":{\"future\":null,");
++    assert_eq!(
++        to_vec(&from_slice::<Observation>(unknown.as_bytes()).unwrap()),
++        OBSERVATION.as_bytes()
++    );
++    // Keep every otherwise valid field value in the old positional struct form.
++    let named = purrdf_lex::json::read(OBSERVATION).unwrap();
++    let positional = Value::from(
++        named
++            .as_object()
++            .unwrap()
++            .iter()
++            .map(|(_, value)| value.clone())
++            .collect::<Vec<_>>(),
++    );
++    let positional: Value = Object::new().with("Ok", positional).into();
++    let positional = String::from_utf8(to_vec(&positional)).unwrap();
++    for invalid in [
++        format!("{{\"Ok\":{OBSERVATION},\"Err\":null}}"),
++        format!("{{\"Ok\":{OBSERVATION},\"Ok\":{OBSERVATION}}}"),
++        format!(
++            "{{\"Ok\":{}}}",
++            OBSERVATION.replace("\"plain\":{\"Ok\":[", "\"plain\":{\"Err\":null,\"Ok\":[")
++        ),
++        format!(
++            "{{\"Ok\":{}}}",
++            OBSERVATION.replace("\"quads\":[", "\"quads\":[],\"quads\":[")
++        ),
++        format!(
++            "{{\"Ok\":{}}}",
++            OBSERVATION.replace("\"declared_deviations\":[\"AddAssociative\"],", "")
++        ),
++        positional,
++        r#"{"Err":null}"#.into(),
++    ] {
++        assert!(
++            from_slice::<ObservationOutcome>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++}
++
++#[test]
++fn native_cl_outer_and_execution_refusals_retain_complete_causal_evidence() {
++    use gmeow_errors::{Diag, DiagLedger, StageId};
++    let mut ledger = DiagLedger::new();
++    let premise = ledger.attach(
++        Diag::from(std::io::Error::other("authored premise")).with_focus("urn:premise"),
++        StageId::new("authored-input"),
++    );
++    let refusal = ledger.record(
++        Diag::from(std::io::Error::other("authored refusal"))
++            .with_focus("urn:rejection")
++            .with_antecedents([premise]),
++        StageId::new("authored-observation"),
++    );
++    let outer = ObservationOutcome(Err(refusal.clone()));
++    let decoded: ObservationOutcome = from_slice(&to_vec(&outer)).unwrap();
++    assert_eq!(decoded.0.unwrap_err(), refusal);
++    let observed = ObservationOutcome(Ok(Observation {
++        diagnostics: Vec::new(),
++        plain: Err(refusal.clone()),
++        annotated: Err(refusal.clone()),
++    }));
++    let decoded: ObservationOutcome = from_slice(&to_vec(&observed)).unwrap();
++    let decoded = decoded.0.unwrap();
++    assert_eq!(decoded.plain.unwrap_err(), refusal);
++    let retained = decoded.annotated.unwrap_err();
++    assert_eq!(retained, refusal);
++    assert_eq!(retained.causes.len(), 1);
++    assert_eq!(
++        retained.root.antecedents.as_ref(),
++        &[retained.causes[0].fingerprint]
++    );
++}
+diff --git crates/pipeline/src/stages/conformance/corpus_tests/cl_ingest.rs crates/pipeline/src/stages/conformance/corpus_tests/cl_ingest.rs
+index 0f9443da6..15c046dc3 100644
+--- crates/pipeline/src/stages/conformance/corpus_tests/cl_ingest.rs
++++ crates/pipeline/src/stages/conformance/corpus_tests/cl_ingest.rs
+@@ -30,13 +30,12 @@ const GENEALOGY_NS: &str = "https://example.org/cl-ingest/genealogy/";
+ fn observation() -> &'static super::super::cl_ingest::Observation {
+     static OBSERVATION: std::sync::OnceLock<
+         Result<
+-            super::source_artifact::Selected<
+-                Result<super::super::cl_ingest::Observation, gmeow_errors::RecordedDiag>,
+-            >,
++            super::source_artifact::Selected<super::super::cl_ingest::ObservationOutcome>,
+             gmeow_errors::Diag,
+         >,
+     > = std::sync::OnceLock::new();
+-    super::source_artifact::get(&OBSERVATION, super::super::cl_ingest::CHANNEL)
++    super::source_artifact::get_native(&OBSERVATION, super::super::cl_ingest::CHANNEL)
++        .0
+         .as_ref()
+         .expect("producer-recorded CLIF ingestion")
+ }

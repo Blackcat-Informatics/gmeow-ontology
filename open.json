@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1979,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl",
+  "branch": "paudley/1979-use-native-json-for-complete-cl",
+  "slug": "use-native-json-for-complete-cl",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "32b36c14ff59466f4cf6d304da269373809220f8",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl",
+    "branch:paudley/1979-use-native-json-for-complete-cl",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1979-use-native-json-for-complete-cl/.stage/use-native-json-for-complete-cl/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T16:27:30-0600"
+}
