@@ -30,13 +30,12 @@ const GENEALOGY_NS: &str = "https://example.org/cl-ingest/genealogy/";
 fn observation() -> &'static super::super::cl_ingest::Observation {
     static OBSERVATION: std::sync::OnceLock<
         Result<
-            super::source_artifact::Selected<
-                Result<super::super::cl_ingest::Observation, gmeow_errors::RecordedDiag>,
-            >,
+            super::source_artifact::Selected<super::super::cl_ingest::ObservationOutcome>,
             gmeow_errors::Diag,
         >,
     > = std::sync::OnceLock::new();
-    super::source_artifact::get(&OBSERVATION, super::super::cl_ingest::CHANNEL)
+    super::source_artifact::get_native(&OBSERVATION, super::super::cl_ingest::CHANNEL)
+        .0
         .as_ref()
         .expect("producer-recorded CLIF ingestion")
 }

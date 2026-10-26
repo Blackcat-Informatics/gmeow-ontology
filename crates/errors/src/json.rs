@@ -58,16 +58,17 @@ pub fn read_string_row<const N: usize>(value: &Value) -> Result<[String; N], Dec
         .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} string cells")))
 }
 
-/// Read a signed i32 integer token, excluding the float-like spelling `-0`.
+/// Read a signed integer token followed by a checked target-width conversion.
+/// The float-like spelling `-0` is refused.
 ///
 /// # Errors
-/// Returns a native value refusal for invalid token syntax or i32 overflow.
-pub fn read_signed_i32(value: &Value, expected: &str) -> Result<i32, DecodeError> {
+/// Returns a native value refusal for invalid token syntax or target overflow.
+pub fn read_signed<T: TryFrom<i128>>(value: &Value, expected: &str) -> Result<T, DecodeError> {
     value
         .as_number()
         .filter(|number| number.lexeme() != "-0")
         .and_then(|number| number.as_i128())
-        .and_then(|number| i32::try_from(number).ok())
+        .and_then(|number| T::try_from(number).ok())
         .ok_or_else(|| DecodeError::invalid_value(value, expected))
 }
 

@@ -44,6 +44,7 @@ pub mod explain;
 pub mod external_evidence;
 /// Query-scoped annotated external relations and their deterministic receipts.
 pub mod external_relation;
+mod observation_json;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
 // exchanged between the store sweep and the reasoning adapters. Crate-internal.
 pub(crate) mod facts;

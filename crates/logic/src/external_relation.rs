@@ -657,9 +657,7 @@ impl<'provider, E> QueryRelationProviders<'provider, E> {
 }
 
 /// Stable provider provenance carried by an answer derivation.
-#[derive(
-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ProviderTupleSource {
     /// Provider identity.
     pub provider_iri: String,
