@@ -173,8 +173,8 @@ fn worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices() {
     let cache_dir = tempdir().expect("cache tempdir");
     let source = source_dir.path().join("gmeow-dev");
     let snapshot = cache_dir.path().join(".gmeow-dev.tmp");
-    let bytes = b"exact worker executable bytes\0\xff";
-    std::fs::write(&source, bytes).expect("write worker fixture");
+    let bytes = vec![0xa5_u8; 2 * 1024 * 1024 + 17];
+    std::fs::write(&source, &bytes).expect("write worker fixture");
 
     snapshot_worker_executable_with(&source, &snapshot, |_, _| {
         Err(std::io::Error::from(ErrorKind::CrossesDevices))
@@ -184,6 +184,10 @@ fn worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices() {
     assert_eq!(
         std::fs::read(&snapshot).expect("read worker snapshot"),
         bytes
+    );
+    assert_eq!(
+        super::executable_sha256(&snapshot).expect("worker digest"),
+        gmeow_action_cache::executable::sha256_file(&source).expect("source digest"),
     );
     assert_eq!(
         std::fs::metadata(&snapshot)
