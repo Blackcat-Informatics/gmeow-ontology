@@ -8,6 +8,31 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record, ToJson},
 };
 
+/// Implement native JSON for a tuple newtype holding one unconstrained String.
+///
+/// GMEOW owns the typed wrapper; PurRDF owns string admission and writing.
+/// This adapter deliberately has no validation or alternate construction hook.
+#[macro_export]
+macro_rules! json_string_newtype {
+    ($type:ty) => {
+        impl ::purrdf_lex::json::record::ToJson for $type {
+            fn to_json(&self) -> ::purrdf_lex::json::Value {
+                ::purrdf_lex::json::record::ToJson::to_json(&self.0)
+            }
+        }
+        impl ::purrdf_lex::json::record::FromJson for $type {
+            fn from_json(
+                value: &::purrdf_lex::json::Value,
+            ) -> ::std::result::Result<Self, ::purrdf_lex::json::record::DecodeError> {
+                <::std::string::String as ::purrdf_lex::json::record::FromJson>::from_json(value)
+                    .map(Self)
+            }
+        }
+    };
+}
+
+pub use crate::json_string_newtype;
+
 /// Read an unsigned integer token followed by a checked target-width conversion.
 ///
 /// Signed zero, negative, fraction and exponent tokens are refused. `expected`

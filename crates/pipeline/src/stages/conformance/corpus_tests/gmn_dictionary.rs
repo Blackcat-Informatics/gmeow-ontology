@@ -14,7 +14,7 @@ pub(super) fn observations() -> &'static Observations {
             CHANNEL,
         )
         .expect("authenticated native dictionary observations");
-        serde_json::from_slice(&bytes).expect("typed dictionary observations")
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed dictionary observations")
     })
 }
 

@@ -1221,6 +1221,330 @@ fn json_declaration(alias: &str) -> String {
     )
 }
 
+const LOCAL_EXPORT: &str = r#"
+#[macro_export]
+macro_rules! wrap {
+    ($type:ty) => { impl $type { pub fn proof() -> &'static str { "first proof" } } };
+}
+pub use crate::wrap;
+"#;
+
+fn local_export_fixture(alias: &str, caller: &str) -> (tempfile::TempDir, ProductionSelection) {
+    let root = fixture(caller);
+    write(
+        root.path(),
+        "Cargo.toml",
+        "[workspace]\nmembers=['crate','provider']\n",
+    );
+    write(
+        root.path(),
+        "crate/Cargo.toml",
+        &format!(
+            "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{alias}={{package='provider',path='../provider'}}\n"
+        ),
+    );
+    write(
+        root.path(),
+        "provider/Cargo.toml",
+        "[package]\nname='provider'\nversion='1.0.0'\nedition='2024'\n",
+    );
+    // The owner-relative call deliberately precedes the definition's module.
+    write(
+        root.path(),
+        "provider/src/lib.rs",
+        "mod caller; pub mod json;\n",
+    );
+    write(
+        root.path(),
+        "provider/src/caller.rs",
+        "struct Own; crate::json::wrap!(Own); crate::wrap!(Root); fn quoted() { quote! { crate::json::wrap!(Other); crate::wrap!(QuotedRoot); } }\n",
+    );
+    write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
+    write(root.path(), "crate/src/argument.txt", "nested argument");
+    let mut selected = selection();
+    selected.units.push(UnitSelection {
+        package: "path+file://<workspace>/provider#provider@1".into(),
+        manifest: Some("provider/Cargo.toml".into()),
+        source: Some("provider/src/lib.rs".into()),
+        target: "provider".into(),
+        kinds: vec!["rlib".into()],
+        ..selected.units[0].clone()
+    });
+    selected.units[0].dependencies.push(1);
+    selected.units[0]
+        .dependency_names
+        .push(alias.replace('-', "_"));
+    (root, selected)
+}
+
+#[test]
+fn local_exported_macros_bind_selected_sources_aliases_and_nested_inputs() {
+    for alias in ["provider", "evidence-owner"] {
+        let binding = alias.replace('-', "_");
+        let source = format!(
+            "pub struct Wrap<const N: usize>; ::{binding}::json::wrap!(Wrap<{{ include_str!(\"argument.txt\").len() }}>); ::{binding}::wrap!(Root); fn quoted() {{ quote! {{ ::{binding}::json::wrap!(Other); ::{binding}::wrap!(QuotedRoot); }} }}"
+        );
+        let (root, mut selected) = local_export_fixture(alias, &source);
+        if alias == "evidence-owner" {
+            // The controller graph has its own selected ordinary libraries too.
+            for unit in &mut selected.units {
+                unit.controller = true;
+            }
+            write(
+                root.path(),
+                "Cargo.toml",
+                &format!(
+                    "[workspace]\nmembers=['crate','provider']\n[workspace.dependencies]\n{alias}={{package='provider',path='provider'}}\n"
+                ),
+            );
+            write(
+                root.path(),
+                "crate/Cargo.toml",
+                &format!(
+                    "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{alias}={{workspace=true}}\n"
+                ),
+            );
+        }
+        let first = InputInventory::collect(root.path(), &selected).unwrap();
+        for path in [
+            "provider/src/lib.rs",
+            "provider/src/json.rs",
+            "provider/src/caller.rs",
+            "crate/src/argument.txt",
+            "provider/Cargo.toml",
+            "crate/Cargo.toml",
+        ] {
+            assert!(first.files.contains_key(path), "{path}");
+        }
+        write(
+            root.path(),
+            "provider/src/json.rs",
+            &LOCAL_EXPORT.replace("pub fn proof", "pub fn changed_proof"),
+        );
+        assert_ne!(
+            first.digest().unwrap(),
+            InputInventory::collect(root.path(), &selected)
+                .unwrap()
+                .digest()
+                .unwrap()
+        );
+        write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
+        write(root.path(), "crate/src/argument.txt", "changed argument");
+        assert_ne!(
+            first.digest().unwrap(),
+            InputInventory::collect(root.path(), &selected)
+                .unwrap()
+                .digest()
+                .unwrap()
+        );
+    }
+    // Root exports require no module re-export, as with the diagnostics macros.
+    let (root, selected) = local_export_fixture("provider", "::provider::wrap!(External);");
+    write(root.path(), "provider/src/caller.rs", "crate::wrap!(Own);");
+    let definition = LOCAL_EXPORT.replace("pub use crate::wrap;", "");
+    write(root.path(), "provider/src/json.rs", &definition);
+    assert!(InputInventory::collect(root.path(), &selected).is_ok());
+    write(
+        root.path(),
+        "provider/src/json.rs",
+        &definition.replace("#[macro_export]", ""),
+    );
+    assert!(InputInventory::collect(root.path(), &selected).is_err());
+}
+
+#[test]
+fn local_exported_macros_refuse_unselected_fake_and_shadowed_owners() {
+    for mutation in [
+        "unselected",
+        "wrong-index",
+        "wrong-source",
+        "wrong-kind",
+        "wrong-package",
+        "same-root-different-package",
+        "wrong-path",
+        "relative",
+        "shadow-before",
+        "shadow-after",
+        "qualified-lexical",
+        "quoted-relative",
+        "opaque",
+        "nested-unknown",
+    ] {
+        let mut source = "::provider::json::wrap!(Wrap);".to_owned();
+        match mutation {
+            "relative" => source = "provider::json::wrap!(Wrap);".into(),
+            "shadow-before" => source = format!("extern crate self as provider; {source}"),
+            "shadow-after" => source.push_str("extern crate self as provider;"),
+            "qualified-lexical" => source = "macro_rules! wrap { () => {} } fake::wrap!();".into(),
+            "quoted-relative" => {
+                source = "macro_rules! wrap { () => {} } quote! { fake::wrap!(); }".into()
+            }
+            "opaque" => source = "::provider::json::wrap!(${concat(Wrap)});".into(),
+            "nested-unknown" => source = "::provider::json::wrap!(unknown_input!());".into(),
+            _ => {}
+        }
+        let (root, mut selected) = local_export_fixture("provider", &source);
+        match mutation {
+            "unselected" => {
+                selected.units.truncate(1);
+                selected.units[0].dependencies.clear();
+                selected.units[0].dependency_names.clear();
+            }
+            "wrong-index" => selected.units[0].dependencies[0] = 0,
+            "wrong-source" => selected.units[1].source = Some("provider/src/caller.rs".into()),
+            "wrong-kind" => selected.units[1].kinds = vec!["proc-macro".into()],
+            "wrong-package" => {
+                selected.units[1].package = "path+file://<workspace>/provider#fake@1".into()
+            }
+            "same-root-different-package" => {
+                let mut other = selected.units[1].clone();
+                other.package = "path+file://<workspace>/provider#fake@1".into();
+                selected.units.push(other);
+            }
+            "wrong-path" => {
+                write(
+                    root.path(),
+                    "fake/Cargo.toml",
+                    "[package]\nname='provider'\nversion='1.0.0'\nedition='2024'\n",
+                );
+                write(root.path(), "fake/src/lib.rs", "");
+                write(
+                    root.path(),
+                    "crate/Cargo.toml",
+                    "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\nprovider={path='../fake'}\n",
+                );
+            }
+            _ => {}
+        }
+        assert!(
+            InputInventory::collect(root.path(), &selected).is_err(),
+            "{mutation}"
+        );
+    }
+}
+
+#[test]
+fn local_exported_macros_require_unique_active_pure_definitions_and_direct_reexports() {
+    for mutation in [
+        "no-export",
+        "no-reexport",
+        "renamed-reexport",
+        "private-module",
+        "excluded-definition",
+        "excluded-reexport",
+        "duplicate-definition",
+        "duplicate-reexport",
+        "source-producing",
+        "unsupported-export",
+    ] {
+        let (root, selected) = local_export_fixture("provider", "::provider::json::wrap!(Wrap);");
+        let definition = match mutation {
+            "no-export" => LOCAL_EXPORT.replace("#[macro_export]", ""),
+            "no-reexport" => LOCAL_EXPORT.replace("pub use crate::wrap;", ""),
+            "renamed-reexport" => {
+                LOCAL_EXPORT.replace("pub use crate::wrap;", "pub use crate::wrap as renamed;")
+            }
+            "excluded-definition" => LOCAL_EXPORT.replace(
+                "#[macro_export]",
+                "#[cfg(feature=\"not-selected\")] #[macro_export]",
+            ),
+            "excluded-reexport" => LOCAL_EXPORT.replace(
+                "pub use crate::wrap;",
+                "#[cfg(feature=\"not-selected\")] pub use crate::wrap;",
+            ),
+            "duplicate-definition" => {
+                format!("{LOCAL_EXPORT}\n#[macro_export] macro_rules! wrap {{ () => {{}} }}")
+            }
+            "duplicate-reexport" => format!("{LOCAL_EXPORT}\npub use crate::wrap;"),
+            "source-producing" => LOCAL_EXPORT.replace("impl $type", "mod hidden; impl $type"),
+            "unsupported-export" => {
+                LOCAL_EXPORT.replace("#[macro_export]", "#[macro_export(local_inner_macros)]")
+            }
+            _ => LOCAL_EXPORT.into(),
+        };
+        write(root.path(), "provider/src/json.rs", &definition);
+        if mutation == "private-module" {
+            write(
+                root.path(),
+                "provider/src/lib.rs",
+                "mod caller; mod json;\n",
+            );
+        }
+        assert!(
+            InputInventory::collect(root.path(), &selected).is_err(),
+            "{mutation}"
+        );
+    }
+}
+
+#[test]
+fn native_local_export_proof_captures_declared_owner_and_refuses_portable_ambiguity() {
+    use gmeow_build_inputs::NativeSources;
+    let (root, _) = local_export_fixture("provider", "");
+    for name in ["logic", "logic-compile", "term-arena", "ns"] {
+        write(
+            root.path(),
+            &format!("crates/{name}/Cargo.toml"),
+            &format!(
+                "[package]\nname='{name}'\nversion='1.0.0'\nedition='2024'\n[dependencies]\nprovider={{path='../../provider'}}\n"
+            ),
+        );
+        write(root.path(), &format!("crates/{name}/src/lib.rs"), "");
+    }
+    write(
+        root.path(),
+        "crates/logic/src/lib.rs",
+        "::provider::json::wrap!(Wrap);",
+    );
+    let first = NativeSources::collect(root.path()).unwrap();
+    for path in [
+        "provider/src/lib.rs",
+        "provider/src/json.rs",
+        "provider/Cargo.toml",
+        "crates/logic/Cargo.toml",
+        "Cargo.toml",
+    ] {
+        assert!(first.files.contains_key(path), "{path}");
+    }
+    write(
+        root.path(),
+        "provider/src/json.rs",
+        &LOCAL_EXPORT.replace("pub fn proof", "pub fn changed_proof"),
+    );
+    assert_ne!(
+        first.digest().unwrap(),
+        NativeSources::collect(root.path())
+            .unwrap()
+            .digest()
+            .unwrap()
+    );
+    write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
+    write(
+        root.path(),
+        "provider/Cargo.toml",
+        "[package]\nname='provider'\nversion='1.0.0'\nedition='2024'\n# changed selection bytes\n",
+    );
+    assert_ne!(
+        first.digest().unwrap(),
+        NativeSources::collect(root.path())
+            .unwrap()
+            .digest()
+            .unwrap()
+    );
+    write(
+        root.path(),
+        "provider/src/json.rs",
+        &LOCAL_EXPORT.replace(
+            "#[macro_export]",
+            "#[cfg(feature=\"uncertain\")] #[macro_export]",
+        ),
+    );
+    assert!(NativeSources::collect(root.path()).is_err());
+    write(root.path(), "provider/src/json.rs", LOCAL_EXPORT);
+    write(root.path(), ".cargo/config.toml", "paths=['elsewhere']\n");
+    assert!(NativeSources::collect(root.path()).is_err());
+}
+
 #[test]
 fn pinned_json_macros_bind_alias_package_revision_and_nested_inputs() {
     for (alias, inherited, nested) in [

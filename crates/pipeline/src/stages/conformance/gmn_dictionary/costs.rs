@@ -7,7 +7,6 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_lang_bridge::{Gmn0Model, Gmn1Error, GmnDictionary, gmn_glyph_token_cost, gmn1_write};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
-use serde::{Deserialize, Serialize};
 
 const COST: &str = "https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost";
 const CODEPOINTS: &str = "https://blackcatinformatics.ca/gmeow/gmnCodepoints";
@@ -16,7 +15,7 @@ const ENTRY_TERM: &str = "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntr
 const ENTRY_ALIAS: &str = "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias";
 const DENOTATION: &str = "https://blackcatinformatics.ca/gmeow/gmnFormDenotation";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct Costs {
     pub rows: Vec<CostRow>,
     pub spellings: BTreeSet<String>,
@@ -25,7 +24,7 @@ pub(in crate::stages::conformance) struct Costs {
     pub emitted: BTreeMap<String, Result<String, Gmn1Error>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct CostRow {
     pub codepoints: Vec<String>,
     pub values: Vec<String>,
