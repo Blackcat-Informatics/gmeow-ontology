@@ -8662,7 +8662,7 @@ pub fn slice_brief_from_bundle(
     extract_authoring_packets(&briefs, &slice_iri, axis, batch)
 }
 
-/// The native tool-surface suite.
+/// The complete native tool-surface suite, with both consumer segments linked.
 ///
 /// Gated `not(target_arch = "wasm32")` as well as `test`, and that is not incidental:
 /// these tests ARE the native storage backend's tests. They mutate the process
@@ -8670,8 +8670,17 @@ pub fn slice_brief_from_bundle(
 /// the bytes a `memory.gts` ends up holding — every one of which is a native-host fact.
 /// The browser backend has its own suite in [`browser_storage_tests`], which runs on
 /// every target including this one.
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(
+    test,
+    not(target_arch = "wasm32"),
+    feature = "core",
+    feature = "reasoning"
+))]
 mod tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "lib.feature_tests.rs"]
+mod feature_tests;
 
 /// The shipped dictionary every HOT runtime store — agent memory, the conjecture
 /// library, the candidate library — primes its segments with

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod browser_library_contract;
 mod convert_transcode_contract;
 mod distribution_matrix_contract;
 mod glyph_legend_contract;
