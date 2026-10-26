@@ -1,0 +1,148 @@
+{
+  "issue": 1966,
+  "pr_number": 1967,
+  "branch": "paudley/1966-bound-streaming-digest-scratch-storage",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1966-bound-streaming-digest-scratch-storage/.stage/bound-streaming-digest-scratch-storage",
+  "observed_at": "2026-10-26T16:43:50.636137+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1966-bound-streaming-digest-scratch-storage/.stage/bound-streaming-digest-scratch-storage/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1966-bound-streaming-digest-scratch-storage/.stage/bound-streaming-digest-scratch-storage/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1966-bound-streaming-digest-scratch-storage/.stage/bound-streaming-digest-scratch-storage/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1966-bound-streaming-digest-scratch-storage/.stage/bound-streaming-digest-scratch-storage/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1966-bound-streaming-digest-scratch-storage/.stage/bound-streaming-digest-scratch-storage/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "95482add0ae42343893a5f0425aa996a520c8dd4",
+    "headRefName": "paudley/1966-bound-streaming-digest-scratch-storage",
+    "headRefOid": "208cf6f9baeb9ee0c08f27f96d5501ee51516a6c",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1967,
+    "state": "OPEN",
+    "title": "Keep streaming hash scratch off worker stacks",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1967"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40361670556/job/121708474042",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40361670556/job/121708474179",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40361670556/job/121708473985",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40361670556/job/121708473504",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "208cf6f9baeb9ee0c08f27f96d5501ee51516a6c",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "13c3250fe5a07a717fb79281e2b6d57365bc1479cade9d01085bf21d2c19033e"
+  },
+  "local": {
+    "head": "208cf6f9baeb9ee0c08f27f96d5501ee51516a6c",
+    "branch": "paudley/1966-bound-streaming-digest-scratch-storage",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1967,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1967 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 13,
+      "bytes": 29552,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "95482add0ae42343893a5f0425aa996a520c8dd4",
+      "head": "208cf6f9baeb9ee0c08f27f96d5501ee51516a6c",
+      "status": "clean"
+    }
+  }
+}
