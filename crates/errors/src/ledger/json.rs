@@ -65,16 +65,7 @@ impl FromJson for StageId {
     }
 }
 
-impl ToJson for Focus {
-    fn to_json(&self) -> Value {
-        self.0.to_json()
-    }
-}
-impl FromJson for Focus {
-    fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        String::from_json(value).map(Self)
-    }
-}
+crate::json::json_string_newtype!(Focus);
 
 impl ToJson for Severity {
     fn to_json(&self) -> Value {

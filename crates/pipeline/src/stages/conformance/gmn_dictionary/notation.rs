@@ -9,9 +9,8 @@ use gmeow_lang_bridge::{
     Formalism, GmnDictionary, Grammar, GrammarRule, IngestDiagnostic, parse_grammar,
     serialize_grammar,
 };
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct Notation {
     pub production: String,
     pub canonical: Vec<GrammarRule>,

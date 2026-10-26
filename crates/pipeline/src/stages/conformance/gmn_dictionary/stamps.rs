@@ -9,9 +9,8 @@ use gmeow_lang_bridge::{
     GmnDictionary, PRED_GMN_SCHEMA_VERSION, resolved_schema_version, tag_schema_version,
 };
 use purrdf::RdfTerm;
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct Stamps {
     pub resolved: String,
     pub dictionary_major: String,
