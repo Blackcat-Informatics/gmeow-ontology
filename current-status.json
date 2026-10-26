@@ -1,0 +1,113 @@
+{
+  "issue": 1776,
+  "pr_number": 1957,
+  "branch": "paudley/1776-deps-replace-serde-serde-json-with",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with",
+  "observed_at": "2026-10-26T08:47:25.173559+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "0755fe5fc47834647e481d79aaff897bc2940f82",
+    "headRefName": "paudley/1776-deps-replace-serde-serde-json-with",
+    "headRefOid": "f00739d78a6516127960aaa6f963530353cbdd5d",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1957,
+    "state": "OPEN",
+    "title": "Use native JSON for grounding, medium and prepared policy",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1957"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40293809567/job/121474888648",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40293809567/job/121474888400",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40293809567/job/121474888322",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40293809567/job/121474888511",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "PENDING"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "f00739d78a6516127960aaa6f963530353cbdd5d",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "208c1c106bbfb46a12beb6e7362e92fa09a14177be15833aa9b568f54209154f"
+  },
+  "local": {
+    "head": "f00739d78a6516127960aaa6f963530353cbdd5d",
+    "branch": "paudley/1776-deps-replace-serde-serde-json-with",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1957,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1957 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

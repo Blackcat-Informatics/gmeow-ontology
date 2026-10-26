@@ -1,0 +1,7 @@
+refactor: native grounding, medium and policy transports
+
+Use the substrate JSON owner for complete producer/cache/reader paths.
+Preserve source identity, strict admission and exact RDF literal metadata.
+Bind native JSON macro admission to the immutable substrate implementation.
+
+Principles 4, 6, 7 and 18.

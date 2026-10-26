@@ -1,0 +1,3 @@
+Split the next independently shippable transport migration into #1956: grounding-catalog observations, medium-axis observations, and prepared MCP action-policy JSON, including their producer caches, publishers and authenticated readers.
+
+This bounds delivery while preserving every original requirement here. #1776 remains open for the other JSON owners, retirement of remaining boundary shims, removal of Serde dependencies from every workspace manifest, complete artifact/golden qualification and a passing full gate. The child carries focused native transport/caller acceptance; closing it will not assert corpus, installed/browser/WASM or parent completion. Principles 4, 6, 7 and 18.
