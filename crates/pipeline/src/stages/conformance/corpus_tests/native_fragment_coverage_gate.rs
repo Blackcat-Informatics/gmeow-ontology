@@ -294,8 +294,9 @@ fn load_registry_surface() -> RegistrySurface {
         super::super::registry_surface::CHANNEL,
     )
     .expect("authenticated registry surface");
-    serde_json::from_slice::<Result<RegistrySurface, gmeow_errors::RecordedDiag>>(&bytes)
+    purrdf_lex::json::record::from_slice::<super::super::registry_surface::Observation>(&bytes)
         .expect("registry observation")
+        .0
         .expect("well-formed registry surface")
 }
 
