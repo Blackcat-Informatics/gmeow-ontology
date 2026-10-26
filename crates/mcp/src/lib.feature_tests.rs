@@ -6,6 +6,50 @@
 use super::*;
 use std::collections::BTreeSet;
 
+/// These handler branches need only the in-memory view: neither reads snapshot bytes.
+#[cfg(all(feature = "reasoning", not(feature = "core")))]
+#[test]
+fn reasoning_only_handlers_validate_served_requests_and_defer_core() {
+    let dataset = purrdf::parse_dataset(b"", "text/turtle", None)
+        .expect("an empty caller dataset is valid RDF");
+    let view = McpView::from_dataset(dataset, Arc::from(Vec::<u8>::new()))
+        .expect("the reasoning view needs no documentation header");
+    let server = McpServer::from_admitted_view(
+        Arc::new(view),
+        SegmentSet::reasoning_only(),
+        Extension::new(),
+        Some("en"),
+    )
+    .expect("assemble the actual reasoning-only server surface");
+
+    let deferred = server
+        .surface
+        .dispatch_tool(&server, "lookup_term", &json!({"term": "urn:caller:term"}))
+        .expect_err("the unlinked core implementation must defer");
+    let deferred = deferred
+        .downcast_ref::<crate::error::SegmentNotLoaded>()
+        .expect("deferral is a typed routing outcome");
+    assert_eq!(deferred.tool, "lookup_term");
+    assert_eq!(deferred.segment, CORE_SEGMENT);
+
+    let served = server
+        .surface
+        .dispatch_tool(
+            &server,
+            "reason_graph",
+            &json!({"data": "", "format": "unsupported-profile"}),
+        )
+        .expect_err("the served handler must validate its own request");
+    let served = served
+        .downcast_ref::<crate::error::Mcp>()
+        .expect("a served handler refusal must not become a deferral");
+    assert!(
+        served
+            .message
+            .starts_with("reason_graph: unrecognized RDF format")
+    );
+}
+
 #[test]
 fn selected_features_preserve_complete_registered_surface_and_segment_routing() {
     let linked = Surface::assemble(
