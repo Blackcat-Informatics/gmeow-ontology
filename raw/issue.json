@@ -1,0 +1,20 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Blocked by: none.\nBlocks: #1776.\n\nMove the complete native fragment registry observation channel to PurRDF's native JSON codecs. The current producer serializes the registry and recorded source refusals through Serde, and the authenticated corpus consumer decodes that same channel through Serde.\n\nAcceptance:\n\n1. Implement native named-record codecs on the existing NativeFragmentRegistry owner, preserving all eight inventory and characterization fields, declaration order, sorted sets/maps and exact strings. Remove its unused Serde ownership after checking actual consumers.\n2. Wire the actual producer and authenticated reader through native JSON and the existing shared recorded-diagnostic outcome codec. Preserve both success and complete source-refusal evidence, with no generic parser, compatibility bridge or weaker fallback.\n3. Preserve original-source observation and semantic refusal behavior, the channel identity and the consumer's authenticated read-only selection. Never construct a corpus from a test.\n4. Qualify the boundary with independently authored small datasets, malformed named-record admission controls, affected production compilation, strict scoped diagnostics, independent review and normal hooks. Full produced-corpus, embedded consumer and installed acceptance remains owned by #1776 under the recorded campaign exception.\n\nPrinciples 2, 3, 4, 7, 17 and 18 apply. This is a complete source channel migration, not completion of the parent dependency migration or corpus acceptance.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-26T18:57:45Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1971,
+  "state": "OPEN",
+  "title": "Use native JSON for fragment registry observations",
+  "updatedAt": "2026-10-26T18:57:45Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1971"
+}

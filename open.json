@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1971,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1971-use-native-json-for-fragment-registry",
+  "branch": "paudley/1971-use-native-json-for-fragment-registry",
+  "slug": "use-native-json-for-fragment-registry",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1971-use-native-json-for-fragment-registry/.stage/use-native-json-for-fragment-registry",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "cbe5633cfa5c241655a6b1a5d44d7159c830f391",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1971-use-native-json-for-fragment-registry",
+    "branch:paudley/1971-use-native-json-for-fragment-registry",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1971-use-native-json-for-fragment-registry/.stage/use-native-json-for-fragment-registry",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1971-use-native-json-for-fragment-registry/.stage/use-native-json-for-fragment-registry/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T12:58:17-0600"
+}
