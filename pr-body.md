@@ -1,0 +1,5 @@
+Conformance now emits elapsed-time boundaries for its existing recorder families and grading/rendering steps through the shared `measure_stage_phase` observer. Cold CI already enables its `pipeline_phase` logging target. This supplies the missing per-recorder evidence needed to decide whether further scheduling work would help.
+
+All 36 operations keep their original calls, arguments, order, typed refusals and artifact writes. The existing GMN aggregate timing remains in place. Clock readings stay outside semantic products and cache keys. There is no scheduling change or performance claim. #1961 remains open for hosted measurement and the resulting scheduling decision; #1962 retains full production parity and acceptance.
+
+Strict all-target Clippy passed for `gmeow-pipeline` and `gmeow-dev-cli`. Independent source review found no issues, and normal signed commit hooks passed. This adds observation through an existing helper; no corpus was produced and no new runtime tests were added for the logging wrappers. Principles 4, 7, 12 and 18 apply.
