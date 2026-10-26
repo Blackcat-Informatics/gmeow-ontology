@@ -1,0 +1,67 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Retire Serde JSON from the complete grounding-catalog, medium-axis and prepared MCP action-policy transport paths. This is an independently shippable part of #1776; that parent retains workspace dependency removal, all other JSON owners, committed-artifact qualification and the full gate.\n\nThe current producer, caches and authenticated readers duplicate these observation records. Prepared action policy also crosses a separately featured MCP ingress. Move each path to its canonical typed native JSON owner, with one DTO shared by producer and reader where appropriate.\n\nAcceptance:\n\n- Grounding and medium caches, final publishers and authenticated readers use `purrdf_lex::json` directly. Remove their duplicate Serde DTOs.\n- Prepared policy uses native JSON for both cache/publication and MCP ingress, while preserving the ingress byte bound, decode-versus-validation diagnostic context and lazy dataset hydration. Do not add a direct JSON dependency to the reasoning-only MCP feature.\n- Preserve field and collection order, optional/null distinctions, source identity and authentication, exact tuple arity, complete recorded diagnostic causes, strict unsigned counts/schema versions and policy unknown-field refusal.\n- Numeric confidence reuses the existing exact RDF literal owner and checked numeric constructor. Preserve the separate boolean direction protocol used by policy literals.\n- Existing confidence and policy controls retain their assertions. Authored wire-boundary controls pass without corpus production; affected production callers compile with warnings denied; normal hooks pass; independent source review has no blocking findings.\n\nThis unit does not claim authenticated corpus, installed/browser/WASM or workspace-wide acceptance. Those original parent requirements remain open. Principles 4, 6, 7 and 18.\n\nBlocked by: none. Blocks: #1776.\n\nPost-merge acceptance repair: the reasoning-only native MCP test profile was verified to fail with 62 references to core-only symbols and optional dependencies. Preserve all combined-consumer cases and their batching under the complete feature profile; keep pure storage checks available under their actual required features; move the authenticated candidate-library case into the native corpus batch without changing its assertions or fixture authority. Both shipped single-segment profiles must compile with warnings denied, and producer-free surface checks must exercise complete descriptor/handler assembly and segment routing. This adds no production dependency and does not claim authenticated RPC replay or browser execution.\n\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABfjKf9w",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "The post-merge reasoning-only MCP test build fails with 62 references to core-only symbols and optional dependencies. Reopening to repair the touched feature boundary. Preserve every combined-consumer case and its batching, separate the authenticated browser-library case from pure storage checks, and verify the shipped single-segment configurations with producer-free surface checks. Production feature boundaries and corpus authentication remain mandatory.",
+      "createdAt": "2026-10-26T09:04:35Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1956#issuecomment-6412214263",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-10-26T06:19:44Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1956,
+  "state": "OPEN",
+  "title": "Retire Serde JSON from grounding, medium and prepared policy channels",
+  "updatedAt": "2026-10-26T09:12:36Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1956"
+}
