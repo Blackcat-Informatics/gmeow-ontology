@@ -23,10 +23,10 @@
 //!    the segment, returns a real answer byte-identical to the one the DEFAULT native
 //!    constructor gives. Re-dispatch is lossless: the caller waited, it did not settle.
 //!
-//! Claims 1–3 hold on either feature set (a core deployment is expressible on a build that
-//! links the segment, which is what makes them testable at all under cargo's feature
-//! unification). Claim 4 needs a build that links the segment, and says so with a `cfg`
-//! rather than by silently passing vacuously when it does not.
+//! These authenticated consumer cases run with both segments linked and select a core
+//! deployment explicitly. They retain the full RPC deferral/replay contract. Separate
+//! producer-free feature tests check surface assembly in single-segment builds; those
+//! checks do not establish authenticated RPC replay or browser execution.
 
 use super::snapshot;
 use crate::{CHASE_SEGMENT_TOOLS, McpServer, REASONING_SEGMENT_TOOLS, SegmentSet};
