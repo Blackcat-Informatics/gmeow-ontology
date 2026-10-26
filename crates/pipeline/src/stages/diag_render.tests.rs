@@ -354,7 +354,8 @@ fn forward_fold_preserves_distinct_focus_and_secondary_coordinates() {
         report.add_finding(node.to_finding("synthetic"));
     }
     // Exercise the actual serialized report boundary as well as its normalization.
-    let report: Report = serde_json::from_slice(&serde_json::to_vec(&report).unwrap()).unwrap();
+    let report: Report =
+        gmeow_errors::Report::from_json_slice(&report.to_json().unwrap().into_bytes()).unwrap();
     let nodes = finding_nodes(&report, "synthetic");
     assert_eq!(nodes.len(), 2, "distinct source subjects must not collapse");
     let original_fingerprints: std::collections::BTreeSet<_> = original

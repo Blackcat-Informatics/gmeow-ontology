@@ -57,5 +57,6 @@ expression: value
   "metadata": {
     "category": "ontology"
   },
+  "schema": "gmeow.diagnostics-report.v2",
   "tool": "validate"
 }

@@ -1,14 +1,143 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native named-record transport for findings. Report metadata and renderers
-//! retain their own encoding owner. Positional struct arrays are not admitted.
+//! Native named-record transport for findings and complete diagnostics reports.
+//! Positional struct arrays are not admitted.
 
-use super::{Finding, RelatedLabel};
+use super::{Finding, RelatedLabel, Report, Rule};
 use purrdf_lex::json::{
     Object, Value,
-    record::{DecodeError, FromJson, Record, ToJson},
+    record::{DecodeError, FromJson, Record, ToJson, Within as _},
 };
+
+/// The complete report wire protocol, including exact lexical JSON evidence.
+pub const REPORT_JSON_SCHEMA: &str = "gmeow.diagnostics-report.v2";
+
+impl ToJson for Rule {
+    fn to_json(&self) -> Value {
+        let mut object = Object::new().with("id", self.id.as_str());
+        for (name, value) in [
+            ("title", &self.title),
+            ("description", &self.description),
+            ("help_uri", &self.help_uri),
+            ("remediation", &self.remediation),
+            ("how_to_use", &self.how_to_use),
+        ] {
+            if let Some(value) = value {
+                object.insert(name, value.as_str());
+            }
+        }
+        object.insert("default_severity", self.default_severity.to_json());
+        object.into()
+    }
+}
+
+impl FromJson for Rule {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "diagnostic rule")?;
+        Ok(Self {
+            id: fields.required("id")?,
+            title: fields.optional("title")?,
+            description: fields.optional("description")?,
+            help_uri: fields.optional("help_uri")?,
+            remediation: fields.optional("remediation")?,
+            how_to_use: fields.optional("how_to_use")?,
+            default_severity: fields.required("default_severity")?,
+        })
+    }
+}
+
+impl Report {
+    /// Decode a report under the explicit diagnostic envelope depth profile.
+    ///
+    /// # Errors
+    /// Refuses malformed, unsupported or ambiguous native report data.
+    pub fn from_json_slice(bytes: &[u8]) -> Result<Self, DecodeError> {
+        crate::json::read_diagnostic_document(bytes)
+    }
+
+    /// Write compact native JSON without normalizing finding or rule order.
+    ///
+    /// # Errors
+    /// Preserves failures projecting immutable metadata evidence.
+    pub fn to_json(&self) -> Result<String, DecodeError> {
+        Ok(purrdf_lex::json::write_compact(&self.json_value()?))
+    }
+
+    /// Project all report fields, without changing finding or rule order.
+    /// Normalizing renderers call this on their normalized report.
+    ///
+    /// # Errors
+    /// Preserves failures materializing immutable metadata projections.
+    pub fn json_value(&self) -> Result<Value, DecodeError> {
+        let mut object = Object::new()
+            .with("schema", REPORT_JSON_SCHEMA)
+            .with("tool", self.tool.to_json());
+        if !self.findings.is_empty() {
+            object.insert("findings", self.findings.to_json());
+        }
+        if !self.rules.is_empty() {
+            object.insert("rules", self.rules.to_json());
+        }
+        if !self.metadata.is_empty() {
+            object.insert("metadata", self.metadata_json()?);
+        }
+        Ok(object.into())
+    }
+
+    /// Project all metadata values as values rather than quoted JSON documents.
+    ///
+    /// # Errors
+    /// Preserves native refusals with the metadata field and key coordinates.
+    pub fn metadata_json(&self) -> Result<Value, DecodeError> {
+        let mut object = Object::new();
+        for (name, evidence) in &self.metadata {
+            let value = evidence
+                .value()
+                .map_err(|error| error.within(name).within("metadata"))?;
+            object.insert(name, value);
+        }
+        Ok(object.into())
+    }
+
+    /// Read a string metadata entry without treating a read failure as absence.
+    ///
+    /// # Errors
+    /// Preserves native read and allocation refusals with the metadata key.
+    pub fn metadata_string(
+        &self,
+        name: &str,
+    ) -> Result<Option<std::borrow::Cow<'_, str>>, DecodeError> {
+        self.metadata
+            .get(name)
+            .map(|evidence| {
+                evidence
+                    .string()
+                    .map_err(|error| error.within(name).within("metadata"))
+            })
+            .transpose()
+            .map(Option::flatten)
+    }
+}
+
+impl FromJson for Report {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "diagnostics report version 2")?;
+        fields.required_with("schema", |schema| {
+            if schema.as_str() == Some(REPORT_JSON_SCHEMA) {
+                Ok(())
+            } else {
+                Err(DecodeError::invalid_value(schema, REPORT_JSON_SCHEMA))
+            }
+        })?;
+        Ok(Self {
+            tool: fields.required("tool")?,
+            findings: fields.defaulted("findings")?,
+            rules: fields.defaulted("rules")?,
+            metadata: fields.defaulted("metadata")?,
+        })
+    }
+}
 
 impl ToJson for RelatedLabel {
     fn to_json(&self) -> Value {

@@ -300,10 +300,7 @@ fn missing_deep_archive_preserves_tier1_and_matches_prepared_validation() {
         true,
     )
     .expect("prepared product report");
-    assert_eq!(
-        serde_json::to_value(&report).unwrap(),
-        serde_json::to_value(&prepared).unwrap()
-    );
+    assert_eq!(report.json_value().unwrap(), prepared.json_value().unwrap());
     assert!(
         report
             .findings
@@ -403,14 +400,17 @@ logic:c rdf:type logic:ReasoningContract ;
 #[test]
 fn report_json_round_trips() {
     // The wasm/CLI boundary (`validate_json`) serializes a Report to JSON; this
-    // guards that the canonical Report model round-trips through serde_json so a
+    // guards that the canonical Report model round-trips through native JSON so a
     // client can parse the findings back losslessly.
     let mut report = Report::new("validate");
     report.add_finding(
         Finding::new(Severity::Error, "tier1.fixture", "a fixture finding").with_tool("validate"),
     );
-    let json = serde_json::to_string(&report).expect("Report must serialize to JSON");
-    let back: Report = serde_json::from_str(&json).expect("Report JSON must deserialize back");
+    let json = report
+        .to_json()
+        .expect("Report must serialize to native JSON");
+    let back: Report =
+        Report::from_json_slice(json.as_bytes()).expect("native Report JSON must deserialize back");
     assert_eq!(
         report, back,
         "Report must round-trip through JSON unchanged"

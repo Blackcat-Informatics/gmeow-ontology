@@ -105,7 +105,11 @@ fn diagnostics_codec_rejects_report_only_evidence_tampering() {
             0 => {
                 report.metadata.insert(
                     "nested-evidence".into(),
-                    serde_json::json!({"source":"substituted"}),
+                    purrdf_lex::json::record::FromJson::from_json(
+                        &purrdf_lex::json::record::read_document(br#"{"source":"substituted"}"#)
+                            .unwrap(),
+                    )
+                    .unwrap(),
                 );
             }
             1 => {
@@ -139,6 +143,63 @@ fn diagnostics_codec_rejects_report_only_evidence_tampering() {
             "the old complete product rejects mutation {mutation} even after payload rehash"
         );
     }
+}
+
+/// Binary metadata restores exact lexical evidence and refuses malformed or
+/// noncanonical strings, even when the surrounding CBOR publication is valid.
+#[test]
+fn diagnostics_codec_requires_canonical_json_evidence_on_hydration() {
+    // gmeow-test-input: synthetic-only
+    use purrdf_lex::cbor::{Value, encode};
+    let publication = |lexical: &str| {
+        encode(&Value::Map(vec![(
+            Value::Text("reports".into()),
+            Value::Map(vec![(
+                Value::Text("Validate".into()),
+                Value::Map(vec![
+                    (Value::Text("tool".into()), Value::Text("shacl".into())),
+                    (
+                        Value::Text("metadata".into()),
+                        Value::Map(vec![(
+                            Value::Text("evidence".into()),
+                            Value::Text(lexical.into()),
+                        )]),
+                    ),
+                ]),
+            )]),
+        )]))
+    };
+    let canonical = r#"{"a":[1e400,-0,1.00],"z":"中"}"#;
+    let PipelineHandle::Diagnostics(restored) =
+        rebuild_handle("diagnostics", Some(&publication(canonical))).unwrap()
+    else {
+        panic!("complete native diagnostic publication");
+    };
+    let report = restored.report(DiagnosticReportOwner::Validate).unwrap();
+    assert_eq!(report.metadata["evidence"].canonical_json(), canonical);
+    let roundtrip = gmeow_errors::Report::from_json_slice(
+        gmeow_errors::render::to_json(report).unwrap().as_bytes(),
+    )
+    .unwrap();
+    assert_eq!(&roundtrip, report.as_ref());
+    for invalid in [
+        " null",
+        r#"{"b":1,"a":2}"#,
+        r#"{"a":1,"a":2}"#,
+        "[",
+        r#""\ud800""#,
+    ] {
+        assert!(
+            rebuild_handle("diagnostics", Some(&publication(invalid))).is_err(),
+            "accepted {invalid}"
+        );
+    }
+    let too_deep = format!(
+        "{}0{}",
+        "[".repeat(gmeow_errors::METADATA_JSON_DEPTH + 1),
+        "]".repeat(gmeow_errors::METADATA_JSON_DEPTH + 1)
+    );
+    assert!(rebuild_handle("diagnostics", Some(&publication(&too_deep))).is_err());
 }
 
 /// Missing, trailing and duplicate-owner encodings are errors; a legitimate

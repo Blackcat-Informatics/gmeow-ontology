@@ -412,7 +412,7 @@ pub fn shacl_report_via_ledger(
 ///
 /// This is the sole validation surface exposed to wasm: it wraps [`run_tier1`]
 /// (never the native `--deep` path) and serializes the canonical
-/// `gmeow_errors::Report` with serde_json, so a browser / editor / LLM client
+/// `gmeow_errors::Report` with native JSON, so a browser / editor / LLM client
 /// receives structured findings without any PyO3 or filesystem coupling. Native
 /// callers that want a JSON result share this same entry.
 ///
@@ -429,7 +429,7 @@ pub fn validate_json(
     origin: &str,
 ) -> gmeow_errors::Result<String> {
     let report = run_tier1(data_bytes, data_format, gts_bytes, namespace, origin)?;
-    serde_json::to_string(&report).map_err(|e| {
+    report.to_json().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Serialize {
             detail: format!("report JSON serialization failed: {e}"),
         })

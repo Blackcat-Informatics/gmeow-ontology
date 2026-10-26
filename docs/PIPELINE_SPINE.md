@@ -142,6 +142,18 @@ projection does not replace the complete reports as semantic input. Empty valid
 reports retain an explicit diagnostic graph declaration. Action persistence uses
 mandatory CBOR for the full publication, including report-only evidence and
 metadata; those bytes enter the normal cache receipt and hydration accounting.
+Metadata values own immutable canonical JSON lexical evidence: compact native
+escaping and recursively sorted last-wins object members, with exact numeric
+lexemes. CBOR carries that evidence as text, so typed commitments still stream
+without constructing JSON buffers. Binary hydration validates the native JSON
+grammar and canonical spelling. JSON and SARIF temporarily project each value
+through PurRDF, preserving arbitrary objects, arrays and numbers rather than
+quoting the embedded document. There is no second retained metadata tree.
+Individual values admit 128 open containers; complete Report, SARIF and nested
+verification observations use a depth budget of 160 to cover their envelopes.
+Report JSON requires the native version 2 schema and its record seal uses the
+version 2 digest domain. Human-readable Serde admission and serialization are
+refused; genuine binary Report persistence remains mandatory.
 Required JSON, SARIF, HTML and RDF artifacts remain terminal presentations, and
 the run ledger retains its established pre-meta findings. Run reports borrow a
 live projection of that ledger at each exit, with no cached finding vector to

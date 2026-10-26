@@ -4,6 +4,7 @@
 use super::*;
 use crate::grade::Standpoint;
 use crate::model::{DiagnosticAttribution, Finding, Location, Report, Rule, Severity};
+use serde_json::Value;
 
 /// F1: the typed conformance-failure class the violated law declares must reach
 /// EVERY output surface, not just the struct. `code` names only the generic
@@ -148,7 +149,7 @@ fn comprehensive_report() -> Report {
     let mut report = Report::new("validate");
     report
         .metadata
-        .insert("category".to_owned(), json!("ontology"));
+        .insert("category".to_owned(), crate::JsonEvidence::from("ontology"));
     report.add_finding(wire);
     report.add_finding(anchored);
     report.add_finding(fileless);
@@ -334,11 +335,15 @@ fn sarif_automation_details_omitted_without_category() {
     let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
     assert!(value["runs"][0]["automationDetails"].is_null());
 
-    report.metadata.insert("category".to_owned(), json!(""));
+    report
+        .metadata
+        .insert("category".to_owned(), crate::JsonEvidence::from(""));
     let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
     assert!(value["runs"][0]["automationDetails"].is_null());
 
-    report.metadata.insert("category".to_owned(), json!(7));
+    report
+        .metadata
+        .insert("category".to_owned(), crate::JsonEvidence::from(7_usize));
     let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
     assert!(value["runs"][0]["automationDetails"].is_null());
 }

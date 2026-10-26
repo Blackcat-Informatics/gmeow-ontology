@@ -758,7 +758,8 @@ fn deep_pass_permitted_glut_stays_green_with_certificate() {
         "the deep pass must attach a coherence certificate"
     );
     let cert = report.metadata["coherence_certificate"]
-        .as_str()
+        .string()
+        .unwrap()
         .expect("certificate is serialized as N-Quads string");
     assert!(
         cert.contains("permittedConflictWitness"),

@@ -33,7 +33,7 @@ fn main() -> gmeow_errors::Result<()> {
         )
         .into());
     }
-    let findings = serde_json::to_string(&report)?;
+    let findings = report.to_json()?;
     for relative in [
         "crates/validate-wasm/tests/WITNESS.validate.json",
         "crates/docs/assets/validate/WITNESS.validate.json",

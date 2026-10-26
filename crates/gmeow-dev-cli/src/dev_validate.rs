@@ -423,16 +423,15 @@ fn recorded_merged_shacl(root: &Path) -> Result<MergedShacl, i32> {
             path.display()
         ))
     })?;
-    let recorded: Report = serde_json::from_slice(&bytes).map_err(|e| {
+    let recorded = Report::from_json_slice(&bytes).map_err(|e| {
         fail(format!(
             "the recorded SHACL verdict at {} is not a diagnostics report: {e}",
             path.display()
         ))
     })?;
     let digest = recorded
-        .metadata
-        .get(gmeow_pipeline::stages::validate::SHACL_INPUT_DIGEST_KEY)
-        .and_then(serde_json::Value::as_str)
+        .metadata_string(gmeow_pipeline::stages::validate::SHACL_INPUT_DIGEST_KEY)
+        .map_err(|e| fail(format!("cannot read SHACL input digest: {e}")))?
         .ok_or_else(|| {
             fail(format!(
                 "the recorded SHACL verdict at {} carries no {} metadata, so the inputs it \

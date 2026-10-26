@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
-use purrdf_lex::json::{self, Object, Value, record::ToJson};
+use purrdf_lex::json::{self, Number, Object, Value, record::ToJson};
 use serde::Serialize;
 
 use crate::graph::{g, instances_of};
@@ -78,6 +78,35 @@ pub enum AxisOutcome {
 }
 
 impl AxisOutcome {
+    fn json_value(&self) -> gmeow_errors::Result<Value> {
+        Ok(match self {
+            Self::Passed { score, tier } | Self::Failed { score, tier } => {
+                let number = Number::from_f64(*score)
+                    .ok_or_else(|| invalid("quality metadata requires a finite score"))?;
+                Object::new()
+                    .with(
+                        "status",
+                        if matches!(self, Self::Passed { .. }) {
+                            "passed"
+                        } else {
+                            "failed"
+                        },
+                    )
+                    .with("score", Value::Number(number))
+                    .with("tier", tier.as_str())
+                    .into()
+            }
+            Self::NotApplicable { reason } => Object::new()
+                .with("status", "not_applicable")
+                .with("reason", reason.as_str())
+                .into(),
+            Self::Unsupported { reason } => Object::new()
+                .with("status", "unsupported")
+                .with("reason", reason.as_str())
+                .into(),
+        })
+    }
+
     /// Consumer-facing disposition including the measurement or explicit reason.
     #[must_use]
     pub fn description(&self) -> String {
@@ -118,6 +147,30 @@ pub struct ProfileAssessment {
 }
 
 impl ProfileAssessment {
+    /// Project the complete selected assessment into diagnostic metadata.
+    ///
+    /// # Errors
+    /// Refuses a nonfinite score rather than replacing numeric evidence with null.
+    pub fn json_value(&self) -> gmeow_errors::Result<Value> {
+        let mut outcomes = Object::new();
+        for (axis, outcome) in &self.outcomes {
+            outcomes.insert(axis, outcome.json_value()?);
+        }
+        Ok(Object::new()
+            .with("profile", self.profile.to_json())
+            .with("profile_identity", self.profile_identity.as_str())
+            .with("rubric_identity", self.rubric_identity.as_str())
+            .with("corpus_identity", self.corpus_identity.as_str())
+            .with("declared_imports", self.declared_imports.to_json())
+            .with("total_axes", self.total_axes)
+            .with("measured_axes", self.measured_axes)
+            .with("not_applicable_axes", self.not_applicable_axes)
+            .with("unsupported_axes", self.unsupported_axes)
+            .with("complete", self.complete)
+            .with("outcomes", outcomes)
+            .into())
+    }
+
     /// Bind every axis disposition to the actual grades and exact input file map.
     ///
     /// # Errors

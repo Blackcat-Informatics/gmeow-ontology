@@ -100,7 +100,7 @@ fn no_declared_no_required_always_passes() {
         vec![],
         vec![],
     );
-    let outcome = lint_report(&report, None, None);
+    let outcome = lint_report(&report, None, None).unwrap();
     assert!(outcome.passed);
     assert!(outcome.effective_bar.is_none());
     assert!(
@@ -125,7 +125,7 @@ fn declared_equal_to_measured_passes() {
         vec![],
     );
     let declared = tier("Linked", 2);
-    let outcome = lint_report(&report, Some(&declared), None);
+    let outcome = lint_report(&report, Some(&declared), None).unwrap();
     assert!(outcome.passed);
     assert_eq!(outcome.effective_bar, Some(tier("Linked", 2)));
 }
@@ -142,7 +142,7 @@ fn declared_above_measured_fails_with_below_bar_finding() {
         vec![],
     );
     let declared = tier("Exemplified", 3);
-    let outcome = lint_report(&report, Some(&declared), None);
+    let outcome = lint_report(&report, Some(&declared), None).unwrap();
     assert!(!outcome.passed);
     let below = outcome
         .findings
@@ -166,7 +166,7 @@ fn required_min_tier_above_measured_fails() {
         vec![],
     );
     let required = tier("Maximal", 4);
-    let outcome = lint_report(&report, None, Some(&required));
+    let outcome = lint_report(&report, None, Some(&required)).unwrap();
     assert!(!outcome.passed);
     assert_eq!(outcome.effective_bar, Some(tier("Maximal", 4)));
 }
@@ -183,9 +183,9 @@ fn effective_bar_is_the_higher_rank_of_declared_and_required() {
     );
     let low = tier("Grounded", 1);
     let high = tier("Linked", 2);
-    let a = lint_report(&report, Some(&low), Some(&high));
+    let a = lint_report(&report, Some(&low), Some(&high)).unwrap();
     assert_eq!(a.effective_bar, Some(tier("Linked", 2)));
-    let b = lint_report(&report, Some(&high), Some(&low));
+    let b = lint_report(&report, Some(&high), Some(&low)).unwrap();
     assert_eq!(b.effective_bar, Some(tier("Linked", 2)));
 }
 
@@ -228,7 +228,7 @@ fn advisory_severity_graded_by_axis_and_bar_missing_template_stays_info() {
         ],
     );
     let bar = tier("Linked", 2);
-    let outcome = lint_report(&report, Some(&bar), None);
+    let outcome = lint_report(&report, Some(&bar), None).unwrap();
     assert!(!outcome.passed);
 
     let grounding = outcome
@@ -294,7 +294,7 @@ fn stored_axis_provenance_attributes_even_when_the_code_textually_mismatches_the
         vec![axis_iri("Grounding")],
     );
     let bar = tier("Linked", 2);
-    let outcome = lint_report(&report, Some(&bar), None);
+    let outcome = lint_report(&report, Some(&bar), None).unwrap();
     let finding = outcome
         .findings
         .findings
@@ -358,7 +358,7 @@ fn lint_sarif_uses_real_file_level_slice_sources_without_fake_spans() {
         vec![axis_iri("Grounding"), axis_iri("Grounding")],
     );
 
-    let outcome = lint_report(&report, None, None);
+    let outcome = lint_report(&report, None, None).unwrap();
     let paths: Vec<&str> = outcome
         .findings
         .findings
@@ -398,7 +398,7 @@ fn term_finding_without_module_uses_manifest_not_shared_ontology() {
     );
     report.remove_module_source_for_test();
 
-    let outcome = lint_report(&report, None, None);
+    let outcome = lint_report(&report, None, None).unwrap();
     let location = outcome.findings.findings[0]
         .locations
         .first()
@@ -420,13 +420,13 @@ fn degenerate_empty_grade_slice_does_not_panic() {
     let report = report_with(vec![], vec![], bottom.clone(), vec![], vec![]);
 
     // No bar at all → trivially passes, no panic.
-    let advisory_only = lint_report(&report, None, None);
+    let advisory_only = lint_report(&report, None, None).unwrap();
     assert!(advisory_only.passed);
     let _ = advisory_only.render_text(&report);
 
     // A bar strictly above the empty-meet bottom → fails cleanly, no panic.
     let bar = tier("Grounded", 1);
-    let gated = lint_report(&report, Some(&bar), None);
+    let gated = lint_report(&report, Some(&bar), None).unwrap();
     assert!(!gated.passed);
     assert_eq!(gated.effective_bar, Some(bar));
     let rendered = gated.render_text(&report);

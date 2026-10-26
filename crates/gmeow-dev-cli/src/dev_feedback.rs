@@ -136,9 +136,10 @@ pub fn external_tool(
     };
 
     let mut report = external_report(name, command, code, &stdout, &stderr);
-    report
-        .metadata
-        .insert("category".into(), serde_json::json!(config.category));
+    report.metadata.insert(
+        "category".into(),
+        gmeow_errors::JsonEvidence::from(config.category.clone()),
+    );
 
     let reporter = reporter_for(config.console);
     reporter.report(&report.normalized());
@@ -244,9 +245,10 @@ pub fn feedback(
             .into_iter()
             .map(|(label, thunk)| (label, thunk(&root))),
     );
-    report
-        .metadata
-        .insert("category".into(), serde_json::json!(config.category));
+    report.metadata.insert(
+        "category".into(),
+        gmeow_errors::JsonEvidence::from(config.category.clone()),
+    );
 
     reporter_for(config.console).report(&report.normalized());
     if let Err(code) = write_artifacts(&report, &config) {
@@ -340,7 +342,7 @@ fn record_gate_verdict(report: &mut Report, key: &str, accepted: bool) {
     };
     report
         .metadata
-        .insert(key.to_owned(), serde_json::json!(verdict));
+        .insert(key.to_owned(), verdict.as_str().into());
 }
 
 /// Produce the build-drift observation once and retain its native gate decision.

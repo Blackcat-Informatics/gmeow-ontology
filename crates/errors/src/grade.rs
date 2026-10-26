@@ -487,6 +487,14 @@ pub enum GateVerdict {
 
 impl GateVerdict {
     pub const ALL: [GateVerdict; 2] = [GateVerdict::Collected, GateVerdict::Fatal];
+
+    /// Stable spelling used by native diagnostic metadata.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Collected => "collected",
+            Self::Fatal => "fatal",
+        }
+    }
 }
 
 impl BoundedLattice for GateVerdict {

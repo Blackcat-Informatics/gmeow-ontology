@@ -803,16 +803,14 @@ impl Finding {
     }
 }
 
-/// A complete diagnostics report for one developer tool run.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// A complete diagnostics report for one developer tool run. JSON uses the
+/// native versioned codec; Serde is reserved for full-publication binary storage.
+#[derive(Debug, Clone, PartialEq)]
 pub struct Report {
     pub tool: String,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub findings: Vec<Finding>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub rules: Vec<Rule>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub metadata: BTreeMap<String, serde_json::Value>,
+    pub metadata: BTreeMap<String, crate::JsonEvidence>,
 }
 
 impl Report {
@@ -935,6 +933,8 @@ impl Report {
 }
 
 mod json;
+mod report_binary;
+pub use json::REPORT_JSON_SCHEMA;
 
 #[path = "model.tests.rs"]
 #[cfg(test)]

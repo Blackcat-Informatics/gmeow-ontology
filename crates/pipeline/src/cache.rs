@@ -102,7 +102,7 @@ pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
 /// The structural codec identity. This is explicit in every action key rather than
 /// relying only on [`CACHE_VERSION`], because a receipt must name the representation
 /// it authenticates without knowing its storage path.
-pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor1+receipt-json-2";
+pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir3+typed-payload6+compiled-logic-cbor1+diagnostics-cbor2+receipt-json-2";
 
 /// Complete independently reusable contributions use the shared store's byte
 /// budget. Stage disposition and authenticated output selection determine which
