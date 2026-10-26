@@ -3,6 +3,83 @@
 
 use super::*;
 
+#[test]
+fn parallel_math_recording_preserves_prefix_state_and_both_artifact_sets() {
+    let preceding = BTreeMap::from([("pipeline/preceding".to_owned(), vec![0, 255, 17])]);
+    let math = BTreeMap::from([
+        ("pipeline/math".to_owned(), vec![2, 0, 255]),
+        ("pipeline/lint".to_owned(), vec![3, 4]),
+    ]);
+    let (state, artifacts) = record_parallel_math(
+        || Ok(("prepared operators and graph", preceding)),
+        || Ok(math),
+    )
+    .expect("independent recorder products");
+    assert_eq!(state, "prepared operators and graph");
+    assert_eq!(
+        artifacts,
+        BTreeMap::from([
+            ("pipeline/preceding".to_owned(), vec![0, 255, 17]),
+            ("pipeline/math".to_owned(), vec![2, 0, 255]),
+            ("pipeline/lint".to_owned(), vec![3, 4]),
+        ])
+    );
+}
+
+#[test]
+fn parallel_math_recording_refuses_even_identical_duplicate_artifact_ownership() {
+    for bytes in [b"same".to_vec(), b"different".to_vec()] {
+        let preceding = BTreeMap::from([
+            ("pipeline/z-duplicate".to_owned(), b"same".to_vec()),
+            ("pipeline/a-duplicate".to_owned(), b"same".to_vec()),
+        ]);
+        let math = BTreeMap::from([
+            ("pipeline/z-duplicate".to_owned(), bytes.clone()),
+            ("pipeline/a-duplicate".to_owned(), bytes),
+        ]);
+        let error = record_parallel_math(|| Ok(((), preceding)), || Ok(math))
+            .expect_err("every logical artifact has one owner")
+            .to_string();
+        assert!(error.contains("\"pipeline/a-duplicate\""), "{error}");
+        assert!(!error.contains("\"pipeline/z-duplicate\""), "{error}");
+    }
+}
+
+#[test]
+fn parallel_math_recording_finishes_both_branches_and_preserves_error_priority() {
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    for (preceding_fails, math_fails, expected) in [
+        (true, false, "preceding recorder failed"),
+        (false, true, "math recorder failed"),
+        (true, true, "preceding recorder failed"),
+    ] {
+        let completed = [AtomicBool::new(false), AtomicBool::new(false)];
+        let error = record_parallel_math(
+            || {
+                completed[0].store(true, Ordering::SeqCst);
+                if preceding_fails {
+                    Err(stage_err("preceding recorder failed"))
+                } else {
+                    Ok(((), BTreeMap::new()))
+                }
+            },
+            || {
+                completed[1].store(true, Ordering::SeqCst);
+                if math_fails {
+                    Err(stage_err("math recorder failed"))
+                } else {
+                    Ok(BTreeMap::new())
+                }
+            },
+        )
+        .expect_err("a selected branch failure prevents publication")
+        .to_string();
+        assert!(error.contains(expected), "{error}");
+        assert!(completed.iter().all(|done| done.load(Ordering::SeqCst)));
+    }
+}
+
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
