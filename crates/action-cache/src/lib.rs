@@ -1255,7 +1255,7 @@ fn digest_bounded(
     let mut reader = File::open(path)?.take(max_bytes.saturating_add(1));
     let mut hasher = Sha256::new();
     let mut total = 0_u64;
-    let mut buffer = [0_u8; 1024 * 1024];
+    let mut buffer = vec![0_u8; 1024 * 1024];
     loop {
         let read = reader.read(&mut buffer)?;
         if read == 0 {

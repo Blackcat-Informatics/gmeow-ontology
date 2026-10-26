@@ -1614,7 +1614,8 @@ fn digest_input_file(path: &Path) -> std::io::Result<String> {
 
     let mut input = std::io::BufReader::new(std::fs::File::open(path)?);
     let mut hash = Sha256::new();
-    let mut buffer = [0_u8; 1024 * 1024];
+    // Nested Rayon work may suspend this caller above another stage's hashing.
+    let mut buffer = vec![0_u8; 1024 * 1024];
     loop {
         let read = input.read(&mut buffer)?;
         if read == 0 {

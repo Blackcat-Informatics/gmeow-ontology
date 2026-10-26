@@ -53,12 +53,12 @@ fn cold_publish_and_warm_read_share_one_receipt() {
     let temp = tempfile::tempdir().unwrap();
     let cache = store(temp.path());
     let context = context("round-trip", vec![]);
-    let receipt = cache
-        .publish(&context, "semantic", 7_u32, b"payload")
-        .unwrap();
+    let bytes = vec![0xa5_u8; 2 * 1024 * 1024 + 17];
+    let receipt = cache.publish(&context, "semantic", 7_u32, &bytes).unwrap();
+    assert_eq!(cache.inspect::<u32>(&context).unwrap().unwrap(), receipt);
     let hit = cache.get::<u32>(&context).unwrap().unwrap();
     assert_eq!(hit.receipt, receipt);
-    assert_eq!(hit.bytes, b"payload");
+    assert_eq!(hit.bytes, bytes);
 }
 
 #[test]

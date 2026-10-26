@@ -856,7 +856,7 @@ fn executable_sha256(path: &Path) -> Result<String> {
         ))
     })?;
     let mut hasher = Sha256::new();
-    let mut buffer = [0_u8; 1024 * 1024];
+    let mut buffer = vec![0_u8; 1024 * 1024];
     loop {
         let count = file.read(&mut buffer).map_err(|error| {
             fail(format!(
