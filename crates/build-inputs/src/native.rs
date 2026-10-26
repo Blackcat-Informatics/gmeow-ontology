@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::{Result, digest, fail};
+use crate::{Result, checked_path, digest, fail};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -12,6 +12,23 @@ const NATIVE_ROOTS: &[&str] = &[
     "crates/term-arena/src/lib.rs",
     "crates/ns/src/lib.rs",
 ];
+
+/// The exact directory observation emitted by the native build script. A missing
+/// configuration directory is observed through its parent so its creation is seen.
+pub(crate) fn configuration_watch_owner(workspace: &Path) -> Result<String> {
+    let directory = workspace.join(".cargo");
+    match std::fs::symlink_metadata(&directory) {
+        Ok(_) => {
+            let directory = checked_path(workspace, Path::new(".cargo"))?;
+            if !directory.is_dir() {
+                return Err(fail("native Cargo configuration owner is not a directory"));
+            }
+            Ok(".cargo".into())
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(String::new()),
+        Err(error) => Err(fail(format!("read {}: {error}", directory.display()))),
+    }
+}
 
 /// The immutable upstream source behind native datatype and entailment semantics.
 /// Reading the declared pin is portable and performs no compiler or host discovery.
@@ -73,7 +90,8 @@ impl NativeSources {
 
     /// Watch selected sources and the manifests/configuration proving macro ownership.
     /// Test subtrees remain outside this source contract.
-    pub fn emit_cargo_rerun_directives(&self, workspace: &Path) {
+    pub fn emit_cargo_rerun_directives(&self, workspace: &Path) -> Result<()> {
+        let config_owner = configuration_watch_owner(workspace)?;
         for path in self.files.keys() {
             println!("cargo:rerun-if-changed={}", workspace.join(path).display());
         }
@@ -89,12 +107,10 @@ impl NativeSources {
         }
         // Cargo recursively watches a directory, including new config files. An
         // absent file watch would instead make every invocation rerun this build.
-        let config_directory = workspace.join(".cargo");
-        let config_owner = if config_directory.is_dir() {
-            config_directory.as_path()
-        } else {
-            workspace
-        };
-        println!("cargo:rerun-if-changed={}", config_owner.display());
+        println!(
+            "cargo:rerun-if-changed={}",
+            workspace.join(config_owner).display()
+        );
+        Ok(())
     }
 }

@@ -53,7 +53,9 @@ fn embed_verify_queries(workspace: &Path) {
 fn embed_native_sources(workspace: &Path) {
     let sources = gmeow_build_inputs::NativeSources::collect(workspace)
         .expect("canonical native source ownership");
-    sources.emit_cargo_rerun_directives(workspace);
+    sources
+        .emit_cargo_rerun_directives(workspace)
+        .expect("native configuration watch ownership");
     let digest = sources.digest().expect("native semantic source digest");
     let mut generated = format!(
         "/// Portable identity of the complete canonical native kernel.\npub const NATIVE_SOURCE_CONTRACT: &str = {digest:?};\n"
