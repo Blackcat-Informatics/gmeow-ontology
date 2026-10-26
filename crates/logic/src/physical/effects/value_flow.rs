@@ -2819,6 +2819,106 @@ impl ValueFlow {
         self.refine_enabled(effects, input, &vec![true; self.rules.len()])
     }
 
+    /// Join matching producer atoms in this flow's shared value universe. The
+    /// inventory stays template-sized instead of retaining one copy per world.
+    pub(crate) fn union_effect(
+        &self,
+        combined: &mut ProducerEffect,
+        local: &ProducerEffect,
+    ) -> gmeow_errors::Result<()> {
+        if combined.name != local.name
+            || combined.rule_key != local.rule_key
+            || combined.atomic_group != local.atomic_group
+            || combined.completion_obligations != local.completion_obligations
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                detail: "producer metadata differs from the selected template".into(),
+            }));
+        }
+        if !local.reachable() {
+            return Ok(());
+        }
+        if !combined.reachable() {
+            combined.writes.clone_from(&local.writes);
+            combined.reads.clone_from(&local.reads);
+            combined.completion_for.clone_from(&local.completion_for);
+            return Ok(());
+        }
+        if combined.writes.len() != local.writes.len()
+            || combined.reads.len() != local.reads.len()
+            || combined.completion_for.len() != local.completion_for.len()
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                detail: "reachable producer atom counts differ from the selected template".into(),
+            }));
+        }
+        for (pattern, local) in combined.writes.iter_mut().zip(&local.writes) {
+            self.union_pattern(pattern, local)?;
+        }
+        for ((pattern, dependency), (local, local_dependency)) in
+            combined.reads.iter_mut().zip(&local.reads)
+        {
+            self.union_pattern(pattern, local)?;
+            // A certified world's positive read cannot erase a sibling's
+            // requirement for actual completion.
+            if *local_dependency == crate::physical::dependency::ReadDependency::Completed {
+                *dependency = crate::physical::dependency::ReadDependency::Completed;
+            }
+        }
+        for (pattern, local) in combined
+            .completion_for
+            .iter_mut()
+            .zip(&local.completion_for)
+        {
+            self.union_pattern(pattern, local)?;
+        }
+        Ok(())
+    }
+
+    fn union_pattern(
+        &self,
+        combined: &mut StatementPattern,
+        local: &StatementPattern,
+    ) -> gmeow_errors::Result<()> {
+        if combined.subject != local.subject || combined.object != local.object {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                detail: "source atom constants differ between world envelopes".into(),
+            }));
+        }
+        if combined.ranges.is_none()
+            && local.ranges.is_none()
+            && combined.predicate == local.predicate
+        {
+            return Ok(());
+        }
+        let mut domains = combined
+            .ranges
+            .take()
+            .unwrap_or_else(|| self.pattern_domains(combined));
+        let unrefined;
+        let local_domains = if let Some(domains) = &local.ranges {
+            domains
+        } else {
+            unrefined = self.pattern_domains(local);
+            &unrefined
+        };
+        for (domain, local) in domains.iter_mut().zip(local_domains) {
+            if domain.0.len() != local.0.len() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                    detail: "world envelopes use different value universes".into(),
+                }));
+            }
+            domain.union(local);
+        }
+        // A previous singleton specialization is no longer sound when another
+        // world's corresponding atom selects a different predicate.
+        if combined.predicate != local.predicate {
+            combined.predicate = None;
+        }
+        self.restrict(combined, domains);
+        Ok(())
+    }
+
     /// Scope producer reachability before evaluating abstract bindings. A source
     /// rule owned by another world cannot seed a local writer or dependency.
     pub(crate) fn refine_enabled(

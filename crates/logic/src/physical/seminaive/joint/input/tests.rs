@@ -80,6 +80,134 @@ fn dependency_cycle(input: &JointInput) -> crate::physical::dependency::Dependen
 }
 
 #[test]
+fn world_effect_union_preserves_join_separation_and_completed_reads() {
+    let joined = EvalRule::positive(
+        "urn:join",
+        atom("?x", "urn:joined", "urn:value"),
+        vec![
+            atom("?x", "urn:left-premise", "urn:value"),
+            atom("?x", "urn:right-premise", "urn:value"),
+        ],
+    );
+    let mut absent = atom("?x", "urn:blocked", "urn:value");
+    absent.negated = true;
+    let completed = EvalRule::positive(
+        "urn:complete",
+        atom("?x", "urn:complete", "urn:value"),
+        vec![atom("?x", "urn:joined", "urn:value"), absent],
+    );
+    let template = Arc::new(
+        JointTemplate::new(&[joined, completed], &[], &[], SemanticVocabulary::Exact).unwrap(),
+    );
+    for owner in [None, Some("urn:left-world"), Some("urn:right-world")] {
+        let mut facts = BTreeMap::from([
+            ("urn:left-world".to_owned(), Vec::new()),
+            ("urn:right-world".to_owned(), Vec::new()),
+        ]);
+        facts
+            .get_mut(owner.unwrap_or("urn:left-world"))
+            .unwrap()
+            .push(fact_iri("urn:subject", "urn:left-premise", "urn:value"));
+        facts
+            .get_mut(owner.unwrap_or("urn:right-world"))
+            .unwrap()
+            .push(fact_iri("urn:subject", "urn:right-premise", "urn:value"));
+        let input = template.input(&facts, Arc::from([]), &[]).unwrap();
+        assert_eq!(
+            input.effects.len(),
+            2,
+            "unreachable producer slots must remain"
+        );
+        assert_eq!(input.effects[0].reachable(), owner.is_some());
+        assert_eq!(input.effects[1].reachable(), owner.is_some());
+        if owner.is_some() {
+            assert!(input.effects[1].reads.iter().any(|(_, dependency)| {
+                *dependency == crate::physical::dependency::ReadDependency::Completed
+            }));
+        }
+        let NativeOutcome::Decided(plan) = input.prepare().unwrap() else {
+            panic!("the finite join and completed read must be stratifiable")
+        };
+        let NativeOutcome::Decided(result) = plan.materialize_input(&input, None).unwrap() else {
+            panic!("the finite authored input must decide")
+        };
+        assert_eq!(result.result.status, BudgetStatus::Ok);
+        let derived: BTreeSet<_> = result
+            .result
+            .rows
+            .iter()
+            .filter(|row| matches!(row.predicate.as_str(), "urn:joined" | "urn:complete"))
+            .map(|row| (row.graph.as_str(), row.predicate.as_str()))
+            .collect();
+        let expected = owner
+            .into_iter()
+            .flat_map(|world| [(world, "urn:joined"), (world, "urn:complete")])
+            .collect();
+        assert_eq!(derived, expected, "only co-located premises may fire");
+    }
+}
+
+#[test]
+fn world_effect_union_retains_distinct_data_selected_predicates() {
+    let selected = PreparedPropertyRule::new(PropertyRule {
+        rule_iri: "urn:selected-predicate".into(),
+        head: property(["?x", "?predicate", "urn:value"]),
+        body: vec![property(["?x", "urn:select-predicate", "?predicate"])],
+        operation: None,
+        guards: Vec::new(),
+    })
+    .unwrap();
+    let template =
+        Arc::new(JointTemplate::new(&[], &[], &[selected], SemanticVocabulary::Exact).unwrap());
+    let facts = BTreeMap::from([
+        (
+            "urn:left-world".into(),
+            vec![fact_iri("urn:left", "urn:select-predicate", "urn:p")],
+        ),
+        (
+            "urn:right-world".into(),
+            vec![fact_iri("urn:right", "urn:select-predicate", "urn:q")],
+        ),
+    ]);
+    let input = template.input(&facts, Arc::from([]), &[]).unwrap();
+    assert_eq!(
+        input.effects[0].writes.len(),
+        1,
+        "world count must not multiply aggregate atoms"
+    );
+    for (predicate, possible) in [("urn:p", true), ("urn:q", true), ("urn:r", false)] {
+        assert_eq!(
+            input
+                .flow
+                .overlapping_writer(
+                    &StatementPattern::relation(Some(predicate), None),
+                    &input.effects,
+                )
+                .is_some(),
+            possible,
+            "{predicate}"
+        );
+    }
+    let NativeOutcome::Decided(plan) = input.prepare().unwrap() else {
+        panic!("data-selected finite predicates must be stratifiable")
+    };
+    let NativeOutcome::Decided(result) = plan.materialize_input(&input, None).unwrap() else {
+        panic!("both selected worlds must decide")
+    };
+    let derived: BTreeSet<_> = result
+        .result
+        .rows
+        .iter()
+        .filter(|row| matches!(row.predicate.as_str(), "urn:p" | "urn:q" | "urn:r"))
+        .map(|row| (row.graph.as_str(), row.predicate.as_str()))
+        .collect();
+    assert_eq!(
+        derived,
+        BTreeSet::from([("urn:left-world", "urn:p"), ("urn:right-world", "urn:q")])
+    );
+}
+
+#[test]
 fn maximum_one_schema_exports_its_native_count_guard_to_value_flow() {
     let laws: Vec<_> = crate::reason::schema_laws()
         .iter()

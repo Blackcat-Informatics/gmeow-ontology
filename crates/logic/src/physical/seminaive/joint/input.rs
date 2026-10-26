@@ -595,6 +595,14 @@ impl JointTemplate {
                 ));
             }
         }
+        if let Some((owner, _)) = possible
+            .iter()
+            .find(|(owner, _)| !facts.contains_key(owner))
+        {
+            return Err(seminaive_err(format!(
+                "possible native output has no admitted owner world: {owner}"
+            )));
+        }
         if contextual_effects
             .iter()
             .any(|effect| !facts.contains_key(&effect.owner))
@@ -705,27 +713,6 @@ impl JointTemplate {
             );
         }
         let shape = summary.identity(&flow_contract);
-        let effects_started = crate::timing::Instant::now();
-        if trace_large_input {
-            tracing::info!(
-                target: "pipeline_reasoning_detail",
-                phase = "refine-native-global-effects",
-                event = "start",
-                effects = self.effects.len(),
-                "large native reasoning input",
-            );
-        }
-        let effects = self.effects(&flow, &summary, shape)?;
-        if trace_large_input {
-            tracing::info!(
-                target: "pipeline_reasoning_detail",
-                phase = "refine-native-global-effects",
-                event = "end",
-                elapsed_ms = effects_started.elapsed().as_millis(),
-                refined_effects = effects.len(),
-                "large native reasoning input",
-            );
-        }
         let mut world_effects = BTreeMap::new();
         let mut constructor_lists = BTreeMap::new();
         let mut world_shapes = Vec::new();
@@ -809,6 +796,77 @@ impl JointTemplate {
                 );
             }
         }
+        let effects_started = crate::timing::Instant::now();
+        let effects_phase = if facts.is_empty() {
+            "refine-native-empty-effects"
+        } else {
+            "aggregate-native-world-effects"
+        };
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = effects_phase,
+                event = "start",
+                worlds = world_effects.len(),
+                "large native reasoning input",
+            );
+        }
+        let effects = if facts.is_empty() {
+            // An empty map still admits bodyless producers and the existing
+            // complete abstract analysis; it is not an empty effect inventory.
+            self.effects(&flow, &summary, shape)?
+        } else {
+            // Execution is world-local. Every actual firing is covered by one
+            // final scoped envelope, so their disjunction covers global writer
+            // and reachability queries without another cross-world closure.
+            // Preserve slots and all metadata, even for unreachable producers.
+            let mut combined = self.effects.clone();
+            for effect in &mut combined {
+                effect.writes.clear();
+                effect.reads.clear();
+                effect.completion_for.clear();
+            }
+            for (world, scoped) in &world_effects {
+                if scoped.len() != combined.len() {
+                    return Err(seminaive_err(format!(
+                        "native world {world} has {} producer effects; expected {}",
+                        scoped.len(),
+                        combined.len(),
+                    )));
+                }
+                for ((effect, local), template) in
+                    combined.iter_mut().zip(scoped.iter()).zip(&self.effects)
+                {
+                    if local.reachable()
+                        && (local.writes.len() != template.writes.len()
+                            || local.reads.len() != template.reads.len()
+                            || local.completion_for.len() != template.completion_for.len())
+                    {
+                        return Err(seminaive_err(format!(
+                            "native world {world} producer {} has an atom inventory different from its template",
+                            template.name(),
+                        )));
+                    }
+                    flow.union_effect(effect, local).map_err(|diagnostic| {
+                        diagnostic.with_context(format!(
+                            "joining the native world {world} effect envelope for producer {}",
+                            effect.name(),
+                        ))
+                    })?;
+                }
+            }
+            Arc::new(combined)
+        };
+        if trace_large_input {
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = effects_phase,
+                event = "end",
+                elapsed_ms = effects_started.elapsed().as_millis(),
+                effects = effects.len(),
+                "large native reasoning input",
+            );
+        }
         let termination_started = crate::timing::Instant::now();
         if trace_large_input {
             tracing::info!(
@@ -880,10 +938,10 @@ impl JointTemplate {
         })
     }
 
-    /// At most eight complete abstract analyses, each with at most one MiB of
-    /// formatted metadata. Source facts never enter this cache. Distinct exact
-    /// static bindings can share the expensive full-reachability analysis while
-    /// retaining independent termination admissions and executable schedules.
+    /// Complete analysis for an operation selecting no world partitions, retaining
+    /// bodyless producer semantics. The existing cache holds at most eight analyses,
+    /// each with at most one MiB of formatted metadata, and never source facts.
+    /// Partitioned inputs instead aggregate their final world-local envelopes.
     fn effects(
         &self,
         flow: &ValueFlow,
