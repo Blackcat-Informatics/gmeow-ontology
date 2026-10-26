@@ -1,0 +1,144 @@
+{
+  "issue": 1969,
+  "pr_number": 1970,
+  "branch": "paudley/1969-use-native-json-for-term-release",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1969-use-native-json-for-term-release/.stage/use-native-json-for-term-release",
+  "observed_at": "2026-10-26T18:36:54.122833+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "2 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1969-use-native-json-for-term-release/.stage/use-native-json-for-term-release/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1969-use-native-json-for-term-release/.stage/use-native-json-for-term-release/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1969-use-native-json-for-term-release/.stage/use-native-json-for-term-release/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1969-use-native-json-for-term-release/.stage/use-native-json-for-term-release/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1969-use-native-json-for-term-release/.stage/use-native-json-for-term-release/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "f70558f87aaf2a91269f8b20047836e6ba0cc4da",
+    "headRefName": "paudley/1969-use-native-json-for-term-release",
+    "headRefOid": "f7a5a0f40f68264eb05336d8300618093ba98dda",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1970,
+    "state": "OPEN",
+    "title": "Use native JSON for term release-authority evidence",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1970"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40378083790/job/121768255561",
+        "name": "generation (a)",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40378083790/job/121768255491",
+        "name": "generation (b)",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40378083790/job/121768255548",
+        "name": "fixture-prefix",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40378083790/job/121767206895",
+        "name": "producer-build",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40378083790/job/121767206625",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40378083790/job/121767207153",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40378083790/job/121767207055",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "",
+        "name": "CodeRabbit",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "f7a5a0f40f68264eb05336d8300618093ba98dda",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 2,
+    "change_token": "5a0bce9779877d99a27d9cc0294df6554862c83984b8f08b2dd28e0c465ae0ab"
+  },
+  "local": {
+    "head": "f7a5a0f40f68264eb05336d8300618093ba98dda",
+    "branch": "paudley/1969-use-native-json-for-term-release",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1970,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1970 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABft4phA",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1970#issuecomment-6423456132",
+      "kind": "comment"
+    },
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABfun3XQ",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1970#issuecomment-6424229725",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

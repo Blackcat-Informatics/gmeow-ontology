@@ -1,0 +1,45 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Part of #1776. Migrate the complete term release-authority JSON family to the existing native record codecs.\n\nThe owning implementation is `crates/pipeline/src/stages/term_manifest.rs`: private PriorTerm and ReleaseAuthority records, the required previous-release reader, and the explicit maintainer refresh writer. The synthetic fixed-point test has one matching writer. No Report metadata or other transport depends on these records.\n\nAcceptance:\n\n- Wire the actual reader and maintainer writer through native JSON records and remove this family's Serde derives and calls. Do not add a parallel parser or compatibility path.\n- Preserve named fields and their output order, compact output plus one newline, sorted term keys, omitted empty changed_versions, missing-history default and null refusal. Unknown members remain ignored; duplicate declared fields are refused. Positional struct arrays are outside the authored authority format.\n- Preserve all existing schema, release ordering, namespace, digest and history checks, atomic publication, bootstrap refusal, same-release mutation refusal and fixed-point no-op behavior.\n- Qualify those behaviors using authored component bytes and tiny existing synthetic datasets, scoped strict production-consumer compilation, normal hooks and independent source review. No test builds repository corpus artifacts.\n- Do not regenerate or advance the tracked authority, run a local optimized producer, alter release policy or claim full #1776 completion. Hosted corpus and installed acceptance remain with the existing parent contracts.\n\nPrinciples 4 and 7 apply.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-26T17:34:24Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1969,
+  "state": "OPEN",
+  "title": "Use native JSON for term release-authority evidence",
+  "updatedAt": "2026-10-26T17:34:57Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1969"
+}
