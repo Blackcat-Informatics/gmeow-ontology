@@ -3,6 +3,102 @@
 
 use super::*;
 
+const AUTHORITY_TERM: &str = "https://blackcatinformatics.ca/gmeow/Term";
+const PRIOR_TERM_WIRE: &str = concat!(
+    r#"{"digest":"blake3:"#,
+    "0000000000000000000000000000000000000000000000000000000000000000",
+    r#"","first_seen":"1.0.0"}"#,
+);
+
+fn authority_wire(terms: &str) -> String {
+    format!(
+        r#"{{"schema":"gmeow.term-content-authority.v1","release":"1.2.0","terms":{{{terms}}}}}"#
+    )
+}
+
+#[test]
+fn native_release_authority_preserves_canonical_wire_and_history() {
+    let wire = authority_wire(&format!(r#""{AUTHORITY_TERM}":{PRIOR_TERM_WIRE}"#));
+    let mut document = json::read_slice(wire.as_bytes(), json::Limits::DEFAULT)
+        .expect("authored authority document");
+    document["future"] = Value::Null;
+    document["terms"][AUTHORITY_TERM]["future"] = Value::Array(Vec::new());
+    let mut authority = ReleaseAuthority::from_json(&document).expect("named authority records");
+    validate_release_authority(&authority).expect("authority domain admission");
+    assert_eq!(json::record::to_vec(&authority), wire.as_bytes());
+    assert!(authority.terms[AUTHORITY_TERM].changed_versions.is_empty());
+
+    authority
+        .terms
+        .get_mut(AUTHORITY_TERM)
+        .expect("selected term")
+        .changed_versions = vec!["1.1.0".to_owned(), "1.2.0".to_owned()];
+    let bytes = json::record::to_vec(&authority);
+    let decoded: ReleaseAuthority = json::record::from_slice(&bytes).expect("complete authority");
+    assert_eq!(decoded, authority);
+    validate_release_authority(&decoded).expect("retained release history");
+}
+
+#[test]
+fn native_release_authority_reader_refuses_ambiguous_or_invalid_evidence() {
+    let wire = authority_wire(&format!(r#""{AUTHORITY_TERM}":{PRIOR_TERM_WIRE}"#));
+    let root = tempfile::tempdir().expect("synthetic authority directory");
+    let path = root.path().join(TERM_RELEASE_AUTHORITY_PATH);
+    std::fs::create_dir_all(path.parent().expect("authority parent")).expect("authority parent");
+    std::fs::write(&path, &wire).expect("valid authored authority");
+    read_release_authority(root.path()).expect("valid evidence before mutations");
+
+    for (name, bytes, message) in [
+        (
+            "duplicate schema",
+            wire.replace(r#""schema":"#, r#""schema":"duplicate","schema":"#),
+            "duplicate field",
+        ),
+        (
+            "duplicate digest",
+            wire.replace(r#""digest":"#, r#""digest":"duplicate","digest":"#),
+            "duplicate field",
+        ),
+        (
+            "duplicate term owner",
+            authority_wire(&format!(
+                r#""{AUTHORITY_TERM}":{PRIOR_TERM_WIRE},"{AUTHORITY_TERM}":{PRIOR_TERM_WIRE}"#
+            )),
+            "duplicate field",
+        ),
+        (
+            "null history",
+            wire.replace(
+                r#""first_seen":"1.0.0""#,
+                r#""first_seen":"1.0.0","changed_versions":null"#,
+            ),
+            "changed_versions",
+        ),
+        ("positional envelope", "[]".to_owned(), "authority object"),
+        (
+            "positional term record",
+            wire.replace(PRIOR_TERM_WIRE, "[]"),
+            "prior term authority object",
+        ),
+        (
+            "unsupported schema",
+            wire.replace("gmeow.term-content-authority.v1", "future"),
+            "declares schema",
+        ),
+        (
+            "empty term inventory",
+            authority_wire(""),
+            "carries no term records",
+        ),
+    ] {
+        std::fs::write(&path, bytes).expect("authored invalid evidence");
+        let error = read_release_authority(root.path())
+            .expect_err(name)
+            .to_string();
+        assert!(error.contains(message), "{name}: {error}");
+    }
+}
+
 fn repo_root() -> std::path::PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
@@ -285,11 +381,8 @@ fn fresh_and_warm_fixed_points_render_byte_identical_term_docs() {
     let authority_path = root.join(TERM_RELEASE_AUTHORITY_PATH);
     std::fs::create_dir_all(authority_path.parent().expect("authority parent"))
         .expect("authority directory");
-    std::fs::write(
-        &authority_path,
-        serde_json::to_vec_pretty(&authority).expect("serialize synthetic authority"),
-    )
-    .expect("write synthetic authority");
+    std::fs::write(&authority_path, json::write_pretty(&authority.to_json()))
+        .expect("write synthetic authority");
     let after = one_term_dataset("1.1.0", "After release", None);
 
     // The tiny fixture contains only release evidence. Explicit synthetic data

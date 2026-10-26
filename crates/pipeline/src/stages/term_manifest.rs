@@ -26,7 +26,10 @@ use std::path::Path;
 use purrdf::gts::writer::digest_string;
 use purrdf::slice::rdf_query::Dataset;
 use purrdf::{RdfQuad, RdfTerm};
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::{
+    self, Object, Value,
+    record::{DecodeError, FromJson, Record, ToJson, Within as _},
+};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
@@ -222,22 +225,73 @@ fn definition_digest(
 }
 
 /// The previous release's durable record for one term.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct PriorTerm {
     digest: String,
     first_seen: String,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     changed_versions: Vec<String>,
+}
+
+impl ToJson for PriorTerm {
+    fn to_json(&self) -> Value {
+        let mut record = Object::new()
+            .with("digest", self.digest.to_json())
+            .with("first_seen", self.first_seen.to_json());
+        if !self.changed_versions.is_empty() {
+            record.insert("changed_versions", self.changed_versions.to_json());
+        }
+        record.into()
+    }
+}
+
+impl FromJson for PriorTerm {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "prior term authority object")?;
+        Ok(Self {
+            digest: fields.required("digest")?,
+            first_seen: fields.required("first_seen")?,
+            changed_versions: fields.defaulted("changed_versions")?,
+        })
+    }
 }
 
 /// Versioned envelope around the previous-release term records. Keeping the
 /// ontology release in-band makes the semantic boundary explicit and reviewable;
 /// the path alone is never interpreted as authority.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct ReleaseAuthority {
     schema: String,
     release: String,
     terms: BTreeMap<String, PriorTerm>,
+}
+
+impl ToJson for ReleaseAuthority {
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("schema", self.schema.to_json())
+            .with("release", self.release.to_json())
+            .with("terms", self.terms.to_json())
+            .into()
+    }
+}
+
+impl FromJson for ReleaseAuthority {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "term release authority object")?;
+        Ok(Self {
+            schema: fields.required("schema")?,
+            release: fields.required("release")?,
+            terms: fields.required_with("terms", |value| {
+                let object = value.as_object().ok_or_else(|| {
+                    DecodeError::invalid_type(value, "release authority term map")
+                })?;
+                if let Some(term) = object.first_duplicate() {
+                    return Err(DecodeError::duplicate_field(term).within(term));
+                }
+                BTreeMap::from_json(value)
+            })?,
+        })
+    }
 }
 
 fn manifest_error(message: impl Into<String>) -> gmeow_errors::Diag {
@@ -344,7 +398,7 @@ fn read_release_authority(root: &Path) -> Result<ReleaseAuthority, gmeow_errors:
             path.display()
         ))
     })?;
-    let authority: ReleaseAuthority = serde_json::from_slice(&bytes).map_err(|error| {
+    let authority: ReleaseAuthority = json::record::from_slice(&bytes).map_err(|error| {
         manifest_error(format!(
             "cannot parse previous-release authority {}: {error}",
             path.display()
@@ -600,8 +654,7 @@ fn publish_release_authority(
     // Compact JSON is the canonical tracked encoding. The authority carries one
     // record per documented term, so pretty-print indentation alone can push the
     // evidence over repository file-size policy without adding information.
-    let mut bytes = serde_json::to_vec(&authority)
-        .map_err(|error| manifest_error(format!("serialize term release authority: {error}")))?;
+    let mut bytes = json::record::to_vec(&authority);
     bytes.push(b'\n');
     let parent = path.parent().ok_or_else(|| {
         manifest_error(format!(
