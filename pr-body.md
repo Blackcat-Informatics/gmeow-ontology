@@ -1,0 +1,5 @@
+Diagnostic meta-fixtures, gate matrices and projected reports now use native JSON from the complete observation models through every cache, aggregate publisher and authenticated reader. All eight meta-derivation fields remain intact, including internal traces and directed root, cluster and glut evidence. Fixed rows admit exactly two edge strings or three grade strings; malformed records fail with contextual errors. Obsolete Serde implementations are removed.
+
+Validation: all ten focused authored cases passed, including complete wire identity, malformed rows, recorded causal refusals and cache reuse without recomputation. Strict all-target checks for errors, pipeline and developer CLI passed; ownership checks, producer-recipe source admission, independent combined source review and normal signed hooks passed. No corpus was produced. Actual authenticated corpus and embedded/installed acceptance remain unqualified under the standing restriction and remain tracked by the parent.
+
+Closes #1975. References #1776 and #1336; their full acceptance remains open. Principles 4, 7, 12, 15, 17 and 18.

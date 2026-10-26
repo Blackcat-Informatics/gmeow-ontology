@@ -1,0 +1,20 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Behavior\n\nReplace the complete diagnostic-observation JSON channel with existing PurRDF native JSON mechanisms. Preserve all four observation records and the complete eight-field MetaDerivation, including internal traces, root and cluster evidence, directed glut edges, gate coordinates, category blocking, projections and full recorded failures.\n\n## Production closure\n\nMigrate every diagnostic meta-fixture, gate-matrix and report cache through the existing native cache operation; write the aggregate channel natively; migrate its authenticated reader and the existing direct MetaDerivation roundtrip. Keep rule execution, RDF projection, source selection, recorded-result semantics and output field ordering intact. Remove obsolete Serde derives only after confirming no remaining binary or JSON owner.\n\n## Acceptance\n\n- Complete native records preserve exact current compact JSON for admitted values and preserve set/map ordering and directed edge identity.\n- Fixed two-cell meta edges and three-cell gate coordinates refuse missing, extra or wrongly typed cells with contextual errors. Fixed records reject duplicate known fields and positional struct arrays.\n- Existing native cache coordination, full recorded diagnostic causes and authenticated reader boundaries remain intact; tests never produce the corpus.\n- Focused authored component controls, affected strict diagnostics, ownership checks, independent source review and normal signed hooks pass. Actual authenticated corpus execution remains parent acceptance under #1776 and is reported accurately under the standing local-production restriction.\n\nThis independently useful source transport delivery does not close #1776, #1336 or the validator witness acceptance in #1973. No new parser, generic serialization bridge, reasoning implementation or corpus production is in scope. Principles 4, 7, 12, 15, 17 and 18 apply.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-26T20:38:22Z",
+  "labels": [],
+  "milestone": null,
+  "number": 1975,
+  "state": "OPEN",
+  "title": "Use native JSON for complete diagnostic observations",
+  "updatedAt": "2026-10-26T20:38:22Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1975"
+}
