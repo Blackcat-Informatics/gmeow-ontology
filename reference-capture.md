@@ -1,0 +1,11 @@
+Complete original correspondence axes report reference
+
+Base: ae860831ee3579295c3bcd3a4b57f4b012aaef45. Root verified axes.rs, query_ir.rs, query_ir/json.rs, the actual pipeline publisher and Cargo.lock are unchanged before starting the original capture. Only the existing independently authored axes test is extended; no test case is added. Its source fixture compiles tiny inline RDF and never loads or produces the repository corpus.
+
+The original production report encoder remains Serde. The full report is printed between unique markers, with a separator LF outside its original payload. A second complete atlas uses original typed Serde owners, covering every AxisResult variant, both claimed values, finite decimal metadata and signed zero, ordered nested maps, raw Unicode/NUL and every frontier field including the full u64 maximum. No generic JSON reserialization, redaction, identity substitution or snapshot blessing is permitted. Only Nextest stdout framing may be removed with lossless reconstruction checked.
+
+The report contains no engine descriptor. Derived identifiers retain the actual provenance owner: byte-exact firing identity plus sorted source reifier IRIs. The original byte comparison must remain literal unless observed evidence establishes a separately justified input change. Preserve declaration order throughout records and variants; do not apply recursive key sorting.
+
+Command: NEXTEST_SUCCESS_OUTPUT=immediate make nextest-synthetic RUST_PREBUILD_WORKSPACE_ARGS='-p gmeow-logic --lib' NEXTEST_FILTER='package(gmeow-logic) & test(source_rules_compute_axes_without_overwriting_claims_or_losing_derivations)'. Root owns the serial command; result pending in reference-capture.log. Production edits wait for its actual terminal result and complete byte inspection.
+
+Original capture PASS: 2 minutes 47 seconds compilation and 0.154 second Nextest summary; one selected case passed, 2,187 excluded. Full report: 9,426 payload bytes; full projection atlas: 833 payload bytes. Each immutable fixture stores one additional LF. Root removed exactly four stdout framing spaces from every captured line and asserted lossless reconstruction, then inspected both complete outputs. No identity parameterization was needed. All production owners and lock remained base-equal until this terminal pass.

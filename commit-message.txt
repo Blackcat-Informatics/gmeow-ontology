@@ -1,0 +1,5 @@
+feat: render complete correspondence axes reports with native JSON
+
+Preserve the complete terminal report and nested projections through the native fallible pretty writer. Keep declaration order, exact numeric literals and derivation identities, with full original byte references in the existing authored control.
+
+Principles 4 and 7.

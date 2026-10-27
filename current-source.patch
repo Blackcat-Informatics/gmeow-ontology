@@ -1,0 +1,508 @@
+diff --git a/crates/logic/src/correspondence_exec/axes.rs b/crates/logic/src/correspondence_exec/axes.rs
+index 085ade0dd..dc096ce79 100644
+--- a/crates/logic/src/correspondence_exec/axes.rs
++++ b/crates/logic/src/correspondence_exec/axes.rs
+@@ -14,6 +14,7 @@ use gmeow_logic_compile::ir::{
+ };
+ use gmeow_logic_compile::relational_core::{RcRule, RcTerm, formula_analysis};
+ use purrdf::{RdfLiteral, TermValue};
++use purrdf_lex::json::{Format, Object, Value, record::ToJson};
+ 
+ use crate::materialize::{Materialization, MaterializationLimits, materialize_prepared_store};
+ use crate::store::WorldStore;
+@@ -39,8 +40,7 @@ fn error(detail: impl std::fmt::Display) -> gmeow_errors::Diag {
+ }
+ 
+ /// Explicit result of one selected coordinate; absent inputs are never zero or one.
+-#[derive(Debug, serde::Serialize)]
+-#[serde(tag = "status", rename_all = "kebab-case")]
++#[derive(Debug)]
+ pub enum AxisResult {
+     /// No rule for this axis was selected, and no composite value claimed.
+     NotSelected,
+@@ -53,6 +53,20 @@ pub enum AxisResult {
+     },
+ }
+ 
++impl ToJson for AxisResult {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::NotSelected => Object::new().with("status", "not-selected"),
++            Self::NotEvaluated => Object::new().with("status", "not-evaluated"),
++            Self::Computed { value, claimed } => Object::new()
++                .with("status", "computed")
++                .with("value", value.as_ref().to_json())
++                .with("claimed", claimed.to_json()),
++        }
++        .into()
++    }
++}
++
+ /// One immutable source-bound run. Restoring its report does not recreate authority.
+ #[derive(Debug)]
+ pub struct SourceAxes {
+@@ -81,35 +95,31 @@ impl SourceAxes {
+     }
+     /// Terminal observations only, distinct from source and native execution evidence.
+     pub fn report(&self) -> gmeow_errors::Result<Vec<u8>> {
+-        #[derive(serde::Serialize)]
+-        struct RunReport<'a> {
+-            rules: &'a [String],
+-            standpoint: &'a str,
+-            derivations: &'a [crate::seam::DerivedQuad],
+-            preservation: &'a crate::result::PreservationClaim,
+-            frontier: &'a crate::query_ir::CompletionFrontier,
+-        }
+-        #[derive(serde::Serialize)]
+-        struct Report<'a> {
+-            results: &'a BTreeMap<String, BTreeMap<String, AxisResult>>,
+-            runs: Vec<RunReport<'a>>,
+-        }
+-        let runs = self
+-            .runs
+-            .iter()
+-            .map(|run| RunReport {
+-                rules: &run.rules,
+-                standpoint: &run.standpoint,
+-                derivations: &run.materialization.quads,
+-                preservation: &run.materialization.preservation,
+-                frontier: &run.materialization.frontier,
++        let runs = Value::Array(
++            self.runs
++                .iter()
++                .map(|run| {
++                    Object::new()
++                        .with("rules", run.rules.to_json())
++                        .with("standpoint", run.standpoint.to_json())
++                        .with("derivations", run.materialization.quads.to_json())
++                        .with("preservation", run.materialization.preservation.to_json())
++                        .with("frontier", run.materialization.frontier.to_json())
++                        .into()
++                })
++                .collect(),
++        );
++        let report = Object::new()
++            .with("results", self.results.to_json())
++            .with("runs", runs)
++            .into();
++        let mut resident = purrdf_lex::allocation::Resident;
++        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
++        purrdf_lex::json::write_with_memory(&report, Format::PRETTY, &mut memory)
++            .map(String::into_bytes)
++            .map_err(|error| {
++                gmeow_errors::Diag::from(error).with_context("serialize correspondence axes report")
+             })
+-            .collect();
+-        serde_json::to_vec_pretty(&Report {
+-            results: &self.results,
+-            runs,
+-        })
+-        .map_err(error)
+     }
+ }
+ 
+diff --git a/crates/logic/src/correspondence_exec/axes/fixtures/projections-v1.json b/crates/logic/src/correspondence_exec/axes/fixtures/projections-v1.json
+new file mode 100644
+index 000000000..71c6647c2
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/axes/fixtures/projections-v1.json
+@@ -0,0 +1,42 @@
++[
++  {
++    "raw chain a": {},
++    "raw chain z\u0000中": {
++      "computed-claimed": {
++        "status": "computed",
++        "value": [
++          "2.50",
++          "http://www.w3.org/2001/XMLSchema#decimal",
++          null,
++          null
++        ],
++        "claimed": true
++      },
++      "computed-unclaimed": {
++        "status": "computed",
++        "value": [
++          "-0.00",
++          "http://www.w3.org/2001/XMLSchema#decimal",
++          null,
++          null
++        ],
++        "claimed": false
++      },
++      "not-evaluated": {
++        "status": "not-evaluated"
++      },
++      "not-selected": {
++        "status": "not-selected"
++      }
++    }
++  },
++  {
++    "completed": 5,
++    "total": 9,
++    "saturated_preds": [
++      "raw predicate a\u0000中",
++      "raw predicate z"
++    ],
++    "consumed_steps": 18446744073709551615
++  }
++]
+diff --git a/crates/logic/src/correspondence_exec/axes/fixtures/report-v1.json b/crates/logic/src/correspondence_exec/axes/fixtures/report-v1.json
+new file mode 100644
+index 000000000..0a15dd2a5
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/axes/fixtures/report-v1.json
+@@ -0,0 +1,223 @@
++{
++  "results": {
++    "urn:axes:chain": {
++      "confidence": {
++        "status": "not-selected"
++      },
++      "evidenceStrength": {
++        "status": "not-selected"
++      },
++      "probability": {
++        "status": "not-selected"
++      },
++      "weight": {
++        "status": "computed",
++        "value": [
++          "1.3",
++          "http://www.w3.org/2001/XMLSchema#decimal",
++          null,
++          null
++        ],
++        "claimed": true
++      }
++    }
++  },
++  "runs": [
++    {
++      "rules": [
++        "urn:axes:rule"
++      ],
++      "standpoint": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++      "derivations": [
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:chain"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/composedWeight",
++          "object": {
++            "Literal": {
++              "lexical_form": "1.3",
++              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
++              "language": null,
++              "direction": null
++            }
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/194bb1d8c22d942450e1f5060abc11096f33b40d",
++          "rule_iri": "https://blackcatinformatics.ca/logic/formula-rule/df23201d1fe4c93a75bf6d0a17a8c3283b57ce36",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/7b8eb33bedad735284fa9144f586556a8a4d484a",
++            "https://blackcatinformatics.ca/gmeow/reifier/7197c9e324459e7089016fb93377d4ee7872a39d",
++            "https://blackcatinformatics.ca/gmeow/reifier/b695113d13907699132a1f2988ff5704f2ca4dff",
++            "https://blackcatinformatics.ca/gmeow/reifier/d93ed50b8e25e168da218f0ef9c9bc524848bae3",
++            "https://blackcatinformatics.ca/gmeow/reifier/d94b155c377977465056cb478045f34734bf09ab",
++            "https://blackcatinformatics.ca/gmeow/reifier/d9584ae7b9c806df545d4941f70366a31eec6e87"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        },
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:chain"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/compositionAxisRule",
++          "object": {
++            "Iri": "urn:axes:rule"
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/75a59643bb91d6f25a50b740a0a5ffb8515c68c7",
++          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/7b8eb33bedad735284fa9144f586556a8a4d484a"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        },
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:chain"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/compositionFirst",
++          "object": {
++            "Iri": "urn:axes:first"
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/ee1cfef5b2ec9fc9697ab551e1e7b240fec49f62",
++          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/7197c9e324459e7089016fb93377d4ee7872a39d"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        },
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:chain"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/compositionResult",
++          "object": {
++            "Iri": "urn:axes:result"
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/acf0f958c3cae8e511f6d5afccff1d96a1540a5e",
++          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/b695113d13907699132a1f2988ff5704f2ca4dff"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        },
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:chain"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/compositionSecond",
++          "object": {
++            "Iri": "urn:axes:second"
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/59d3901cb1ebf299106b09c1ff1f49ee8585f93d",
++          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/d93ed50b8e25e168da218f0ef9c9bc524848bae3"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        },
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:first"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/weight",
++          "object": {
++            "Literal": {
++              "lexical_form": "0.80",
++              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
++              "language": null,
++              "direction": null
++            }
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/1a622157d857e0cd4f7a0493e554beb81bb79ecf",
++          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/d94b155c377977465056cb478045f34734bf09ab"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        },
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:result"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/weight",
++          "object": {
++            "Literal": {
++              "lexical_form": "1.30",
++              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
++              "language": null,
++              "direction": null
++            }
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/7b8bc49fd3f0f754bd59a61ccdb612ab04ed87fb",
++          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/8635fbb5d2ade68f9a1f891b009278ece3ecdc98"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        },
++        {
++          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "subject": {
++            "Iri": "urn:axes:second"
++          },
++          "predicate": "https://blackcatinformatics.ca/logic/weight",
++          "object": {
++            "Literal": {
++              "lexical_form": "0.5",
++              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
++              "language": null,
++              "direction": null
++            }
++          },
++          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
++          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/4eaa5b4ca777944ae4ad0f784dbe6784de0fb3bf",
++          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
++          "source_quad_ids": [
++            "https://blackcatinformatics.ca/gmeow/reifier/d9584ae7b9c806df545d4941f70366a31eec6e87"
++          ],
++          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
++          "budget_status": "Ok"
++        }
++      ],
++      "preservation": {
++        "polarities": [
++          "Exact"
++        ],
++        "unsupported_constructs": []
++      },
++      "frontier": {
++        "completed": 1,
++        "total": 1,
++        "saturated_preds": [
++          "https://blackcatinformatics.ca/logic/composedWeight",
++          "https://blackcatinformatics.ca/logic/compositionAxisRule",
++          "https://blackcatinformatics.ca/logic/compositionFirst",
++          "https://blackcatinformatics.ca/logic/compositionResult",
++          "https://blackcatinformatics.ca/logic/compositionSecond",
++          "https://blackcatinformatics.ca/logic/weight"
++        ],
++        "consumed_steps": 1
++      }
++    }
++  ]
++}
+diff --git a/crates/logic/src/correspondence_exec/axes/tests.rs b/crates/logic/src/correspondence_exec/axes/tests.rs
+index 1559252a0..ca0f43a69 100644
+--- a/crates/logic/src/correspondence_exec/axes/tests.rs
++++ b/crates/logic/src/correspondence_exec/axes/tests.rs
+@@ -138,20 +138,94 @@ fn source_rules_compute_axes_without_overwriting_claims_or_losing_derivations()
+             .iter()
+             .any(|q| q.predicate == iri("composedWeight") && !q.source_quad_ids.is_empty())
+     );
+-    let report: serde_json::Value = serde_json::from_slice(&execution.report().unwrap()).unwrap();
+-    assert_eq!(report["runs"][0]["rules"][0], "urn:axes:rule");
++    let report_bytes = execution
++        .report()
++        .expect("authored axes have a complete terminal report");
++    assert!(!report_bytes.ends_with(b"\n"));
++    // Each frozen reference stores one LF outside its original payload.
++    assert_eq!(
++        report_bytes,
++        include_bytes!("fixtures/report-v1.json")
++            .strip_suffix(b"\n")
++            .expect("original report reference has one storage LF")
++    );
++    let report = purrdf_lex::json::read_slice(&report_bytes, purrdf_lex::json::Limits::DEFAULT)
++        .expect("native axes report is complete JSON");
++    assert_eq!(
++        report["runs"][0]["rules"][0].as_str(),
++        Some("urn:axes:rule")
++    );
+     assert!(
+         report["runs"][0]["derivations"]
+             .as_array()
+             .unwrap()
+             .iter()
+-            .any(|quad| quad["predicate"] == iri("composedWeight")
+-                && !quad["source_quad_ids"].as_array().unwrap().is_empty())
++            .any(
++                |quad| quad["predicate"].as_str() == Some(iri("composedWeight").as_str())
++                    && !quad["source_quad_ids"].as_array().unwrap().is_empty()
++            )
+     );
+     assert_eq!(
+         execute(theory).unwrap().report().unwrap(),
+         execution.report().unwrap()
+     );
++
++    let results = BTreeMap::from([
++        (
++            "raw chain z\0中".to_owned(),
++            BTreeMap::from([
++                ("not-selected".to_owned(), AxisResult::NotSelected),
++                ("not-evaluated".to_owned(), AxisResult::NotEvaluated),
++                (
++                    "computed-unclaimed".to_owned(),
++                    AxisResult::Computed {
++                        value: Box::new(
++                            FiniteNumericLiteral::new(RdfLiteral::typed(
++                                "-0.00",
++                                "http://www.w3.org/2001/XMLSchema#decimal",
++                            ))
++                            .expect("finite authored signed zero retains its literal metadata"),
++                        ),
++                        claimed: false,
++                    },
++                ),
++                (
++                    "computed-claimed".to_owned(),
++                    AxisResult::Computed {
++                        value: Box::new(
++                            FiniteNumericLiteral::new(RdfLiteral::typed(
++                                "2.50",
++                                "http://www.w3.org/2001/XMLSchema#decimal",
++                            ))
++                            .expect("finite authored weight is not restricted to a unit interval"),
++                        ),
++                        claimed: true,
++                    },
++                ),
++            ]),
++        ),
++        ("raw chain a".to_owned(), BTreeMap::new()),
++    ]);
++    let frontier = crate::query_ir::CompletionFrontier {
++        completed: 5,
++        total: 9,
++        saturated_preds: BTreeSet::from([
++            "raw predicate z".to_owned(),
++            "raw predicate a\0中".to_owned(),
++        ]),
++        consumed_steps: u64::MAX,
++    };
++    // Compare every result arm and frontier field in original declaration order,
++    // including status before computed fields and complete numeric RDF metadata.
++    let atlas_bytes =
++        purrdf_lex::json::write(&(results, frontier).to_json(), Format::PRETTY).into_bytes();
++    assert!(!atlas_bytes.ends_with(b"\n"));
++    assert_eq!(
++        atlas_bytes,
++        include_bytes!("fixtures/projections-v1.json")
++            .strip_suffix(b"\n")
++            .expect("original projection reference has one storage LF")
++    );
+ }
+ 
+ #[test]
+diff --git a/crates/logic/src/query_ir/json.rs b/crates/logic/src/query_ir/json.rs
+index f5b478919..7ba26cdb0 100644
+--- a/crates/logic/src/query_ir/json.rs
++++ b/crates/logic/src/query_ir/json.rs
+@@ -2,11 +2,19 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+ //! Persistent query operands; arena-local compound handles are never a wire value.
+-use super::{ArithOp, CmpOp, QBuiltin, QTerm};
++use super::{ArithOp, CmpOp, CompletionFrontier, QBuiltin, QTerm};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson, Within},
+ };
++
++::purrdf_lex::json_record!(impl ToJson for CompletionFrontier {
++    "completed" => completed,
++    "total" => total,
++    "saturated_preds" => saturated_preds,
++    "consumed_steps" => consumed_steps,
++});
++
+ impl ToJson for ArithOp {
+     fn to_json(&self) -> Value {
+         match self {
