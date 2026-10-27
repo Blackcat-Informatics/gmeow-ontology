@@ -1015,8 +1015,8 @@ pub fn authenticated_reasoned_gates(
         gmeow_logic::verify::PREPARED_GATES_CHANNEL,
     )
     .map_err(|error| fail(error.to_string()))?;
-    let gates: gmeow_logic::verify::PreparedReasonedGates =
-        serde_json::from_slice(&bytes).map_err(|error| fail(error.to_string()))?;
+    let gates = gmeow_logic::verify::PreparedReasonedGates::from_json_bytes(&bytes)
+        .map_err(|error| error.with_context("decode selected prepared verification laws"))?;
     gates.validate_source_identity()?;
     Ok(gates)
 }

@@ -54,14 +54,15 @@ fn bundle_fixture() -> &'static BundleFixture {
         let shapes =
             data_validate::Tier1Shapes::from_shapes_and_ontology(&shapes_ttl, Arc::clone(&dataset))
                 .expect("parse the producer-extracted validation shapes once");
-        let gates: data_validate::PreparedReasonedGates = serde_json::from_slice(
-            &gmeow_bundle_import::load_authenticated_corpus_artifact(
-                &root,
-                "prepared-verify-gates.json",
+        let gates: data_validate::PreparedReasonedGates =
+            data_validate::PreparedReasonedGates::from_json_bytes(
+                &gmeow_bundle_import::load_authenticated_corpus_artifact(
+                    &root,
+                    "prepared-verify-gates.json",
+                )
+                .expect("load exact producer-selected native laws"),
             )
-            .expect("load exact producer-selected native laws"),
-        )
-        .expect("decode selected native laws");
+            .expect("decode selected native laws");
         gates
             .validate_source_identity()
             .expect("selected native laws match their source");

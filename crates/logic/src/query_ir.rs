@@ -21,6 +21,8 @@
 //! - Predicate IRIs: bare IRI string, no angle brackets.
 //! - Variables: any token starting with uppercase or `_`.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::seam::BudgetStatus;

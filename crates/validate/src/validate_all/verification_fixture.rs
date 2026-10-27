@@ -25,7 +25,7 @@ pub(crate) fn gates() -> &'static PreparedReasonedGates {
                 gmeow_logic::verify::PREPARED_GATES_CHANNEL,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let gates = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let gates = PreparedReasonedGates::from_json_bytes(&bytes)?;
             Ok(Selected {
                 selector: selector.clone(),
                 gates,

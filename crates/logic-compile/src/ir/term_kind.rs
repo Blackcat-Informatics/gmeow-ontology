@@ -3,6 +3,8 @@
 
 //! Canonical intrinsic predicates over original RDF values, not class membership.
 
+mod json;
+
 /// The authored term-kind predicates available to integrity constraints.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
