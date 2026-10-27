@@ -251,3 +251,47 @@ pub(crate) fn structural_cmp(a: &RdfLiteral, b: &RdfLiteral) -> std::cmp::Orderi
         b.direction,
     ))
 }
+
+/// Encode the literal collection wire, retaining any explicitly stored datatype.
+/// Unlike the single-literal wire, malformed explicit component combinations must
+/// remain visible to the reader rather than being repaired while writing.
+pub(crate) fn to_json(literals: &[RdfLiteral]) -> purrdf_lex::json::Value {
+    use purrdf_lex::json::{Value, record::ToJson};
+    Value::Array(
+        literals
+            .iter()
+            .map(|literal| {
+                Value::Array(vec![
+                    literal.lexical_form.to_json(),
+                    literal
+                        .datatype
+                        .as_deref()
+                        .unwrap_or_else(|| literal.datatype_iri())
+                        .to_json(),
+                    literal.language.to_json(),
+                    literal.direction.map(RdfTextDirection::as_str).to_json(),
+                ])
+            })
+            .collect(),
+    )
+}
+
+/// Admit the existing checked literal set, preserving its canonical set policy.
+pub(crate) fn from_json_set(
+    value: &purrdf_lex::json::Value,
+) -> Result<Vec<RdfLiteral>, purrdf_lex::json::record::DecodeError> {
+    use purrdf_lex::json::record::{DecodeError, Within};
+    let rows = value
+        .as_array()
+        .ok_or_else(|| DecodeError::invalid_type(value, "RDF literal set"))?;
+    let mut literals = rows
+        .iter()
+        .enumerate()
+        .map(|(index, row)| {
+            single::from_json(row).map_err(|error| error.within_index_native(index, None))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    literals.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
+    literals.dedup();
+    Ok(literals)
+}

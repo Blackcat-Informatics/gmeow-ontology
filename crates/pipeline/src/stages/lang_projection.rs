@@ -191,8 +191,7 @@ pub fn build_corpus(
     }
     artifacts.push((
         grammar_observations::CHANNEL.to_owned(),
-        serde_json::to_vec(&grammar_observations)
-            .map_err(|error| stage_err(format!("encode native grammar observations: {error}")))?,
+        grammar_observations.to_bytes(),
     ));
     artifacts.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(LangProjectionCorpus {
