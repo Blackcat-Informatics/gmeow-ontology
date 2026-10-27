@@ -1,0 +1,122 @@
+{
+  "context": {
+    "answer": {
+      "attributed": "raw attributed context",
+      "path": "raw path",
+      "standpoint": "raw standpoint",
+      "time": "raw time",
+      "world": "raw world\u0000中"
+    },
+    "modality": "Counterfactual",
+    "module": "raw module"
+  },
+  "contract": {
+    "admissible_valuation": "raw valuation",
+    "argumentation": "raw argumentation",
+    "closure_entries": {
+      "raw predicate": "raw closure value",
+      "": "private-use value 中",
+      "𐀀": "supplementary value\u0000"
+    },
+    "complexity": {
+      "label": " raw complexity\u0000中 "
+    },
+    "context_axes": [
+      "axis a",
+      "axis z"
+    ],
+    "default_closure": "raw closure",
+    "designated_values": "raw designated",
+    "equality_policy": "raw equality",
+    "evolution": "raw evolution",
+    "formula_fragment": "raw fragment\u0000中",
+    "model_semantics": "raw model",
+    "negation_operators": [
+      "negation a",
+      "negation z"
+    ],
+    "preset": "Probabilistic",
+    "projection_targets": [
+      "target a",
+      "target z"
+    ],
+    "resource_policies": [
+      "resource a",
+      "resource z"
+    ],
+    "revision": "raw revision",
+    "truth_algebra": "raw truth",
+    "uncertainty_measures": [
+      "measure a",
+      "measure z"
+    ]
+  },
+  "empty_context": {
+    "answer": {
+      "attributed": null,
+      "path": null,
+      "standpoint": null,
+      "time": null,
+      "world": ""
+    },
+    "modality": "None",
+    "module": null
+  },
+  "empty_contract": {
+    "admissible_valuation": null,
+    "argumentation": null,
+    "closure_entries": {},
+    "complexity": null,
+    "context_axes": [],
+    "default_closure": null,
+    "designated_values": null,
+    "equality_policy": null,
+    "evolution": null,
+    "formula_fragment": null,
+    "model_semantics": null,
+    "negation_operators": [],
+    "preset": null,
+    "projection_targets": [],
+    "resource_policies": [],
+    "revision": null,
+    "truth_algebra": null,
+    "uncertainty_measures": []
+  },
+  "modalities": [
+    "None",
+    "Alethic",
+    "Epistemic",
+    "Doxastic",
+    "Telic",
+    "Deontic",
+    "Representational",
+    "Counterfactual"
+  ],
+  "profiles": [
+    "PositiveHorn",
+    "StratifiedNaf",
+    "WellFounded",
+    "StableModel",
+    "ProceduralProlog",
+    "Probabilistic"
+  ],
+  "roles": [
+    "Individual",
+    {
+      "Relation": 19
+    },
+    "VariadicRelation",
+    {
+      "Function": 37
+    },
+    "VariadicFunction"
+  ],
+  "sentence_kinds": [
+    "Axiom",
+    "Caveat"
+  ],
+  "signs": [
+    "Positive",
+    "Negative"
+  ]
+}

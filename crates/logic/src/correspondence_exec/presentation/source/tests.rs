@@ -20,6 +20,8 @@ fn compile(source: &str) -> Arc<CompiledTheory> {
 
 #[test]
 fn authored_merge_reuses_original_formulas_and_complete_native_evidence() {
+    use purrdf_lex::json::{Format, Object, Value, record::ToJson};
+
     let source = format!(
         "{SOURCE}\nex:empty {{}}\nex:claim <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<(ex:a ex:p ex:b)>> ; <http://www.w3.org/ns/prov#wasDerivedFrom> ex:document ."
     );
@@ -86,16 +88,176 @@ fn authored_merge_reuses_original_formulas_and_complete_native_evidence() {
         .factor(merge.left_injection(), merge.right_injection())
         .unwrap();
     assert!(identity.agrees_with(&PresentationMap::identity(Arc::clone(merge.output()))));
-    let report: serde_json::Value = serde_json::from_slice(&batch.report().unwrap()).unwrap();
+    let report_bytes = batch
+        .report()
+        .expect("authored merge has a complete terminal report");
+    assert!(!report_bytes.ends_with(b"\n"));
+    let current_engine = crate::runtime::EngineContract::current().descriptor_hash;
+    assert_eq!(merge.engine_descriptor(), current_engine);
+    let report = purrdf_lex::json::read_slice(&report_bytes, purrdf_lex::json::Limits::DEFAULT)
+        .expect("native terminal report is complete JSON");
     assert_eq!(report["bodies"].as_object().unwrap().len(), 1);
     assert_eq!(report["evidence"].as_object().unwrap().len(), 3);
     assert_eq!(
-        report["merges"][format!("{EX}merge")]["sentences"]
+        report["merges"][format!("{EX}merge").as_str()]["sentences"]
             .as_array()
             .unwrap()
             .len(),
         3
     );
+    assert_eq!(
+        report["merges"][format!("{EX}merge").as_str()]["engine"].as_str(),
+        Some(current_engine.as_str())
+    );
+    // Each frozen reference stores one LF that is not part of its payload.
+    let original_report = include_str!("fixtures/report-v1.json")
+        .strip_suffix('\n')
+        .expect("original report reference has one storage LF");
+    assert!(!original_report.ends_with('\n'));
+    let original_value =
+        purrdf_lex::json::read(original_report).expect("frozen original report is complete JSON");
+    let original_engine = original_value["merges"][format!("{EX}merge").as_str()]["engine"]
+        .as_str()
+        .expect("the authored merge has its original engine descriptor");
+    let original_field = format!("\"engine\": \"{original_engine}\"");
+    assert_eq!(original_report.matches(&original_field).count(), 1);
+    let (prefix, suffix) = original_report
+        .split_once(&original_field)
+        .expect("the exact named original engine field occurs once");
+    let expected_report = format!("{prefix}\"engine\": \"{current_engine}\"{suffix}");
+    assert_eq!(report_bytes, expected_report.as_bytes());
+
+    use gmeow_logic_compile::ir::{ComplexityClass, SemanticProfileId};
+    let contract = ReasoningContract {
+        preset: Some(SemanticProfileId::Probabilistic),
+        formula_fragment: Some("raw fragment\0中".into()),
+        model_semantics: Some("raw model".into()),
+        truth_algebra: Some("raw truth".into()),
+        admissible_valuation: Some("raw valuation".into()),
+        designated_values: Some("raw designated".into()),
+        evolution: Some("raw evolution".into()),
+        argumentation: Some("raw argumentation".into()),
+        revision: Some("raw revision".into()),
+        equality_policy: Some("raw equality".into()),
+        default_closure: Some("raw closure".into()),
+        negation_operators: BTreeSet::from(["negation z".into(), "negation a".into()]),
+        context_axes: BTreeSet::from(["axis z".into(), "axis a".into()]),
+        uncertainty_measures: BTreeSet::from(["measure z".into(), "measure a".into()]),
+        resource_policies: BTreeSet::from(["resource z".into(), "resource a".into()]),
+        projection_targets: BTreeSet::from(["target z".into(), "target a".into()]),
+        closure_entries: BTreeMap::from([
+            ("\u{10000}".into(), "supplementary value\0".into()),
+            ("\u{e000}".into(), "private-use value 中".into()),
+            ("raw predicate".into(), "raw closure value".into()),
+        ]),
+        complexity: Some(
+            ComplexityClass::new(" raw complexity\0中 ")
+                .expect("nonempty authored complexity label is preserved"),
+        ),
+    };
+    let context = PresentationContext {
+        answer: ResultContext {
+            world: "raw world\0中".into(),
+            standpoint: Some("raw standpoint".into()),
+            attributed: Some("raw attributed context".into()),
+            time: Some("raw time".into()),
+            path: Some("raw path".into()),
+        },
+        module: Some("raw module".into()),
+        modality: LogicModality::Counterfactual,
+    };
+    let empty_context = PresentationContext {
+        answer: ResultContext::default(),
+        module: None,
+        modality: LogicModality::None,
+    };
+    let profiles = [
+        SemanticProfileId::PositiveHorn,
+        SemanticProfileId::StratifiedNaf,
+        SemanticProfileId::WellFounded,
+        SemanticProfileId::StableModel,
+        SemanticProfileId::ProceduralProlog,
+        SemanticProfileId::Probabilistic,
+    ];
+    let modalities = [
+        LogicModality::None,
+        LogicModality::Alethic,
+        LogicModality::Epistemic,
+        LogicModality::Doxastic,
+        LogicModality::Telic,
+        LogicModality::Deontic,
+        LogicModality::Representational,
+        LogicModality::Counterfactual,
+    ];
+    let roles = [
+        SymbolRole::Individual,
+        SymbolRole::Relation(19),
+        SymbolRole::VariadicRelation,
+        SymbolRole::Function(37),
+        SymbolRole::VariadicFunction,
+    ];
+    let signs = [SentenceSign::Positive, SentenceSign::Negative];
+    let kinds = [SentenceKind::Axiom, SentenceKind::Caveat];
+    let mut atlas = Value::from(
+        Object::new()
+            .with("contract", contract.to_json())
+            .with("empty_contract", ReasoningContract::default().to_json())
+            .with("context", context.to_json())
+            .with("empty_context", empty_context.to_json())
+            .with("profiles", profiles.to_json())
+            .with("modalities", modalities.to_json())
+            .with("roles", roles.to_json())
+            .with("signs", signs.to_json())
+            .with("sentence_kinds", kinds.to_json()),
+    );
+    atlas.sort_keys();
+    let atlas_bytes = purrdf_lex::json::write(&atlas, Format::PRETTY).into_bytes();
+    assert!(!atlas_bytes.ends_with(b"\n"));
+    let original_atlas = include_str!("fixtures/projections-v1.json")
+        .strip_suffix('\n')
+        .expect("original projection reference has one storage LF");
+    assert!(!original_atlas.ends_with('\n'));
+    assert_eq!(atlas_bytes, original_atlas.as_bytes());
+
+    use gmeow_logic_compile::frontend::{SourceBase, SourceBaseOrigin, SourceDocument};
+    let bases = [
+        None,
+        Some(SourceBase {
+            iri: "raw caller base\0中".into(),
+            origin: SourceBaseOrigin::Caller,
+        }),
+        Some(SourceBase {
+            iri: "raw directive base".into(),
+            origin: SourceBaseOrigin::Directive {
+                line: u64::MAX,
+                column: u32::MAX,
+            },
+        }),
+        Some(SourceBase {
+            iri: "raw enclosing base".into(),
+            origin: SourceBaseOrigin::Enclosing,
+        }),
+    ];
+    let documents: Vec<_> = bases
+        .into_iter()
+        .enumerate()
+        .map(|(index, base)| SourceDocument {
+            path: format!("authored path {index}\0中"),
+            content_digest: format!("authored digest {index}"),
+            role: format!("authored role {index}"),
+            base,
+        })
+        .collect();
+    let mut document_projection =
+        Value::from(Object::new().with("source_documents", documents.to_json()));
+    document_projection.sort_keys();
+    let document_bytes = purrdf_lex::json::write(&document_projection, Format::PRETTY).into_bytes();
+    assert!(!document_bytes.ends_with(b"\n"));
+    let original_documents = include_str!("fixtures/documents-v1.json")
+        .strip_suffix('\n')
+        .expect("original source-description reference has one storage LF");
+    assert!(!original_documents.ends_with('\n'));
+    assert_eq!(document_bytes, original_documents.as_bytes());
 }
 
 #[test]

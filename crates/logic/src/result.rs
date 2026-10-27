@@ -594,6 +594,14 @@ pub struct ResultContext {
     pub path: Option<String>,
 }
 
+::purrdf_lex::json_record!(impl ToJson for ResultContext {
+    "world" => world,
+    "standpoint" => standpoint,
+    "attributed" => attributed,
+    "time" => time,
+    "path" => path,
+});
+
 /// The engine identity that produced a result.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct EngineId {

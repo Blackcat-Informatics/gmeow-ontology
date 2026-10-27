@@ -90,6 +90,12 @@ pub struct PresentationContext {
     pub modality: LogicModality,
 }
 
+::purrdf_lex::json_record!(impl ToJson for PresentationContext {
+    "answer" => answer,
+    "module" => module,
+    "modality" => modality,
+});
+
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 struct ContextIdentity<'a> {
     world: &'a str,
