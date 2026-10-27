@@ -360,32 +360,60 @@ pub(crate) fn enrich_value_vocab_enums(
 /// Recursively collect every authored `slices/**/module.ttl` (the canonical ABox that
 /// declares the value-vocabulary classes and their `gmeow:` individuals). Test
 /// fixtures under `tests/` carry no `module.ttl`, so the projection universe never
-/// reaches them.
-pub(crate) fn ontology_module_files(root: &Path) -> Vec<PathBuf> {
-    fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
-        let Ok(entries) = std::fs::read_dir(dir) else {
-            return;
-        };
-        let mut paths: Vec<PathBuf> = entries.flatten().map(|e| e.path()).collect();
+/// reaches them. An existing readable tree may be empty; a missing or unreadable
+/// required source tree is an error, never an empty selection.
+pub(crate) fn ontology_module_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+    fn walk(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), gmeow_errors::Diag> {
+        let entries = std::fs::read_dir(dir).map_err(|error| {
+            err(format!(
+                "read ontology source directory {}: {error}",
+                dir.display()
+            ))
+        })?;
+        let mut paths = Vec::new();
+        for entry in entries {
+            let entry = entry.map_err(|error| {
+                err(format!(
+                    "read ontology source entry under {}: {error}",
+                    dir.display()
+                ))
+            })?;
+            paths.push(entry.path());
+        }
         paths.sort();
         for path in paths {
-            if path.is_dir() {
-                walk(&path, out);
-            } else if path.file_name().and_then(|n| n.to_str()) == Some("module.ttl") {
+            // Follow the same symlink targets as the previous is_dir classification,
+            // but retain classification failures instead of treating them as files.
+            let metadata = std::fs::metadata(&path).map_err(|error| {
+                err(format!(
+                    "classify ontology source path {}: {error}",
+                    path.display()
+                ))
+            })?;
+            if path.file_name().and_then(|name| name.to_str()) == Some("module.ttl") {
+                if !metadata.is_file() {
+                    return Err(err(format!(
+                        "ontology source {} must be an ordinary file",
+                        path.display()
+                    )));
+                }
                 out.push(path);
+            } else if metadata.is_dir() {
+                walk(&path, out)?;
             }
         }
+        Ok(())
     }
     let mut files = Vec::new();
-    walk(&root.join("slices"), &mut files);
-    files
+    walk(&root.join("slices"), &mut files)?;
+    Ok(files)
 }
 
 /// Parse the authored `module.ttl` ABox into ONE frozen dataset — the store the value
 /// vocabularies are read from. HARD-fails if a source is unreadable or unparsable
 /// (no silent fallback: a missing vocabulary must surface, never degrade).
 pub(crate) fn load_ontology_store(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let files = ontology_module_files(root);
+    let files = ontology_module_files(root)?;
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::with_capacity(files.len());
     for file in &files {
         let bytes = std::fs::read(file)

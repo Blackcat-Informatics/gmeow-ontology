@@ -159,3 +159,76 @@ fn functional_scalar_input_stays_scalar() {
         json!({ "$ref": "#/$defs/FrameKindEnum" }),
     );
 }
+
+#[test]
+fn ontology_source_discovery_preserves_recursive_order_and_empty_vocabularies() {
+    let root = tempfile::tempdir().expect("authored source tree");
+    let slices = root.path().join("slices");
+    std::fs::create_dir(&slices).unwrap();
+    assert!(ontology_module_files(root.path()).unwrap().is_empty());
+    let empty = load_ontology_store(root.path()).expect("readable empty tree");
+    assert!(
+        derive_value_vocabs(&FoldView::new(&empty), &gmeow_json_schema_namespaces()).is_empty()
+    );
+
+    for relative in ["z/module.ttl", "a/module.ttl", "a/deeper/cell/module.ttl"] {
+        let path = slices.join(relative);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, "<urn:source:s> <urn:source:p> <urn:source:o> .\n").unwrap();
+    }
+    std::fs::write(slices.join("a/ignored.ttl"), "not Turtle").unwrap();
+    std::fs::write(slices.join("module.ttl.backup"), "not Turtle").unwrap();
+    let mut expected = vec![
+        slices.join("a/deeper/cell/module.ttl"),
+        slices.join("a/module.ttl"),
+    ];
+    #[cfg(unix)]
+    {
+        let linked = slices.join("linked/module.ttl");
+        std::fs::create_dir_all(linked.parent().unwrap()).unwrap();
+        std::os::unix::fs::symlink(slices.join("a/module.ttl"), &linked).unwrap();
+        expected.push(linked);
+    }
+    expected.push(slices.join("z/module.ttl"));
+    assert_eq!(
+        ontology_module_files(root.path()).unwrap(),
+        expected,
+        "recursive, per-directory sorted selection keeps only exact module names"
+    );
+    let store = load_ontology_store(root.path()).expect("all selected authored modules parse");
+    assert!(store.term_id_by_iri("urn:source:s").is_some());
+    assert!(
+        derive_value_vocabs(&FoldView::new(&store), &gmeow_json_schema_namespaces()).is_empty(),
+        "valid modules without qualifying members are legitimate empty enrichment"
+    );
+}
+
+#[test]
+fn ontology_source_discovery_refuses_unavailable_or_malformed_required_inputs() {
+    let root = tempfile::tempdir().expect("authored refusal tree");
+    let slices = root.path().join("slices");
+    let missing = ontology_module_files(root.path()).unwrap_err().to_string();
+    assert!(missing.contains("read ontology source directory"));
+    assert!(missing.contains(slices.to_str().unwrap()));
+    assert!(
+        load_ontology_store(root.path()).is_err(),
+        "loader must propagate missing discovery"
+    );
+
+    std::fs::write(&slices, "not a directory").unwrap();
+    let not_directory = ontology_module_files(root.path()).unwrap_err().to_string();
+    assert!(not_directory.contains("read ontology source directory"));
+    assert!(not_directory.contains(slices.to_str().unwrap()));
+    std::fs::remove_file(&slices).unwrap();
+    std::fs::create_dir(&slices).unwrap();
+    let module = slices.join("module.ttl");
+    std::fs::create_dir(&module).unwrap();
+    let not_file = ontology_module_files(root.path()).unwrap_err().to_string();
+    assert!(not_file.contains("must be an ordinary file"));
+    assert!(not_file.contains(module.to_str().unwrap()));
+    std::fs::remove_dir(&module).unwrap();
+    std::fs::write(&module, "not valid Turtle").unwrap();
+    let malformed = load_ontology_store(root.path()).unwrap_err().to_string();
+    assert!(malformed.contains("parse ontology source"));
+    assert!(malformed.contains(module.to_str().unwrap()));
+}
