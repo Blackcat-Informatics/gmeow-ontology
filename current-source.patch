@@ -1,0 +1,706 @@
+diff --git a/crates/logic/src/correspondence_exec/plan_projection.rs b/crates/logic/src/correspondence_exec/plan_projection.rs
+index 5051a1cf2..e19610188 100644
+--- a/crates/logic/src/correspondence_exec/plan_projection.rs
++++ b/crates/logic/src/correspondence_exec/plan_projection.rs
+@@ -8,6 +8,8 @@
+ //! observed record is a separate input and contributes only occurrences that
+ //! carry both `logic:instantiatesPlan` and `logic:instantiatesSchema` witnesses.
+ 
++mod json;
++
+ use std::collections::{BTreeMap, BTreeSet, VecDeque};
+ 
+ use purrdf::{CanonHash, RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
+diff --git a/crates/logic/src/correspondence_exec/plan_projection/json.rs b/crates/logic/src/correspondence_exec/plan_projection/json.rs
+new file mode 100644
+index 000000000..0acfe113a
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/plan_projection/json.rs
+@@ -0,0 +1,426 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete planned-skeleton payload transport; admission never verifies receipts.
++
++use super::{
++    FreshnessRequirement, ObservedPlanOccurrence, PlanLiteral, PlanProjection,
++    PlanProjectionCertificate, PlanProjectionComplement, PlanRecovery, PlanRecoveryVerdict,
++    PlannedEdge, PlannedEdgeKind, PlannedStep, PlannedStepKind, ProjectedAction,
++    ProjectedCarrierFact, ProjectedConditionalStep, ProjectedExpression, ProjectedExpressionFact,
++    ProjectedGuard, ProjectedOutcome,
++};
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++
++::purrdf_lex::json_record!(impl ToJson for PlannedStep {
++    "id" => id,
++    "cycle" => cycle,
++    "position" => position,
++    "source_node" => source_node,
++    "kind" => kind,
++});
++impl FromJson for PlannedStep {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PlannedStep")?;
++        Ok(Self {
++            id: fields.required("id")?,
++            cycle: fields.required_with("cycle", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize cycle")
++            })?,
++            position: fields.required_with("position", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize position")
++            })?,
++            source_node: fields.required("source_node")?,
++            kind: fields.required("kind")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PlannedEdge {
++    "from" => from,
++    "to" => to,
++    "kind" => kind,
++});
++impl FromJson for PlannedEdge {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PlannedEdge")?;
++        Ok(Self {
++            from: fields.required("from")?,
++            to: fields.required("to")?,
++            kind: fields.required("kind")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProjectedOutcome {
++    "source_node" => source_node,
++    "case" => case,
++    "continuation" => continuation,
++    "compensation" => compensation,
++});
++impl FromJson for ProjectedOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectedOutcome")?;
++        Ok(Self {
++            source_node: fields.required("source_node")?,
++            case: fields.required("case")?,
++            continuation: fields.optional("continuation")?,
++            compensation: fields.optional("compensation")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProjectedExpressionFact {
++    "subject" => subject,
++    "predicate" => predicate,
++    "object" => object,
++});
++impl FromJson for ProjectedExpressionFact {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectedExpressionFact")?;
++        Ok(Self {
++            subject: fields.required("subject")?,
++            predicate: fields.required("predicate")?,
++            object: fields.required("object")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProjectedExpression {
++    "root" => root,
++    "digest" => digest,
++    "facts" => facts,
++    "tracked_states" => tracked_states,
++});
++impl FromJson for ProjectedExpression {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectedExpression")?;
++        Ok(Self {
++            root: fields.required("root")?,
++            digest: fields.required("digest")?,
++            facts: fields.required("facts")?,
++            tracked_states: fields.required("tracked_states")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProjectedConditionalStep {
++    "source_node" => source_node,
++    "guard" => guard,
++    "then_steps" => then_steps,
++});
++impl FromJson for ProjectedConditionalStep {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectedConditionalStep")?;
++        Ok(Self {
++            source_node: fields.required("source_node")?,
++            guard: fields.required("guard")?,
++            then_steps: fields.required("then_steps")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProjectedAction {
++    "schema" => schema,
++    "preconditions" => preconditions,
++    "effects" => effects,
++    "resources" => resources,
++    "capabilities" => capabilities,
++    "observations" => observations,
++    "outcomes" => outcomes,
++    "conditional_steps" => conditional_steps,
++});
++impl FromJson for ProjectedAction {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectedAction")?;
++        Ok(Self {
++            schema: fields.required("schema")?,
++            preconditions: fields.required("preconditions")?,
++            effects: fields.required("effects")?,
++            resources: fields.required("resources")?,
++            capabilities: fields.required("capabilities")?,
++            observations: fields.required("observations")?,
++            outcomes: fields.required("outcomes")?,
++            conditional_steps: fields.required("conditional_steps")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProjectedGuard {
++    "guard" => guard,
++    "condition" => condition,
++    "then_steps" => then_steps,
++    "else_steps" => else_steps,
++});
++impl FromJson for ProjectedGuard {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectedGuard")?;
++        Ok(Self {
++            guard: fields.required("guard")?,
++            condition: fields.required("condition")?,
++            then_steps: fields.required("then_steps")?,
++            else_steps: fields.required("else_steps")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PlanLiteral {
++    "lexical_form" => lexical_form,
++    "datatype" => datatype,
++    "language" => language,
++    "direction" => direction,
++});
++impl FromJson for PlanLiteral {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PlanLiteral")?;
++        Ok(Self {
++            lexical_form: fields.required("lexical_form")?,
++            datatype: fields.required("datatype")?,
++            language: fields.optional("language")?,
++            direction: fields.optional("direction")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for FreshnessRequirement {
++    "tracked_state" => tracked_state,
++    "currency" => currency,
++});
++impl FromJson for FreshnessRequirement {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct FreshnessRequirement")?;
++        Ok(Self {
++            tracked_state: fields.required("tracked_state")?,
++            currency: fields.required("currency")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ProjectedCarrierFact {
++    "graph" => graph,
++    "subject" => subject,
++    "predicate" => predicate,
++    "object" => object,
++});
++impl FromJson for ProjectedCarrierFact {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectedCarrierFact")?;
++        Ok(Self {
++            graph: fields.optional("graph")?,
++            subject: fields.required("subject")?,
++            predicate: fields.required("predicate")?,
++            object: fields.required("object")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PlanProjectionComplement {
++    "source_digest" => source_digest,
++    "source_graph" => source_graph,
++    "plan" => plan,
++    "standpoint" => standpoint,
++    "loop_body" => loop_body,
++    "expression_digests" => expression_digests,
++    "source_facts" => source_facts,
++});
++impl FromJson for PlanProjectionComplement {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PlanProjectionComplement")?;
++        Ok(Self {
++            source_digest: fields.required("source_digest")?,
++            source_graph: fields.optional("source_graph")?,
++            plan: fields.required("plan")?,
++            standpoint: fields.optional("standpoint")?,
++            loop_body: fields.required("loop_body")?,
++            expression_digests: fields.required("expression_digests")?,
++            source_facts: fields.required("source_facts")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PlanProjectionCertificate {
++    "version" => version,
++    "output_contract" => output_contract,
++    "plan" => plan,
++    "source_digest" => source_digest,
++    "projection_digest" => projection_digest,
++    "certificate_digest" => certificate_digest,
++});
++impl FromJson for PlanProjectionCertificate {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PlanProjectionCertificate")?;
++        Ok(Self {
++            version: fields.required("version")?,
++            output_contract: fields.required("output_contract")?,
++            plan: fields.required("plan")?,
++            source_digest: fields.required("source_digest")?,
++            projection_digest: fields.required("projection_digest")?,
++            certificate_digest: fields.required("certificate_digest")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PlanProjection {
++    "plan" => plan,
++    "source_graph" => source_graph,
++    "standpoint" => standpoint,
++    "preconditions" => preconditions,
++    "loop_count" => loop_count,
++    "loop_variable" => loop_variable,
++    "loop_period" => loop_period,
++    "loop_body" => loop_body,
++    "steps" => steps,
++    "edges" => edges,
++    "actions" => actions,
++    "guards" => guards,
++    "freshness" => freshness,
++    "loss_evidence" => loss_evidence,
++    "complement" => complement,
++    "certificate" => certificate,
++});
++impl FromJson for PlanProjection {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PlanProjection")?;
++        Ok(Self {
++            plan: fields.required("plan")?,
++            source_graph: fields.optional("source_graph")?,
++            standpoint: fields.optional("standpoint")?,
++            preconditions: fields.required("preconditions")?,
++            loop_count: fields.required_with("loop_count", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize loop_count")
++            })?,
++            loop_variable: fields.optional("loop_variable")?,
++            loop_period: fields.optional("loop_period")?,
++            loop_body: fields.required("loop_body")?,
++            steps: fields.required("steps")?,
++            edges: fields.required("edges")?,
++            actions: fields.required("actions")?,
++            guards: fields.required("guards")?,
++            freshness: fields.required("freshness")?,
++            loss_evidence: fields.required("loss_evidence")?,
++            complement: fields.required("complement")?,
++            certificate: fields.required("certificate")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ObservedPlanOccurrence {
++    "occurrence" => occurrence,
++    "graph" => graph,
++    "schema" => schema,
++});
++impl FromJson for ObservedPlanOccurrence {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ObservedPlanOccurrence")?;
++        Ok(Self {
++            occurrence: fields.required("occurrence")?,
++            graph: fields.optional("graph")?,
++            schema: fields.required("schema")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PlanRecovery {
++    "version" => version,
++    "output_contract" => output_contract,
++    "plan" => plan,
++    "projection_certificate_digest" => projection_certificate_digest,
++    "observed_input_digest" => observed_input_digest,
++    "verdict" => verdict,
++    "occurrences" => occurrences,
++    "recovered_schemas" => recovered_schemas,
++    "unobserved_planned_schemas" => unobserved_planned_schemas,
++    "off_plan_occurrences" => off_plan_occurrences,
++    "loss_evidence" => loss_evidence,
++    "recovery_digest" => recovery_digest,
++});
++impl FromJson for PlanRecovery {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PlanRecovery")?;
++        Ok(Self {
++            version: fields.required("version")?,
++            output_contract: fields.required("output_contract")?,
++            plan: fields.required("plan")?,
++            projection_certificate_digest: fields.required("projection_certificate_digest")?,
++            observed_input_digest: fields.required("observed_input_digest")?,
++            verdict: fields.required("verdict")?,
++            occurrences: fields.required("occurrences")?,
++            recovered_schemas: fields.required("recovered_schemas")?,
++            unobserved_planned_schemas: fields.required("unobserved_planned_schemas")?,
++            off_plan_occurrences: fields.required("off_plan_occurrences")?,
++            loss_evidence: fields.required("loss_evidence")?,
++            recovery_digest: fields.required("recovery_digest")?,
++        })
++    }
++}
++
++impl ToJson for PlannedStepKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Action => "action",
++            Self::Guard => "guard",
++        }
++        .to_json()
++    }
++}
++impl FromJson for PlannedStepKind {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "PlannedStepKind")? {
++            "action" => Ok(Self::Action),
++            "guard" => Ok(Self::Guard),
++            name => Err(DecodeError::unknown_variant(name, &["action", "guard"])),
++        }
++    }
++}
++
++impl ToJson for PlannedEdgeKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Serial => "serial",
++            Self::GuardThen => "guard-then",
++            Self::GuardElse => "guard-else",
++            Self::NextIteration => "next-iteration",
++        }
++        .to_json()
++    }
++}
++impl FromJson for PlannedEdgeKind {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "PlannedEdgeKind")? {
++            "serial" => Ok(Self::Serial),
++            "guard-then" => Ok(Self::GuardThen),
++            "guard-else" => Ok(Self::GuardElse),
++            "next-iteration" => Ok(Self::NextIteration),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["serial", "guard-then", "guard-else", "next-iteration"],
++            )),
++        }
++    }
++}
++
++impl ToJson for PlanRecoveryVerdict {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::PlannedSkeletonRecovered => "planned-skeleton-recovered",
++        }
++        .to_json()
++    }
++}
++impl FromJson for PlanRecoveryVerdict {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "PlanRecoveryVerdict")? {
++            "planned-skeleton-recovered" => Ok(Self::PlannedSkeletonRecovered),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["planned-skeleton-recovered"],
++            )),
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/logic/src/correspondence_exec/plan_projection/json/tests.rs b/crates/logic/src/correspondence_exec/plan_projection/json/tests.rs
+new file mode 100644
+index 000000000..7171a58ab
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/plan_projection/json/tests.rs
+@@ -0,0 +1,167 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use purrdf_lex::json::{
++    record::{from_slice, to_vec},
++    write_pretty,
++};
++
++const PROJECTION: &str = r#"{"plan":"raw plan","source_graph":null,"standpoint":"raw standpoint","preconditions":[{"root":"pre","digest":"raw pre digest","facts":[{"subject":"<urn:s>","predicate":"urn:p","object":"\"quoted text\"@MiXeD"}],"tracked_states":["z","a"]}],"loop_count":2,"loop_variable":{"lexical_form":"raw variable","datatype":"raw datatype","language":"MiXeD","direction":"raw direction"},"loop_period":null,"loop_body":["z","a","z"],"steps":[{"id":"step-a","cycle":0,"position":1,"source_node":"action schema","kind":"action"},{"id":"step-g","cycle":1,"position":0,"source_node":"guard schema","kind":"guard"}],"edges":[{"from":"a","to":"b","kind":"serial"},{"from":"b","to":"c","kind":"guard-then"},{"from":"b","to":"d","kind":"guard-else"},{"from":"d","to":"a","kind":"next-iteration"}],"actions":[{"schema":"raw schema","preconditions":[{"root":"action pre","digest":"raw digest","facts":[],"tracked_states":[]}],"effects":[{"root":"effect","digest":"raw effect","facts":[],"tracked_states":["state"]}],"resources":["z","a"],"capabilities":["capability"],"observations":["observation"],"outcomes":[{"source_node":"outcome","case":"case","continuation":null,"compensation":"raw compensation"}],"conditional_steps":[{"source_node":"conditional","guard":{"root":"conditional guard","digest":"raw condition","facts":[],"tracked_states":[]},"then_steps":["z","a"]}]}],"guards":[{"guard":"raw guard","condition":{"root":"guard condition","digest":"guard digest","facts":[],"tracked_states":[]},"then_steps":["then"],"else_steps":["else"]}],"freshness":[{"tracked_state":"state","currency":{"lexical_form":"PT1H","datatype":"raw duration","language":null,"direction":null}}],"loss_evidence":["loss z","loss a"],"complement":{"source_digest":"raw source digest","source_graph":null,"plan":"raw complement plan","standpoint":null,"loop_body":["body"],"expression_digests":["z","a"],"source_facts":[{"graph":null,"subject":"<<opaque subject>>","predicate":"urn:source","object":"\"rendered\ntext\"@MiXeD"}]},"certificate":{"version":"raw version","output_contract":"raw contract","plan":"raw certificate plan","source_digest":"raw source","projection_digest":"raw projection","certificate_digest":"raw certificate"}}"#;
++const RECOVERY: &str = r#"{"version":"raw recovery","output_contract":"raw recovery contract","plan":"raw plan","projection_certificate_digest":"raw cert","observed_input_digest":"raw observed","verdict":"planned-skeleton-recovered","occurrences":[{"occurrence":"raw occurrence","graph":null,"schema":"raw schema"}],"recovered_schemas":["z","a"],"unobserved_planned_schemas":["b"],"off_plan_occurrences":["off"],"loss_evidence":["raw loss"],"recovery_digest":"raw recovery digest"}"#;
++const PRETTY_RECOVERY: &str = r#"{
++  "version": "raw recovery",
++  "output_contract": "raw recovery contract",
++  "plan": "raw plan",
++  "projection_certificate_digest": "raw cert",
++  "observed_input_digest": "raw observed",
++  "verdict": "planned-skeleton-recovered",
++  "occurrences": [
++    {
++      "occurrence": "raw occurrence",
++      "graph": null,
++      "schema": "raw schema"
++    }
++  ],
++  "recovered_schemas": [
++    "z",
++    "a"
++  ],
++  "unobserved_planned_schemas": [
++    "b"
++  ],
++  "off_plan_occurrences": [
++    "off"
++  ],
++  "loss_evidence": [
++    "raw loss"
++  ],
++  "recovery_digest": "raw recovery digest"
++}
++"#;
++
++#[test]
++fn native_plan_payloads_preserve_complete_wire_raw_literals_and_pretty_artifacts() {
++    let projection: PlanProjection = from_slice(PROJECTION.as_bytes()).unwrap();
++    let recovery: PlanRecovery = from_slice(RECOVERY.as_bytes()).unwrap();
++    assert_eq!(to_vec(&projection), PROJECTION.as_bytes());
++    assert_eq!(to_vec(&recovery), RECOVERY.as_bytes());
++    assert_eq!(
++        projection
++            .loop_variable
++            .as_ref()
++            .unwrap()
++            .language
++            .as_deref(),
++        Some("MiXeD")
++    );
++    assert_eq!(
++        projection
++            .loop_variable
++            .as_ref()
++            .unwrap()
++            .direction
++            .as_deref(),
++        Some("raw direction")
++    );
++    assert_eq!(projection.loop_body, ["z", "a", "z"]);
++    assert_eq!(
++        projection.complement.source_facts[0].object,
++        "\"rendered\ntext\"@MiXeD"
++    );
++    assert_eq!(recovery.recovered_schemas, ["z", "a"]);
++    // Certificate validation remains an explicit operation after hydration.
++    assert!(super::super::verify_plan_projection_certificate(&projection).is_err());
++    let mut pretty = write_pretty(&projection.to_json()).into_bytes();
++    pretty.push(b'\n');
++    assert!(pretty.starts_with(b"{\n  \"plan\": \"raw plan\",\n"));
++    assert!(pretty.ends_with(b"}\n") && !pretty.ends_with(b"}\n\n"));
++    assert_eq!(from_slice::<PlanProjection>(&pretty).unwrap(), projection);
++    let mut pretty = write_pretty(&recovery.to_json()).into_bytes();
++    pretty.push(b'\n');
++    assert_eq!(pretty, PRETTY_RECOVERY.as_bytes());
++    assert_eq!(from_slice::<PlanRecovery>(&pretty).unwrap(), recovery);
++    let unit_objects = PROJECTION
++        .replace("\"kind\":\"action\"", "\"kind\":{\"action\":null}")
++        .replace("\"kind\":\"guard-then\"", "\"kind\":{\"guard-then\":null}");
++    assert_eq!(
++        to_vec(&from_slice::<PlanProjection>(unit_objects.as_bytes()).unwrap()),
++        PROJECTION.as_bytes()
++    );
++    let unit_verdict = RECOVERY.replace(
++        "\"verdict\":\"planned-skeleton-recovered\"",
++        "\"verdict\":{\"planned-skeleton-recovered\":null}",
++    );
++    assert_eq!(
++        to_vec(&from_slice::<PlanRecovery>(unit_verdict.as_bytes()).unwrap()),
++        RECOVERY.as_bytes()
++    );
++    let omitted = PROJECTION
++        .replace("\"source_graph\":null,", "")
++        .replace("\"loop_period\":null,", "")
++        .replace("\"continuation\":null,", "")
++        .replace("\"language\":null,", "");
++    assert_eq!(
++        to_vec(&from_slice::<PlanProjection>(omitted.as_bytes()).unwrap()),
++        PROJECTION.as_bytes()
++    );
++    let omitted_graph = RECOVERY.replace("\"graph\":null,", "");
++    assert_eq!(
++        to_vec(&from_slice::<PlanRecovery>(omitted_graph.as_bytes()).unwrap()),
++        RECOVERY.as_bytes()
++    );
++    let max_count = PROJECTION.replace(
++        "\"loop_count\":2",
++        &format!("\"loop_count\":{}", usize::MAX),
++    );
++    let projection: PlanProjection = from_slice(max_count.as_bytes()).unwrap();
++    assert_eq!(projection.loop_count, usize::MAX);
++    assert_eq!(to_vec(&projection), max_count.as_bytes());
++}
++
++#[test]
++fn native_plan_admission_requires_named_records_counts_and_exact_kebab_tags() {
++    let unknown = PROJECTION
++        .replace("\"plan\":", "\"future\":null,\"plan\":")
++        .replace("\"source_node\":", "\"future\":null,\"source_node\":")
++        .replace("\"root\":", "\"future\":null,\"root\":")
++        .replace("\"subject\":", "\"future\":null,\"subject\":")
++        .replace("\"schema\":", "\"future\":null,\"schema\":")
++        .replace("\"datatype\":", "\"future\":null,\"datatype\":");
++    assert_eq!(
++        to_vec(&from_slice::<PlanProjection>(unknown.as_bytes()).unwrap()),
++        PROJECTION.as_bytes()
++    );
++    for invalid in [
++        PROJECTION.replacen("\"plan\":", "\"plan\":\"earlier\",\"plan\":", 1),
++        PROJECTION.replace("\"steps\":", "\"steps\":[],\"steps\":"),
++        PROJECTION.replace("\"loop_count\":2,", ""),
++        PROJECTION.replace("\"loop_count\":2", "\"loop_count\":-0"),
++        PROJECTION.replace("\"loop_count\":2", "\"loop_count\":2e0"),
++        PROJECTION.replace("\"loop_count\":2", "\"loop_count\":18446744073709551616"),
++        PROJECTION.replace("\"cycle\":0", "\"cycle\":-1"),
++        PROJECTION.replace("\"position\":1", "\"position\":1.5"),
++        PROJECTION.replace("\"source_node\":", "\"source_node\":\"earlier\",\"source_node\":"),
++        PROJECTION.replace("\"resources\":[\"z\",\"a\"],", ""),
++        PROJECTION.replace("\"datatype\":\"raw datatype\",", ""),
++        PROJECTION.replace("\"direction\":\"raw direction\"", "\"direction\":false"),
++        PROJECTION.replace("\"root\":\"pre\",", ""),
++        PROJECTION.replace("\"kind\":\"action\"", "\"kind\":\"Action\""),
++        PROJECTION.replace("\"kind\":\"guard-then\"", "\"kind\":\"guard_then\""),
++        PROJECTION.replace("\"kind\":\"guard-then\"", "\"kind\":{\"guard-then\":false}"),
++        PROJECTION.replace(r#"{"id":"step-a","cycle":0,"position":1,"source_node":"action schema","kind":"action"}"#, r#"["step-a",0,1,"action schema","action"]"#),
++        r#"["plan",null,null,[],0,null,null,[],[],[],[],[],[],[],{},{}]"#.to_owned(),
++    ] {
++        assert!(from_slice::<PlanProjection>(invalid.as_bytes()).is_err(), "{invalid}");
++    }
++    for invalid in [
++        RECOVERY.replace("\"occurrences\":", "\"occurrences\":[],\"occurrences\":"),
++        RECOVERY.replace("\"recovery_digest\":\"raw recovery digest\"", "\"recovery_digest\":null"),
++        RECOVERY.replace("\"schema\":\"raw schema\"", "\"schema\":false"),
++        RECOVERY.replace("\"planned-skeleton-recovered\"", "\"PlannedSkeletonRecovered\""),
++        RECOVERY.replace("\"verdict\":\"planned-skeleton-recovered\"", "\"verdict\":{\"planned-skeleton-recovered\":null,\"future\":null}"),
++        r#"["version","contract","plan","certificate","input","planned-skeleton-recovered",[],[],[],[],[],"digest"]"#.to_owned(),
++    ] {
++        assert!(from_slice::<PlanRecovery>(invalid.as_bytes()).is_err(), "{invalid}");
++    }
++}
+diff --git a/crates/logic/src/correspondence_exec/plan_projection/tests.rs b/crates/logic/src/correspondence_exec/plan_projection/tests.rs
+index 87e3c0b92..e781c75de 100644
+--- a/crates/logic/src/correspondence_exec/plan_projection/tests.rs
++++ b/crates/logic/src/correspondence_exec/plan_projection/tests.rs
+@@ -4,6 +4,7 @@
+ use purrdf::{BlankScope, RdfDatasetBuilder, RdfLiteral};
+ 
+ use super::*;
++use purrdf_lex::json::record::{ToJson, from_slice};
+ 
+ const PLAN: &str = "urn:gmeow:plan:test";
+ const CYCLE: &str = "urn:gmeow:plan:test/cycle";
+@@ -179,6 +180,12 @@ fn observed_dataset(schemas: &[&str], missing_last_schema: bool) -> std::sync::A
+ fn fixed_loop_projects_to_a_prescriptive_guarded_skeleton() {
+     let source = plan_dataset();
+     let projection = project_plan(&source, PLAN, None, PlanProjectionLimits::default()).unwrap();
++    let mut bytes = purrdf_lex::json::write_pretty(&projection.to_json()).into_bytes();
++    bytes.push(b'\n');
++    let restored: PlanProjection = from_slice(&bytes).unwrap();
++    assert_eq!(restored, projection);
++    verify_plan_projection_certificate(&restored).unwrap();
++    let projection = restored;
+     assert_eq!(projection.loop_count, 2);
+     assert!(projection.loop_variable.is_none());
+     assert_eq!(projection.steps.len(), 10);
+@@ -227,6 +234,12 @@ fn recovery_requires_real_plan_and_schema_witnesses() {
+     let projection = project_plan(&source, PLAN, None, PlanProjectionLimits::default()).unwrap();
+     let observed = observed_dataset(&[PREPARE, ADMINISTER, OBSERVE], false);
+     let recovery = recover_planned_schema_skeleton(&projection, &observed).unwrap();
++    let mut bytes = purrdf_lex::json::write_pretty(&recovery.to_json()).into_bytes();
++    bytes.push(b'\n');
++    let restored: PlanRecovery = from_slice(&bytes).unwrap();
++    assert_eq!(restored, recovery);
++    verify_plan_recovery_receipt(&restored, &projection).unwrap();
++    let recovery = restored;
+     assert_eq!(
+         recovery.verdict,
+         PlanRecoveryVerdict::PlannedSkeletonRecovered
+diff --git a/crates/pipeline/src/stages/compile_logic.rs b/crates/pipeline/src/stages/compile_logic.rs
+index d83361d11..7f92a868f 100644
+--- a/crates/pipeline/src/stages/compile_logic.rs
++++ b/crates/pipeline/src/stages/compile_logic.rs
+@@ -750,15 +750,19 @@ impl Stage for CompileLogicStage {
+             CORRESPONDENCE_PLANS_PATH.into(),
+             physical_plans.report_json()?,
+         );
+-        let mut rchops21_projection_json = serde_json::to_vec_pretty(&rchops21_projection)
+-            .map_err(|error| stage_err(format!("encode RCHOPS21 plan projection: {error}")))?;
++        let mut rchops21_projection_json = purrdf_lex::json::write_pretty(
++            &purrdf_lex::json::record::ToJson::to_json(&rchops21_projection),
++        )
++        .into_bytes();
+         rchops21_projection_json.push(b'\n');
+         artifacts.insert(
+             RCHOPS21_PLAN_PROJECTION_PATH.into(),
+             rchops21_projection_json,
+         );
+-        let mut rchops21_recovery_json = serde_json::to_vec_pretty(&rchops21_recovery)
+-            .map_err(|error| stage_err(format!("encode RCHOPS21 plan recovery: {error}")))?;
++        let mut rchops21_recovery_json = purrdf_lex::json::write_pretty(
++            &purrdf_lex::json::record::ToJson::to_json(&rchops21_recovery),
++        )
++        .into_bytes();
+         rchops21_recovery_json.push(b'\n');
+         artifacts.insert(RCHOPS21_PLAN_RECOVERY_PATH.into(), rchops21_recovery_json);
+         artifacts.insert(
+diff --git a/crates/pipeline/src/stages/compile_logic.tests.rs b/crates/pipeline/src/stages/compile_logic.tests.rs
+index 70275e18f..b1c3af1ee 100644
+--- a/crates/pipeline/src/stages/compile_logic.tests.rs
++++ b/crates/pipeline/src/stages/compile_logic.tests.rs
+@@ -567,7 +567,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
+     }
+ 
+     let rchops21: gmeow_logic::correspondence_exec::plan_projection::PlanProjection =
+-        serde_json::from_slice(
++        purrdf_lex::json::record::from_slice(
+             product
+                 .artifact(RCHOPS21_PLAN_PROJECTION_PATH)
+                 .expect("certified RCHOPS21 plan projection"),
+@@ -614,7 +614,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
+         action.schema == "urn:gmeow:action:manage-reaction" && !action.effects.is_empty()
+     }));
+     let rchops21_recovery: gmeow_logic::correspondence_exec::plan_projection::PlanRecovery =
+-        serde_json::from_slice(
++        purrdf_lex::json::record::from_slice(
+             product
+                 .artifact(RCHOPS21_PLAN_RECOVERY_PATH)
+                 .expect("certified RCHOPS21 plan recovery"),
