@@ -5,7 +5,7 @@
 use crate::bridge::{IngestDiagnostic, LangFailure};
 use crate::gmn1_codec::{Gmn1ConstructCategory, Gmn1Error, QuadCoverage, UncoveredTerm};
 use crate::gmn1_witness::StandaloneReport;
-use crate::grammar::{GrammarRule, RuleExpr};
+use crate::grammar::{Formalism, Grammar, GrammarRule, RuleExpr};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson, Within as _},
@@ -393,5 +393,44 @@ impl FromJson for RuleExpr {
         decode().map_err(|error| error.within(tag))
     }
 }
+impl ToJson for Formalism {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Ebnf => "Ebnf",
+            Self::Abnf => "Abnf",
+            Self::Gbnf => "Gbnf",
+            Self::Lark => "Lark",
+        }
+        .to_json()
+    }
+}
+impl FromJson for Formalism {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        match gmeow_errors::json::read_unit_name(value, "Formalism")? {
+            "Ebnf" => Ok(Self::Ebnf),
+            "Abnf" => Ok(Self::Abnf),
+            "Gbnf" => Ok(Self::Gbnf),
+            "Lark" => Ok(Self::Lark),
+            name => Err(DecodeError::unknown_variant(
+                name,
+                &["Ebnf", "Abnf", "Gbnf", "Lark"],
+            )),
+        }
+    }
+}
+::purrdf_lex::json_record!(impl ToJson for Grammar {
+    "formalism" => formalism,
+    "rules" => rules,
+});
+impl FromJson for Grammar {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct Grammar")?;
+        Ok(Self {
+            formalism: fields.required("formalism")?,
+            rules: fields.required("rules")?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests;

@@ -126,7 +126,20 @@ fn load(root: &Path, selector_sha256: &str) -> Result<LanguageFixtures, gmeow_er
     let mut artifacts = crate::fixture::authenticated_artifacts(root, STAGE, &paths)?;
     let pack: gmn_pack::Observations = decode(&mut artifacts, gmn_pack::CHANNEL)?;
     let gates = decode(&mut artifacts, gmn_gate::CHANNEL)?;
-    let grammars = decode(&mut artifacts, grammar_observations::CHANNEL)?;
+    let grammar_bytes = artifacts
+        .remove(grammar_observations::CHANNEL)
+        .ok_or_else(|| {
+            fail(format!(
+                "authenticated language action omitted {}",
+                grammar_observations::CHANNEL
+            ))
+        })?;
+    let grammars = purrdf_lex::json::record::from_slice(&grammar_bytes).with_ctx(|| {
+        format!(
+            "native language observations {}",
+            grammar_observations::CHANNEL
+        )
+    })?;
     if selected_major != Some(pack.major.as_str()) {
         return Err(fail(
             "native pack observations disagree with the selected artifact version",
