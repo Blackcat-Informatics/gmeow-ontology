@@ -15,14 +15,41 @@ struct LiteralFields {
     direction: Option<String>,
 }
 
-fn validate(literal: &RdfLiteral) -> Result<(), String> {
+#[derive(Debug)]
+enum LiteralTransportError {
+    Datatype(purrdf_core::IriError),
+    Components(&'static str),
+    Direction(String),
+}
+
+impl std::fmt::Display for LiteralTransportError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Datatype(error) => std::fmt::Display::fmt(error, f),
+            Self::Components(message) => f.write_str(message),
+            Self::Direction(token) => write!(f, "invalid RDF base direction {token:?}"),
+        }
+    }
+}
+
+impl std::error::Error for LiteralTransportError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Datatype(error) => Some(error),
+            Self::Components(_) | Self::Direction(_) => None,
+        }
+    }
+}
+
+fn validate(literal: &RdfLiteral) -> gmeow_errors::Result<()> {
     let datatype = literal
         .datatype
         .as_deref()
         .unwrap_or_else(|| literal.datatype_iri());
-    purrdf_core::BaseIri::parse(datatype).map_err(|error| error.to_string())?;
+    purrdf_core::BaseIri::parse(datatype).map_err(LiteralTransportError::Datatype)?;
     RdfLiteral::validate_components(datatype, literal.language.as_deref(), literal.direction)
-        .map_err(str::to_owned)
+        .map_err(LiteralTransportError::Components)
+        .map_err(Into::into)
 }
 
 pub(super) fn serialize<S: Serializer>(
@@ -56,8 +83,8 @@ pub(super) fn deserialize<'de, D: Deserializer<'de>>(
                 .as_deref()
                 .map(|token| {
                     RdfTextDirection::from_str_token(token).ok_or_else(|| {
-                        <D::Error as de::Error>::custom(format!(
-                            "invalid RDF base direction {token:?}"
+                        <D::Error as de::Error>::custom(gmeow_errors::Diag::from(
+                            LiteralTransportError::Direction(token.to_owned()),
                         ))
                     })
                 })
