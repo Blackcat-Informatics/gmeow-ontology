@@ -750,15 +750,19 @@ impl Stage for CompileLogicStage {
             CORRESPONDENCE_PLANS_PATH.into(),
             physical_plans.report_json()?,
         );
-        let mut rchops21_projection_json = serde_json::to_vec_pretty(&rchops21_projection)
-            .map_err(|error| stage_err(format!("encode RCHOPS21 plan projection: {error}")))?;
+        let mut rchops21_projection_json = purrdf_lex::json::write_pretty(
+            &purrdf_lex::json::record::ToJson::to_json(&rchops21_projection),
+        )
+        .into_bytes();
         rchops21_projection_json.push(b'\n');
         artifacts.insert(
             RCHOPS21_PLAN_PROJECTION_PATH.into(),
             rchops21_projection_json,
         );
-        let mut rchops21_recovery_json = serde_json::to_vec_pretty(&rchops21_recovery)
-            .map_err(|error| stage_err(format!("encode RCHOPS21 plan recovery: {error}")))?;
+        let mut rchops21_recovery_json = purrdf_lex::json::write_pretty(
+            &purrdf_lex::json::record::ToJson::to_json(&rchops21_recovery),
+        )
+        .into_bytes();
         rchops21_recovery_json.push(b'\n');
         artifacts.insert(RCHOPS21_PLAN_RECOVERY_PATH.into(), rchops21_recovery_json);
         artifacts.insert(
