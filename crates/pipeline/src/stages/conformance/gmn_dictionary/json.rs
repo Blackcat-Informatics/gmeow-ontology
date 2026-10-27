@@ -41,11 +41,7 @@ fn read_outcome<T, E: FromJson>(
     .map_err(|error| error.within(tag))
 }
 fn unit(value: &Value) -> Result<(), DecodeError> {
-    if matches!(value, Value::Null) {
-        Ok(())
-    } else {
-        Err(DecodeError::invalid_type(value, "null unit witness"))
-    }
+    gmeow_errors::json::read_null(value, "null unit witness")
 }
 fn acceptance(value: &Value) -> Result<(u32, u32), DecodeError> {
     let items = value

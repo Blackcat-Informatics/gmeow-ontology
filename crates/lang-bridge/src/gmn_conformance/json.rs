@@ -11,11 +11,7 @@ use purrdf_lex::json::{
 struct NullWitness;
 impl FromJson for NullWitness {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        if matches!(value, Value::Null) {
-            Ok(Self)
-        } else {
-            Err(DecodeError::invalid_type(value, "null unit witness"))
-        }
+        gmeow_errors::json::read_null(value, "null unit witness").map(|()| Self)
     }
 }
 impl ToJson for PositiveObservation {
