@@ -1477,6 +1477,7 @@ dependencies = [
  "gmeow-ns",
  "purrdf",
  "purrdf-hash",
+ "purrdf-lex",
  "serde",
  "serde_json",
  "tempfile",
