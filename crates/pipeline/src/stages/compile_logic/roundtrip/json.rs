@@ -4,7 +4,10 @@
 //! Native transport of the exact three ordered dialect observations and refusals.
 
 use super::{DialectObservation, Observation};
-use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
+use gmeow_errors::json::{
+    read_recorded_result, read_recorded_unit_result, recorded_result_to_json,
+    recorded_unit_result_to_json,
+};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson},
@@ -19,14 +22,6 @@ impl FromJson for Dialects {
             .try_into()
             .map(Self)
             .map_err(|_| DecodeError::invalid_value(value, "exactly three dialect observations"))
-    }
-}
-
-struct UnitSuccess;
-
-impl FromJson for UnitSuccess {
-    fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        gmeow_errors::json::read_null(value, "null unit success").map(|()| Self)
     }
 }
 
@@ -60,15 +55,9 @@ impl FromJson for Observation {
 
 impl ToJson for DialectObservation {
     fn to_json(&self) -> Value {
-        // The pinned record traits have no unit codec. The success carrier is
-        // exactly JSON null; failures use the complete native diagnostic owner.
-        let result: Value = match &self.result {
-            Ok(()) => Object::new().with("Ok", Value::Null).into(),
-            Err(error) => Object::new().with("Err", error.to_json()).into(),
-        };
         Object::new()
             .with("dialect", self.dialect.to_json())
-            .with("result", result)
+            .with("result", recorded_unit_result_to_json(&self.result))
             .into()
     }
 }
@@ -77,17 +66,13 @@ impl FromJson for DialectObservation {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct DialectObservation")?;
         let dialect = fields.required("dialect")?;
-        let result: Result<UnitSuccess, gmeow_errors::RecordedDiag> =
-            fields.required_with("result", |value| {
-                read_recorded_result(
-                    value,
-                    "Common Logic dialect result",
-                    "one Common Logic dialect result variant",
-                )
-            })?;
-        Ok(Self {
-            dialect,
-            result: result.map(|UnitSuccess| ()),
-        })
+        let result = fields.required_with("result", |value| {
+            read_recorded_unit_result(
+                value,
+                "Common Logic dialect result",
+                "one Common Logic dialect result variant",
+            )
+        })?;
+        Ok(Self { dialect, result })
     }
 }

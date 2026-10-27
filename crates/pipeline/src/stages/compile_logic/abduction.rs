@@ -3,12 +3,13 @@
 
 //! Producer-owned observations for the authored abductive advice schema.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::frontend::{CompiledTheory, Diagnostic, reconstruct_formula};
 use gmeow_logic_compile::ir::Formula;
 use purrdf::TermRef;
-use serde::{Deserialize, Serialize};
 
 const CHANNEL: &str = "pipeline/logic-module-abduction.json";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
@@ -22,7 +23,7 @@ const REQUIRED_ROOTS: &[&str] = &[
     "besForall",
 ];
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct Observation {
     diagnostics: Vec<Diagnostic>,
     declared_roots: BTreeSet<String>,
@@ -88,11 +89,14 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observation)
-            .map_err(|error| super::stage_err(format!("encode abduction observations: {error}")))?,
+        purrdf_lex::json::record::to_vec(&observation),
     );
     Ok(())
 }
 
 #[cfg(test)]
 mod corpus_tests;
+
+#[path = "abduction.tests.rs"]
+#[cfg(test)]
+mod tests;
