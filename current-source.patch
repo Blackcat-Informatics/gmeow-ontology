@@ -1,0 +1,540 @@
+diff --git a/crates/logic/src/correspondence_exec/physical_plan.rs b/crates/logic/src/correspondence_exec/physical_plan.rs
+index bdc20ecfb..24a97f755 100644
+--- a/crates/logic/src/correspondence_exec/physical_plan.rs
++++ b/crates/logic/src/correspondence_exec/physical_plan.rs
+@@ -10,6 +10,8 @@
+ //! recovery law from a bounded corpus, or treats a relation path as an atomic
+ //! predicate-renaming lens.
+ 
++mod json;
++
+ use std::collections::{BTreeMap, BTreeSet};
+ use std::sync::Arc;
+ 
+@@ -250,9 +252,11 @@ impl PreparedCompositionProgram {
+         &self.report
+     }
+ 
+-    pub fn report_json(&self) -> gmeow_errors::Result<Vec<u8>> {
+-        serde_json::to_vec_pretty(&self.report)
+-            .map_err(|error| exec_error(format!("encode correspondence physical plans: {error}")))
++    /// Complete portable report as two-space JSON, with no trailing newline.
++    #[must_use]
++    pub fn report_json(&self) -> Vec<u8> {
++        purrdf_lex::json::write_pretty(&purrdf_lex::json::record::ToJson::to_json(&self.report))
++            .into_bytes()
+     }
+ 
+     /// Execute one exact declaration against caller data.
+diff --git a/crates/logic/src/correspondence_exec/physical_plan/json.rs b/crates/logic/src/correspondence_exec/physical_plan/json.rs
+new file mode 100644
+index 000000000..5921bbcc8
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/physical_plan/json.rs
+@@ -0,0 +1,259 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete physical-plan report transport, independent of planning and verification.
++
++use super::{
++    CompositionLogicalStage, CompositionOptimizationScope, CompositionPhysicalPlan,
++    CompositionPlanCertificate, CompositionPlanCost, CompositionPlanLimits, CompositionPlanReport,
++    CompositionStageCheck, OriginalPlanReason,
++};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++
++::purrdf_lex::json_record!(impl ToJson for CompositionPlanLimits {
++    "max_path_nodes" => max_path_nodes,
++});
++impl FromJson for CompositionPlanLimits {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CompositionPlanLimits")?;
++        Ok(Self {
++            max_path_nodes: fields.required_with("max_path_nodes", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize max_path_nodes")
++            })?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for CompositionOptimizationScope {
++    "program_digest" => program_digest,
++    "declaration_digest" => declaration_digest,
++    "context_digest" => context_digest,
++    "effect_digest" => effect_digest,
++    "complement_digest" => complement_digest,
++    "preservation_digest" => preservation_digest,
++    "reasoning_contract_digest" => reasoning_contract_digest,
++});
++impl FromJson for CompositionOptimizationScope {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CompositionOptimizationScope")?;
++        Ok(Self {
++            program_digest: fields.required("program_digest")?,
++            declaration_digest: fields.required("declaration_digest")?,
++            context_digest: fields.required("context_digest")?,
++            effect_digest: fields.required("effect_digest")?,
++            complement_digest: fields.required("complement_digest")?,
++            preservation_digest: fields.required("preservation_digest")?,
++            reasoning_contract_digest: fields.required("reasoning_contract_digest")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for CompositionLogicalStage {
++    "correspondence" => correspondence,
++    "get_leg" => get_leg,
++    "path" => path,
++    "source_endpoint" => source_endpoint,
++    "target_endpoint" => target_endpoint,
++    "standpoint" => standpoint,
++    "checks" => checks,
++});
++impl FromJson for CompositionLogicalStage {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CompositionLogicalStage")?;
++        Ok(Self {
++            correspondence: fields.required("correspondence")?,
++            get_leg: fields.required("get_leg")?,
++            path: fields.required("path")?,
++            source_endpoint: fields.required("source_endpoint")?,
++            target_endpoint: fields.required("target_endpoint")?,
++            standpoint: fields.optional("standpoint")?,
++            checks: fields.required("checks")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for CompositionPlanCost {
++    "native_queries" => native_queries,
++    "materialized_intermediate_relations" => materialized_intermediate_relations,
++    "path_nodes" => path_nodes,
++    "stable_tiebreak" => stable_tiebreak,
++});
++impl FromJson for CompositionPlanCost {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CompositionPlanCost")?;
++        Ok(Self {
++            native_queries: fields.required_with("native_queries", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize native_queries")
++            })?,
++            materialized_intermediate_relations: fields.required_with(
++                "materialized_intermediate_relations",
++                |value| {
++                    gmeow_errors::json::read_unsigned(
++                        value,
++                        "usize materialized_intermediate_relations",
++                    )
++                },
++            )?,
++            path_nodes: fields.required_with("path_nodes", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize path_nodes")
++            })?,
++            stable_tiebreak: fields.required("stable_tiebreak")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for CompositionPlanCertificate {
++    "version" => version,
++    "declaration" => declaration,
++    "scope" => scope,
++    "first" => first,
++    "second" => second,
++    "composite" => composite,
++    "output_contract" => output_contract,
++    "selected" => selected,
++    "applied_rules" => applied_rules,
++    "rule_catalog_digest" => rule_catalog_digest,
++    "original_cost" => original_cost,
++    "selected_cost" => selected_cost,
++    "limits" => limits,
++    "engine_descriptor_hash" => engine_descriptor_hash,
++    "certificate_digest" => certificate_digest,
++});
++impl FromJson for CompositionPlanCertificate {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CompositionPlanCertificate")?;
++        Ok(Self {
++            version: fields.required("version")?,
++            declaration: fields.required("declaration")?,
++            scope: fields.required("scope")?,
++            first: fields.required("first")?,
++            second: fields.required("second")?,
++            composite: fields.required("composite")?,
++            output_contract: fields.required("output_contract")?,
++            selected: fields.required("selected")?,
++            applied_rules: fields.required("applied_rules")?,
++            rule_catalog_digest: fields.required("rule_catalog_digest")?,
++            original_cost: fields.required("original_cost")?,
++            selected_cost: fields.required("selected_cost")?,
++            limits: fields.required("limits")?,
++            engine_descriptor_hash: fields.required("engine_descriptor_hash")?,
++            certificate_digest: fields.required("certificate_digest")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for CompositionPlanReport {
++    "version" => version,
++    "program_digest" => program_digest,
++    "certificates" => certificates,
++});
++impl FromJson for CompositionPlanReport {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CompositionPlanReport")?;
++        Ok(Self {
++            version: fields.required("version")?,
++            program_digest: fields.required("program_digest")?,
++            certificates: fields.required("certificates")?,
++        })
++    }
++}
++
++impl ToJson for CompositionStageCheck {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::EndpointType => "endpoint-type",
++            Self::Standpoint => "standpoint",
++            Self::PureReadEffect => "pure-read-effect",
++            Self::PathAdmission => "path-admission",
++            Self::ComplementRetention => "complement-retention",
++            Self::Preservation => "preservation",
++            Self::LogicalGate => "logical-gate",
++        }
++        .to_json()
++    }
++}
++impl FromJson for CompositionStageCheck {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "CompositionStageCheck")? {
++            "endpoint-type" => Ok(Self::EndpointType),
++            "standpoint" => Ok(Self::Standpoint),
++            "pure-read-effect" => Ok(Self::PureReadEffect),
++            "path-admission" => Ok(Self::PathAdmission),
++            "complement-retention" => Ok(Self::ComplementRetention),
++            "preservation" => Ok(Self::Preservation),
++            "logical-gate" => Ok(Self::LogicalGate),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "endpoint-type",
++                    "standpoint",
++                    "pure-read-effect",
++                    "path-admission",
++                    "complement-retention",
++                    "preservation",
++                    "logical-gate",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for OriginalPlanReason {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::SearchLimit => "search-limit",
++            Self::NativeAdmission => "native-admission",
++        }
++        .to_json()
++    }
++}
++impl FromJson for OriginalPlanReason {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "OriginalPlanReason")? {
++            "search-limit" => Ok(Self::SearchLimit),
++            "native-admission" => Ok(Self::NativeAdmission),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["search-limit", "native-admission"],
++            )),
++        }
++    }
++}
++
++impl ToJson for CompositionPhysicalPlan {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Original { reason } => Object::new()
++                .with("kind", "original".to_json())
++                .with("reason", reason.to_json())
++                .into(),
++            Self::FusedWitnessJoin => Object::new()
++                .with("kind", "fused-witness-join".to_json())
++                .into(),
++        }
++    }
++}
++impl FromJson for CompositionPhysicalPlan {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "internally tagged CompositionPhysicalPlan")?;
++        let kind: String = fields.required("kind")?;
++        match kind.as_str() {
++            "original" => Ok(Self::Original {
++                reason: fields.required("reason")?,
++            }),
++            // A unit variant has no payload fields. Unknown members, including
++            // reason, retain the original internally tagged unit policy.
++            "fused-witness-join" => Ok(Self::FusedWitnessJoin),
++            name => Err(
++                DecodeError::unknown_variant(name, &["original", "fused-witness-join"])
++                    .within("kind"),
++            ),
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/logic/src/correspondence_exec/physical_plan/json/tests.rs b/crates/logic/src/correspondence_exec/physical_plan/json/tests.rs
+new file mode 100644
+index 000000000..7edbe119d
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/physical_plan/json/tests.rs
+@@ -0,0 +1,173 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use purrdf_lex::json::{
++    record::{from_slice, to_vec},
++    write_pretty,
++};
++
++const WIRE: &str = r#"{"version":"raw report","program_digest":"raw program","certificates":[{"version":"raw certificate","declaration":"raw declaration","scope":{"program_digest":"scope program","declaration_digest":"scope declaration","context_digest":"","effect_digest":"scope effect","complement_digest":"scope complement","preservation_digest":"scope preservation","reasoning_contract_digest":"scope contract"},"first":{"correspondence":"first","get_leg":"first get","path":"^<urn:p>/<urn:q>","source_endpoint":"source","target_endpoint":"middle","standpoint":null,"checks":["endpoint-type","standpoint","pure-read-effect","path-admission","complement-retention","preservation","logical-gate"]},"second":{"correspondence":"second","get_leg":"second get","path":"raw second path","source_endpoint":"middle","target_endpoint":"target","standpoint":"raw standpoint","checks":["logical-gate","endpoint-type"]},"composite":{"correspondence":"composite","get_leg":"composite get","path":"raw composite path","source_endpoint":"source","target_endpoint":"target","standpoint":null,"checks":[]},"output_contract":"raw output","selected":{"kind":"original","reason":"search-limit"},"applied_rules":["rule z","rule a"],"rule_catalog_digest":"raw rules","original_cost":{"native_queries":2,"materialized_intermediate_relations":1,"path_nodes":5,"stable_tiebreak":"raw original"},"selected_cost":{"native_queries":1,"materialized_intermediate_relations":0,"path_nodes":4,"stable_tiebreak":"raw selected"},"limits":{"max_path_nodes":0},"engine_descriptor_hash":"raw engine","certificate_digest":"raw digest"}]}"#;
++
++#[test]
++fn native_physical_plan_report_preserves_complete_wire_and_pretty_without_newline() {
++    let report: CompositionPlanReport = from_slice(WIRE.as_bytes()).unwrap();
++    assert_eq!(to_vec(&report), WIRE.as_bytes());
++    assert_eq!(report.certificates[0].scope.context_digest, "");
++    assert_eq!(report.certificates[0].first.path, "^<urn:p>/<urn:q>");
++    assert_eq!(report.certificates[0].applied_rules, ["rule z", "rule a"]);
++    assert_eq!(report.certificates[0].first.checks.len(), 7);
++    let empty = CompositionPlanReport {
++        version: "v".into(),
++        program_digest: "p".into(),
++        certificates: Vec::new(),
++    };
++    assert_eq!(
++        write_pretty(&empty.to_json()),
++        "{\n  \"version\": \"v\",\n  \"program_digest\": \"p\",\n  \"certificates\": []\n}"
++    );
++    let pretty = write_pretty(&report.to_json());
++    assert!(!pretty.ends_with('\n'));
++    assert_eq!(
++        from_slice::<CompositionPlanReport>(pretty.as_bytes()).unwrap(),
++        report
++    );
++    let missing_standpoint = WIRE.replace("\"standpoint\":null,", "");
++    assert_eq!(
++        to_vec(&from_slice::<CompositionPlanReport>(missing_standpoint.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let native_reason = WIRE.replace(
++        "\"reason\":\"search-limit\"",
++        "\"reason\":\"native-admission\"",
++    );
++    assert_eq!(
++        to_vec(&from_slice::<CompositionPlanReport>(native_reason.as_bytes()).unwrap()),
++        native_reason.as_bytes()
++    );
++    let reordered = WIRE.replace(
++        r#"{"kind":"original","reason":"search-limit"}"#,
++        r#"{"reason":"search-limit","kind":"original"}"#,
++    );
++    assert_eq!(
++        to_vec(&from_slice::<CompositionPlanReport>(reordered.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let unit_objects = WIRE
++        .replace(
++            "\"reason\":\"search-limit\"",
++            "\"reason\":{\"search-limit\":null}",
++        )
++        .replace("[\"endpoint-type\",", "[{\"endpoint-type\":null},");
++    assert_eq!(
++        to_vec(&from_slice::<CompositionPlanReport>(unit_objects.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let fused = WIRE.replace(
++        r#"{"kind":"original","reason":"search-limit"}"#,
++        r#"{"kind":"fused-witness-join"}"#,
++    );
++    assert_eq!(
++        to_vec(&from_slice::<CompositionPlanReport>(fused.as_bytes()).unwrap()),
++        fused.as_bytes()
++    );
++    let ignored_reason = fused.replace(
++        r#"{"kind":"fused-witness-join"}"#,
++        r#"{"reason":false,"kind":"fused-witness-join","reason":{},"future":null}"#,
++    );
++    assert_eq!(
++        to_vec(&from_slice::<CompositionPlanReport>(ignored_reason.as_bytes()).unwrap()),
++        fused.as_bytes()
++    );
++    let max_limit = WIRE.replace(
++        "\"max_path_nodes\":0",
++        &format!("\"max_path_nodes\":{}", usize::MAX),
++    );
++    let report: CompositionPlanReport = from_slice(max_limit.as_bytes()).unwrap();
++    assert_eq!(report.certificates[0].limits.max_path_nodes, usize::MAX);
++    assert_eq!(to_vec(&report), max_limit.as_bytes());
++}
++
++#[test]
++fn native_physical_plan_admission_preserves_variant_local_fields_and_strict_counts() {
++    let unknown = WIRE
++        .replace("\"version\":", "\"future\":null,\"version\":")
++        .replace("\"context_digest\":", "\"future\":null,\"context_digest\":")
++        .replace("\"correspondence\":", "\"future\":null,\"correspondence\":")
++        .replace(
++            "\"stable_tiebreak\":",
++            "\"future\":null,\"stable_tiebreak\":",
++        )
++        .replace("\"max_path_nodes\":", "\"future\":null,\"max_path_nodes\":")
++        .replace(
++            "\"kind\":\"original\"",
++            "\"future\":null,\"kind\":\"original\"",
++        );
++    assert_eq!(
++        to_vec(&from_slice::<CompositionPlanReport>(unknown.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    for invalid in [
++        WIRE.replacen(
++            "\"program_digest\":",
++            "\"program_digest\":\"earlier\",\"program_digest\":",
++            1,
++        ),
++        WIRE.replace(
++            "\"context_digest\":",
++            "\"context_digest\":\"earlier\",\"context_digest\":",
++        ),
++        WIRE.replace("\"checks\":", "\"checks\":[],\"checks\":"),
++        WIRE.replace("\"selected\":", "\"selected\":null,\"selected\":"),
++        WIRE.replace(
++            "\"max_path_nodes\":0",
++            "\"max_path_nodes\":0,\"max_path_nodes\":0",
++        ),
++        WIRE.replace("\"limits\":{\"max_path_nodes\":0}", "\"limits\":{}"),
++        WIRE.replace("\"limits\":{\"max_path_nodes\":0}", "\"limits\":[0]"),
++        WIRE.replace("\"native_queries\":2", "\"native_queries\":-0"),
++        WIRE.replace("\"native_queries\":2", "\"native_queries\":2e0"),
++        WIRE.replace(
++            "\"native_queries\":2",
++            "\"native_queries\":18446744073709551616",
++        ),
++        WIRE.replace(
++            "\"materialized_intermediate_relations\":1",
++            "\"materialized_intermediate_relations\":false",
++        ),
++        WIRE.replace("\"path_nodes\":4", "\"path_nodes\":-1"),
++        WIRE.replace("\"kind\":\"original\",", ""),
++        WIRE.replace(
++            "\"kind\":\"original\"",
++            "\"kind\":\"original\",\"kind\":\"fused-witness-join\"",
++        ),
++        WIRE.replace("\"kind\":\"original\"", "\"kind\":null"),
++        WIRE.replace("\"kind\":\"original\"", "\"kind\":\"unknown\""),
++        WIRE.replace(",\"reason\":\"search-limit\"", ""),
++        WIRE.replace(
++            "\"reason\":\"search-limit\"",
++            "\"reason\":\"search-limit\",\"reason\":\"native-admission\"",
++        ),
++        WIRE.replace("\"reason\":\"search-limit\"", "\"reason\":false"),
++        WIRE.replace(
++            "\"reason\":\"search-limit\"",
++            "\"reason\":\"search-limit-v1\"",
++        ),
++        WIRE.replace("[\"endpoint-type\",", "[\"endpoint-type-v1\","),
++        r#"["report","program",[]]"#.to_owned(),
++    ] {
++        assert!(
++            from_slice::<CompositionPlanReport>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++    let missing_reason = WIRE.replace(",\"reason\":\"search-limit\"", "");
++    let missing_reason_error =
++        from_slice::<CompositionPlanReport>(missing_reason.as_bytes()).unwrap_err();
++    assert_eq!(missing_reason_error.pointer(), "/certificates/0/selected");
++    assert_eq!(missing_reason_error.message(), "missing field `reason`");
++    let duplicate_fused =
++        r#"{"kind":"fused-witness-join","kind":"fused-witness-join","reason":false}"#;
++    assert!(from_slice::<CompositionPhysicalPlan>(duplicate_fused.as_bytes()).is_err());
++    assert!(from_slice::<CompositionPhysicalPlan>(br#"["original","search-limit"]"#).is_err());
++}
+diff --git a/crates/logic/src/correspondence_exec/physical_plan/tests.rs b/crates/logic/src/correspondence_exec/physical_plan/tests.rs
+index 2ffc19a7b..aa45803bc 100644
+--- a/crates/logic/src/correspondence_exec/physical_plan/tests.rs
++++ b/crates/logic/src/correspondence_exec/physical_plan/tests.rs
+@@ -7,6 +7,7 @@ use gmeow_logic_compile::ir::{
+ use purrdf::{BlankScope, RdfDatasetBuilder};
+ 
+ use super::*;
++use purrdf_lex::json::record::from_slice;
+ 
+ const FIRST: &str = "urn:gmeow:composition:first";
+ const SECOND: &str = "urn:gmeow:composition:second";
+@@ -135,6 +136,16 @@ fn fused_witness_join_matches_original_without_intermediate_relations() {
+         }
+     ));
+ 
++    let fused_bytes = fused.report_json();
++    assert!(fused_bytes.starts_with(b"{\n  \"version\": "));
++    assert!(!fused_bytes.ends_with(b"\n"));
++    let fused_report: CompositionPlanReport = from_slice(&fused_bytes).unwrap();
++    assert_eq!(&fused_report, fused.report());
++    verify_composition_report(&fused_report, &program).unwrap();
++    let original_report: CompositionPlanReport = from_slice(&original.report_json()).unwrap();
++    assert_eq!(&original_report, original.report());
++    verify_composition_report(&original_report, &program).unwrap();
++
+     let dataset = dataset();
+     let fused_result = fused.execute(DECLARATION, &dataset).unwrap();
+     let original_result = original.execute(DECLARATION, &dataset).unwrap();
+@@ -157,8 +168,10 @@ fn certificate_recheck_rejects_context_and_program_rebinding() {
+     let program = program();
+     let prepared =
+         PreparedCompositionProgram::prepare(&program, CompositionPlanLimits::default()).unwrap();
+-    verify_composition_report(prepared.report(), &program).unwrap();
+-    let certificate = &prepared.report().certificates[0];
++    let report: CompositionPlanReport = from_slice(&prepared.report_json()).unwrap();
++    assert_eq!(&report, prepared.report());
++    verify_composition_report(&report, &program).unwrap();
++    let certificate = &report.certificates[0];
+     verify_composition_certificate(certificate, &program).unwrap();
+ 
+     let mut forged = certificate.clone();
+diff --git a/crates/pipeline/src/stages/compile_logic.rs b/crates/pipeline/src/stages/compile_logic.rs
+index 7f92a868f..9414d8a57 100644
+--- a/crates/pipeline/src/stages/compile_logic.rs
++++ b/crates/pipeline/src/stages/compile_logic.rs
+@@ -748,7 +748,7 @@ impl Stage for CompileLogicStage {
+         );
+         artifacts.insert(
+             CORRESPONDENCE_PLANS_PATH.into(),
+-            physical_plans.report_json()?,
++            physical_plans.report_json(),
+         );
+         let mut rchops21_projection_json = purrdf_lex::json::write_pretty(
+             &purrdf_lex::json::record::ToJson::to_json(&rchops21_projection),
+diff --git a/crates/pipeline/src/stages/compile_logic.tests.rs b/crates/pipeline/src/stages/compile_logic.tests.rs
+index b1c3af1ee..74f47af61 100644
+--- a/crates/pipeline/src/stages/compile_logic.tests.rs
++++ b/crates/pipeline/src/stages/compile_logic.tests.rs
+@@ -535,7 +535,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
+ 
+     correspondence_roundtrip::assert_roundtrip(&product);
+ 
+-    let emitted: CompositionPlanReport = serde_json::from_slice(
++    let emitted: CompositionPlanReport = purrdf_lex::json::record::from_slice(
+         product
+             .artifact(CORRESPONDENCE_PLANS_PATH)
+             .expect("certified correspondence physical plans"),
