@@ -1,0 +1,6 @@
+feat: render complete presentation merge reports with native JSON
+
+Preserve terminal report data and actual source-bound engine identity.
+Project complete contexts, contracts and portable source descriptions.
+
+Principles 4 and 7.

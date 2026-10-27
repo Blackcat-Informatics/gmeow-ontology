@@ -1,0 +1,1016 @@
+diff --git a/crates/logic-compile/src/frontend/json.rs b/crates/logic-compile/src/frontend/json.rs
+index 9f94dd147..9bdae107b 100644
+--- a/crates/logic-compile/src/frontend/json.rs
++++ b/crates/logic-compile/src/frontend/json.rs
+@@ -1,13 +1,43 @@
+ // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+-//! Compiler diagnostic transport; wire severity differs from display severity tokens.
+-use super::{Diagnostic, Severity};
++//! Compiler diagnostic and portable source-description transport.
++//! Wire severity differs from display severity tokens.
++use super::{Diagnostic, Severity, SourceBase, SourceBaseOrigin, SourceDocument};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson},
+ };
+ 
++::purrdf_lex::json_record!(impl ToJson for SourceDocument {
++    "path" => path,
++    "content_digest" => content_digest,
++    "role" => role,
++    "base" => base,
++});
++
++::purrdf_lex::json_record!(impl ToJson for SourceBase {
++    "iri" => iri,
++    "origin" => origin,
++});
++
++impl ToJson for SourceBaseOrigin {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Caller => "Caller".to_json(),
++            Self::Directive { line, column } => Object::new()
++                .with(
++                    "Directive",
++                    Object::new()
++                        .with("line", line.to_json())
++                        .with("column", column.to_json()),
++                )
++                .into(),
++            Self::Enclosing => "Enclosing".to_json(),
++        }
++    }
++}
++
+ impl ToJson for Severity {
+     fn to_json(&self) -> Value {
+         match self {
+diff --git a/crates/logic-compile/src/ir/json.rs b/crates/logic-compile/src/ir/json.rs
+index f42f0e98f..ece53a647 100644
+--- a/crates/logic-compile/src/ir/json.rs
++++ b/crates/logic-compile/src/ir/json.rs
+@@ -2,12 +2,70 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+ //! Native canonical AST transport with checked term/atom admission.
+-use super::{AtomicTerm, Formula, PreservationKind, Term, literal_serde};
++use super::{
++    AtomicTerm, ComplexityClass, Formula, LogicModality, PreservationKind, ReasoningContract,
++    SemanticProfileId, Term, literal_serde,
++};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson, Within},
+ };
+ 
++impl ToJson for SemanticProfileId {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::PositiveHorn => "PositiveHorn",
++            Self::StratifiedNaf => "StratifiedNaf",
++            Self::WellFounded => "WellFounded",
++            Self::StableModel => "StableModel",
++            Self::ProceduralProlog => "ProceduralProlog",
++            Self::Probabilistic => "Probabilistic",
++        }
++        .to_json()
++    }
++}
++
++impl ToJson for LogicModality {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::None => "None",
++            Self::Alethic => "Alethic",
++            Self::Epistemic => "Epistemic",
++            Self::Doxastic => "Doxastic",
++            Self::Telic => "Telic",
++            Self::Deontic => "Deontic",
++            Self::Representational => "Representational",
++            Self::Counterfactual => "Counterfactual",
++        }
++        .to_json()
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ComplexityClass {
++    "label" => label,
++});
++
++::purrdf_lex::json_record!(impl ToJson for ReasoningContract {
++    "preset" => preset,
++    "formula_fragment" => formula_fragment,
++    "model_semantics" => model_semantics,
++    "truth_algebra" => truth_algebra,
++    "admissible_valuation" => admissible_valuation,
++    "designated_values" => designated_values,
++    "evolution" => evolution,
++    "argumentation" => argumentation,
++    "revision" => revision,
++    "equality_policy" => equality_policy,
++    "default_closure" => default_closure,
++    "negation_operators" => negation_operators,
++    "context_axes" => context_axes,
++    "uncertainty_measures" => uncertainty_measures,
++    "resource_policies" => resource_policies,
++    "projection_targets" => projection_targets,
++    "closure_entries" => closure_entries,
++    "complexity" => complexity,
++});
++
+ // Atomic inspection values retain their explicit kind and verbatim payload.
+ impl ToJson for AtomicTerm {
+     fn to_json(&self) -> Value {
+diff --git a/crates/logic-compile/src/ir/presentation.rs b/crates/logic-compile/src/ir/presentation.rs
+index 63040d077..bf6f00623 100644
+--- a/crates/logic-compile/src/ir/presentation.rs
++++ b/crates/logic-compile/src/ir/presentation.rs
+@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
+ use std::sync::Arc;
+ 
+ use super::{Formula, LogicModality, PreservationKind, ReasoningContract};
++use purrdf_lex::json::{Object, Value, record::ToJson};
+ 
+ /// Complete native identity at a persistence boundary, including blank scope.
+ #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
+@@ -46,6 +47,38 @@ pub enum PresentationSentenceKind {
+     Caveat,
+ }
+ 
++impl ToJson for PresentationSymbolRole {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Individual => "Individual".to_json(),
++            Self::Relation(arity) => Object::new().with("Relation", arity.to_json()).into(),
++            Self::VariadicRelation => "VariadicRelation".to_json(),
++            Self::Function(arity) => Object::new().with("Function", arity.to_json()).into(),
++            Self::VariadicFunction => "VariadicFunction".to_json(),
++        }
++    }
++}
++
++impl ToJson for PresentationSign {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Positive => "Positive",
++            Self::Negative => "Negative",
++        }
++        .to_json()
++    }
++}
++
++impl ToJson for PresentationSentenceKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Axiom => "Axiom",
++            Self::Caveat => "Caveat",
++        }
++        .to_json()
++    }
++}
++
+ #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+ pub struct PresentationContextIr {
+     pub world: String,
+diff --git a/crates/logic/src/correspondence_exec/presentation.rs b/crates/logic/src/correspondence_exec/presentation.rs
+index 2c76a1ad3..f4d685c83 100644
+--- a/crates/logic/src/correspondence_exec/presentation.rs
++++ b/crates/logic/src/correspondence_exec/presentation.rs
+@@ -90,6 +90,12 @@ pub struct PresentationContext {
+     pub modality: LogicModality,
+ }
+ 
++::purrdf_lex::json_record!(impl ToJson for PresentationContext {
++    "answer" => answer,
++    "module" => module,
++    "modality" => modality,
++});
++
+ #[derive(PartialEq, Eq, PartialOrd, Ord)]
+ struct ContextIdentity<'a> {
+     world: &'a str,
+diff --git a/crates/logic/src/correspondence_exec/presentation/source/fixtures/documents-v1.json b/crates/logic/src/correspondence_exec/presentation/source/fixtures/documents-v1.json
+new file mode 100644
+index 000000000..f9b890966
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/presentation/source/fixtures/documents-v1.json
+@@ -0,0 +1,42 @@
++{
++  "source_documents": [
++    {
++      "base": null,
++      "content_digest": "authored digest 0",
++      "path": "authored path 0\u0000中",
++      "role": "authored role 0"
++    },
++    {
++      "base": {
++        "iri": "raw caller base\u0000中",
++        "origin": "Caller"
++      },
++      "content_digest": "authored digest 1",
++      "path": "authored path 1\u0000中",
++      "role": "authored role 1"
++    },
++    {
++      "base": {
++        "iri": "raw directive base",
++        "origin": {
++          "Directive": {
++            "column": 4294967295,
++            "line": 18446744073709551615
++          }
++        }
++      },
++      "content_digest": "authored digest 2",
++      "path": "authored path 2\u0000中",
++      "role": "authored role 2"
++    },
++    {
++      "base": {
++        "iri": "raw enclosing base",
++        "origin": "Enclosing"
++      },
++      "content_digest": "authored digest 3",
++      "path": "authored path 3\u0000中",
++      "role": "authored role 3"
++    }
++  ]
++}
+diff --git a/crates/logic/src/correspondence_exec/presentation/source/fixtures/projections-v1.json b/crates/logic/src/correspondence_exec/presentation/source/fixtures/projections-v1.json
+new file mode 100644
+index 000000000..2ee0c49e6
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/presentation/source/fixtures/projections-v1.json
+@@ -0,0 +1,122 @@
++{
++  "context": {
++    "answer": {
++      "attributed": "raw attributed context",
++      "path": "raw path",
++      "standpoint": "raw standpoint",
++      "time": "raw time",
++      "world": "raw world\u0000中"
++    },
++    "modality": "Counterfactual",
++    "module": "raw module"
++  },
++  "contract": {
++    "admissible_valuation": "raw valuation",
++    "argumentation": "raw argumentation",
++    "closure_entries": {
++      "raw predicate": "raw closure value",
++      "": "private-use value 中",
++      "𐀀": "supplementary value\u0000"
++    },
++    "complexity": {
++      "label": " raw complexity\u0000中 "
++    },
++    "context_axes": [
++      "axis a",
++      "axis z"
++    ],
++    "default_closure": "raw closure",
++    "designated_values": "raw designated",
++    "equality_policy": "raw equality",
++    "evolution": "raw evolution",
++    "formula_fragment": "raw fragment\u0000中",
++    "model_semantics": "raw model",
++    "negation_operators": [
++      "negation a",
++      "negation z"
++    ],
++    "preset": "Probabilistic",
++    "projection_targets": [
++      "target a",
++      "target z"
++    ],
++    "resource_policies": [
++      "resource a",
++      "resource z"
++    ],
++    "revision": "raw revision",
++    "truth_algebra": "raw truth",
++    "uncertainty_measures": [
++      "measure a",
++      "measure z"
++    ]
++  },
++  "empty_context": {
++    "answer": {
++      "attributed": null,
++      "path": null,
++      "standpoint": null,
++      "time": null,
++      "world": ""
++    },
++    "modality": "None",
++    "module": null
++  },
++  "empty_contract": {
++    "admissible_valuation": null,
++    "argumentation": null,
++    "closure_entries": {},
++    "complexity": null,
++    "context_axes": [],
++    "default_closure": null,
++    "designated_values": null,
++    "equality_policy": null,
++    "evolution": null,
++    "formula_fragment": null,
++    "model_semantics": null,
++    "negation_operators": [],
++    "preset": null,
++    "projection_targets": [],
++    "resource_policies": [],
++    "revision": null,
++    "truth_algebra": null,
++    "uncertainty_measures": []
++  },
++  "modalities": [
++    "None",
++    "Alethic",
++    "Epistemic",
++    "Doxastic",
++    "Telic",
++    "Deontic",
++    "Representational",
++    "Counterfactual"
++  ],
++  "profiles": [
++    "PositiveHorn",
++    "StratifiedNaf",
++    "WellFounded",
++    "StableModel",
++    "ProceduralProlog",
++    "Probabilistic"
++  ],
++  "roles": [
++    "Individual",
++    {
++      "Relation": 19
++    },
++    "VariadicRelation",
++    {
++      "Function": 37
++    },
++    "VariadicFunction"
++  ],
++  "sentence_kinds": [
++    "Axiom",
++    "Caveat"
++  ],
++  "signs": [
++    "Positive",
++    "Negative"
++  ]
++}
+diff --git a/crates/logic/src/correspondence_exec/presentation/source/fixtures/report-v1.json b/crates/logic/src/correspondence_exec/presentation/source/fixtures/report-v1.json
+new file mode 100644
+index 000000000..29b16e486
+--- /dev/null
++++ b/crates/logic/src/correspondence_exec/presentation/source/fixtures/report-v1.json
+@@ -0,0 +1,208 @@
++{
++  "bodies": {
++    "urn:presentation-example:body": {
++      "Atom": {
++        "args": [
++          {
++            "Iri": "urn:presentation-example:x"
++          }
++        ],
++        "relation": {
++          "Iri": "urn:presentation-example:p"
++        }
++      }
++    }
++  },
++  "evidence": {
++    "urn:presentation-example:baseEvidence": {
++      "complement": "source-publication",
++      "loss": {
++        "polarities": [
++          "Exact"
++        ],
++        "unsupported_constructs": []
++      },
++      "origin": {
++        "Iri": "urn:presentation-example:apexSource"
++      },
++      "provenance": "source-publication"
++    },
++    "urn:presentation-example:negativeEvidence": {
++      "complement": "source-publication",
++      "loss": {
++        "polarities": [
++          "CompleteOver"
++        ],
++        "unsupported_constructs": []
++      },
++      "origin": {
++        "Iri": "urn:presentation-example:rightSource"
++      },
++      "provenance": "source-publication"
++    },
++    "urn:presentation-example:positiveEvidence": {
++      "complement": "source-publication",
++      "loss": {
++        "polarities": [
++          "SoundUnder",
++          "InconsistencyPreserving"
++        ],
++        "unsupported_constructs": [
++          "urn:presentation-example:unprojectedConstraint"
++        ]
++      },
++      "origin": {
++        "Iri": "urn:presentation-example:leftSource"
++      },
++      "provenance": "source-publication"
++    }
++  },
++  "merges": {
++    "urn:presentation-example:merge": {
++      "apex": "urn:presentation-example:apex",
++      "contexts": [
++        {
++          "answer": {
++            "attributed": null,
++            "path": null,
++            "standpoint": null,
++            "time": null,
++            "world": "urn:presentation-example:world"
++          },
++          "modality": "None",
++          "module": null
++        }
++      ],
++      "contract": {
++        "admissible_valuation": null,
++        "argumentation": null,
++        "closure_entries": {},
++        "complexity": null,
++        "context_axes": [],
++        "default_closure": null,
++        "designated_values": null,
++        "equality_policy": null,
++        "evolution": null,
++        "formula_fragment": null,
++        "model_semantics": null,
++        "negation_operators": [],
++        "preset": null,
++        "projection_targets": [],
++        "resource_policies": [],
++        "revision": null,
++        "truth_algebra": null,
++        "uncertainty_measures": []
++      },
++      "engine": "988801fce84160d6acdcf12caaa6a4781bcd0e4ec28f65d06902875ec0baf4a9",
++      "factorization": "unique-for-every-admitted-cocone",
++      "left": "urn:presentation-example:left",
++      "left_embedding": [
++        1,
++        2
++      ],
++      "left_injection": [
++        0,
++        1,
++        2
++      ],
++      "right": "urn:presentation-example:right",
++      "right_embedding": [
++        0,
++        2
++      ],
++      "right_injection": [
++        1,
++        3,
++        2
++      ],
++      "sentences": [
++        {
++          "bindings": [
++            1,
++            2
++          ],
++          "body": "urn:presentation-example:body",
++          "context": 0,
++          "evidence": "urn:presentation-example:baseEvidence",
++          "kind": "Axiom",
++          "sign": "Positive"
++        },
++        {
++          "bindings": [
++            1,
++            2
++          ],
++          "body": "urn:presentation-example:body",
++          "context": 0,
++          "evidence": "urn:presentation-example:positiveEvidence",
++          "kind": "Axiom",
++          "sign": "Positive"
++        },
++        {
++          "bindings": [
++            1,
++            2
++          ],
++          "body": "urn:presentation-example:body",
++          "context": 0,
++          "evidence": "urn:presentation-example:negativeEvidence",
++          "kind": "Caveat",
++          "sign": "Negative"
++        }
++      ],
++      "square": "checked",
++      "symbols": [
++        {
++          "context": 0,
++          "names": [
++            {
++              "Iri": "urn:presentation-example:private"
++            }
++          ],
++          "roles": [
++            "Individual"
++          ]
++        },
++        {
++          "context": 0,
++          "names": [
++            {
++              "Iri": "urn:presentation-example:p"
++            }
++          ],
++          "roles": [
++            {
++              "Relation": 1
++            }
++          ]
++        },
++        {
++          "context": 0,
++          "names": [
++            {
++              "Iri": "urn:presentation-example:x"
++            }
++          ],
++          "roles": [
++            "Individual"
++          ]
++        },
++        {
++          "context": 0,
++          "names": [
++            {
++              "Iri": "urn:presentation-example:private"
++            }
++          ],
++          "roles": [
++            "Individual"
++          ]
++        }
++      ]
++    }
++  },
++  "schema": "native-presentation-merges-v1",
++  "source_documents": [],
++  "source_iri": null,
++  "witness_scope": "invocation-local"
++}
+diff --git a/crates/logic/src/correspondence_exec/presentation/source/report.rs b/crates/logic/src/correspondence_exec/presentation/source/report.rs
+index 7b5a6f0d3..d432cec39 100644
+--- a/crates/logic/src/correspondence_exec/presentation/source/report.rs
++++ b/crates/logic/src/correspondence_exec/presentation/source/report.rs
+@@ -4,11 +4,7 @@
+ //! Terminal reporting only: no report can be hydrated into a native witness.
+ 
+ use super::*;
+-use serde::Serialize;
+-use serde_json::json;
+-
+-#[derive(Serialize)]
+-struct NativeTerm<'a>(#[serde(with = "crate::term_serde")] &'a TermValue);
++use purrdf_lex::json::{Format, Object, Value, record::ToJson};
+ 
+ impl SourceMerges {
+     /// Report the complete finite result, sharing original formula/evidence
+@@ -16,6 +12,9 @@ impl SourceMerges {
+     /// exact compiler publication's document receipts and the producer action's
+     /// authenticated source dependency, never copied into intermediate JSON.
+     /// This artifact is a description, not a persisted optimization certificate.
++    ///
++    /// # Errors
++    /// Retains native storage failures while rendering the complete pretty report.
+     pub fn report(&self) -> gmeow_errors::Result<Vec<u8>> {
+         let body_names: BTreeMap<_, _> = self
+             .bodies
+@@ -27,50 +26,119 @@ impl SourceMerges {
+             .iter()
+             .map(|(name, evidence)| (Arc::as_ptr(evidence) as usize, name))
+             .collect();
+-        let bodies: BTreeMap<_, _> = self
+-            .bodies
+-            .iter()
+-            .map(|(name, body)| (name, body.formula().as_ref()))
+-            .collect();
+-        let evidence: BTreeMap<_, _> = self
+-            .evidence
+-            .iter()
+-            .map(|(name, evidence)| {
+-                (
+-                    name,
+-                    json!({
+-                        "origin": NativeTerm(evidence.origin()), "loss": evidence.loss(),
+-                        "provenance": "source-publication", "complement": "source-publication",
+-                    }),
+-                )
+-            })
+-            .collect();
+-        let merges: BTreeMap<_, _> = self.merges.iter().map(|(name, merge)| {
+-            let output = merge.output();
+-            let symbols: Vec<_> = output.symbols().iter().map(|symbol| json!({
+-                "context": symbol.context, "names": symbol.names.iter().map(NativeTerm).collect::<Vec<_>>(), "roles": symbol.roles,
+-            })).collect();
+-            let sentences: Vec<_> = output.sentences().iter().map(|sentence| json!({
+-                "body": body_names[&(Arc::as_ptr(&sentence.body) as usize)],
+-                "bindings": sentence.bindings, "context": sentence.context,
+-                "kind": sentence.kind, "sign": sentence.sign,
+-                "evidence": evidence_names[&(Arc::as_ptr(&sentence.evidence) as usize)],
+-            })).collect();
+-            let source_name = |presentation: &Arc<FinitePresentation>| &self.presentations[&(Arc::as_ptr(presentation) as usize)];
+-            (name, json!({
+-                "engine": merge.engine_descriptor(),
+-                "apex": source_name(merge.left_embedding().source()),
+-                "left": source_name(merge.left_injection().source()),
+-                "right": source_name(merge.right_injection().source()),
+-                "left_embedding": merge.left_embedding().images(),
+-                "right_embedding": merge.right_embedding().images(),
+-                "left_injection": merge.left_injection().images(),
+-                "right_injection": merge.right_injection().images(),
+-                "contexts": output.contexts(), "contract": output.contract().as_ref(),
+-                "symbols": symbols, "sentences": sentences,
+-                "square": "checked", "factorization": "unique-for-every-admitted-cocone",
+-            }))
+-        }).collect();
++        let bodies = Object::from(
++            self.bodies
++                .iter()
++                .map(|(name, body)| (name.clone(), body.formula().as_ref().to_json()))
++                .collect::<Vec<_>>(),
++        );
++        let evidence = Object::from(
++            self.evidence
++                .iter()
++                .map(|(name, evidence)| {
++                    (
++                        name.clone(),
++                        Object::new()
++                            .with("origin", crate::term_serde::to_json(evidence.origin()))
++                            .with("loss", evidence.loss().to_json())
++                            .with("provenance", "source-publication")
++                            .with("complement", "source-publication")
++                            .into(),
++                    )
++                })
++                .collect::<Vec<_>>(),
++        );
++        let merges = Object::from(
++            self.merges
++                .iter()
++                .map(|(name, merge)| {
++                    let output = merge.output();
++                    let symbols = Value::Array(
++                        output
++                            .symbols()
++                            .iter()
++                            .map(|symbol| {
++                                Object::new()
++                                    .with("context", symbol.context.to_json())
++                                    .with(
++                                        "names",
++                                        Value::Array(
++                                            symbol
++                                                .names
++                                                .iter()
++                                                .map(crate::term_serde::to_json)
++                                                .collect(),
++                                        ),
++                                    )
++                                    .with("roles", symbol.roles.to_json())
++                                    .into()
++                            })
++                            .collect(),
++                    );
++                    let sentences = Value::Array(
++                        output
++                            .sentences()
++                            .iter()
++                            .map(|sentence| {
++                                Object::new()
++                                    .with(
++                                        "body",
++                                        body_names[&(Arc::as_ptr(&sentence.body) as usize)]
++                                            .to_json(),
++                                    )
++                                    .with("bindings", sentence.bindings.to_json())
++                                    .with("context", sentence.context.to_json())
++                                    .with("kind", sentence.kind.to_json())
++                                    .with("sign", sentence.sign.to_json())
++                                    .with(
++                                        "evidence",
++                                        evidence_names[&(Arc::as_ptr(&sentence.evidence) as usize)]
++                                            .to_json(),
++                                    )
++                                    .into()
++                            })
++                            .collect(),
++                    );
++                    let source_name = |presentation: &Arc<FinitePresentation>| {
++                        &self.presentations[&(Arc::as_ptr(presentation) as usize)]
++                    };
++                    (
++                        name.clone(),
++                        Object::new()
++                            .with("engine", merge.engine_descriptor())
++                            .with(
++                                "apex",
++                                source_name(merge.left_embedding().source()).to_json(),
++                            )
++                            .with(
++                                "left",
++                                source_name(merge.left_injection().source()).to_json(),
++                            )
++                            .with(
++                                "right",
++                                source_name(merge.right_injection().source()).to_json(),
++                            )
++                            .with("left_embedding", merge.left_embedding().images().to_json())
++                            .with(
++                                "right_embedding",
++                                merge.right_embedding().images().to_json(),
++                            )
++                            .with("left_injection", merge.left_injection().images().to_json())
++                            .with(
++                                "right_injection",
++                                merge.right_injection().images().to_json(),
++                            )
++                            .with("contexts", output.contexts().to_json())
++                            .with("contract", output.contract().as_ref().to_json())
++                            .with("symbols", symbols)
++                            .with("sentences", sentences)
++                            .with("square", "checked")
++                            .with("factorization", "unique-for-every-admitted-cocone")
++                            .into(),
++                    )
++                })
++                .collect::<Vec<_>>(),
++        );
+         let documents: Vec<_> = self
+             .source
+             .source()
+@@ -78,11 +146,23 @@ impl SourceMerges {
+             .iter()
+             .map(|origin| &origin.document)
+             .collect();
+-        serde_json::to_vec_pretty(&json!({
+-            "schema": "native-presentation-merges-v1", "witness_scope": "invocation-local",
+-            "source_documents": documents, "source_iri": self.source.program().source_iri,
+-            "bodies": bodies, "evidence": evidence, "merges": merges,
+-        }))
+-        .map_err(|error| super::error(format!("serialize presentation merge report: {error}")))
++        let mut report = Value::from(
++            Object::new()
++                .with("schema", "native-presentation-merges-v1")
++                .with("witness_scope", "invocation-local")
++                .with("source_documents", documents.to_json())
++                .with("source_iri", self.source.program().source_iri.to_json())
++                .with("bodies", Value::Object(bodies))
++                .with("evidence", Value::Object(evidence))
++                .with("merges", Value::Object(merges)),
++        );
++        report.sort_keys();
++        let mut resident = purrdf_lex::allocation::Resident;
++        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
++        purrdf_lex::json::write_with_memory(&report, Format::PRETTY, &mut memory)
++            .map(String::into_bytes)
++            .map_err(|error| {
++                gmeow_errors::Diag::from(error).with_context("serialize presentation merge report")
++            })
+     }
+ }
+diff --git a/crates/logic/src/correspondence_exec/presentation/source/tests.rs b/crates/logic/src/correspondence_exec/presentation/source/tests.rs
+index 0845f5a7a..f4020597f 100644
+--- a/crates/logic/src/correspondence_exec/presentation/source/tests.rs
++++ b/crates/logic/src/correspondence_exec/presentation/source/tests.rs
+@@ -20,6 +20,8 @@ fn compile(source: &str) -> Arc<CompiledTheory> {
+ 
+ #[test]
+ fn authored_merge_reuses_original_formulas_and_complete_native_evidence() {
++    use purrdf_lex::json::{Format, Object, Value, record::ToJson};
++
+     let source = format!(
+         "{SOURCE}\nex:empty {{}}\nex:claim <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<(ex:a ex:p ex:b)>> ; <http://www.w3.org/ns/prov#wasDerivedFrom> ex:document ."
+     );
+@@ -86,16 +88,176 @@ fn authored_merge_reuses_original_formulas_and_complete_native_evidence() {
+         .factor(merge.left_injection(), merge.right_injection())
+         .unwrap();
+     assert!(identity.agrees_with(&PresentationMap::identity(Arc::clone(merge.output()))));
+-    let report: serde_json::Value = serde_json::from_slice(&batch.report().unwrap()).unwrap();
++    let report_bytes = batch
++        .report()
++        .expect("authored merge has a complete terminal report");
++    assert!(!report_bytes.ends_with(b"\n"));
++    let current_engine = crate::runtime::EngineContract::current().descriptor_hash;
++    assert_eq!(merge.engine_descriptor(), current_engine);
++    let report = purrdf_lex::json::read_slice(&report_bytes, purrdf_lex::json::Limits::DEFAULT)
++        .expect("native terminal report is complete JSON");
+     assert_eq!(report["bodies"].as_object().unwrap().len(), 1);
+     assert_eq!(report["evidence"].as_object().unwrap().len(), 3);
+     assert_eq!(
+-        report["merges"][format!("{EX}merge")]["sentences"]
++        report["merges"][format!("{EX}merge").as_str()]["sentences"]
+             .as_array()
+             .unwrap()
+             .len(),
+         3
+     );
++    assert_eq!(
++        report["merges"][format!("{EX}merge").as_str()]["engine"].as_str(),
++        Some(current_engine.as_str())
++    );
++    // Each frozen reference stores one LF that is not part of its payload.
++    let original_report = include_str!("fixtures/report-v1.json")
++        .strip_suffix('\n')
++        .expect("original report reference has one storage LF");
++    assert!(!original_report.ends_with('\n'));
++    let original_value =
++        purrdf_lex::json::read(original_report).expect("frozen original report is complete JSON");
++    let original_engine = original_value["merges"][format!("{EX}merge").as_str()]["engine"]
++        .as_str()
++        .expect("the authored merge has its original engine descriptor");
++    let original_field = format!("\"engine\": \"{original_engine}\"");
++    assert_eq!(original_report.matches(&original_field).count(), 1);
++    let (prefix, suffix) = original_report
++        .split_once(&original_field)
++        .expect("the exact named original engine field occurs once");
++    let expected_report = format!("{prefix}\"engine\": \"{current_engine}\"{suffix}");
++    assert_eq!(report_bytes, expected_report.as_bytes());
++
++    use gmeow_logic_compile::ir::{ComplexityClass, SemanticProfileId};
++    let contract = ReasoningContract {
++        preset: Some(SemanticProfileId::Probabilistic),
++        formula_fragment: Some("raw fragment\0中".into()),
++        model_semantics: Some("raw model".into()),
++        truth_algebra: Some("raw truth".into()),
++        admissible_valuation: Some("raw valuation".into()),
++        designated_values: Some("raw designated".into()),
++        evolution: Some("raw evolution".into()),
++        argumentation: Some("raw argumentation".into()),
++        revision: Some("raw revision".into()),
++        equality_policy: Some("raw equality".into()),
++        default_closure: Some("raw closure".into()),
++        negation_operators: BTreeSet::from(["negation z".into(), "negation a".into()]),
++        context_axes: BTreeSet::from(["axis z".into(), "axis a".into()]),
++        uncertainty_measures: BTreeSet::from(["measure z".into(), "measure a".into()]),
++        resource_policies: BTreeSet::from(["resource z".into(), "resource a".into()]),
++        projection_targets: BTreeSet::from(["target z".into(), "target a".into()]),
++        closure_entries: BTreeMap::from([
++            ("\u{10000}".into(), "supplementary value\0".into()),
++            ("\u{e000}".into(), "private-use value 中".into()),
++            ("raw predicate".into(), "raw closure value".into()),
++        ]),
++        complexity: Some(
++            ComplexityClass::new(" raw complexity\0中 ")
++                .expect("nonempty authored complexity label is preserved"),
++        ),
++    };
++    let context = PresentationContext {
++        answer: ResultContext {
++            world: "raw world\0中".into(),
++            standpoint: Some("raw standpoint".into()),
++            attributed: Some("raw attributed context".into()),
++            time: Some("raw time".into()),
++            path: Some("raw path".into()),
++        },
++        module: Some("raw module".into()),
++        modality: LogicModality::Counterfactual,
++    };
++    let empty_context = PresentationContext {
++        answer: ResultContext::default(),
++        module: None,
++        modality: LogicModality::None,
++    };
++    let profiles = [
++        SemanticProfileId::PositiveHorn,
++        SemanticProfileId::StratifiedNaf,
++        SemanticProfileId::WellFounded,
++        SemanticProfileId::StableModel,
++        SemanticProfileId::ProceduralProlog,
++        SemanticProfileId::Probabilistic,
++    ];
++    let modalities = [
++        LogicModality::None,
++        LogicModality::Alethic,
++        LogicModality::Epistemic,
++        LogicModality::Doxastic,
++        LogicModality::Telic,
++        LogicModality::Deontic,
++        LogicModality::Representational,
++        LogicModality::Counterfactual,
++    ];
++    let roles = [
++        SymbolRole::Individual,
++        SymbolRole::Relation(19),
++        SymbolRole::VariadicRelation,
++        SymbolRole::Function(37),
++        SymbolRole::VariadicFunction,
++    ];
++    let signs = [SentenceSign::Positive, SentenceSign::Negative];
++    let kinds = [SentenceKind::Axiom, SentenceKind::Caveat];
++    let mut atlas = Value::from(
++        Object::new()
++            .with("contract", contract.to_json())
++            .with("empty_contract", ReasoningContract::default().to_json())
++            .with("context", context.to_json())
++            .with("empty_context", empty_context.to_json())
++            .with("profiles", profiles.to_json())
++            .with("modalities", modalities.to_json())
++            .with("roles", roles.to_json())
++            .with("signs", signs.to_json())
++            .with("sentence_kinds", kinds.to_json()),
++    );
++    atlas.sort_keys();
++    let atlas_bytes = purrdf_lex::json::write(&atlas, Format::PRETTY).into_bytes();
++    assert!(!atlas_bytes.ends_with(b"\n"));
++    let original_atlas = include_str!("fixtures/projections-v1.json")
++        .strip_suffix('\n')
++        .expect("original projection reference has one storage LF");
++    assert!(!original_atlas.ends_with('\n'));
++    assert_eq!(atlas_bytes, original_atlas.as_bytes());
++
++    use gmeow_logic_compile::frontend::{SourceBase, SourceBaseOrigin, SourceDocument};
++    let bases = [
++        None,
++        Some(SourceBase {
++            iri: "raw caller base\0中".into(),
++            origin: SourceBaseOrigin::Caller,
++        }),
++        Some(SourceBase {
++            iri: "raw directive base".into(),
++            origin: SourceBaseOrigin::Directive {
++                line: u64::MAX,
++                column: u32::MAX,
++            },
++        }),
++        Some(SourceBase {
++            iri: "raw enclosing base".into(),
++            origin: SourceBaseOrigin::Enclosing,
++        }),
++    ];
++    let documents: Vec<_> = bases
++        .into_iter()
++        .enumerate()
++        .map(|(index, base)| SourceDocument {
++            path: format!("authored path {index}\0中"),
++            content_digest: format!("authored digest {index}"),
++            role: format!("authored role {index}"),
++            base,
++        })
++        .collect();
++    let mut document_projection =
++        Value::from(Object::new().with("source_documents", documents.to_json()));
++    document_projection.sort_keys();
++    let document_bytes = purrdf_lex::json::write(&document_projection, Format::PRETTY).into_bytes();
++    assert!(!document_bytes.ends_with(b"\n"));
++    let original_documents = include_str!("fixtures/documents-v1.json")
++        .strip_suffix('\n')
++        .expect("original source-description reference has one storage LF");
++    assert!(!original_documents.ends_with('\n'));
++    assert_eq!(document_bytes, original_documents.as_bytes());
+ }
+ 
+ #[test]
+diff --git a/crates/logic/src/result.rs b/crates/logic/src/result.rs
+index 7b69baa2e..b963a0755 100644
+--- a/crates/logic/src/result.rs
++++ b/crates/logic/src/result.rs
+@@ -594,6 +594,14 @@ pub struct ResultContext {
+     pub path: Option<String>,
+ }
+ 
++::purrdf_lex::json_record!(impl ToJson for ResultContext {
++    "world" => world,
++    "standpoint" => standpoint,
++    "attributed" => attributed,
++    "time" => time,
++    "path" => path,
++});
++
+ /// The engine identity that produced a result.
+ #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+ pub struct EngineId {

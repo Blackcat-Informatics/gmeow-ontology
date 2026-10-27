@@ -1,0 +1,51 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Replace Serde JSON in the complete terminal presentation-merge report with native PurRDF JSON. Preserve the public SourceMerges::report() -> gmeow_errors::Result<Vec<u8>> API and both existing callers: CompileLogicStage's generated/logic/presentation-merges.json artifact and the consumer CLI wrapper. Principles 4 and 7.\n\nThis is a terminal description, not a hydratable proof or optimization certificate. The complete writer closure comprises five inline report shapes plus nine local projections: PresentationContext, ResultContext, ReasoningContract, ComplexityClass, SemanticProfileId, LogicModality, PresentationSymbolRole, PresentationSign and PresentationSentenceKind. Use the runtime context types, not similarly named IR types. Reuse existing complete Formula, RDF-term and PreservationClaim native owners. Retain shared Serde for genuine other operations; remove the obsolete private NativeTerm report wrapper.\n\nAcceptance:\n\n- Render every existing root/evidence/merge/symbol/sentence field, all eighteen contract fields, all runtime context fields, original source/document names, formula definitions, evidence/loss, roles, bindings and all four image vectors. Preserve raw strings, nullable options, ordered arrays/sets/maps, named ComplexityClass.label shape and exact Rust enum wire tags. Do not substitute semantic display strings, run validation/normalization or change source-name resolution.\n- Compose native values directly, call native Value::sort_keys for recursive bytewise object ordering, then use the existing two-space native pretty writer with no terminal LF. Keep the CLI's separate printed LF and every caller unchanged. Do not add a local JSON walker, shadow DTO, generic serialization framework, Serde bridge/fallback or new dependency. Preserve actual native writer failure causes.\n- Keep engine identity truthful. CheckedPushout stores EngineContract::current, whose descriptor commits all production native-module bytes. Adding serializers legitimately changes that input value. Do not weaken source hashing, inject an old descriptor, change proof construction or retain an old encoder.\n- Before production edits, capture the entire original pretty report on the existing small authored presentation fixture and a complete rich projection atlas covering all nine new writer owners, nonempty contract/context/label fields, nullable alternatives and every enum roster. Freeze both complete original byte payloads without JSON reserialization.\n- Extend only the existing authored_merge_reuses_original_formulas_and_complete_native_evidence case; preserve all existing formula/evidence-sharing, caveat, loss and factorization assertions. Final report comparison must locate its exact named engine string once, bind only that expected value to the independently checked current engine, and compare all remaining bytes literally. Assert the real merge and emitted report both carry the current descriptor. The atlas compares literally without parameterization. Preserve original fixtures unmodified, with any storage LF documented separately. No generic engine/JSON conformance cases or unrelated test growth.\n- Independently review; run strict actual logic-compile, logic, pipeline and developer CLI diagnostics with warnings denied, the one exact authored control, complete helpers/static producer-recipe checks and normal signing/hooks. Keep preparation, merge verification, structural identities, source/evidence ownership, source commitments and binary Serde identities unchanged.\n- No local optimized producer, canonical corpus/fixture construction, sync or full gate. The existing independently authored RDF fixture may compile in the selected control; no shared corpus or canonical producer may run. CI is waived, not passing. Installed/embedded CLI compilation/execution remains unqualified because its required production codebook asset is absent; no CLI source/cfg/dependency/API change is needed for this formatter. Do not supply a fabricated or borrowed asset/receipt. Browser, shipped-asset, authenticated corpus and release acceptance remain open.\n\nRemaining contracts: #1776, #1777, #1336 and #1962, including complete program/operator persistence, full diagnostics Report and actual production acceptance. Protected draft PR #1974 remains separately owned. This child closes only the complete terminal presentation-merge formatting operation.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-27T15:07:42Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2022,
+  "state": "OPEN",
+  "title": "Use native JSON for the complete presentation merge report",
+  "updatedAt": "2026-10-27T15:08:14Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2022"
+}
