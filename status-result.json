@@ -1,0 +1,129 @@
+{
+  "issue": 1991,
+  "pr_number": 1992,
+  "branch": "paudley/1991-use-one-native-json-owner-for-complete",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1991-use-one-native-json-owner-for-complete/.stage/use-one-native-json-owner-for-complete",
+  "observed_at": "2026-10-27T02:10:46.220350+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1991-use-one-native-json-owner-for-complete/.stage/use-one-native-json-owner-for-complete/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1991-use-one-native-json-owner-for-complete/.stage/use-one-native-json-owner-for-complete/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1991-use-one-native-json-owner-for-complete/.stage/use-one-native-json-owner-for-complete/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1991-use-one-native-json-owner-for-complete/.stage/use-one-native-json-owner-for-complete/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1991-use-one-native-json-owner-for-complete/.stage/use-one-native-json-owner-for-complete/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "b8dd0a3fd85c3223178547de275ae725e5d4203e",
+    "headRefName": "paudley/1991-use-one-native-json-owner-for-complete",
+    "headRefOid": "2b75ca95deafa2aba30d0179618686ef90577bd3",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1992,
+    "state": "OPEN",
+    "title": "Use one native JSON owner for complete list observations",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1992"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/1992",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40436889113/job/121967591506",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40436889113/job/121967591627",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40436889113/job/121967591608",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40436889113/job/121967591217",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=1992",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "2b75ca95deafa2aba30d0179618686ef90577bd3",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "3063d7b677fa0c1b33ccb139ba9398ba5c714cfd66684e81a898ecca4e9a60d4"
+  },
+  "local": {
+    "head": "2b75ca95deafa2aba30d0179618686ef90577bd3",
+    "branch": "paudley/1991-use-one-native-json-owner-for-complete",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1992,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1992 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABf2Ctrw",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1992#issuecomment-6432009647",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

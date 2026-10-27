@@ -1,0 +1,670 @@
+diff --git a/crates/logic/src/reason/refute.rs b/crates/logic/src/reason/refute.rs
+index e04c4d038..7df64b400 100644
+--- a/crates/logic/src/reason/refute.rs
++++ b/crates/logic/src/reason/refute.rs
+@@ -61,6 +61,12 @@ pub use casesplit::{
+     ClassExecutionOutcome, ClassSourceRefusal, PreparedClassAnalysis,
+ };
+ 
++mod list_observation;
++pub use list_observation::{
++    LIST_CORPUS_CHANNEL, ListCorpusObservation, decode_list_corpus_observation,
++    encode_list_corpus_observation,
++};
++
+ mod proof;
+ pub use proof::{
+     ContextualConflict, RefutationAssumption, RefutationBranch, RefutationClash,
+diff --git a/crates/logic/src/reason/refute/casesplit/logic_lists_tests.rs b/crates/logic/src/reason/refute/casesplit/logic_lists_tests.rs
+index ddbf72047..ac7d74f03 100644
+--- a/crates/logic/src/reason/refute/casesplit/logic_lists_tests.rs
++++ b/crates/logic/src/reason/refute/casesplit/logic_lists_tests.rs
+@@ -211,32 +211,17 @@ ex:Named logic:oneOf ( ex:a ex:b ) .
+ 
+ #[test]
+ fn corpus_every_slice_module_list_has_complete_canonical_projection() {
+-    #[derive(Debug, serde::Deserialize)]
+-    struct Observation {
+-        schema_version: u32,
+-        source_catalog_id: String,
+-        source_modules: std::collections::BTreeMap<String, String>,
+-        destination_graph: String,
+-        admission_contract: String,
+-        selected_world_count: usize,
+-        list_diagnostics: Vec<gmeow_logic_compile::frontend::Diagnostic>,
+-        blank_list_fields: Vec<String>,
+-        invalid_constructor_objects: Vec<String>,
+-        list_sizes: std::collections::BTreeMap<String, usize>,
+-        list_errors: Vec<String>,
+-        admission_defects: Vec<RefutationSourceIssue>,
+-    }
+     // Hydrate the producer's exact compact observation. No source reading,
+     // compilation, projection or admission executes in this test process.
+     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+     let bytes = gmeow_action_cache::selection::source_artifacts::load(
+         &root,
+         "stage-compile-logic",
+-        "pipeline/logic-list-corpus-observation.json",
++        super::super::LIST_CORPUS_CHANNEL,
+     )
+     .expect("authenticated producer list observation");
+-    let observation: Result<Observation, gmeow_errors::RecordedDiag> =
+-        serde_json::from_slice(&bytes).expect("typed list observation");
++    let observation =
++        super::super::decode_list_corpus_observation(&bytes).expect("typed list observation");
+     let observation = observation.expect("producer completed list admission");
+     assert_eq!(observation.schema_version, 1);
+     assert!(!observation.source_catalog_id.is_empty());
+diff --git a/crates/logic/src/reason/refute/list_observation.rs b/crates/logic/src/reason/refute/list_observation.rs
+new file mode 100644
+index 000000000..0757a35a6
+--- /dev/null
++++ b/crates/logic/src/reason/refute/list_observation.rs
+@@ -0,0 +1,139 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Shared data-only list projection observations and their recorded outcome.
++
++use super::RefutationSourceIssue;
++use gmeow_logic_compile::frontend::Diagnostic;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record},
++};
++use std::collections::BTreeMap;
++
++/// Exact artifact selected by the compile-logic producer and its consumers.
++pub const LIST_CORPUS_CHANNEL: &str = "pipeline/logic-list-corpus-observation.json";
++
++/// Retained source and list evidence. Hydration does not admit or rebuild a projection.
++#[derive(Debug)]
++pub struct ListCorpusObservation {
++    /// Observation schema as supplied by the producer.
++    pub schema_version: u32,
++    /// Identity of the complete selected source catalog.
++    pub source_catalog_id: String,
++    /// Selected source modules and their original content digests.
++    pub source_modules: BTreeMap<String, String>,
++    /// Destination context of the retained logical projection.
++    pub destination_graph: String,
++    /// Original class-expression source-admission contract.
++    pub admission_contract: String,
++    /// Number of contexts selected by that admission.
++    pub selected_world_count: usize,
++    /// Frontend list and enumeration diagnostics, in source order.
++    pub list_diagnostics: Vec<Diagnostic>,
++    /// Original projected fields still containing blank nodes.
++    pub blank_list_fields: Vec<String>,
++    /// Original constructor rows whose objects are outside the required kind.
++    pub invalid_constructor_objects: Vec<String>,
++    /// Complete lengths of successfully traversed list heads.
++    pub list_sizes: BTreeMap<String, usize>,
++    /// Original traversal refusals, in observation order.
++    pub list_errors: Vec<String>,
++    /// Original selected source issues, without interpretation or normalization.
++    pub admission_defects: Vec<RefutationSourceIssue>,
++}
++
++::purrdf_lex::json_record!(impl ToJson for ListCorpusObservation {
++    "schema_version" => schema_version,
++    "source_catalog_id" => source_catalog_id,
++    "source_modules" => source_modules,
++    "destination_graph" => destination_graph,
++    "admission_contract" => admission_contract,
++    "selected_world_count" => selected_world_count,
++    "list_diagnostics" => list_diagnostics,
++    "blank_list_fields" => blank_list_fields,
++    "invalid_constructor_objects" => invalid_constructor_objects,
++    "list_sizes" => list_sizes,
++    "list_errors" => list_errors,
++    "admission_defects" => admission_defects,
++});
++
++struct ListSize(usize);
++impl FromJson for ListSize {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        gmeow_errors::json::read_unsigned(value, "usize list size").map(Self)
++    }
++}
++
++impl FromJson for ListCorpusObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ListCorpusObservation")?;
++        let schema_version = fields.required_with("schema_version", |value| {
++            gmeow_errors::json::read_unsigned(value, "u32 list observation schema")
++        })?;
++        let source_catalog_id = fields.required("source_catalog_id")?;
++        let source_modules = fields.required("source_modules")?;
++        let destination_graph = fields.required("destination_graph")?;
++        let admission_contract = fields.required("admission_contract")?;
++        let selected_world_count = fields.required_with("selected_world_count", |value| {
++            gmeow_errors::json::read_unsigned(value, "usize selected world count")
++        })?;
++        let list_diagnostics = fields.required("list_diagnostics")?;
++        let blank_list_fields = fields.required("blank_list_fields")?;
++        let invalid_constructor_objects = fields.required("invalid_constructor_objects")?;
++        let list_sizes: BTreeMap<String, ListSize> = fields.required("list_sizes")?;
++        Ok(Self {
++            schema_version,
++            source_catalog_id,
++            source_modules,
++            destination_graph,
++            admission_contract,
++            selected_world_count,
++            list_diagnostics,
++            blank_list_fields,
++            invalid_constructor_objects,
++            list_sizes: list_sizes
++                .into_iter()
++                .map(|(head, size)| (head, size.0))
++                .collect(),
++            list_errors: fields.required("list_errors")?,
++            admission_defects: fields.required("admission_defects")?,
++        })
++    }
++}
++
++struct RecordedObservation(Result<ListCorpusObservation, gmeow_errors::RecordedDiag>);
++impl FromJson for RecordedObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        gmeow_errors::json::read_recorded_result(
++            value,
++            "list corpus observation outcome",
++            "one list corpus observation outcome variant",
++        )
++        .map(Self)
++    }
++}
++
++/// Encode the complete recorded observation without cloning its payload.
++#[must_use]
++pub fn encode_list_corpus_observation(
++    observation: &Result<ListCorpusObservation, gmeow_errors::RecordedDiag>,
++) -> Vec<u8> {
++    purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_result_to_json(observation))
++        .into_bytes()
++}
++
++/// Hydrate the producer's exact recorded outcome through native typed admission.
++/// Corpus-success assertions belong to the authenticated consumer.
++///
++/// # Errors
++/// Refuses malformed records, variants and typed fields under the native default depth policy.
++pub fn decode_list_corpus_observation(
++    bytes: &[u8],
++) -> Result<Result<ListCorpusObservation, gmeow_errors::RecordedDiag>, DecodeError> {
++    purrdf_lex::json::record::from_slice::<RecordedObservation>(bytes).map(|outcome| outcome.0)
++}
++
++#[cfg(test)]
++#[path = "list_observation.tests.rs"]
++mod tests;
+diff --git a/crates/logic/src/reason/refute/list_observation.tests.rs b/crates/logic/src/reason/refute/list_observation.tests.rs
+new file mode 100644
+index 000000000..cf7b2bfaa
+--- /dev/null
++++ b/crates/logic/src/reason/refute/list_observation.tests.rs
+@@ -0,0 +1,187 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use purrdf::{BlankScope, RdfTextDirection, TermValue};
++
++const WIRE: &str = r#"{"Ok":{"schema_version":1,"source_catalog_id":"authored catalog","source_modules":{"a/module.ttl":"digest a","z/module.ttl":"digest z"},"destination_graph":"urn:observed-graph","admission_contract":"authored admission","selected_world_count":2,"list_diagnostics":[{"severity":"Warning","code":"LIST_INPUT","message":"retained 中","subject":null}],"blank_list_fields":["blank row"],"invalid_constructor_objects":["invalid row"],"list_sizes":{"urn:empty":0,"urn:head":2},"list_errors":["retained traversal refusal"],"admission_defects":["MalformedNil",{"ConflictingListField":{"subject":"urn:cell","predicate":"urn:first"}},{"ExpressionMultiplicity":{"subject":"urn:class","predicate":"urn:union"}},{"UnsupportedExpressionOwner":{"owner":{"Triple":{"s":{"Blank":{"label":"same","scope":17}},"p":{"Iri":"urn:p"},"o":{"Triple":{"s":{"Blank":{"label":"same","scope":19}},"p":{"Iri":"urn:q"},"o":{"Literal":{"lexical_form":"raw 01","datatype":"urn:raw-datatype","language":"MiXeD","direction":"Rtl"}}}}}},"predicate":"urn:definition"}},{"UnsupportedExpressionOperand":{"owner":"urn:owner","predicate":"urn:operand","operand":{"Literal":{"lexical_form":"01","datatype":"urn:datatype","language":"MiXeD","direction":"Rtl"}}}},{"UnsupportedListMember":{"owner":"urn:owner","head":"urn:head"}},{"CyclicList":{"owner":"urn:cycle","head":"urn:cycle-head"}},{"IncompleteList":{"owner":"urn:incomplete","head":"urn:missing-head"}}]}}"#;
++
++#[test]
++fn native_list_observation_wire_retains_all_source_issues_and_quoted_identity() {
++    let outcome = decode_list_corpus_observation(WIRE.as_bytes()).unwrap();
++    assert_eq!(encode_list_corpus_observation(&outcome), WIRE.as_bytes());
++    let observation = outcome.unwrap();
++    assert_eq!(observation.admission_defects.len(), 8);
++    assert_eq!(observation.list_sizes["urn:empty"], 0);
++    assert_eq!(observation.list_diagnostics[0].message, "retained 中");
++    let RefutationSourceIssue::UnsupportedExpressionOwner { owner, predicate } =
++        &observation.admission_defects[3]
++    else {
++        panic!("retained owner issue")
++    };
++    assert_eq!(predicate, "urn:definition");
++    let TermValue::Triple { s, p, o } = owner else {
++        panic!("retained outer statement")
++    };
++    assert_eq!(
++        s.as_ref(),
++        &TermValue::Blank {
++            label: "same".into(),
++            scope: BlankScope(17)
++        }
++    );
++    assert_eq!(p.as_ref(), &TermValue::iri("urn:p"));
++    let TermValue::Triple { s, p, o } = o.as_ref() else {
++        panic!("retained nested statement")
++    };
++    assert_eq!(
++        s.as_ref(),
++        &TermValue::Blank {
++            label: "same".into(),
++            scope: BlankScope(19)
++        }
++    );
++    assert_eq!(p.as_ref(), &TermValue::iri("urn:q"));
++    assert_eq!(
++        o.as_ref(),
++        &TermValue::Literal {
++            lexical_form: "raw 01".into(),
++            datatype: "urn:raw-datatype".into(),
++            language: Some("MiXeD".into()),
++            direction: Some(RdfTextDirection::Rtl),
++        }
++    );
++    let RefutationSourceIssue::UnsupportedExpressionOperand { operand, .. } =
++        &observation.admission_defects[4]
++    else {
++        panic!("retained operand issue")
++    };
++    assert_eq!(
++        operand,
++        &TermValue::Literal {
++            lexical_form: "01".into(),
++            datatype: "urn:datatype".into(),
++            language: Some("MiXeD".into()),
++            direction: Some(RdfTextDirection::Rtl),
++        }
++    );
++    let unit_object = WIRE.replace("[\"MalformedNil\",", "[{\"MalformedNil\":null},");
++    assert_eq!(
++        encode_list_corpus_observation(
++            &decode_list_corpus_observation(unit_object.as_bytes()).unwrap()
++        ),
++        WIRE.as_bytes()
++    );
++    let max_schema = WIRE.replace("\"schema_version\":1", "\"schema_version\":4294967295");
++    let outcome = decode_list_corpus_observation(max_schema.as_bytes()).unwrap();
++    assert_eq!(outcome.as_ref().unwrap().schema_version, u32::MAX);
++    assert_eq!(
++        encode_list_corpus_observation(&outcome),
++        max_schema.as_bytes()
++    );
++}
++
++#[test]
++fn native_list_observation_refusal_retains_the_complete_causal_closure() {
++    let mut ledger = gmeow_errors::DiagLedger::new();
++    let premise = ledger.attach(
++        gmeow_errors::Diag::from(std::io::Error::other("authored catalog refusal"))
++            .with_focus("urn:list:catalog"),
++        gmeow_errors::StageId::new("list-input"),
++    );
++    let refusal = ledger.record(
++        gmeow_errors::Diag::from(std::io::Error::other("authored list refusal"))
++            .with_focus("urn:list:projection")
++            .with_antecedents([premise]),
++        gmeow_errors::StageId::new("list-observation"),
++    );
++    let restored =
++        decode_list_corpus_observation(&encode_list_corpus_observation(&Err(refusal.clone())))
++            .unwrap();
++    assert_eq!(restored.unwrap_err(), refusal);
++    assert_eq!(refusal.causes.len(), 1);
++    assert_eq!(
++        refusal.root.antecedents.as_ref(),
++        &[refusal.causes[0].fingerprint]
++    );
++}
++
++#[test]
++fn native_list_observation_admission_refuses_ambiguous_and_shadowed_invalid_evidence() {
++    let unknown = WIRE
++        .replace("\"schema_version\":", "\"future\":null,\"schema_version\":")
++        .replace("\"subject\":", "\"future\":null,\"subject\":")
++        .replace("\"owner\":", "\"future\":null,\"owner\":")
++        .replace("\"predicate\":", "\"future\":null,\"predicate\":");
++    assert_eq!(
++        encode_list_corpus_observation(
++            &decode_list_corpus_observation(unknown.as_bytes()).unwrap()
++        ),
++        WIRE.as_bytes()
++    );
++    let valid_shadow = WIRE
++        .replace(
++            "\"a/module.ttl\":",
++            "\"a/module.ttl\":\"earlier\",\"a/module.ttl\":",
++        )
++        .replace("\"urn:head\":2", "\"urn:head\":3,\"urn:head\":2");
++    assert_eq!(
++        encode_list_corpus_observation(
++            &decode_list_corpus_observation(valid_shadow.as_bytes()).unwrap()
++        ),
++        WIRE.as_bytes()
++    );
++    for invalid in [
++        WIRE.replacen("{\"Ok\":", "{\"Err\":null,\"Ok\":", 1),
++        WIRE.replacen("{\"Ok\":", "{\"Ok\":null,\"Ok\":", 1),
++        WIRE.replace("\"schema_version\":1", "\"schema_version\":4294967296"),
++        WIRE.replace("\"selected_world_count\":2", "\"selected_world_count\":-1"),
++        WIRE.replace("\"selected_world_count\":2", "\"selected_world_count\":2e0"),
++        WIRE.replace(
++            "\"selected_world_count\":2",
++            "\"selected_world_count\":18446744073709551616",
++        ),
++        WIRE.replace("\"source_catalog_id\":\"authored catalog\",", ""),
++        WIRE.replace(
++            "\"schema_version\":",
++            "\"schema_version\":1,\"schema_version\":",
++        ),
++        WIRE.replace(
++            "\"a/module.ttl\":",
++            "\"a/module.ttl\":false,\"a/module.ttl\":",
++        ),
++        WIRE.replace("\"urn:head\":2", "\"urn:head\":1e0,\"urn:head\":2"),
++        WIRE.replace(
++            "\"urn:head\":2",
++            "\"urn:head\":18446744073709551616,\"urn:head\":2",
++        ),
++        WIRE.replace(
++            "\"subject\":\"urn:cell\"",
++            "\"subject\":\"earlier\",\"subject\":\"urn:cell\"",
++        ),
++        WIRE.replace(
++            "\"owner\":\"urn:owner\",\"predicate\":\"urn:operand\",",
++            "\"owner\":\"urn:owner\",",
++        ),
++        WIRE.replace("\"scope\":17", "\"scope\":4294967296"),
++        WIRE.replace("\"scope\":19", "\"scope\":19.0"),
++        WIRE.replace("\"direction\":\"Rtl\"", "\"direction\":\"unknown\""),
++        WIRE.replace("[\"MalformedNil\",", "[{\"MalformedNil\":false},"),
++        WIRE.replace(
++            "[\"MalformedNil\",",
++            "[{\"MalformedNil\":null,\"CyclicList\":{}},",
++        ),
++        WIRE.replace("[\"MalformedNil\",", "[\"Unknown\","),
++        WIRE.replace(
++            "{\"ConflictingListField\":{\"subject\":\"urn:cell\",\"predicate\":\"urn:first\"}}",
++            "{\"ConflictingListField\":[\"urn:cell\",\"urn:first\"]}",
++        ),
++        r#"{"Ok":[1,"catalog",{},"graph","contract",0,[],[],[],{},[],[]]}"#.to_owned(),
++        r#"{"Err":{}}"#.to_owned(),
++    ] {
++        assert!(
++            decode_list_corpus_observation(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++}
+diff --git a/crates/logic/src/reason/refute/proof.rs b/crates/logic/src/reason/refute/proof.rs
+index 26eecbbb9..e679eb400 100644
+--- a/crates/logic/src/reason/refute/proof.rs
++++ b/crates/logic/src/reason/refute/proof.rs
+@@ -3,6 +3,8 @@
+ 
+ //! Supported contextual refutation, independently of local membership publication.
+ 
++mod source_issue_json;
++
+ use purrdf::TermValue;
+ use serde::{Deserialize, Serialize};
+ use std::collections::BTreeSet;
+diff --git a/crates/logic/src/reason/refute/proof/source_issue_json.rs b/crates/logic/src/reason/refute/proof/source_issue_json.rs
+new file mode 100644
+index 000000000..5b856af30
+--- /dev/null
++++ b/crates/logic/src/reason/refute/proof/source_issue_json.rs
+@@ -0,0 +1,171 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Exact source-issue transport, separate from source admission and proof checking.
++
++use super::RefutationSourceIssue;
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++
++const VARIANTS: &[&str] = &[
++    "MalformedNil",
++    "ConflictingListField",
++    "ExpressionMultiplicity",
++    "UnsupportedExpressionOwner",
++    "UnsupportedExpressionOperand",
++    "UnsupportedListMember",
++    "CyclicList",
++    "IncompleteList",
++];
++
++impl ToJson for RefutationSourceIssue {
++    fn to_json(&self) -> Value {
++        let (tag, fields) = match self {
++            Self::MalformedNil => return "MalformedNil".to_json(),
++            Self::ConflictingListField { subject, predicate } => (
++                "ConflictingListField",
++                Object::new()
++                    .with("subject", subject.to_json())
++                    .with("predicate", predicate.to_json()),
++            ),
++            Self::ExpressionMultiplicity { subject, predicate } => (
++                "ExpressionMultiplicity",
++                Object::new()
++                    .with("subject", subject.to_json())
++                    .with("predicate", predicate.to_json()),
++            ),
++            Self::UnsupportedExpressionOwner { owner, predicate } => (
++                "UnsupportedExpressionOwner",
++                Object::new()
++                    .with("owner", crate::term_serde::to_json(owner))
++                    .with("predicate", predicate.to_json()),
++            ),
++            Self::UnsupportedExpressionOperand {
++                owner,
++                predicate,
++                operand,
++            } => (
++                "UnsupportedExpressionOperand",
++                Object::new()
++                    .with("owner", owner.to_json())
++                    .with("predicate", predicate.to_json())
++                    .with("operand", crate::term_serde::to_json(operand)),
++            ),
++            Self::UnsupportedListMember { owner, head } => (
++                "UnsupportedListMember",
++                Object::new()
++                    .with("owner", owner.to_json())
++                    .with("head", head.to_json()),
++            ),
++            Self::CyclicList { owner, head } => (
++                "CyclicList",
++                Object::new()
++                    .with("owner", owner.to_json())
++                    .with("head", head.to_json()),
++            ),
++            Self::IncompleteList { owner, head } => (
++                "IncompleteList",
++                Object::new()
++                    .with("owner", owner.to_json())
++                    .with("head", head.to_json()),
++            ),
++        };
++        Object::new().with(tag, Value::from(fields)).into()
++    }
++}
++impl FromJson for RefutationSourceIssue {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        if let Some(name) = value.as_str() {
++            return match name {
++                "MalformedNil" => Ok(Self::MalformedNil),
++                name => Err(DecodeError::unknown_variant(name, VARIANTS)),
++            };
++        }
++        let (tag, payload) = gmeow_errors::json::read_variant(
++            value,
++            "RefutationSourceIssue",
++            "one RefutationSourceIssue variant",
++        )?;
++        let decode = || -> Result<Self, DecodeError> {
++            match tag {
++                "MalformedNil" => {
++                    gmeow_errors::json::read_null(payload, "null MalformedNil payload")
++                        .map(|()| Self::MalformedNil)
++                }
++                "ConflictingListField" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant RefutationSourceIssue::ConflictingListField",
++                    )?;
++                    Ok(Self::ConflictingListField {
++                        subject: fields.required("subject")?,
++                        predicate: fields.required("predicate")?,
++                    })
++                }
++                "ExpressionMultiplicity" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant RefutationSourceIssue::ExpressionMultiplicity",
++                    )?;
++                    Ok(Self::ExpressionMultiplicity {
++                        subject: fields.required("subject")?,
++                        predicate: fields.required("predicate")?,
++                    })
++                }
++                "UnsupportedExpressionOwner" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant RefutationSourceIssue::UnsupportedExpressionOwner",
++                    )?;
++                    Ok(Self::UnsupportedExpressionOwner {
++                        owner: fields.required_with("owner", crate::term_serde::from_json)?,
++                        predicate: fields.required("predicate")?,
++                    })
++                }
++                "UnsupportedExpressionOperand" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant RefutationSourceIssue::UnsupportedExpressionOperand",
++                    )?;
++                    Ok(Self::UnsupportedExpressionOperand {
++                        owner: fields.required("owner")?,
++                        predicate: fields.required("predicate")?,
++                        operand: fields.required_with("operand", crate::term_serde::from_json)?,
++                    })
++                }
++                "UnsupportedListMember" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant RefutationSourceIssue::UnsupportedListMember",
++                    )?;
++                    Ok(Self::UnsupportedListMember {
++                        owner: fields.required("owner")?,
++                        head: fields.required("head")?,
++                    })
++                }
++                "CyclicList" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant RefutationSourceIssue::CyclicList")?;
++                    Ok(Self::CyclicList {
++                        owner: fields.required("owner")?,
++                        head: fields.required("head")?,
++                    })
++                }
++                "IncompleteList" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant RefutationSourceIssue::IncompleteList",
++                    )?;
++                    Ok(Self::IncompleteList {
++                        owner: fields.required("owner")?,
++                        head: fields.required("head")?,
++                    })
++                }
++                name => Err(DecodeError::unknown_variant(name, VARIANTS)),
++            }
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
+diff --git a/crates/pipeline/src/stages/compile_logic/list_corpus.rs b/crates/pipeline/src/stages/compile_logic/list_corpus.rs
+index 46e00f935..95b2ed15a 100644
+--- a/crates/pipeline/src/stages/compile_logic/list_corpus.rs
++++ b/crates/pipeline/src/stages/compile_logic/list_corpus.rs
+@@ -5,31 +5,16 @@
+ 
+ use std::collections::BTreeMap;
+ 
+-use gmeow_logic::reason::refute::{FragmentBoundary, PreparedClassAnalysis, RefutationSourceIssue};
+-use gmeow_logic_compile::frontend::{CompiledTheory, Diagnostic};
++pub(crate) use gmeow_logic::reason::refute::LIST_CORPUS_CHANNEL as CHANNEL;
++use gmeow_logic::reason::refute::{
++    FragmentBoundary, ListCorpusObservation, PreparedClassAnalysis, RefutationSourceIssue,
++    encode_list_corpus_observation,
++};
++use gmeow_logic_compile::frontend::CompiledTheory;
+ use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfTerm};
+-use serde::Serialize;
+ 
+ use crate::stages::parse_sources::SourceCatalog;
+ 
+-pub(crate) const CHANNEL: &str = "pipeline/logic-list-corpus-observation.json";
+-
+-#[derive(Debug, Serialize)]
+-struct ListCorpusObservation {
+-    schema_version: u32,
+-    source_catalog_id: String,
+-    source_modules: BTreeMap<String, String>,
+-    destination_graph: String,
+-    admission_contract: String,
+-    selected_world_count: usize,
+-    list_diagnostics: Vec<Diagnostic>,
+-    blank_list_fields: Vec<String>,
+-    invalid_constructor_objects: Vec<String>,
+-    list_sizes: BTreeMap<String, usize>,
+-    list_errors: Vec<String>,
+-    admission_defects: Vec<RefutationSourceIssue>,
+-}
+-
+ pub(super) fn record(
+     catalog: &SourceCatalog,
+     theory: &CompiledTheory,
+@@ -39,9 +24,7 @@ pub(super) fn record(
+     let observation = super::observed(observe(catalog, theory, canonical));
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&observation).map_err(|error| {
+-            super::stage_err(format!("encode list corpus observation: {error}"))
+-        })?,
++        encode_list_corpus_observation(&observation),
+     );
+     Ok(())
+ }
+diff --git a/crates/pipeline/src/stages/compile_logic/list_corpus.tests.rs b/crates/pipeline/src/stages/compile_logic/list_corpus.tests.rs
+index ff974e994..a582e45c9 100644
+--- a/crates/pipeline/src/stages/compile_logic/list_corpus.tests.rs
++++ b/crates/pipeline/src/stages/compile_logic/list_corpus.tests.rs
+@@ -15,7 +15,12 @@ fn complete_list_observation_uses_the_supplied_projection() {
+     let catalog = SourceCatalog::from_sources(ParsedAuthoredSources::synthetic(TINY)).unwrap();
+     let theory = catalog.compiled_logic().unwrap();
+     let canonical = purrdf::parse_dataset(TINY.as_bytes(), "application/n-quads", None).unwrap();
+-    let observation = observe(&catalog, &theory, &canonical).unwrap();
++    let mut artifacts = BTreeMap::new();
++    record(&catalog, &theory, &canonical, &mut artifacts).unwrap();
++    let observation =
++        gmeow_logic::reason::refute::decode_list_corpus_observation(&artifacts[CHANNEL])
++            .unwrap()
++            .unwrap();
+     assert_eq!(observation.source_catalog_id, catalog.identity());
+     assert_eq!(observation.list_sizes["urn:cell"], 1);
+     assert!(observation.list_errors.is_empty());
+@@ -34,7 +39,12 @@ fn missing_cell_field_remains_a_recorded_defect() {
+         .join("\n");
+     let canonical =
+         purrdf::parse_dataset(truncated.as_bytes(), "application/n-quads", None).unwrap();
+-    let observation = observe(&catalog, &theory, &canonical).unwrap();
++    let mut artifacts = BTreeMap::new();
++    record(&catalog, &theory, &canonical, &mut artifacts).unwrap();
++    let observation =
++        gmeow_logic::reason::refute::decode_list_corpus_observation(&artifacts[CHANNEL])
++            .unwrap()
++            .unwrap();
+     assert!(!observation.list_errors.is_empty());
+     assert!(
+         observation
