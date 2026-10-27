@@ -24,6 +24,10 @@ use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset};
 
+use purrdf_lex::json::record::ToJson;
+
+#[path = "correspondence_lower/json.rs"]
+mod json;
 mod statistics;
 
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
@@ -40,7 +44,6 @@ const SF_INTENSITY_IRI: &str = "https://blackcatinformatics.ca/gmeow/schadenfreu
 
 pub(crate) const WORKED_ENVELOPE_CHANNEL: &str = "pipeline/affect-worked-envelope.json";
 
-#[derive(serde::Serialize, serde::Deserialize)]
 struct WorkedEnvelopeObservation {
     observation_present: bool,
     envelope: emotionml::WorkedEnvelope,
@@ -58,11 +61,7 @@ pub(crate) fn record_worked_envelope(
     };
     artifacts.insert(
         WORKED_ENVELOPE_CHANNEL.into(),
-        serde_json::to_vec(&observed).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Transform {
-                message: error.to_string(),
-            })
-        })?,
+        purrdf_lex::json::write_compact(&observed.to_json()).into_bytes(),
     );
     Ok(())
 }
