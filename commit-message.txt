@@ -1,0 +1,5 @@
+feat: preserve semantic-unit identities through native JSON
+
+Use the complete seven-type native writer closure for actual semantic-unit tuple preimages. Preserve every row ID and nested field through frozen original preimage and variant references in the existing authored control.
+
+Principles 4 and 7.

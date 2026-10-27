@@ -1,0 +1,367 @@
+diff --git a/crates/logic-compile/src/frontend/json.rs b/crates/logic-compile/src/frontend/json.rs
+index 19056c1a5..a6c8b8d8d 100644
+--- a/crates/logic-compile/src/frontend/json.rs
++++ b/crates/logic-compile/src/frontend/json.rs
+@@ -1,17 +1,124 @@
+ // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+-//! Compiler diagnostic, portable source-description and selection transport.
++//! Compiler diagnostic and source-admission transport.
+ //! Wire severity differs from display severity tokens.
+ use super::{
+-    Diagnostic, DocumentSelection, RootSelection, Severity, SourceBase, SourceBaseOrigin,
+-    SourceDocument, SourceGraphSelection, SourceSelection,
++    AdmittedSemanticUnit, Diagnostic, DocumentSelection, PropertyCharacteristic, RootSelection,
++    SemanticUnitDisposition, SemanticUnitKind, Severity, SourceAssertion, SourceBase,
++    SourceBaseOrigin, SourceClassDefinition, SourceContractDeclaration, SourceDocument,
++    SourceGraphSelection, SourceSelection,
+ };
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson},
+ };
+ 
++impl ToJson for SemanticUnitKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Assertion => "Assertion",
++            Self::Formula => "Formula",
++            Self::Rule => "Rule",
++            Self::PropertyCharacteristic => "PropertyCharacteristic",
++            Self::ClassDefinition => "ClassDefinition",
++            Self::Import => "Import",
++            Self::StructuralSyntax => "StructuralSyntax",
++            Self::Quotation => "Quotation",
++            Self::Diagnostic => "Diagnostic",
++            Self::Owner => "Owner",
++        }
++        .to_json()
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for SourceAssertion {
++    "subject" => subject,
++    "predicate" => predicate,
++    "object" => object,
++});
++
++::purrdf_lex::json_record!(impl ToJson for PropertyCharacteristic {
++    "property" => property,
++    "characteristic" => characteristic,
++});
++
++::purrdf_lex::json_record!(impl ToJson for SourceClassDefinition {
++    "formula" => formula,
++    "constants" => constants,
++});
++
++::purrdf_lex::json_record!(impl ToJson for SourceContractDeclaration {
++    "configuration" => configuration,
++    "facts" => facts,
++});
++
++impl ToJson for AdmittedSemanticUnit {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Assertion(assertion) => Object::new().with("Assertion", assertion.to_json()),
++            Self::Formula { index } => {
++                Object::new().with("Formula", Object::new().with("index", index.to_json()))
++            }
++            Self::Rule { index } => {
++                Object::new().with("Rule", Object::new().with("index", index.to_json()))
++            }
++            Self::PropertyCharacteristic(characteristic) => {
++                Object::new().with("PropertyCharacteristic", characteristic.to_json())
++            }
++            Self::ClassDefinition(definition) => {
++                Object::new().with("ClassDefinition", definition.to_json())
++            }
++        }
++        .into()
++    }
++}
++
++impl ToJson for SemanticUnitDisposition {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Admitted(unit) => Object::new().with("Admitted", unit.to_json()),
++            Self::ConfigurationDeclaration {
++                declaration,
++                reason,
++            } => Object::new().with(
++                "ConfigurationDeclaration",
++                Object::new()
++                    .with("declaration", declaration.as_ref().to_json())
++                    .with("reason", reason.to_json()),
++            ),
++            Self::StructuralSupport { detail } => Object::new().with(
++                "StructuralSupport",
++                Object::new().with("detail", detail.to_json()),
++            ),
++            Self::OutsideSelection { reason } => Object::new().with(
++                "OutsideSelection",
++                Object::new().with("reason", reason.to_json()),
++            ),
++            Self::QuotedUnasserted { detail } => Object::new().with(
++                "QuotedUnasserted",
++                Object::new().with("detail", detail.to_json()),
++            ),
++            Self::Blocked { code, reason } => Object::new().with(
++                "Blocked",
++                Object::new()
++                    .with("code", code.to_json())
++                    .with("reason", reason.to_json()),
++            ),
++            Self::Malformed { code, reason } => Object::new().with(
++                "Malformed",
++                Object::new()
++                    .with("code", code.to_json())
++                    .with("reason", reason.to_json()),
++            ),
++            Self::Observed { detail } => {
++                Object::new().with("Observed", Object::new().with("detail", detail.to_json()))
++            }
++        }
++        .into()
++    }
++}
++
+ impl ToJson for SourceGraphSelection {
+     fn to_json(&self) -> Value {
+         match self {
+diff --git a/crates/logic-compile/src/frontend/source_admission.rs b/crates/logic-compile/src/frontend/source_admission.rs
+index dbb1b7ddc..591834410 100644
+--- a/crates/logic-compile/src/frontend/source_admission.rs
++++ b/crates/logic-compile/src/frontend/source_admission.rs
+@@ -1190,8 +1190,7 @@ impl<'a> AdmissionBuilder<'a> {
+         documents: BTreeSet<String>,
+         disposition: SemanticUnitDisposition,
+     ) {
+-        let encoded = serde_json::to_vec(&(kind, &anchor, &documents, &disposition))
+-            .expect("semantic admission row serialization is infallible");
++        let encoded = purrdf_lex::json::record::to_vec(&(kind, &anchor, &documents, &disposition));
+         self.units.push(SemanticUnitAdmission {
+             id: digest_bytes(b"gmeow-semantic-unit-v1\0", &encoded),
+             kind,
+diff --git a/crates/logic-compile/src/tptp/contracts.tests.rs b/crates/logic-compile/src/tptp/contracts.tests.rs
+index fbe8e2939..c591d84f8 100644
+--- a/crates/logic-compile/src/tptp/contracts.tests.rs
++++ b/crates/logic-compile/src/tptp/contracts.tests.rs
+@@ -80,6 +80,187 @@ ex:subject ex:property ex:object .
+             "the proof task must explain its configuration disposition"
+         );
+     }
++
++    let mut reference = include_str!("fixtures/semantic-unit-identities-v1.txt").lines();
++    for unit in &admission.units {
++        let preimage = purrdf_lex::json::record::to_vec(&(
++            unit.kind,
++            &unit.anchor,
++            &unit.documents,
++            &unit.disposition,
++        ));
++        let original_preimage = reference
++            .next()
++            .and_then(|line| line.strip_prefix("UNIT_PREIMAGE="))
++            .expect("original complete semantic-unit preimage");
++        assert_eq!(preimage, original_preimage.as_bytes());
++        let original_id = reference
++            .next()
++            .and_then(|line| line.strip_prefix("UNIT_ID="))
++            .expect("actual original semantic-unit ID");
++        assert_eq!(unit.id, original_id);
++    }
++    assert!(
++        reference.next().is_none(),
++        "complete original unit reference consumed"
++    );
++
++    use crate::frontend::{
++        AdmittedSemanticUnit, PropertyCharacteristic, SemanticUnitKind, SourceAssertion,
++        SourceClassDefinition,
++    };
++    use crate::ir::{
++        AtomicTerm, ComplexityClass, Formula, ReasoningContract, SemanticProfileId, Term,
++    };
++    use std::collections::BTreeMap;
++
++    let literal = purrdf::RdfLiteral {
++        lexical_form: "raw literal\0中".into(),
++        datatype: None,
++        language: Some("fr".into()),
++        direction: Some(purrdf::RdfTextDirection::Rtl),
++    };
++    let assertion = SourceAssertion {
++        subject: AtomicTerm::Var("?raw\0中".into()),
++        predicate: "raw predicate".into(),
++        object: AtomicTerm::Literal(literal.clone()),
++    };
++    let formula = Formula::Forall {
++        vars: vec!["z".into(), "a".into(), "z".into()],
++        body: Box::new(Formula::Atom {
++            relation: Term::Iri("urn:raw:relation".into()),
++            args: vec![Term::Var("?raw".into()), Term::Literal(literal)],
++        }),
++    };
++    let definition = SourceClassDefinition {
++        formula: formula.clone(),
++        constants: BTreeMap::from([
++            (
++                "z literal\0中".into(),
++                AtomicTerm::Literal(purrdf::RdfLiteral::typed(
++                    "NaN",
++                    "http://www.w3.org/2001/XMLSchema#double",
++                )),
++            ),
++            ("a iri".into(), AtomicTerm::Iri("?raw explicit iri".into())),
++            ("b blank".into(), AtomicTerm::Blank("raw blank\0中".into())),
++            (
++                "c variable".into(),
++                AtomicTerm::Var("urn:raw:variable".into()),
++            ),
++        ]),
++    };
++    let declaration = SourceContractDeclaration {
++        configuration: ReasoningContract {
++            preset: Some(SemanticProfileId::StableModel),
++            model_semantics: Some("raw semantics\0中".into()),
++            negation_operators: BTreeSet::from(["z negation".into(), "a negation".into()]),
++            closure_entries: BTreeMap::from([
++                ("z predicate\0中".into(), "raw closure z".into()),
++                ("a predicate".into(), "raw closure a".into()),
++            ]),
++            complexity: Some(
++                ComplexityClass::new(" raw complexity\0中 ")
++                    .expect("nonempty authored complexity label retains its bytes"),
++            ),
++            ..ReasoningContract::default()
++        },
++        facts: vec![
++            assertion.clone(),
++            SourceAssertion {
++                subject: AtomicTerm::Blank("another blank".into()),
++                predicate: "another predicate".into(),
++                object: AtomicTerm::Iri("another explicit iri".into()),
++            },
++            assertion.clone(),
++        ],
++    };
++    let dispositions = [
++        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::Assertion(assertion)),
++        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::Formula { index: 17 }),
++        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::Rule { index: 29 }),
++        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::PropertyCharacteristic(
++            PropertyCharacteristic {
++                property: "raw property\0中".into(),
++                characteristic: "raw characteristic".into(),
++            },
++        )),
++        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::ClassDefinition(definition)),
++        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::ClassDefinition(
++            SourceClassDefinition {
++                formula,
++                constants: BTreeMap::new(),
++            },
++        )),
++        SemanticUnitDisposition::ConfigurationDeclaration {
++            declaration: Box::new(declaration),
++            reason: "raw declaration reason\0中".into(),
++        },
++        SemanticUnitDisposition::ConfigurationDeclaration {
++            declaration: Box::new(SourceContractDeclaration {
++                configuration: ReasoningContract::default(),
++                facts: Vec::new(),
++            }),
++            reason: String::new(),
++        },
++        SemanticUnitDisposition::StructuralSupport {
++            detail: "raw support\0中".into(),
++        },
++        SemanticUnitDisposition::OutsideSelection {
++            reason: "raw exclusion\0中".into(),
++        },
++        SemanticUnitDisposition::QuotedUnasserted {
++            detail: "raw quotation\0中".into(),
++        },
++        SemanticUnitDisposition::Blocked {
++            code: "raw blocked code".into(),
++            reason: "raw blocked reason\0中".into(),
++        },
++        SemanticUnitDisposition::Malformed {
++            code: "raw malformed code".into(),
++            reason: "raw malformed reason\0中".into(),
++        },
++        SemanticUnitDisposition::Observed {
++            detail: "raw observation\0中".into(),
++        },
++    ];
++    let kinds = [
++        SemanticUnitKind::Assertion,
++        SemanticUnitKind::Formula,
++        SemanticUnitKind::Rule,
++        SemanticUnitKind::PropertyCharacteristic,
++        SemanticUnitKind::ClassDefinition,
++        SemanticUnitKind::Import,
++        SemanticUnitKind::StructuralSyntax,
++        SemanticUnitKind::Quotation,
++        SemanticUnitKind::Diagnostic,
++        SemanticUnitKind::Owner,
++    ];
++    let atlas: Vec<_> = dispositions
++        .iter()
++        .enumerate()
++        .map(|(index, disposition)| {
++            let documents = if index % 2 == 0 {
++                BTreeSet::new()
++            } else {
++                BTreeSet::from(["z source\0中.ttl".to_owned(), "a source.ttl".to_owned()])
++            };
++            (
++                kinds[index % kinds.len()],
++                format!("raw anchor {index}\0中"),
++                documents,
++                disposition,
++            )
++        })
++        .collect();
++    let atlas_bytes = purrdf_lex::json::record::to_vec(&atlas);
++    assert!(!atlas_bytes.ends_with(b"\n"));
++    assert_eq!(
++        atlas_bytes,
++        include_bytes!("fixtures/semantic-unit-atlas-v1.json")
++            .strip_suffix(b"\n")
++            .expect("original atlas reference has one storage LF")
++    );
+ }
+ 
+ #[test]
+diff --git a/crates/logic-compile/src/tptp/fixtures/semantic-unit-atlas-v1.json b/crates/logic-compile/src/tptp/fixtures/semantic-unit-atlas-v1.json
+new file mode 100644
+index 000000000..db3193b3b
+--- /dev/null
++++ b/crates/logic-compile/src/tptp/fixtures/semantic-unit-atlas-v1.json
+@@ -0,0 +1 @@
++[["Assertion","raw anchor 0\u0000中",[],{"Admitted":{"Assertion":{"subject":{"Var":"?raw\u0000中"},"predicate":"raw predicate","object":{"Literal":["raw literal\u0000中","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","fr","rtl"]}}}}],["Formula","raw anchor 1\u0000中",["a source.ttl","z source\u0000中.ttl"],{"Admitted":{"Formula":{"index":17}}}],["Rule","raw anchor 2\u0000中",[],{"Admitted":{"Rule":{"index":29}}}],["PropertyCharacteristic","raw anchor 3\u0000中",["a source.ttl","z source\u0000中.ttl"],{"Admitted":{"PropertyCharacteristic":{"property":"raw property\u0000中","characteristic":"raw characteristic"}}}],["ClassDefinition","raw anchor 4\u0000中",[],{"Admitted":{"ClassDefinition":{"formula":{"Forall":{"vars":["z","a","z"],"body":{"Atom":{"relation":{"Iri":"urn:raw:relation"},"args":[{"Var":"?raw"},{"Literal":["raw literal\u0000中","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","fr","rtl"]}]}}}},"constants":{"a iri":{"Iri":"?raw explicit iri"},"b blank":{"Blank":"raw blank\u0000中"},"c variable":{"Var":"urn:raw:variable"},"z literal\u0000中":{"Literal":["NaN","http://www.w3.org/2001/XMLSchema#double",null,null]}}}}}],["Import","raw anchor 5\u0000中",["a source.ttl","z source\u0000中.ttl"],{"Admitted":{"ClassDefinition":{"formula":{"Forall":{"vars":["z","a","z"],"body":{"Atom":{"relation":{"Iri":"urn:raw:relation"},"args":[{"Var":"?raw"},{"Literal":["raw literal\u0000中","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","fr","rtl"]}]}}}},"constants":{}}}}],["StructuralSyntax","raw anchor 6\u0000中",[],{"ConfigurationDeclaration":{"declaration":{"configuration":{"preset":"StableModel","formula_fragment":null,"model_semantics":"raw semantics\u0000中","truth_algebra":null,"admissible_valuation":null,"designated_values":null,"evolution":null,"argumentation":null,"revision":null,"equality_policy":null,"default_closure":null,"negation_operators":["a negation","z negation"],"context_axes":[],"uncertainty_measures":[],"resource_policies":[],"projection_targets":[],"closure_entries":{"a predicate":"raw closure a","z predicate\u0000中":"raw closure z"},"complexity":{"label":" raw complexity\u0000中 "}},"facts":[{"subject":{"Var":"?raw\u0000中"},"predicate":"raw predicate","object":{"Literal":["raw literal\u0000中","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","fr","rtl"]}},{"subject":{"Blank":"another blank"},"predicate":"another predicate","object":{"Iri":"another explicit iri"}},{"subject":{"Var":"?raw\u0000中"},"predicate":"raw predicate","object":{"Literal":["raw literal\u0000中","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","fr","rtl"]}}]},"reason":"raw declaration reason\u0000中"}}],["Quotation","raw anchor 7\u0000中",["a source.ttl","z source\u0000中.ttl"],{"ConfigurationDeclaration":{"declaration":{"configuration":{"preset":null,"formula_fragment":null,"model_semantics":null,"truth_algebra":null,"admissible_valuation":null,"designated_values":null,"evolution":null,"argumentation":null,"revision":null,"equality_policy":null,"default_closure":null,"negation_operators":[],"context_axes":[],"uncertainty_measures":[],"resource_policies":[],"projection_targets":[],"closure_entries":{},"complexity":null},"facts":[]},"reason":""}}],["Diagnostic","raw anchor 8\u0000中",[],{"StructuralSupport":{"detail":"raw support\u0000中"}}],["Owner","raw anchor 9\u0000中",["a source.ttl","z source\u0000中.ttl"],{"OutsideSelection":{"reason":"raw exclusion\u0000中"}}],["Assertion","raw anchor 10\u0000中",[],{"QuotedUnasserted":{"detail":"raw quotation\u0000中"}}],["Formula","raw anchor 11\u0000中",["a source.ttl","z source\u0000中.ttl"],{"Blocked":{"code":"raw blocked code","reason":"raw blocked reason\u0000中"}}],["Rule","raw anchor 12\u0000中",[],{"Malformed":{"code":"raw malformed code","reason":"raw malformed reason\u0000中"}}],["PropertyCharacteristic","raw anchor 13\u0000中",["a source.ttl","z source\u0000中.ttl"],{"Observed":{"detail":"raw observation\u0000中"}}]]
+diff --git a/crates/logic-compile/src/tptp/fixtures/semantic-unit-identities-v1.txt b/crates/logic-compile/src/tptp/fixtures/semantic-unit-identities-v1.txt
+new file mode 100644
+index 000000000..d02d429e7
+--- /dev/null
++++ b/crates/logic-compile/src/tptp/fixtures/semantic-unit-identities-v1.txt
+@@ -0,0 +1,16 @@
++UNIT_PREIMAGE=["Assertion","quad|32:I|27:https://example.org/subject|33:I|28:https://example.org/property|31:I|26:https://example.org/object|0:",[],{"Admitted":{"Assertion":{"subject":{"Iri":"https://example.org/subject"},"predicate":"https://example.org/property","object":{"Iri":"https://example.org/object"}}}}]
++UNIT_ID=0a47cda10d5c1a28ba4e9f40867d500b4f497a0fb3fdc5913e8f58db484754c4
++UNIT_PREIMAGE=["StructuralSyntax","quad|31:I|26:https://example.org/stable|52:I|47:http://www.w3.org/1999/02/22-rdf-syntax-ns#type|59:I|54:https://blackcatinformatics.ca/logic/ReasoningContract|0:",[],{"StructuralSupport":{"detail":"typed source syntax is accounted by its semantic owner"}}]
++UNIT_ID=bb65244c9d424bddbb709bde66ee9595b9ccbaa09eb7628c0aef8b60a2f37d3e
++UNIT_PREIMAGE=["StructuralSyntax","quad|31:I|26:https://example.org/stable|56:I|51:https://blackcatinformatics.ca/logic/modelSemantics|62:I|57:https://blackcatinformatics.ca/logic/StableModelSemantics|0:",[],{"StructuralSupport":{"detail":"typed source syntax is accounted by its semantic owner"}}]
++UNIT_ID=02a507623b2372a4543915307ac9f9bdba73e06ab6ec3f9432437ca05a93a475
++UNIT_PREIMAGE=["StructuralSyntax","quad|31:I|26:https://example.org/stable|58:I|53:https://blackcatinformatics.ca/logic/negationOperator|57:I|52:https://blackcatinformatics.ca/logic/DefaultNegation|0:",[],{"StructuralSupport":{"detail":"typed source syntax is accounted by its semantic owner"}}]
++UNIT_ID=46e9a3530e7790802574345d704ac786c161e263270b84e4dc82ff36090cee4c
++UNIT_PREIMAGE=["StructuralSyntax","quad|34:I|29:https://example.org/classical|52:I|47:http://www.w3.org/1999/02/22-rdf-syntax-ns#type|59:I|54:https://blackcatinformatics.ca/logic/ReasoningContract|0:",[],{"StructuralSupport":{"detail":"typed source syntax is accounted by its semantic owner"}}]
++UNIT_ID=6d56d55e2444bf08eb90fd223a1cb406bcdd22d8e4f0646f95b64000b01f1fda
++UNIT_PREIMAGE=["StructuralSyntax","quad|34:I|29:https://example.org/classical|56:I|51:https://blackcatinformatics.ca/logic/modelSemantics|60:I|55:https://blackcatinformatics.ca/logic/ClassicalSemantics|0:",[],{"StructuralSupport":{"detail":"typed source syntax is accounted by its semantic owner"}}]
++UNIT_ID=2d869bed7d06de5808370d7eec1ebe35c9176d7918b1fc0d151133b0ebd5ec5f
++UNIT_PREIMAGE=["Owner","node|31:I|26:https://example.org/stable|0:",[],{"ConfigurationDeclaration":{"declaration":{"configuration":{"preset":null,"formula_fragment":null,"model_semantics":"StableModelSemantics","truth_algebra":null,"admissible_valuation":null,"designated_values":null,"evolution":null,"argumentation":null,"revision":null,"equality_policy":null,"default_closure":null,"negation_operators":["DefaultNegation"],"context_axes":[],"uncertainty_measures":[],"resource_policies":[],"projection_targets":[],"closure_entries":{},"complexity":null},"facts":[{"subject":{"Iri":"https://example.org/stable"},"predicate":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type","object":{"Iri":"https://blackcatinformatics.ca/logic/ReasoningContract"}},{"subject":{"Iri":"https://example.org/stable"},"predicate":"https://blackcatinformatics.ca/logic/modelSemantics","object":{"Iri":"https://blackcatinformatics.ca/logic/StableModelSemantics"}},{"subject":{"Iri":"https://example.org/stable"},"predicate":"https://blackcatinformatics.ca/logic/negationOperator","object":{"Iri":"https://blackcatinformatics.ca/logic/DefaultNegation"}}]},"reason":"this proof task catalogues configuration declarations as metatheory; it does not request their execution or assert configuration syntax as domain axioms"}}]
++UNIT_ID=863097b9273b242192a15bcfe858247a489d847e2b10a0e6285e760b7299f6fa
++UNIT_PREIMAGE=["Owner","node|34:I|29:https://example.org/classical|0:",[],{"ConfigurationDeclaration":{"declaration":{"configuration":{"preset":null,"formula_fragment":null,"model_semantics":"ClassicalSemantics","truth_algebra":null,"admissible_valuation":null,"designated_values":null,"evolution":null,"argumentation":null,"revision":null,"equality_policy":null,"default_closure":null,"negation_operators":[],"context_axes":[],"uncertainty_measures":[],"resource_policies":[],"projection_targets":[],"closure_entries":{},"complexity":null},"facts":[{"subject":{"Iri":"https://example.org/classical"},"predicate":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type","object":{"Iri":"https://blackcatinformatics.ca/logic/ReasoningContract"}},{"subject":{"Iri":"https://example.org/classical"},"predicate":"https://blackcatinformatics.ca/logic/modelSemantics","object":{"Iri":"https://blackcatinformatics.ca/logic/ClassicalSemantics"}}]},"reason":"this proof task catalogues configuration declarations as metatheory; it does not request their execution or assert configuration syntax as domain axioms"}}]
++UNIT_ID=8e06da9f31c62cc7ff479056ff6bafaa0b60b48d49b47ce725981184fb434e32

@@ -1,0 +1,51 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Use native PurRDF JSON for the complete semantic-unit identity preimage produced by AdmissionBuilder::push. This is a bounded identity operation under native JSON parents 1776 and 1777. Principles 4 and 7.\n\nScope and acceptance:\n\n- Implement all seven missing native writers: SemanticUnitKind, SourceAssertion, PropertyCharacteristic, SourceClassDefinition, SourceContractDeclaration, AdmittedSemanticUnit and SemanticUnitDisposition. Cover all ten kind tags, all five admitted payload variants and all eight dispositions, including their full nested fields and empty containers. Reuse complete existing AtomicTerm, Formula and ReasoningContract writers.\n- Route the actual builder through native compact encoding of the complete four-cell tuple: kind, anchor, documents, disposition. Preserve the gmeow-semantic-unit-v1 domain, exact compact preimages and resulting row IDs. Retain declaration order, external Rust variant tags, sorted maps/sets, vector order, raw strings and distinct program indices. Shared Serde and current infallible APIs remain intact.\n- Before production edits, capture complete original tuple preimages and actual original unit IDs from the existing configuration_declarations_preserve_facets_without_switching_proof_semantics control. Add a bounded original-byte atlas for every local variant and complete nested records, including empty/nonempty constants, facts and documents, raw Unicode/NUL and distinct indices. Preserve the existing object-theory separation, configuration and projection-evidence assertions. Compare frozen references literally; no replacement-derived expected hashes or normalization.\n- Retain the existing persisted-admission roundtrip control. Leave the live admission streaming evidence commitment, publication/hydration and authority checks unchanged. Row identity must not depend on a new serialization profile or version.\n- Verify complete owner/caller closure, independent combined review, focused strict actual-consumer compilation, the existing authored controls, helper hygiene, static producer recipe and all normal signed hooks. Record tested scope and limits.\n\nStanding limits remain: no local optimized producer, canonical corpus or fixture construction, sync or full gate. Only tiny independently authored inputs may run. No fabricated shipped asset or authenticated receipt. CI remains explicitly waived rather than passed. Complete native admission publication/hydration and all original parent production, installed consumer, authenticated corpus, browser and release acceptance remain open.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-27T17:16:51Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2028,
+  "state": "OPEN",
+  "title": "Use native JSON for complete semantic-unit identity preimages",
+  "updatedAt": "2026-10-27T17:17:28Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2028"
+}

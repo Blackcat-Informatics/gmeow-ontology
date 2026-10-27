@@ -1,0 +1,129 @@
+{
+  "issue": 2028,
+  "pr_number": 2029,
+  "branch": "paudley/2028-use-native-json-for-complete-semantic",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2028-use-native-json-for-complete-semantic/.stage/use-native-json-for-complete-semantic",
+  "observed_at": "2026-10-27T17:40:55.595024+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2028-use-native-json-for-complete-semantic/.stage/use-native-json-for-complete-semantic/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2028-use-native-json-for-complete-semantic/.stage/use-native-json-for-complete-semantic/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2028-use-native-json-for-complete-semantic/.stage/use-native-json-for-complete-semantic/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2028-use-native-json-for-complete-semantic/.stage/use-native-json-for-complete-semantic/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2028-use-native-json-for-complete-semantic/.stage/use-native-json-for-complete-semantic/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "586e60996a375ba6ffa86284c5e67fb5433e44b9",
+    "headRefName": "paudley/2028-use-native-json-for-complete-semantic",
+    "headRefOid": "c233160062c3c9906292c55dd5966da81d2c2a7d",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2029,
+    "state": "OPEN",
+    "title": "Preserve semantic-unit identities through native JSON",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2029"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2029",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40552547745/job/122359895826",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40552547745/job/122359895923",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40552547745/job/122359895977",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40552547745/job/122359895355",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2029",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "c233160062c3c9906292c55dd5966da81d2c2a7d",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "3be233fff7e1bc71f3a778aee0da02684eaaa34df10c0c65a49b615405b48a3f"
+  },
+  "local": {
+    "head": "c233160062c3c9906292c55dd5966da81d2c2a7d",
+    "branch": "paudley/2028-use-native-json-for-complete-semantic",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2029,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2029 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABgGbfPg",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2029#issuecomment-6449192766",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

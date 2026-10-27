@@ -1,0 +1,9 @@
+Semantic-unit row identities now use native PurRDF JSON. Seven complete writers cover all ten unit kinds, five admitted payload variants and eight dispositions, reusing full native AtomicTerm, Formula/Term and ReasoningContract owners. Actual AdmissionBuilder::push encodes its complete kind/anchor/documents/disposition tuple natively. Principles 4 and 7.
+
+Declaration order, Rust tags, sorted containers, vector order, raw strings, nested AST/literal metadata, hash domain and resulting row IDs remain unchanged. Shared Serde, infallible APIs, admission authority, direct streaming evidence and publication/readers retain their existing behavior. Encoding holds a temporary value for one row, without a whole-admission tree.
+
+Before production edits, the existing authored configuration control captured eight actual complete tuple preimages and their actual row IDs, plus a fourteen-row original variant atlas. Final byte comparisons pass literally, including directional literals and RDF NaN as lexical text. The unchanged persisted-admission roundtrip also passed. Strict all-target compiler/logic/pipeline/developer CLI compilation passed with warnings denied in 57.18 seconds; independent combined review found no issues. Runtime: two existing cases passed after 46.28 seconds compilation and 0.018 second summary, with 1,068 excluded. Complete helper hygiene and static producer-recipe admission passed. All normal signed commit hooks passed.
+
+No local optimized producer, canonical corpus construction, sync or full gate ran. No browser, authenticated corpus, shipped assets, installed consumer or release pass is claimed. CI remains explicitly waived rather than passing. Full native admission publication/hydration and streaming commitment migration remain with the open parents.
+
+Closes #2028
