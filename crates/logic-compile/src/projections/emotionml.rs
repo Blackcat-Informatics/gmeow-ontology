@@ -43,7 +43,7 @@ const DIMENSION_SET_ID: &str = "gmeow-appraisal-dimensions";
 /// `gmeow:coreAffectGram` — **nothing here is a hand-typed numeric literal**. A fabricated
 /// constant in the worked envelope is an affect-honesty defect, so the emitter has no way to
 /// synthesize these values itself: the caller MUST compute and supply them.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug)]
 pub struct WorkedEnvelope {
     /// The overall intensity `√Q` as a fixed-precision decimal string (e.g. `"0.888819"`).
     pub intensity: String,
@@ -53,6 +53,9 @@ pub struct WorkedEnvelope {
     /// vocabulary to recover the EmotionML `name` attribute.
     pub dimensions: Vec<(String, String)>,
 }
+
+#[path = "emotionml/json.rs"]
+mod json;
 
 /// The artifact + loss-ledger row of the EmotionML lowering.
 pub struct EmotionMlLowering {

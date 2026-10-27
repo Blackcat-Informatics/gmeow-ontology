@@ -40,7 +40,13 @@ fn render_emits_both_vocabularies_and_an_envelope() {
             (format!("{GMEOW_NS}dimensionArousal"), "0.7".to_owned()),
         ],
     };
-    let doc = render_document(&categories, &dimensions, &worked);
+    use purrdf_lex::json::record::ToJson;
+    let bytes = purrdf_lex::json::write_compact(&worked.to_json()).into_bytes();
+    let decoded: WorkedEnvelope =
+        purrdf_lex::json::record::from_slice(&bytes).expect("native envelope for the XML renderer");
+    assert_eq!(decoded.intensity, worked.intensity);
+    assert_eq!(decoded.dimensions, worked.dimensions);
+    let doc = render_document(&categories, &dimensions, &decoded);
     assert!(doc.contains("<vocabulary type=\"category\" id=\"gmeow-emotion-categories\">"));
     assert!(doc.contains("<vocabulary type=\"dimension\" id=\"gmeow-appraisal-dimensions\">"));
     assert!(doc.contains("<item name=\"anger\">"));

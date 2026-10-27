@@ -12,11 +12,11 @@ fn repo_root() -> PathBuf {
 }
 
 /// The EmotionML worked-envelope pin: the emitter PROJECTS the SHIPPED schadenfreude worked
-/// instance carried on the in-memory ontology dataset, so its intensity + per-dimension
-/// values are COMPUTED — never fabricated and never re-read from disk. This drives the REAL
-/// `compute_worked_envelope` over the REAL committed affect `module.ttl` (the carrier the
-/// pipeline folds) and asserts the metric-tensor outputs: intensity √(79/100) = 0.888819,
-/// valence 0.7 → 0.85, arousal 0.4 → 0.7. Retiring the shipped observation or perturbing its
+/// instance carried on the in-memory ontology dataset. The producer computes intensity
+/// and per-dimension values over the original affect module. This control consumes its
+/// authenticated observation without recomputing geometry in the test process.
+/// It asserts the metric-tensor outputs: intensity √(79/100) = 0.888819, valence 0.7 → 0.85,
+/// and arousal 0.4 → 0.7. Retiring the shipped observation or perturbing its
 /// appraisal vector reds this test — the drift gate the invariant demands.
 #[test]
 fn worked_envelope_projects_the_schadenfreude_example() {
@@ -28,7 +28,7 @@ fn worked_envelope_projects_the_schadenfreude_example() {
     )
     .expect("producer-selected original-source affect observation");
     let observed: WorkedEnvelopeObservation =
-        serde_json::from_slice(&bytes).expect("native worked envelope");
+        purrdf_lex::json::record::from_slice(&bytes).expect("native worked envelope");
 
     // The shipped observation IRI must resolve as a base-graph subject (retirement is a
     // hard fail): it is authored in module.ttl, never an excluded example overlay.
