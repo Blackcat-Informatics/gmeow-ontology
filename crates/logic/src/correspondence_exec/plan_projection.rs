@@ -8,6 +8,8 @@
 //! observed record is a separate input and contributes only occurrences that
 //! carry both `logic:instantiatesPlan` and `logic:instantiatesSchema` witnesses.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use purrdf::{CanonHash, RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
