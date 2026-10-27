@@ -1,0 +1,573 @@
+diff --git a/crates/logic/src/goal_directed.rs b/crates/logic/src/goal_directed.rs
+index c4a2573d9..0d8aff2a2 100644
+--- a/crates/logic/src/goal_directed.rs
++++ b/crates/logic/src/goal_directed.rs
+@@ -78,7 +78,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+ /// proof checker re-derives as exactly that atom. Every field is RDF-serializable
+ /// (strings), so the
+ /// pipeline can fold it without reaching into the engine's private term handles.
+-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct GoalDirectedAnswer {
+     /// The ground answer atom rendered to its functional surface, e.g.
+     /// `add(s(s(zero)),s(zero),s(s(s(zero))))`.
+@@ -98,7 +98,7 @@ pub struct GoalDirectedAnswer {
+ /// the observable surface that makes three-valued negation a SHIPPED behaviour. Unlike a
+ /// two-valued proof-checked answer, a verdict can be `undefined` (an atom trapped in a
+ /// negative loop), so it is a plain three-valued string surface, never an `xsd:boolean`.
+-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct GoalDirectedVerdict {
+     /// The probed ground atom rendered to its functional surface, e.g. `win(a)`.
+     pub atom: String,
+@@ -108,7 +108,7 @@ pub struct GoalDirectedVerdict {
+ 
+ /// One evaluated goal-directed demonstrator: its stable name, prose description, rendered
+ /// goal template, budget status, every proof-checked answer, and any probed WFS verdicts.
+-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct GoalDirectedEvaluation {
+     /// The FULL authored `logic:ReasoningProgram` IRI — the demonstrator's collision-free
+     /// identity. Every minted resource IRI (query / answer / verdict / program node) folds
+@@ -149,6 +149,27 @@ pub struct GoalDirectedEvaluation {
+     pub verdict_probe_atoms: Vec<String>,
+ }
+ 
++/// Exact artifact carrying producer evaluations and independent projection witnesses.
++pub const GOAL_DIRECTED_OBSERVATION_CHANNEL: &str = "pipeline/goal-directed-observation.json";
++
++/// Retained goal-directed observations, without executing or repairing their evidence.
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub struct GoalDirectedObservation {
++    /// Evaluations in the producer's supplied order.
++    pub evaluations: Vec<GoalDirectedEvaluation>,
++    /// Per-program projections from the first evaluation.
++    pub program_projections: BTreeMap<String, String>,
++    /// Complete projection from the first evaluation.
++    pub projection: String,
++    /// Per-program projections from the independent repeated evaluation.
++    pub repeated_program_projections: BTreeMap<String, String>,
++    /// Complete projection from the independent repeated evaluation.
++    pub repeated_projection: String,
++}
++
++#[path = "goal_directed/json.rs"]
++mod json;
++
+ /// A fully interned demonstrator: its structured program, the order-sorted context to
+ /// resolve it under (`SortContext::default()` for the unsorted demonstrators), and the ground
+ /// atoms whose three-valued WFS verdict is projected. Building interns everything into one
+diff --git a/crates/logic/src/goal_directed.tests.rs b/crates/logic/src/goal_directed.tests.rs
+index 4b6a49c9b..316327097 100644
+--- a/crates/logic/src/goal_directed.tests.rs
++++ b/crates/logic/src/goal_directed.tests.rs
+@@ -84,6 +84,7 @@ fn compiled_peano_add_reasoning_program_resolves_and_proof_checks() {
+ 
+     let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
+         .expect("evaluate the compiled reasoning program");
++    let evals = native_evaluations(evals);
+     assert_eq!(evals.len(), 1);
+     let peano = &evals[0];
+     assert_eq!(peano.status, "ok");
+@@ -718,24 +719,15 @@ fn compiled_member_cons_projection_carries_structured_answers_and_derivation() {
+ 
+ // Corpus controls hydrate exact producer observations; they never compile or
+ // evaluate the repository demonstrators inside the test process.
+-#[derive(serde::Deserialize)]
+-struct AuthoredGoalObservation {
+-    evaluations: Vec<GoalDirectedEvaluation>,
+-    projection: String,
+-    repeated_projection: String,
+-    program_projections: BTreeMap<String, String>,
+-    repeated_program_projections: BTreeMap<String, String>,
+-}
+-
+-fn authored_goal_observation() -> AuthoredGoalObservation {
++fn authored_goal_observation() -> GoalDirectedObservation {
+     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+     let bytes = gmeow_action_cache::selection::source_artifacts::load(
+         &root,
+         "stage-goal-directed",
+-        "pipeline/goal-directed-observation.json",
++        GOAL_DIRECTED_OBSERVATION_CHANNEL,
+     )
+     .expect("authenticated goal-directed observation");
+-    serde_json::from_slice(&bytes).expect("typed goal-directed observation")
++    purrdf_lex::json::record::from_slice(&bytes).expect("typed goal-directed observation")
+ }
+ 
+ #[test]
+@@ -988,6 +980,9 @@ fn answer_and_verdict_iris_are_content_addressed_not_positional() {
+         vec![verdict_b.clone(), verdict_a.clone()],
+     );
+ 
++    let mut hydrated = native_evaluations(vec![eval_forward, eval_reversed]).into_iter();
++    let eval_forward = hydrated.next().expect("forward evaluation");
++    let eval_reversed = hydrated.next().expect("reversed evaluation");
+     let nt_forward = project_goal_directed(std::slice::from_ref(&eval_forward));
+     let nt_reversed = project_goal_directed(std::slice::from_ref(&eval_reversed));
+     assert_eq!(
+@@ -1205,3 +1200,29 @@ fn a_constant_with_two_asserted_sorts_binds_when_one_is_comparable() {
+         evals_no_edge[0].answers
+     );
+ }
++
++fn native_evaluations(evaluations: Vec<GoalDirectedEvaluation>) -> Vec<GoalDirectedEvaluation> {
++    use purrdf_lex::json::record::ToJson;
++    let projection = project_goal_directed(&evaluations);
++    let program_projections: BTreeMap<_, _> = evaluations
++        .iter()
++        .map(|evaluation| {
++            (
++                evaluation.iri.clone(),
++                project_goal_directed(std::slice::from_ref(evaluation)),
++            )
++        })
++        .collect();
++    let observation = GoalDirectedObservation {
++        evaluations,
++        projection: projection.clone(),
++        repeated_projection: projection,
++        repeated_program_projections: program_projections.clone(),
++        program_projections,
++    };
++    let bytes = purrdf_lex::json::write_compact(&observation.to_json()).into_bytes();
++    let hydrated: GoalDirectedObservation = purrdf_lex::json::record::from_slice(&bytes)
++        .expect("native authored goal-directed observation");
++    assert_eq!(hydrated, observation);
++    hydrated.evaluations
++}
+diff --git a/crates/logic/src/goal_directed/json.rs b/crates/logic/src/goal_directed/json.rs
+new file mode 100644
+index 000000000..5c90198d8
+--- /dev/null
++++ b/crates/logic/src/goal_directed/json.rs
+@@ -0,0 +1,101 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Data-only native transport of producer observations. Object fields retain the
++//! channel's recursive lexical order; vectors and rendered strings remain untouched.
++
++use super::{
++    GoalDirectedAnswer, GoalDirectedEvaluation, GoalDirectedObservation, GoalDirectedVerdict,
++};
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record},
++};
++
++::purrdf_lex::json_record!(impl ToJson for GoalDirectedAnswer {
++    "atom" => atom,
++    "bindings" => bindings,
++    "derivation_iri" => derivation_iri,
++    "proof_checks" => proof_checks,
++});
++
++impl FromJson for GoalDirectedAnswer {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct GoalDirectedAnswer")?;
++        Ok(Self {
++            atom: fields.required("atom")?,
++            bindings: fields.required("bindings")?,
++            derivation_iri: fields.required("derivation_iri")?,
++            proof_checks: fields.required("proof_checks")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for GoalDirectedVerdict {
++    "atom" => atom,
++    "verdict" => verdict,
++});
++
++impl FromJson for GoalDirectedVerdict {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct GoalDirectedVerdict")?;
++        Ok(Self {
++            atom: fields.required("atom")?,
++            verdict: fields.required("verdict")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for GoalDirectedEvaluation {
++    "answers" => answers,
++    "clauses" => clauses,
++    "description" => description,
++    "goal" => goal,
++    "iri" => iri,
++    "name" => name,
++    "status" => status,
++    "verdict_probe_atoms" => verdict_probe_atoms,
++    "verdicts" => verdicts,
++});
++
++impl FromJson for GoalDirectedEvaluation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct GoalDirectedEvaluation")?;
++        Ok(Self {
++            answers: fields.required("answers")?,
++            clauses: fields.required("clauses")?,
++            description: fields.required("description")?,
++            goal: fields.required("goal")?,
++            iri: fields.required("iri")?,
++            name: fields.required("name")?,
++            status: fields.required("status")?,
++            verdict_probe_atoms: fields.required("verdict_probe_atoms")?,
++            verdicts: fields.required("verdicts")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for GoalDirectedObservation {
++    "evaluations" => evaluations,
++    "program_projections" => program_projections,
++    "projection" => projection,
++    "repeated_program_projections" => repeated_program_projections,
++    "repeated_projection" => repeated_projection,
++});
++
++impl FromJson for GoalDirectedObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct GoalDirectedObservation")?;
++        Ok(Self {
++            evaluations: fields.required("evaluations")?,
++            program_projections: fields.required("program_projections")?,
++            projection: fields.required("projection")?,
++            repeated_program_projections: fields.required("repeated_program_projections")?,
++            repeated_projection: fields.required("repeated_projection")?,
++        })
++    }
++}
++
++#[path = "json/tests.rs"]
++#[cfg(test)]
++mod tests;
+diff --git a/crates/logic/src/goal_directed/json/tests.rs b/crates/logic/src/goal_directed/json/tests.rs
+new file mode 100644
+index 000000000..6799c2f4b
+--- /dev/null
++++ b/crates/logic/src/goal_directed/json/tests.rs
+@@ -0,0 +1,158 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use purrdf_lex::json::{
++    record::{ToJson, from_slice},
++    write_compact,
++};
++use std::collections::BTreeMap;
++
++const WIRE: &str = r#"{"evaluations":[{"answers":[{"atom":"z(\"raw\")","bindings":{"A":"second","Z":"first"},"derivation_iri":"raw proof","proof_checks":false},{"atom":"a","bindings":{},"derivation_iri":"other proof","proof_checks":true}],"clauses":["z.","a."],"description":"line\ntext","goal":"?raw","iri":"not normalized","name":"display","status":"future status","verdict_probe_atoms":["z","a"],"verdicts":[{"atom":"z","verdict":"future verdict"},{"atom":"a","verdict":"undefined"}]}],"program_projections":{"a":"first","z":"second"},"projection":"projection\n","repeated_program_projections":{"other":"independent"},"repeated_projection":"different\n"}"#;
++
++#[test]
++fn native_goal_observation_preserves_complete_lexical_wire_and_raw_evidence() {
++    let expected = GoalDirectedObservation {
++        evaluations: vec![GoalDirectedEvaluation {
++            iri: "not normalized".to_owned(),
++            name: "display".to_owned(),
++            description: "line\ntext".to_owned(),
++            goal: "?raw".to_owned(),
++            status: "future status".to_owned(),
++            answers: vec![
++                GoalDirectedAnswer {
++                    atom: "z(\"raw\")".to_owned(),
++                    bindings: BTreeMap::from([
++                        ("Z".to_owned(), "first".to_owned()),
++                        ("A".to_owned(), "second".to_owned()),
++                    ]),
++                    derivation_iri: "raw proof".to_owned(),
++                    proof_checks: false,
++                },
++                GoalDirectedAnswer {
++                    atom: "a".to_owned(),
++                    bindings: BTreeMap::new(),
++                    derivation_iri: "other proof".to_owned(),
++                    proof_checks: true,
++                },
++            ],
++            verdicts: vec![
++                GoalDirectedVerdict {
++                    atom: "z".to_owned(),
++                    verdict: "future verdict".to_owned(),
++                },
++                GoalDirectedVerdict {
++                    atom: "a".to_owned(),
++                    verdict: "undefined".to_owned(),
++                },
++            ],
++            clauses: vec!["z.".to_owned(), "a.".to_owned()],
++            verdict_probe_atoms: vec!["z".to_owned(), "a".to_owned()],
++        }],
++        program_projections: BTreeMap::from([
++            ("z".to_owned(), "second".to_owned()),
++            ("a".to_owned(), "first".to_owned()),
++        ]),
++        projection: "projection\n".to_owned(),
++        repeated_program_projections: BTreeMap::from([(
++            "other".to_owned(),
++            "independent".to_owned(),
++        )]),
++        repeated_projection: "different\n".to_owned(),
++    };
++    let bytes = write_compact(&expected.to_json()).into_bytes();
++    assert_eq!(
++        bytes,
++        WIRE.as_bytes(),
++        "all nested fields retain lexical order without a terminal newline"
++    );
++    let decoded: GoalDirectedObservation = from_slice(&bytes).expect("complete native observation");
++    assert_eq!(
++        decoded, expected,
++        "transport must not normalize or validate observed evidence"
++    );
++
++    let with_unknowns = WIRE
++        .replacen("{\"evaluations\":", "{\"future\":null,\"evaluations\":", 1)
++        .replacen("{\"answers\":", "{\"future\":[],\"answers\":", 1)
++        .replacen("{\"atom\":", "{\"future\":{},\"atom\":", 1)
++        .replace(
++            "{\"atom\":\"z\",\"verdict\":",
++            "{\"future\":false,\"atom\":\"z\",\"verdict\":",
++        );
++    assert_eq!(
++        from_slice::<GoalDirectedObservation>(with_unknowns.as_bytes())
++            .expect("unknown fields at every named level"),
++        expected
++    );
++    let overwritten = WIRE
++        .replace("\"A\":\"second\"", "\"A\":\"old\",\"A\":\"second\"")
++        .replace("\"a\":\"first\"", "\"a\":\"old\",\"a\":\"first\"")
++        .replace(
++            "\"other\":\"independent\"",
++            "\"other\":\"old\",\"other\":\"independent\"",
++        );
++    assert_eq!(
++        from_slice::<GoalDirectedObservation>(overwritten.as_bytes())
++            .expect("last valid typed map values win"),
++        expected
++    );
++}
++
++#[test]
++fn native_goal_observation_refuses_ambiguous_records_and_shadowed_invalid_maps() {
++    let malformed = [
++        "[]".to_owned(),
++        WIRE.replacen(
++            "{\"evaluations\":",
++            "{\"evaluations\":[],\"evaluations\":",
++            1,
++        ),
++        WIRE.replacen("{\"answers\":", "{\"answers\":[],\"answers\":", 1),
++        WIRE.replacen("{\"atom\":", "{\"atom\":\"duplicate\",\"atom\":", 1),
++        WIRE.replace(
++            "\"verdict\":\"future verdict\"",
++            "\"verdict\":\"old\",\"verdict\":\"future verdict\"",
++        ),
++        WIRE.replace("\"proof_checks\":false", "\"proof_checks\":\"false\""),
++        WIRE.replace(",\"proof_checks\":false", ""),
++        WIRE.replace(
++            "\"bindings\":{\"A\":\"second\",\"Z\":\"first\"}",
++            "\"bindings\":null",
++        ),
++        WIRE.replace("\"clauses\":[\"z.\",\"a.\"]", "\"clauses\":[\"z.\",false]"),
++        WIRE.replace("\"verdicts\":[", "\"verdicts\":null,\"ignored\":["),
++        WIRE.replace("\"status\":\"future status\",", ""),
++        WIRE.replace("\"projection\":\"projection\\n\"", "\"projection\":null"),
++        WIRE.replace(
++            "\"repeated_projection\":\"different\\n\"",
++            "\"repeated_projection\":[]",
++        ),
++        WIRE.replace("\"A\":\"second\"", "\"A\":false,\"A\":\"second\""),
++        WIRE.replace("\"A\":\"second\"", "\"A\":\"second\",\"A\":false"),
++        WIRE.replace("\"a\":\"first\"", "\"a\":null,\"a\":\"first\""),
++        WIRE.replace(
++            "\"other\":\"independent\"",
++            "\"other\":{},\"other\":\"independent\"",
++        ),
++    ];
++    for input in malformed {
++        assert_ne!(input, WIRE, "refusal input must change the complete wire");
++        assert!(
++            from_slice::<GoalDirectedObservation>(input.as_bytes()).is_err(),
++            "must refuse {input}"
++        );
++    }
++    // Populated positional structs are refused at every nested record boundary.
++    assert!(from_slice::<GoalDirectedAnswer>(br#"["atom",{},"proof",false]"#).is_err());
++    assert!(from_slice::<GoalDirectedVerdict>(br#"["atom","future"]"#).is_err());
++    assert!(
++        from_slice::<GoalDirectedEvaluation>(
++            br#"["iri","name","description","goal","status",[],[],[],[]]"#
++        )
++        .is_err()
++    );
++    assert!(
++        from_slice::<GoalDirectedObservation>(br#"[[],"projection","repeated",{},{}]"#).is_err()
++    );
++}
+diff --git a/crates/pipeline/src/fixture.rs b/crates/pipeline/src/fixture.rs
+index 3d58fa51c..d4b8ee9a7 100644
+--- a/crates/pipeline/src/fixture.rs
++++ b/crates/pipeline/src/fixture.rs
+@@ -848,7 +848,7 @@ pub const AUTHENTICATED_SOURCE_ARTIFACTS: &[(&str, &str)] = &[
+     ),
+     (
+         "stage-goal-directed",
+-        crate::stages::goal_directed::OBSERVATION_CHANNEL,
++        gmeow_logic::goal_directed::GOAL_DIRECTED_OBSERVATION_CHANNEL,
+     ),
+     (
+         "stage-compile-logic",
+diff --git a/crates/pipeline/src/stages/goal_directed.rs b/crates/pipeline/src/stages/goal_directed.rs
+index a9cbdab8b..9a32f0716 100644
+--- a/crates/pipeline/src/stages/goal_directed.rs
++++ b/crates/pipeline/src/stages/goal_directed.rs
+@@ -27,15 +27,16 @@
+ use std::collections::BTreeMap;
+ use std::sync::Arc;
+ 
+-use gmeow_logic::goal_directed::{evaluate_reasoning_programs, project_goal_directed};
++use gmeow_logic::goal_directed::{
++    GOAL_DIRECTED_OBSERVATION_CHANNEL, GoalDirectedObservation, evaluate_reasoning_programs,
++    project_goal_directed,
++};
+ use gmeow_logic::result_rdf::GRAPH_REASONING;
++use purrdf_lex::json::record::ToJson;
+ 
+ use crate::bundle::PipelineHandle;
+ use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+ 
+-/// Producer-owned evaluations and independent serialization witnesses.
+-pub(crate) const OBSERVATION_CHANNEL: &str = "pipeline/goal-directed-observation.json";
+-
+ fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
+     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+         stage: "stage-goal-directed".to_string(),
+@@ -271,22 +272,21 @@ impl Stage for GoalDirectedStage {
+                 )
+             })
+             .collect();
+-        let observation = serde_json::json!({
+-            "evaluations": evals,
+-            "projection": nt,
+-            "repeated_projection": project_goal_directed(&repeated),
+-            "program_projections": projections,
+-            "repeated_program_projections": repeated_projections,
+-        });
++        let observation = GoalDirectedObservation {
++            evaluations: evals,
++            projection: nt,
++            repeated_projection: project_goal_directed(&repeated),
++            program_projections: projections,
++            repeated_program_projections: repeated_projections,
++        };
+         let artifacts = BTreeMap::from([(
+-            OBSERVATION_CHANNEL.to_owned(),
+-            serde_json::to_vec(&observation)
+-                .map_err(|error| stage_err(format!("encode goal-directed observation: {error}")))?,
++            GOAL_DIRECTED_OBSERVATION_CHANNEL.to_owned(),
++            purrdf_lex::json::write_compact(&observation.to_json()).into_bytes(),
+         )]);
+         // Route the projected N-Triples into the bundle-internal graph/goal-directed named
+         // graph (the stage's sole attach delta).
+         let dataset = crate::stages::carrier::parse_into_graph(
+-            nt.as_bytes(),
++            observation.projection.as_bytes(),
+             "application/n-triples",
+             GRAPH_GOAL_DIRECTED,
+         )?;
+diff --git a/crates/pipeline/src/stages/goal_directed.tests.rs b/crates/pipeline/src/stages/goal_directed.tests.rs
+index 46b768b1a..076cd64c1 100644
+--- a/crates/pipeline/src/stages/goal_directed.tests.rs
++++ b/crates/pipeline/src/stages/goal_directed.tests.rs
+@@ -12,24 +12,26 @@ fn repo_root() -> PathBuf {
+         .unwrap()
+ }
+ 
+-/// Build a REAL `stage-compile-logic` upstream product carrying a typed `Logic` handle
+-/// whose `reasoning_programs` are the AUTHORED demonstrator corpus
+-/// (`REASONING_PROGRAMS_EXAMPLE_PATH`), parsed through the exact same production
+-/// frontend entry point (`parse_logic_path`) the real stage uses — never a hand-built
+-/// fake corpus. Its `graph/logic` backing graph carries only a placeholder triple: the
+-/// handle pin only requires digest self-consistency (proven at construction), not full
+-/// program re-derivability, and this stage never reads that graph directly (only the
+-/// handle payload).
+-fn compile_logic_upstream_with_reasoning_programs() -> StageProduct {
+-    let path = repo_root().join(crate::stages::compile_logic::REASONING_PROGRAMS_EXAMPLE_PATH);
+-    let (parsed, _diags) = gmeow_logic_compile::frontend::parse_logic_path(&path, None)
+-        .expect("parse the authored reasoning-programs cell");
+-    assert!(
+-        !parsed.reasoning_programs.is_empty(),
+-        "the authored cell must carry at least one logic:ReasoningProgram"
+-    );
++/// A tiny independently authored typed input for the missing-reason refusal.
++/// The stage must reject its absent dependency before evaluating this program.
++fn compile_logic_upstream_for_missing_reason() -> StageProduct {
++    use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
++    let atom = Formula::Atom {
++        relation: Term::Iri("https://example.test/refusal/p".to_owned()),
++        args: vec![Term::Iri("https://example.test/refusal/a".to_owned())],
++    };
++    let reasoning = ReasoningProgramIr::new(
++        "https://example.test/refusal/program",
++        EvaluationMode::Backward,
++        vec![atom.clone()],
++        atom,
++        vec![],
++        vec![],
++        vec![],
++    )
++    .expect("independent one-fact reasoning program");
+     let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
+-        .with_reasoning_programs(parsed.reasoning_programs);
++        .with_reasoning_programs(vec![reasoning]);
+     let dataset = crate::stages::carrier::parse_into_graph(
+         b"<https://example.test/s> <https://example.test/p> <https://example.test/o> .\n",
+         "application/n-triples",
+@@ -108,31 +110,11 @@ fn reason_upstream_with_math_tower() -> StageProduct {
+     StageProduct::from_bundle("stage-reason", Arc::new(bundle))
+ }
+ 
+-fn real_upstream() -> BTreeMap<String, StageProduct> {
+-    let mut upstream = BTreeMap::new();
+-    upstream.insert(
+-        "stage-compile-logic".to_string(),
+-        compile_logic_upstream_with_reasoning_programs(),
+-    );
+-    upstream.insert(
+-        "stage-reason".to_string(),
+-        reason_upstream_with_math_tower(),
+-    );
+-    upstream
+-}
+-
+ #[test]
+ fn goal_directed_stage_attaches_a_nonempty_goal_directed_graph() {
+-    let stage = GoalDirectedStage::new();
+-    let upstream = real_upstream();
+-    let root = std::path::Path::new(".");
+-    let out = stage
+-        .run(StageInput {
+-            root,
+-            upstream: &upstream,
+-        })
+-        .expect("goal-directed run");
+-    let dataset = out.product.bundle().dataset();
++    let fixture = crate::fixture::stage_fixture(&repo_root(), 1, "stage-goal-directed")
++        .expect("exact authenticated goal-directed stage product");
++    let dataset = fixture.outcome.product.bundle().dataset();
+     let graph = dataset
+         .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_GOAL_DIRECTED)))
+         .unwrap();
+@@ -264,7 +246,7 @@ fn run_hard_fails_when_stage_reason_is_missing() {
+     let mut upstream = BTreeMap::new();
+     upstream.insert(
+         "stage-compile-logic".to_string(),
+-        compile_logic_upstream_with_reasoning_programs(),
++        compile_logic_upstream_for_missing_reason(),
+     );
+     let root = std::path::Path::new(".");
+     let result = stage.run(StageInput {

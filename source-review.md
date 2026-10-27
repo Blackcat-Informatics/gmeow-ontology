@@ -1,0 +1,11 @@
+Independent source and design review: PASS.
+
+Reviewed all four native record definitions, the actual producer publisher, authenticated typed reader, fixture export selection and changed behavioral controls. Recursive lexical object order matches the former JSON value, including nested evaluations. Every required string, boolean and collection field is present. Readers preserve raw strings, false proof flags and vector order; typed maps retain checked last-key replacement. No hydration path evaluates programs, repairs observations or checks proofs.
+
+The three removed Serde derives belonged to this transport. Actual CLI consumers print fields as text, and the GMN consumer reads proof flags and identifiers directly. Structural query, answer, verdict and program identities remain on their existing BLAKE3 framing. Reasoning and projection algorithms are unchanged.
+
+The current base adds the independent physical-plan report migration. Its six changed paths do not overlap this unit's seven paths, and it changes no shared helper, dependency, profile or interface used by the goal-directed transport. This base delta does not invalidate the focused qualification; the final integration candidate is checked before publication.
+
+The positive pipeline control now reads the exact authenticated stage product, preserving every original graph assertion. The repository-corpus parsing helper and real_upstream path are removed. The independent missing-reason input is one explicitly authored typed fact. Read the complete three refusal controls, Peano control, identity control and two new admission controls. Traced the retained synthetic math helper through reason_test_dataset and verified that it reasons only over its supplied tiny in-memory dataset. The authenticated positive corpus control remains outside local qualification.
+
+One missed fixture export reference was corrected to the canonical channel constant in fixture.rs; its string value is unchanged. The original implementation author independently confirmed this correction. Formatting, scoped strict compilation and all seven selected authored controls now pass; command evidence and normal hooks are recorded separately. Principles 4 and 7 govern this source ownership and verification scope; no corpus, producer or release acceptance is claimed.
