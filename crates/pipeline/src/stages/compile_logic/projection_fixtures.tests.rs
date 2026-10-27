@@ -21,7 +21,11 @@ fn selected_projection_observation_retains_all_seven_outputs() {
         projections: Ok(outputs.clone()),
     };
     let observations = BTreeMap::from([("authored".to_owned(), Ok(observation))]);
-    let restored = json::from_bytes(&json::to_bytes(&observations)).unwrap();
+    let restored = json::from_bytes(
+        &purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
+            .into_bytes(),
+    )
+    .unwrap();
     assert_eq!(
         restored["authored"]
             .as_ref()
@@ -38,10 +42,17 @@ const PROJECTION_WIRE: &str = r#"{"a":{"Ok":{"diagnostics":[{"severity":"Info","
 #[test]
 fn native_projection_wire_preserves_terminals_and_both_causal_outcomes() {
     let mut observations = json::from_bytes(PROJECTION_WIRE.as_bytes()).unwrap();
-    assert_eq!(json::to_bytes(&observations), PROJECTION_WIRE.as_bytes());
+    assert_eq!(
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
+            .into_bytes(),
+        PROJECTION_WIRE.as_bytes()
+    );
     let unknown = PROJECTION_WIRE.replace("\"diagnostics\":", "\"future\":null,\"diagnostics\":");
     assert_eq!(
-        json::to_bytes(&json::from_bytes(unknown.as_bytes()).unwrap()),
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
+            &json::from_bytes(unknown.as_bytes()).unwrap()
+        ))
+        .into_bytes(),
         PROJECTION_WIRE.as_bytes()
     );
     let mut ledger = gmeow_errors::DiagLedger::new();
@@ -63,7 +74,11 @@ fn native_projection_wire_preserves_terminals_and_both_causal_outcomes() {
         .unwrap()
         .projections = Err(refusal.clone());
     observations.insert("b".into(), Err(refusal.clone()));
-    let restored = json::from_bytes(&json::to_bytes(&observations)).unwrap();
+    let restored = json::from_bytes(
+        &purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
+            .into_bytes(),
+    )
+    .unwrap();
     assert_eq!(
         restored["a"].as_ref().unwrap().diagnostics,
         observations["a"].as_ref().unwrap().diagnostics
@@ -96,7 +111,10 @@ fn native_projection_admission_validates_shadowed_map_values_and_named_records()
     }
     let duplicate = PROJECTION_WIRE.replace("\"n3\":", "\"n3\":\"earlier\",\"n3\":");
     assert_eq!(
-        json::to_bytes(&json::from_bytes(duplicate.as_bytes()).unwrap()),
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
+            &json::from_bytes(duplicate.as_bytes()).unwrap()
+        ))
+        .into_bytes(),
         PROJECTION_WIRE.as_bytes()
     );
 }

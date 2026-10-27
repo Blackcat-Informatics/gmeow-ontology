@@ -59,7 +59,11 @@ pub(super) fn record(
             (case.to_owned(), super::observed(observation))
         })
         .collect();
-    artifacts.insert(CHANNEL.to_owned(), json::to_bytes(&observations));
+    artifacts.insert(
+        CHANNEL.to_owned(),
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
+            .into_bytes(),
+    );
     Ok(())
 }
 

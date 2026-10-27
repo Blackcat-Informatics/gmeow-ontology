@@ -25,20 +25,13 @@ impl FromJson for Reconstructed {
 
 impl ToJson for Observation {
     fn to_json(&self) -> Value {
-        let reconstructed: Object = self
-            .reconstructed
-            .iter()
-            .map(|(name, result)| {
-                (
-                    name.as_str(),
-                    gmeow_errors::json::recorded_result_to_json(result),
-                )
-            })
-            .collect();
         Object::new()
             .with("diagnostics", self.diagnostics.to_json())
             .with("declared_roots", self.declared_roots.to_json())
-            .with("reconstructed", Value::from(reconstructed))
+            .with(
+                "reconstructed",
+                gmeow_errors::json::recorded_map_to_json(&self.reconstructed),
+            )
             .with("asserted", self.asserted.to_json())
             .with("axiom_predicates", self.axiom_predicates.to_json())
             .into()

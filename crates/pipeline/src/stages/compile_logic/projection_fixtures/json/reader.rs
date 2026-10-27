@@ -3,6 +3,7 @@
 
 //! Test consumers decode complete observations without executing their producer.
 
+use super::super::Observations;
 use super::*;
 use std::collections::BTreeMap;
 

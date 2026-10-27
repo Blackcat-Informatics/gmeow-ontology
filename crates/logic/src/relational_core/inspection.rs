@@ -6,13 +6,13 @@
 
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::relational_core::{RcAtom, RcNumeric, RcTerm};
-use serde::{Deserialize, Serialize};
+mod json;
 
 use crate::result::PreservationClaim;
 use crate::rule_ir::{EvalAtom, EvalTerm};
 
 /// The actual native rule shapes and lowering residue of a selected formula set.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct FormulaLoweringInspection {
     /// Ordinary Horn rules after the native adapter accepted their terms.
     pub rules: Vec<RuleInspection>,
@@ -23,7 +23,7 @@ pub struct FormulaLoweringInspection {
 }
 
 /// A diagnostic rule shape. Head order and common witness variables are retained.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct RuleInspection {
     /// Canonical numeric operator identities, operand metadata and binding schedule.
     pub numeric: Vec<RcNumeric>,

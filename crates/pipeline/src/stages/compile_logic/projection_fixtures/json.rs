@@ -3,7 +3,7 @@
 
 //! Selected projection observations, retaining every terminal byte string and cause.
 
-use super::{Observations, ProjectionObservation};
+use super::ProjectionObservation;
 use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
 use purrdf_lex::json::{
     Object, Value,
@@ -14,14 +14,6 @@ use purrdf_lex::json::{
 mod reader;
 #[cfg(test)]
 pub(super) use reader::from_bytes;
-
-pub(super) fn to_bytes(observations: &Observations) -> Vec<u8> {
-    let cases: Object = observations
-        .iter()
-        .map(|(name, outcome)| (name.as_str(), recorded_result_to_json(outcome)))
-        .collect();
-    purrdf_lex::json::write_compact(&cases.into()).into_bytes()
-}
 
 impl ToJson for ProjectionObservation {
     fn to_json(&self) -> Value {

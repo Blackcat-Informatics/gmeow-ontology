@@ -2,11 +2,42 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Native canonical AST transport with checked term/atom admission.
-use super::{Formula, PreservationKind, Term, literal_serde};
+use super::{AtomicTerm, Formula, PreservationKind, Term, literal_serde};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson, Within},
 };
+
+// Atomic inspection values retain their explicit kind and verbatim payload.
+impl ToJson for AtomicTerm {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Var(value) => Object::new().with("Var", value.to_json()).into(),
+            Self::Iri(value) => Object::new().with("Iri", value.to_json()).into(),
+            Self::Blank(value) => Object::new().with("Blank", value.to_json()).into(),
+            Self::Literal(value) => Object::new()
+                .with("Literal", literal_serde::single::to_json(value))
+                .into(),
+        }
+    }
+}
+impl FromJson for AtomicTerm {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let (tag, payload) =
+            gmeow_errors::json::read_variant(value, "AtomicTerm", "one AtomicTerm variant")?;
+        let decoded = match tag {
+            "Var" => String::from_json(payload).map(Self::Var),
+            "Iri" => String::from_json(payload).map(Self::Iri),
+            "Blank" => String::from_json(payload).map(Self::Blank),
+            "Literal" => literal_serde::single::from_json(payload).map(Self::Literal),
+            name => Err(DecodeError::unknown_variant(
+                name,
+                &["Var", "Iri", "Blank", "Literal"],
+            )),
+        };
+        decoded.map_err(|error| error.within(tag))
+    }
+}
 
 impl ToJson for Term {
     fn to_json(&self) -> Value {
