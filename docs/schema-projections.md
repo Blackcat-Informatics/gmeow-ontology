@@ -5,7 +5,7 @@
 
 > **Status.**
 > **JSON Schema** (`gmeow.schema.json`), **OpenAPI** (`gmeow.openapi.json`), **LinkML**
-> (`gmeow.linkml.yaml`), **TypeScript** (`gmeow.ts`), **GraphQL** (`gmeow.graphql` +
+> (`gmeow.linkml.yaml` plus its name map and loss ledger), **TypeScript** (`gmeow.ts`), **GraphQL** (`gmeow.graphql` +
 > `gmeow.graphql.name-map.json`), and **Pydantic** (`gmeow_models/`) are ALL compiled
 > **natively in Rust from the SHACL shapes**, through purrdf's shared
 > `CompiledSchema`. They are ALL *closed-world* structural
@@ -14,7 +14,7 @@
 > There is no separate "OWL → LinkML" projection anymore: the former hand-rolled
 > OWL-ABox-reading LinkML/TypeScript/GraphQL emitter was deleted, and LinkML is no
 > longer an intermediate step the TypeScript/GraphQL/Pydantic surfaces are derived
-> through. All six artifacts are independent renderings of the SAME compiled `$defs`.
+> through. All schema surfaces are independent renderings of the SAME compiled `$defs`.
 > Update: `make check-sync SYNC_MODE=update`.
 > CI gate: `make check-sync SYNC_MODE=check`, using the authenticated producer.
 
@@ -27,8 +27,8 @@ because every developer schema surface below is compiled from that SAME SHACL sh
 union, every one of them is a **closed-world structural** contract: `required`,
 `enum`, `pattern`, cardinality, and ranges are all real, not stubs.
 
-This document inventories all six generated artifacts and exactly what each one's
-own target-language emitter loses (and why) once it renders the shared compiled
+This document inventories the schema surfaces and their audit artifacts, including what each
+surface's target-language emitter loses (and why) once it renders the shared compiled
 schema.
 
 ---
@@ -125,7 +125,8 @@ entry `ex:shaclJsonSchemaReport`.
 
 ## 2. LinkML, TypeScript, GraphQL, Pydantic — purrdf-native renderers over the same `$defs`
 
-`gmeow.linkml.yaml`, `gmeow.ts`, `gmeow.graphql` (+ `gmeow.graphql.name-map.json`), and
+`gmeow.linkml.yaml` (with its name map and loss ledger), `gmeow.ts`,
+`gmeow.graphql` (+ `gmeow.graphql.name-map.json`), and
 the `gmeow_models/` Pydantic v2 package are ALL rendered from the shared
 [`CompiledSchema`](#1-the-shared-compiled-schema) above by `purrdf::shapes::linkml`,
 `purrdf::shapes::typescript`, `purrdf::shapes::graphql`, and `purrdf::shapes::pydantic`
@@ -147,21 +148,28 @@ a silent drop.
 ### 2.1 LinkML (`gmeow.linkml.yaml`)
 
 `purrdf::shapes::linkml::emit_linkml` (LinkML 1.11 metamodel) maps each compiled
-`$def` to a `classes` entry and each property to a `slots` entry, with `required`
-copied verbatim from the compiled schema's `required` array — a LinkML slot's
+definition to a LinkML class, enum or type, with object properties emitted as inline
+`attributes`. Requiredness comes from the compiled schema's `required` array — an attribute's
 `required: true` really does mean the underlying SHACL shape has `sh:minCount ≥ 1`.
 
-**gmeow-side pre-pass (not a purrdf loss):** LinkML slot names double as
-code-generation identifiers, so `emit_linkml` requires every property to resolve
-under a caller-registered CURIE prefix with a valid NCName local part, and hard-fails
-the WHOLE document on the first violation. `crate::stages::schemas::sanitize_linkml_property_names`
-renames the small set of properties that don't qualify — e.g. an openEHR OPT-lifted
-cardinality helper property whose local part embeds `/`-separated archetype path
-segments (`gmeow:openehr/bloodpressure/occurrences/at0005`), or a property riding in
-under an unregistered prefix — on a PRIVATE copy of the schema used only for the
-LinkML render; TypeScript, GraphQL, and Pydantic render the UNMODIFIED shared schema,
-so their property names are never affected. Every rename is logged (`tracing` target
-`schemas_loss`, `surface = "linkml"`, `construct = "property-name"`) — never silent.
+GMEOW passes the original shared compiled schema directly to the upstream emitter with
+explicit `SanitizePolicy::Rename`. PurRDF owns NCName-safe slot allocation, collision
+handling and preservation of the original RDF identity in `slot_uri`. GMEOW has no
+parallel property-name rewrite. TypeScript and GraphQL consume the same original
+compiled schema.
+
+`gmeow.linkml.name-map.json` retains the complete source-to-emitted naming evidence.
+Its fields are `schema_version` (currently `1`), `sanitize_policy` (`"rename"`),
+`element_names`, `slot_renames` and `slot_diagnostics`, in that order. Every native
+mapping row is retained, including source paths, original names and URIs, emitted
+names and URIs, disposition and reasons. The document uses native two-space pretty
+JSON with exactly one terminal newline. Identity-preserving renames remain distinct
+from explicit identity rehoming; they are not all classified as semantic loss.
+
+`gmeow.linkml.losses.json` carries the complete upstream versioned loss ledger,
+including every original location, exactly as `LossLedger::render_json()` returns it.
+The existing aggregated logs remain useful progress output; neither sidecar is
+truncated to those logs' example budget.
 
 ### 2.2 TypeScript (`gmeow.ts`)
 
@@ -273,6 +281,8 @@ Output files:
 * `dist/schemas/gmeow.schema.json` — JSON Schema (closed-world, native from SHACL)
 * `dist/schemas/gmeow.openapi.json` — OpenAPI 3.1 (closed-world, native from SHACL)
 * `dist/schemas/gmeow.linkml.yaml` — LinkML 1.11 schema (closed-world, native from SHACL)
+* `dist/schemas/gmeow.linkml.name-map.json` — complete LinkML element and slot naming evidence
+* `dist/schemas/gmeow.linkml.losses.json` — complete native versioned LinkML projection losses
 * `dist/schemas/gmeow.ts` — TypeScript 7.0 declarations (closed-world, native from SHACL)
 * `dist/schemas/gmeow.graphql` + `dist/schemas/gmeow.graphql.name-map.json` — GraphQL SDL + canonical name map (closed-world, native from SHACL)
 * `gmeow_models/` — Pydantic v2 package (closed-world, native from SHACL)

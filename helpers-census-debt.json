@@ -2059,7 +2059,6 @@
     "gmeow_lang_bridge::ontolex::local_name",
     "gmeow_lang_bridge::rdf_scan::local_name",
     "gmeow_pipeline::scoreboards::local_name",
-    "gmeow_pipeline::stages::schema_ident::local_name",
     "gmeow_slice_brief::ns::local_name"
    ]
   },
@@ -2544,13 +2543,6 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_pipeline::stages::schemas::SchemasStage::new",
-    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
     "gmeow_pipeline::stages::references::reference_validation_error",
     "gmeow_pipeline::stages::term_manifest::manifest_error"
    ]
@@ -2561,6 +2553,13 @@
     "gmeow_pipeline::stages::research_objects::ro_err",
     "gmeow_pipeline::stages::shape_union_fresh::parse_err",
     "gmeow_pipeline::stages::skos_surface::parse_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::schemas::SchemasStage::new",
+    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
    ]
   },
   {

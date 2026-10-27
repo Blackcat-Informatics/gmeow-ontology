@@ -116,7 +116,6 @@ pub(crate) mod schema_compile;
 pub mod schemas;
 // Shared identifier / text helpers lifted out of `schemas` so the LinkML/TS/GraphQL
 // renderer and the Pydantic package emitter share ONE copy of each rule.
-pub(crate) mod schema_ident;
 // The FRESH shape-union loader: the registry union with the produced
 // `generated/shapes/*.ttl` members sourced from THIS run's consumed products instead
 // of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,

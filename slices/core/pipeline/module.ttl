@@ -1003,7 +1003,7 @@ gmeow:stage-export-schemas
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: schemas"@x-gmeow-english ;
-    skos:definition "Render the LinkML YAML, TypeScript declaration, and GraphQL SDL developer schema surfaces (plus the GraphQL canonical name map) via purrdf's native SHACL-derived emitters (purrdf::shapes::linkml/typescript/graphql), retiring the hand-rolled OWL→LinkML model. A fresh-union leaf: it reads the AUTHORED shape files from disk and consumes the same four generated-shape producers as the JSON-Schema/Pydantic leaves — gmeow:stage-compile-logic, gmeow:stage-export-result-shapes, gmeow:stage-export-frame-shapes, and gmeow:stage-export-constraint-shapes — so the union's generated/shapes/*.ttl members are THIS run's product bytes, never the previous run's committed files (the stale-disk-fold class), and the compiled `$defs` agree with the packed JSON Schema/Pydantic package by construction (the shared schema_compile builder). The sink folds its fresh output into REP_GENERATED."@x-gmeow-english ;
+    skos:definition "Render six developer schema artifacts from the shared compiled schema: LinkML YAML with its complete naming map and versioned loss ledger, the TypeScript declaration, and GraphQL SDL with its canonical name map. PurRDF owns target rendering and slot naming; GMEOW explicitly selects LinkML Rename without a property-name prepass changing the shared input. A fresh-union leaf: it reads the AUTHORED shape files from disk and consumes the same four generated-shape producers as the JSON-Schema/Pydantic leaves — gmeow:stage-compile-logic, gmeow:stage-export-result-shapes, gmeow:stage-export-frame-shapes, and gmeow:stage-export-constraint-shapes — so the union's generated/shapes/*.ttl members are THIS run's product bytes, never the previous run's committed files (the stale-disk-fold class), and the compiled `$defs` agree with the packed JSON Schema/Pydantic package by construction (the shared schema_compile builder). The sink folds its fresh output into REP_GENERATED."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -2254,6 +2254,8 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/schemas/card.schema.json",
     "generated/schemas/gmeow.graphql",
     "generated/schemas/gmeow.graphql.name-map.json",
+    "generated/schemas/gmeow.linkml.losses.json",
+    "generated/schemas/gmeow.linkml.name-map.json",
     "generated/schemas/gmeow.linkml.yaml",
     "generated/schemas/gmeow.openapi.json",
     "generated/schemas/gmeow.schema.json",

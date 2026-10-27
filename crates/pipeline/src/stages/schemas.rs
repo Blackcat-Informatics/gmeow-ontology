@@ -19,23 +19,28 @@
 //! per-slice package ([`crate::stages::pydantic`]) co-derived from the SAME shape
 //! compilation as the JSON-Schema stage, not an OWL→LinkML projection.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use purrdf::shapes::graphql::{
     GRAPHQL_NAME_MAP_PATH as GRAPHQL_NAME_MAP_ARTIFACT,
     GRAPHQL_SCHEMA_PATH as GRAPHQL_SCHEMA_ARTIFACT, GraphqlConfig, emit_graphql,
 };
-use purrdf::shapes::linkml::{LinkmlConfig, emit_linkml};
+use purrdf::shapes::linkml::{LinkmlConfig, SanitizePolicy, emit_linkml};
 use purrdf::shapes::typescript::{
     TYPESCRIPT_DECLARATION_PATH as TYPESCRIPT_DECLARATION_ARTIFACT, TypeScriptConfig,
     emit_typescript,
 };
+use purrdf_lex::json::{Object, Value, record::ToJson};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
-/// The committed logical paths of the four schema artifacts owned by this stage.
+/// The committed logical paths of the six schema artifacts owned by this stage.
 pub const LINKML_PATH: &str = "generated/schemas/gmeow.linkml.yaml";
+/// Complete source-to-LinkML element and slot naming evidence.
+pub const LINKML_NAME_MAP_PATH: &str = "generated/schemas/gmeow.linkml.name-map.json";
+/// The native versioned LinkML projection loss ledger, including locations.
+pub const LINKML_LOSSES_PATH: &str = "generated/schemas/gmeow.linkml.losses.json";
 pub const TYPESCRIPT_PATH: &str = "generated/schemas/gmeow.ts";
 pub const GRAPHQL_PATH: &str = "generated/schemas/gmeow.graphql";
 /// Committed logical path of the GraphQL canonical name map (`name-map.json`):
@@ -44,8 +49,10 @@ pub const GRAPHQL_PATH: &str = "generated/schemas/gmeow.graphql";
 /// the GraphQL SDL renames is otherwise unrecoverable (no-optionality forbids
 /// silently discarding a produced artifact).
 pub const GRAPHQL_NAME_MAP_PATH: &str = "generated/schemas/gmeow.graphql.name-map.json";
-pub const SCHEMA_PATHS: [&str; 4] = [
+pub const SCHEMA_PATHS: [&str; 6] = [
     LINKML_PATH,
+    LINKML_NAME_MAP_PATH,
+    LINKML_LOSSES_PATH,
     TYPESCRIPT_PATH,
     GRAPHQL_PATH,
     GRAPHQL_NAME_MAP_PATH,
@@ -66,8 +73,8 @@ fn schema_error(message: impl Into<String>) -> gmeow_errors::Diag {
 /// `purrdf::shapes::json_schema::compile` ALWAYS merges in for CURIE compaction
 /// (`xsd`/`rdf`/`rdfs`/`owl`/`sh` — e.g. an annotation property compacts to
 /// `rdfs:label`), plus the `linkml` metamodel prefix [`LinkmlConfig`] requires.
-/// A LinkML prefix map narrower than this set hard-fails `emit_linkml` on the
-/// first property/class from an unregistered namespace.
+/// These caller-owned namespaces drive compaction; the native slot policy
+/// preserves unmatched source IRIs and reports their emitted names.
 fn linkml_prefixes() -> BTreeMap<String, String> {
     let profile = gmeow_ns::gmeow_profile();
     let mut prefixes: BTreeMap<String, String> = profile.prefixes.into_iter().collect();
@@ -95,10 +102,6 @@ fn linkml_prefixes() -> BTreeMap<String, String> {
 
 /// The gmeow-owned LinkML emitter configuration (gmeow's explicit identity
 /// + vocabulary — never fabricated by `purrdf`, which is namespace-neutral).
-///
-/// `prefixes` is threaded in by the caller (rather than recomputed here) so the
-/// SAME [`linkml_prefixes`] map drives both the config and
-/// [`sanitize_linkml_property_names`] — they can never drift apart.
 fn linkml_config(prefixes: BTreeMap<String, String>) -> Result<LinkmlConfig, gmeow_errors::Diag> {
     LinkmlConfig::new(
         "https://blackcatinformatics.ca/gmeow/linkml",
@@ -107,6 +110,7 @@ fn linkml_config(prefixes: BTreeMap<String, String>) -> Result<LinkmlConfig, gme
         "gmeow",
         prefixes,
     )
+    .map(|config| config.with_sanitize_policy(SanitizePolicy::Rename))
     .map_err(|e| schema_error(format!("build LinkmlConfig: {e}")))
 }
 
@@ -168,248 +172,32 @@ fn report_losses(surface: &str, losses: &purrdf::LossLedger) {
     }
 }
 
-/// Whether `value` is a valid LinkML 1.11 NCName — the exact predicate
-/// `purrdf::shapes::linkml` enforces on every compacted-CURIE slot local part
-/// (`purrdf-shapes/src/linkml.rs::is_linkml_identifier`, re-derived here because
-/// it is a private helper of that crate).
-fn is_linkml_identifier(value: &str) -> bool {
-    let mut chars = value.chars();
-    let Some(first) = chars.next() else {
-        return false;
-    };
-    (first == '_' || first.is_alphabetic())
-        && chars.all(|c| {
-            c == '_'
-                || c == '-'
-                || c == '.'
-                || c.is_alphanumeric()
-                || matches!(c, '\u{300}'..='\u{36f}' | '\u{203f}'..='\u{2040}' | '\u{b7}')
-        })
-}
-
-/// Rewrite an NCName-unsafe CURIE local part into a valid LinkML NCName:
-/// replace every disallowed character with `_`, then guard the first character
-/// (must be `_` or alphabetic).
-fn linkml_ncname_local(local: &str) -> String {
-    let mut out: String = local
-        .chars()
-        .map(|c| {
-            if c == '_'
-                || c == '-'
-                || c == '.'
-                || c.is_alphanumeric()
-                || matches!(c, '\u{300}'..='\u{36f}' | '\u{203f}'..='\u{2040}' | '\u{b7}')
-            {
-                c
-            } else {
-                '_'
-            }
-        })
-        .collect();
-    if out.is_empty() {
-        out.push('_');
-    }
-    match out.chars().next() {
-        Some(c) if c == '_' || c.is_alphabetic() => {}
-        _ => out.insert(0, '_'),
-    }
-    out
-}
-
-/// Rename every `$defs/*/properties` key (and its `required` twin) `purrdf`'s
-/// LinkML `slot_uri` classifier would reject:
-///
-/// * a CURIE under a REGISTERED prefix (`prefixes`) whose local part is not a
-///   valid NCName — e.g. the openEHR OPT-lifted cardinality helper properties
-///   (`gmeow:openehr/bloodpressure/occurrences/at0005`), whose local part
-///   embeds `/`-separated archetype path segments. Sanitized in place, keeping
-///   the registered prefix.
-/// * a property under an UNREGISTERED prefix, or a bare absolute IRI from a
-///   namespace `linkml_prefixes()` never declares (e.g. an unregistered
-///   `skos:definition` annotation property riding in as the literal
-///   `http://www.w3.org/2004/02/skos/core#definition`) — `slot_uri` accepts a
-///   CURIE only under a caller-registered prefix and an absolute IRI only
-///   under a caller-registered NAMESPACE, so anything else is re-homed under
-///   our OWN default `gmeow:` prefix, keyed by the property's trailing
-///   local-name segment (the legacy hand-rolled renderer's slot-naming
-///   convention).
-///
-/// `purrdf::shapes::json_schema::compile` keys `$defs` properties by compacted
-/// CURIE (or a bare absolute IRI when no declared namespace matches) with NO
-/// NCName requirement (valid for JSON Schema/OpenAPI/Pydantic property names),
-/// but `purrdf::shapes::linkml::emit_linkml` requires every slot to resolve
-/// under a registered prefix with an NCName local part (LinkML slot names
-/// double as code-generation identifiers) and hard-fails the ENTIRE document
-/// on the first violation — so this pre-pass renames rather than lets the
-/// whole LinkML surface go dark. TypeScript/GraphQL need no such pass
-/// (arbitrary string property names / an internal field-name codec), so they
-/// render from the UNMODIFIED shared compiled schema. Returns the renamed
-/// `(def_name, old_property, new_property)` triples for loss reporting — the
-/// rename is real information loss (the LinkML slot no longer names the exact
-/// source property), never silent.
-///
-/// **Retirement condition.** This pre-pass exists only because `emit_linkml`
-/// hard-fails the whole document on the first non-NCName slot instead of
-/// reporting the offending slots. When the emitter reports them — or performs a
-/// declared, loss-reported rename itself — this function is deleted rather than
-/// kept as a second place that decides LinkML slot naming; the doctrine is that
-/// purrdf owns the output formats. The condition is stated rather than a tracker
-/// id because the issue-refs policy forbids tracker provenance in authored prose,
-/// and a condition stays true after the tracker item is renumbered or superseded.
-fn sanitize_linkml_property_names(
-    schema: &mut serde_json::Value,
-    prefixes: &BTreeMap<String, String>,
-) -> Vec<(String, String, String)> {
-    let mut renames = Vec::new();
-    let Some(defs) = schema
-        .get_mut("$defs")
-        .and_then(serde_json::Value::as_object_mut)
-    else {
-        return renames;
-    };
-    let def_names: Vec<String> = defs.keys().cloned().collect();
-    for def_name in def_names {
-        let Some(properties) = defs
-            .get(&def_name)
-            .and_then(|d| d.get("properties"))
-            .and_then(serde_json::Value::as_object)
-        else {
-            continue;
-        };
-        let mut used: BTreeSet<String> = properties.keys().cloned().collect();
-        let mut local_renames: Vec<(String, String)> = Vec::new();
-        for key in properties.keys() {
-            if key.starts_with('@') {
-                continue;
-            }
-            let mut candidate = if let Some((prefix, local)) = key.split_once(':')
-                && prefixes.contains_key(prefix)
-            {
-                // A CURIE under a prefix purrdf's slot_uri WILL resolve — the only
-                // possible rejection is a non-NCName local part.
-                if is_linkml_identifier(local) {
-                    continue;
-                }
-                format!("{prefix}:{}", linkml_ncname_local(local))
-            } else {
-                // Not a CURIE under a registered prefix. purrdf's slot_uri accepts an
-                // absolute IRI only when it starts with a REGISTERED namespace; rather
-                // than replicate that IRI-vs-namespace matching here (and risk drifting
-                // from `linkml_prefixes()` set), always re-home under our own default
-                // prefix keyed by the property's trailing local-name segment — safe
-                // whether `key` was an absolute IRI (`https://…#definition`), a CURIE
-                // under an unregistered prefix, or a bare non-identifier string.
-                let local = crate::stages::schema_ident::local_name(key);
-                format!("gmeow:{}", linkml_ncname_local(local))
-            };
-            while used.contains(&candidate) {
-                candidate.push('_');
-            }
-            used.insert(candidate.clone());
-            local_renames.push((key.clone(), candidate));
-        }
-        if local_renames.is_empty() {
-            continue;
-        }
-        let def_obj = defs
-            .get_mut(&def_name)
-            .and_then(serde_json::Value::as_object_mut)
-            .expect("presence checked above");
-        if let Some(props_obj) = def_obj
-            .get_mut("properties")
-            .and_then(serde_json::Value::as_object_mut)
-        {
-            for (old, new) in &local_renames {
-                if let Some(v) = props_obj.remove(old) {
-                    props_obj.insert(new.clone(), v);
-                }
-            }
-        }
-        if let Some(required) = def_obj
-            .get_mut("required")
-            .and_then(serde_json::Value::as_array_mut)
-        {
-            for entry in required.iter_mut() {
-                if let serde_json::Value::String(s) = entry
-                    && let Some((_, new)) = local_renames.iter().find(|(old, _)| old == s)
-                {
-                    *s = new.clone();
-                }
-            }
-        }
-        for (old, new) in local_renames {
-            renames.push((def_name.clone(), old, new));
-        }
-    }
-    renames
-}
-
-/// Log every LinkML NCName-safety rename ([`sanitize_linkml_property_names`]) as a
-/// single aggregated `tracing` event, mirroring [`report_losses`] so a renamed
-/// property is never a silent divergence from the shared compiled schema.
-fn report_linkml_renames(renames: &[(String, String, String)]) {
-    if renames.is_empty() {
-        return;
-    }
-    let examples: Vec<String> = renames
-        .iter()
-        .take(5)
-        .map(|(def, old, new)| format!("{def}: {old} -> {new}"))
-        .collect();
-    let suffix = if renames.len() > 5 {
-        format!(" (+{} more)", renames.len() - 5)
-    } else {
-        String::new()
-    };
-    tracing::info!(
-        target: "schemas_loss",
-        surface = "linkml",
-        construct = "property-name",
-        shapes = renames.len(),
-        reason = "compacted-CURIE local part is not a valid LinkML NCName",
-        examples = %format!("{}{suffix}", examples.join(", ")),
-        "renamed a non-NCName-safe property for the LinkML surface",
-    );
-}
-
 /// Compile the fresh SHACL shape union and render the three `purrdf`-native
 /// developer schema surfaces (LinkML YAML, TypeScript declarations, GraphQL SDL
-/// + its name map), returning the four committed artifacts.
+/// + its name map), retaining complete LinkML naming and loss evidence.
 fn render_schemas(
     root: &Path,
     shapes: &purrdf::shapes::shapes::Shapes,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let compiled = crate::stages::schema_compile::enriched_compiled_schema(root, shapes)?;
 
-    // LinkML alone requires every slot local part to be an NCName; sanitize a
-    // PRIVATE copy of the schema for it so TypeScript/GraphQL keep rendering the
-    // exact shared `$defs` json-schema/pydantic also compile.
-    let mut linkml_schema: serde_json::Value = serde_json::from_str(&compiled.schema_json)
-        .map_err(|e| {
-            schema_error(format!(
-                "parse compiled schema for LinkML NCName sanitization: {e}"
-            ))
-        })?;
-    let prefixes = linkml_prefixes();
-    let renames = sanitize_linkml_property_names(&mut linkml_schema, &prefixes);
-    report_linkml_renames(&renames);
-    let linkml_schema_json = serde_json::to_string(&linkml_schema)
-        .map_err(|e| schema_error(format!("serialize LinkML-sanitized compiled schema: {e}")))?;
-    let linkml_compiled = purrdf::shapes::json_schema::CompiledSchema {
-        schema_json: linkml_schema_json,
-        openapi_json: compiled.openapi_json.clone(),
-        losses: purrdf::LossLedger::new(),
-    };
+    render_compiled_schemas(&compiled)
+}
 
-    let linkml_package = emit_linkml(&linkml_compiled, &linkml_config(prefixes)?)
+/// Render the same compiled document through all three upstream emitters.
+fn render_compiled_schemas(
+    compiled: &purrdf::shapes::json_schema::CompiledSchema,
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let linkml_config = linkml_config(linkml_prefixes())?;
+    let linkml_package = emit_linkml(compiled, &linkml_config)
         .map_err(|e| schema_error(format!("emit_linkml: {e}")))?;
     report_losses("linkml", &linkml_package.losses);
 
-    let typescript_package = emit_typescript(&compiled, &typescript_config()?)
+    let typescript_package = emit_typescript(compiled, &typescript_config()?)
         .map_err(|e| schema_error(format!("emit_typescript: {e}")))?;
     report_losses("typescript", &typescript_package.losses);
 
-    let graphql_package = emit_graphql(&compiled, &graphql_config()?)
+    let graphql_package = emit_graphql(compiled, &graphql_config()?)
         .map_err(|e| schema_error(format!("emit_graphql: {e}")))?;
     report_losses("graphql", &graphql_package.losses);
 
@@ -441,8 +229,40 @@ fn render_schemas(
         })?
         .clone();
 
+    let name_map = Value::from(
+        Object::new()
+            .with("schema_version", 1_u32)
+            .with("sanitize_policy", linkml_config.sanitize_policy().to_json())
+            .with("element_names", linkml_package.element_names.to_json())
+            .with(
+                "slot_renames",
+                Value::Array(
+                    linkml_package
+                        .slot_renames
+                        .iter()
+                        .map(|row| row.to_json())
+                        .collect(),
+                ),
+            )
+            .with(
+                "slot_diagnostics",
+                Value::Array(
+                    linkml_package
+                        .slot_diagnostics
+                        .iter()
+                        .map(|row| row.to_json())
+                        .collect(),
+                ),
+            ),
+    );
+    let mut name_map_bytes = purrdf_lex::json::write_pretty(&name_map).into_bytes();
+    name_map_bytes.push(b'\n');
+    let losses_bytes = linkml_package.losses.render_json().into_bytes();
+
     let mut artifacts = BTreeMap::new();
     artifacts.insert(LINKML_PATH.to_string(), linkml_package.yaml.into_bytes());
+    artifacts.insert(LINKML_NAME_MAP_PATH.to_string(), name_map_bytes);
+    artifacts.insert(LINKML_LOSSES_PATH.to_string(), losses_bytes);
     artifacts.insert(TYPESCRIPT_PATH.to_string(), typescript_bytes);
     artifacts.insert(GRAPHQL_PATH.to_string(), graphql_schema_bytes);
     artifacts.insert(GRAPHQL_NAME_MAP_PATH.to_string(), graphql_name_map_bytes);
@@ -480,10 +300,7 @@ impl Stage for SchemasStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v4: cut over from the hand-rolled OWL→LinkML model (which read the composed
-        // carrier dataset) to purrdf's native SHACL-derived LinkML/TypeScript/GraphQL
-        // emitters over the SAME fresh shape union json-schema/pydantic compile.
-        "schemas.v4-purrdf"
+        "schemas.v5-native-linkml-audit"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union (`shapes/*.ttl` minus lints +
