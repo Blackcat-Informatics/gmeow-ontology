@@ -1,0 +1,1235 @@
+diff --git a/crates/logic-compile/src/ir/validation.rs b/crates/logic-compile/src/ir/validation.rs
+index a731c7f76..81b843dd7 100644
+--- a/crates/logic-compile/src/ir/validation.rs
++++ b/crates/logic-compile/src/ir/validation.rs
+@@ -18,6 +18,8 @@
+ //! [`super::opt_axis_key`] signed-zero helper directly, so the key style matches the rest
+ //! of the IR verbatim.
+ 
++mod json;
++
+ use super::{NodeKind, SEP, opt_axis_key};
+ use gmeow_errors::Diag;
+ 
+diff --git a/crates/logic-compile/src/ir/validation/json.rs b/crates/logic-compile/src/ir/validation/json.rs
+new file mode 100644
+index 000000000..38ba993b9
+--- /dev/null
++++ b/crates/logic-compile/src/ir/validation/json.rs
+@@ -0,0 +1,556 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete validation-IR transport. Hydration retains fields and collection order.
++
++use super::{
++    ConstraintComponent, ConstraintProvenance, NodeKind, PropertyConstraintIr, ShaclNodeKind,
++    ShaclSeverity, ShapeTarget, ShapeValue, ValidationShapeIr,
++};
++use crate::ir::literal_serde;
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within, items_with},
++};
++
++impl ToJson for NodeKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::ObjectLevelFormula => "ObjectLevelFormula",
++            Self::MetaLevelFormula => "MetaLevelFormula",
++            Self::Constraint => "Constraint",
++            Self::DerivationRule => "DerivationRule",
++            Self::Query => "Query",
++            Self::TransactionProgram => "TransactionProgram",
++            Self::ActionSchema => "ActionSchema",
++            Self::ValidationShape => "ValidationShape",
++            Self::Correspondence => "Correspondence",
++            Self::Annotation => "Annotation",
++        }
++        .to_json()
++    }
++}
++impl FromJson for NodeKind {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "NodeKind")? {
++            "ObjectLevelFormula" => Ok(Self::ObjectLevelFormula),
++            "MetaLevelFormula" => Ok(Self::MetaLevelFormula),
++            "Constraint" => Ok(Self::Constraint),
++            "DerivationRule" => Ok(Self::DerivationRule),
++            "Query" => Ok(Self::Query),
++            "TransactionProgram" => Ok(Self::TransactionProgram),
++            "ActionSchema" => Ok(Self::ActionSchema),
++            "ValidationShape" => Ok(Self::ValidationShape),
++            "Correspondence" => Ok(Self::Correspondence),
++            "Annotation" => Ok(Self::Annotation),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "ObjectLevelFormula",
++                    "MetaLevelFormula",
++                    "Constraint",
++                    "DerivationRule",
++                    "Query",
++                    "TransactionProgram",
++                    "ActionSchema",
++                    "ValidationShape",
++                    "Correspondence",
++                    "Annotation",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for ShaclNodeKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Iri => "Iri",
++            Self::Literal => "Literal",
++            Self::BlankNode => "BlankNode",
++            Self::IriOrLiteral => "IriOrLiteral",
++            Self::BlankNodeOrIri => "BlankNodeOrIri",
++            Self::BlankNodeOrLiteral => "BlankNodeOrLiteral",
++        }
++        .to_json()
++    }
++}
++impl FromJson for ShaclNodeKind {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "ShaclNodeKind")? {
++            "Iri" => Ok(Self::Iri),
++            "Literal" => Ok(Self::Literal),
++            "BlankNode" => Ok(Self::BlankNode),
++            "IriOrLiteral" => Ok(Self::IriOrLiteral),
++            "BlankNodeOrIri" => Ok(Self::BlankNodeOrIri),
++            "BlankNodeOrLiteral" => Ok(Self::BlankNodeOrLiteral),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "Iri",
++                    "Literal",
++                    "BlankNode",
++                    "IriOrLiteral",
++                    "BlankNodeOrIri",
++                    "BlankNodeOrLiteral",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for ShaclSeverity {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Violation => "Violation",
++            Self::Warning => "Warning",
++            Self::Info => "Info",
++        }
++        .to_json()
++    }
++}
++impl FromJson for ShaclSeverity {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "ShaclSeverity")? {
++            "Violation" => Ok(Self::Violation),
++            "Warning" => Ok(Self::Warning),
++            "Info" => Ok(Self::Info),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Violation", "Warning", "Info"],
++            )),
++        }
++    }
++}
++
++impl ToJson for ConstraintProvenance {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::OwlRestriction => "OwlRestriction",
++            Self::OptNative => "OptNative",
++        }
++        .to_json()
++    }
++}
++impl FromJson for ConstraintProvenance {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "ConstraintProvenance")? {
++            "OwlRestriction" => Ok(Self::OwlRestriction),
++            "OptNative" => Ok(Self::OptNative),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["OwlRestriction", "OptNative"],
++            )),
++        }
++    }
++}
++
++impl ToJson for ShapeTarget {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Class(value) => Object::new().with("Class", value.to_json()).into(),
++            Self::SubjectsOf(value) => Object::new().with("SubjectsOf", value.to_json()).into(),
++            Self::ObjectsOf(value) => Object::new().with("ObjectsOf", value.to_json()).into(),
++            Self::ValueKeyed { predicate, value } => Object::new()
++                .with(
++                    "ValueKeyed",
++                    Value::from(
++                        Object::new()
++                            .with("predicate", predicate.to_json())
++                            .with("value", value.to_json()),
++                    ),
++                )
++                .into(),
++            Self::DirectClass(value) => Object::new().with("DirectClass", value.to_json()).into(),
++            Self::Sparql(value) => Object::new().with("Sparql", value.to_json()).into(),
++        }
++    }
++}
++impl FromJson for ShapeTarget {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "ShapeTarget", "one ShapeTarget variant")?;
++        let decode = || -> Result<Self, DecodeError> {
++            match tag {
++                "Class" => String::from_json(payload).map(Self::Class),
++                "SubjectsOf" => String::from_json(payload).map(Self::SubjectsOf),
++                "ObjectsOf" => String::from_json(payload).map(Self::ObjectsOf),
++                "ValueKeyed" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant ShapeTarget::ValueKeyed")?;
++                    Ok(Self::ValueKeyed {
++                        predicate: fields.required("predicate")?,
++                        value: fields.required("value")?,
++                    })
++                }
++                "DirectClass" => String::from_json(payload).map(Self::DirectClass),
++                "Sparql" => String::from_json(payload).map(Self::Sparql),
++                name => Err(DecodeError::unknown_variant(
++                    name,
++                    &[
++                        "Class",
++                        "SubjectsOf",
++                        "ObjectsOf",
++                        "ValueKeyed",
++                        "DirectClass",
++                        "Sparql",
++                    ],
++                )),
++            }
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
++impl ToJson for ShapeValue {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Iri(value) => Object::new().with("Iri", value.to_json()).into(),
++            Self::Literal(value) => Object::new()
++                .with("Literal", literal_serde::single::to_json(value))
++                .into(),
++        }
++    }
++}
++impl FromJson for ShapeValue {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "ShapeValue", "one ShapeValue variant")?;
++        let decoded = match tag {
++            "Iri" => String::from_json(payload).map(Self::Iri),
++            "Literal" => literal_serde::single::from_json(payload).map(Self::Literal),
++            name => Err(DecodeError::unknown_variant(name, &["Iri", "Literal"])),
++        };
++        decoded.map_err(|error| error.within(tag))
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for PropertyConstraintIr {
++    "path" => path,
++    "min_count" => min_count,
++    "max_count" => max_count,
++    "cardinality_provenance" => cardinality_provenance,
++    "components" => components,
++    "inverse" => inverse,
++    "reifier_shape" => reifier_shape,
++    "reification_required" => reification_required,
++    "severity" => severity,
++    "message" => message,
++});
++impl FromJson for PropertyConstraintIr {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PropertyConstraintIr")?;
++        Ok(Self {
++            path: fields.required("path")?,
++            min_count: fields.optional_with("min_count", |value| {
++                gmeow_errors::json::read_unsigned(value, "u32 minimum count")
++            })?,
++            max_count: fields.optional_with("max_count", |value| {
++                gmeow_errors::json::read_unsigned(value, "u32 maximum count")
++            })?,
++            cardinality_provenance: fields.optional("cardinality_provenance")?,
++            components: fields.required("components")?,
++            inverse: fields.required("inverse")?,
++            reifier_shape: fields.optional("reifier_shape")?,
++            reification_required: fields.required("reification_required")?,
++            severity: fields.optional("severity")?,
++            message: fields.optional("message")?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for ValidationShapeIr {
++    "iri" => iri,
++    "target" => target,
++    "properties" => properties,
++    "node_kind" => node_kind,
++    "standpoint" => standpoint,
++    "node_components" => node_components,
++    "label" => label,
++    "failure_class" => failure_class,
++});
++impl FromJson for ValidationShapeIr {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ValidationShapeIr")?;
++        Ok(Self {
++            iri: fields.required("iri")?,
++            target: fields.required("target")?,
++            properties: fields.required("properties")?,
++            node_kind: fields.required("node_kind")?,
++            standpoint: fields.optional("standpoint")?,
++            node_components: fields.required("node_components")?,
++            label: fields.optional("label")?,
++            failure_class: fields.optional("failure_class")?,
++        })
++    }
++}
++
++impl ToJson for ConstraintComponent {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::NumericRange {
++                min,
++                max,
++                min_inclusive,
++                max_inclusive,
++            } => Object::new()
++                .with(
++                    "NumericRange",
++                    Value::from(
++                        Object::new()
++                            .with("min", min.to_json())
++                            .with("max", max.to_json())
++                            .with("min_inclusive", min_inclusive.to_json())
++                            .with("max_inclusive", max_inclusive.to_json()),
++                    ),
++                )
++                .into(),
++            Self::PrecisionRange {
++                min,
++                max,
++                min_inclusive,
++                max_inclusive,
++            } => Object::new()
++                .with(
++                    "PrecisionRange",
++                    Value::from(
++                        Object::new()
++                            .with("min", min.to_json())
++                            .with("max", max.to_json())
++                            .with("min_inclusive", min_inclusive.to_json())
++                            .with("max_inclusive", max_inclusive.to_json()),
++                    ),
++                )
++                .into(),
++            Self::Datatype(value) => Object::new().with("Datatype", value.to_json()).into(),
++            Self::Class(value) => Object::new().with("Class", value.to_json()).into(),
++            Self::NodeKindShacl(value) => {
++                Object::new().with("NodeKindShacl", value.to_json()).into()
++            }
++            Self::In(value) => Object::new().with("In", value.to_json()).into(),
++            Self::Pattern { regex, flags } => Object::new()
++                .with(
++                    "Pattern",
++                    Value::from(
++                        Object::new()
++                            .with("regex", regex.to_json())
++                            .with("flags", flags.to_json()),
++                    ),
++                )
++                .into(),
++            Self::MinLength(value) => Object::new().with("MinLength", value.to_json()).into(),
++            Self::MaxLength(value) => Object::new().with("MaxLength", value.to_json()).into(),
++            Self::LanguageIn(value) => Object::new().with("LanguageIn", value.to_json()).into(),
++            Self::DateTimeRange {
++                min,
++                max,
++                min_inclusive,
++                max_inclusive,
++            } => Object::new()
++                .with(
++                    "DateTimeRange",
++                    Value::from(
++                        Object::new()
++                            .with("min", min.to_json())
++                            .with("max", max.to_json())
++                            .with("min_inclusive", min_inclusive.to_json())
++                            .with("max_inclusive", max_inclusive.to_json()),
++                    ),
++                )
++                .into(),
++            Self::TerminologyBinding {
++                terminology_id,
++                codes,
++            } => Object::new()
++                .with(
++                    "TerminologyBinding",
++                    Value::from(
++                        Object::new()
++                            .with("terminology_id", terminology_id.to_json())
++                            .with("codes", codes.to_json()),
++                    ),
++                )
++                .into(),
++            Self::OrdinalSet { pairs } => Object::new()
++                .with(
++                    "OrdinalSet",
++                    Value::from(Object::new().with("pairs", pairs.to_json())),
++                )
++                .into(),
++            Self::DateTimePattern(value) => Object::new()
++                .with("DateTimePattern", value.to_json())
++                .into(),
++            Self::HasValue(value) => Object::new().with("HasValue", value.to_json()).into(),
++            Self::QualifiedValueShape { shape, min, max } => Object::new()
++                .with(
++                    "QualifiedValueShape",
++                    Value::from(
++                        Object::new()
++                            .with("shape", shape.to_json())
++                            .with("min", min.to_json())
++                            .with("max", max.to_json()),
++                    ),
++                )
++                .into(),
++            Self::Not(value) => Object::new().with("Not", value.to_json()).into(),
++            Self::Or(value) => Object::new().with("Or", value.to_json()).into(),
++            Self::Xone(value) => Object::new().with("Xone", value.to_json()).into(),
++            Self::OrProperties(value) => Object::new().with("OrProperties", value.to_json()).into(),
++            Self::UniqueLang => "UniqueLang".to_json(),
++        }
++    }
++}
++impl FromJson for ConstraintComponent {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        if let Some(name) = value.as_str() {
++            return match name {
++                "UniqueLang" => Ok(Self::UniqueLang),
++                name => Err(DecodeError::unknown_variant(name, COMPONENT_VARIANTS)),
++            };
++        }
++        let (tag, payload) = gmeow_errors::json::read_variant(
++            value,
++            "ConstraintComponent",
++            "one ConstraintComponent variant",
++        )?;
++        let decode = || -> Result<Self, DecodeError> {
++            match tag {
++                "NumericRange" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant ConstraintComponent::NumericRange")?;
++                    Ok(Self::NumericRange {
++                        min: fields.optional::<f64>("min")?,
++                        max: fields.optional::<f64>("max")?,
++                        min_inclusive: fields.required("min_inclusive")?,
++                        max_inclusive: fields.required("max_inclusive")?,
++                    })
++                }
++                "PrecisionRange" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant ConstraintComponent::PrecisionRange",
++                    )?;
++                    Ok(Self::PrecisionRange {
++                        min: fields.optional::<f64>("min")?,
++                        max: fields.optional::<f64>("max")?,
++                        min_inclusive: fields.required("min_inclusive")?,
++                        max_inclusive: fields.required("max_inclusive")?,
++                    })
++                }
++                "Datatype" => String::from_json(payload).map(Self::Datatype),
++                "Class" => String::from_json(payload).map(Self::Class),
++                "NodeKindShacl" => ShaclNodeKind::from_json(payload).map(Self::NodeKindShacl),
++                "In" => Vec::<ShapeValue>::from_json(payload).map(Self::In),
++                "Pattern" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant ConstraintComponent::Pattern")?;
++                    Ok(Self::Pattern {
++                        regex: fields.required("regex")?,
++                        flags: fields.optional("flags")?,
++                    })
++                }
++                "MinLength" => gmeow_errors::json::read_unsigned(payload, "u32 string length")
++                    .map(Self::MinLength),
++                "MaxLength" => gmeow_errors::json::read_unsigned(payload, "u32 string length")
++                    .map(Self::MaxLength),
++                "LanguageIn" => Vec::<String>::from_json(payload).map(Self::LanguageIn),
++                "DateTimeRange" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant ConstraintComponent::DateTimeRange")?;
++                    Ok(Self::DateTimeRange {
++                        min: fields.optional("min")?,
++                        max: fields.optional("max")?,
++                        min_inclusive: fields.required("min_inclusive")?,
++                        max_inclusive: fields.required("max_inclusive")?,
++                    })
++                }
++                "TerminologyBinding" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant ConstraintComponent::TerminologyBinding",
++                    )?;
++                    Ok(Self::TerminologyBinding {
++                        terminology_id: fields.required("terminology_id")?,
++                        codes: fields.required("codes")?,
++                    })
++                }
++                "OrdinalSet" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant ConstraintComponent::OrdinalSet")?;
++                    Ok(Self::OrdinalSet {
++                        pairs: fields.required_with("pairs", ordinal_pairs)?,
++                    })
++                }
++                "DateTimePattern" => String::from_json(payload).map(Self::DateTimePattern),
++                "HasValue" => ShapeValue::from_json(payload).map(Self::HasValue),
++                "QualifiedValueShape" => {
++                    let mut fields = Record::new(
++                        payload,
++                        "struct variant ConstraintComponent::QualifiedValueShape",
++                    )?;
++                    Ok(Self::QualifiedValueShape {
++                        shape: fields.required("shape")?,
++                        min: fields.optional_with("min", |value| {
++                            gmeow_errors::json::read_unsigned(value, "u32 qualified count")
++                        })?,
++                        max: fields.optional_with("max", |value| {
++                            gmeow_errors::json::read_unsigned(value, "u32 qualified count")
++                        })?,
++                    })
++                }
++                "Not" => Box::<Self>::from_json(payload).map(Self::Not),
++                "Or" => Vec::<Self>::from_json(payload).map(Self::Or),
++                "Xone" => Vec::<Self>::from_json(payload).map(Self::Xone),
++                "OrProperties" => Vec::<String>::from_json(payload).map(Self::OrProperties),
++                "UniqueLang" => gmeow_errors::json::read_null(payload, "null UniqueLang payload")
++                    .map(|()| Self::UniqueLang),
++                name => Err(DecodeError::unknown_variant(name, COMPONENT_VARIANTS)),
++            }
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
++
++const COMPONENT_VARIANTS: &[&str] = &[
++    "NumericRange",
++    "PrecisionRange",
++    "Datatype",
++    "Class",
++    "NodeKindShacl",
++    "In",
++    "Pattern",
++    "MinLength",
++    "MaxLength",
++    "LanguageIn",
++    "DateTimeRange",
++    "TerminologyBinding",
++    "OrdinalSet",
++    "DateTimePattern",
++    "HasValue",
++    "QualifiedValueShape",
++    "Not",
++    "Or",
++    "Xone",
++    "OrProperties",
++    "UniqueLang",
++];
++
++fn ordinal_pairs(value: &Value) -> Result<Vec<(i64, String)>, DecodeError> {
++    items_with(value, |row| -> Result<_, DecodeError> {
++        let cells = row
++            .as_array()
++            .ok_or_else(|| DecodeError::invalid_type(row, "ordinal and symbol row"))?;
++        if cells.len() != 2 {
++            return Err(DecodeError::invalid_value(
++                row,
++                "exactly two ordinal and symbol cells",
++            ));
++        }
++        let ordinal = gmeow_errors::json::read_signed::<i64>(&cells[0], "i64 ordinal")
++            .map_err(|error| error.within_index_native(0, None))?;
++        let symbol =
++            String::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?;
++        Ok((ordinal, symbol))
++    })
++}
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/logic-compile/src/ir/validation/json/tests.rs b/crates/logic-compile/src/ir/validation/json/tests.rs
+new file mode 100644
+index 000000000..bc3cccbd6
+--- /dev/null
++++ b/crates/logic-compile/src/ir/validation/json/tests.rs
+@@ -0,0 +1,174 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const WIRE: &str = r#"{"iri":"","target":{"ValueKeyed":{"predicate":"","value":"raw target"}},"properties":[{"path":"","min_count":0,"max_count":4294967295,"cardinality_provenance":"OwlRestriction","components":[{"NumericRange":{"min":-0.0,"max":1e+20,"min_inclusive":false,"max_inclusive":true}},{"PrecisionRange":{"min":1.0,"max":null,"min_inclusive":true,"max_inclusive":false}},{"Datatype":"raw datatype"},{"Class":"raw class"},{"NodeKindShacl":"Iri"},{"In":[{"Iri":"z"},{"Literal":["text","http://www.w3.org/1999/02/22-rdf-syntax-ns#langString","fr",null]},{"Iri":"a"}]},{"Pattern":{"regex":"[ab]","flags":"i"}},{"MinLength":0},{"MaxLength":4294967295},{"LanguageIn":["z","a","z"]},{"DateTimeRange":{"min":"raw min","max":null,"min_inclusive":false,"max_inclusive":true}},{"TerminologyBinding":{"terminology_id":"raw terminology","codes":["z","a","z"]}},{"OrdinalSet":{"pairs":[[-9223372036854775808,"z"],[9223372036854775807,"a"],[-9223372036854775808,"z"]]}},{"DateTimePattern":"raw pattern"},{"HasValue":{"Iri":"raw value"}},{"QualifiedValueShape":{"shape":[{"Not":{"Class":"z"}},{"Class":"a"}],"min":null,"max":0}},{"Not":{"Class":"raw"}},{"Or":[{"Class":"z"},{"Class":"a"}]},{"Xone":[{"Class":"z"},{"Class":"a"}]},{"OrProperties":["z","a","z"]},"UniqueLang"],"inverse":true,"reifier_shape":"raw reifier","reification_required":true,"severity":"Warning","message":"retained 中"}],"node_kind":"Annotation","standpoint":"raw standpoint","node_components":[{"OrProperties":["z","a","z"]}],"label":null,"failure_class":"raw failure"}"#;
++
++#[test]
++fn validation_ir_native_wire_retains_recursive_components_and_all_tags() {
++    let shape: ValidationShapeIr = from_slice(WIRE.as_bytes()).unwrap();
++    assert_eq!(to_vec(&shape), WIRE.as_bytes());
++    assert!(shape.iri.is_empty() && shape.properties[0].path.is_empty());
++    assert_eq!(shape.node_kind, NodeKind::Annotation);
++    assert_eq!(shape.properties[0].components.len(), 21);
++    let ConstraintComponent::NumericRange { min, .. } = &shape.properties[0].components[0] else {
++        panic!("retained numeric range")
++    };
++    assert!(min.unwrap().is_sign_negative());
++    let ConstraintComponent::LanguageIn(languages) = &shape.properties[0].components[9] else {
++        panic!("retained language order")
++    };
++    assert_eq!(languages, &["z", "a", "z"]);
++    let upper_language = WIRE.replace("\"fr\",null", "\"FR\",null");
++    assert_eq!(
++        to_vec(&from_slice::<ValidationShapeIr>(upper_language.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    for (kind, name) in [
++        (NodeKind::ObjectLevelFormula, "ObjectLevelFormula"),
++        (NodeKind::MetaLevelFormula, "MetaLevelFormula"),
++        (NodeKind::Constraint, "Constraint"),
++        (NodeKind::DerivationRule, "DerivationRule"),
++        (NodeKind::Query, "Query"),
++        (NodeKind::TransactionProgram, "TransactionProgram"),
++        (NodeKind::ActionSchema, "ActionSchema"),
++        (NodeKind::ValidationShape, "ValidationShape"),
++        (NodeKind::Correspondence, "Correspondence"),
++        (NodeKind::Annotation, "Annotation"),
++    ] {
++        let wire = WIRE.replace(
++            "\"node_kind\":\"Annotation\"",
++            &format!("\"node_kind\":\"{name}\""),
++        );
++        let shape: ValidationShapeIr = from_slice(wire.as_bytes()).unwrap();
++        assert_eq!(shape.node_kind, kind);
++        assert_eq!(to_vec(&shape), wire.as_bytes());
++    }
++    for name in [
++        "Iri",
++        "Literal",
++        "BlankNode",
++        "IriOrLiteral",
++        "BlankNodeOrIri",
++        "BlankNodeOrLiteral",
++    ] {
++        let wire = WIRE.replace(
++            "\"NodeKindShacl\":\"Iri\"",
++            &format!("\"NodeKindShacl\":\"{name}\""),
++        );
++        assert_eq!(
++            to_vec(&from_slice::<ValidationShapeIr>(wire.as_bytes()).unwrap()),
++            wire.as_bytes()
++        );
++    }
++    for name in ["Violation", "Warning", "Info"] {
++        let wire = WIRE.replace(
++            "\"severity\":\"Warning\"",
++            &format!("\"severity\":\"{name}\""),
++        );
++        assert_eq!(
++            to_vec(&from_slice::<ValidationShapeIr>(wire.as_bytes()).unwrap()),
++            wire.as_bytes()
++        );
++    }
++    for name in ["OwlRestriction", "OptNative"] {
++        let wire = WIRE.replace("\"OwlRestriction\"", &format!("\"{name}\""));
++        assert_eq!(
++            to_vec(&from_slice::<ValidationShapeIr>(wire.as_bytes()).unwrap()),
++            wire.as_bytes()
++        );
++    }
++    for target in [
++        r#"{"Class":"raw"}"#,
++        r#"{"SubjectsOf":"raw"}"#,
++        r#"{"ObjectsOf":"raw"}"#,
++        r#"{"DirectClass":"raw"}"#,
++        r#"{"Sparql":"SELECT raw"}"#,
++    ] {
++        let wire = WIRE.replace(
++            r#"{"ValueKeyed":{"predicate":"","value":"raw target"}}"#,
++            target,
++        );
++        assert_eq!(
++            to_vec(&from_slice::<ValidationShapeIr>(wire.as_bytes()).unwrap()),
++            wire.as_bytes()
++        );
++    }
++    let omitted = WIRE
++        .replace("\"label\":null,", "")
++        .replace("\"min\":null,", "");
++    assert_eq!(
++        to_vec(&from_slice::<ValidationShapeIr>(omitted.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let unit_objects = WIRE
++        .replace(
++            "\"NodeKindShacl\":\"Iri\"",
++            "\"NodeKindShacl\":{\"Iri\":null}",
++        )
++        .replace(",\"UniqueLang\"]", ",{\"UniqueLang\":null}]");
++    assert_eq!(
++        to_vec(&from_slice::<ValidationShapeIr>(unit_objects.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++}
++
++#[test]
++fn validation_ir_native_admission_refuses_record_variant_and_numeric_drift() {
++    let unknown = WIRE
++        .replace("\"iri\":", "\"future\":null,\"iri\":")
++        .replace("\"path\":", "\"future\":null,\"path\":")
++        .replace("\"predicate\":", "\"future\":null,\"predicate\":")
++        .replace("\"min_inclusive\":", "\"future\":null,\"min_inclusive\":");
++    assert_eq!(
++        to_vec(&from_slice::<ValidationShapeIr>(unknown.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    for invalid in [
++        WIRE.replace("\"inverse\":true,", ""),
++        WIRE.replace("\"reification_required\":true,", ""),
++        WIRE.replace("\"node_kind\":\"Annotation\",", ""),
++        WIRE.replace(
++            "\"node_components\":[{\"OrProperties\":[\"z\",\"a\",\"z\"]}],",
++            "",
++        ),
++        WIRE.replace("\"components\":", "\"components\":[],\"components\":"),
++        WIRE.replace(
++            "\"predicate\":\"\"",
++            "\"predicate\":\"earlier\",\"predicate\":\"\"",
++        ),
++        WIRE.replace("\"min_count\":0", "\"min_count\":-0"),
++        WIRE.replace("\"min_count\":0", "\"min_count\":1e0"),
++        WIRE.replace("\"MaxLength\":4294967295", "\"MaxLength\":4294967296"),
++        WIRE.replace("\"max\":1e+20", "\"max\":1e400"),
++        WIRE.replace(
++            "[-9223372036854775808,\"z\"]",
++            "[-9223372036854775809,\"z\"]",
++        ),
++        WIRE.replace("[-9223372036854775808,\"z\"]", "[-0,\"z\"]"),
++        WIRE.replace("[-9223372036854775808,\"z\"]", "[1e0,\"z\"]"),
++        WIRE.replace("[-9223372036854775808,\"z\"]", "[1,\"z\",\"extra\"]"),
++        WIRE.replace("[-9223372036854775808,\"z\"]", "[1,null]"),
++        WIRE.replace("\"fr\",null]", "\"fr\"]"),
++        WIRE.replace("\"Annotation\"", "\"Unknown\""),
++        WIRE.replace(",\"UniqueLang\"]", ",{\"UniqueLang\":false}]"),
++        WIRE.replace(
++            r#"{"ValueKeyed":{"predicate":"","value":"raw target"}}"#,
++            r#"{"ValueKeyed":["","raw target"]}"#,
++        ),
++        r#"["shape",{"Class":"raw"},[],"ValidationShape",null,[],null,null]"#.to_owned(),
++    ] {
++        assert!(
++            from_slice::<ValidationShapeIr>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++    let invalid = WIRE.replace("[-9223372036854775808,\"z\"]", "[1e0,\"z\"]");
++    let error = from_slice::<ValidationShapeIr>(invalid.as_bytes()).unwrap_err();
++    assert_eq!(
++        error.pointer(),
++        "/properties/0/components/12/OrdinalSet/pairs/0/0"
++    );
++}
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures.rs
+index ff98e5314..9c4e10917 100644
+--- a/crates/pipeline/src/stages/compile_logic/validation_fixtures.rs
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures.rs
+@@ -17,7 +17,7 @@ use gmeow_logic_compile::projections::shapes::{
+     project_procedural_constraints, project_validation_shape_shacl,
+ };
+ use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+-use serde::{Deserialize, Serialize};
++mod json;
+ 
+ use crate::stages::parse_sources::SourceCatalog;
+ 
+@@ -27,7 +27,7 @@ mod selection;
+ const CHANNEL: &str = "pipeline/module-validation-fixtures.json";
+ const SH_HEADER: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n";
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct ValidationFixtures {
+     modules: BTreeMap<String, Result<ModuleProduct, gmeow_errors::RecordedDiag>>,
+     /// Exact authored examples selected and read by the producer before tests.
+@@ -36,7 +36,7 @@ struct ValidationFixtures {
+     diagnostics_migration: Result<migration::Agreement, gmeow_errors::RecordedDiag>,
+ }
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct ModuleProduct {
+     /// Authenticated producer-selected native source for installed-caller contract tests.
+     source_rdf: String,
+@@ -45,13 +45,13 @@ struct ModuleProduct {
+     procedural_shacl: String,
+ }
+ 
+-#[derive(Debug, Clone, Serialize, Deserialize)]
++#[derive(Debug, Clone)]
+ struct ShapeProduct {
+     ir: ValidationShapeIr,
+     shacl: String,
+ }
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct CaseObservation {
+     module: String,
+     input: String,
+@@ -143,8 +143,7 @@ pub(super) fn record(
+     };
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&fixtures)
+-            .map_err(|error| super::stage_err(format!("encode validation fixtures: {error}")))?,
++        purrdf_lex::json::record::to_vec(&fixtures),
+     );
+     Ok(())
+ }
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures.tests.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures.tests.rs
+index 8ea4f3cbb..9693b5716 100644
+--- a/crates/pipeline/src/stages/compile_logic/validation_fixtures.tests.rs
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures.tests.rs
+@@ -22,8 +22,8 @@ fn typed_shape_and_emitted_surface_survive_the_producer_record() {
+             ex:D a logic:Class . ex:p a logic:ObjectProperty .
+         "#,
+     );
+-    let wire = serde_json::to_vec(&product).unwrap();
+-    let restored: ModuleProduct = serde_json::from_slice(&wire).unwrap();
++    let wire = purrdf_lex::json::record::to_vec(&product);
++    let restored: ModuleProduct = purrdf_lex::json::record::from_slice(&wire).unwrap();
+     let shape = restored
+         .shapes
+         .iter()
+@@ -57,8 +57,8 @@ fn malformed_constraints_remain_visible_in_the_record() {
+             <urn:broken> a logic:Constraint ; logic:integrity <urn:missing-formula> .
+         "#,
+     );
+-    let wire = serde_json::to_vec(&product).unwrap();
+-    let restored: ModuleProduct = serde_json::from_slice(&wire).unwrap();
++    let wire = purrdf_lex::json::record::to_vec(&product);
++    let restored: ModuleProduct = purrdf_lex::json::record::from_slice(&wire).unwrap();
+     assert!(
+         restored
+             .diagnostics
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures/corpus_tests.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures/corpus_tests.rs
+index f3de01d0f..86cc2f9af 100644
+--- a/crates/pipeline/src/stages/compile_logic/validation_fixtures/corpus_tests.rs
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures/corpus_tests.rs
+@@ -22,7 +22,8 @@ fn fixtures() -> &'static ValidationFixtures {
+         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+         let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
+             .expect("authenticated producer-selected validation fixtures");
+-        serde_json::from_slice(&bytes).expect("hydrate complete validation fixture outputs")
++        purrdf_lex::json::record::from_slice(&bytes)
++            .expect("hydrate complete validation fixture outputs")
+     })
+ }
+ 
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures/json.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures/json.rs
+new file mode 100644
+index 000000000..fec56085b
+--- /dev/null
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures/json.rs
+@@ -0,0 +1,146 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete validation fixture products, selected source bytes and recorded refusals.
++
++use super::{CaseObservation, ModuleProduct, ShapeProduct, ValidationFixtures};
++use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, items_with},
++};
++use std::collections::BTreeMap;
++
++struct ModuleOutcome(Result<ModuleProduct, gmeow_errors::RecordedDiag>);
++impl FromJson for ModuleOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_recorded_result(
++            value,
++            "validation module outcome",
++            "one validation module outcome variant",
++        )
++        .map(Self)
++    }
++}
++struct InputBytes(Vec<u8>);
++impl FromJson for InputBytes {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        items_with(value, |byte| {
++            gmeow_errors::json::read_unsigned(byte, "u8 source input byte")
++        })
++        .map(Self)
++    }
++}
++struct Findings(Vec<(String, String)>);
++impl FromJson for Findings {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        items_with(value, |row| -> Result<_, DecodeError> {
++            let [focus, shape] = gmeow_errors::json::read_string_row(row)?;
++            Ok((focus, shape))
++        })
++        .map(Self)
++    }
++}
++impl ToJson for ValidationFixtures {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with(
++                "modules",
++                gmeow_errors::json::recorded_map_to_json(&self.modules),
++            )
++            .with("inputs", self.inputs.to_json())
++            .with("cases", self.cases.to_json())
++            .with(
++                "diagnostics_migration",
++                recorded_result_to_json(&self.diagnostics_migration),
++            )
++            .into()
++    }
++}
++impl FromJson for ValidationFixtures {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ValidationFixtures")?;
++        let modules: BTreeMap<String, ModuleOutcome> = fields.required("modules")?;
++        let inputs: BTreeMap<String, InputBytes> = fields.required("inputs")?;
++        Ok(Self {
++            modules: modules
++                .into_iter()
++                .map(|(name, outcome)| (name, outcome.0))
++                .collect(),
++            inputs: inputs
++                .into_iter()
++                .map(|(name, bytes)| (name, bytes.0))
++                .collect(),
++            cases: fields.required("cases")?,
++            diagnostics_migration: fields.required_with("diagnostics_migration", |value| {
++                read_recorded_result(
++                    value,
++                    "validation migration outcome",
++                    "one validation migration outcome variant",
++                )
++            })?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for ModuleProduct {
++    "source_rdf" => source_rdf,
++    "diagnostics" => diagnostics,
++    "shapes" => shapes,
++    "procedural_shacl" => procedural_shacl,
++});
++impl FromJson for ModuleProduct {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ModuleProduct")?;
++        Ok(Self {
++            source_rdf: fields.required("source_rdf")?,
++            diagnostics: fields.required("diagnostics")?,
++            shapes: fields.required("shapes")?,
++            procedural_shacl: fields.required("procedural_shacl")?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for ShapeProduct {
++    "ir" => ir,
++    "shacl" => shacl,
++});
++impl FromJson for ShapeProduct {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ShapeProduct")?;
++        Ok(Self {
++            ir: fields.required("ir")?,
++            shacl: fields.required("shacl")?,
++        })
++    }
++}
++impl ToJson for CaseObservation {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("module", self.module.to_json())
++            .with("input", self.input.to_json())
++            .with("findings", recorded_result_to_json(&self.findings))
++            .into()
++    }
++}
++impl FromJson for CaseObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CaseObservation")?;
++        let module = fields.required("module")?;
++        let input = fields.required("input")?;
++        let findings: Result<Findings, gmeow_errors::RecordedDiag> =
++            fields.required_with("findings", |value| {
++                read_recorded_result(
++                    value,
++                    "validation findings outcome",
++                    "one validation findings outcome variant",
++                )
++            })?;
++        Ok(Self {
++            module,
++            input,
++            findings: findings.map(|findings| findings.0),
++        })
++    }
++}
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures/json/tests.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures/json/tests.rs
+new file mode 100644
+index 000000000..229ab087f
+--- /dev/null
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures/json/tests.rs
+@@ -0,0 +1,122 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const WIRE: &str = r#"{"modules":{"m":{"Ok":{"source_rdf":"retained source\n","diagnostics":[{"severity":"Warning","code":"authored","message":"retained 中","subject":null}],"shapes":[{"ir":{"iri":"raw shape","target":{"Class":"raw class"},"properties":[],"node_kind":"ValidationShape","standpoint":null,"node_components":[],"label":null,"failure_class":null},"shacl":"retained shape"}],"procedural_shacl":"retained procedure"}}},"inputs":{"empty":[],"raw":[0,127,128,255]},"cases":[{"module":"m","input":"raw","findings":{"Ok":[["focus z","shape z"],["focus a","shape a"]]}}],"diagnostics_migration":{"Ok":{"legacy_shape":"legacy","projected_shape":"projected","checked_focuses":["a","z"],"expected_violations":["a"],"legacy":[{"focus":"a","path":null,"value":"retained value","component":"raw component","severity":"raw severity","messages":["message z","message a"]}],"projected":[]}}}"#;
++
++#[test]
++fn validation_fixture_native_wire_preserves_complete_products_bytes_and_causal_outcomes() {
++    let mut fixtures: ValidationFixtures = from_slice(WIRE.as_bytes()).unwrap();
++    assert_eq!(to_vec(&fixtures), WIRE.as_bytes());
++    assert_eq!(fixtures.inputs["raw"], [0, 127, 128, 255]);
++    assert!(fixtures.inputs["empty"].is_empty());
++    assert_eq!(
++        fixtures.cases[0].findings.as_ref().unwrap(),
++        &[
++            ("focus z".to_owned(), "shape z".to_owned()),
++            ("focus a".to_owned(), "shape a".to_owned())
++        ]
++    );
++    let mut ledger = gmeow_errors::DiagLedger::new();
++    let premise = ledger.attach(
++        gmeow_errors::Diag::from(std::io::Error::other("authored validation input refusal"))
++            .with_focus("urn:validation:input"),
++        gmeow_errors::StageId::new("validation-input"),
++    );
++    let refusal = ledger.record(
++        gmeow_errors::Diag::from(std::io::Error::other("authored validation product refusal"))
++            .with_focus("urn:validation:product")
++            .with_antecedents([premise]),
++        gmeow_errors::StageId::new("validation-product"),
++    );
++    fixtures
++        .modules
++        .insert("refused".into(), Err(refusal.clone()));
++    fixtures.cases[0].findings = Err(refusal.clone());
++    fixtures.diagnostics_migration = Err(refusal.clone());
++    let restored: ValidationFixtures = from_slice(&to_vec(&fixtures)).unwrap();
++    assert_eq!(restored.modules["refused"].as_ref().unwrap_err(), &refusal);
++    assert_eq!(restored.cases[0].findings.as_ref().unwrap_err(), &refusal);
++    assert_eq!(
++        restored.diagnostics_migration.as_ref().unwrap_err(),
++        &refusal
++    );
++    assert_eq!(restored.inputs, fixtures.inputs);
++    assert_eq!(
++        restored.modules["m"].as_ref().unwrap().source_rdf,
++        "retained source\n"
++    );
++    assert_eq!(refusal.causes.len(), 1);
++    assert_eq!(
++        refusal.root.antecedents.as_ref(),
++        &[refusal.causes[0].fingerprint]
++    );
++}
++
++#[test]
++fn validation_fixture_native_admission_refuses_ambiguous_and_shadowed_invalid_records() {
++    let unknown = WIRE
++        .replace("\"modules\":", "\"future\":null,\"modules\":")
++        .replace("\"source_rdf\":", "\"future\":null,\"source_rdf\":")
++        .replace("\"ir\":", "\"future\":null,\"ir\":")
++        .replace("\"module\":", "\"future\":null,\"module\":")
++        .replace("\"legacy_shape\":", "\"future\":null,\"legacy_shape\":")
++        .replace("\"focus\":", "\"future\":null,\"focus\":");
++    assert_eq!(
++        to_vec(&from_slice::<ValidationFixtures>(unknown.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let valid_shadow = WIRE
++        .replace("\"inputs\":{", "\"inputs\":{\"raw\":[1],")
++        .replace("[\"a\",\"z\"]", "[\"z\",\"a\",\"z\"]");
++    assert_eq!(
++        to_vec(&from_slice::<ValidationFixtures>(valid_shadow.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let absent_path = WIRE.replace("\"path\":null,", "");
++    assert_eq!(
++        to_vec(&from_slice::<ValidationFixtures>(absent_path.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    for invalid in [
++        WIRE.replace("\"modules\":{", "\"modules\":{\"m\":{\"Ok\":null},"),
++        WIRE.replace("\"inputs\":{", "\"inputs\":{\"raw\":[256],"),
++        WIRE.replace("[0,127,128,255]", "[-0,127,128,255]"),
++        WIRE.replace("[0,127,128,255]", "[0e0,127,128,255]"),
++        WIRE.replace(
++            "\"source_rdf\":",
++            "\"source_rdf\":\"earlier\",\"source_rdf\":",
++        ),
++        WIRE.replace(
++            "\"procedural_shacl\":\"retained procedure\"",
++            "\"procedural_shacl\":null",
++        ),
++        WIRE.replace("\"shacl\":\"retained shape\"", "\"shacl\":null"),
++        WIRE.replace("\"module\":\"m\",", ""),
++        WIRE.replace("\"findings\":", "\"findings\":null,\"findings\":"),
++        WIRE.replace(
++            "[\"focus z\",\"shape z\"]",
++            "[\"focus z\",\"shape z\",\"extra\"]",
++        ),
++        WIRE.replace("[\"focus z\",\"shape z\"]", "[\"focus z\",null]"),
++        WIRE.replace(
++            "\"legacy_shape\":",
++            "\"legacy_shape\":\"earlier\",\"legacy_shape\":",
++        ),
++        WIRE.replace("\"messages\":", "\"messages\":[],\"messages\":"),
++        WIRE.replace("\"value\":\"retained value\"", "\"value\":false"),
++        WIRE.replace(
++            "\"diagnostics_migration\":{\"Ok\":",
++            "\"diagnostics_migration\":{\"Err\":null,\"Ok\":",
++        ),
++        r#"[{"m":null},{"raw":[0]},[{"module":"m","input":"raw","findings":{"Ok":[]}}],{"Ok":{}}]"#
++            .to_owned(),
++    ] {
++        assert!(
++            from_slice::<ValidationFixtures>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++}
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.rs
+index ff286ecc3..ff78f375c 100644
+--- a/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.rs
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.rs
+@@ -10,7 +10,7 @@ use std::path::Path;
+ 
+ use purrdf::RdfDataset;
+ use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+-use serde::{Deserialize, Serialize};
++mod json;
+ 
+ pub(super) const MODULE: &str = "slices/core/diagnostics/module.ttl";
+ pub(super) const LEGACY_PATH: &str = "slices/core/diagnostics/shapes.ttl";
+@@ -19,7 +19,7 @@ const PROJECTED_SHAPE: &str =
+     "https://blackcatinformatics.ca/gmeow/GateFatalUpsetConstraintProceduralConstraintShape";
+ const EX: &str = "https://blackcatinformatics.ca/gmeow/testing/diagnostic-migration/";
+ 
+-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+ pub(super) struct Finding {
+     pub(super) focus: String,
+     path: Option<String>,
+@@ -29,7 +29,7 @@ pub(super) struct Finding {
+     messages: Vec<String>,
+ }
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(super) struct Agreement {
+     pub(super) legacy_shape: String,
+     pub(super) projected_shape: String,
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.tests.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.tests.rs
+index f86752461..3cdd9833a 100644
+--- a/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.tests.rs
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration.tests.rs
+@@ -51,7 +51,7 @@ fn migration_parity_compares_native_compiler_outputs_and_survives_record_roundtr
+     )
+     .unwrap();
+     let restored: Agreement =
+-        serde_json::from_slice(&serde_json::to_vec(&record).unwrap()).unwrap();
++        purrdf_lex::json::record::from_slice(&purrdf_lex::json::record::to_vec(&record)).unwrap();
+     assert_eq!(restored.checked_focuses.len(), 3);
+     assert_eq!(
+         restored.expected_violations,
+diff --git a/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration/json.rs b/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration/json.rs
+new file mode 100644
+index 000000000..ab1f506d3
+--- /dev/null
++++ b/crates/pipeline/src/stages/compile_logic/validation_fixtures/migration/json.rs
+@@ -0,0 +1,53 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete finite migration evidence without executing either validator on hydration.
++
++use super::{Agreement, Finding};
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record},
++};
++
++::purrdf_lex::json_record!(impl ToJson for Finding {
++    "focus" => focus,
++    "path" => path,
++    "value" => value,
++    "component" => component,
++    "severity" => severity,
++    "messages" => messages,
++});
++impl FromJson for Finding {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Finding")?;
++        Ok(Self {
++            focus: fields.required("focus")?,
++            path: fields.optional("path")?,
++            value: fields.optional("value")?,
++            component: fields.required("component")?,
++            severity: fields.required("severity")?,
++            messages: fields.required("messages")?,
++        })
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for Agreement {
++    "legacy_shape" => legacy_shape,
++    "projected_shape" => projected_shape,
++    "checked_focuses" => checked_focuses,
++    "expected_violations" => expected_violations,
++    "legacy" => legacy,
++    "projected" => projected,
++});
++impl FromJson for Agreement {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Agreement")?;
++        Ok(Self {
++            legacy_shape: fields.required("legacy_shape")?,
++            projected_shape: fields.required("projected_shape")?,
++            checked_focuses: fields.required("checked_focuses")?,
++            expected_violations: fields.required("expected_violations")?,
++            legacy: fields.required("legacy")?,
++            projected: fields.required("projected")?,
++        })
++    }
++}

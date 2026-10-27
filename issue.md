@@ -1,0 +1,23 @@
+# Issue #1995: Use native JSON for complete module validation fixtures
+
+State: OPEN   Repo: Blackcat-Informatics/gmeow-ontology   Forge: github
+
+## Body
+
+Move the complete module-validation fixture channel to PurRDF native JSON under Principles 4 and 7. Reuse the canonical shared validation IR and existing native diagnostic, literal and recorded-outcome owners.
+
+Acceptance:
+
+- Cover all six pipeline records: ValidationFixtures, ModuleProduct, ShapeProduct, CaseObservation, migration Agreement and migration Finding. Cover both shared IR records, PropertyConstraintIr and ValidationShapeIr, and all seven enums: ShapeTarget, ShaclNodeKind, ShaclSeverity, ShapeValue, ConstraintProvenance, ConstraintComponent and NodeKind. Include all twenty-one recursive constraint variants and all ten NodeKind variants.
+- Wire the actual fixture publisher and authenticated fixtures reader, plus existing direct module/migration record controls. Remove the six private JSON-only DTO Serde derives; retain shared IR Serde definitions, attributes and variant order for the real PreparedOperatorRules JSON and compiled-publication CBOR/hash owners. Do not expand into full program migration or introduce a bridge.
+- Preserve every field, vector order, typed map/set behavior and complete causal outcomes for module entries, case findings and migration agreement. Decode every map value before last-wins replacement. Keep source input bytes as strict unsigned byte arrays and findings as exact two-string rows.
+- Retain required fields even when their documentation mentions defaults: inverse, reification_required, node_components and node_kind remain required. Plain Option fields retain missing/null absence and explicit null output. Unknown fields remain tolerated; known duplicate fields, positional records, malformed variants and malformed shadowed values fail under the native default depth policy.
+- Preserve raw IR observations without constructor sorting, target validation, NodeKind replacement, projection, shape derivation or migration comparison during hydration. Reuse native f64 admission/writing and the existing checked four-component single-literal codec, including its established RDF component normalization. Use actual Rust variant tags such as Iri and OwlRestriction, preserving their distinction from display or vocabulary spellings.
+- Preserve strict unsigned u32/count widths and signed i64 ordinal widths using existing native numeric helpers. OrdinalSet rows contain exactly one signed integer and one string, in that order, with native index errors. Do not treat these as two-string rows.
+- Keep all source selection, compilation, procedural/shape projection, migration comparison and authenticated corpus assertions unchanged. Extend the existing three safe authored record controls and add bounded complete-channel, recursive-family, causal and admission controls. Compile actual affected callers and run normal hooks. Tests use authored temporary inputs only and never produce or consume the canonical corpus.
+
+Remaining contracts: #1776, #1777, #1336 and #1962. Full program and report migration, workspace Serde retirement and actual corpus/release acceptance remain unfinished in their existing owners. The standing user exception prohibits local optimized producer, corpus/fixture production, synchronization and full-gate execution and authorizes sequential merges with CI waived. Report unverified acceptance accurately.
+
+
+## Comments (0)
+
