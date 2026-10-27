@@ -1,0 +1,129 @@
+{
+  "issue": 1993,
+  "pr_number": 1994,
+  "branch": "paudley/1993-use-native-json-for-complete-class",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class",
+  "observed_at": "2026-10-27T02:38:24.411261+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "f90d047b4a70cc402ba27c859b76451d853d324d",
+    "headRefName": "paudley/1993-use-native-json-for-complete-class",
+    "headRefOid": "793de3dc7f8d14d4e367e8875208acf81114fe87",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 1994,
+    "state": "OPEN",
+    "title": "Use native JSON for complete class admission observations",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1994"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/1994",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40439545994/job/121976303027",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40439545994/job/121976303288",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40439545994/job/121976303191",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40439545994/job/121976303161",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=1994",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "793de3dc7f8d14d4e367e8875208acf81114fe87",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "b1872fec585db6f2371ba58e54ebeafd0b9749f7f5a512b61549b0389ef0ff31"
+  },
+  "local": {
+    "head": "793de3dc7f8d14d4e367e8875208acf81114fe87",
+    "branch": "paudley/1993-use-native-json-for-complete-class",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 1994,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #1994 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABf2YyDA",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1994#issuecomment-6432371212",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

@@ -1,0 +1,742 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index eedf79a29..453f2f3eb 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1477,6 +1477,7 @@ dependencies = [
+  "gmeow-ns",
+  "purrdf",
+  "purrdf-hash",
++ "purrdf-lex",
+  "serde",
+  "serde_json",
+  "tempfile",
+diff --git a/crates/conformance/Cargo.toml b/crates/conformance/Cargo.toml
+index 8d1f6a880..fd4fe0be9 100644
+--- a/crates/conformance/Cargo.toml
++++ b/crates/conformance/Cargo.toml
+@@ -55,6 +55,7 @@ gmeow-cli-core = { path = "../cli-core" }
+ # depends on this crate, so no new layering edge is created.
+ gmeow-ns = { path = "../ns" }
+ purrdf.workspace = true
++purrdf-lex.workspace = true
+ # Canonical-JSON comparison (sorted keys) for verdicts / ledger / certification /
+ # budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
+ # the default BTreeMap-backed `Value` serializes keys in sorted order, which IS
+diff --git a/crates/conformance/src/native_observation.rs b/crates/conformance/src/native_observation.rs
+index c350cc747..c4e5a323b 100644
+--- a/crates/conformance/src/native_observation.rs
++++ b/crates/conformance/src/native_observation.rs
+@@ -3,6 +3,8 @@
+ 
+ //! Explicit native case operations; source admission never implies consistency.
+ 
++mod json;
++
+ use gmeow_logic::reason::refute::{ClassAdmissionObservation, PreparedClassAnalysis};
+ use purrdf::{NativeRdfFormat, RdfDataset, dataset_from_bytes};
+ use serde::{Deserialize, Serialize};
+diff --git a/crates/conformance/src/native_observation/json.rs b/crates/conformance/src/native_observation/json.rs
+new file mode 100644
+index 000000000..da56e12c2
+--- /dev/null
++++ b/crates/conformance/src/native_observation/json.rs
+@@ -0,0 +1,34 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Typed class-source observation transport; mixed execution output keeps its owner.
++
++use super::SourceAdmissionObservation;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record, items_with},
++};
++
++::purrdf_lex::json_record!(impl ToJson for SourceAdmissionObservation {
++    "input_blake3" => input_blake3,
++    "admission" => admission,
++});
++impl FromJson for SourceAdmissionObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct SourceAdmissionObservation")?;
++        Ok(Self {
++            input_blake3: fields.required_with("input_blake3", |value| {
++                let bytes: Vec<u8> = items_with(value, |byte| -> Result<_, DecodeError> {
++                    gmeow_errors::json::read_unsigned(byte, "u8 input digest byte")
++                })?;
++                bytes
++                    .try_into()
++                    .map_err(|_| DecodeError::invalid_value(value, "exactly 32 input digest bytes"))
++            })?,
++            admission: fields.required("admission")?,
++        })
++    }
++}
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/conformance/src/native_observation/json/tests.rs b/crates/conformance/src/native_observation/json/tests.rs
+new file mode 100644
+index 000000000..8490a9263
+--- /dev/null
++++ b/crates/conformance/src/native_observation/json/tests.rs
+@@ -0,0 +1,155 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use gmeow_logic::reason::refute::{FragmentBoundary, FragmentFamily};
++use purrdf::{BlankScope, TermValue};
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const WIRE: &str = r#"{"input_blake3":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],"admission":{"contract":"retained raw contract","source_worlds":{"raw":{"graph":null,"assertions":18446744073709551615}},"selected_worlds":{"raw":{"graph":{"Blank":{"label":"same","scope":17}},"definitions":[{"subject":{"Triple":{"s":{"Blank":{"label":"same","scope":17}},"p":{"Iri":"urn:p"},"o":{"Triple":{"s":{"Blank":{"label":"same","scope":19}},"p":{"Iri":"urn:q"},"o":{"Literal":{"lexical_form":"01","datatype":"urn:raw","language":"MiXeD","direction":"Rtl"}}}}}},"predicate":"urn:definition","object":{"Iri":"urn:operand"},"graph":null}],"refusal":{"Combined":[{"SourceAdmission":{"world":"raw","premises":[],"issue":"MalformedNil"}},{"Uncertified":{"family":"DatatypeValueSpace","obstructions":["a","z"]}},{"Uncertified":{"family":"Counting","obstructions":["count"]}},{"Uncertified":{"family":"CaseSplit","obstructions":["split"]}}]}}}}}"#;
++
++#[test]
++fn native_class_source_wire_retains_all_boundary_families_and_raw_quoted_identity() {
++    let observation: SourceAdmissionObservation = from_slice(WIRE.as_bytes()).unwrap();
++    assert_eq!(to_vec(&observation), WIRE.as_bytes());
++    let expected_digest: [u8; 32] = std::array::from_fn(|index| u8::try_from(index).unwrap());
++    assert_eq!(observation.input_blake3, expected_digest);
++    assert_eq!(
++        observation.admission.source_worlds["raw"].assertions,
++        u64::MAX
++    );
++    assert!(observation.admission.source_worlds["raw"].graph.is_none());
++    let selected = &observation.admission.selected_worlds["raw"];
++    assert_eq!(
++        selected.graph,
++        Some(TermValue::Blank {
++            label: "same".into(),
++            scope: BlankScope(17)
++        })
++    );
++    let TermValue::Triple { s, o, .. } = &selected.definitions[0].subject else {
++        panic!("retained statement")
++    };
++    assert_eq!(
++        s.as_ref(),
++        &TermValue::Blank {
++            label: "same".into(),
++            scope: BlankScope(17)
++        }
++    );
++    let TermValue::Triple { s, o, .. } = o.as_ref() else {
++        panic!("retained nested statement")
++    };
++    assert_eq!(
++        s.as_ref(),
++        &TermValue::Blank {
++            label: "same".into(),
++            scope: BlankScope(19)
++        }
++    );
++    let TermValue::Literal {
++        lexical_form,
++        datatype,
++        language,
++        direction,
++    } = o.as_ref()
++    else {
++        panic!("retained literal")
++    };
++    assert_eq!(lexical_form, "01");
++    assert_eq!(datatype, "urn:raw");
++    assert_eq!(language.as_deref(), Some("MiXeD"));
++    assert_eq!(*direction, Some(purrdf::RdfTextDirection::Rtl));
++    let FragmentBoundary::Combined(boundaries) = selected.refusal.as_ref().unwrap() else {
++        panic!("complete boundary set")
++    };
++    assert_eq!(boundaries.len(), 4);
++    let families = boundaries
++        .iter()
++        .filter_map(|boundary| match boundary {
++            FragmentBoundary::Uncertified { family, .. } => Some(*family),
++            _ => None,
++        })
++        .collect::<Vec<_>>();
++    assert_eq!(
++        families,
++        [
++            FragmentFamily::DatatypeValueSpace,
++            FragmentFamily::Counting,
++            FragmentFamily::CaseSplit
++        ]
++    );
++    // Hydration preserves evidence; the existing consumer separately validates scope.
++    assert!(observation.admission.validate().is_err());
++    let omitted_refusal = WIRE.replace(",\"refusal\":{\"Combined\":[{\"SourceAdmission\":{\"world\":\"raw\",\"premises\":[],\"issue\":\"MalformedNil\"}},{\"Uncertified\":{\"family\":\"DatatypeValueSpace\",\"obstructions\":[\"a\",\"z\"]}},{\"Uncertified\":{\"family\":\"Counting\",\"obstructions\":[\"count\"]}},{\"Uncertified\":{\"family\":\"CaseSplit\",\"obstructions\":[\"split\"]}}]}", "");
++    let absent: SourceAdmissionObservation = from_slice(omitted_refusal.as_bytes()).unwrap();
++    assert!(absent.admission.selected_worlds["raw"].refusal.is_none());
++    let explicit_null =
++        omitted_refusal.replace("\"definitions\":", "\"refusal\":null,\"definitions\":");
++    assert_eq!(
++        from_slice::<SourceAdmissionObservation>(explicit_null.as_bytes()).unwrap(),
++        absent
++    );
++}
++
++#[test]
++fn native_class_source_admission_refuses_digest_record_and_shadowed_map_drift() {
++    let unknown = WIRE
++        .replace("\"input_blake3\":", "\"future\":null,\"input_blake3\":")
++        .replace("\"contract\":", "\"future\":null,\"contract\":")
++        .replace("\"graph\":", "\"future\":null,\"graph\":")
++        .replace("\"world\":", "\"future\":null,\"world\":")
++        .replace("\"family\":", "\"future\":null,\"family\":");
++    assert_eq!(
++        to_vec(&from_slice::<SourceAdmissionObservation>(unknown.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let shadow = WIRE.replace("\"source_worlds\":{", "\"source_worlds\":{\"raw\":{\"graph\":null,\"assertions\":0},")
++        .replace("[\"a\",\"z\"]", "[\"z\",\"a\",\"z\"]")
++        .replace("\"Combined\":[", "\"Combined\":[{\"Uncertified\":{\"family\":\"CaseSplit\",\"obstructions\":[\"split\"]}},");
++    assert_eq!(
++        to_vec(&from_slice::<SourceAdmissionObservation>(shadow.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    for invalid in [
++        WIRE.replace("\"input_blake3\":", "\"input_blake3\":[],\"input_blake3\":"),
++        WIRE.replace("30,31]", "30]"),
++        WIRE.replace("30,31]", "30,31,32]"),
++        WIRE.replace("[0,1,2,3", "[256,1,2,3"),
++        WIRE.replace("[0,1,2,3", "[-1,1,2,3"),
++        WIRE.replace("[0,1,2,3", "[0e0,1,2,3"),
++        WIRE.replace(
++            "\"assertions\":18446744073709551615",
++            "\"assertions\":18446744073709551616",
++        ),
++        WIRE.replace(
++            "\"source_worlds\":{",
++            "\"source_worlds\":{\"raw\":{\"graph\":null,\"assertions\":false},",
++        ),
++        WIRE.replace(
++            "\"selected_worlds\":{",
++            "\"selected_worlds\":{\"raw\":{\"graph\":null,\"definitions\":false},",
++        ),
++        WIRE.replace("\"graph\":null,", ""),
++        WIRE.replace(
++            "\"graph\":{\"Blank\":{\"label\":\"same\",\"scope\":17}},",
++            "",
++        ),
++        WIRE.replace(",\"graph\":null", ""),
++        WIRE.replace("\"contract\":", "\"contract\":\"earlier\",\"contract\":"),
++        WIRE.replace("\"predicate\":\"urn:definition\",", ""),
++        WIRE.replace("\"refusal\":", "\"refusal\":null,\"refusal\":"),
++        WIRE.replace(
++            "\"SourceAdmission\":",
++            "\"SourceAdmission\":null,\"Uncertified\":",
++        ),
++        WIRE.replace("\"DatatypeValueSpace\"", "\"Unknown\""),
++        WIRE.replace("\"premises\":[],", ""),
++        r#"[[],{"contract":"raw","source_worlds":{},"selected_worlds":{}}]"#.to_owned(),
++    ] {
++        assert!(
++            from_slice::<SourceAdmissionObservation>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++}
+diff --git a/crates/logic-compile/src/term_serde.rs b/crates/logic-compile/src/term_serde.rs
+index 759bc3d88..45acdeeaf 100644
+--- a/crates/logic-compile/src/term_serde.rs
++++ b/crates/logic-compile/src/term_serde.rs
+@@ -111,6 +111,26 @@ pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<TermVal
+ pub mod optional {
+     use super::{Deserialize, Deserializer, Serialize, Serializer, TermValue, Value};
+ 
++    /// Encode an explicit graph choice through the retained native term owner.
++    #[must_use]
++    pub fn to_json(value: &Option<TermValue>) -> purrdf_lex::json::Value {
++        value
++            .as_ref()
++            .map_or(purrdf_lex::json::Value::Null, super::to_json)
++    }
++
++    /// Decode a present nullable graph field without RDF role normalization.
++    /// The containing record owns requiredness.
++    ///
++    /// # Errors
++    /// Refuses malformed non-null retained terms with their native field pointers.
++    pub fn from_json(
++        value: &purrdf_lex::json::Value,
++    ) -> Result<Option<TermValue>, purrdf_lex::json::record::DecodeError> {
++        use purrdf_lex::json::record::FromJson;
++        Option::<Value>::from_json(value).map(|term| term.map(Into::into))
++    }
++
+     /// Serialize an optional complete native term; absence remains explicit.
+     pub fn serialize<S: Serializer>(
+         value: &Option<TermValue>,
+diff --git a/crates/logic/src/reason/refute.rs b/crates/logic/src/reason/refute.rs
+index 7df64b400..c23ed388b 100644
+--- a/crates/logic/src/reason/refute.rs
++++ b/crates/logic/src/reason/refute.rs
+@@ -61,6 +61,7 @@ pub use casesplit::{
+     ClassExecutionOutcome, ClassSourceRefusal, PreparedClassAnalysis,
+ };
+ 
++mod admission_json;
+ mod list_observation;
+ pub use list_observation::{
+     LIST_CORPUS_CHANNEL, ListCorpusObservation, decode_list_corpus_observation,
+diff --git a/crates/logic/src/reason/refute/admission_json.rs b/crates/logic/src/reason/refute/admission_json.rs
+new file mode 100644
+index 000000000..f460a0061
+--- /dev/null
++++ b/crates/logic/src/reason/refute/admission_json.rs
+@@ -0,0 +1,186 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Exact retained class-source evidence, independent of execution and source validation.
++
++use super::{
++    ClassAdmissionObservation, ClassAdmissionSourceWorld, ClassAdmissionWorld, FragmentBoundary,
++    FragmentFamily, RefutationPremise,
++};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++
++::purrdf_lex::json_record!(impl ToJson for ClassAdmissionObservation {
++    "contract" => contract,
++    "source_worlds" => source_worlds,
++    "selected_worlds" => selected_worlds,
++});
++impl FromJson for ClassAdmissionObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ClassAdmissionObservation")?;
++        Ok(Self {
++            contract: fields.required("contract")?,
++            source_worlds: fields.required("source_worlds")?,
++            selected_worlds: fields.required("selected_worlds")?,
++        })
++    }
++}
++impl ToJson for ClassAdmissionSourceWorld {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("graph", crate::term_serde::optional::to_json(&self.graph))
++            .with("assertions", self.assertions.to_json())
++            .into()
++    }
++}
++impl FromJson for ClassAdmissionSourceWorld {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ClassAdmissionSourceWorld")?;
++        Ok(Self {
++            graph: fields.required_with("graph", crate::term_serde::optional::from_json)?,
++            assertions: fields.required_with("assertions", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 source assertion count")
++            })?,
++        })
++    }
++}
++impl ToJson for ClassAdmissionWorld {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("graph", crate::term_serde::optional::to_json(&self.graph))
++            .with("definitions", self.definitions.to_json())
++            .with("refusal", self.refusal.to_json())
++            .into()
++    }
++}
++impl FromJson for ClassAdmissionWorld {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ClassAdmissionWorld")?;
++        Ok(Self {
++            graph: fields.required_with("graph", crate::term_serde::optional::from_json)?,
++            definitions: fields.required("definitions")?,
++            refusal: fields.optional("refusal")?,
++        })
++    }
++}
++impl ToJson for RefutationPremise {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("subject", crate::term_serde::to_json(&self.subject))
++            .with("predicate", self.predicate.to_json())
++            .with("object", crate::term_serde::to_json(&self.object))
++            .with("graph", crate::term_serde::optional::to_json(&self.graph))
++            .into()
++    }
++}
++impl FromJson for RefutationPremise {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct RefutationPremise")?;
++        Ok(Self {
++            subject: fields.required_with("subject", crate::term_serde::from_json)?,
++            predicate: fields.required("predicate")?,
++            object: fields.required_with("object", crate::term_serde::from_json)?,
++            graph: fields.required_with("graph", crate::term_serde::optional::from_json)?,
++        })
++    }
++}
++impl ToJson for FragmentFamily {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::DatatypeValueSpace => "DatatypeValueSpace",
++            Self::Counting => "Counting",
++            Self::CaseSplit => "CaseSplit",
++        }
++        .to_json()
++    }
++}
++impl FromJson for FragmentFamily {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "FragmentFamily")? {
++            "DatatypeValueSpace" => Ok(Self::DatatypeValueSpace),
++            "Counting" => Ok(Self::Counting),
++            "CaseSplit" => Ok(Self::CaseSplit),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["DatatypeValueSpace", "Counting", "CaseSplit"],
++            )),
++        }
++    }
++}
++impl ToJson for FragmentBoundary {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::SourceAdmission {
++                world,
++                premises,
++                issue,
++            } => Object::new()
++                .with(
++                    "SourceAdmission",
++                    Value::from(
++                        Object::new()
++                            .with("world", world.to_json())
++                            .with("premises", premises.to_json())
++                            .with("issue", issue.to_json()),
++                    ),
++                )
++                .into(),
++            Self::Uncertified {
++                family,
++                obstructions,
++            } => Object::new()
++                .with(
++                    "Uncertified",
++                    Value::from(
++                        Object::new()
++                            .with("family", family.to_json())
++                            .with("obstructions", obstructions.to_json()),
++                    ),
++                )
++                .into(),
++            Self::Combined(boundaries) => {
++                Object::new().with("Combined", boundaries.to_json()).into()
++            }
++        }
++    }
++}
++impl FromJson for FragmentBoundary {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) = gmeow_errors::json::read_variant(
++            value,
++            "FragmentBoundary",
++            "one FragmentBoundary variant",
++        )?;
++        let decode = || -> Result<Self, DecodeError> {
++            match tag {
++                "SourceAdmission" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant FragmentBoundary::SourceAdmission")?;
++                    Ok(Self::SourceAdmission {
++                        world: fields.required("world")?,
++                        premises: fields.required("premises")?,
++                        issue: fields.required("issue")?,
++                    })
++                }
++                "Uncertified" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant FragmentBoundary::Uncertified")?;
++                    Ok(Self::Uncertified {
++                        family: fields.required("family")?,
++                        obstructions: fields.required("obstructions")?,
++                    })
++                }
++                "Combined" => {
++                    std::collections::BTreeSet::<Self>::from_json(payload).map(Self::Combined)
++                }
++                name => Err(DecodeError::unknown_variant(
++                    name,
++                    &["SourceAdmission", "Uncertified", "Combined"],
++                )),
++            }
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
+diff --git a/crates/pipeline/src/stages/conformance/corpus_tests/common.rs b/crates/pipeline/src/stages/conformance/corpus_tests/common.rs
+index 3218f3e4b..b616f259c 100644
+--- a/crates/pipeline/src/stages/conformance/corpus_tests/common.rs
++++ b/crates/pipeline/src/stages/conformance/corpus_tests/common.rs
+@@ -111,7 +111,8 @@ pub(super) fn native_admission(
+             super::super::native_cases::CLASS_ADMISSION_CHANNEL,
+         )
+         .expect("authenticated source-admission observations");
+-        serde_json::from_slice(&bytes).expect("typed source-admission observations")
++        super::super::native_cases::admissions_from_bytes(&bytes)
++            .expect("typed source-admission observations")
+     });
+     let key = input_key(input_nq);
+     let observed = values
+diff --git a/crates/pipeline/src/stages/conformance/native_cases.rs b/crates/pipeline/src/stages/conformance/native_cases.rs
+index 245122e38..44060b419 100644
+--- a/crates/pipeline/src/stages/conformance/native_cases.rs
++++ b/crates/pipeline/src/stages/conformance/native_cases.rs
+@@ -122,6 +122,26 @@ impl NativeInput {
+         Ok(self)
+     }
+ 
++    fn parsed(&self) -> gmeow_errors::Result<&RdfDataset> {
++        self.dataset
++            .get_or_try_init(|| {
++                parse_dataset(&self.bytes, NativeRdfFormat::NQuads.media_type(), None)
++                    .map_err(gmeow_errors::Diag::from)
++            })
++            .map(|dataset| dataset.as_ref())
++    }
++
++    fn observe_native<T: purrdf_lex::json::record::ToJson + purrdf_lex::json::record::FromJson>(
++        &self,
++        store: &ActionStore,
++        operation: &str,
++        observe: impl Fn(&RdfDataset) -> Result<T, gmeow_errors::Diag>,
++    ) -> gmeow_errors::Result<T> {
++        super::execution::cached_native_inputs(store, operation, self.inputs.clone(), || {
++            observe(self.parsed()?)
++        })
++    }
++
+     fn observe<T: serde::Serialize + serde::de::DeserializeOwned>(
+         &self,
+         store: &ActionStore,
+@@ -129,11 +149,7 @@ impl NativeInput {
+         observe: impl Fn(&RdfDataset) -> Result<T, gmeow_errors::Diag>,
+     ) -> gmeow_errors::Result<T> {
+         super::execution::cached_inputs(store, operation, self.inputs.clone(), || {
+-            let dataset = self.dataset.get_or_try_init(|| {
+-                parse_dataset(&self.bytes, NativeRdfFormat::NQuads.media_type(), None)
+-                    .map_err(gmeow_errors::Diag::from)
+-            })?;
+-            observe(dataset)
++            observe(self.parsed()?)
+         })
+     }
+ }
+@@ -297,7 +313,7 @@ pub(super) fn record(
+                 })
+             });
+             let admission = selected.class_admission.then(|| {
+-                input.observe(store, "class-source-admission-v1", |dataset| {
++                input.observe_native(store, "class-source-admission-v1", |dataset| {
+                     let observed = gmeow_conformance::native_observation::observe(dataset, *purrdf_hash::blake3::hash(&input.bytes).as_bytes(),
+                         gmeow_conformance::native_observation::NativeCaseOperation::ClassSourceAdmission)?;
+                     let gmeow_conformance::native_observation::NativeCaseObservation::ClassSourceAdmission(observed) = observed else {
+@@ -346,7 +362,8 @@ pub(super) fn record(
+     );
+     artifacts.insert(
+         CLASS_ADMISSION_CHANNEL.to_owned(),
+-        serde_json::to_vec(&admissions).map_err(|error| super::stage_err(&error.to_string()))?,
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&admissions))
++            .into_bytes(),
+     );
+     Ok(NativeObservations {
+         consistency,
+@@ -357,3 +374,8 @@ pub(super) fn record(
+ #[path = "native_cases.tests.rs"]
+ #[cfg(test)]
+ mod tests;
++
++#[cfg(test)]
++mod admission_json;
++#[cfg(test)]
++pub(super) use admission_json::from_bytes as admissions_from_bytes;
+diff --git a/crates/pipeline/src/stages/conformance/native_cases.tests.rs b/crates/pipeline/src/stages/conformance/native_cases.tests.rs
+index 3273ce9b6..12ad63240 100644
+--- a/crates/pipeline/src/stages/conformance/native_cases.tests.rs
++++ b/crates/pipeline/src/stages/conformance/native_cases.tests.rs
+@@ -30,6 +30,22 @@ fn sibling_action_misses_share_native_source_and_warm_hits_need_no_parse() {
+     };
+     first.observe(&store, "synthetic-first", observe).unwrap();
+     first.observe(&store, "synthetic-second", observe).unwrap();
++    let native = first
++        .observe_native(&store, "class-source-admission-v1", |dataset| {
++            observe(dataset)?;
++            let gmeow_conformance::native_observation::NativeCaseObservation::ClassSourceAdmission(
++                value,
++            ) = gmeow_conformance::native_observation::observe(
++                dataset,
++                *purrdf_hash::blake3::hash(&first.bytes).as_bytes(),
++                gmeow_conformance::native_observation::NativeCaseOperation::ClassSourceAdmission,
++            )?
++            else {
++                panic!("selected source operation")
++            };
++            Ok(value)
++        })
++        .unwrap();
+     assert!(first.dataset.get().is_some());
+ 
+     let warm = NativeInput::new(root.path(), &path).unwrap();
+@@ -39,6 +55,12 @@ fn sibling_action_misses_share_native_source_and_warm_hits_need_no_parse() {
+             .unwrap();
+         assert_eq!(value, "selected observation");
+     }
++    let restored: gmeow_conformance::native_observation::SourceAdmissionObservation = warm
++        .observe_native(&store, "class-source-admission-v1", |_| {
++            panic!("warm native action executed")
++        })
++        .unwrap();
++    assert_eq!(restored, native);
+     assert!(warm.dataset.get().is_none());
+ 
+     std::fs::write(&path, "<urn:s> <urn:p> <urn:second> .\n").unwrap();
+@@ -74,5 +96,77 @@ fn native_parse_failure_never_initializes_an_input_or_publishes_an_observation()
+                 .is_err()
+         );
+     }
++    assert!(
++        input
++            .observe_native::<gmeow_conformance::native_observation::SourceAdmissionObservation>(
++                &store,
++                "class-source-admission-v1",
++                |_| panic!("invalid native source admitted")
++            )
++            .is_err()
++    );
+     assert!(input.dataset.get().is_none());
+ }
++
++#[test]
++fn native_class_admission_channel_retains_causal_outcomes_and_validates_shadowed_values() {
++    use gmeow_conformance::native_observation::{NativeCaseObservation, NativeCaseOperation};
++    let bytes = b"<urn:s> <urn:p> <urn:o> .";
++    let dataset = parse_dataset(bytes, NativeRdfFormat::NQuads.media_type(), None).unwrap();
++    let NativeCaseObservation::ClassSourceAdmission(observation) =
++        gmeow_conformance::native_observation::observe(
++            &dataset,
++            *purrdf_hash::blake3::hash(bytes).as_bytes(),
++            NativeCaseOperation::ClassSourceAdmission,
++        )
++        .unwrap()
++    else {
++        panic!("selected source operation")
++    };
++    let mut ledger = gmeow_errors::DiagLedger::new();
++    let premise = ledger.attach(
++        gmeow_errors::Diag::from(std::io::Error::other("authored source premise"))
++            .with_focus("urn:class-admission:input"),
++        gmeow_errors::StageId::new("class-admission-input"),
++    );
++    let refusal = ledger.record(
++        gmeow_errors::Diag::from(std::io::Error::other("authored admission refusal"))
++            .with_focus("urn:class-admission:output")
++            .with_antecedents([premise]),
++        gmeow_errors::StageId::new("class-admission-output"),
++    );
++    let mut earlier = observation.clone();
++    earlier.admission.contract = "earlier raw observation".into();
++    let observations = Admissions::from([
++        ("authored".into(), Ok(observation)),
++        ("refused".into(), Err(refusal.clone())),
++    ]);
++    let wire =
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations));
++    assert_eq!(
++        admissions_from_bytes(wire.as_bytes()).unwrap(),
++        observations
++    );
++    assert_eq!(refusal.causes.len(), 1);
++    assert_eq!(
++        refusal.root.antecedents.as_ref(),
++        &[refusal.causes[0].fingerprint]
++    );
++    let earlier =
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_result_to_json(&Ok(earlier)));
++    let duplicate = wire.replacen('{', &format!("{{\"authored\":{earlier},"), 1);
++    assert_eq!(
++        admissions_from_bytes(duplicate.as_bytes()).unwrap(),
++        observations
++    );
++    for invalid in [
++        wire.replacen('{', "{\"authored\":{\"Ok\":null},", 1),
++        r#"{"authored":{"Ok":null,"Err":null}}"#.to_owned(),
++        r#"{"authored":{"Err":{}}}"#.to_owned(),
++    ] {
++        assert!(
++            admissions_from_bytes(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++}
+diff --git a/crates/pipeline/src/stages/conformance/native_cases/admission_json.rs b/crates/pipeline/src/stages/conformance/native_cases/admission_json.rs
+new file mode 100644
+index 000000000..5735c313c
+--- /dev/null
++++ b/crates/pipeline/src/stages/conformance/native_cases/admission_json.rs
+@@ -0,0 +1,33 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Read-only admission of the authenticated class-source channel.
++
++use super::Admissions;
++use gmeow_conformance::native_observation::SourceAdmissionObservation;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson},
++};
++use std::collections::BTreeMap;
++
++struct AdmissionOutcome(Result<SourceAdmissionObservation, gmeow_errors::RecordedDiag>);
++impl FromJson for AdmissionOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        gmeow_errors::json::read_recorded_result(
++            value,
++            "class-source admission outcome",
++            "one class-source admission outcome variant",
++        )
++        .map(Self)
++    }
++}
++
++pub(in super::super) fn from_bytes(bytes: &[u8]) -> Result<Admissions, DecodeError> {
++    let observations: BTreeMap<String, AdmissionOutcome> =
++        purrdf_lex::json::record::from_slice(bytes)?;
++    Ok(observations
++        .into_iter()
++        .map(|(name, outcome)| (name, outcome.0))
++        .collect())
++}
+diff --git a/crates/pipeline/src/stages/conformance/source_admission.rs b/crates/pipeline/src/stages/conformance/source_admission.rs
+index 357717856..2d06c5c67 100644
+--- a/crates/pipeline/src/stages/conformance/source_admission.rs
++++ b/crates/pipeline/src/stages/conformance/source_admission.rs
+@@ -34,7 +34,7 @@ pub(super) fn grade(
+             "source-admission producer observed different input bytes",
+         ));
+     }
+-    let expected: ClassAdmissionObservation = serde_json::from_slice(
++    let expected: ClassAdmissionObservation = purrdf_lex::json::record::from_slice(
+         &std::fs::read(directory.join("expected/verdicts.json"))
+             .map_err(|error| super::stage_err(&error.to_string()))?,
+     )
+diff --git a/crates/pipeline/src/stages/conformance/source_admission.tests.rs b/crates/pipeline/src/stages/conformance/source_admission.tests.rs
+index 70cb50139..dbb6a1f7c 100644
+--- a/crates/pipeline/src/stages/conformance/source_admission.tests.rs
++++ b/crates/pipeline/src/stages/conformance/source_admission.tests.rs
+@@ -29,7 +29,7 @@ fn shipped_admission_keeps_native_graph_receipt_and_external_status_without_sema
+     };
+     std::fs::write(
+         directory.path().join("expected/verdicts.json"),
+-        serde_json::to_vec(&observation.admission).unwrap(),
++        purrdf_lex::json::record::to_vec(&observation.admission),
+     )
+     .unwrap();
+     let record = grade(

@@ -1,0 +1,57 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Move the complete class-source-admission observation channel to PurRDF native JSON under Principles 4 and 7. Reuse the existing canonical records and dependency direction, the complete source-issue codec and the retained-term owner.\n\nAcceptance:\n\n- Implement native JSON for all five records: SourceAdmissionObservation, ClassAdmissionObservation, ClassAdmissionWorld, ClassAdmissionSourceWorld and RefutationPremise. Implement all three FragmentBoundary variants and all three FragmentFamily variants, reusing all eight RefutationSourceIssue variants and complete quoted TermValue identity.\n- Wire the actual per-input class-admission cache through existing cached_native_inputs, its aggregate channel publisher, authenticated aggregate reader and frozen expected-record reader. Preserve exact source/profile inputs, operation identity, lazy parse sharing and cache-hit behavior. Share the existing parse initializer between Serde and native operations; do not add a cache framework or duplicate parsing paths.\n- Preserve the exact 32-byte input digest with strict unsigned byte admission, strict u64 assertion counts, field and vector order, named-record admission, typed-map validation before last-wins replacement, Combined-set ordering/deduplication and the native default depth policy. Unknown fields remain tolerated; known duplicate fields, malformed variants, positional records and malformed shadowed values fail.\n- Preserve all three graph fields as required-nullable through the existing term optional adapter. Plain refusal retains missing/null to None. Hydration preserves raw observation data and never executes source admission, reconstructs RDF or silently normalizes identities.\n- Keep existing explicit validate calls, source selection, profile selection, digest checks, exact expected-record comparison, semantic separation and authenticated corpus assertions unchanged.\n- Retain all shared Serde derives, attributes and variant order for genuine CBOR receipts, certificate and diagnostic records, mixed NativeCaseObservation execution JSON and broad CaseOutputs.verdicts. Those separate transports remain with their current owners; do not add a native-to-Serde bridge or expand into a full reasoning-result or CaseOutputs migration.\n- Extend existing safe authored controls through the selected native cache and record boundary, add bounded full-wire/quoted-term/causal/admission coverage, and compile actual compiler, logic, conformance, pipeline and developer CLI callers. Run normal hooks. Tests use authored temporary inputs only; no corpus construction or authenticated corpus execution.\n\nRemaining contracts: #1776, #1777, #1336 and #1962. Workspace Serde retirement, the separate mixed execution/verdict/CBOR operations and actual corpus/release acceptance remain unfinished in their existing owners. The standing user exception prohibits local optimized producer, corpus/fixture production, synchronization and full-gate execution and authorizes sequential merges with CI waived. Report unverified acceptance accurately.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-27T02:14:40Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1993,
+  "state": "OPEN",
+  "title": "Use native JSON for complete class-source-admission observations",
+  "updatedAt": "2026-10-27T02:15:07Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1993"
+}

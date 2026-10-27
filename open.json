@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1993,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class",
+  "branch": "paudley/1993-use-native-json-for-complete-class",
+  "slug": "use-native-json-for-complete-class",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "f90d047b4a70cc402ba27c859b76451d853d324d",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class",
+    "branch:paudley/1993-use-native-json-for-complete-class",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1993-use-native-json-for-complete-class/.stage/use-native-json-for-complete-class/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T20:15:09-0600"
+}
