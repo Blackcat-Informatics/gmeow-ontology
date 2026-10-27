@@ -1515,12 +1515,8 @@ pub(crate) fn prepared_imported_gates(
         archive::REASONED_GATES_MEMBER,
         archive::MAX_NATIVE_MEMBER_BYTES,
     )?;
-    let gates: gmeow_logic::verify::PreparedReasonedGates =
-        serde_json::from_slice(bytes).map_err(|error| {
-            Diag::of_kind(crate::error::Engine {
-                detail: format!("required native verification laws cannot be decoded: {error}"),
-            })
-        })?;
+    let gates = gmeow_logic::verify::PreparedReasonedGates::from_json_bytes(bytes)
+        .map_err(|error| error.with_context("decode required native verification laws"))?;
     gates.validate_source_identity()?;
     Ok(gates)
 }

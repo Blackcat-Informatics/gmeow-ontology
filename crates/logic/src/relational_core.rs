@@ -22,6 +22,8 @@
 //! or negative heads, further quantifier alternation, unbound universal head variables,
 //! compound function terms and unbounded sequence markers remain explicit residue.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};

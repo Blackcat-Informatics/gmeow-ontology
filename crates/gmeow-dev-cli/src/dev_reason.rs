@@ -57,7 +57,7 @@ fn snapshot_verification_input(
     let laws = bundle
         .prepared_reasoned_gates()
         .map_err(|error| fail(format!("cannot read snapshot native laws: {error}")))?;
-    let gates: PreparedReasonedGates = serde_json::from_slice(&laws)
+    let gates = PreparedReasonedGates::from_json_bytes(&laws)
         .map_err(|error| fail(format!("cannot decode snapshot native laws: {error}")))?;
     gates
         .validate_source_identity()

@@ -164,8 +164,8 @@ impl McpView {
                 "prepared MCP verification laws exceed their size bound",
             ));
         }
-        let gates: PreparedReasonedGates = serde_json::from_slice(&bytes)
-            .map_err(|error| fail(format!("decode prepared MCP verification laws: {error}")))?;
+        let gates = PreparedReasonedGates::from_json_bytes(&bytes)
+            .map_err(|error| error.with_context("decode prepared MCP verification laws"))?;
         gates.validate_source_identity()?;
         Ok(self.prepared_gates.get_or_init(|| gates))
     }

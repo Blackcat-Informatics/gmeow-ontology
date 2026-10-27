@@ -33,7 +33,7 @@ pub fn verification(queries: &[(String, String)]) -> Rc<PreparedVerification<'st
                 PREPARED_GATES_CHANNEL,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let gates = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let gates = PreparedReasonedGates::from_json_bytes(&bytes)?;
             Ok(Selected {
                 selector: selector.clone(),
                 queries: queries.to_vec(),

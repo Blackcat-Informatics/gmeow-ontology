@@ -199,7 +199,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
         )
         .expect("native verification laws have an exact producer selection");
         let gates: gmeow_logic::verify::PreparedReasonedGates =
-            serde_json::from_slice(&bytes).expect("prepared native verification laws");
+            gmeow_logic::verify::PreparedReasonedGates::from_json_bytes(&bytes).expect("prepared native verification laws");
         gates
             .validate_source_identity()
             .expect("exact native source identity");

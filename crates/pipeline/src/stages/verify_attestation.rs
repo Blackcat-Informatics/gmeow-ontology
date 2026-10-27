@@ -219,8 +219,9 @@ fn build_output_from_report(
     gates: &gmeow_logic::verify::PreparedReasonedGates,
 ) -> Result<StageOutput, gmeow_errors::Diag> {
     gates.validate_source_identity()?;
-    let prepared_gates = serde_json::to_vec(gates)
-        .map_err(|error| stage_err(format!("encode prepared native laws: {error}")))?;
+    let prepared_gates = gates
+        .to_json_bytes()
+        .map_err(|error| error.with_context("encode prepared native laws"))?;
     let failed: BTreeSet<String> = report
         .findings
         .iter()
