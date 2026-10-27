@@ -1,0 +1,11 @@
+Original source-selection and receipt identity references
+
+Base: c6f5344b3dfcaba86879b9907c407111641e1e29. Before production edits, root verified both production owners, shared serializers, the guarded parent test, unchanged persisted-admission control and Cargo.lock remain base-equal. Only two existing independently authored owner controls were extended, preserving their assertions. The document control includes an explicit nonempty Caller base in its tiny source description. No corpus, production asset or authenticated fixture is synthesized.
+
+Original compiler-only capture passed after 2 minutes 23 seconds compilation and 0.028 second Nextest summary: two selected cases passed, 1,068 excluded. Command: NEXTEST_SUCCESS_OUTPUT=immediate make nextest-synthetic RUST_PREBUILD_WORKSPACE_ARGS='-p gmeow-logic-compile --lib' NEXTEST_FILTER='package(gmeow-logic-compile) & (test(excluded_owner_roots_remain_in_the_complete_admission_inventory) | test(excluded_owner_documents_keep_their_source_receipt))'.
+
+Root removed exactly four Nextest stdout framing spaces per captured line and asserted lossless reconstruction. Each original compact preimage occupies a complete labeled line, followed by the actual digest captured from its original production owner. The line separator is capture framing, outside compact JSON bytes. No JSON reserialization, expected-hash recomputation, identity substitution or redaction.
+
+The complete selection reference is 2,977 bytes: twelve original preimages and twelve actual digests, covering every document/root arm, empty/nonempty exact sets, rotated root fields and raw Unicode/NUL. The complete receipt reference is 377 bytes: original sorted compact receipts of 103 and 159 payload bytes plus the actual whole-source digest. Both complete references were inspected and guarded before production edits.
+
+Selection hashes retain gmeow-source-selection-v1. Source hashes retain gmeow-prepared-source-v3, named-graph framing, quad/reifier/annotation framing, sorted encoded receipt order and big-endian byte lengths. Streaming admission evidence and semantic-unit identity encoding are unchanged. The final controls compare every preimage and digest literally and require complete reference consumption.

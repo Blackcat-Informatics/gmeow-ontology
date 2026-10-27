@@ -1,0 +1,5 @@
+feat: preserve source identity hashes through native JSON
+
+Use complete native selection and source-document writers for both identity preimages. Preserve all hash domains, compact bytes, receipt ordering and source framing, with frozen original preimages and actual digests checked by existing authored controls.
+
+Principles 4 and 7.

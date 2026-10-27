@@ -1,0 +1,226 @@
+diff --git a/crates/logic-compile/src/frontend/json.rs b/crates/logic-compile/src/frontend/json.rs
+index 9bdae107b..19056c1a5 100644
+--- a/crates/logic-compile/src/frontend/json.rs
++++ b/crates/logic-compile/src/frontend/json.rs
+@@ -1,14 +1,52 @@
+ // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+-//! Compiler diagnostic and portable source-description transport.
++//! Compiler diagnostic, portable source-description and selection transport.
+ //! Wire severity differs from display severity tokens.
+-use super::{Diagnostic, Severity, SourceBase, SourceBaseOrigin, SourceDocument};
++use super::{
++    Diagnostic, DocumentSelection, RootSelection, Severity, SourceBase, SourceBaseOrigin,
++    SourceDocument, SourceGraphSelection, SourceSelection,
++};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson},
+ };
+ 
++impl ToJson for SourceGraphSelection {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::DefaultGraph => "DefaultGraph".to_json(),
++        }
++    }
++}
++
++impl ToJson for DocumentSelection {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::AnonymousSource => "AnonymousSource".to_json(),
++            Self::Exact(documents) => Object::new().with("Exact", documents.to_json()).into(),
++        }
++    }
++}
++
++impl ToJson for RootSelection {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::None => "None".to_json(),
++            Self::All => "All".to_json(),
++            Self::Exact(roots) => Object::new().with("Exact", roots.to_json()).into(),
++        }
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for SourceSelection {
++    "graph" => graph,
++    "documents" => documents,
++    "formulas" => formulas,
++    "rules" => rules,
++    "owners" => owners,
++});
++
+ ::purrdf_lex::json_record!(impl ToJson for SourceDocument {
+     "path" => path,
+     "content_digest" => content_digest,
+diff --git a/crates/logic-compile/src/frontend/source_admission.rs b/crates/logic-compile/src/frontend/source_admission.rs
+index 60c5ee4d4..dbb1b7ddc 100644
+--- a/crates/logic-compile/src/frontend/source_admission.rs
++++ b/crates/logic-compile/src/frontend/source_admission.rs
+@@ -117,7 +117,7 @@ impl SourceSelection {
+     pub fn digest(&self) -> String {
+         digest_bytes(
+             b"gmeow-source-selection-v1\0",
+-            &serde_json::to_vec(self).expect("SourceSelection serialization is infallible"),
++            &purrdf_lex::json::record::to_vec(self),
+         )
+     }
+ }
+@@ -1449,10 +1449,7 @@ fn source_digest(theory: &CompiledTheory) -> String {
+         .source()
+         .origins()
+         .iter()
+-        .map(|origin| {
+-            serde_json::to_vec(&origin.document)
+-                .expect("source document receipt serialization is infallible")
+-        })
++        .map(|origin| purrdf_lex::json::record::to_vec(&origin.document))
+         .collect();
+     receipts.sort_unstable();
+     for receipt in receipts {
+diff --git a/crates/logic-compile/src/tptp/fixtures/source-receipts-identity-v1.txt b/crates/logic-compile/src/tptp/fixtures/source-receipts-identity-v1.txt
+new file mode 100644
+index 000000000..cf1c394e9
+--- /dev/null
++++ b/crates/logic-compile/src/tptp/fixtures/source-receipts-identity-v1.txt
+@@ -0,0 +1,3 @@
++RECEIPT_PREIMAGE={"path":"contract.ttl","content_digest":"test-digest:contract.ttl","role":"synthetic-test","base":null}
++RECEIPT_PREIMAGE={"path":"domain.ttl","content_digest":"test-digest:domain.ttl","role":"synthetic-test","base":{"iri":"https://example.org/source-base/中/","origin":"Caller"}}
++SOURCE_DIGEST=470b5061a1be41b704762a6b246066f05b83092d95b1e1f162dba09b49aa2dfa
+diff --git a/crates/logic-compile/src/tptp/fixtures/source-selection-identities-v1.txt b/crates/logic-compile/src/tptp/fixtures/source-selection-identities-v1.txt
+new file mode 100644
+index 000000000..0559cbd41
+--- /dev/null
++++ b/crates/logic-compile/src/tptp/fixtures/source-selection-identities-v1.txt
+@@ -0,0 +1,24 @@
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":"AnonymousSource","formulas":"None","rules":"All","owners":{"Exact":[]}}
++SELECTION_DIGEST=702d6e5caead4d8d35f5dc115703ebdab397d383ede4dc0cf3f3b3bcde3187d8
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":"AnonymousSource","formulas":"All","rules":{"Exact":[]},"owners":{"Exact":["urn:root:a","urn:root:z\u0000中"]}}
++SELECTION_DIGEST=9281d5205e86a189e07ca918eb9424778dffc2134d42c5806e8687dfb7589396
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":"AnonymousSource","formulas":{"Exact":[]},"rules":{"Exact":["urn:root:a","urn:root:z\u0000中"]},"owners":"None"}
++SELECTION_DIGEST=baf456989af64e808e5d59a78b6f2b98abd3d00a2915e1dcd97fedcb3537f90f
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":"AnonymousSource","formulas":{"Exact":["urn:root:a","urn:root:z\u0000中"]},"rules":"None","owners":"All"}
++SELECTION_DIGEST=f57168e0c5af498fe6f42157b54b383a2565a28f257d9ceffa383aedb66cccc5
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":[]},"formulas":"None","rules":"All","owners":{"Exact":[]}}
++SELECTION_DIGEST=b17cf529f36056dbd94cb7c1fc11087ec8fa7f480c8e98073ecc0b6bcf60f509
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":[]},"formulas":"All","rules":{"Exact":[]},"owners":{"Exact":["urn:root:a","urn:root:z\u0000中"]}}
++SELECTION_DIGEST=c976201632769617a7215303ab8b64aa2ca5f63d628f6380a62eb436e27e50b8
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":[]},"formulas":{"Exact":[]},"rules":{"Exact":["urn:root:a","urn:root:z\u0000中"]},"owners":"None"}
++SELECTION_DIGEST=dd650c436c36acfd232cd6b74f73f41837bfb5ca2b97a0a86093f807d36db1c0
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":[]},"formulas":{"Exact":["urn:root:a","urn:root:z\u0000中"]},"rules":"None","owners":"All"}
++SELECTION_DIGEST=27d7067f6a14a75ca6696f89e89535896e66955ec17a5cfe30b9eea60814b5c9
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":["a source.ttl","z source\u0000中.ttl"]},"formulas":"None","rules":"All","owners":{"Exact":[]}}
++SELECTION_DIGEST=ef27b293dba0700adfea764c587a4f3ec8aba2561abd2405d72061e82300adc0
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":["a source.ttl","z source\u0000中.ttl"]},"formulas":"All","rules":{"Exact":[]},"owners":{"Exact":["urn:root:a","urn:root:z\u0000中"]}}
++SELECTION_DIGEST=1f3725719f9ee65a546dca6d1f24c893ba2685a67e471657512aef72f632dad5
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":["a source.ttl","z source\u0000中.ttl"]},"formulas":{"Exact":[]},"rules":{"Exact":["urn:root:a","urn:root:z\u0000中"]},"owners":"None"}
++SELECTION_DIGEST=48889e1607cb5a8ffc2984ff94afbe446a8a8b58da2989c504d98321de28f787
++SELECTION_PREIMAGE={"graph":"DefaultGraph","documents":{"Exact":["a source.ttl","z source\u0000中.ttl"]},"formulas":{"Exact":["urn:root:a","urn:root:z\u0000中"]},"rules":"None","owners":"All"}
++SELECTION_DIGEST=d0088990575db03c30a1f2a174871e45aba71cec46c80e1dc51ad613b69a6e0e
+diff --git a/crates/logic-compile/src/tptp/owners.tests.rs b/crates/logic-compile/src/tptp/owners.tests.rs
+index 3124418f8..c54c2b628 100644
+--- a/crates/logic-compile/src/tptp/owners.tests.rs
++++ b/crates/logic-compile/src/tptp/owners.tests.rs
+@@ -44,6 +44,55 @@ fn excluded_owner_roots_remain_in_the_complete_admission_inventory() {
+         assert_ne!(selected.selection_digest, admission.selection_digest);
+         assert!(admission.matches(&theory));
+     }
++
++    let documents = [
++        DocumentSelection::AnonymousSource,
++        DocumentSelection::Exact(BTreeSet::new()),
++        DocumentSelection::Exact(BTreeSet::from([
++            "z source\0中.ttl".to_owned(),
++            "a source.ttl".to_owned(),
++        ])),
++    ];
++    let roots = [
++        RootSelection::None,
++        RootSelection::All,
++        RootSelection::Exact(BTreeSet::new()),
++        RootSelection::Exact(BTreeSet::from([
++            "urn:root:z\0中".to_owned(),
++            "urn:root:a".to_owned(),
++        ])),
++    ];
++    let mut reference = include_str!("fixtures/source-selection-identities-v1.txt").lines();
++    for documents in documents {
++        for index in 0..roots.len() {
++            let selection = SourceSelection {
++                graph: crate::frontend::SourceGraphSelection::DefaultGraph,
++                documents: documents.clone(),
++                formulas: roots[index].clone(),
++                rules: roots[(index + 1) % roots.len()].clone(),
++                owners: roots[(index + 2) % roots.len()].clone(),
++            };
++            let preimage = purrdf_lex::json::record::to_vec(&selection);
++            let original_preimage = reference
++                .next()
++                .and_then(|line| line.strip_prefix("SELECTION_PREIMAGE="))
++                .expect("original complete selection preimage");
++            assert_eq!(preimage, original_preimage.as_bytes());
++            let original_digest = reference
++                .next()
++                .and_then(|line| line.strip_prefix("SELECTION_DIGEST="))
++                .expect("original actual selection digest");
++            assert_eq!(
++                selection.digest(),
++                original_digest,
++                "the exact selection preimage and hash domain are stable"
++            );
++        }
++    }
++    assert!(
++        reference.next().is_none(),
++        "complete original selection reference consumed"
++    );
+ }
+ 
+ #[test]
+@@ -53,7 +102,10 @@ fn excluded_owner_documents_keep_their_source_receipt() {
+         (
+             "domain.ttl",
+             "<https://example.org/s> <https://example.org/p> <https://example.org/o> .",
+-            None,
++            Some(SourceBase {
++                iri: "https://example.org/source-base/中/".into(),
++                origin: SourceBaseOrigin::Caller,
++            }),
+         ),
+         ("contract.ttl", CONTRACT, None),
+     ]);
+@@ -74,6 +126,30 @@ fn excluded_owner_documents_keep_their_source_receipt() {
+         project_tptp_fof(&theory, &admission).status,
+         FofProjectionStatus::Complete
+     );
++    let mut receipts: Vec<_> = theory
++        .source()
++        .origins()
++        .iter()
++        .map(|origin| purrdf_lex::json::record::to_vec(&origin.document))
++        .collect();
++    receipts.sort_unstable();
++    let mut reference = include_str!("fixtures/source-receipts-identity-v1.txt").lines();
++    for receipt in &receipts {
++        let original_receipt = reference
++            .next()
++            .and_then(|line| line.strip_prefix("RECEIPT_PREIMAGE="))
++            .expect("original complete sorted receipt preimage");
++        assert_eq!(receipt, original_receipt.as_bytes());
++    }
++    let original_source_digest = reference
++        .next()
++        .and_then(|line| line.strip_prefix("SOURCE_DIGEST="))
++        .expect("original actual whole-source digest");
++    assert_eq!(admission.source_digest, original_source_digest);
++    assert!(
++        reference.next().is_none(),
++        "complete original receipt reference consumed"
++    );
+ }
+ 
+ #[test]
