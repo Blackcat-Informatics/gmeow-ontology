@@ -2,11 +2,69 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Native canonical AST transport with checked term/atom admission.
-use super::{AtomicTerm, Formula, PreservationKind, Term, literal_serde};
+use super::{
+    AtomicTerm, ComplexityClass, Formula, LogicModality, PreservationKind, ReasoningContract,
+    SemanticProfileId, Term, literal_serde,
+};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson, Within},
 };
+
+impl ToJson for SemanticProfileId {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::PositiveHorn => "PositiveHorn",
+            Self::StratifiedNaf => "StratifiedNaf",
+            Self::WellFounded => "WellFounded",
+            Self::StableModel => "StableModel",
+            Self::ProceduralProlog => "ProceduralProlog",
+            Self::Probabilistic => "Probabilistic",
+        }
+        .to_json()
+    }
+}
+
+impl ToJson for LogicModality {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::None => "None",
+            Self::Alethic => "Alethic",
+            Self::Epistemic => "Epistemic",
+            Self::Doxastic => "Doxastic",
+            Self::Telic => "Telic",
+            Self::Deontic => "Deontic",
+            Self::Representational => "Representational",
+            Self::Counterfactual => "Counterfactual",
+        }
+        .to_json()
+    }
+}
+
+::purrdf_lex::json_record!(impl ToJson for ComplexityClass {
+    "label" => label,
+});
+
+::purrdf_lex::json_record!(impl ToJson for ReasoningContract {
+    "preset" => preset,
+    "formula_fragment" => formula_fragment,
+    "model_semantics" => model_semantics,
+    "truth_algebra" => truth_algebra,
+    "admissible_valuation" => admissible_valuation,
+    "designated_values" => designated_values,
+    "evolution" => evolution,
+    "argumentation" => argumentation,
+    "revision" => revision,
+    "equality_policy" => equality_policy,
+    "default_closure" => default_closure,
+    "negation_operators" => negation_operators,
+    "context_axes" => context_axes,
+    "uncertainty_measures" => uncertainty_measures,
+    "resource_policies" => resource_policies,
+    "projection_targets" => projection_targets,
+    "closure_entries" => closure_entries,
+    "complexity" => complexity,
+});
 
 // Atomic inspection values retain their explicit kind and verbatim payload.
 impl ToJson for AtomicTerm {

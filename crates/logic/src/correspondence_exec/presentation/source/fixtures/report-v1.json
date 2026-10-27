@@ -1,0 +1,208 @@
+{
+  "bodies": {
+    "urn:presentation-example:body": {
+      "Atom": {
+        "args": [
+          {
+            "Iri": "urn:presentation-example:x"
+          }
+        ],
+        "relation": {
+          "Iri": "urn:presentation-example:p"
+        }
+      }
+    }
+  },
+  "evidence": {
+    "urn:presentation-example:baseEvidence": {
+      "complement": "source-publication",
+      "loss": {
+        "polarities": [
+          "Exact"
+        ],
+        "unsupported_constructs": []
+      },
+      "origin": {
+        "Iri": "urn:presentation-example:apexSource"
+      },
+      "provenance": "source-publication"
+    },
+    "urn:presentation-example:negativeEvidence": {
+      "complement": "source-publication",
+      "loss": {
+        "polarities": [
+          "CompleteOver"
+        ],
+        "unsupported_constructs": []
+      },
+      "origin": {
+        "Iri": "urn:presentation-example:rightSource"
+      },
+      "provenance": "source-publication"
+    },
+    "urn:presentation-example:positiveEvidence": {
+      "complement": "source-publication",
+      "loss": {
+        "polarities": [
+          "SoundUnder",
+          "InconsistencyPreserving"
+        ],
+        "unsupported_constructs": [
+          "urn:presentation-example:unprojectedConstraint"
+        ]
+      },
+      "origin": {
+        "Iri": "urn:presentation-example:leftSource"
+      },
+      "provenance": "source-publication"
+    }
+  },
+  "merges": {
+    "urn:presentation-example:merge": {
+      "apex": "urn:presentation-example:apex",
+      "contexts": [
+        {
+          "answer": {
+            "attributed": null,
+            "path": null,
+            "standpoint": null,
+            "time": null,
+            "world": "urn:presentation-example:world"
+          },
+          "modality": "None",
+          "module": null
+        }
+      ],
+      "contract": {
+        "admissible_valuation": null,
+        "argumentation": null,
+        "closure_entries": {},
+        "complexity": null,
+        "context_axes": [],
+        "default_closure": null,
+        "designated_values": null,
+        "equality_policy": null,
+        "evolution": null,
+        "formula_fragment": null,
+        "model_semantics": null,
+        "negation_operators": [],
+        "preset": null,
+        "projection_targets": [],
+        "resource_policies": [],
+        "revision": null,
+        "truth_algebra": null,
+        "uncertainty_measures": []
+      },
+      "engine": "988801fce84160d6acdcf12caaa6a4781bcd0e4ec28f65d06902875ec0baf4a9",
+      "factorization": "unique-for-every-admitted-cocone",
+      "left": "urn:presentation-example:left",
+      "left_embedding": [
+        1,
+        2
+      ],
+      "left_injection": [
+        0,
+        1,
+        2
+      ],
+      "right": "urn:presentation-example:right",
+      "right_embedding": [
+        0,
+        2
+      ],
+      "right_injection": [
+        1,
+        3,
+        2
+      ],
+      "sentences": [
+        {
+          "bindings": [
+            1,
+            2
+          ],
+          "body": "urn:presentation-example:body",
+          "context": 0,
+          "evidence": "urn:presentation-example:baseEvidence",
+          "kind": "Axiom",
+          "sign": "Positive"
+        },
+        {
+          "bindings": [
+            1,
+            2
+          ],
+          "body": "urn:presentation-example:body",
+          "context": 0,
+          "evidence": "urn:presentation-example:positiveEvidence",
+          "kind": "Axiom",
+          "sign": "Positive"
+        },
+        {
+          "bindings": [
+            1,
+            2
+          ],
+          "body": "urn:presentation-example:body",
+          "context": 0,
+          "evidence": "urn:presentation-example:negativeEvidence",
+          "kind": "Caveat",
+          "sign": "Negative"
+        }
+      ],
+      "square": "checked",
+      "symbols": [
+        {
+          "context": 0,
+          "names": [
+            {
+              "Iri": "urn:presentation-example:private"
+            }
+          ],
+          "roles": [
+            "Individual"
+          ]
+        },
+        {
+          "context": 0,
+          "names": [
+            {
+              "Iri": "urn:presentation-example:p"
+            }
+          ],
+          "roles": [
+            {
+              "Relation": 1
+            }
+          ]
+        },
+        {
+          "context": 0,
+          "names": [
+            {
+              "Iri": "urn:presentation-example:x"
+            }
+          ],
+          "roles": [
+            "Individual"
+          ]
+        },
+        {
+          "context": 0,
+          "names": [
+            {
+              "Iri": "urn:presentation-example:private"
+            }
+          ],
+          "roles": [
+            "Individual"
+          ]
+        }
+      ]
+    }
+  },
+  "schema": "native-presentation-merges-v1",
+  "source_documents": [],
+  "source_iri": null,
+  "witness_scope": "invocation-local"
+}

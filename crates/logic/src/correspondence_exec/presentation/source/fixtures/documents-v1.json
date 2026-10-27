@@ -1,0 +1,42 @@
+{
+  "source_documents": [
+    {
+      "base": null,
+      "content_digest": "authored digest 0",
+      "path": "authored path 0\u0000中",
+      "role": "authored role 0"
+    },
+    {
+      "base": {
+        "iri": "raw caller base\u0000中",
+        "origin": "Caller"
+      },
+      "content_digest": "authored digest 1",
+      "path": "authored path 1\u0000中",
+      "role": "authored role 1"
+    },
+    {
+      "base": {
+        "iri": "raw directive base",
+        "origin": {
+          "Directive": {
+            "column": 4294967295,
+            "line": 18446744073709551615
+          }
+        }
+      },
+      "content_digest": "authored digest 2",
+      "path": "authored path 2\u0000中",
+      "role": "authored role 2"
+    },
+    {
+      "base": {
+        "iri": "raw enclosing base",
+        "origin": "Enclosing"
+      },
+      "content_digest": "authored digest 3",
+      "path": "authored path 3\u0000中",
+      "role": "authored role 3"
+    }
+  ]
+}

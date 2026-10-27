@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use super::{Formula, LogicModality, PreservationKind, ReasoningContract};
+use purrdf_lex::json::{Object, Value, record::ToJson};
 
 /// Complete native identity at a persistence boundary, including blank scope.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
@@ -44,6 +45,38 @@ pub enum PresentationSign {
 pub enum PresentationSentenceKind {
     Axiom,
     Caveat,
+}
+
+impl ToJson for PresentationSymbolRole {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Individual => "Individual".to_json(),
+            Self::Relation(arity) => Object::new().with("Relation", arity.to_json()).into(),
+            Self::VariadicRelation => "VariadicRelation".to_json(),
+            Self::Function(arity) => Object::new().with("Function", arity.to_json()).into(),
+            Self::VariadicFunction => "VariadicFunction".to_json(),
+        }
+    }
+}
+
+impl ToJson for PresentationSign {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Positive => "Positive",
+            Self::Negative => "Negative",
+        }
+        .to_json()
+    }
+}
+
+impl ToJson for PresentationSentenceKind {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Axiom => "Axiom",
+            Self::Caveat => "Caveat",
+        }
+        .to_json()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
