@@ -80,6 +80,187 @@ ex:subject ex:property ex:object .
             "the proof task must explain its configuration disposition"
         );
     }
+
+    let mut reference = include_str!("fixtures/semantic-unit-identities-v1.txt").lines();
+    for unit in &admission.units {
+        let preimage = purrdf_lex::json::record::to_vec(&(
+            unit.kind,
+            &unit.anchor,
+            &unit.documents,
+            &unit.disposition,
+        ));
+        let original_preimage = reference
+            .next()
+            .and_then(|line| line.strip_prefix("UNIT_PREIMAGE="))
+            .expect("original complete semantic-unit preimage");
+        assert_eq!(preimage, original_preimage.as_bytes());
+        let original_id = reference
+            .next()
+            .and_then(|line| line.strip_prefix("UNIT_ID="))
+            .expect("actual original semantic-unit ID");
+        assert_eq!(unit.id, original_id);
+    }
+    assert!(
+        reference.next().is_none(),
+        "complete original unit reference consumed"
+    );
+
+    use crate::frontend::{
+        AdmittedSemanticUnit, PropertyCharacteristic, SemanticUnitKind, SourceAssertion,
+        SourceClassDefinition,
+    };
+    use crate::ir::{
+        AtomicTerm, ComplexityClass, Formula, ReasoningContract, SemanticProfileId, Term,
+    };
+    use std::collections::BTreeMap;
+
+    let literal = purrdf::RdfLiteral {
+        lexical_form: "raw literal\0中".into(),
+        datatype: None,
+        language: Some("fr".into()),
+        direction: Some(purrdf::RdfTextDirection::Rtl),
+    };
+    let assertion = SourceAssertion {
+        subject: AtomicTerm::Var("?raw\0中".into()),
+        predicate: "raw predicate".into(),
+        object: AtomicTerm::Literal(literal.clone()),
+    };
+    let formula = Formula::Forall {
+        vars: vec!["z".into(), "a".into(), "z".into()],
+        body: Box::new(Formula::Atom {
+            relation: Term::Iri("urn:raw:relation".into()),
+            args: vec![Term::Var("?raw".into()), Term::Literal(literal)],
+        }),
+    };
+    let definition = SourceClassDefinition {
+        formula: formula.clone(),
+        constants: BTreeMap::from([
+            (
+                "z literal\0中".into(),
+                AtomicTerm::Literal(purrdf::RdfLiteral::typed(
+                    "NaN",
+                    "http://www.w3.org/2001/XMLSchema#double",
+                )),
+            ),
+            ("a iri".into(), AtomicTerm::Iri("?raw explicit iri".into())),
+            ("b blank".into(), AtomicTerm::Blank("raw blank\0中".into())),
+            (
+                "c variable".into(),
+                AtomicTerm::Var("urn:raw:variable".into()),
+            ),
+        ]),
+    };
+    let declaration = SourceContractDeclaration {
+        configuration: ReasoningContract {
+            preset: Some(SemanticProfileId::StableModel),
+            model_semantics: Some("raw semantics\0中".into()),
+            negation_operators: BTreeSet::from(["z negation".into(), "a negation".into()]),
+            closure_entries: BTreeMap::from([
+                ("z predicate\0中".into(), "raw closure z".into()),
+                ("a predicate".into(), "raw closure a".into()),
+            ]),
+            complexity: Some(
+                ComplexityClass::new(" raw complexity\0中 ")
+                    .expect("nonempty authored complexity label retains its bytes"),
+            ),
+            ..ReasoningContract::default()
+        },
+        facts: vec![
+            assertion.clone(),
+            SourceAssertion {
+                subject: AtomicTerm::Blank("another blank".into()),
+                predicate: "another predicate".into(),
+                object: AtomicTerm::Iri("another explicit iri".into()),
+            },
+            assertion.clone(),
+        ],
+    };
+    let dispositions = [
+        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::Assertion(assertion)),
+        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::Formula { index: 17 }),
+        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::Rule { index: 29 }),
+        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::PropertyCharacteristic(
+            PropertyCharacteristic {
+                property: "raw property\0中".into(),
+                characteristic: "raw characteristic".into(),
+            },
+        )),
+        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::ClassDefinition(definition)),
+        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::ClassDefinition(
+            SourceClassDefinition {
+                formula,
+                constants: BTreeMap::new(),
+            },
+        )),
+        SemanticUnitDisposition::ConfigurationDeclaration {
+            declaration: Box::new(declaration),
+            reason: "raw declaration reason\0中".into(),
+        },
+        SemanticUnitDisposition::ConfigurationDeclaration {
+            declaration: Box::new(SourceContractDeclaration {
+                configuration: ReasoningContract::default(),
+                facts: Vec::new(),
+            }),
+            reason: String::new(),
+        },
+        SemanticUnitDisposition::StructuralSupport {
+            detail: "raw support\0中".into(),
+        },
+        SemanticUnitDisposition::OutsideSelection {
+            reason: "raw exclusion\0中".into(),
+        },
+        SemanticUnitDisposition::QuotedUnasserted {
+            detail: "raw quotation\0中".into(),
+        },
+        SemanticUnitDisposition::Blocked {
+            code: "raw blocked code".into(),
+            reason: "raw blocked reason\0中".into(),
+        },
+        SemanticUnitDisposition::Malformed {
+            code: "raw malformed code".into(),
+            reason: "raw malformed reason\0中".into(),
+        },
+        SemanticUnitDisposition::Observed {
+            detail: "raw observation\0中".into(),
+        },
+    ];
+    let kinds = [
+        SemanticUnitKind::Assertion,
+        SemanticUnitKind::Formula,
+        SemanticUnitKind::Rule,
+        SemanticUnitKind::PropertyCharacteristic,
+        SemanticUnitKind::ClassDefinition,
+        SemanticUnitKind::Import,
+        SemanticUnitKind::StructuralSyntax,
+        SemanticUnitKind::Quotation,
+        SemanticUnitKind::Diagnostic,
+        SemanticUnitKind::Owner,
+    ];
+    let atlas: Vec<_> = dispositions
+        .iter()
+        .enumerate()
+        .map(|(index, disposition)| {
+            let documents = if index % 2 == 0 {
+                BTreeSet::new()
+            } else {
+                BTreeSet::from(["z source\0中.ttl".to_owned(), "a source.ttl".to_owned()])
+            };
+            (
+                kinds[index % kinds.len()],
+                format!("raw anchor {index}\0中"),
+                documents,
+                disposition,
+            )
+        })
+        .collect();
+    let atlas_bytes = purrdf_lex::json::record::to_vec(&atlas);
+    assert!(!atlas_bytes.ends_with(b"\n"));
+    assert_eq!(
+        atlas_bytes,
+        include_bytes!("fixtures/semantic-unit-atlas-v1.json")
+            .strip_suffix(b"\n")
+            .expect("original atlas reference has one storage LF")
+    );
 }
 
 #[test]

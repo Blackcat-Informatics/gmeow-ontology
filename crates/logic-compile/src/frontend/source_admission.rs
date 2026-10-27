@@ -1190,8 +1190,7 @@ impl<'a> AdmissionBuilder<'a> {
         documents: BTreeSet<String>,
         disposition: SemanticUnitDisposition,
     ) {
-        let encoded = serde_json::to_vec(&(kind, &anchor, &documents, &disposition))
-            .expect("semantic admission row serialization is infallible");
+        let encoded = purrdf_lex::json::record::to_vec(&(kind, &anchor, &documents, &disposition));
         self.units.push(SemanticUnitAdmission {
             id: digest_bytes(b"gmeow-semantic-unit-v1\0", &encoded),
             kind,
