@@ -17,7 +17,7 @@ use gmeow_logic_compile::projections::shapes::{
     project_procedural_constraints, project_validation_shape_shacl,
 };
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
-use serde::{Deserialize, Serialize};
+mod json;
 
 use crate::stages::parse_sources::SourceCatalog;
 
@@ -27,7 +27,7 @@ mod selection;
 const CHANNEL: &str = "pipeline/module-validation-fixtures.json";
 const SH_HEADER: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct ValidationFixtures {
     modules: BTreeMap<String, Result<ModuleProduct, gmeow_errors::RecordedDiag>>,
     /// Exact authored examples selected and read by the producer before tests.
@@ -36,7 +36,7 @@ struct ValidationFixtures {
     diagnostics_migration: Result<migration::Agreement, gmeow_errors::RecordedDiag>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct ModuleProduct {
     /// Authenticated producer-selected native source for installed-caller contract tests.
     source_rdf: String,
@@ -45,13 +45,13 @@ struct ModuleProduct {
     procedural_shacl: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 struct ShapeProduct {
     ir: ValidationShapeIr,
     shacl: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct CaseObservation {
     module: String,
     input: String,
@@ -143,8 +143,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&fixtures)
-            .map_err(|error| super::stage_err(format!("encode validation fixtures: {error}")))?,
+        purrdf_lex::json::record::to_vec(&fixtures),
     );
     Ok(())
 }
