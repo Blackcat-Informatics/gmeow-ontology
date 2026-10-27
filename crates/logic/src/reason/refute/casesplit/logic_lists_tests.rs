@@ -211,32 +211,17 @@ ex:Named logic:oneOf ( ex:a ex:b ) .
 
 #[test]
 fn corpus_every_slice_module_list_has_complete_canonical_projection() {
-    #[derive(Debug, serde::Deserialize)]
-    struct Observation {
-        schema_version: u32,
-        source_catalog_id: String,
-        source_modules: std::collections::BTreeMap<String, String>,
-        destination_graph: String,
-        admission_contract: String,
-        selected_world_count: usize,
-        list_diagnostics: Vec<gmeow_logic_compile::frontend::Diagnostic>,
-        blank_list_fields: Vec<String>,
-        invalid_constructor_objects: Vec<String>,
-        list_sizes: std::collections::BTreeMap<String, usize>,
-        list_errors: Vec<String>,
-        admission_defects: Vec<RefutationSourceIssue>,
-    }
     // Hydrate the producer's exact compact observation. No source reading,
     // compilation, projection or admission executes in this test process.
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let bytes = gmeow_action_cache::selection::source_artifacts::load(
         &root,
         "stage-compile-logic",
-        "pipeline/logic-list-corpus-observation.json",
+        super::super::LIST_CORPUS_CHANNEL,
     )
     .expect("authenticated producer list observation");
-    let observation: Result<Observation, gmeow_errors::RecordedDiag> =
-        serde_json::from_slice(&bytes).expect("typed list observation");
+    let observation =
+        super::super::decode_list_corpus_observation(&bytes).expect("typed list observation");
     let observation = observation.expect("producer completed list admission");
     assert_eq!(observation.schema_version, 1);
     assert!(!observation.source_catalog_id.is_empty());

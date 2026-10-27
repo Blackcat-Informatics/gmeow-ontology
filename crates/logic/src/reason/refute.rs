@@ -61,6 +61,12 @@ pub use casesplit::{
     ClassExecutionOutcome, ClassSourceRefusal, PreparedClassAnalysis,
 };
 
+mod list_observation;
+pub use list_observation::{
+    LIST_CORPUS_CHANNEL, ListCorpusObservation, decode_list_corpus_observation,
+    encode_list_corpus_observation,
+};
+
 mod proof;
 pub use proof::{
     ContextualConflict, RefutationAssumption, RefutationBranch, RefutationClash,

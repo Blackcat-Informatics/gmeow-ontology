@@ -15,7 +15,12 @@ fn complete_list_observation_uses_the_supplied_projection() {
     let catalog = SourceCatalog::from_sources(ParsedAuthoredSources::synthetic(TINY)).unwrap();
     let theory = catalog.compiled_logic().unwrap();
     let canonical = purrdf::parse_dataset(TINY.as_bytes(), "application/n-quads", None).unwrap();
-    let observation = observe(&catalog, &theory, &canonical).unwrap();
+    let mut artifacts = BTreeMap::new();
+    record(&catalog, &theory, &canonical, &mut artifacts).unwrap();
+    let observation =
+        gmeow_logic::reason::refute::decode_list_corpus_observation(&artifacts[CHANNEL])
+            .unwrap()
+            .unwrap();
     assert_eq!(observation.source_catalog_id, catalog.identity());
     assert_eq!(observation.list_sizes["urn:cell"], 1);
     assert!(observation.list_errors.is_empty());
@@ -34,7 +39,12 @@ fn missing_cell_field_remains_a_recorded_defect() {
         .join("\n");
     let canonical =
         purrdf::parse_dataset(truncated.as_bytes(), "application/n-quads", None).unwrap();
-    let observation = observe(&catalog, &theory, &canonical).unwrap();
+    let mut artifacts = BTreeMap::new();
+    record(&catalog, &theory, &canonical, &mut artifacts).unwrap();
+    let observation =
+        gmeow_logic::reason::refute::decode_list_corpus_observation(&artifacts[CHANNEL])
+            .unwrap()
+            .unwrap();
     assert!(!observation.list_errors.is_empty());
     assert!(
         observation
