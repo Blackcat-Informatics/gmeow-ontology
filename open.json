@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2003,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect",
+  "branch": "paudley/2003-use-native-json-for-complete-affect",
+  "slug": "use-native-json-for-complete-affect",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "2c941cb9ad3f23ba222d7868a338a60be4892db1",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect",
+    "branch:paudley/2003-use-native-json-for-complete-affect",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T22:47:15-0600"
+}

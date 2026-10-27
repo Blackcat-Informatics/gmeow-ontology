@@ -1,0 +1,9 @@
+Independent source and design review: PASS.
+
+Reviewed both complete record codecs, actual original-source publisher, authenticated typed reader and complete authored XML control. The public envelope has no separate binary or JSON owner: its remaining production consumer reads typed fields for XML. Both transport-only Serde derives are removed, while the channel and authenticated fixture registration retain their existing values.
+
+The native writer preserves compact declaration-order bytes without a newline. Required native record fields retain false presence evidence, raw intensity and dimension strings, duplicate dimension identities and row order. Exact two-string row admission reuses the shared row helper and native indexed traversal. Missing members use the containing-object pointer and named diagnostic. No hydration path computes or validates geometry.
+
+Source selection and geometry failures still propagate before artifact insertion. XML, geometry, correspondence and loss-ledger algorithms are unchanged. The existing renderer control now consumes native bytes and keeps every vocabulary, intensity, dimension and no-fabricated-value assertion. The two new cases cover complete wire/raw data and malformed admission. All three controls use explicit tiny authored inputs; the worked-example corpus control remains authenticated consumption and outside local runtime selection.
+
+Clarified the corpus control's comment to distinguish producer computation from authenticated test consumption; its assertions are unchanged. Formatting, scoped strict compilation and all three selected authored cases pass; command evidence and normal hooks are recorded separately. No optimized producer, corpus or release acceptance is claimed. Principles 4 and 7 govern the canonical ownership and verification scope.

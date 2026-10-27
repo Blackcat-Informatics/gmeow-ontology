@@ -1,0 +1,57 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Move the complete affect worked-envelope observation channel to PurRDF native JSON under Principles 4 and 7, including its actual producer and authenticated typed consumer.\n\nAcceptance:\n\n- Implement both complete records: pipeline WorkedEnvelopeObservation (observation_present and envelope) and logic-compile WorkedEnvelope (intensity and dimensions). Wire record_worked_envelope and the existing authenticated correspondence_lower control through the native owner. Preserve the current channel path and fixture export registration.\n- Preserve declaration-order compact bytes without a terminal newline. Intensity and both dimension cells remain raw strings; preserve every row, duplicate dimension identity and supplied order without normalization. Reuse the shared read_string_row<2> admission for exact two-string dimension rows.\n- Require named records and every nonoptional boolean, string and collection field. Reject malformed or duplicate known fields while accepting unknown fields under the native default depth policy. Preserve false observation_present as observation data; hydration must not compute or validate affect geometry.\n- Verify all actual consumers before removing the two records' transport-only Serde derives. The separate XML renderer consumes typed fields and remains unchanged. Do not add a generic bridge, redundant schema owner or legacy alias.\n- Preserve source selection, original-observation presence evidence, geometry computation, XML emission and loss-ledger algorithms. Only serialization becomes infallible; existing source and geometry failures must still propagate before publication.\n- Extend render_emits_both_vocabularies_and_an_envelope through native bytes without weakening any vocabulary, intensity, dimension or no-fabricated-value assertion. Add bounded complete-wire and malformed-admission coverage for both records. Keep the authenticated worked-example corpus control intact and outside local authored-case selection.\n- Compile actual logic-compile, pipeline and developer CLI callers and run normal hooks. Selected runtime controls use explicit tiny authored data only. Tests must never construct the repository corpus. Corpus consumption requires its exact authenticated producer selector.\n\nRemaining contracts: #1776, #1777, #1336 and #1962. The schema enrichment operation, complete grammar/correspondence family, other observation owners, workspace Serde retirement and actual corpus/release acceptance remain unfinished in their existing owners. The standing user exception prohibits local optimized producer, corpus/fixture production, synchronization and full-gate execution and authorizes sequential merges with CI waived. Report unverified acceptance accurately.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-27T04:44:12Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2003,
+  "state": "OPEN",
+  "title": "Use native JSON for complete affect worked-envelope observations",
+  "updatedAt": "2026-10-27T04:45:26Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2003"
+}

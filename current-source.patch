@@ -1,0 +1,293 @@
+diff --git a/crates/logic-compile/src/projections/emotionml.rs b/crates/logic-compile/src/projections/emotionml.rs
+index 66246cbd6..ba62a0672 100644
+--- a/crates/logic-compile/src/projections/emotionml.rs
++++ b/crates/logic-compile/src/projections/emotionml.rs
+@@ -43,7 +43,7 @@ const DIMENSION_SET_ID: &str = "gmeow-appraisal-dimensions";
+ /// `gmeow:coreAffectGram` — **nothing here is a hand-typed numeric literal**. A fabricated
+ /// constant in the worked envelope is an affect-honesty defect, so the emitter has no way to
+ /// synthesize these values itself: the caller MUST compute and supply them.
+-#[derive(Debug, serde::Serialize, serde::Deserialize)]
++#[derive(Debug)]
+ pub struct WorkedEnvelope {
+     /// The overall intensity `√Q` as a fixed-precision decimal string (e.g. `"0.888819"`).
+     pub intensity: String,
+@@ -54,6 +54,9 @@ pub struct WorkedEnvelope {
+     pub dimensions: Vec<(String, String)>,
+ }
+ 
++#[path = "emotionml/json.rs"]
++mod json;
++
+ /// The artifact + loss-ledger row of the EmotionML lowering.
+ pub struct EmotionMlLowering {
+     /// The `gmeow-affect.emotionml.xml` document (category + dimension vocabularies and a
+diff --git a/crates/logic-compile/src/projections/emotionml.tests.rs b/crates/logic-compile/src/projections/emotionml.tests.rs
+index a20c3d22c..9e1c29002 100644
+--- a/crates/logic-compile/src/projections/emotionml.tests.rs
++++ b/crates/logic-compile/src/projections/emotionml.tests.rs
+@@ -40,7 +40,13 @@ fn render_emits_both_vocabularies_and_an_envelope() {
+             (format!("{GMEOW_NS}dimensionArousal"), "0.7".to_owned()),
+         ],
+     };
+-    let doc = render_document(&categories, &dimensions, &worked);
++    use purrdf_lex::json::record::ToJson;
++    let bytes = purrdf_lex::json::write_compact(&worked.to_json()).into_bytes();
++    let decoded: WorkedEnvelope =
++        purrdf_lex::json::record::from_slice(&bytes).expect("native envelope for the XML renderer");
++    assert_eq!(decoded.intensity, worked.intensity);
++    assert_eq!(decoded.dimensions, worked.dimensions);
++    let doc = render_document(&categories, &dimensions, &decoded);
+     assert!(doc.contains("<vocabulary type=\"category\" id=\"gmeow-emotion-categories\">"));
+     assert!(doc.contains("<vocabulary type=\"dimension\" id=\"gmeow-appraisal-dimensions\">"));
+     assert!(doc.contains("<item name=\"anger\">"));
+diff --git a/crates/logic-compile/src/projections/emotionml/json.rs b/crates/logic-compile/src/projections/emotionml/json.rs
+new file mode 100644
+index 000000000..f45fd38d0
+--- /dev/null
++++ b/crates/logic-compile/src/projections/emotionml/json.rs
+@@ -0,0 +1,30 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Data-only transport of computed envelope strings, without recomputing geometry.
++
++use super::WorkedEnvelope;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record, items_with},
++};
++
++::purrdf_lex::json_record!(impl ToJson for WorkedEnvelope {
++    "intensity" => intensity,
++    "dimensions" => dimensions,
++});
++
++impl FromJson for WorkedEnvelope {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct WorkedEnvelope")?;
++        Ok(Self {
++            intensity: fields.required("intensity")?,
++            dimensions: fields.required_with("dimensions", |value| {
++                items_with(value, |row| {
++                    gmeow_errors::json::read_string_row::<2>(row)
++                        .map(|[dimension, value]| (dimension, value))
++                })
++            })?,
++        })
++    }
++}
+diff --git a/crates/pipeline/src/stages/correspondence_lower.rs b/crates/pipeline/src/stages/correspondence_lower.rs
+index 8bbb5b3dc..7c8615b9b 100644
+--- a/crates/pipeline/src/stages/correspondence_lower.rs
++++ b/crates/pipeline/src/stages/correspondence_lower.rs
+@@ -24,6 +24,10 @@ use purrdf::dataset_view::{DatasetView, GraphMatch};
+ use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
+ use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset};
+ 
++use purrdf_lex::json::record::ToJson;
++
++#[path = "correspondence_lower/json.rs"]
++mod json;
+ mod statistics;
+ 
+ const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
+@@ -40,7 +44,6 @@ const SF_INTENSITY_IRI: &str = "https://blackcatinformatics.ca/gmeow/schadenfreu
+ 
+ pub(crate) const WORKED_ENVELOPE_CHANNEL: &str = "pipeline/affect-worked-envelope.json";
+ 
+-#[derive(serde::Serialize, serde::Deserialize)]
+ struct WorkedEnvelopeObservation {
+     observation_present: bool,
+     envelope: emotionml::WorkedEnvelope,
+@@ -58,11 +61,7 @@ pub(crate) fn record_worked_envelope(
+     };
+     artifacts.insert(
+         WORKED_ENVELOPE_CHANNEL.into(),
+-        serde_json::to_vec(&observed).map_err(|error| {
+-            gmeow_errors::Diag::of_kind(crate::error::Transform {
+-                message: error.to_string(),
+-            })
+-        })?,
++        purrdf_lex::json::write_compact(&observed.to_json()).into_bytes(),
+     );
+     Ok(())
+ }
+diff --git a/crates/pipeline/src/stages/correspondence_lower.tests.rs b/crates/pipeline/src/stages/correspondence_lower.tests.rs
+index b7b8cae2d..ceebbfa27 100644
+--- a/crates/pipeline/src/stages/correspondence_lower.tests.rs
++++ b/crates/pipeline/src/stages/correspondence_lower.tests.rs
+@@ -12,11 +12,11 @@ fn repo_root() -> PathBuf {
+ }
+ 
+ /// The EmotionML worked-envelope pin: the emitter PROJECTS the SHIPPED schadenfreude worked
+-/// instance carried on the in-memory ontology dataset, so its intensity + per-dimension
+-/// values are COMPUTED — never fabricated and never re-read from disk. This drives the REAL
+-/// `compute_worked_envelope` over the REAL committed affect `module.ttl` (the carrier the
+-/// pipeline folds) and asserts the metric-tensor outputs: intensity √(79/100) = 0.888819,
+-/// valence 0.7 → 0.85, arousal 0.4 → 0.7. Retiring the shipped observation or perturbing its
++/// instance carried on the in-memory ontology dataset. The producer computes intensity
++/// and per-dimension values over the original affect module. This control consumes its
++/// authenticated observation without recomputing geometry in the test process.
++/// It asserts the metric-tensor outputs: intensity √(79/100) = 0.888819, valence 0.7 → 0.85,
++/// and arousal 0.4 → 0.7. Retiring the shipped observation or perturbing its
+ /// appraisal vector reds this test — the drift gate the invariant demands.
+ #[test]
+ fn worked_envelope_projects_the_schadenfreude_example() {
+@@ -28,7 +28,7 @@ fn worked_envelope_projects_the_schadenfreude_example() {
+     )
+     .expect("producer-selected original-source affect observation");
+     let observed: WorkedEnvelopeObservation =
+-        serde_json::from_slice(&bytes).expect("native worked envelope");
++        purrdf_lex::json::record::from_slice(&bytes).expect("native worked envelope");
+ 
+     // The shipped observation IRI must resolve as a base-graph subject (retirement is a
+     // hard fail): it is authored in module.ttl, never an excluded example overlay.
+diff --git a/crates/pipeline/src/stages/correspondence_lower/json.rs b/crates/pipeline/src/stages/correspondence_lower/json.rs
+new file mode 100644
+index 000000000..a73cd741b
+--- /dev/null
++++ b/crates/pipeline/src/stages/correspondence_lower/json.rs
+@@ -0,0 +1,29 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete original-source presence and computed-envelope observation transport.
++
++use super::WorkedEnvelopeObservation;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record},
++};
++
++::purrdf_lex::json_record!(impl ToJson for WorkedEnvelopeObservation {
++    "observation_present" => observation_present,
++    "envelope" => envelope,
++});
++
++impl FromJson for WorkedEnvelopeObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct WorkedEnvelopeObservation")?;
++        Ok(Self {
++            observation_present: fields.required("observation_present")?,
++            envelope: fields.required("envelope")?,
++        })
++    }
++}
++
++#[path = "json/tests.rs"]
++#[cfg(test)]
++mod tests;
+diff --git a/crates/pipeline/src/stages/correspondence_lower/json/tests.rs b/crates/pipeline/src/stages/correspondence_lower/json/tests.rs
+new file mode 100644
+index 000000000..22785ac08
+--- /dev/null
++++ b/crates/pipeline/src/stages/correspondence_lower/json/tests.rs
+@@ -0,0 +1,108 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use gmeow_logic_compile::projections::emotionml::WorkedEnvelope;
++use purrdf_lex::json::{
++    record::{ToJson, from_slice},
++    write_compact,
++};
++
++const WIRE: &str = r#"{"observation_present":false,"envelope":{"intensity":"raw\nintensity","dimensions":[["z","-0.000"],["a","1e400"],["z","text"]]}}"#;
++
++#[test]
++fn native_worked_envelope_preserves_complete_wire_and_raw_ordered_rows() {
++    let expected = WorkedEnvelopeObservation {
++        observation_present: false,
++        envelope: WorkedEnvelope {
++            intensity: "raw\nintensity".to_owned(),
++            dimensions: vec![
++                ("z".to_owned(), "-0.000".to_owned()),
++                ("a".to_owned(), "1e400".to_owned()),
++                ("z".to_owned(), "text".to_owned()),
++            ],
++        },
++    };
++    let bytes = write_compact(&expected.to_json()).into_bytes();
++    assert_eq!(
++        bytes,
++        WIRE.as_bytes(),
++        "compact declaration-order bytes have no terminal newline"
++    );
++    let decoded: WorkedEnvelopeObservation =
++        from_slice(&bytes).expect("complete native observation");
++    assert!(
++        !decoded.observation_present,
++        "false is retained observation data"
++    );
++    assert_eq!(decoded.envelope.intensity, expected.envelope.intensity);
++    assert_eq!(
++        decoded.envelope.dimensions, expected.envelope.dimensions,
++        "duplicate dimensions and row order remain untouched"
++    );
++    assert_eq!(write_compact(&decoded.to_json()), WIRE);
++
++    let with_unknowns = WIRE
++        .replacen(
++            "{\"observation_present\":",
++            "{\"future\":[],\"observation_present\":",
++            1,
++        )
++        .replace("\"envelope\":{", "\"envelope\":{\"future\":false,");
++    let decoded: WorkedEnvelopeObservation = from_slice(with_unknowns.as_bytes())
++        .expect("unknown fields are tolerated at both named record levels");
++    assert_eq!(write_compact(&decoded.to_json()), WIRE);
++}
++
++#[test]
++fn native_worked_envelope_refuses_ambiguous_records_and_malformed_dimension_rows() {
++    let malformed = [
++        r#"[false,{"intensity":"raw","dimensions":[]}]"#.to_owned(),
++        r#"{"observation_present":false,"envelope":["raw",[["z","text"]]]}"#.to_owned(),
++        WIRE.replace(
++            "\"observation_present\":false",
++            "\"observation_present\":true,\"observation_present\":false",
++        ),
++        WIRE.replace("\"envelope\":", "\"envelope\":null,\"envelope\":"),
++        WIRE.replace("\"intensity\":", "\"intensity\":\"old\",\"intensity\":"),
++        WIRE.replace("\"observation_present\":false,", ""),
++        r#"{"observation_present":false}"#.to_owned(),
++        WIRE.replace("\"intensity\":\"raw\\nintensity\",", ""),
++        r#"{"observation_present":false,"envelope":{"intensity":"raw"}}"#.to_owned(),
++        WIRE.replace(
++            "\"observation_present\":false",
++            "\"observation_present\":\"false\"",
++        ),
++        WIRE.replace("\"intensity\":\"raw\\nintensity\"", "\"intensity\":0.5"),
++        r#"{"observation_present":false,"envelope":{"intensity":"raw","dimensions":null}}"#
++            .to_owned(),
++        WIRE.replace("[\"z\",\"-0.000\"]", "null"),
++        WIRE.replace("[\"z\",\"-0.000\"]", "[\"z\"]"),
++        WIRE.replace("[\"z\",\"-0.000\"]", "[\"z\",\"-0.000\",\"extra\"]"),
++        WIRE.replace("[\"z\",\"-0.000\"]", "[true,\"-0.000\"]"),
++        WIRE.replace("[\"z\",\"-0.000\"]", "[\"z\",0]"),
++    ];
++    for input in malformed {
++        assert_ne!(input, WIRE, "refusal input must change the complete wire");
++        assert!(
++            from_slice::<WorkedEnvelopeObservation>(input.as_bytes()).is_err(),
++            "must refuse {input}"
++        );
++    }
++    let short_row = WIRE.replace("[\"z\",\"-0.000\"]", "[\"z\"]");
++    let error = from_slice::<WorkedEnvelopeObservation>(short_row.as_bytes())
++        .err()
++        .expect("short row refusal");
++    assert_eq!(error.pointer(), "/envelope/dimensions/0");
++    let numeric_cell = WIRE.replace("[\"z\",\"-0.000\"]", "[\"z\",0]");
++    let error = from_slice::<WorkedEnvelopeObservation>(numeric_cell.as_bytes())
++        .err()
++        .expect("numeric cell refusal");
++    assert_eq!(error.pointer(), "/envelope/dimensions/0/1");
++    let missing_intensity = WIRE.replace("\"intensity\":\"raw\\nintensity\",", "");
++    let error = from_slice::<WorkedEnvelopeObservation>(missing_intensity.as_bytes())
++        .err()
++        .expect("missing intensity refusal");
++    assert_eq!(error.pointer(), "/envelope");
++    assert_eq!(error.message(), "missing field `intensity`");
++}

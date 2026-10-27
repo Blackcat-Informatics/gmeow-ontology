@@ -1,0 +1,141 @@
+{
+  "issue": 2003,
+  "pr_number": 2004,
+  "branch": "paudley/2003-use-native-json-for-complete-affect",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect",
+  "observed_at": "2026-10-27T05:42:10.533357+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "3 new or changed review items need disposition"
+    },
+    {
+      "code": "unresolved_threads",
+      "message": "1 inline discussions remain unresolved"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Resolve or explicitly adjudicate the remaining inline discussions",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2003-use-native-json-for-complete-affect/.stage/use-native-json-for-complete-affect/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "5b7aa6933ec100449ed5d5ece595b5ec2d223926",
+    "headRefName": "paudley/2003-use-native-json-for-complete-affect",
+    "headRefOid": "4b7adbff4c6c80665984bc4aeed07a70b821cc21",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2004,
+    "state": "OPEN",
+    "title": "Use native JSON for complete affect envelope observations",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2004"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2004",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40455752751/job/122028565795",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40455752751/job/122028565607",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40455752751/job/122028565929",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40455752751/job/122028565892",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "4b7adbff4c6c80665984bc4aeed07a70b821cc21",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 3,
+    "change_token": "4910b37b6702929a159efef0f9a9bfc260b3c7368fae054d5b2c5cad4c43312c"
+  },
+  "local": {
+    "head": "4b7adbff4c6c80665984bc4aeed07a70b821cc21",
+    "branch": "paudley/2003-use-native-json-for-complete-affect",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2004,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2004 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABf4ftFg",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2004#issuecomment-6434581782",
+      "kind": "comment"
+    },
+    {
+      "id": "github:review:PRR_kwDOSwdn1s8AAAABUYYpSg",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2004#pullrequestreview-5662714186",
+      "kind": "review"
+    },
+    {
+      "id": "github:inline:PRRC_kwDOSwdn1s8AAAABBWTO6g",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2004#discussion_r4385459946",
+      "kind": "inline"
+    }
+  ],
+  "unresolved_threads": [
+    "PRRT_kwDOSwdn1s6wj9Y9"
+  ],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
