@@ -13,11 +13,6 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The codebook Merkle-root digest and the RDFC-1.0 content digest fold with blake3 — the
-# SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
-# an independent implementation reproduces the byte-exact digest.
-# Compact prepared dictionaries hydrate on browser targets without parsing source RDF.
-ciborium.workspace = true
 gmeow-errors = { path = "../errors" }
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
@@ -25,8 +20,11 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
+# The codebook Merkle-root digest and the RDFC-1.0 content digest fold with blake3 — the
+# SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
+# an independent implementation reproduces the byte-exact digest.
 purrdf-hash.workspace = true
-# Shared GMN verdict JSON uses the native record owner on host and browser targets.
+# GMN JSON records and prepared CBOR tables use the native codec owner.
 purrdf-lex.workspace = true
 serde.workspace = true
 sha2.workspace = true

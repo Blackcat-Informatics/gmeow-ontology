@@ -1647,7 +1647,6 @@ dependencies = [
 name = "gmeow-lang-bridge"
 version = "0.3.0"
 dependencies = [
- "ciborium",
  "gmeow-errors",
  "gmeow-lang-form",
  "gmeow-license",
