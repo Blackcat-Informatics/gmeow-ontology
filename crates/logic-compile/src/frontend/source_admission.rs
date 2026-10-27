@@ -117,7 +117,7 @@ impl SourceSelection {
     pub fn digest(&self) -> String {
         digest_bytes(
             b"gmeow-source-selection-v1\0",
-            &serde_json::to_vec(self).expect("SourceSelection serialization is infallible"),
+            &purrdf_lex::json::record::to_vec(self),
         )
     }
 }
@@ -1449,10 +1449,7 @@ fn source_digest(theory: &CompiledTheory) -> String {
         .source()
         .origins()
         .iter()
-        .map(|origin| {
-            serde_json::to_vec(&origin.document)
-                .expect("source document receipt serialization is infallible")
-        })
+        .map(|origin| purrdf_lex::json::record::to_vec(&origin.document))
         .collect();
     receipts.sort_unstable();
     for receipt in receipts {

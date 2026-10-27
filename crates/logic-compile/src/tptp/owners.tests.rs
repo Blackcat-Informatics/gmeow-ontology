@@ -44,6 +44,55 @@ fn excluded_owner_roots_remain_in_the_complete_admission_inventory() {
         assert_ne!(selected.selection_digest, admission.selection_digest);
         assert!(admission.matches(&theory));
     }
+
+    let documents = [
+        DocumentSelection::AnonymousSource,
+        DocumentSelection::Exact(BTreeSet::new()),
+        DocumentSelection::Exact(BTreeSet::from([
+            "z source\0中.ttl".to_owned(),
+            "a source.ttl".to_owned(),
+        ])),
+    ];
+    let roots = [
+        RootSelection::None,
+        RootSelection::All,
+        RootSelection::Exact(BTreeSet::new()),
+        RootSelection::Exact(BTreeSet::from([
+            "urn:root:z\0中".to_owned(),
+            "urn:root:a".to_owned(),
+        ])),
+    ];
+    let mut reference = include_str!("fixtures/source-selection-identities-v1.txt").lines();
+    for documents in documents {
+        for index in 0..roots.len() {
+            let selection = SourceSelection {
+                graph: crate::frontend::SourceGraphSelection::DefaultGraph,
+                documents: documents.clone(),
+                formulas: roots[index].clone(),
+                rules: roots[(index + 1) % roots.len()].clone(),
+                owners: roots[(index + 2) % roots.len()].clone(),
+            };
+            let preimage = purrdf_lex::json::record::to_vec(&selection);
+            let original_preimage = reference
+                .next()
+                .and_then(|line| line.strip_prefix("SELECTION_PREIMAGE="))
+                .expect("original complete selection preimage");
+            assert_eq!(preimage, original_preimage.as_bytes());
+            let original_digest = reference
+                .next()
+                .and_then(|line| line.strip_prefix("SELECTION_DIGEST="))
+                .expect("original actual selection digest");
+            assert_eq!(
+                selection.digest(),
+                original_digest,
+                "the exact selection preimage and hash domain are stable"
+            );
+        }
+    }
+    assert!(
+        reference.next().is_none(),
+        "complete original selection reference consumed"
+    );
 }
 
 #[test]
@@ -53,7 +102,10 @@ fn excluded_owner_documents_keep_their_source_receipt() {
         (
             "domain.ttl",
             "<https://example.org/s> <https://example.org/p> <https://example.org/o> .",
-            None,
+            Some(SourceBase {
+                iri: "https://example.org/source-base/中/".into(),
+                origin: SourceBaseOrigin::Caller,
+            }),
         ),
         ("contract.ttl", CONTRACT, None),
     ]);
@@ -73,6 +125,30 @@ fn excluded_owner_documents_keep_their_source_receipt() {
     assert_eq!(
         project_tptp_fof(&theory, &admission).status,
         FofProjectionStatus::Complete
+    );
+    let mut receipts: Vec<_> = theory
+        .source()
+        .origins()
+        .iter()
+        .map(|origin| purrdf_lex::json::record::to_vec(&origin.document))
+        .collect();
+    receipts.sort_unstable();
+    let mut reference = include_str!("fixtures/source-receipts-identity-v1.txt").lines();
+    for receipt in &receipts {
+        let original_receipt = reference
+            .next()
+            .and_then(|line| line.strip_prefix("RECEIPT_PREIMAGE="))
+            .expect("original complete sorted receipt preimage");
+        assert_eq!(receipt, original_receipt.as_bytes());
+    }
+    let original_source_digest = reference
+        .next()
+        .and_then(|line| line.strip_prefix("SOURCE_DIGEST="))
+        .expect("original actual whole-source digest");
+    assert_eq!(admission.source_digest, original_source_digest);
+    assert!(
+        reference.next().is_none(),
+        "complete original receipt reference consumed"
     );
 }
 
