@@ -1,13 +1,51 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Compiler diagnostic and portable source-description transport.
+//! Compiler diagnostic, portable source-description and selection transport.
 //! Wire severity differs from display severity tokens.
-use super::{Diagnostic, Severity, SourceBase, SourceBaseOrigin, SourceDocument};
+use super::{
+    Diagnostic, DocumentSelection, RootSelection, Severity, SourceBase, SourceBaseOrigin,
+    SourceDocument, SourceGraphSelection, SourceSelection,
+};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson},
 };
+
+impl ToJson for SourceGraphSelection {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::DefaultGraph => "DefaultGraph".to_json(),
+        }
+    }
+}
+
+impl ToJson for DocumentSelection {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::AnonymousSource => "AnonymousSource".to_json(),
+            Self::Exact(documents) => Object::new().with("Exact", documents.to_json()).into(),
+        }
+    }
+}
+
+impl ToJson for RootSelection {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::None => "None".to_json(),
+            Self::All => "All".to_json(),
+            Self::Exact(roots) => Object::new().with("Exact", roots.to_json()).into(),
+        }
+    }
+}
+
+::purrdf_lex::json_record!(impl ToJson for SourceSelection {
+    "graph" => graph,
+    "documents" => documents,
+    "formulas" => formulas,
+    "rules" => rules,
+    "owners" => owners,
+});
 
 ::purrdf_lex::json_record!(impl ToJson for SourceDocument {
     "path" => path,
