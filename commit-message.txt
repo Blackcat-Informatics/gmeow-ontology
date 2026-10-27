@@ -1,0 +1,5 @@
+refactor: use native JSON for complete GMN gate observations
+
+Move the complete five-record operation through native publication and
+fully authenticated hydration, sharing exact leg-pair admission with the
+grammar channel. Preserve original bytes and raw evidence. Principles 4 and 7.

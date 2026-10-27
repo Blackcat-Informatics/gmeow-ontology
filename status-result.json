@@ -1,0 +1,129 @@
+{
+  "issue": 2016,
+  "pr_number": 2017,
+  "branch": "paudley/2016-use-complete-native-json-for-gmn-gate",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2016-use-complete-native-json-for-gmn-gate/.stage/use-complete-native-json-for-gmn-gate",
+  "observed_at": "2026-10-27T10:46:11.714957+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2016-use-complete-native-json-for-gmn-gate/.stage/use-complete-native-json-for-gmn-gate/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2016-use-complete-native-json-for-gmn-gate/.stage/use-complete-native-json-for-gmn-gate/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2016-use-complete-native-json-for-gmn-gate/.stage/use-complete-native-json-for-gmn-gate/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2016-use-complete-native-json-for-gmn-gate/.stage/use-complete-native-json-for-gmn-gate/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2016-use-complete-native-json-for-gmn-gate/.stage/use-complete-native-json-for-gmn-gate/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "05a5a9490da92656ea6a7550813ad9a72c85329f",
+    "headRefName": "paudley/2016-use-complete-native-json-for-gmn-gate",
+    "headRefOid": "215f9e694759085a824d271ba80d80082bd6f5dc",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2017,
+    "state": "OPEN",
+    "title": "Use complete native JSON for GMN gate observations",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2017"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2017",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40490976295/job/122144523369",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40490976295/job/122144523748",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40490976295/job/122144523784",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40490976295/job/122144523754",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2017",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "215f9e694759085a824d271ba80d80082bd6f5dc",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "0c62bc4cb2d173fa78c1463a36f9179232703dae3214d77117e419bf44b8b9e2"
+  },
+  "local": {
+    "head": "215f9e694759085a824d271ba80d80082bd6f5dc",
+    "branch": "paudley/2016-use-complete-native-json-for-gmn-gate",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2017,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2017 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABf9m0BA",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2017#issuecomment-6439941124",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

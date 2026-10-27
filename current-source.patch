@@ -1,0 +1,641 @@
+diff --git a/crates/logic-compile/src/ir/correspondence_json.rs b/crates/logic-compile/src/ir/correspondence_json.rs
+index 27b342924..cfa65f46e 100644
+--- a/crates/logic-compile/src/ir/correspondence_json.rs
++++ b/crates/logic-compile/src/ir/correspondence_json.rs
+@@ -265,6 +265,26 @@ impl FromJson for AxisEvidence {
+     }
+ }
+ 
++impl LegPath {
++    /// Decode two ordered logical legs without normalizing either path.
++    ///
++    /// # Errors
++    /// Refuses nonarrays, rows of any other width and malformed paths, retaining
++    /// the native index of a failing leg.
++    pub fn pair_from_json(value: &Value) -> Result<(LegPath, LegPath), DecodeError> {
++        let cells = value
++            .as_array()
++            .ok_or_else(|| DecodeError::invalid_type(value, "two leg paths"))?;
++        if cells.len() != 2 {
++            return Err(DecodeError::invalid_value(value, "exactly two leg paths"));
++        }
++        Ok((
++            LegPath::from_json(&cells[0]).map_err(|error| error.within_index_native(0, None))?,
++            LegPath::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?,
++        ))
++    }
++}
++
+ impl ToJson for LegPath {
+     fn to_json(&self) -> Value {
+         match self {
+diff --git a/crates/pipeline/src/stages/gmn1_gate.rs b/crates/pipeline/src/stages/gmn1_gate.rs
+index 6c4848c46..7f3920354 100644
+--- a/crates/pipeline/src/stages/gmn1_gate.rs
++++ b/crates/pipeline/src/stages/gmn1_gate.rs
+@@ -8,6 +8,8 @@
+ //! the sources again. They describe the selected corpus, never an unrestricted
+ //! correspondence rewrite certificate.
+ 
++mod json;
++
+ use std::collections::{BTreeMap, BTreeSet};
+ use std::path::{Path, PathBuf};
+ 
+@@ -19,7 +21,6 @@ use gmeow_lang_bridge::{
+ };
+ use purrdf::slice::SliceCatalog;
+ use purrdf::{RdfDataset, RdfTerm, parse_dataset};
+-use serde::{Deserialize, Serialize};
+ 
+ /// The grounding slice directories this gate is total over (mirrors the
+ /// `axisGmn1Coverage` axis's own `slices/grounding/` scope, minus `kernel`: the kernel
+@@ -354,7 +355,7 @@ fn conformance_pack_rel(major: &str) -> String {
+ 
+ /// One `gmeow:GmnEnvelope` whose declared `gmeow:gmnCodebookDigest` does not equal the
+ /// codebook's recomputed Merkle root — a [`CLASS_GMN_CODEBOOK_DIGEST_MISMATCH`] discharge.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct Gmn1CodebookDigestMismatch {
+     /// The source file the envelope was read from.
+     pub source: String,
+@@ -377,7 +378,7 @@ impl Gmn1CodebookDigestMismatch {
+ /// [`check_gmn1_codebook_digest`]'s outcome: every envelope whose declared codebook digest
+ /// disagreed with the recomputed Merkle root. Empty ⇒ every checked envelope names the real
+ /// codebook frame.
+-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
++#[derive(Debug, Clone, Default, PartialEq, Eq)]
+ pub struct Gmn1CodebookDigestReport {
+     /// Every mismatching envelope, in a stable (source, envelope) order.
+     pub mismatches: Vec<Gmn1CodebookDigestMismatch>,
+@@ -514,7 +515,7 @@ pub fn check_gmn1_codebook_digest_on_gate(
+ /// [`check_gmn1_pack_root`]'s outcome: the recomputed conformance-pack Merkle root and, when a
+ /// pack is shipped, the root it declares. Clean ⇒ no pack (a no-op the fanout activates) OR a
+ /// shipped pack whose declared `gmeow:gmnPackRoot` byte-equals the recomputation.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct Gmn1PackRootReport {
+     /// The independently recomputed pack Merkle root (`pack_root` over the codebook digest, the
+     /// authored grammar, the sigil table, and the four materialized ecosystem-view leaves).
+diff --git a/crates/pipeline/src/stages/gmn1_gate/json.rs b/crates/pipeline/src/stages/gmn1_gate/json.rs
+new file mode 100644
+index 000000000..023db2d9b
+--- /dev/null
++++ b/crates/pipeline/src/stages/gmn1_gate/json.rs
+@@ -0,0 +1,61 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Native gate evidence transport; decoding does not recompute or classify reports.
++use super::{Gmn1CodebookDigestMismatch, Gmn1CodebookDigestReport, Gmn1PackRootReport};
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record},
++};
++
++::purrdf_lex::json_record!(impl ToJson for Gmn1CodebookDigestMismatch {
++    "source" => source,
++    "envelope" => envelope,
++    "declared" => declared,
++    "recomputed" => recomputed,
++});
++impl FromJson for Gmn1CodebookDigestMismatch {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Gmn1CodebookDigestMismatch")?;
++        Ok(Self {
++            source: fields.required("source")?,
++            envelope: fields.required("envelope")?,
++            declared: fields.required("declared")?,
++            recomputed: fields.required("recomputed")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for Gmn1CodebookDigestReport {
++    "mismatches" => mismatches,
++    "checked" => checked,
++});
++impl FromJson for Gmn1CodebookDigestReport {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Gmn1CodebookDigestReport")?;
++        Ok(Self {
++            mismatches: fields.required("mismatches")?,
++            checked: fields.required_with("checked", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize checked count")
++            })?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for Gmn1PackRootReport {
++    "recomputed_root" => recomputed_root,
++    "pack_present" => pack_present,
++    "declared_root" => declared_root,
++    "pack_rel" => pack_rel,
++});
++impl FromJson for Gmn1PackRootReport {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Gmn1PackRootReport")?;
++        Ok(Self {
++            recomputed_root: fields.required("recomputed_root")?,
++            pack_present: fields.required("pack_present")?,
++            declared_root: fields.optional("declared_root")?,
++            pack_rel: fields.required("pack_rel")?,
++        })
++    }
++}
+diff --git a/crates/pipeline/src/stages/lang_projection.rs b/crates/pipeline/src/stages/lang_projection.rs
+index 8a77b471c..5608a61a2 100644
+--- a/crates/pipeline/src/stages/lang_projection.rs
++++ b/crates/pipeline/src/stages/lang_projection.rs
+@@ -176,12 +176,7 @@ pub fn build_corpus(
+ 
+     if let Some(pack) = pack.finish(&input, catalog, &artifacts)? {
+         let gates = gates.finish(root, catalog, sources, &pack)?;
+-        artifacts.push((
+-            gmn_gate::CHANNEL.to_owned(),
+-            serde_json::to_vec(&gates).map_err(|error| {
+-                stage_err(format!("encode native GMN gate observations: {error}"))
+-            })?,
+-        ));
++        artifacts.push((gmn_gate::CHANNEL.to_owned(), gates.to_bytes()));
+         artifacts.push((
+             gmn_pack::CHANNEL.to_owned(),
+             serde_json::to_vec(&pack).map_err(|error| {
+diff --git a/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs b/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
+index 94629939f..a92634be4 100644
+--- a/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
++++ b/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
+@@ -125,21 +125,8 @@ fn load(root: &Path, selector_sha256: &str) -> Result<LanguageFixtures, gmeow_er
+     paths.extend(product_paths.values().map(String::as_str));
+     let mut artifacts = crate::fixture::authenticated_artifacts(root, STAGE, &paths)?;
+     let pack: gmn_pack::Observations = decode(&mut artifacts, gmn_pack::CHANNEL)?;
+-    let gates = decode(&mut artifacts, gmn_gate::CHANNEL)?;
+-    let grammar_bytes = artifacts
+-        .remove(grammar_observations::CHANNEL)
+-        .ok_or_else(|| {
+-            fail(format!(
+-                "authenticated language action omitted {}",
+-                grammar_observations::CHANNEL
+-            ))
+-        })?;
+-    let grammars = purrdf_lex::json::record::from_slice(&grammar_bytes).with_ctx(|| {
+-        format!(
+-            "native language observations {}",
+-            grammar_observations::CHANNEL
+-        )
+-    })?;
++    let gates = decode_native(&mut artifacts, gmn_gate::CHANNEL)?;
++    let grammars = decode_native(&mut artifacts, grammar_observations::CHANNEL)?;
+     if selected_major != Some(pack.major.as_str()) {
+         return Err(fail(
+             "native pack observations disagree with the selected artifact version",
+@@ -189,12 +176,28 @@ fn decode<T: DeserializeOwned>(
+     artifacts: &mut BTreeMap<String, Vec<u8>>,
+     path: &str,
+ ) -> Result<T, gmeow_errors::Diag> {
+-    let bytes = artifacts
+-        .remove(path)
+-        .ok_or_else(|| fail(format!("authenticated language action omitted {path}")))?;
++    let bytes = artifact_bytes(artifacts, path)?;
+     serde_json::from_slice(&bytes).with_ctx(|| format!("native language observations {path}"))
+ }
+ 
++fn decode_native<T: purrdf_lex::json::record::FromJson>(
++    artifacts: &mut BTreeMap<String, Vec<u8>>,
++    path: &str,
++) -> Result<T, gmeow_errors::Diag> {
++    let bytes = artifact_bytes(artifacts, path)?;
++    purrdf_lex::json::record::from_slice(&bytes)
++        .with_ctx(|| format!("native language observations {path}"))
++}
++
++fn artifact_bytes(
++    artifacts: &mut BTreeMap<String, Vec<u8>>,
++    path: &str,
++) -> Result<Vec<u8>, gmeow_errors::Diag> {
++    artifacts
++        .remove(path)
++        .ok_or_else(|| fail(format!("authenticated language action omitted {path}")))
++}
++
+ fn fail(message: impl Into<String>) -> gmeow_errors::Diag {
+     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+         stage: STAGE.to_owned(),
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_gate.rs b/crates/pipeline/src/stages/lang_projection/gmn_gate.rs
+index 11065e7e9..e000593a2 100644
+--- a/crates/pipeline/src/stages/lang_projection/gmn_gate.rs
++++ b/crates/pipeline/src/stages/lang_projection/gmn_gate.rs
+@@ -11,7 +11,7 @@ use gmeow_lang_bridge::registry::LangEmissionBatch;
+ use gmeow_logic_compile::ir::{Correspondence, LegPath};
+ use purrdf::slice::SliceCatalog;
+ use purrdf::{ContentDigest, RdfDataset, parse_dataset};
+-use serde::{Deserialize, Serialize};
++mod json;
+ 
+ use crate::stages::gmn1_gate::{
+     Gmn1CodebookDigestReport, Gmn1PackRootReport, check_gmn1_codebook_dataset,
+@@ -23,7 +23,6 @@ pub(crate) const CHANNEL: &str = "pipeline/gmn-gate-observations.json";
+ pub(crate) const NEGATIVE_SOURCE: &str =
+     "slices/grounding/lang/tests/gmn1-vectors/negative-graph/envelope-digest-mismatch.ttl";
+ 
+-#[derive(Serialize, Deserialize)]
+ pub(crate) struct Observations {
+     pub codebook: Gmn1CodebookDigestReport,
+     pub codebook_sources: Vec<String>,
+@@ -34,7 +33,6 @@ pub(crate) struct Observations {
+     pub shipped: BTreeMap<String, ShippedWitness>,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
+ pub(crate) struct ShippedWitness {
+     pub artifact_digest: String,
+     pub source_iri: String,
+@@ -49,6 +47,13 @@ pub(super) struct Recorder {
+     shipped: BTreeMap<String, ShippedWitness>,
+ }
+ 
++impl Observations {
++    /// Publish the complete compact gate channel without a terminal newline.
++    pub(super) fn to_bytes(&self) -> Vec<u8> {
++        purrdf_lex::json::record::to_vec(self)
++    }
++}
++
+ impl Recorder {
+     pub(super) fn record(
+         &mut self,
+@@ -186,3 +191,6 @@ impl Recorder {
+         })
+     }
+ }
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_gate/fixtures/channel-v1.json b/crates/pipeline/src/stages/lang_projection/gmn_gate/fixtures/channel-v1.json
+new file mode 100644
+index 000000000..be1bdb39c
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/gmn_gate/fixtures/channel-v1.json
+@@ -0,0 +1 @@
++{"codebook":{"mismatches":[],"checked":1},"codebook_sources":["z","a","z"],"negative":{"mismatches":[{"source":"raw\u0000 source 中😀","envelope":"urn:test:envelope:a","declared":"stale-a","recomputed":"expected"},{"source":"raw\u0000 source 中😀","envelope":"urn:test:envelope:z","declared":"stale-z","recomputed":"expected"}],"checked":2},"negative_source_digest":"uninterpreted-source-digest","pack":{"recomputed_root":"recomputed-root","pack_present":true,"declared_root":"declared-root","pack_rel":"generated/projections/lang/gmn1/vraw-major/conformance-pack.ttl"},"pack_artifact_digest":"uninterpreted-pack-digest","shipped":{"a/opaque.gmn":{"artifact_digest":"not-a-normalized-digest","source_iri":"urn:test:source","correspondence":{"iri":"urn:test:correspondence","relation":"RelatedMatch","morphism_class":"BridgeView","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":null,"put_leg":"raw","law_claims":[],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"leg_pair":[{"Seq":[{"Step":"raw\u0000 path 中😀"},{"Step":"raw\u0000 path 中😀"}]},{"Inverse":{"Alt":[]}}],"round_trip_holds":false},"z/opaque.gmn":{"artifact_digest":"raw\u0000 digest 中😀","source_iri":"","correspondence":{"iri":"urn:test:correspondence","relation":"RelatedMatch","morphism_class":"BridgeView","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":null,"put_leg":"raw","law_claims":[],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"leg_pair":null,"round_trip_holds":false}}}
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_gate/json.rs b/crates/pipeline/src/stages/lang_projection/gmn_gate/json.rs
+new file mode 100644
+index 000000000..48e748778
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/gmn_gate/json.rs
+@@ -0,0 +1,54 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Native gate evidence transport; decoding does not recompute or classify reports.
++use super::{Observations, ShippedWitness};
++use gmeow_logic_compile::ir::LegPath;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record},
++};
++
++::purrdf_lex::json_record!(impl ToJson for Observations {
++    "codebook" => codebook,
++    "codebook_sources" => codebook_sources,
++    "negative" => negative,
++    "negative_source_digest" => negative_source_digest,
++    "pack" => pack,
++    "pack_artifact_digest" => pack_artifact_digest,
++    "shipped" => shipped,
++});
++impl FromJson for Observations {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observations")?;
++        Ok(Self {
++            codebook: fields.required("codebook")?,
++            codebook_sources: fields.required("codebook_sources")?,
++            negative: fields.required("negative")?,
++            negative_source_digest: fields.required("negative_source_digest")?,
++            pack: fields.required("pack")?,
++            pack_artifact_digest: fields.required("pack_artifact_digest")?,
++            shipped: fields.required("shipped")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for ShippedWitness {
++    "artifact_digest" => artifact_digest,
++    "source_iri" => source_iri,
++    "correspondence" => correspondence,
++    "leg_pair" => leg_pair,
++    "round_trip_holds" => round_trip_holds,
++});
++impl FromJson for ShippedWitness {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ShippedWitness")?;
++        Ok(Self {
++            artifact_digest: fields.required("artifact_digest")?,
++            source_iri: fields.required("source_iri")?,
++            correspondence: fields.required("correspondence")?,
++            leg_pair: fields.optional_with("leg_pair", LegPath::pair_from_json)?,
++            round_trip_holds: fields.required("round_trip_holds")?,
++        })
++    }
++}
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_gate/tests.rs b/crates/pipeline/src/stages/lang_projection/gmn_gate/tests.rs
+new file mode 100644
+index 000000000..33799f889
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/gmn_gate/tests.rs
+@@ -0,0 +1,261 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Independently authored gate evidence; no catalog, recorder finish or corpus access.
++use super::*;
++use purrdf_lex::json::record::{ToJson, from_slice, to_vec};
++
++fn authored_observations() -> Observations {
++    let positive = parse_dataset(
++        br#"@prefix g: <https://blackcatinformatics.ca/gmeow/> .
++            <urn:test:envelope:match> a g:GmnEnvelope; g:gmnCodebookDigest "expected" ."#,
++        "text/turtle",
++        None,
++    )
++    .expect("independently authored RDF must parse");
++    let negative = parse_dataset(
++        br#"@prefix g: <https://blackcatinformatics.ca/gmeow/> .
++            <urn:test:envelope:z> a g:GmnEnvelope; g:gmnCodebookDigest "stale-z" .
++            <urn:test:envelope:a> a g:GmnEnvelope; g:gmnCodebookDigest "stale-a" ."#,
++        "text/turtle",
++        None,
++    )
++    .expect("independently authored RDF must parse");
++    let pack = parse_dataset(
++        br#"<urn:test:pack> <https://blackcatinformatics.ca/gmeow/gmnPackRoot> "declared-root" ."#,
++        "text/turtle",
++        None,
++    )
++    .expect("independently authored RDF must parse");
++    let correspondence: Correspondence = from_slice(
++        br#"{
++        "iri":"urn:test:correspondence", "relation":"RelatedMatch",
++        "morphism_class":"BridgeView", "morphism_kind":"CommitmentShiftingBridge",
++        "mnemomorphic":false, "determinacy":null, "get_leg":null, "put_leg":"raw",
++        "law_claims":[], "caveats":[], "loss_evidence":[],
++        "confidence":null, "evidence_strength":null,
++        "axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},
++        "weight":null, "probability":null, "according_to":null, "preservation":null,
++        "source_endpoint":null, "target_endpoint":null, "grounding":false,
++        "recovery_cases":[]
++    }"#,
++    )
++    .expect("authored correspondence must hydrate without source compilation");
++    let mut shipped = BTreeMap::new();
++    shipped.insert(
++        "z/opaque.gmn".to_owned(),
++        ShippedWitness {
++            artifact_digest: "raw\0 digest 中😀".to_owned(),
++            source_iri: "".to_owned(),
++            correspondence: correspondence.clone(),
++            leg_pair: None,
++            round_trip_holds: false,
++        },
++    );
++    shipped.insert(
++        "a/opaque.gmn".to_owned(),
++        ShippedWitness {
++            artifact_digest: "not-a-normalized-digest".to_owned(),
++            source_iri: "urn:test:source".to_owned(),
++            correspondence,
++            leg_pair: Some((
++                LegPath::Seq(vec![
++                    LegPath::Step("raw\0 path 中😀".to_owned()),
++                    LegPath::Step("raw\0 path 中😀".to_owned()),
++                ]),
++                LegPath::Inverse(Box::new(LegPath::Alt(vec![]))),
++            )),
++            round_trip_holds: false,
++        },
++    );
++    Observations {
++        codebook: check_gmn1_codebook_dataset("expected", "positive", &positive),
++        codebook_sources: vec!["z".to_owned(), "a".to_owned(), "z".to_owned()],
++        negative: check_gmn1_codebook_dataset("expected", "raw\0 source 中😀", &negative),
++        negative_source_digest: "uninterpreted-source-digest".to_owned(),
++        pack: compare_gmn1_pack_root("recomputed-root".to_owned(), "raw-major", Some(&pack)),
++        pack_artifact_digest: "uninterpreted-pack-digest".to_owned(),
++        shipped,
++    }
++}
++
++#[test]
++fn native_gmn_gate_wire_preserves_complete_original_channel() {
++    let observations = authored_observations();
++    assert_eq!(observations.codebook.checked, 1);
++    assert!(observations.codebook.is_clean());
++    assert_eq!(observations.negative.checked, 2);
++    assert_eq!(observations.negative.mismatches.len(), 2);
++    assert!(!observations.negative.is_clean());
++    assert!(!observations.pack.is_clean());
++    let bytes = observations.to_bytes();
++    let original = include_bytes!("fixtures/channel-v1.json")
++        .strip_suffix(b"\n")
++        .expect("reference stores one terminal LF outside the original JSON");
++    assert_eq!(bytes, original, "complete original gate-channel encoding");
++    assert!(!bytes.ends_with(b"\n"));
++    let decoded: Observations =
++        from_slice(&bytes).expect("complete native gate channel must hydrate");
++    assert_eq!(decoded.to_bytes(), bytes);
++    assert_eq!(decoded.codebook_sources, ["z", "a", "z"]);
++    assert!(!decoded.shipped["z/opaque.gmn"].round_trip_holds);
++    assert!(decoded.shipped["z/opaque.gmn"].leg_pair.is_none());
++    assert!(decoded.shipped["a/opaque.gmn"].leg_pair.is_some());
++    assert_eq!(decoded.negative.mismatches[0].source, "raw\0 source 中😀");
++}
++
++#[test]
++fn native_gmn_gate_admission_preserves_raw_evidence_and_refuses_invalid_members() {
++    let mut observations = authored_observations();
++    observations.negative.mismatches.reverse();
++    observations
++        .negative
++        .mismatches
++        .push(observations.negative.mismatches[0].clone());
++    observations.negative.checked = 0;
++    observations.pack.pack_present = false;
++    // These deliberately contradictory observations are data, not a request to rerun the gate.
++    let bytes = observations.to_bytes();
++    let decoded: Observations = from_slice(&bytes).expect("raw gate evidence must not be repaired");
++    assert_eq!(decoded.to_bytes(), bytes);
++    assert_eq!(decoded.negative.checked, 0);
++    assert_eq!(
++        decoded
++            .negative
++            .mismatches
++            .iter()
++            .map(|row| row.envelope.as_str())
++            .collect::<Vec<_>>(),
++        [
++            "urn:test:envelope:z",
++            "urn:test:envelope:a",
++            "urn:test:envelope:z"
++        ]
++    );
++    assert!(!decoded.pack.pack_present);
++    assert_eq!(decoded.pack.declared_root.as_deref(), Some("declared-root"));
++    let wire = String::from_utf8(bytes).expect("JSON publication is UTF-8");
++    let future = wire
++        .replacen("{", r#"{"future":[],"#, 1)
++        .replace(r#""codebook":{"#, r#""codebook":{"future":null,"#)
++        .replace(r#"{"source":"#, r#"{"future":false,"source":"#)
++        .replace(r#""pack":{"#, r#""pack":{"future":{},"#)
++        .replace(
++            r#"{"artifact_digest":"#,
++            r#"{"future":0,"artifact_digest":"#,
++        );
++    assert!(from_slice::<Observations>(future.as_bytes()).is_ok());
++    for count in ["-0", "-1", "1.0", "1e0", "18446744073709551616", "null"] {
++        let bad = wire.replacen(r#""checked":1"#, &format!(r#""checked":{count}"#), 1);
++        assert_ne!(
++            bad, wire,
++            "count mutation must reach the actual report field"
++        );
++        assert!(
++            from_slice::<Observations>(bad.as_bytes()).is_err(),
++            "{count}"
++        );
++    }
++    for bad in [
++        wire.replace(r#""codebook_sources":["z","a","z"],"#, ""),
++        wire.replace(
++            r#""codebook_sources":["z","a","z"]"#,
++            r#""codebook_sources":null"#,
++        ),
++        wire.replacen(
++            r#""codebook":{"mismatches":[],"checked":1}"#,
++            r#""codebook":null"#,
++            1,
++        ),
++        wire.replace(r#""pack_present":false"#, r#""pack_present":null"#),
++        wire.replace(r#""round_trip_holds":false"#, r#""round_trip_holds":null"#),
++        wire.replacen(r#""mismatches":[]"#, r#""mismatches":null"#, 1),
++        "[]".to_owned(),
++    ] {
++        assert_ne!(
++            bad, wire,
++            "record mutation must reach its intended boundary"
++        );
++        assert!(from_slice::<Observations>(bad.as_bytes()).is_err(), "{bad}");
++    }
++    // Both duplicate occurrences are individually valid, so refusal proves named-field uniqueness.
++    for bad in [
++        wire.replacen(
++            r#""codebook_sources":"#,
++            r#""codebook_sources":[],"codebook_sources":"#,
++            1,
++        ),
++        wire.replacen(r#""checked":1"#, r#""checked":0,"checked":1"#, 1),
++        wire.replacen(r#""envelope":"#, r#""source":"duplicate","envelope":"#, 1),
++        wire.replacen(
++            r#""pack_present":false"#,
++            r#""pack_present":true,"pack_present":false"#,
++            1,
++        ),
++        wire.replacen(
++            r#""round_trip_holds":false"#,
++            r#""round_trip_holds":true,"round_trip_holds":false"#,
++            1,
++        ),
++    ] {
++        let error = from_slice::<Observations>(bad.as_bytes())
++            .err()
++            .expect("duplicate known field must fail");
++        assert!(error.to_string().contains("duplicate field"), "{error}");
++    }
++    for optional in [
++        wire.replace(r#""declared_root":"declared-root","#, ""),
++        wire.replace(
++            r#""declared_root":"declared-root""#,
++            r#""declared_root":null"#,
++        ),
++    ] {
++        let decoded: Observations =
++            from_slice(optional.as_bytes()).expect("missing/null root is absent");
++        assert!(decoded.pack.declared_root.is_none());
++    }
++    let witness = &observations.shipped["a/opaque.gmn"];
++    let witness_wire = String::from_utf8(to_vec(witness)).expect("witness JSON is UTF-8");
++    let pair = format!(
++        r#""leg_pair":{},"#,
++        purrdf_lex::json::write_compact(&witness.leg_pair.to_json())
++    );
++    assert!(witness_wire.contains(&pair));
++    for optional in [
++        witness_wire.replace(&pair, ""),
++        witness_wire.replace(&pair, r#""leg_pair":null,"#),
++    ] {
++        assert!(
++            from_slice::<ShippedWitness>(optional.as_bytes())
++                .expect("missing/null legs are absent")
++                .leg_pair
++                .is_none()
++        );
++    }
++    for invalid in [
++        "[]",
++        r#"[{"Step":"p"}]"#,
++        r#"[{"Step":"p"},{"Step":"q"},{"Step":"r"}]"#,
++    ] {
++        let bad = witness_wire.replace(&pair, &format!(r#""leg_pair":{invalid},"#));
++        assert!(
++            from_slice::<ShippedWitness>(bad.as_bytes()).is_err(),
++            "{bad}"
++        );
++    }
++    let bad = witness_wire.replace(&pair, r#""leg_pair":[{"Step":false},{"Step":"q"}],"#);
++    let error = from_slice::<ShippedWitness>(bad.as_bytes())
++        .err()
++        .expect("malformed first leg must fail");
++    assert_eq!(error.pointer(), "/leg_pair/0/Step");
++    let second_witness = witness_wire.replace("not-a-normalized-digest", "second");
++    let last_wins = format!(
++        r#"{{"codebook":{{"mismatches":[],"checked":0}},"codebook_sources":[],"negative":{{"mismatches":[],"checked":0}},"negative_source_digest":"raw","pack":{{"recomputed_root":"raw","pack_present":false,"pack_rel":"raw"}},"pack_artifact_digest":"raw","shipped":{{"x":{witness_wire},"x":{second_witness}}}}}"#
++    );
++    let decoded: Observations =
++        from_slice(last_wins.as_bytes()).expect("valid duplicate map values retain the last");
++    assert_eq!(decoded.shipped.len(), 1);
++    assert_eq!(decoded.shipped["x"].artifact_digest, "second");
++    let shadowed = last_wins.replacen(&format!(r#""x":{witness_wire}"#), r#""x":null"#, 1);
++    assert!(from_slice::<Observations>(shadowed.as_bytes()).is_err());
++}
+diff --git a/crates/pipeline/src/stages/lang_projection/grammar_observations/json.rs b/crates/pipeline/src/stages/lang_projection/grammar_observations/json.rs
+index 52d213963..688213526 100644
+--- a/crates/pipeline/src/stages/lang_projection/grammar_observations/json.rs
++++ b/crates/pipeline/src/stages/lang_projection/grammar_observations/json.rs
+@@ -32,18 +32,7 @@ fn outcome_to_json(result: &Result<Grammar, IngestDiagnostic>) -> Value {
+         Err(value) => Object::new().with("Err", value.to_json()).into(),
+     }
+ }
+-fn read_leg_pair(value: &Value) -> Result<(LegPath, LegPath), DecodeError> {
+-    let cells = value
+-        .as_array()
+-        .ok_or_else(|| DecodeError::invalid_type(value, "two leg paths"))?;
+-    if cells.len() != 2 {
+-        return Err(DecodeError::invalid_value(value, "exactly two leg paths"));
+-    }
+-    Ok((
+-        LegPath::from_json(&cells[0]).map_err(|error| error.within_index_native(0, None))?,
+-        LegPath::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?,
+-    ))
+-}
++
+ ::purrdf_lex::json_record!(impl ToJson for Observations { "grammars" => grammars });
+ impl FromJson for Observations {
+     fn from_json(value: &Value) -> Result<Self, DecodeError> {
+@@ -99,7 +88,7 @@ impl FromJson for Emission {
+         let mut fields = Record::new(value, "struct Emission")?;
+         Ok(Self {
+             correspondence: fields.required("correspondence")?,
+-            leg_pair: fields.optional_with("leg_pair", read_leg_pair)?,
++            leg_pair: fields.optional_with("leg_pair", LegPath::pair_from_json)?,
+             round_trip_holds: fields.required("round_trip_holds")?,
+             lossy_kind: fields.required("lossy_kind")?,
+             unsupported: fields.required("unsupported")?,
