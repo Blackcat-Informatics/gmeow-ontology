@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2014,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar",
+  "branch": "paudley/2014-use-complete-native-json-for-grammar",
+  "slug": "use-complete-native-json-for-grammar",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "ed1aeb641e49852d4d82fbf8de3c8a6194741574",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar",
+    "branch:paudley/2014-use-complete-native-json-for-grammar",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-27T03:11:16-0600"
+}

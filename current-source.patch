@@ -1,0 +1,1066 @@
+diff --git a/crates/lang-bridge/src/observation_json.rs b/crates/lang-bridge/src/observation_json.rs
+index 6b29cd13a..80729ce9a 100644
+--- a/crates/lang-bridge/src/observation_json.rs
++++ b/crates/lang-bridge/src/observation_json.rs
+@@ -5,7 +5,7 @@
+ use crate::bridge::{IngestDiagnostic, LangFailure};
+ use crate::gmn1_codec::{Gmn1ConstructCategory, Gmn1Error, QuadCoverage, UncoveredTerm};
+ use crate::gmn1_witness::StandaloneReport;
+-use crate::grammar::{GrammarRule, RuleExpr};
++use crate::grammar::{Formalism, Grammar, GrammarRule, RuleExpr};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson, Within as _},
+@@ -393,5 +393,44 @@ impl FromJson for RuleExpr {
+         decode().map_err(|error| error.within(tag))
+     }
+ }
++impl ToJson for Formalism {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Ebnf => "Ebnf",
++            Self::Abnf => "Abnf",
++            Self::Gbnf => "Gbnf",
++            Self::Lark => "Lark",
++        }
++        .to_json()
++    }
++}
++impl FromJson for Formalism {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "Formalism")? {
++            "Ebnf" => Ok(Self::Ebnf),
++            "Abnf" => Ok(Self::Abnf),
++            "Gbnf" => Ok(Self::Gbnf),
++            "Lark" => Ok(Self::Lark),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Ebnf", "Abnf", "Gbnf", "Lark"],
++            )),
++        }
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for Grammar {
++    "formalism" => formalism,
++    "rules" => rules,
++});
++impl FromJson for Grammar {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Grammar")?;
++        Ok(Self {
++            formalism: fields.required("formalism")?,
++            rules: fields.required("rules")?,
++        })
++    }
++}
++
+ #[cfg(test)]
+ mod tests;
+diff --git a/crates/logic-compile/src/ir.rs b/crates/logic-compile/src/ir.rs
+index 5909f08dd..4240dd600 100644
+--- a/crates/logic-compile/src/ir.rs
++++ b/crates/logic-compile/src/ir.rs
+@@ -18,6 +18,7 @@
+ //! atomic term algebra. Their framed keys bind object kind and every RDF literal
+ //! component; contextual scope is bound separately by the complete content key.
+ 
++mod correspondence_json;
+ mod json;
+ 
+ use std::collections::{BTreeMap, BTreeSet};
+diff --git a/crates/logic-compile/src/ir/correspondence_json.rs b/crates/logic-compile/src/ir/correspondence_json.rs
+new file mode 100644
+index 000000000..27b342924
+--- /dev/null
++++ b/crates/logic-compile/src/ir/correspondence_json.rs
+@@ -0,0 +1,379 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete correspondence evidence transport; hydration does not reconstruct claims.
++
++use super::{
++    AxisEvidence, Correspondence, CorrespondenceCaveat, CorrespondenceLaw, CorrespondenceRelation,
++    Determinacy, DischargeCondition, DischargeVerdict, LawClaimIr, LegPath, MorphismClass,
++    MorphismKind, RecoveryCaseIr, literal_serde,
++};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++
++impl ToJson for CorrespondenceRelation {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Equiv => "Equiv",
++            Self::Subsumes => "Subsumes",
++            Self::SubsumedBy => "SubsumedBy",
++            Self::Overlaps => "Overlaps",
++            Self::RelatedMatch => "RelatedMatch",
++            Self::Disjoint => "Disjoint",
++        }
++        .to_json()
++    }
++}
++impl FromJson for CorrespondenceRelation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "CorrespondenceRelation")? {
++            "Equiv" => Ok(Self::Equiv),
++            "Subsumes" => Ok(Self::Subsumes),
++            "SubsumedBy" => Ok(Self::SubsumedBy),
++            "Overlaps" => Ok(Self::Overlaps),
++            "RelatedMatch" => Ok(Self::RelatedMatch),
++            "Disjoint" => Ok(Self::Disjoint),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "Equiv",
++                    "Subsumes",
++                    "SubsumedBy",
++                    "Overlaps",
++                    "RelatedMatch",
++                    "Disjoint",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for MorphismClass {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Isomorphism => "Isomorphism",
++            Self::SectionRetraction => "SectionRetraction",
++            Self::WellBehavedLens => "WellBehavedLens",
++            Self::LossyLens => "LossyLens",
++            Self::Prism => "Prism",
++            Self::AffineCorrespondence => "AffineCorrespondence",
++            Self::BridgeView => "BridgeView",
++        }
++        .to_json()
++    }
++}
++impl FromJson for MorphismClass {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "MorphismClass")? {
++            "Isomorphism" => Ok(Self::Isomorphism),
++            "SectionRetraction" => Ok(Self::SectionRetraction),
++            "WellBehavedLens" => Ok(Self::WellBehavedLens),
++            "LossyLens" => Ok(Self::LossyLens),
++            "Prism" => Ok(Self::Prism),
++            "AffineCorrespondence" => Ok(Self::AffineCorrespondence),
++            "BridgeView" => Ok(Self::BridgeView),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "Isomorphism",
++                    "SectionRetraction",
++                    "WellBehavedLens",
++                    "LossyLens",
++                    "Prism",
++                    "AffineCorrespondence",
++                    "BridgeView",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for MorphismKind {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::InstitutionMorphism => "InstitutionMorphism",
++            Self::CommitmentShiftingBridge => "CommitmentShiftingBridge",
++        }
++        .to_json()
++    }
++}
++impl FromJson for MorphismKind {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "MorphismKind")? {
++            "InstitutionMorphism" => Ok(Self::InstitutionMorphism),
++            "CommitmentShiftingBridge" => Ok(Self::CommitmentShiftingBridge),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["InstitutionMorphism", "CommitmentShiftingBridge"],
++            )),
++        }
++    }
++}
++
++impl ToJson for Determinacy {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Crisp => "Crisp",
++            Self::Vague => "Vague",
++        }
++        .to_json()
++    }
++}
++impl FromJson for Determinacy {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "Determinacy")? {
++            "Crisp" => Ok(Self::Crisp),
++            "Vague" => Ok(Self::Vague),
++            name => Err(DecodeError::unknown_variant(name, &["Crisp", "Vague"])),
++        }
++    }
++}
++
++impl ToJson for CorrespondenceLaw {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::GetPut => "GetPut",
++            Self::PutGet => "PutGet",
++            Self::PutPut => "PutPut",
++            Self::SectionLaw => "SectionLaw",
++        }
++        .to_json()
++    }
++}
++impl FromJson for CorrespondenceLaw {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "CorrespondenceLaw")? {
++            "GetPut" => Ok(Self::GetPut),
++            "PutGet" => Ok(Self::PutGet),
++            "PutPut" => Ok(Self::PutPut),
++            "SectionLaw" => Ok(Self::SectionLaw),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["GetPut", "PutGet", "PutPut", "SectionLaw"],
++            )),
++        }
++    }
++}
++
++impl ToJson for DischargeVerdict {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::ObligationDischarged => "ObligationDischarged",
++            Self::ObligationUnknown => "ObligationUnknown",
++            Self::ObligationViolated => "ObligationViolated",
++        }
++        .to_json()
++    }
++}
++impl FromJson for DischargeVerdict {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "DischargeVerdict")? {
++            "ObligationDischarged" => Ok(Self::ObligationDischarged),
++            "ObligationUnknown" => Ok(Self::ObligationUnknown),
++            "ObligationViolated" => Ok(Self::ObligationViolated),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "ObligationDischarged",
++                    "ObligationUnknown",
++                    "ObligationViolated",
++                ],
++            )),
++        }
++    }
++}
++
++impl ToJson for DischargeCondition {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::DischargeCertifiedFragment => "DischargeCertifiedFragment",
++            Self::DischargeFiniteClosure => "DischargeFiniteClosure",
++            Self::DischargeSyntacticReachability => "DischargeSyntacticReachability",
++            Self::DischargeConservativeExtension => "DischargeConservativeExtension",
++            Self::DischargeBoundedCorpus => "DischargeBoundedCorpus",
++        }
++        .to_json()
++    }
++}
++impl FromJson for DischargeCondition {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "DischargeCondition")? {
++            "DischargeCertifiedFragment" => Ok(Self::DischargeCertifiedFragment),
++            "DischargeFiniteClosure" => Ok(Self::DischargeFiniteClosure),
++            "DischargeSyntacticReachability" => Ok(Self::DischargeSyntacticReachability),
++            "DischargeConservativeExtension" => Ok(Self::DischargeConservativeExtension),
++            "DischargeBoundedCorpus" => Ok(Self::DischargeBoundedCorpus),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "DischargeCertifiedFragment",
++                    "DischargeFiniteClosure",
++                    "DischargeSyntacticReachability",
++                    "DischargeConservativeExtension",
++                    "DischargeBoundedCorpus",
++                ],
++            )),
++        }
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for LawClaimIr {
++    "law" => law,
++    "verdict" => verdict,
++    "condition" => condition,
++});
++impl FromJson for LawClaimIr {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct LawClaimIr")?;
++        Ok(Self {
++            law: fields.required("law")?,
++            verdict: fields.required("verdict")?,
++            condition: fields.optional("condition")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for RecoveryCaseIr {
++    "iri" => iri,
++    "transform" => transform,
++});
++impl FromJson for RecoveryCaseIr {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct RecoveryCaseIr")?;
++        Ok(Self {
++            iri: fields.required("iri")?,
++            transform: fields.required("transform")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for AxisEvidence {
++    "sources" => sources,
++    "scale" => scale,
++    "probability_model" => probability_model,
++});
++impl FromJson for AxisEvidence {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct AxisEvidence")?;
++        Ok(Self {
++            sources: fields.required("sources")?,
++            scale: fields.optional("scale")?,
++            probability_model: fields.optional("probability_model")?,
++        })
++    }
++}
++
++impl ToJson for LegPath {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Step(value) => Object::new().with("Step", value.to_json()).into(),
++            Self::Inverse(value) => Object::new().with("Inverse", value.to_json()).into(),
++            Self::Seq(value) => Object::new().with("Seq", value.to_json()).into(),
++            Self::Alt(value) => Object::new().with("Alt", value.to_json()).into(),
++        }
++    }
++}
++impl FromJson for LegPath {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "LegPath", "one LegPath variant")?;
++        let decoded = match tag {
++            "Step" => String::from_json(payload).map(Self::Step),
++            "Inverse" => Self::from_json(payload).map(|value| Self::Inverse(Box::new(value))),
++            "Seq" => Vec::<Self>::from_json(payload).map(Self::Seq),
++            "Alt" => Vec::<Self>::from_json(payload).map(Self::Alt),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Step", "Inverse", "Seq", "Alt"],
++            )),
++        };
++        decoded.map_err(|error| error.within(tag))
++    }
++}
++impl ToJson for CorrespondenceCaveat {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("iri", self.iri.to_json())
++            .with("comments", literal_serde::to_json(&self.comments))
++            .into()
++    }
++}
++impl FromJson for CorrespondenceCaveat {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct CorrespondenceCaveat")?;
++        Ok(Self {
++            iri: fields.required("iri")?,
++            comments: fields.required_with("comments", |value| {
++                let comments = literal_serde::from_json_set(value)?;
++                if comments.is_empty() {
++                    return Err(DecodeError::custom(
++                        "a correspondence caveat requires at least one comment",
++                    ));
++                }
++                Ok(comments)
++            })?,
++        })
++    }
++}
++impl ToJson for Correspondence {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("iri", self.iri.to_json())
++            .with("relation", self.relation.to_json())
++            .with("morphism_class", self.morphism_class.to_json())
++            .with("morphism_kind", self.morphism_kind.to_json())
++            .with("mnemomorphic", self.mnemomorphic.to_json())
++            .with("determinacy", self.determinacy.to_json())
++            .with("get_leg", self.get_leg.to_json())
++            .with("put_leg", self.put_leg.to_json())
++            .with("law_claims", self.law_claims.to_json())
++            .with("caveats", self.caveats.to_json())
++            .with("loss_evidence", literal_serde::to_json(&self.loss_evidence))
++            .with("confidence", self.confidence.to_json())
++            .with("evidence_strength", self.evidence_strength.to_json())
++            .with("axis_evidence", self.axis_evidence.to_json())
++            .with("weight", self.weight.to_json())
++            .with("probability", self.probability.to_json())
++            .with("according_to", self.according_to.to_json())
++            .with("preservation", self.preservation.to_json())
++            .with("source_endpoint", self.source_endpoint.to_json())
++            .with("target_endpoint", self.target_endpoint.to_json())
++            .with("grounding", self.grounding.to_json())
++            .with("recovery_cases", self.recovery_cases.to_json())
++            .into()
++    }
++}
++impl FromJson for Correspondence {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Correspondence")?;
++        Ok(Self {
++            iri: fields.required("iri")?,
++            relation: fields.required("relation")?,
++            morphism_class: fields.required("morphism_class")?,
++            morphism_kind: fields.required("morphism_kind")?,
++            mnemomorphic: fields.required("mnemomorphic")?,
++            determinacy: fields.optional("determinacy")?,
++            get_leg: fields.optional("get_leg")?,
++            put_leg: fields.optional("put_leg")?,
++            law_claims: fields.required("law_claims")?,
++            caveats: fields.required("caveats")?,
++            loss_evidence: fields.required_with("loss_evidence", literal_serde::from_json_set)?,
++            confidence: fields.optional("confidence")?,
++            evidence_strength: fields.optional("evidence_strength")?,
++            axis_evidence: fields.required("axis_evidence")?,
++            weight: fields.optional("weight")?,
++            probability: fields.optional("probability")?,
++            according_to: fields.optional("according_to")?,
++            preservation: fields.optional("preservation")?,
++            source_endpoint: fields.optional("source_endpoint")?,
++            target_endpoint: fields.optional("target_endpoint")?,
++            grounding: fields.required("grounding")?,
++            recovery_cases: fields.required("recovery_cases")?,
++        })
++    }
++}
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/logic-compile/src/ir/correspondence_json/tests.rs b/crates/logic-compile/src/ir/correspondence_json/tests.rs
+new file mode 100644
+index 000000000..aa63ac95a
+--- /dev/null
++++ b/crates/logic-compile/src/ir/correspondence_json/tests.rs
+@@ -0,0 +1,132 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Authored evidence transport; no source loading or execution.
++use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const WIRE: &str = r#"{"iri":"","relation":"Equiv","morphism_class":"LossyLens","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":"","put_leg":null,"law_claims":[{"law":"SectionLaw","verdict":"ObligationUnknown","condition":null},{"law":"GetPut","verdict":"ObligationViolated","condition":"DischargeBoundedCorpus"},{"law":"SectionLaw","verdict":"ObligationUnknown","condition":null}],"caveats":[{"iri":"","comments":[["note","http://www.w3.org/1999/02/22-rdf-syntax-ns#langString","EN",null],["note","http://www.w3.org/1999/02/22-rdf-syntax-ns#langString","en",null]]}],"loss_evidence":[],"confidence":["0.90","http://www.w3.org/2001/XMLSchema#decimal",null,null],"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":"","probability_model":null},"weight":["-2.5","http://www.w3.org/2001/XMLSchema#decimal",null,null],"probability":null,"according_to":"","preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[{"iri":"","transform":{"And":[]}}]}"#;
++
++#[test]
++fn native_correspondence_preserves_complete_wire_and_raw_evidence() {
++    let native: Correspondence = from_slice(WIRE.as_bytes()).unwrap();
++    let retained: Correspondence = serde_json::from_str(WIRE).unwrap();
++    assert_eq!(native, retained);
++    assert_eq!(to_vec(&native), serde_json::to_vec(&retained).unwrap());
++    assert_eq!(native.axis_evidence.sources, ["z", "a", "z"]);
++    assert_eq!(native.law_claims.len(), 3);
++    assert_eq!(native.law_claims[0], native.law_claims[2]);
++    assert_eq!(native.caveats[0].comments.len(), 1);
++    assert_eq!(
++        native.caveats[0].comments[0].language.as_deref(),
++        Some("en")
++    );
++    assert!(native.loss_evidence.is_empty());
++    assert_eq!(native.confidence.unwrap().literal().lexical_form, "0.90");
++
++    let legs = br#"{"Seq":[{"Step":""},{"Inverse":{"Alt":[{"Step":"opaque"},{"Seq":[]}]}}]}"#;
++    let native: LegPath = from_slice(legs).unwrap();
++    let retained: LegPath = serde_json::from_slice(legs).unwrap();
++    assert_eq!(native, retained);
++    assert_eq!(to_vec(&native), legs);
++}
++
++fn check_unit_tags<T: FromJson + ToJson + serde::de::DeserializeOwned + serde::Serialize>(
++    tags: &[&str],
++) {
++    for tag in tags {
++        let wire = format!("\"{tag}\"");
++        let native: T = from_slice(wire.as_bytes()).unwrap();
++        let retained: T = serde_json::from_str(&wire).unwrap();
++        assert_eq!(to_vec(&native), serde_json::to_vec(&retained).unwrap());
++        let object = format!("{{\"{tag}\":null}}");
++        assert_eq!(
++            to_vec(&from_slice::<T>(object.as_bytes()).unwrap()),
++            wire.as_bytes()
++        );
++    }
++}
++
++#[test]
++fn native_correspondence_admits_every_unit_tag_and_refuses_ambiguous_evidence() {
++    check_unit_tags::<CorrespondenceRelation>(&[
++        "Equiv",
++        "Subsumes",
++        "SubsumedBy",
++        "Overlaps",
++        "RelatedMatch",
++        "Disjoint",
++    ]);
++    check_unit_tags::<MorphismClass>(&[
++        "Isomorphism",
++        "SectionRetraction",
++        "WellBehavedLens",
++        "LossyLens",
++        "Prism",
++        "AffineCorrespondence",
++        "BridgeView",
++    ]);
++    check_unit_tags::<MorphismKind>(&["InstitutionMorphism", "CommitmentShiftingBridge"]);
++    check_unit_tags::<Determinacy>(&["Crisp", "Vague"]);
++    check_unit_tags::<CorrespondenceLaw>(&["GetPut", "PutGet", "PutPut", "SectionLaw"]);
++    check_unit_tags::<DischargeVerdict>(&[
++        "ObligationDischarged",
++        "ObligationUnknown",
++        "ObligationViolated",
++    ]);
++    check_unit_tags::<DischargeCondition>(&[
++        "DischargeCertifiedFragment",
++        "DischargeFiniteClosure",
++        "DischargeSyntacticReachability",
++        "DischargeConservativeExtension",
++        "DischargeBoundedCorpus",
++    ]);
++    let future = WIRE.replacen("{", r#"{"future":[],"#, 1);
++    assert!(from_slice::<Correspondence>(future.as_bytes()).is_ok());
++    let omitted_options = WIRE
++        .replace(r#""put_leg":null,"#, "")
++        .replace(r#""determinacy":null,"#, "")
++        .replace(r#","condition":null"#, "");
++    let decoded: Correspondence = from_slice(omitted_options.as_bytes()).unwrap();
++    assert!(decoded.put_leg.is_none());
++    assert!(decoded.determinacy.is_none());
++    assert!(decoded.law_claims[0].condition.is_none());
++    for bad in [
++        WIRE.replacen(r#""iri":"""#, r#""iri":"","iri":"other""#, 1),
++        WIRE.replace(r#""mnemomorphic":false"#, r#""mnemomorphic":null"#),
++        WIRE.replace(r#""loss_evidence":[]"#, r#""loss_evidence":null"#),
++        WIRE.replace(
++            r#""axis_evidence":{"sources""#,
++            r#""axis_evidence":{"sources":[],"sources""#,
++        ),
++        WIRE.replace(
++            r#""condition":null"#,
++            r#""condition":{"DischargeFiniteClosure":false}"#,
++        ),
++        WIRE.replace(r#""relation":"Equiv""#, r#""relation":"Unknown""#),
++        WIRE.replace(r#""grounding":false,"#, ""),
++    ] {
++        assert!(
++            from_slice::<Correspondence>(bad.as_bytes()).is_err(),
++            "{bad}"
++        );
++    }
++    assert!(from_slice::<CorrespondenceCaveat>(br#"{"iri":"raw","comments":[]}"#).is_err());
++    for bad in [
++        br#"{"Seq":[{"Step":false}]}"#.as_slice(),
++        br#"{"Step":"p","Seq":[]}"#,
++        br#"["Step","p"]"#,
++    ] {
++        assert!(from_slice::<LegPath>(bad).is_err());
++    }
++    let mut caveat: CorrespondenceCaveat = serde_json::from_str(r#"{"iri":"raw","comments":[["note","http://www.w3.org/1999/02/22-rdf-syntax-ns#langString","en",null]]}"#).unwrap();
++    caveat.comments[0].datatype = Some("http://www.w3.org/2001/XMLSchema#integer".to_owned());
++    let bytes = to_vec(&caveat);
++    assert_eq!(bytes, serde_json::to_vec(&caveat).unwrap());
++    assert!(
++        String::from_utf8(bytes.clone())
++            .unwrap()
++            .contains("http://www.w3.org/2001/XMLSchema#integer")
++    );
++    assert!(from_slice::<CorrespondenceCaveat>(&bytes).is_err());
++}
+diff --git a/crates/logic-compile/src/ir/literal_serde.rs b/crates/logic-compile/src/ir/literal_serde.rs
+index e25e9ad77..18e05a873 100644
+--- a/crates/logic-compile/src/ir/literal_serde.rs
++++ b/crates/logic-compile/src/ir/literal_serde.rs
+@@ -251,3 +251,47 @@ pub(crate) fn structural_cmp(a: &RdfLiteral, b: &RdfLiteral) -> std::cmp::Orderi
+         b.direction,
+     ))
+ }
++
++/// Encode the literal collection wire, retaining any explicitly stored datatype.
++/// Unlike the single-literal wire, malformed explicit component combinations must
++/// remain visible to the reader rather than being repaired while writing.
++pub(crate) fn to_json(literals: &[RdfLiteral]) -> purrdf_lex::json::Value {
++    use purrdf_lex::json::{Value, record::ToJson};
++    Value::Array(
++        literals
++            .iter()
++            .map(|literal| {
++                Value::Array(vec![
++                    literal.lexical_form.to_json(),
++                    literal
++                        .datatype
++                        .as_deref()
++                        .unwrap_or_else(|| literal.datatype_iri())
++                        .to_json(),
++                    literal.language.to_json(),
++                    literal.direction.map(RdfTextDirection::as_str).to_json(),
++                ])
++            })
++            .collect(),
++    )
++}
++
++/// Admit the existing checked literal set, preserving its canonical set policy.
++pub(crate) fn from_json_set(
++    value: &purrdf_lex::json::Value,
++) -> Result<Vec<RdfLiteral>, purrdf_lex::json::record::DecodeError> {
++    use purrdf_lex::json::record::{DecodeError, Within};
++    let rows = value
++        .as_array()
++        .ok_or_else(|| DecodeError::invalid_type(value, "RDF literal set"))?;
++    let mut literals = rows
++        .iter()
++        .enumerate()
++        .map(|(index, row)| {
++            single::from_json(row).map_err(|error| error.within_index_native(index, None))
++        })
++        .collect::<Result<Vec<_>, _>>()?;
++    literals.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
++    literals.dedup();
++    Ok(literals)
++}
+diff --git a/crates/pipeline/src/stages/lang_projection.rs b/crates/pipeline/src/stages/lang_projection.rs
+index 8204b3e95..8a77b471c 100644
+--- a/crates/pipeline/src/stages/lang_projection.rs
++++ b/crates/pipeline/src/stages/lang_projection.rs
+@@ -191,8 +191,7 @@ pub fn build_corpus(
+     }
+     artifacts.push((
+         grammar_observations::CHANNEL.to_owned(),
+-        serde_json::to_vec(&grammar_observations)
+-            .map_err(|error| stage_err(format!("encode native grammar observations: {error}")))?,
++        grammar_observations.to_bytes(),
+     ));
+     artifacts.sort_by(|a, b| a.0.cmp(&b.0));
+     Ok(LangProjectionCorpus {
+diff --git a/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs b/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
+index af50f2da0..94629939f 100644
+--- a/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
++++ b/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
+@@ -126,7 +126,20 @@ fn load(root: &Path, selector_sha256: &str) -> Result<LanguageFixtures, gmeow_er
+     let mut artifacts = crate::fixture::authenticated_artifacts(root, STAGE, &paths)?;
+     let pack: gmn_pack::Observations = decode(&mut artifacts, gmn_pack::CHANNEL)?;
+     let gates = decode(&mut artifacts, gmn_gate::CHANNEL)?;
+-    let grammars = decode(&mut artifacts, grammar_observations::CHANNEL)?;
++    let grammar_bytes = artifacts
++        .remove(grammar_observations::CHANNEL)
++        .ok_or_else(|| {
++            fail(format!(
++                "authenticated language action omitted {}",
++                grammar_observations::CHANNEL
++            ))
++        })?;
++    let grammars = purrdf_lex::json::record::from_slice(&grammar_bytes).with_ctx(|| {
++        format!(
++            "native language observations {}",
++            grammar_observations::CHANNEL
++        )
++    })?;
+     if selected_major != Some(pack.major.as_str()) {
+         return Err(fail(
+             "native pack observations disagree with the selected artifact version",
+diff --git a/crates/pipeline/src/stages/lang_projection/grammar_observations.rs b/crates/pipeline/src/stages/lang_projection/grammar_observations.rs
+index 87513aef5..352d14677 100644
+--- a/crates/pipeline/src/stages/lang_projection/grammar_observations.rs
++++ b/crates/pipeline/src/stages/lang_projection/grammar_observations.rs
+@@ -9,16 +9,16 @@ use std::collections::BTreeMap;
+ use gmeow_lang_bridge::registry::{GrammarSource, LangEmission};
+ use gmeow_lang_bridge::{Formalism, Grammar, IngestDiagnostic, parse_grammar, serialize_grammar};
+ use gmeow_logic_compile::ir::{Correspondence, LegPath, PreservationKind};
+-use serde::{Deserialize, Serialize};
++mod json;
+ 
+ pub(super) const CHANNEL: &str = "pipeline/lang-grammar-observations.json";
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(super) struct Observations {
+     pub grammars: BTreeMap<String, GrammarObservation>,
+ }
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(super) struct GrammarObservation {
+     pub source_iri: String,
+     pub source_rule_count: usize,
+@@ -27,7 +27,7 @@ pub(super) struct GrammarObservation {
+     pub emissions: BTreeMap<String, Vec<Emission>>,
+ }
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub(super) struct Emission {
+     pub correspondence: Correspondence,
+     pub leg_pair: Option<(LegPath, LegPath)>,
+@@ -39,6 +39,11 @@ pub(super) struct Emission {
+ }
+ 
+ impl Observations {
++    /// Publish the exact compact grammar channel without a terminal newline.
++    pub(super) fn to_bytes(&self) -> Vec<u8> {
++        purrdf_lex::json::record::to_vec(self)
++    }
++
+     pub(super) fn new(sources: &[GrammarSource]) -> Self {
+         Self {
+             grammars: sources
+diff --git a/crates/pipeline/src/stages/lang_projection/grammar_observations.tests.rs b/crates/pipeline/src/stages/lang_projection/grammar_observations.tests.rs
+index 2d0fbc688..6dd0f7bee 100644
+--- a/crates/pipeline/src/stages/lang_projection/grammar_observations.tests.rs
++++ b/crates/pipeline/src/stages/lang_projection/grammar_observations.tests.rs
+@@ -6,16 +6,7 @@ use gmeow_lang_bridge::registry::{LangProjectionInput, registry};
+ 
+ #[test]
+ fn native_reparse_is_bound_to_the_actual_emitted_bytes() {
+-    let source = GrammarSource::parse("tiny", b"r ::= 'a' | 'b'\n").unwrap();
+-    let input = LangProjectionInput {
+-        grammars: vec![source],
+-        ..Default::default()
+-    };
+-    let target = registry()
+-        .into_iter()
+-        .find(|target| target.name() == "ebnf")
+-        .unwrap();
+-    let mut emissions = target.emit(&input).unwrap();
++    let (input, mut emissions) = authored_emissions();
+     let mut observations = Observations::new(&input.grammars);
+     observations.record("ebnf", &emissions[0]).unwrap();
+     let observed = &observations.grammars["tiny"];
+@@ -23,6 +14,10 @@ fn native_reparse_is_bound_to_the_actual_emitted_bytes() {
+         observed.emissions["ebnf"][0].ebnf_reparsed[0],
+         Ok(observed.canonical.clone())
+     );
++    let bytes = observations.to_bytes();
++    let hydrated: Observations = purrdf_lex::json::record::from_slice(&bytes).unwrap();
++    assert_eq!(hydrated.to_bytes(), bytes);
++    assert_eq!(hydrated.grammars["tiny"].canonical, observed.canonical);
+     emissions[0].artifacts[0].bytes.push(b' ');
+     assert!(
+         observations.record("ebnf", &emissions[0]).is_err(),
+@@ -34,3 +29,175 @@ fn native_reparse_is_bound_to_the_actual_emitted_bytes() {
+         "a selected grammar cannot omit its native result"
+     );
+ }
++
++fn authored_emissions() -> (LangProjectionInput, Vec<LangEmission>) {
++    let source = GrammarSource::parse("tiny", b"r ::= 'a' | 'b'\n").unwrap();
++    let input = LangProjectionInput {
++        grammars: vec![source],
++        ..Default::default()
++    };
++    let target = registry()
++        .into_iter()
++        .find(|target| target.name() == "ebnf")
++        .unwrap();
++    let emissions = target.emit(&input).unwrap();
++    (input, emissions)
++}
++
++#[test]
++fn native_grammar_wire_retains_both_outcomes_and_raw_emission_evidence() {
++    use gmeow_lang_bridge::LangFailure;
++    use purrdf_lex::json::record::from_slice;
++    let empty_wire = br#"{"grammars":{"raw":{"source_iri":"","source_rule_count":0,"canonical":{"formalism":"Ebnf","rules":[]},"raw_reparsed":{"Err":{"failure_class":"SilentIngestDrop","construct":"raw"}},"emissions":{}}}}"#;
++    let raw: Observations = from_slice(empty_wire).unwrap();
++    assert_eq!(raw.to_bytes(), empty_wire);
++    for formalism in ["Ebnf", "Abnf", "Gbnf", "Lark"] {
++        let wire = String::from_utf8(empty_wire.to_vec())
++            .unwrap()
++            .replace("Ebnf", formalism);
++        assert_eq!(
++            from_slice::<Observations>(wire.as_bytes())
++                .unwrap()
++                .to_bytes(),
++            wire.as_bytes()
++        );
++    }
++    let raw_tree = String::from_utf8(empty_wire.to_vec()).unwrap().replace(r#""rules":[]"#, r#""rules":[{"name":"z","body":{"Group":{"Ref":"raw"}}},{"name":"a","body":{"Repeat":[3,1,{"Terminal":"x"}]}}]"#);
++    assert_eq!(
++        from_slice::<Observations>(raw_tree.as_bytes())
++            .unwrap()
++            .to_bytes(),
++        raw_tree.as_bytes()
++    );
++
++    let (input, emissions) = authored_emissions();
++    let mut observations = Observations::new(&input.grammars);
++    observations.record("ebnf", &emissions[0]).unwrap();
++    let observed = observations.grammars.get_mut("tiny").unwrap();
++    let refusal = IngestDiagnostic {
++        failure_class: LangFailure::SilentIngestDrop,
++        construct: "raw\0 refusal 中😀".to_owned(),
++    };
++    observed.raw_reparsed = Err(refusal.clone());
++    let emission = &mut observed.emissions.get_mut("ebnf").unwrap()[0];
++    emission.round_trip_holds = false;
++    emission.unsupported = vec!["z".to_owned(), "a".to_owned(), "z".to_owned()];
++    emission.paths = vec!["opaque".to_owned(), "opaque".to_owned()];
++    emission.leg_pair = Some((
++        LegPath::Seq(vec![]),
++        LegPath::Inverse(Box::new(LegPath::Alt(vec![]))),
++    ));
++    emission.ebnf_reparsed.push(Err(refusal));
++    let bytes = observations.to_bytes();
++    let expected = include_bytes!("grammar_observations/fixtures/channel-v1.json")
++        .strip_suffix(b"\n")
++        .expect("reference text fixture has one storage line feed");
++    assert_eq!(
++        bytes.as_slice(),
++        expected,
++        "complete original grammar-channel encoding"
++    );
++    assert!(!bytes.ends_with(b"\n"));
++    let hydrated: Observations = from_slice(&bytes).unwrap();
++    assert_eq!(hydrated.to_bytes(), bytes);
++    let observed = &hydrated.grammars["tiny"];
++    assert_eq!(
++        observed.raw_reparsed,
++        Err(IngestDiagnostic {
++            failure_class: LangFailure::SilentIngestDrop,
++            construct: "raw\0 refusal 中😀".to_owned()
++        })
++    );
++    let emission = &observed.emissions["ebnf"][0];
++    assert!(!emission.round_trip_holds);
++    assert_eq!(emission.unsupported, ["z", "a", "z"]);
++    assert_eq!(emission.paths, ["opaque", "opaque"]);
++    assert!(emission.ebnf_reparsed[0].is_ok());
++    assert!(emission.ebnf_reparsed[1].is_err());
++}
++
++#[test]
++fn native_grammar_admission_checks_every_map_value_and_named_boundary() {
++    use purrdf_lex::json::record::{from_slice, to_vec};
++    let (input, emissions) = authored_emissions();
++    let mut observations = Observations::new(&input.grammars);
++    observations.record("ebnf", &emissions[0]).unwrap();
++    let bytes = observations.to_bytes();
++    let wire = String::from_utf8(bytes).unwrap();
++    let future = wire
++        .replacen("{", r#"{"future":[],"#, 1)
++        .replacen(r#""source_iri":"#, r#""future":false,"source_iri":"#, 1)
++        .replacen(
++            r#""correspondence":{"#,
++            r#""correspondence":{"future":null,"#,
++            1,
++        );
++    assert!(from_slice::<Observations>(future.as_bytes()).is_ok());
++    let observation = to_vec(&observations.grammars["tiny"]);
++    let observation = String::from_utf8(observation).unwrap();
++    let first = observation.replace(r#""source_rule_count":1"#, r#""source_rule_count":0"#);
++    assert_ne!(first, observation);
++    let last_wins = format!(r#"{{"grammars":{{"x":{first},"x":{observation}}}}}"#);
++    let decoded: Observations = from_slice(last_wins.as_bytes()).unwrap();
++    assert_eq!(decoded.grammars.len(), 1);
++    assert_eq!(decoded.grammars["x"].source_rule_count, 1);
++    let invalid_shadowed = format!(r#"{{"grammars":{{"x":null,"x":{observation}}}}}"#);
++    assert!(from_slice::<Observations>(invalid_shadowed.as_bytes()).is_err());
++    for bad in [
++        wire.replacen(r#""source_rule_count":1"#, r#""source_rule_count":-0"#, 1),
++        wire.replacen(
++            r#""source_rule_count":1"#,
++            r#""source_rule_count":18446744073709551616"#,
++            1,
++        ),
++        wire.replacen(r#""source_rule_count":1"#, r#""source_rule_count":1.0"#, 1),
++        wire.replacen(r#""source_rule_count":1"#, r#""source_rule_count":1e0"#, 1),
++        wire.replacen(r#""source_iri":"#, r#""source_iri":null,"source_iri":"#, 1),
++        wire.replace(r#""round_trip_holds":true"#, r#""round_trip_holds":null"#),
++        wire.replace(r#""round_trip_holds":true,"#, ""),
++        wire.replacen(
++            r#""raw_reparsed":{"Ok":"#,
++            r#""raw_reparsed":{"Err":null,"Ok":"#,
++            1,
++        ),
++        "[]".to_owned(),
++        r#"{"grammars":null}"#.to_owned(),
++    ] {
++        assert_ne!(
++            bad, wire,
++            "fixture mutation must reach its intended boundary"
++        );
++        assert!(from_slice::<Observations>(bad.as_bytes()).is_err(), "{bad}");
++    }
++    let emission = &observations.grammars["tiny"].emissions["ebnf"][0];
++    assert!(emission.leg_pair.is_some());
++    let emission_wire = String::from_utf8(to_vec(emission)).unwrap();
++    // Missing and explicit-null optional pairs are both absent; every present row is exact width.
++    let pair = format!(
++        r#""leg_pair":{},"#,
++        purrdf_lex::json::write_compact(&purrdf_lex::json::record::ToJson::to_json(
++            &emission.leg_pair
++        ))
++    );
++    for absent in [
++        emission_wire.replace(&pair, ""),
++        emission_wire.replace(&pair, r#""leg_pair":null,"#),
++    ] {
++        assert!(
++            from_slice::<Emission>(absent.as_bytes())
++                .unwrap()
++                .leg_pair
++                .is_none()
++        );
++    }
++    for bad_pair in [
++        "[]",
++        r#"[{"Step":"p"}]"#,
++        r#"[{"Step":"p"},{"Step":"q"},{"Step":"r"}]"#,
++        r#"[{"Step":false},{"Step":"q"}]"#,
++    ] {
++        let bad = emission_wire.replace(&pair, &format!(r#""leg_pair":{bad_pair},"#));
++        assert_ne!(bad, emission_wire);
++        assert!(from_slice::<Emission>(bad.as_bytes()).is_err(), "{bad}");
++    }
++}
+diff --git a/crates/pipeline/src/stages/lang_projection/grammar_observations/fixtures/channel-v1.json b/crates/pipeline/src/stages/lang_projection/grammar_observations/fixtures/channel-v1.json
+new file mode 100644
+index 000000000..5d8d2ffd8
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/grammar_observations/fixtures/channel-v1.json
+@@ -0,0 +1 @@
++{"grammars":{"tiny":{"source_iri":"http://example.org/lang/grammar/e0aba9c01f4c739a","source_rule_count":1,"canonical":{"formalism":"Ebnf","rules":[{"name":"r","body":{"Alt":[{"Terminal":"a"},{"Terminal":"b"}]}}]},"raw_reparsed":{"Err":{"failure_class":"SilentIngestDrop","construct":"raw\u0000 refusal 中😀"}},"emissions":{"ebnf":[{"correspondence":{"iri":"http://example.org/lang/grammar-correspondence/17b508bc54790068","relation":"Equiv","morphism_class":"Isomorphism","morphism_kind":"InstitutionMorphism","mnemomorphic":true,"determinacy":"Crisp","get_leg":"https://blackcatinformatics.ca/lang/grammarParseLeg","put_leg":"https://blackcatinformatics.ca/lang/grammarSerializeLeg","law_claims":[{"law":"GetPut","verdict":"ObligationDischarged","condition":"DischargeSyntacticReachability"},{"law":"PutGet","verdict":"ObligationDischarged","condition":"DischargeSyntacticReachability"},{"law":"SectionLaw","verdict":"ObligationDischarged","condition":"DischargeSyntacticReachability"}],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":[],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"leg_pair":[{"Seq":[]},{"Inverse":{"Alt":[]}}],"round_trip_holds":false,"lossy_kind":"Exact","unsupported":["z","a","z"],"paths":["opaque","opaque"],"ebnf_reparsed":[{"Ok":{"formalism":"Ebnf","rules":[{"name":"r","body":{"Alt":[{"Terminal":"a"},{"Terminal":"b"}]}}]}},{"Err":{"failure_class":"SilentIngestDrop","construct":"raw\u0000 refusal 中😀"}}]}]}}}}
+diff --git a/crates/pipeline/src/stages/lang_projection/grammar_observations/json.rs b/crates/pipeline/src/stages/lang_projection/grammar_observations/json.rs
+new file mode 100644
+index 000000000..52d213963
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/grammar_observations/json.rs
+@@ -0,0 +1,114 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete grammar channel transport, retaining raw preparation and emitted evidence.
++use super::{Emission, GrammarObservation, Observations};
++use gmeow_lang_bridge::{Grammar, IngestDiagnostic};
++use gmeow_logic_compile::ir::LegPath;
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++
++struct GrammarOutcome(Result<Grammar, IngestDiagnostic>);
++impl FromJson for GrammarOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) = gmeow_errors::json::read_variant(
++            value,
++            "grammar outcome",
++            "one grammar outcome variant",
++        )?;
++        let result = match tag {
++            "Ok" => Grammar::from_json(payload).map(Ok),
++            "Err" => IngestDiagnostic::from_json(payload).map(Err),
++            name => Err(DecodeError::unknown_variant(name, &["Ok", "Err"])),
++        };
++        result.map(Self).map_err(|error| error.within(tag))
++    }
++}
++fn outcome_to_json(result: &Result<Grammar, IngestDiagnostic>) -> Value {
++    match result {
++        Ok(value) => Object::new().with("Ok", value.to_json()).into(),
++        Err(value) => Object::new().with("Err", value.to_json()).into(),
++    }
++}
++fn read_leg_pair(value: &Value) -> Result<(LegPath, LegPath), DecodeError> {
++    let cells = value
++        .as_array()
++        .ok_or_else(|| DecodeError::invalid_type(value, "two leg paths"))?;
++    if cells.len() != 2 {
++        return Err(DecodeError::invalid_value(value, "exactly two leg paths"));
++    }
++    Ok((
++        LegPath::from_json(&cells[0]).map_err(|error| error.within_index_native(0, None))?,
++        LegPath::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?,
++    ))
++}
++::purrdf_lex::json_record!(impl ToJson for Observations { "grammars" => grammars });
++impl FromJson for Observations {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observations")?;
++        Ok(Self {
++            grammars: fields.required("grammars")?,
++        })
++    }
++}
++impl ToJson for GrammarObservation {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("source_iri", self.source_iri.to_json())
++            .with("source_rule_count", self.source_rule_count.to_json())
++            .with("canonical", self.canonical.to_json())
++            .with("raw_reparsed", outcome_to_json(&self.raw_reparsed))
++            .with("emissions", self.emissions.to_json())
++            .into()
++    }
++}
++impl FromJson for GrammarObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct GrammarObservation")?;
++        Ok(Self {
++            source_iri: fields.required("source_iri")?,
++            source_rule_count: fields.required_with("source_rule_count", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize source rule count")
++            })?,
++            canonical: fields.required("canonical")?,
++            raw_reparsed: fields.required::<GrammarOutcome>("raw_reparsed")?.0,
++            emissions: fields.required("emissions")?,
++        })
++    }
++}
++impl ToJson for Emission {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("correspondence", self.correspondence.to_json())
++            .with("leg_pair", self.leg_pair.to_json())
++            .with("round_trip_holds", self.round_trip_holds.to_json())
++            .with("lossy_kind", self.lossy_kind.to_json())
++            .with("unsupported", self.unsupported.to_json())
++            .with("paths", self.paths.to_json())
++            .with(
++                "ebnf_reparsed",
++                Value::Array(self.ebnf_reparsed.iter().map(outcome_to_json).collect()),
++            )
++            .into()
++    }
++}
++impl FromJson for Emission {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Emission")?;
++        Ok(Self {
++            correspondence: fields.required("correspondence")?,
++            leg_pair: fields.optional_with("leg_pair", read_leg_pair)?,
++            round_trip_holds: fields.required("round_trip_holds")?,
++            lossy_kind: fields.required("lossy_kind")?,
++            unsupported: fields.required("unsupported")?,
++            paths: fields.required("paths")?,
++            ebnf_reparsed: fields
++                .required::<Vec<GrammarOutcome>>("ebnf_reparsed")?
++                .into_iter()
++                .map(|outcome| outcome.0)
++                .collect(),
++        })
++    }
++}

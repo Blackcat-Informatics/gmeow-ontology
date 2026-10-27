@@ -1,0 +1,5 @@
+refactor: use native JSON for complete grammar observations
+
+Move the complete grammar and correspondence operation through native
+writing and authenticated admission. Preserve the original compact bytes,
+raw evidence and literal-set rules. Principles 4 and 7.

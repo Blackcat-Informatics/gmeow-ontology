@@ -1,0 +1,129 @@
+{
+  "issue": 2014,
+  "pr_number": 2015,
+  "branch": "paudley/2014-use-complete-native-json-for-grammar",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar",
+  "observed_at": "2026-10-27T09:58:17.866605+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2014-use-complete-native-json-for-grammar/.stage/use-complete-native-json-for-grammar/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "ed1aeb641e49852d4d82fbf8de3c8a6194741574",
+    "headRefName": "paudley/2014-use-complete-native-json-for-grammar",
+    "headRefOid": "4885997bd35faf94d184c98338d79043ffb7b02b",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2015,
+    "state": "OPEN",
+    "title": "Use complete native JSON for grammar observations",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2015"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2015",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40484748062/job/122123619788",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40484748062/job/122123619906",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40484748062/job/122123619841",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40484748062/job/122123619507",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2015",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "4885997bd35faf94d184c98338d79043ffb7b02b",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "ab875ef18f26e365d6e7a0d8892d7554fc68b4bd37670df33473cb468d10d98f"
+  },
+  "local": {
+    "head": "4885997bd35faf94d184c98338d79043ffb7b02b",
+    "branch": "paudley/2014-use-complete-native-json-for-grammar",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2015,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2015 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABf8jAdw",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2015#issuecomment-6438830199",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
