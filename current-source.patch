@@ -1,0 +1,1825 @@
+diff --git a/crates/gmeow-dev-cli/src/dev_reason.rs b/crates/gmeow-dev-cli/src/dev_reason.rs
+index 5df8fa1b0..78c9136e5 100644
+--- a/crates/gmeow-dev-cli/src/dev_reason.rs
++++ b/crates/gmeow-dev-cli/src/dev_reason.rs
+@@ -57,7 +57,7 @@ fn snapshot_verification_input(
+     let laws = bundle
+         .prepared_reasoned_gates()
+         .map_err(|error| fail(format!("cannot read snapshot native laws: {error}")))?;
+-    let gates: PreparedReasonedGates = serde_json::from_slice(&laws)
++    let gates = PreparedReasonedGates::from_json_bytes(&laws)
+         .map_err(|error| fail(format!("cannot decode snapshot native laws: {error}")))?;
+     gates
+         .validate_source_identity()
+diff --git a/crates/logic-compile/src/ir/term_kind.rs b/crates/logic-compile/src/ir/term_kind.rs
+index dc7130773..591d815f5 100644
+--- a/crates/logic-compile/src/ir/term_kind.rs
++++ b/crates/logic-compile/src/ir/term_kind.rs
+@@ -3,6 +3,8 @@
+ 
+ //! Canonical intrinsic predicates over original RDF values, not class membership.
+ 
++mod json;
++
+ /// The authored term-kind predicates available to integrity constraints.
+ #[derive(
+     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+diff --git a/crates/logic-compile/src/ir/term_kind/json.rs b/crates/logic-compile/src/ir/term_kind/json.rs
+new file mode 100644
+index 000000000..a3984fe7e
+--- /dev/null
++++ b/crates/logic-compile/src/ir/term_kind/json.rs
+@@ -0,0 +1,42 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Native persistent spellings of canonical intrinsic predicates.
++use super::TermKindPredicate;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, ToJson},
++};
++impl ToJson for TermKindPredicate {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Iri => "Iri",
++            Self::Literal => "Literal",
++            Self::BlankOrIri => "BlankOrIri",
++            Self::FiniteNumeric => "FiniteNumeric",
++            Self::LanguageTagged => "LanguageTagged",
++        }
++        .to_json()
++    }
++}
++impl FromJson for TermKindPredicate {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "TermKindPredicate")? {
++            "Iri" => Ok(Self::Iri),
++            "Literal" => Ok(Self::Literal),
++            "BlankOrIri" => Ok(Self::BlankOrIri),
++            "FiniteNumeric" => Ok(Self::FiniteNumeric),
++            "LanguageTagged" => Ok(Self::LanguageTagged),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "Iri",
++                    "Literal",
++                    "BlankOrIri",
++                    "FiniteNumeric",
++                    "LanguageTagged",
++                ],
++            )),
++        }
++    }
++}
+diff --git a/crates/logic-compile/src/relational_core.rs b/crates/logic-compile/src/relational_core.rs
+index d0d2b9ee5..22bacd31f 100644
+--- a/crates/logic-compile/src/relational_core.rs
++++ b/crates/logic-compile/src/relational_core.rs
+@@ -59,6 +59,7 @@ use crate::ir::{
+ 
+ pub mod formula_analysis;
+ mod json;
++pub use json::read_signed_atom;
+ 
+ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+ 
+diff --git a/crates/logic-compile/src/relational_core/json.rs b/crates/logic-compile/src/relational_core/json.rs
+index cc96ebef1..c352c4261 100644
+--- a/crates/logic-compile/src/relational_core/json.rs
++++ b/crates/logic-compile/src/relational_core/json.rs
+@@ -3,7 +3,7 @@
+ 
+ //! Data-only JSON for relational atoms and retained numeric operand metadata.
+ 
+-use super::{NumericOperator, RcAtom, RcNumeric};
++use super::{NumericOperator, RcAtom, RcComparison, RcNumeric, RcViolationGap, RcViolationResidue};
+ use purrdf_lex::json::{
+     Value,
+     record::{DecodeError, FromJson, Record, ToJson},
+@@ -17,16 +17,34 @@ use purrdf_lex::json::{
+ });
+ impl FromJson for RcAtom {
+     fn from_json(value: &Value) -> Result<Self, DecodeError> {
+-        let mut fields = Record::new(value, "struct RcAtom")?;
++        let (subject, predicate, object, negated) = read_signed_atom(value, "struct RcAtom")?;
+         Ok(Self {
+-            subject: fields.required("subject")?,
+-            predicate: fields.required("predicate")?,
+-            object: fields.required("object")?,
+-            negated: fields.required("negated")?,
++            subject,
++            predicate,
++            object,
++            negated,
+         })
+     }
+ }
+ 
++/// Read the shared persistent fields of compiler and executable signed atoms.
++/// Operand hydration belongs to the caller's term type; no lowering is performed.
++///
++/// # Errors
++/// Retains native record/member refusals and their exact field paths.
++pub fn read_signed_atom<T: FromJson>(
++    value: &Value,
++    expected: &'static str,
++) -> Result<(T, String, T, bool), DecodeError> {
++    let mut fields = Record::new(value, expected)?;
++    Ok((
++        fields.required("subject")?,
++        fields.required("predicate")?,
++        fields.required("object")?,
++        fields.required("negated")?,
++    ))
++}
++
+ ::purrdf_lex::json_record!(impl ToJson for RcNumeric {
+     "operator" => operator,
+     "left" => left,
+@@ -97,3 +115,88 @@ impl FromJson for NumericOperator {
+         }
+     }
+ }
++impl ToJson for RcComparison {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Less => "Less",
++            Self::LessEqual => "LessEqual",
++            Self::Greater => "Greater",
++            Self::GreaterEqual => "GreaterEqual",
++        }
++        .to_json()
++    }
++}
++impl FromJson for RcComparison {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "RcComparison")? {
++            "Less" => Ok(Self::Less),
++            "LessEqual" => Ok(Self::LessEqual),
++            "Greater" => Ok(Self::Greater),
++            "GreaterEqual" => Ok(Self::GreaterEqual),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Less", "LessEqual", "Greater", "GreaterEqual"],
++            )),
++        }
++    }
++}
++
++impl ToJson for RcViolationGap {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::NotUniversalImplication => "NotUniversalImplication",
++            Self::NoFailureClass => "NoFailureClass",
++            Self::BuiltinBoundConsequent => "BuiltinBoundConsequent",
++            Self::UnsupportedAntecedent => "UnsupportedAntecedent",
++            Self::UnsupportedConsequent => "UnsupportedConsequent",
++            Self::UnsafeFocusVariable => "UnsafeFocusVariable",
++            Self::UnsafeTermKindVariable => "UnsafeTermKindVariable",
++            Self::UnsafeEqualityVariable => "UnsafeEqualityVariable",
++            Self::UnsafeUniversalVariable => "UnsafeUniversalVariable",
++        }
++        .to_json()
++    }
++}
++impl FromJson for RcViolationGap {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "RcViolationGap")? {
++            "NotUniversalImplication" => Ok(Self::NotUniversalImplication),
++            "NoFailureClass" => Ok(Self::NoFailureClass),
++            "BuiltinBoundConsequent" => Ok(Self::BuiltinBoundConsequent),
++            "UnsupportedAntecedent" => Ok(Self::UnsupportedAntecedent),
++            "UnsupportedConsequent" => Ok(Self::UnsupportedConsequent),
++            "UnsafeFocusVariable" => Ok(Self::UnsafeFocusVariable),
++            "UnsafeTermKindVariable" => Ok(Self::UnsafeTermKindVariable),
++            "UnsafeEqualityVariable" => Ok(Self::UnsafeEqualityVariable),
++            "UnsafeUniversalVariable" => Ok(Self::UnsafeUniversalVariable),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "NotUniversalImplication",
++                    "NoFailureClass",
++                    "BuiltinBoundConsequent",
++                    "UnsupportedAntecedent",
++                    "UnsupportedConsequent",
++                    "UnsafeFocusVariable",
++                    "UnsafeTermKindVariable",
++                    "UnsafeEqualityVariable",
++                    "UnsafeUniversalVariable",
++                ],
++            )),
++        }
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for RcViolationResidue {
++    "constraint_iri" => constraint_iri,
++    "gap" => gap,
++});
++impl FromJson for RcViolationResidue {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct RcViolationResidue")?;
++        Ok(Self {
++            constraint_iri: fields.required("constraint_iri")?,
++            gap: fields.required("gap")?,
++        })
++    }
++}
+diff --git a/crates/logic/src/query_ir.rs b/crates/logic/src/query_ir.rs
+index 3be5fb6c6..59b5cd695 100644
+--- a/crates/logic/src/query_ir.rs
++++ b/crates/logic/src/query_ir.rs
+@@ -21,6 +21,8 @@
+ //! - Predicate IRIs: bare IRI string, no angle brackets.
+ //! - Variables: any token starting with uppercase or `_`.
+ 
++mod json;
++
+ use std::collections::{BTreeMap, BTreeSet};
+ 
+ use crate::seam::BudgetStatus;
+diff --git a/crates/logic/src/query_ir/json.rs b/crates/logic/src/query_ir/json.rs
+new file mode 100644
+index 000000000..f5b478919
+--- /dev/null
++++ b/crates/logic/src/query_ir/json.rs
+@@ -0,0 +1,380 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Persistent query operands; arena-local compound handles are never a wire value.
++use super::{ArithOp, CmpOp, QBuiltin, QTerm};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++impl ToJson for ArithOp {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Add => "Add",
++            Self::Sub => "Sub",
++            Self::Mul => "Mul",
++            Self::Div => "Div",
++            Self::ExactDiv => "ExactDiv",
++        }
++        .to_json()
++    }
++}
++impl FromJson for ArithOp {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "ArithOp")? {
++            "Add" => Ok(Self::Add),
++            "Sub" => Ok(Self::Sub),
++            "Mul" => Ok(Self::Mul),
++            "Div" => Ok(Self::Div),
++            "ExactDiv" => Ok(Self::ExactDiv),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Add", "Sub", "Mul", "Div", "ExactDiv"],
++            )),
++        }
++    }
++}
++
++impl ToJson for CmpOp {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Gt => "Gt",
++            Self::Lt => "Lt",
++            Self::Ge => "Ge",
++            Self::Le => "Le",
++            Self::Eq => "Eq",
++        }
++        .to_json()
++    }
++}
++impl FromJson for CmpOp {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "CmpOp")? {
++            "Gt" => Ok(Self::Gt),
++            "Lt" => Ok(Self::Lt),
++            "Ge" => Ok(Self::Ge),
++            "Le" => Ok(Self::Le),
++            "Eq" => Ok(Self::Eq),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Gt", "Lt", "Ge", "Le", "Eq"],
++            )),
++        }
++    }
++}
++
++impl QTerm {
++    pub(crate) fn json_value(&self) -> gmeow_errors::Result<Value> {
++        Ok(match self {
++            Self::Const(value) => Object::new().with("Const", value.to_json()).into(),
++            Self::Var(value) => Object::new().with("Var", value.to_json()).into(),
++            Self::Num(value) => Object::new().with("Num", value.to_json()).into(),
++            Self::Struct(_) => {
++                return Err(gmeow_errors::Diag::of_kind(crate::error::Verify {
++                    detail: "prepared verification laws cannot persist arena-local QTerm::Struct"
++                        .to_owned(),
++                }));
++            }
++            Self::Triple { s, p, o } => Object::new()
++                .with(
++                    "Triple",
++                    Object::new()
++                        .with(
++                            "s",
++                            s.json_value()
++                                .map_err(|error| error.with_context("Triple.s"))?,
++                        )
++                        .with(
++                            "p",
++                            p.json_value()
++                                .map_err(|error| error.with_context("Triple.p"))?,
++                        )
++                        .with(
++                            "o",
++                            o.json_value()
++                                .map_err(|error| error.with_context("Triple.o"))?,
++                        ),
++                )
++                .into(),
++        })
++    }
++}
++impl FromJson for QTerm {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) = gmeow_errors::json::read_variant(value, "QTerm", "one QTerm variant")?;
++        let decode = || -> Result<Self, DecodeError> {
++            Ok(match tag {
++                "Const" => Self::Const(String::from_json(payload)?),
++                "Var" => Self::Var(String::from_json(payload)?),
++                "Num" => Self::Num(gmeow_errors::json::read_signed(
++                    payload,
++                    "i64 query number",
++                )?),
++                "Triple" => {
++                    let mut fields = Record::new(payload, "struct variant QTerm::Triple")?;
++                    Self::Triple {
++                        s: fields.required("s")?,
++                        p: fields.required("p")?,
++                        o: fields.required("o")?,
++                    }
++                }
++                name => {
++                    return Err(DecodeError::unknown_variant(
++                        name,
++                        &["Const", "Var", "Num", "Triple"],
++                    ));
++                }
++            })
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
++impl QBuiltin {
++    pub(crate) fn json_value(&self) -> gmeow_errors::Result<Value> {
++        Ok(match self {
++            Self::TermCompare {
++                left,
++                right,
++                comparison,
++                expected,
++            } => Object::new()
++                .with(
++                    "TermCompare",
++                    Object::new()
++                        .with("left", left.to_json())
++                        .with("right", right.to_json())
++                        .with("comparison", comparison.to_json())
++                        .with("expected", expected.to_json()),
++                )
++                .into(),
++            Self::TermEqual {
++                left,
++                right,
++                expected,
++            } => Object::new()
++                .with(
++                    "TermEqual",
++                    Object::new()
++                        .with("left", left.to_json())
++                        .with("right", right.to_json())
++                        .with("expected", expected.to_json()),
++                )
++                .into(),
++            Self::TermKind {
++                term,
++                predicate,
++                expected,
++            } => Object::new()
++                .with(
++                    "TermKind",
++                    Object::new()
++                        .with("term", term.to_json())
++                        .with("predicate", predicate.to_json())
++                        .with("expected", expected.to_json()),
++                )
++                .into(),
++            Self::Is {
++                target,
++                lhs,
++                op,
++                rhs,
++            } => Object::new()
++                .with(
++                    "Is",
++                    Object::new()
++                        .with(
++                            "target",
++                            target
++                                .json_value()
++                                .map_err(|error| error.with_context("Is.target"))?,
++                        )
++                        .with(
++                            "lhs",
++                            lhs.json_value()
++                                .map_err(|error| error.with_context("Is.lhs"))?,
++                        )
++                        .with("op", op.to_json())
++                        .with(
++                            "rhs",
++                            rhs.json_value()
++                                .map_err(|error| error.with_context("Is.rhs"))?,
++                        ),
++                )
++                .into(),
++            Self::Compare { lhs, op, rhs } => Object::new()
++                .with(
++                    "Compare",
++                    Object::new()
++                        .with(
++                            "lhs",
++                            lhs.json_value()
++                                .map_err(|error| error.with_context("Compare.lhs"))?,
++                        )
++                        .with("op", op.to_json())
++                        .with(
++                            "rhs",
++                            rhs.json_value()
++                                .map_err(|error| error.with_context("Compare.rhs"))?,
++                        ),
++                )
++                .into(),
++            Self::BilinearSqDist { target, gram, x, y } => Object::new()
++                .with(
++                    "BilinearSqDist",
++                    Object::new()
++                        .with(
++                            "target",
++                            target
++                                .json_value()
++                                .map_err(|error| error.with_context("BilinearSqDist.target"))?,
++                        )
++                        .with(
++                            "gram",
++                            gram.json_value()
++                                .map_err(|error| error.with_context("BilinearSqDist.gram"))?,
++                        )
++                        .with(
++                            "x",
++                            x.json_value()
++                                .map_err(|error| error.with_context("BilinearSqDist.x"))?,
++                        )
++                        .with(
++                            "y",
++                            y.json_value()
++                                .map_err(|error| error.with_context("BilinearSqDist.y"))?,
++                        ),
++                )
++                .into(),
++            Self::DimEqual { d1, d2 } => Object::new()
++                .with(
++                    "DimEqual",
++                    Object::new()
++                        .with(
++                            "d1",
++                            d1.json_value()
++                                .map_err(|error| error.with_context("DimEqual.d1"))?,
++                        )
++                        .with(
++                            "d2",
++                            d2.json_value()
++                                .map_err(|error| error.with_context("DimEqual.d2"))?,
++                        ),
++                )
++                .into(),
++            Self::DimProduct { d_f, d_m, d_r } => Object::new()
++                .with(
++                    "DimProduct",
++                    Object::new()
++                        .with(
++                            "d_f",
++                            d_f.json_value()
++                                .map_err(|error| error.with_context("DimProduct.d_f"))?,
++                        )
++                        .with(
++                            "d_m",
++                            d_m.json_value()
++                                .map_err(|error| error.with_context("DimProduct.d_m"))?,
++                        )
++                        .with(
++                            "d_r",
++                            d_r.json_value()
++                                .map_err(|error| error.with_context("DimProduct.d_r"))?,
++                        ),
++                )
++                .into(),
++        })
++    }
++}
++impl FromJson for QBuiltin {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "QBuiltin", "one QBuiltin variant")?;
++        let decode = || -> Result<Self, DecodeError> {
++            Ok(match tag {
++                "TermCompare" => {
++                    let mut fields = Record::new(payload, "struct variant QBuiltin::TermCompare")?;
++                    Self::TermCompare {
++                        left: fields.required("left")?,
++                        right: fields.required("right")?,
++                        comparison: fields.required("comparison")?,
++                        expected: fields.required("expected")?,
++                    }
++                }
++                "TermEqual" => {
++                    let mut fields = Record::new(payload, "struct variant QBuiltin::TermEqual")?;
++                    Self::TermEqual {
++                        left: fields.required("left")?,
++                        right: fields.required("right")?,
++                        expected: fields.required("expected")?,
++                    }
++                }
++                "TermKind" => {
++                    let mut fields = Record::new(payload, "struct variant QBuiltin::TermKind")?;
++                    Self::TermKind {
++                        term: fields.required("term")?,
++                        predicate: fields.required("predicate")?,
++                        expected: fields.required("expected")?,
++                    }
++                }
++                "Is" => {
++                    let mut fields = Record::new(payload, "struct variant QBuiltin::Is")?;
++                    Self::Is {
++                        target: fields.required("target")?,
++                        lhs: fields.required("lhs")?,
++                        op: fields.required("op")?,
++                        rhs: fields.required("rhs")?,
++                    }
++                }
++                "Compare" => {
++                    let mut fields = Record::new(payload, "struct variant QBuiltin::Compare")?;
++                    Self::Compare {
++                        lhs: fields.required("lhs")?,
++                        op: fields.required("op")?,
++                        rhs: fields.required("rhs")?,
++                    }
++                }
++                "BilinearSqDist" => {
++                    let mut fields =
++                        Record::new(payload, "struct variant QBuiltin::BilinearSqDist")?;
++                    Self::BilinearSqDist {
++                        target: fields.required("target")?,
++                        gram: fields.required("gram")?,
++                        x: fields.required("x")?,
++                        y: fields.required("y")?,
++                    }
++                }
++                "DimEqual" => {
++                    let mut fields = Record::new(payload, "struct variant QBuiltin::DimEqual")?;
++                    Self::DimEqual {
++                        d1: fields.required("d1")?,
++                        d2: fields.required("d2")?,
++                    }
++                }
++                "DimProduct" => {
++                    let mut fields = Record::new(payload, "struct variant QBuiltin::DimProduct")?;
++                    Self::DimProduct {
++                        d_f: fields.required("d_f")?,
++                        d_m: fields.required("d_m")?,
++                        d_r: fields.required("d_r")?,
++                    }
++                }
++                name => {
++                    return Err(DecodeError::unknown_variant(
++                        name,
++                        &[
++                            "TermCompare",
++                            "TermEqual",
++                            "TermKind",
++                            "Is",
++                            "Compare",
++                            "BilinearSqDist",
++                            "DimEqual",
++                            "DimProduct",
++                        ],
++                    ));
++                }
++            })
++        };
++        decode().map_err(|error| error.within(tag))
++    }
++}
+diff --git a/crates/logic/src/relational_core.rs b/crates/logic/src/relational_core.rs
+index f267d8da9..e5602267d 100644
+--- a/crates/logic/src/relational_core.rs
++++ b/crates/logic/src/relational_core.rs
+@@ -22,6 +22,8 @@
+ //! or negative heads, further quantifier alternation, unbound universal head variables,
+ //! compound function terms and unbounded sequence markers remain explicit residue.
+ 
++mod json;
++
+ use std::collections::{BTreeMap, BTreeSet};
+ 
+ use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};
+diff --git a/crates/logic/src/relational_core/json.rs b/crates/logic/src/relational_core/json.rs
+new file mode 100644
+index 000000000..88bd08cca
+--- /dev/null
++++ b/crates/logic/src/relational_core/json.rs
+@@ -0,0 +1,40 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete prepared violation evidence, without lowering or recomputation.
++use super::ViolationLowering;
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++impl ViolationLowering {
++    pub(crate) fn json_value(&self) -> gmeow_errors::Result<Value> {
++        Ok(Object::new()
++            .with(
++                "rules",
++                Value::Array(
++                    self.rules
++                        .iter()
++                        .enumerate()
++                        .map(|(index, rule)| {
++                            rule.json_value()
++                                .map_err(|error| error.with_context(format!("rules[{index}]")))
++                        })
++                        .collect::<gmeow_errors::Result<Vec<_>>>()?,
++                ),
++            )
++            .with("residue", self.residue.to_json())
++            .with("failure_classes", self.failure_classes.to_json())
++            .into())
++    }
++}
++impl FromJson for ViolationLowering {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ViolationLowering")?;
++        Ok(Self {
++            rules: fields.required("rules")?,
++            residue: fields.required("residue")?,
++            failure_classes: fields.required("failure_classes")?,
++        })
++    }
++}
+diff --git a/crates/logic/src/rule_ir.rs b/crates/logic/src/rule_ir.rs
+index 3a5b2c9ec..c1cf5abec 100644
+--- a/crates/logic/src/rule_ir.rs
++++ b/crates/logic/src/rule_ir.rs
+@@ -43,6 +43,8 @@
+ //! keeps a crate-internal `dead_code` allowance rather than exporting them.
+ #![allow(dead_code)]
+ 
++mod json;
++
+ use std::borrow::Cow;
+ use std::collections::{BTreeSet, HashMap};
+ use std::hash::{BuildHasher, Hash, Hasher};
+diff --git a/crates/logic/src/rule_ir/json.rs b/crates/logic/src/rule_ir/json.rs
+new file mode 100644
+index 000000000..6cf27e590
+--- /dev/null
++++ b/crates/logic/src/rule_ir/json.rs
+@@ -0,0 +1,105 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Native prepared-rule transport; execution and lowering remain separate.
++use super::{EvalAtom, EvalRule, EvalTerm};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++impl ToJson for EvalTerm {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Var(value) => Object::new().with("Var", value.to_json()).into(),
++            Self::ConstNamed(value) => Object::new().with("ConstNamed", value.to_json()).into(),
++            Self::ConstLit(value) => Object::new()
++                .with("ConstLit", crate::term_serde::to_json(value))
++                .into(),
++        }
++    }
++}
++impl FromJson for EvalTerm {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "EvalTerm", "one EvalTerm variant")?;
++        let result = match tag {
++            "Var" => String::from_json(payload).map(Self::Var),
++            "ConstNamed" => String::from_json(payload).map(Self::ConstNamed),
++            "ConstLit" => crate::term_serde::from_json(payload).map(Self::ConstLit),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Var", "ConstNamed", "ConstLit"],
++            )),
++        };
++        result.map_err(|error| error.within(tag))
++    }
++}
++::purrdf_lex::json_record!(impl ToJson for EvalAtom {
++    "subject" => subject,
++    "predicate" => predicate,
++    "object" => object,
++    "negated" => negated,
++});
++impl FromJson for EvalAtom {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (subject, predicate, object, negated) =
++            gmeow_logic_compile::relational_core::read_signed_atom(value, "struct EvalAtom")?;
++        Ok(Self {
++            subject,
++            predicate,
++            object,
++            negated,
++        })
++    }
++}
++
++impl EvalRule {
++    pub(crate) fn json_value(&self) -> gmeow_errors::Result<Value> {
++        Ok(Object::new()
++            .with("numeric", self.numeric.to_json())
++            .with("reduction", self.reduction.to_json())
++            .with("head", self.head.to_json())
++            .with("body", self.body.to_json())
++            .with("rule_iri", self.rule_iri.to_json())
++            .with("distinct_pairs", self.distinct_pairs.to_json())
++            .with(
++                "builtins",
++                Value::Array(
++                    self.builtins
++                        .iter()
++                        .enumerate()
++                        .map(|(index, builtin)| {
++                            builtin.json_value().map_err(|error| {
++                                error.with_context(format!(
++                                    "rule {:?} builtins[{index}]",
++                                    self.rule_iri
++                                ))
++                            })
++                        })
++                        .collect::<gmeow_errors::Result<Vec<_>>>()?,
++                ),
++            )
++            .with("constraint_tag", self.constraint_tag.to_json())
++            .into())
++    }
++}
++impl FromJson for EvalRule {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct EvalRule")?;
++        Ok(Self {
++            numeric: fields.required("numeric")?,
++            reduction: fields.optional("reduction")?,
++            head: fields.required("head")?,
++            body: fields.required("body")?,
++            rule_iri: fields.required("rule_iri")?,
++            distinct_pairs: fields.required_with("distinct_pairs", |value| {
++                purrdf_lex::json::record::items_with(value, |row| -> Result<_, DecodeError> {
++                    let [left, right] = gmeow_errors::json::read_string_row::<2>(row)?;
++                    Ok((left, right))
++                })
++            })?,
++            builtins: fields.required("builtins")?,
++            constraint_tag: fields.optional("constraint_tag")?,
++        })
++    }
++}
+diff --git a/crates/logic/src/rule_ir/reduction.rs b/crates/logic/src/rule_ir/reduction.rs
+index c5773ed39..ea35ff733 100644
+--- a/crates/logic/src/rule_ir/reduction.rs
++++ b/crates/logic/src/rule_ir/reduction.rs
+@@ -4,6 +4,8 @@
+ //! Validated canonical reduce operators. RDF value arithmetic stays in PurRDF;
+ //! variable scope, complete grouping and rule provenance belong to this engine.
+ 
++mod json;
++
+ use std::collections::BTreeSet;
+ 
+ use gmeow_logic_compile::ir::{AtomicTerm, LogicRule};
+diff --git a/crates/logic/src/rule_ir/reduction/json.rs b/crates/logic/src/rule_ir/reduction/json.rs
+new file mode 100644
+index 000000000..585ede327
+--- /dev/null
++++ b/crates/logic/src/rule_ir/reduction/json.rs
+@@ -0,0 +1,54 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Raw prepared reduction metadata; no lowering or scope validation.
++use super::{Function, Reduction};
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++impl ToJson for Function {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Count => "Count",
++            Self::Sum => "Sum",
++            Self::Avg => "Avg",
++            Self::Min => "Min",
++            Self::Max => "Max",
++        }
++        .to_json()
++    }
++}
++impl FromJson for Function {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "Function")? {
++            "Count" => Ok(Self::Count),
++            "Sum" => Ok(Self::Sum),
++            "Avg" => Ok(Self::Avg),
++            "Min" => Ok(Self::Min),
++            "Max" => Ok(Self::Max),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Count", "Sum", "Avg", "Min", "Max"],
++            )),
++        }
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for Reduction {
++    "function" => function,
++    "input" => input,
++    "result" => result,
++    "groups" => groups,
++});
++impl FromJson for Reduction {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Reduction")?;
++        Ok(Self {
++            function: fields.required("function")?,
++            input: fields.required("input")?,
++            result: fields.required("result")?,
++            groups: fields.required("groups")?,
++        })
++    }
++}
+diff --git a/crates/logic/src/verify/prepared_gates.rs b/crates/logic/src/verify/prepared_gates.rs
+index 846102fb2..e92bf4eec 100644
+--- a/crates/logic/src/verify/prepared_gates.rs
++++ b/crates/logic/src/verify/prepared_gates.rs
+@@ -10,12 +10,13 @@ mod test_support;
+ #[cfg(test)]
+ pub(crate) use test_support::shared;
+ 
++mod json;
++
+ use std::collections::BTreeMap;
+ use std::sync::OnceLock;
+ 
+ use gmeow_logic_compile::frontend::{CompiledTheory, Diagnostic};
+ use purrdf::RdfDataset;
+-use serde::{Deserialize, Serialize};
+ use sha2::{Digest as _, Sha256};
+ 
+ use crate::reason::{enactment, math_gate};
+@@ -39,7 +40,7 @@ pub const GATE_SOURCES: [(&str, &str); 2] = [
+ /// Native compiled rules and all lowering evidence needed by reasoned-graph gates.
+ /// The producer-selected action authenticates this entire value; its native fields
+ /// remain private so a consumer cannot substitute an unrelated law inventory.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct PreparedReasonedGates {
+     schema_version: u32,
+     source_digests: BTreeMap<String, String>,
+@@ -48,13 +49,13 @@ pub struct PreparedReasonedGates {
+     pub(crate) math_compilation: MathCompilation,
+ }
+ 
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub(crate) struct MathCompilation {
+     pub(crate) diagnostics: Vec<Diagnostic>,
+     pub(crate) constraints: Vec<MathConstraint>,
+ }
+ 
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ pub(crate) struct MathConstraint {
+     pub(crate) iri: String,
+     pub(crate) target: String,
+@@ -184,3 +185,6 @@ fn prepare_embedded() -> gmeow_errors::Result<PreparedReasonedGates> {
+         &digests[GATE_SOURCES[1].0],
+     )
+ }
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/logic/src/verify/prepared_gates/fixtures/channel-v1.json b/crates/logic/src/verify/prepared_gates/fixtures/channel-v1.json
+new file mode 100644
+index 000000000..e0849ee5d
+--- /dev/null
++++ b/crates/logic/src/verify/prepared_gates/fixtures/channel-v1.json
+@@ -0,0 +1 @@
++{"schema_version":4294967295,"source_digests":{"a":"raw digest","z":"raw\u0000 digest 中😀"},"math_rules":[{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":{"function":"Max","input":"raw","result":"raw","groups":["z","a","z"]},"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Max 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":"raw constraint"},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":{"function":"Count","input":"raw","result":"raw","groups":["z","a","z"]},"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Count 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[{"TermCompare":{"left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"comparison":"GreaterEqual","expected":false}},{"TermCompare":{"left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"comparison":"Less","expected":false}},{"TermCompare":{"left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"comparison":"Greater","expected":false}},{"TermCompare":{"left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"comparison":"LessEqual","expected":false}},{"TermEqual":{"left":{"Blank":"raw blank"},"right":{"Iri":"raw IRI"},"expected":true}},{"TermKind":{"term":{"Var":"raw kind operand"},"predicate":"LanguageTagged","expected":false}},{"TermKind":{"term":{"Var":"raw kind operand"},"predicate":"Iri","expected":false}},{"TermKind":{"term":{"Var":"raw kind operand"},"predicate":"FiniteNumeric","expected":false}},{"TermKind":{"term":{"Var":"raw kind operand"},"predicate":"BlankOrIri","expected":false}},{"TermKind":{"term":{"Var":"raw kind operand"},"predicate":"Literal","expected":false}},{"Is":{"target":{"Var":"raw target"},"lhs":{"Num":-9223372036854775808},"op":"ExactDiv","rhs":{"Num":9223372036854775807}}},{"Is":{"target":{"Var":"raw target"},"lhs":{"Num":-9223372036854775808},"op":"Add","rhs":{"Num":9223372036854775807}}},{"Is":{"target":{"Var":"raw target"},"lhs":{"Num":-9223372036854775808},"op":"Sub","rhs":{"Num":9223372036854775807}}},{"Is":{"target":{"Var":"raw target"},"lhs":{"Num":-9223372036854775808},"op":"Div","rhs":{"Num":9223372036854775807}}},{"Is":{"target":{"Var":"raw target"},"lhs":{"Num":-9223372036854775808},"op":"Mul","rhs":{"Num":9223372036854775807}}},{"Compare":{"lhs":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}},"op":"Eq","rhs":{"Const":"raw\u0000 right 中😀"}}},{"Compare":{"lhs":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}},"op":"Gt","rhs":{"Const":"raw\u0000 right 中😀"}}},{"Compare":{"lhs":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}},"op":"Le","rhs":{"Const":"raw\u0000 right 中😀"}}},{"Compare":{"lhs":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}},"op":"Lt","rhs":{"Const":"raw\u0000 right 中😀"}}},{"Compare":{"lhs":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}},"op":"Ge","rhs":{"Const":"raw\u0000 right 中😀"}}},{"BilinearSqDist":{"target":{"Var":"raw distance"},"gram":{"Const":"raw gram"},"x":{"Num":-9223372036854775808},"y":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}}}},{"DimEqual":{"d1":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}},"d2":{"Var":"raw dimension"}}},{"DimProduct":{"d_f":{"Const":"raw integrand"},"d_m":{"Triple":{"s":{"Var":"raw variable"},"p":{"Num":-9223372036854775808},"o":{"Triple":{"s":{"Const":"raw\u0000 constant 中😀"},"p":{"Var":"raw predicate"},"o":{"Num":9223372036854775807}}}}},"d_r":{"Num":9223372036854775807}}}],"constraint_tag":"raw constraint"},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":{"function":"Sum","input":"raw","result":"raw","groups":["z","a","z"]},"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Sum 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":"raw constraint"},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":{"function":"Min","input":"raw","result":"raw","groups":["z","a","z"]},"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Min 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":"raw constraint"},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":{"function":"Avg","input":"raw","result":"raw","groups":["z","a","z"]},"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Avg 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":"raw constraint"},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":null,"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Max 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":null},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":null,"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Max 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":null}],"enactment":{"rules":[{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":null,"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Max 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":null},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":{"function":"Count","input":"raw","result":"raw","groups":["z","a","z"]},"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Count 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":"raw constraint"},{"numeric":[{"operator":"Add","left":{"Var":"raw left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"raw result"}},{"operator":"Equal","left":{"Iri":"raw IRI"},"right":{"Blank":"raw blank"},"result":null}],"reduction":null,"head":{"subject":{"ConstLit":{"Blank":{"label":"same-label","scope":7}}},"predicate":"raw head predicate","object":{"ConstLit":{"Triple":{"s":{"Blank":{"label":"same-label","scope":4294967295}},"p":{"Iri":"urn:test:outer-predicate"},"o":{"Triple":{"s":{"Blank":{"label":"same-label","scope":7}},"p":{"Iri":"urn:test:inner-predicate"},"o":{"Literal":{"lexical_form":"مرحبا\u0000 中😀","datatype":"http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","language":"ar","direction":"Rtl"}}}}}}},"negated":true},"body":[{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true},{"subject":{"ConstNamed":"raw named operand"},"predicate":"raw literal predicate","object":{"ConstLit":{"Literal":{"lexical_form":"01","datatype":"http://www.w3.org/2001/XMLSchema#integer","language":null,"direction":null}}},"negated":false},{"subject":{"Var":"raw variable"},"predicate":"raw\u0000 predicate 中😀","object":{"ConstNamed":"raw named operand"},"negated":true}],"rule_iri":"raw\u0000 rule Max 中😀","distinct_pairs":[["z","a"],["a","z"],["z","a"]],"builtins":[],"constraint_tag":null}],"residue":[{"constraint_iri":"raw constraint","gap":"UnsafeUniversalVariable"},{"constraint_iri":"raw constraint","gap":"NotUniversalImplication"},{"constraint_iri":"raw constraint","gap":"NoFailureClass"},{"constraint_iri":"raw constraint","gap":"BuiltinBoundConsequent"},{"constraint_iri":"raw constraint","gap":"UnsupportedAntecedent"},{"constraint_iri":"raw constraint","gap":"UnsupportedConsequent"},{"constraint_iri":"raw constraint","gap":"UnsafeFocusVariable"},{"constraint_iri":"raw constraint","gap":"UnsafeTermKindVariable"},{"constraint_iri":"raw constraint","gap":"UnsafeEqualityVariable"},{"constraint_iri":"raw constraint","gap":"UnsafeUniversalVariable"}],"failure_classes":{"a":"raw class a","z":"raw class z"}},"math_compilation":{"diagnostics":[{"severity":"Warning","code":"raw\u0000 diagnostic 中😀","message":"raw diagnostic","subject":"raw subject"},{"severity":"Info","code":"raw info","message":"raw info","subject":null},{"severity":"Warning","code":"raw\u0000 diagnostic 中😀","message":"raw diagnostic","subject":"raw subject"}],"constraints":[{"iri":"z","target":"raw target","failure_class":"raw class","projected_sparql":"raw\u0000 projection 中😀"},{"iri":"a","target":"raw target","failure_class":null,"projected_sparql":"raw projection"}]}}
+diff --git a/crates/logic/src/verify/prepared_gates/json.rs b/crates/logic/src/verify/prepared_gates/json.rs
+new file mode 100644
+index 000000000..6868f1236
+--- /dev/null
++++ b/crates/logic/src/verify/prepared_gates/json.rs
+@@ -0,0 +1,106 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Full prepared-law artifact; only persistent query operands can be published.
++use super::{MathCompilation, MathConstraint, PreparedReasonedGates};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++impl PreparedReasonedGates {
++    /// Encode compact native prepared-law JSON without a terminal newline.
++    ///
++    /// # Errors
++    /// Refuses arena-local query handles with their rule/operand context and
++    /// preserves native storage refusals. No partial artifact is returned.
++    pub fn to_json_bytes(&self) -> gmeow_errors::Result<Vec<u8>> {
++        let value = self.json_value()?;
++        let mut resident = purrdf_lex::allocation::Resident;
++        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
++        purrdf_lex::json::write_with_memory(&value, purrdf_lex::json::Format::COMPACT, &mut memory)
++            .map(String::into_bytes)
++            .map_err(gmeow_errors::Diag::from)
++    }
++
++    /// Hydrate native persistence data without preparing or validating source identities.
++    /// Callers retain their explicit source-identity admission after authentication.
++    ///
++    /// # Errors
++    /// Preserves native JSON/member/variant refusals, including arena-only query terms.
++    pub fn from_json_bytes(bytes: &[u8]) -> gmeow_errors::Result<Self> {
++        purrdf_lex::json::record::from_slice(bytes).map_err(gmeow_errors::Diag::from)
++    }
++
++    fn json_value(&self) -> gmeow_errors::Result<Value> {
++        Ok(Object::new()
++            .with("schema_version", self.schema_version.to_json())
++            .with("source_digests", self.source_digests.to_json())
++            .with(
++                "math_rules",
++                Value::Array(
++                    self.math_rules
++                        .iter()
++                        .enumerate()
++                        .map(|(index, rule)| {
++                            rule.json_value()
++                                .map_err(|error| error.with_context(format!("math_rules[{index}]")))
++                        })
++                        .collect::<gmeow_errors::Result<Vec<_>>>()?,
++                ),
++            )
++            .with(
++                "enactment",
++                self.enactment
++                    .json_value()
++                    .map_err(|error| error.with_context("enactment"))?,
++            )
++            .with("math_compilation", self.math_compilation.to_json())
++            .into())
++    }
++}
++impl FromJson for PreparedReasonedGates {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct PreparedReasonedGates")?;
++        Ok(Self {
++            schema_version: fields.required_with("schema_version", |value| {
++                gmeow_errors::json::read_unsigned(value, "u32 prepared-law schema")
++            })?,
++            source_digests: fields.required("source_digests")?,
++            math_rules: fields.required("math_rules")?,
++            enactment: fields.required("enactment")?,
++            math_compilation: fields.required("math_compilation")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for MathCompilation {
++    "diagnostics" => diagnostics,
++    "constraints" => constraints,
++});
++impl FromJson for MathCompilation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct MathCompilation")?;
++        Ok(Self {
++            diagnostics: fields.required("diagnostics")?,
++            constraints: fields.required("constraints")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for MathConstraint {
++    "iri" => iri,
++    "target" => target,
++    "failure_class" => failure_class,
++    "projected_sparql" => projected_sparql,
++});
++impl FromJson for MathConstraint {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct MathConstraint")?;
++        Ok(Self {
++            iri: fields.required("iri")?,
++            target: fields.required("target")?,
++            failure_class: fields.optional("failure_class")?,
++            projected_sparql: fields.required("projected_sparql")?,
++        })
++    }
++}
+diff --git a/crates/logic/src/verify/prepared_gates/test_support.rs b/crates/logic/src/verify/prepared_gates/test_support.rs
+index f7161b97b..967151650 100644
+--- a/crates/logic/src/verify/prepared_gates/test_support.rs
++++ b/crates/logic/src/verify/prepared_gates/test_support.rs
+@@ -26,8 +26,7 @@ fn fixture() -> &'static PreparedReasonedGates {
+                 PREPARED_GATES_CHANNEL,
+             )
+             .map_err(gmeow_errors::Diag::from)?;
+-            let gates: PreparedReasonedGates =
+-                serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
++            let gates: PreparedReasonedGates = PreparedReasonedGates::from_json_bytes(&bytes)?;
+             gates.validate_source_identity()?;
+             Ok(Selected {
+                 selector: selector.clone(),
+diff --git a/crates/logic/src/verify/prepared_gates/tests.rs b/crates/logic/src/verify/prepared_gates/tests.rs
+new file mode 100644
+index 000000000..c08522cf9
+--- /dev/null
++++ b/crates/logic/src/verify/prepared_gates/tests.rs
+@@ -0,0 +1,606 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Direct-authored persistence evidence; no sources, preparation or execution are used.
++use super::{MathCompilation, MathConstraint, PreparedReasonedGates};
++use crate::query_ir::{ArithOp, CmpOp, QBuiltin, QTerm};
++use crate::relational_core::ViolationLowering;
++use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Reduction};
++use gmeow_logic_compile::frontend::{Diagnostic, Severity};
++use gmeow_logic_compile::ir::{AtomicTerm, TermKindPredicate};
++use gmeow_logic_compile::relational_core::{
++    NumericOperator, RcComparison, RcNumeric, RcViolationGap, RcViolationResidue,
++};
++use gmeow_term_arena::TermArena;
++use purrdf::{BlankScope, RdfLiteral, RdfTextDirection, TermBox, TermValue};
++use purrdf_lex::json::record::{DecodeError, ToJson, from_slice};
++use std::collections::BTreeMap;
++
++fn quoted_value() -> TermValue {
++    TermValue::Triple {
++        s: TermBox::new(TermValue::Blank {
++            label: "same-label".to_owned(),
++            scope: BlankScope(u32::MAX),
++        }),
++        p: TermBox::new(TermValue::Iri("urn:test:outer-predicate".to_owned())),
++        o: TermBox::new(TermValue::Triple {
++            s: TermBox::new(TermValue::Blank {
++                label: "same-label".to_owned(),
++                scope: BlankScope(7),
++            }),
++            p: TermBox::new(TermValue::Iri("urn:test:inner-predicate".to_owned())),
++            o: TermBox::new(TermValue::Literal {
++                lexical_form: "مرحبا\0 中😀".to_owned(),
++                datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".to_owned(),
++                language: Some("ar".to_owned()),
++                direction: Some(RdfTextDirection::Rtl),
++            }),
++        }),
++    }
++}
++
++fn query_triple() -> QTerm {
++    QTerm::Triple {
++        s: Box::new(QTerm::Var("raw variable".to_owned())),
++        p: Box::new(QTerm::Num(i64::MIN)),
++        o: Box::new(QTerm::Triple {
++            s: Box::new(QTerm::Const("raw\0 constant 中😀".to_owned())),
++            p: Box::new(QTerm::Var("raw predicate".to_owned())),
++            o: Box::new(QTerm::Num(i64::MAX)),
++        }),
++    }
++}
++
++fn authored_builtins() -> Vec<QBuiltin> {
++    let mut builtins = Vec::new();
++    for comparison in [
++        RcComparison::GreaterEqual,
++        RcComparison::Less,
++        RcComparison::Greater,
++        RcComparison::LessEqual,
++    ] {
++        builtins.push(QBuiltin::TermCompare {
++            left: AtomicTerm::Var("raw left".to_owned()),
++            right: AtomicTerm::Literal(RdfLiteral {
++                lexical_form: "01".to_owned(),
++                datatype: Some("http://www.w3.org/2001/XMLSchema#integer".to_owned()),
++                language: None,
++                direction: None,
++            }),
++            comparison,
++            expected: false,
++        });
++    }
++    builtins.push(QBuiltin::TermEqual {
++        left: AtomicTerm::Blank("raw blank".to_owned()),
++        right: AtomicTerm::Iri("raw IRI".to_owned()),
++        expected: true,
++    });
++    for predicate in [
++        TermKindPredicate::LanguageTagged,
++        TermKindPredicate::Iri,
++        TermKindPredicate::FiniteNumeric,
++        TermKindPredicate::BlankOrIri,
++        TermKindPredicate::Literal,
++    ] {
++        builtins.push(QBuiltin::TermKind {
++            term: AtomicTerm::Var("raw kind operand".to_owned()),
++            predicate,
++            expected: false,
++        });
++    }
++    for op in [
++        ArithOp::ExactDiv,
++        ArithOp::Add,
++        ArithOp::Sub,
++        ArithOp::Div,
++        ArithOp::Mul,
++    ] {
++        builtins.push(QBuiltin::Is {
++            target: QTerm::Var("raw target".to_owned()),
++            lhs: QTerm::Num(i64::MIN),
++            op,
++            rhs: QTerm::Num(i64::MAX),
++        });
++    }
++    for op in [CmpOp::Eq, CmpOp::Gt, CmpOp::Le, CmpOp::Lt, CmpOp::Ge] {
++        builtins.push(QBuiltin::Compare {
++            lhs: query_triple(),
++            op,
++            rhs: QTerm::Const("raw\0 right 中😀".to_owned()),
++        });
++    }
++    builtins.push(QBuiltin::BilinearSqDist {
++        target: QTerm::Var("raw distance".to_owned()),
++        gram: QTerm::Const("raw gram".to_owned()),
++        x: QTerm::Num(i64::MIN),
++        y: query_triple(),
++    });
++    builtins.push(QBuiltin::DimEqual {
++        d1: query_triple(),
++        d2: QTerm::Var("raw dimension".to_owned()),
++    });
++    builtins.push(QBuiltin::DimProduct {
++        d_f: QTerm::Const("raw integrand".to_owned()),
++        d_m: query_triple(),
++        d_r: QTerm::Num(i64::MAX),
++    });
++    builtins
++}
++
++fn authored_rule(function: &str) -> EvalRule {
++    // Native hydration retains the private reduction fields without running Reduction::lower.
++    let reduction: Reduction = from_slice(
++        format!(
++            r#"{{"function":"{function}","input":"raw","result":"raw","groups":["z","a","z"]}}"#
++        )
++        .as_bytes(),
++    )
++    .expect("authored private reduction must hydrate as raw persistence data");
++    let body = EvalAtom {
++        subject: EvalTerm::Var("raw variable".to_owned()),
++        predicate: "raw\0 predicate 中😀".to_owned(),
++        object: EvalTerm::ConstNamed("raw named operand".to_owned()),
++        negated: true,
++    };
++    EvalRule {
++        numeric: vec![
++            RcNumeric {
++                operator: NumericOperator::Add,
++                left: AtomicTerm::Var("raw left".to_owned()),
++                right: AtomicTerm::Literal(RdfLiteral {
++                    lexical_form: "01".to_owned(),
++                    datatype: Some("http://www.w3.org/2001/XMLSchema#integer".to_owned()),
++                    language: None,
++                    direction: None,
++                }),
++                result: Some(AtomicTerm::Var("raw result".to_owned())),
++            },
++            RcNumeric {
++                operator: NumericOperator::Equal,
++                left: AtomicTerm::Iri("raw IRI".to_owned()),
++                right: AtomicTerm::Blank("raw blank".to_owned()),
++                result: None,
++            },
++        ],
++        reduction: Some(reduction),
++        head: EvalAtom {
++            subject: EvalTerm::ConstLit(TermValue::Blank {
++                label: "same-label".to_owned(),
++                scope: BlankScope(7),
++            }),
++            predicate: "raw head predicate".to_owned(),
++            object: EvalTerm::ConstLit(quoted_value()),
++            negated: true,
++        },
++        body: vec![
++            body.clone(),
++            EvalAtom {
++                subject: EvalTerm::ConstNamed("raw named operand".to_owned()),
++                predicate: "raw literal predicate".to_owned(),
++                object: EvalTerm::ConstLit(TermValue::Literal {
++                    lexical_form: "01".to_owned(),
++                    datatype: "http://www.w3.org/2001/XMLSchema#integer".to_owned(),
++                    language: None,
++                    direction: None,
++                }),
++                negated: false,
++            },
++            body,
++        ],
++        rule_iri: format!("raw\0 rule {function} 中😀"),
++        distinct_pairs: vec![
++            ("z".to_owned(), "a".to_owned()),
++            ("a".to_owned(), "z".to_owned()),
++            ("z".to_owned(), "a".to_owned()),
++        ],
++        builtins: Vec::new(),
++        constraint_tag: Some("raw constraint".to_owned()),
++    }
++}
++
++fn authored_prepared_laws() -> PreparedReasonedGates {
++    let mut math_rules: Vec<_> = ["Max", "Count", "Sum", "Min", "Avg"]
++        .into_iter()
++        .map(authored_rule)
++        .collect();
++    math_rules[1].builtins = authored_builtins();
++    let mut ungrouped = math_rules[0].clone();
++    ungrouped.reduction = None;
++    ungrouped.constraint_tag = None;
++    math_rules.push(ungrouped.clone());
++    math_rules.push(ungrouped.clone());
++    let gaps = [
++        RcViolationGap::UnsafeUniversalVariable,
++        RcViolationGap::NotUniversalImplication,
++        RcViolationGap::NoFailureClass,
++        RcViolationGap::BuiltinBoundConsequent,
++        RcViolationGap::UnsupportedAntecedent,
++        RcViolationGap::UnsupportedConsequent,
++        RcViolationGap::UnsafeFocusVariable,
++        RcViolationGap::UnsafeTermKindVariable,
++        RcViolationGap::UnsafeEqualityVariable,
++        RcViolationGap::UnsafeUniversalVariable,
++    ];
++    let diagnostic = Diagnostic {
++        severity: Severity::Warning,
++        code: "raw\0 diagnostic 中😀".to_owned(),
++        message: "raw diagnostic".to_owned(),
++        subject: Some("raw subject".to_owned()),
++    };
++    PreparedReasonedGates {
++        schema_version: u32::MAX,
++        source_digests: BTreeMap::from([
++            ("z".to_owned(), "raw\0 digest 中😀".to_owned()),
++            ("a".to_owned(), "raw digest".to_owned()),
++        ]),
++        math_rules,
++        enactment: ViolationLowering {
++            rules: vec![ungrouped.clone(), authored_rule("Count"), ungrouped],
++            residue: gaps
++                .into_iter()
++                .map(|gap| RcViolationResidue {
++                    constraint_iri: "raw constraint".to_owned(),
++                    gap,
++                })
++                .collect(),
++            failure_classes: BTreeMap::from([
++                ("z".to_owned(), "raw class z".to_owned()),
++                ("a".to_owned(), "raw class a".to_owned()),
++            ]),
++        },
++        math_compilation: MathCompilation {
++            diagnostics: vec![
++                diagnostic.clone(),
++                Diagnostic {
++                    severity: Severity::Info,
++                    code: "raw info".to_owned(),
++                    message: "raw info".to_owned(),
++                    subject: None,
++                },
++                diagnostic,
++            ],
++            constraints: vec![
++                MathConstraint {
++                    iri: "z".to_owned(),
++                    target: "raw target".to_owned(),
++                    failure_class: Some("raw class".to_owned()),
++                    projected_sparql: "raw\0 projection 中😀".to_owned(),
++                },
++                MathConstraint {
++                    iri: "a".to_owned(),
++                    target: "raw target".to_owned(),
++                    failure_class: None,
++                    projected_sparql: "raw projection".to_owned(),
++                },
++            ],
++        },
++    }
++}
++
++#[test]
++fn native_prepared_laws_wire_preserves_complete_original_artifact() {
++    let laws = authored_prepared_laws();
++    let bytes = laws
++        .to_json_bytes()
++        .expect("complete native prepared laws must serialize");
++    let original = include_bytes!("fixtures/channel-v1.json")
++        .strip_suffix(b"\n")
++        .expect("reference stores one terminal LF outside the original JSON");
++    assert_eq!(bytes, original, "complete original prepared-law encoding");
++    assert!(!bytes.ends_with(b"\n"));
++    let decoded = PreparedReasonedGates::from_json_bytes(&bytes)
++        .expect("native prepared-law bytes must hydrate");
++    assert_eq!(decoded, laws);
++    assert_eq!(
++        decoded
++            .to_json_bytes()
++            .expect("hydrated laws must serialize"),
++        bytes
++    );
++    assert_eq!(decoded.schema_version, u32::MAX);
++    assert_eq!(
++        decoded.math_rules[1].distinct_pairs,
++        [
++            ("z".to_owned(), "a".to_owned()),
++            ("a".to_owned(), "z".to_owned()),
++            ("z".to_owned(), "a".to_owned())
++        ]
++    );
++    assert_eq!(decoded.math_rules[5], decoded.math_rules[6]);
++    assert_eq!(decoded.enactment.residue[0], decoded.enactment.residue[9]);
++}
++
++#[test]
++fn native_prepared_laws_admission_preserves_raw_fields_and_refuses_invalid_wire() {
++    let laws = authored_prepared_laws();
++    let wire = String::from_utf8(laws.to_json_bytes().expect("authored laws must encode"))
++        .expect("native JSON is UTF-8");
++    let future = wire
++        .replacen("{", r#"{"future":[],"#, 1)
++        .replace(r#"{"numeric":"#, r#"{"future":null,"numeric":"#)
++        .replace(r#"{"subject":"#, r#"{"future":false,"subject":"#)
++        .replace(r#""reduction":{"#, r#""reduction":{"future":{},"#)
++        .replace(r#""Compare":{"#, r#""Compare":{"future":0,"#)
++        .replace(r#""Triple":{"#, r#""Triple":{"future":"raw","#)
++        .replace(r#""enactment":{"#, r#""enactment":{"future":[],"#)
++        .replace(
++            r#"{"constraint_iri":"#,
++            r#"{"future":null,"constraint_iri":"#,
++        )
++        .replace(
++            r#""math_compilation":{"#,
++            r#""math_compilation":{"future":false,"#,
++        )
++        .replace(r#"{"iri":"#, r#"{"future":[],"iri":"#);
++    assert_eq!(
++        PreparedReasonedGates::from_json_bytes(future.as_bytes())
++            .expect("unknown record fields are ignored"),
++        laws
++    );
++    for schema in ["-0", "-1", "1.0", "1e0", "null", "4294967296"] {
++        let bad = wire.replacen(
++            r#""schema_version":4294967295"#,
++            &format!(r#""schema_version":{schema}"#),
++            1,
++        );
++        assert_ne!(bad, wire, "schema mutation reaches its actual field");
++        assert!(
++            PreparedReasonedGates::from_json_bytes(bad.as_bytes()).is_err(),
++            "{schema}"
++        );
++    }
++    for number in [
++        "-0",
++        "1.0",
++        "1e0",
++        "null",
++        "9223372036854775808",
++        "-9223372036854775809",
++    ] {
++        let bad = wire.replacen(
++            r#""Num":-9223372036854775808"#,
++            &format!(r#""Num":{number}"#),
++            1,
++        );
++        assert_ne!(
++            bad, wire,
++            "query-number mutation reaches its actual operand"
++        );
++        assert!(
++            PreparedReasonedGates::from_json_bytes(bad.as_bytes()).is_err(),
++            "{number}"
++        );
++    }
++    let bad = wire.replacen(r#""Num":-9223372036854775808"#, r#""Num":-0"#, 1);
++    let error = PreparedReasonedGates::from_json_bytes(bad.as_bytes())
++        .expect_err("signed zero must fail natively");
++    let source = error
++        .downcast_ref::<DecodeError>()
++        .expect("native decoding error remains the typed source");
++    assert_eq!(source.pointer(), "/math_rules/1/builtins/10/Is/lhs/Num");
++    for bad in [
++        wire.replacen(r#""schema_version":4294967295,"#, "", 1),
++        wire.replacen(
++            r#""source_digests":{"#,
++            r#""source_digests":null,"unused":{"#,
++            1,
++        ),
++        wire.replacen(r#""numeric":["#, r#""numeric":null,"unused":["#, 1),
++        wire.replacen(r#""negated":true"#, r#""negated":null"#, 1),
++        wire.replacen(r#""function":"Max""#, r#""function":"MAX""#, 1),
++        wire.replacen(r#""op":"ExactDiv""#, r#""op":"/""#, 1),
++        wire.replacen(
++            r#""comparison":"GreaterEqual""#,
++            r#""comparison":"termGreaterEqual""#,
++            1,
++        ),
++        wire.replacen(
++            r#""predicate":"LanguageTagged""#,
++            r#""predicate":"termHasLang""#,
++            1,
++        ),
++        wire.replacen(
++            r#""gap":"UnsafeUniversalVariable""#,
++            r#""gap":"unsafe-universal-variable""#,
++            1,
++        ),
++        wire.replacen(r#""Num":-9223372036854775808"#, r#""Struct":null"#, 1),
++        wire.replacen(
++            r#"{"Num":-9223372036854775808}"#,
++            r#"{"Num":0,"Var":"raw"}"#,
++            1,
++        ),
++        "[]".to_owned(),
++    ] {
++        assert_ne!(
++            bad, wire,
++            "admission mutation reaches its intended boundary"
++        );
++        assert!(
++            PreparedReasonedGates::from_json_bytes(bad.as_bytes()).is_err(),
++            "{bad}"
++        );
++    }
++    for bad in [
++        wire.replacen(
++            r#""schema_version":4294967295"#,
++            r#""schema_version":0,"schema_version":4294967295"#,
++            1,
++        ),
++        wire.replacen(r#""negated":true"#, r#""negated":false,"negated":true"#, 1),
++        wire.replacen(
++            r#""function":"Max""#,
++            r#""function":"Count","function":"Max""#,
++            1,
++        ),
++        wire.replacen(
++            r#""expected":false"#,
++            r#""expected":true,"expected":false"#,
++            1,
++        ),
++    ] {
++        let error = PreparedReasonedGates::from_json_bytes(bad.as_bytes())
++            .expect_err("duplicate known field must fail");
++        assert!(error.to_string().contains("duplicate field"), "{error:#}");
++    }
++    let singleton = wire.replacen(r#""function":"Max""#, r#""function":{"Max":null}"#, 1);
++    assert_eq!(
++        PreparedReasonedGates::from_json_bytes(singleton.as_bytes())
++            .expect("unit enum accepts its existing singleton-null shape"),
++        laws
++    );
++    let last_wins = wire.replacen(
++        r#""source_digests":{"#,
++        r#""source_digests":{"a":"first","#,
++        1,
++    );
++    assert_eq!(
++        PreparedReasonedGates::from_json_bytes(last_wins.as_bytes())
++            .expect("typed map retains the last valid duplicate"),
++        laws
++    );
++    let shadowed = wire.replacen(r#""source_digests":{"#, r#""source_digests":{"a":null,"#, 1);
++    assert!(PreparedReasonedGates::from_json_bytes(shadowed.as_bytes()).is_err());
++    let reduction = format!(
++        r#""reduction":{},"#,
++        purrdf_lex::json::write_compact(&laws.math_rules[0].reduction.to_json())
++    );
++    for optional in [
++        wire.replacen(&reduction, "", 1),
++        wire.replacen(&reduction, r#""reduction":null,"#, 1),
++    ] {
++        assert!(
++            PreparedReasonedGates::from_json_bytes(optional.as_bytes())
++                .expect("missing/null reduction is absent")
++                .math_rules[0]
++                .reduction
++                .is_none()
++        );
++    }
++    for optional in [
++        wire.replacen(
++            r#""constraint_tag":"raw constraint""#,
++            r#""constraint_tag":null"#,
++            1,
++        ),
++        wire.replacen(r#""failure_class":"raw class","#, "", 1),
++    ] {
++        PreparedReasonedGates::from_json_bytes(optional.as_bytes())
++            .expect("plain optional metadata permits null or omission");
++    }
++    let pairs = purrdf_lex::json::write_compact(&laws.math_rules[0].distinct_pairs.to_json());
++    for rows in [
++        "null",
++        "[[]]",
++        r#"[["left"]]"#,
++        r#"[["left","right","extra"]]"#,
++    ] {
++        let bad = wire.replacen(
++            &format!(r#""distinct_pairs":{pairs}"#),
++            &format!(r#""distinct_pairs":{rows}"#),
++            1,
++        );
++        assert!(
++            PreparedReasonedGates::from_json_bytes(bad.as_bytes()).is_err(),
++            "{bad}"
++        );
++    }
++    let bad = wire.replacen(
++        &format!(r#""distinct_pairs":{pairs}"#),
++        r#""distinct_pairs":[[false,"right"]]"#,
++        1,
++    );
++    let error = PreparedReasonedGates::from_json_bytes(bad.as_bytes())
++        .expect_err("nonstring distinct row cell must fail");
++    assert_eq!(
++        error
++            .downcast_ref::<DecodeError>()
++            .expect("row refusal retains its native source")
++            .pointer(),
++        "/math_rules/0/distinct_pairs/0/0"
++    );
++}
++
++#[test]
++fn native_prepared_laws_refuse_arena_terms_before_publication() {
++    let mut arena = TermArena::new();
++    let symbol = arena.intern_leaf(TermValue::Iri("urn:test:function".to_owned()));
++    let argument = arena.intern_leaf(TermValue::Iri("urn:test:argument".to_owned()));
++    let handle = arena
++        .intern_app(symbol, &[argument])
++        .expect("authored compound uses nodes from one arena");
++    let nested = QTerm::Triple {
++        s: Box::new(QTerm::Const("raw subject".to_owned())),
++        p: Box::new(QTerm::Num(0)),
++        o: Box::new(QTerm::Triple {
++            s: Box::new(QTerm::Var("raw subject".to_owned())),
++            p: Box::new(QTerm::Const("raw predicate".to_owned())),
++            o: Box::new(QTerm::Struct(handle)),
++        }),
++    };
++    let failures = [
++        (
++            QBuiltin::Compare {
++                lhs: nested.clone(),
++                op: CmpOp::Eq,
++                rhs: QTerm::Num(0),
++            },
++            "Compare.lhs",
++            true,
++        ),
++        (
++            QBuiltin::Is {
++                target: QTerm::Var("raw".to_owned()),
++                lhs: QTerm::Num(0),
++                op: ArithOp::Add,
++                rhs: QTerm::Struct(handle),
++            },
++            "Is.rhs",
++            false,
++        ),
++        (
++            QBuiltin::DimProduct {
++                d_f: QTerm::Num(0),
++                d_m: QTerm::Var("raw".to_owned()),
++                d_r: nested,
++            },
++            "DimProduct.d_r",
++            true,
++        ),
++    ];
++    for (builtin, operand, recursive) in failures {
++        for in_math in [true, false] {
++            let mut laws = authored_prepared_laws();
++            let rules = if in_math {
++                &mut laws.math_rules
++            } else {
++                &mut laws.enactment.rules
++            };
++            rules[0].builtins = vec![builtin.clone()];
++            let rule = format!("{:?}", rules[0].rule_iri);
++            let error = laws
++                .to_json_bytes()
++                .expect_err("arena-local handles must prevent artifact publication");
++            assert!(
++                error.downcast_ref::<crate::error::Verify>().is_some(),
++                "existing verification error owns this refusal"
++            );
++            let message = format!("{error:#}");
++            assert!(message.contains("QTerm::Struct"), "{message}");
++            assert!(message.contains(&rule), "{message}");
++            assert!(message.contains(operand), "{message}");
++            assert!(
++                message.contains(if in_math {
++                    "math_rules[0]"
++                } else {
++                    "enactment"
++                }),
++                "{message}"
++            );
++            if recursive {
++                assert!(message.contains("Triple.o"), "{message}");
++            }
++        }
++    }
++}
+diff --git a/crates/logic/tests/common/prepared_verify.rs b/crates/logic/tests/common/prepared_verify.rs
+index 047e415f1..c7852796a 100644
+--- a/crates/logic/tests/common/prepared_verify.rs
++++ b/crates/logic/tests/common/prepared_verify.rs
+@@ -33,7 +33,7 @@ pub fn verification(queries: &[(String, String)]) -> Rc<PreparedVerification<'st
+                 PREPARED_GATES_CHANNEL,
+             )
+             .map_err(gmeow_errors::Diag::from)?;
+-            let gates = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
++            let gates = PreparedReasonedGates::from_json_bytes(&bytes)?;
+             Ok(Selected {
+                 selector: selector.clone(),
+                 queries: queries.to_vec(),
+diff --git a/crates/mcp/src/prepared.rs b/crates/mcp/src/prepared.rs
+index a87b0e724..15424328d 100644
+--- a/crates/mcp/src/prepared.rs
++++ b/crates/mcp/src/prepared.rs
+@@ -164,8 +164,8 @@ impl McpView {
+                 "prepared MCP verification laws exceed their size bound",
+             ));
+         }
+-        let gates: PreparedReasonedGates = serde_json::from_slice(&bytes)
+-            .map_err(|error| fail(format!("decode prepared MCP verification laws: {error}")))?;
++        let gates = PreparedReasonedGates::from_json_bytes(&bytes)
++            .map_err(|error| error.with_context("decode prepared MCP verification laws"))?;
+         gates.validate_source_identity()?;
+         Ok(self.prepared_gates.get_or_init(|| gates))
+     }
+diff --git a/crates/mcp/src/tests.rs b/crates/mcp/src/tests.rs
+index ff53a12f9..e6a2b0837 100644
+--- a/crates/mcp/src/tests.rs
++++ b/crates/mcp/src/tests.rs
+@@ -199,7 +199,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
+         )
+         .expect("native verification laws have an exact producer selection");
+         let gates: gmeow_logic::verify::PreparedReasonedGates =
+-            serde_json::from_slice(&bytes).expect("prepared native verification laws");
++            gmeow_logic::verify::PreparedReasonedGates::from_json_bytes(&bytes).expect("prepared native verification laws");
+         gates
+             .validate_source_identity()
+             .expect("exact native source identity");
+diff --git a/crates/pipeline/src/fixture.rs b/crates/pipeline/src/fixture.rs
+index d4b8ee9a7..d59bc41c0 100644
+--- a/crates/pipeline/src/fixture.rs
++++ b/crates/pipeline/src/fixture.rs
+@@ -1015,8 +1015,8 @@ pub fn authenticated_reasoned_gates(
+         gmeow_logic::verify::PREPARED_GATES_CHANNEL,
+     )
+     .map_err(|error| fail(error.to_string()))?;
+-    let gates: gmeow_logic::verify::PreparedReasonedGates =
+-        serde_json::from_slice(&bytes).map_err(|error| fail(error.to_string()))?;
++    let gates = gmeow_logic::verify::PreparedReasonedGates::from_json_bytes(&bytes)
++        .map_err(|error| error.with_context("decode selected prepared verification laws"))?;
+     gates.validate_source_identity()?;
+     Ok(gates)
+ }
+diff --git a/crates/pipeline/src/stages/conformance/verify_gates.rs b/crates/pipeline/src/stages/conformance/verify_gates.rs
+index 836c22191..af1a88923 100644
+--- a/crates/pipeline/src/stages/conformance/verify_gates.rs
++++ b/crates/pipeline/src/stages/conformance/verify_gates.rs
+@@ -106,7 +106,9 @@ pub(super) fn record(
+     let gates = catalog.prepared_reasoned_gates().map_err(fail)?;
+     artifacts.insert(
+         PREPARED_GATES_CHANNEL.to_owned(),
+-        serde_json::to_vec(gates.as_ref()).map_err(fail)?,
++        gates
++            .to_json_bytes()
++            .map_err(|error| error.with_context("encode prepared native laws"))?,
+     );
+     let queries = embedded_verify_queries();
+     let query_digests: BTreeMap<_, _> = queries
+diff --git a/crates/pipeline/src/stages/verify_attestation.rs b/crates/pipeline/src/stages/verify_attestation.rs
+index dfbe487ec..85950c0f8 100644
+--- a/crates/pipeline/src/stages/verify_attestation.rs
++++ b/crates/pipeline/src/stages/verify_attestation.rs
+@@ -219,8 +219,9 @@ fn build_output_from_report(
+     gates: &gmeow_logic::verify::PreparedReasonedGates,
+ ) -> Result<StageOutput, gmeow_errors::Diag> {
+     gates.validate_source_identity()?;
+-    let prepared_gates = serde_json::to_vec(gates)
+-        .map_err(|error| stage_err(format!("encode prepared native laws: {error}")))?;
++    let prepared_gates = gates
++        .to_json_bytes()
++        .map_err(|error| error.with_context("encode prepared native laws"))?;
+     let failed: BTreeSet<String> = report
+         .findings
+         .iter()
+diff --git a/crates/validate/src/validate_all.rs b/crates/validate/src/validate_all.rs
+index 01f656571..1462e50b3 100644
+--- a/crates/validate/src/validate_all.rs
++++ b/crates/validate/src/validate_all.rs
+@@ -1515,12 +1515,8 @@ pub(crate) fn prepared_imported_gates(
+         archive::REASONED_GATES_MEMBER,
+         archive::MAX_NATIVE_MEMBER_BYTES,
+     )?;
+-    let gates: gmeow_logic::verify::PreparedReasonedGates =
+-        serde_json::from_slice(bytes).map_err(|error| {
+-            Diag::of_kind(crate::error::Engine {
+-                detail: format!("required native verification laws cannot be decoded: {error}"),
+-            })
+-        })?;
++    let gates = gmeow_logic::verify::PreparedReasonedGates::from_json_bytes(bytes)
++        .map_err(|error| error.with_context("decode required native verification laws"))?;
+     gates.validate_source_identity()?;
+     Ok(gates)
+ }
+diff --git a/crates/validate/src/validate_all/verification_fixture.rs b/crates/validate/src/validate_all/verification_fixture.rs
+index e59240138..2a8e306d7 100644
+--- a/crates/validate/src/validate_all/verification_fixture.rs
++++ b/crates/validate/src/validate_all/verification_fixture.rs
+@@ -25,7 +25,7 @@ pub(crate) fn gates() -> &'static PreparedReasonedGates {
+                 gmeow_logic::verify::PREPARED_GATES_CHANNEL,
+             )
+             .map_err(gmeow_errors::Diag::from)?;
+-            let gates = serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
++            let gates = PreparedReasonedGates::from_json_bytes(&bytes)?;
+             Ok(Selected {
+                 selector: selector.clone(),
+                 gates,
+diff --git a/crates/validate/tests/data_validate.rs b/crates/validate/tests/data_validate.rs
+index aeda9f1a2..319414e81 100644
+--- a/crates/validate/tests/data_validate.rs
++++ b/crates/validate/tests/data_validate.rs
+@@ -54,14 +54,15 @@ fn bundle_fixture() -> &'static BundleFixture {
+         let shapes =
+             data_validate::Tier1Shapes::from_shapes_and_ontology(&shapes_ttl, Arc::clone(&dataset))
+                 .expect("parse the producer-extracted validation shapes once");
+-        let gates: data_validate::PreparedReasonedGates = serde_json::from_slice(
+-            &gmeow_bundle_import::load_authenticated_corpus_artifact(
+-                &root,
+-                "prepared-verify-gates.json",
++        let gates: data_validate::PreparedReasonedGates =
++            data_validate::PreparedReasonedGates::from_json_bytes(
++                &gmeow_bundle_import::load_authenticated_corpus_artifact(
++                    &root,
++                    "prepared-verify-gates.json",
++                )
++                .expect("load exact producer-selected native laws"),
+             )
+-            .expect("load exact producer-selected native laws"),
+-        )
+-        .expect("decode selected native laws");
++            .expect("decode selected native laws");
+         gates
+             .validate_source_identity()
+             .expect("selected native laws match their source");

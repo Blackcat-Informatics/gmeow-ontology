@@ -1,0 +1,8 @@
+$ stagectl pr-checks 2021
+IN_PROGRESS CodeRabbit https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2021
+SUCCESS lint https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248001088
+SUCCESS helpers https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248000840
+IN_PROGRESS producer-build https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248001101
+IN_PROGRESS rust-prebuild https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248001155
+SUCCESS license/cla https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2021
+state: pending

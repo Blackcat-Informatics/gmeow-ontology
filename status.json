@@ -1,0 +1,129 @@
+{
+  "issue": 2020,
+  "pr_number": 2021,
+  "branch": "paudley/2020-use-complete-native-json-for-prepared",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2020-use-complete-native-json-for-prepared/.stage/use-complete-native-json-for-prepared",
+  "observed_at": "2026-10-27T14:31:44.412895+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2020-use-complete-native-json-for-prepared/.stage/use-complete-native-json-for-prepared/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2020-use-complete-native-json-for-prepared/.stage/use-complete-native-json-for-prepared/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2020-use-complete-native-json-for-prepared/.stage/use-complete-native-json-for-prepared/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2020-use-complete-native-json-for-prepared/.stage/use-complete-native-json-for-prepared/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2020-use-complete-native-json-for-prepared/.stage/use-complete-native-json-for-prepared/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "edd13f43023331965954f2e14d323dd7332dd271",
+    "headRefName": "paudley/2020-use-complete-native-json-for-prepared",
+    "headRefOid": "894557daa5f74870d7e5de24ccdd0596297d004a",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2021,
+    "state": "OPEN",
+    "title": "Use complete native JSON for prepared verification laws",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2021"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2021",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248001088",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248000840",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248001101",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40521073044/job/122248001155",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2021",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "894557daa5f74870d7e5de24ccdd0596297d004a",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "42add12fb89ac11e5f414abb5dead8f3d1a6af1a6278a1df9ee404d6158226eb"
+  },
+  "local": {
+    "head": "894557daa5f74870d7e5de24ccdd0596297d004a",
+    "branch": "paudley/2020-use-complete-native-json-for-prepared",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2021,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2021 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABgCCuLA",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2021#issuecomment-6444592684",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

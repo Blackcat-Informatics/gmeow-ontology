@@ -1,0 +1,15 @@
+Independent review of complete prepared verification-law native JSON
+
+Root reviewed the complete changed owner/caller/control scope independently after the source author froze all writes. The final scope is twenty-six Rust paths and the unchanged full reference. Principles 4 and 7.
+
+The seventeen-type closure is complete. QTerm, QBuiltin, EvalRule, ViolationLowering and PreparedReasonedGates use fallible native value composition in one traversal. Arena-local Struct refuses with the existing typed verification diagnostic plus collection, rule, builtin and recursive operand context before bytes are returned. The other twelve types use native traits. Hydration never invokes source preparation, hashing, lowering, evaluation or constructors that normalize raw evidence.
+
+Field declaration order, exact Rust enum spellings, nullable/missing options, required fields, unknown record tolerance, duplicate-known refusal, ordered-map policy and exact two-string rows preserve the original contract. Schema u32 and query i64 fields use the existing strict checked helpers. Query triples remain raw persistence data. Complete RDF literal/scoped-blank/quoted-triple identity reuses the existing native adapter.
+
+Both actual publishers and all nine identified readers use the public byte API. MCP adds no optional JSON dependency. Native decode/storage causes remain typed; decode boundaries add context to the existing diagnostic. The developer CLI retains its terminal exit-code presentation. Original explicit source-identity validation, embedded hashes, authentication and all preparation/lowering/evaluation algorithms remain unchanged. Shared Serde remains for genuine other owners; only the three obsolete prepared DTO derives were retired. Cargo.lock is unchanged.
+
+Required findings were corrected. The first strict build rejected three Diag-as-standard-error wrappers. Root inspected the actual API and replaced them with context propagation. Complete helper hygiene then found duplicate RcAtom/EvalAtom field hydration. The existing relational-core JSON owner now supplies one read_signed_atom operation to both adapters, preserving required-field order, expected labels, term ownership, unknown/duplicate policy and native pointers. No semantic constructor or ledger exemption was added. The source author independently reviewed that three-file extraction after root's edit and found no issue.
+
+Final strict six-package host compilation, complete helpers, all three new cases plus the existing authored atom-consumer case, and actual changed reasoning-only wasm release/package generation passed. The complete 20,291-byte original payload remains exact plus one storage line feed. All twenty-seven complete source/fixture postimages and current evidence clear the publication rule.
+
+No remaining required source finding. Static producer-recipe admission and normal signed commit/push hooks passed. PR publication and merge remain pending. This review does not claim canonical corpus, browser, shipped-asset, installed, release or full-gate acceptance. CI remains waived.

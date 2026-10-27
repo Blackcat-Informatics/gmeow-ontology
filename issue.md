@@ -1,0 +1,27 @@
+# Issue #2020: Use complete native JSON for prepared verification laws
+
+Source: https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2020
+State: open
+
+## Body
+
+Move the complete prepared verification-law artifact to native JSON across both actual publishers and every production/authenticated test reader. Preserve the entire persistent domain and its existing arena-handle refusal. Principles 4 and 7.
+
+Frozen closure: seventeen local types: PreparedReasonedGates, MathCompilation, MathConstraint, ViolationLowering, EvalRule, EvalAtom, EvalTerm, Reduction, its private Function, QBuiltin, QTerm, ArithOp, CmpOp, RcViolationResidue, RcViolationGap, RcComparison and TermKindPredicate. Reuse the existing complete native Diagnostic, RcNumeric, AtomicTerm and TermValue adapters. Retain shared rule/compiler Serde for genuine remaining operations; retire only obsolete prepared-law Serde.
+
+Design: QTerm::Struct is explicitly skipped by the original Serde writer and reader because its arena-local handle has no persistent identity. Native QTerm, QBuiltin, EvalRule, ViolationLowering and PreparedReasonedGates writing must therefore be fallible. Compose native Value objects/arrays directly, propagating child refusal in one traversal; only write/publish bytes after the entire value succeeds. Use ordinary native traits for the twelve representable records/enums. Do not invent a Struct wire value, serialize its dense ID, return null, panic, introduce a generic local serialization framework or do a preliminary validation walk.
+
+Acceptance:
+
+- Expose one public fallible prepared-law byte writer and one public native byte reader at the domain owner. Route both pipeline publishers (conformance verify_gates and verify_attestation), developer CLI, validator and MCP production readers, the pipeline's generic authenticated-law utility, and all five additional authenticated test-reader sites through this API. The MCP reasoning-only wasm path must not acquire the optional core JSON dependency merely to decode this type.
+- Preserve declaration-order compact bytes without a terminal newline, all seventeen-type record/enum wire shapes, raw booleans, duplicate/unsorted vectors and existing ordered-map policies, nullable/missing option fields, required fields, known-duplicate refusal and unknown-field tolerance. Map hydration validates every duplicate occurrence before retaining the last value. Distinct-pair rows are exactly two strings, using existing native row/item helpers. Do not invoke rule/reduction/lowering constructors that sort, deduplicate, evaluate or repair raw fields.
+- Preserve full RDF literal/scoped-blank/quoted-triple identity through existing native adapters. Preserve QTerm Const/Var/Num/recursive Triple without adding RDF-role, grounding or arithmetic validation. QTerm Num uses existing strict signed admission and checked i64 bounds; schema_version uses existing strict unsigned u32 admission. Refuse signed zero, fractional/exponent forms, wrong types and overflow at these integer fields.
+- At Struct anywhere beneath a builtin or recursive Triple in either prepared rule collection, return an actionable existing verification diagnostic naming the rule and operand path. No bytes or success artifact may be returned. Native hydration continues refusing Struct. Preserve actual native decoding/storage error sources where those APIs return them; do not attach another source to an already-sourced diagnostic.
+- Keep source-identity validation explicit at every existing call site. Preserve embedded source hashes, selector/action authentication, source commitments, schema checks, all preparation/lowering/evaluation algorithms and every authenticated corpus assertion. The surrounding verification Report channel, complete LogicProgram/PreparedOperatorRules and other persistence owners remain separate contracts.
+- Before production edits, capture the full original encoder output on direct-authored DTOs covering all seventeen types, every builtin/unit tag, recursive query terms, reductions, literal identities and raw evidence. Freeze the entire payload, then compare native bytes in full. Original and native controls must prove the arena-local refusal. Use three final bounded authored cases: full wire/raw identity, typed admission/refusal, and complete-operation nested arena refusal with useful context. No shared law loader, embedded-source preparation, from_compiled_sources, corpus discovery or canonical producer from tests.
+- Independently review, compile actual affected host owners/pipeline/validator/MCP/developer CLI with warnings denied, and compile the actual reasoning wasm MCP consumer through the producer-independent selected target/profile without package-asset publication. Run the three exact authored cases, complete helper/static-recipe checks and normal hooks. Preserve the existing target/features/profile contracts; no toolchain/config/flag weakening. No optimized producer, canonical corpus, sync or full gate. Authenticated corpus, browser execution, shipped assets, installed and release acceptance remain unverified; CI is waived, not passing. Any unavailable required consumer compilation is a real blocker, not a substituted pass.
+
+Remaining contracts: #1776, #1777, #1336 and #1962, including full operators/programs, verification reports and complete production acceptance. This child closes only the complete prepared verification-law transport operation.
+
+
+## Comments (0)

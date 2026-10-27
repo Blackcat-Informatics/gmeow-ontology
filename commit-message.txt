@@ -1,0 +1,6 @@
+feat: use native JSON for complete prepared verification laws
+
+Preserve the full persistent rule domain and explicit arena-handle refusal.
+Route both publishers and all authenticated readers through the domain API.
+
+Principles 4 and 7.
