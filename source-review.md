@@ -1,0 +1,7 @@
+Independent combined review: PASS.
+
+Read the five changed paths, every discovery caller, the shared schema builder, and both complete authored controls. Discovery now returns a Result through all three stage input declarations and the ontology loader. Directory-open, entry and metadata failures name the affected directory or path; selected module files must be ordinary files. Loading still fails on source reads and Turtle parsing, and returns no partial dataset.
+
+Healthy discovery retains recursion, per-directory sorted traversal, exact module names and followed symlink targets. The explicit ordinary-file check rejects a directory named module.ttl before recursion. Empty readable trees and valid sources without qualifying vocabulary members remain legitimate. The tests use temporary directories and authored tiny Turtle only, including a file symlink on Unix. No permission-dependent fixture, race, filesystem mock, repository corpus or producer is involved.
+
+The three external caller changes only propagate errors. Vocabulary derivation, schema enrichment and output formats are unchanged. Entry and metadata I/O refusal branches were source-reviewed; those OS failures were not injected. Strict compilation of pipeline and developer CLI actual callers passed with warnings denied. Runtime results and normal hook outcomes are recorded separately. Principles 4 and 7 govern complete source admission and honest verification.

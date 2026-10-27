@@ -1,0 +1,7 @@
+$ stagectl pr-checks 2006
+IN_PROGRESS rust-prebuild https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40458406916/job/122037019420
+NEUTRAL CodeRabbit https://coderabbit.ai?utm_source=cr_app&utm_medium=github
+QUEUED producer-build https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40458406916/job/122037019583
+QUEUED helpers https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40458406916/job/122037019603
+QUEUED lint https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40458406916/job/122037019751
+state: pending

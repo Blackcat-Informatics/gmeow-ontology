@@ -1,0 +1,198 @@
+diff --git a/crates/pipeline/src/stages/json_schema.rs b/crates/pipeline/src/stages/json_schema.rs
+index 6a5233584..89c333009 100644
+--- a/crates/pipeline/src/stages/json_schema.rs
++++ b/crates/pipeline/src/stages/json_schema.rs
+@@ -125,7 +125,7 @@ impl Stage for JsonSchemaStage {
+         // (`slices/**/module.ttl`), so those sources bust the cache too — a new
+         // vocabulary member must reflow the schema.
+         let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
+-        files.extend(crate::stages::value_vocab::ontology_module_files(root));
++        files.extend(crate::stages::value_vocab::ontology_module_files(root)?);
+         files.sort();
+         files.dedup();
+         Ok(files)
+diff --git a/crates/pipeline/src/stages/pydantic.rs b/crates/pipeline/src/stages/pydantic.rs
+index 402bc5b25..c1fb3d1cc 100644
+--- a/crates/pipeline/src/stages/pydantic.rs
++++ b/crates/pipeline/src/stages/pydantic.rs
+@@ -434,7 +434,7 @@ impl Stage for PydanticStage {
+         // version stamp, so it busts the cache too.
+         let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
+         files.extend(crate::stages::docs_render::docs_source_files(root)?);
+-        files.extend(crate::stages::value_vocab::ontology_module_files(root));
++        files.extend(crate::stages::value_vocab::ontology_module_files(root)?);
+         for module in crate::stages::source_load::module_files(root)? {
+             if let Some(dir) = module.parent() {
+                 files.push(dir.join("manifest.ttl"));
+diff --git a/crates/pipeline/src/stages/schemas.rs b/crates/pipeline/src/stages/schemas.rs
+index 1852a510c..d516ac010 100644
+--- a/crates/pipeline/src/stages/schemas.rs
++++ b/crates/pipeline/src/stages/schemas.rs
+@@ -494,7 +494,7 @@ impl Stage for SchemasStage {
+         // ALSO reads the ontology ABox (`slices/**/module.ttl`), so those sources bust
+         // the cache too — a new vocabulary member must reflow the schema.
+         let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
+-        files.extend(crate::stages::value_vocab::ontology_module_files(root));
++        files.extend(crate::stages::value_vocab::ontology_module_files(root)?);
+         files.sort();
+         files.dedup();
+         Ok(files)
+diff --git a/crates/pipeline/src/stages/value_vocab.rs b/crates/pipeline/src/stages/value_vocab.rs
+index 279f6f6a6..e5ac1a2d6 100644
+--- a/crates/pipeline/src/stages/value_vocab.rs
++++ b/crates/pipeline/src/stages/value_vocab.rs
+@@ -360,32 +360,60 @@ pub(crate) fn enrich_value_vocab_enums(
+ /// Recursively collect every authored `slices/**/module.ttl` (the canonical ABox that
+ /// declares the value-vocabulary classes and their `gmeow:` individuals). Test
+ /// fixtures under `tests/` carry no `module.ttl`, so the projection universe never
+-/// reaches them.
+-pub(crate) fn ontology_module_files(root: &Path) -> Vec<PathBuf> {
+-    fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
+-        let Ok(entries) = std::fs::read_dir(dir) else {
+-            return;
+-        };
+-        let mut paths: Vec<PathBuf> = entries.flatten().map(|e| e.path()).collect();
++/// reaches them. An existing readable tree may be empty; a missing or unreadable
++/// required source tree is an error, never an empty selection.
++pub(crate) fn ontology_module_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
++    fn walk(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), gmeow_errors::Diag> {
++        let entries = std::fs::read_dir(dir).map_err(|error| {
++            err(format!(
++                "read ontology source directory {}: {error}",
++                dir.display()
++            ))
++        })?;
++        let mut paths = Vec::new();
++        for entry in entries {
++            let entry = entry.map_err(|error| {
++                err(format!(
++                    "read ontology source entry under {}: {error}",
++                    dir.display()
++                ))
++            })?;
++            paths.push(entry.path());
++        }
+         paths.sort();
+         for path in paths {
+-            if path.is_dir() {
+-                walk(&path, out);
+-            } else if path.file_name().and_then(|n| n.to_str()) == Some("module.ttl") {
++            // Follow the same symlink targets as the previous is_dir classification,
++            // but retain classification failures instead of treating them as files.
++            let metadata = std::fs::metadata(&path).map_err(|error| {
++                err(format!(
++                    "classify ontology source path {}: {error}",
++                    path.display()
++                ))
++            })?;
++            if path.file_name().and_then(|name| name.to_str()) == Some("module.ttl") {
++                if !metadata.is_file() {
++                    return Err(err(format!(
++                        "ontology source {} must be an ordinary file",
++                        path.display()
++                    )));
++                }
+                 out.push(path);
++            } else if metadata.is_dir() {
++                walk(&path, out)?;
+             }
+         }
++        Ok(())
+     }
+     let mut files = Vec::new();
+-    walk(&root.join("slices"), &mut files);
+-    files
++    walk(&root.join("slices"), &mut files)?;
++    Ok(files)
+ }
+ 
+ /// Parse the authored `module.ttl` ABox into ONE frozen dataset — the store the value
+ /// vocabularies are read from. HARD-fails if a source is unreadable or unparsable
+ /// (no silent fallback: a missing vocabulary must surface, never degrade).
+ pub(crate) fn load_ontology_store(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+-    let files = ontology_module_files(root);
++    let files = ontology_module_files(root)?;
+     let mut parsed: Vec<Arc<RdfDataset>> = Vec::with_capacity(files.len());
+     for file in &files {
+         let bytes = std::fs::read(file)
+diff --git a/crates/pipeline/src/stages/value_vocab.tests.rs b/crates/pipeline/src/stages/value_vocab.tests.rs
+index ad86c420b..77f3b360d 100644
+--- a/crates/pipeline/src/stages/value_vocab.tests.rs
++++ b/crates/pipeline/src/stages/value_vocab.tests.rs
+@@ -159,3 +159,76 @@ fn functional_scalar_input_stays_scalar() {
+         json!({ "$ref": "#/$defs/FrameKindEnum" }),
+     );
+ }
++
++#[test]
++fn ontology_source_discovery_preserves_recursive_order_and_empty_vocabularies() {
++    let root = tempfile::tempdir().expect("authored source tree");
++    let slices = root.path().join("slices");
++    std::fs::create_dir(&slices).unwrap();
++    assert!(ontology_module_files(root.path()).unwrap().is_empty());
++    let empty = load_ontology_store(root.path()).expect("readable empty tree");
++    assert!(
++        derive_value_vocabs(&FoldView::new(&empty), &gmeow_json_schema_namespaces()).is_empty()
++    );
++
++    for relative in ["z/module.ttl", "a/module.ttl", "a/deeper/cell/module.ttl"] {
++        let path = slices.join(relative);
++        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
++        std::fs::write(&path, "<urn:source:s> <urn:source:p> <urn:source:o> .\n").unwrap();
++    }
++    std::fs::write(slices.join("a/ignored.ttl"), "not Turtle").unwrap();
++    std::fs::write(slices.join("module.ttl.backup"), "not Turtle").unwrap();
++    let mut expected = vec![
++        slices.join("a/deeper/cell/module.ttl"),
++        slices.join("a/module.ttl"),
++    ];
++    #[cfg(unix)]
++    {
++        let linked = slices.join("linked/module.ttl");
++        std::fs::create_dir_all(linked.parent().unwrap()).unwrap();
++        std::os::unix::fs::symlink(slices.join("a/module.ttl"), &linked).unwrap();
++        expected.push(linked);
++    }
++    expected.push(slices.join("z/module.ttl"));
++    assert_eq!(
++        ontology_module_files(root.path()).unwrap(),
++        expected,
++        "recursive, per-directory sorted selection keeps only exact module names"
++    );
++    let store = load_ontology_store(root.path()).expect("all selected authored modules parse");
++    assert!(store.term_id_by_iri("urn:source:s").is_some());
++    assert!(
++        derive_value_vocabs(&FoldView::new(&store), &gmeow_json_schema_namespaces()).is_empty(),
++        "valid modules without qualifying members are legitimate empty enrichment"
++    );
++}
++
++#[test]
++fn ontology_source_discovery_refuses_unavailable_or_malformed_required_inputs() {
++    let root = tempfile::tempdir().expect("authored refusal tree");
++    let slices = root.path().join("slices");
++    let missing = ontology_module_files(root.path()).unwrap_err().to_string();
++    assert!(missing.contains("read ontology source directory"));
++    assert!(missing.contains(slices.to_str().unwrap()));
++    assert!(
++        load_ontology_store(root.path()).is_err(),
++        "loader must propagate missing discovery"
++    );
++
++    std::fs::write(&slices, "not a directory").unwrap();
++    let not_directory = ontology_module_files(root.path()).unwrap_err().to_string();
++    assert!(not_directory.contains("read ontology source directory"));
++    assert!(not_directory.contains(slices.to_str().unwrap()));
++    std::fs::remove_file(&slices).unwrap();
++    std::fs::create_dir(&slices).unwrap();
++    let module = slices.join("module.ttl");
++    std::fs::create_dir(&module).unwrap();
++    let not_file = ontology_module_files(root.path()).unwrap_err().to_string();
++    assert!(not_file.contains("must be an ordinary file"));
++    assert!(not_file.contains(module.to_str().unwrap()));
++    std::fs::remove_dir(&module).unwrap();
++    std::fs::write(&module, "not valid Turtle").unwrap();
++    let malformed = load_ontology_store(root.path()).unwrap_err().to_string();
++    assert!(malformed.contains("parse ontology source"));
++    assert!(malformed.contains(module.to_str().unwrap()));
++}

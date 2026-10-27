@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2005,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2005-fail-closed-when-schema-vocabulary",
+  "branch": "paudley/2005-fail-closed-when-schema-vocabulary",
+  "slug": "fail-closed-when-schema-vocabulary",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2005-fail-closed-when-schema-vocabulary/.stage/fail-closed-when-schema-vocabulary",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "5b7aa6933ec100449ed5d5ece595b5ec2d223926",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2005-fail-closed-when-schema-vocabulary",
+    "branch:paudley/2005-fail-closed-when-schema-vocabulary",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2005-fail-closed-when-schema-vocabulary/.stage/fail-closed-when-schema-vocabulary",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2005-fail-closed-when-schema-vocabulary/.stage/fail-closed-when-schema-vocabulary/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T23:35:57-0600"
+}
