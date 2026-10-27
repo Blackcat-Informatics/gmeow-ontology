@@ -8,11 +8,9 @@ use gmeow_lang_bridge::gmn_verbalize::{
     forward_index, invert_nl, round_trip_holds,
 };
 use gmeow_lang_bridge::registry::{LangEmission, LangProjectionInput, registry};
-use serde::{Deserialize, Serialize};
 
 use super::EmissionWitness;
 
-#[derive(Serialize, Deserialize)]
 pub(crate) struct Controls {
     pub bumped_major: String,
     pub bumped_paths: Vec<String>,
@@ -22,7 +20,6 @@ pub(crate) struct Controls {
     pub erased_scope_error: String,
 }
 
-#[derive(Serialize, Deserialize)]
 pub(crate) struct VerbalizerControl {
     pub emission: EmissionWitness,
     pub text: String,
@@ -30,7 +27,6 @@ pub(crate) struct VerbalizerControl {
     pub round_trip: bool,
 }
 
-#[derive(Serialize, Deserialize)]
 pub(crate) struct Pair {
     pub label: String,
     pub nl: String,

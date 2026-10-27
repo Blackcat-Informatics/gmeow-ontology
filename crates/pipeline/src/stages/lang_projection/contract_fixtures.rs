@@ -8,7 +8,6 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use gmeow_errors::ResultExt;
-use serde::de::DeserializeOwned;
 
 use super::{gmn_gate, gmn_pack, grammar_observations};
 
@@ -124,7 +123,7 @@ fn load(root: &Path, selector_sha256: &str) -> Result<LanguageFixtures, gmeow_er
     ];
     paths.extend(product_paths.values().map(String::as_str));
     let mut artifacts = crate::fixture::authenticated_artifacts(root, STAGE, &paths)?;
-    let pack: gmn_pack::Observations = decode(&mut artifacts, gmn_pack::CHANNEL)?;
+    let pack: gmn_pack::Observations = decode_native(&mut artifacts, gmn_pack::CHANNEL)?;
     let gates = decode_native(&mut artifacts, gmn_gate::CHANNEL)?;
     let grammars = decode_native(&mut artifacts, grammar_observations::CHANNEL)?;
     if selected_major != Some(pack.major.as_str()) {
@@ -172,30 +171,15 @@ fn load(root: &Path, selector_sha256: &str) -> Result<LanguageFixtures, gmeow_er
     })
 }
 
-fn decode<T: DeserializeOwned>(
-    artifacts: &mut BTreeMap<String, Vec<u8>>,
-    path: &str,
-) -> Result<T, gmeow_errors::Diag> {
-    let bytes = artifact_bytes(artifacts, path)?;
-    serde_json::from_slice(&bytes).with_ctx(|| format!("native language observations {path}"))
-}
-
 fn decode_native<T: purrdf_lex::json::record::FromJson>(
     artifacts: &mut BTreeMap<String, Vec<u8>>,
     path: &str,
 ) -> Result<T, gmeow_errors::Diag> {
-    let bytes = artifact_bytes(artifacts, path)?;
+    let bytes = artifacts
+        .remove(path)
+        .ok_or_else(|| fail(format!("authenticated language action omitted {path}")))?;
     purrdf_lex::json::record::from_slice(&bytes)
         .with_ctx(|| format!("native language observations {path}"))
-}
-
-fn artifact_bytes(
-    artifacts: &mut BTreeMap<String, Vec<u8>>,
-    path: &str,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    artifacts
-        .remove(path)
-        .ok_or_else(|| fail(format!("authenticated language action omitted {path}")))
 }
 
 fn fail(message: impl Into<String>) -> gmeow_errors::Diag {

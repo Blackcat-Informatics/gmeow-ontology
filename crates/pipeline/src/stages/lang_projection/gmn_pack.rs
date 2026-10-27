@@ -11,9 +11,9 @@ use gmeow_lang_bridge::gmn1_digest::{EcosystemLeaves, codebook_digest, grammar_l
 use gmeow_lang_bridge::registry::{LangEmission, LangEmissionBatch, LangProjectionInput};
 use gmeow_logic_compile::ir::{Correspondence, LegPath};
 use purrdf::slice::SliceCatalog;
-use serde::{Deserialize, Serialize};
 
 mod controls;
+mod json;
 
 pub(crate) const CHANNEL: &str = "pipeline/gmn-pack-observations.json";
 const PRODUCTS: [&str; 3] = [
@@ -22,7 +22,6 @@ const PRODUCTS: [&str; 3] = [
     "verbalizations.ttl",
 ];
 
-#[derive(Serialize, Deserialize)]
 pub(crate) struct Observations {
     pub major: String,
     pub paths: Vec<String>,
@@ -37,7 +36,6 @@ pub(crate) struct Observations {
     pub controls: controls::Controls,
 }
 
-#[derive(Serialize, Deserialize)]
 pub(crate) struct EmissionWitness {
     pub path: String,
     pub is_rdf: bool,
@@ -45,6 +43,13 @@ pub(crate) struct EmissionWitness {
     pub round_trip: bool,
     pub leg_pair: Option<(LegPath, LegPath)>,
     pub source_matches_artifact: bool,
+}
+
+impl Observations {
+    /// Publish the complete compact pack channel without a terminal newline.
+    pub(super) fn to_bytes(&self) -> Vec<u8> {
+        purrdf_lex::json::record::to_vec(self)
+    }
 }
 
 impl EmissionWitness {
@@ -67,8 +72,7 @@ impl EmissionWitness {
     }
 }
 
-/// All seven rates and every integer witness, before RDF formatting rounds decimal values.
-#[derive(Serialize, Deserialize)]
+/// Five floating measurements, eleven integer witnesses and the stored gate verdict.
 pub(crate) struct Metrics {
     pub bytes_on_disk: u64,
     pub tokens_in_context: u64,
@@ -314,3 +318,6 @@ fn grounding_scope(
     sources.sort();
     Ok((indices, sources))
 }
+
+#[cfg(test)]
+mod tests;
