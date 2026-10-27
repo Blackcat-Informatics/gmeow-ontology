@@ -1,0 +1,28 @@
+diff --git a/fuzz/Cargo.lock b/fuzz/Cargo.lock
+index ac0ae51aa..2ac01ac8b 100644
+--- a/fuzz/Cargo.lock
++++ b/fuzz/Cargo.lock
+@@ -393,6 +393,7 @@ version = "0.3.0"
+ dependencies = [
+  "purrdf-core",
+  "purrdf-hash",
++ "purrdf-lex",
+  "serde",
+  "serde_json",
+ ]
+@@ -445,6 +446,7 @@ dependencies = [
+  "purrdf",
+  "purrdf-core",
+  "purrdf-hash",
++ "purrdf-lex",
+  "rayon",
+  "serde",
+  "serde_json",
+@@ -459,6 +461,7 @@ name = "gmeow-logic-compile"
+ version = "0.3.0"
+ dependencies = [
+  "gmeow-errors",
++ "gmeow-gts-profile",
+  "gmeow-ns",
+  "gmeow-term-arena",
+  "purrdf",

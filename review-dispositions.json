@@ -1,0 +1,16 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABf6fBdg": {
+    "resolution": "acknowledged",
+    "reason": "Complete skipped-review notice read: lockfiles excluded by hosted path filters. No substantive hosted review or finding. Independent exact graph/source review and actual locked metadata/native checker pass.",
+    "commit": "e0b10b70023dd05c5f023d74cbc496fec84d1fdf",
+    "reply_url": null,
+    "revision": {
+      "body": "\n\n\n\n\n> [!IMPORTANT]\n> ## Review skipped\n> \n> Review was skipped due to path filters\n> \n> <details>\n> <summary><strong>:no_entry: Files ignored due to path filters: 1</strong></summary>\n> <dl>\n> <dd>\n> \n> * `fuzz/Cargo.lock` is excluded by `!**/*.lock`\n> \n> </dd>\n> </dl>\n> </details>\n> \n> CodeRabbit blocks several paths by default. You can override this behavior by explicitly including those paths in the path filters. For example, including `**/dist/**` will override the default block on the `dist` directory, by removing the pattern from both the lists.\n> \n> <details>\n> <summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Run configuration</strong></summary>\n> <dl>\n> <dd>\n> \n> - **Source mode**: Auto\n> - **Repository**: Unavailable\n> - **Branch**: Unavailable\n> - **File**: No configuration file from this repository applied\n> - **Commit**: Unavailable\n> - **Layers**: Repository UI (base), Organization UI (inherited)\n> - **Review profile**: ASSERTIVE\n> - **Plan**: Advanced\n> - **Run ID**: `a42382ff-6d75-46d0-9fad-6c1d1f28805b`\n> \n> </dd>\n> </dl>\n> </details>\n> \n> You can disable this status message by setting the `reviews.review_status` to `false` in the CodeRabbit configuration file.\n> \n> Use the checkbox below for a quick retry:\n> - [ ] <!-- {\"checkboxId\":\"e9bb8d72-00e8-4f67-9cb2-caf3b22574fe\"} --> \ud83d\udd0d Trigger review\n\n\n\n<!-- autopilot:start -->\n- [ ] <!-- {\"checkboxId\":\"2708ad07-9f24-4260-9c11-7dc76a49f2e3\"} --> <strong title=\"Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\">Autofix</strong> \u00b7 Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\n<!-- autopilot:end -->\n<!-- tips_start -->\n\n\n\n\n\n\n<sub>Comment `@coderabbitai help` to get the list of available commands.</sub>\n\n<!-- tips_end -->",
+      "updated_at": "2026-10-27T07:57:28Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Scheduled fuzz run 40460536877 fails before fuzzing starts: `cargo metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1` refuses the stale standalone lockfile. The current path-package dependency graph includes edges absent from `fuzz/Cargo.lock`.\n\nReconcile the standalone lock with Cargo while retaining every selected package version, source, checksum and exact PurRDF revision. Preserve the locked metadata check and native production/fuzz substrate identity checker. Principles 4 and 7.\n\nAcceptance:\n\n- Change only `fuzz/Cargo.lock`, adding the dependency edges required by current path manifests. Inspect the complete machine-readable before/after package graph and retain all existing package identities.\n- Verify locked standalone Cargo metadata succeeds without changing either lockfile, then run the real `make fuzz-substrate-check` with its native checker. A supported non-producer developer CLI build/override may execute this metadata-only command; no optimized producer, corpus construction, synchronization or full gate.\n- Use normal hooks, source review and sequential delivery. No new parser tests are needed for dependency metadata repair. Do not weaken `--locked`, pin checks or workflow coverage.\n- Local fuzz execution is outside this repair. Report it as unverified, along with CI under the standing waiver.\n\nObserved failure: https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40460536877/job/122043799735 . This is a lock consistency failure, not evidence of a parser/fuzzer defect.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-27T07:45:15Z",
+  "labels": [],
+  "milestone": null,
+  "number": 2009,
+  "state": "OPEN",
+  "title": "Reconcile the standalone fuzz lock with current path dependencies",
+  "updatedAt": "2026-10-27T07:45:15Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2009"
+}
