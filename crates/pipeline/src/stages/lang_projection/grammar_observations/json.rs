@@ -32,18 +32,7 @@ fn outcome_to_json(result: &Result<Grammar, IngestDiagnostic>) -> Value {
         Err(value) => Object::new().with("Err", value.to_json()).into(),
     }
 }
-fn read_leg_pair(value: &Value) -> Result<(LegPath, LegPath), DecodeError> {
-    let cells = value
-        .as_array()
-        .ok_or_else(|| DecodeError::invalid_type(value, "two leg paths"))?;
-    if cells.len() != 2 {
-        return Err(DecodeError::invalid_value(value, "exactly two leg paths"));
-    }
-    Ok((
-        LegPath::from_json(&cells[0]).map_err(|error| error.within_index_native(0, None))?,
-        LegPath::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?,
-    ))
-}
+
 ::purrdf_lex::json_record!(impl ToJson for Observations { "grammars" => grammars });
 impl FromJson for Observations {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
@@ -99,7 +88,7 @@ impl FromJson for Emission {
         let mut fields = Record::new(value, "struct Emission")?;
         Ok(Self {
             correspondence: fields.required("correspondence")?,
-            leg_pair: fields.optional_with("leg_pair", read_leg_pair)?,
+            leg_pair: fields.optional_with("leg_pair", LegPath::pair_from_json)?,
             round_trip_holds: fields.required("round_trip_holds")?,
             lossy_kind: fields.required("lossy_kind")?,
             unsupported: fields.required("unsupported")?,

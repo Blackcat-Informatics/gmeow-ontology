@@ -265,6 +265,26 @@ impl FromJson for AxisEvidence {
     }
 }
 
+impl LegPath {
+    /// Decode two ordered logical legs without normalizing either path.
+    ///
+    /// # Errors
+    /// Refuses nonarrays, rows of any other width and malformed paths, retaining
+    /// the native index of a failing leg.
+    pub fn pair_from_json(value: &Value) -> Result<(LegPath, LegPath), DecodeError> {
+        let cells = value
+            .as_array()
+            .ok_or_else(|| DecodeError::invalid_type(value, "two leg paths"))?;
+        if cells.len() != 2 {
+            return Err(DecodeError::invalid_value(value, "exactly two leg paths"));
+        }
+        Ok((
+            LegPath::from_json(&cells[0]).map_err(|error| error.within_index_native(0, None))?,
+            LegPath::from_json(&cells[1]).map_err(|error| error.within_index_native(1, None))?,
+        ))
+    }
+}
+
 impl ToJson for LegPath {
     fn to_json(&self) -> Value {
         match self {

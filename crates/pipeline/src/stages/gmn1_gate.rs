@@ -8,6 +8,8 @@
 //! the sources again. They describe the selected corpus, never an unrestricted
 //! correspondence rewrite certificate.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -19,7 +21,6 @@ use gmeow_lang_bridge::{
 };
 use purrdf::slice::SliceCatalog;
 use purrdf::{RdfDataset, RdfTerm, parse_dataset};
-use serde::{Deserialize, Serialize};
 
 /// The grounding slice directories this gate is total over (mirrors the
 /// `axisGmn1Coverage` axis's own `slices/grounding/` scope, minus `kernel`: the kernel
@@ -354,7 +355,7 @@ fn conformance_pack_rel(major: &str) -> String {
 
 /// One `gmeow:GmnEnvelope` whose declared `gmeow:gmnCodebookDigest` does not equal the
 /// codebook's recomputed Merkle root — a [`CLASS_GMN_CODEBOOK_DIGEST_MISMATCH`] discharge.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Gmn1CodebookDigestMismatch {
     /// The source file the envelope was read from.
     pub source: String,
@@ -377,7 +378,7 @@ impl Gmn1CodebookDigestMismatch {
 /// [`check_gmn1_codebook_digest`]'s outcome: every envelope whose declared codebook digest
 /// disagreed with the recomputed Merkle root. Empty ⇒ every checked envelope names the real
 /// codebook frame.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Gmn1CodebookDigestReport {
     /// Every mismatching envelope, in a stable (source, envelope) order.
     pub mismatches: Vec<Gmn1CodebookDigestMismatch>,
@@ -514,7 +515,7 @@ pub fn check_gmn1_codebook_digest_on_gate(
 /// [`check_gmn1_pack_root`]'s outcome: the recomputed conformance-pack Merkle root and, when a
 /// pack is shipped, the root it declares. Clean ⇒ no pack (a no-op the fanout activates) OR a
 /// shipped pack whose declared `gmeow:gmnPackRoot` byte-equals the recomputation.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Gmn1PackRootReport {
     /// The independently recomputed pack Merkle root (`pack_root` over the codebook digest, the
     /// authored grammar, the sigil table, and the four materialized ecosystem-view leaves).
