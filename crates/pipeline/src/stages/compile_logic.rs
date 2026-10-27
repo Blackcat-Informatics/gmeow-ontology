@@ -748,7 +748,7 @@ impl Stage for CompileLogicStage {
         );
         artifacts.insert(
             CORRESPONDENCE_PLANS_PATH.into(),
-            physical_plans.report_json()?,
+            physical_plans.report_json(),
         );
         let mut rchops21_projection_json = purrdf_lex::json::write_pretty(
             &purrdf_lex::json::record::ToJson::to_json(&rchops21_projection),

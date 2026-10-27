@@ -535,7 +535,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
 
     correspondence_roundtrip::assert_roundtrip(&product);
 
-    let emitted: CompositionPlanReport = serde_json::from_slice(
+    let emitted: CompositionPlanReport = purrdf_lex::json::record::from_slice(
         product
             .artifact(CORRESPONDENCE_PLANS_PATH)
             .expect("certified correspondence physical plans"),
