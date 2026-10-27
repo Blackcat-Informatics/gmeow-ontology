@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1989,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1989-use-native-json-for-complete-formula",
+  "branch": "paudley/1989-use-native-json-for-complete-formula",
+  "slug": "use-native-json-for-complete-formula",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1989-use-native-json-for-complete-formula/.stage/use-native-json-for-complete-formula",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "dbadbb2ea3f342e283951bfdb655209de8d3dbcc",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1989-use-native-json-for-complete-formula",
+    "branch:paudley/1989-use-native-json-for-complete-formula",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1989-use-native-json-for-complete-formula/.stage/use-native-json-for-complete-formula",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1989-use-native-json-for-complete-formula/.stage/use-native-json-for-complete-formula/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T19:08:27-0600"
+}

@@ -1,0 +1,790 @@
+diff --git a/crates/errors/src/json.rs b/crates/errors/src/json.rs
+index 7e942015f..c2c1367d8 100644
+--- a/crates/errors/src/json.rs
++++ b/crates/errors/src/json.rs
+@@ -152,6 +152,18 @@ pub fn recorded_result_to_json<T: ToJson>(outcome: &Result<T, crate::RecordedDia
+     }
+ }
+ 
++/// Project sorted producer keys and complete typed recorded outcomes without cloning.
++#[must_use]
++pub fn recorded_map_to_json<T: ToJson>(
++    outcomes: &std::collections::BTreeMap<String, Result<T, crate::RecordedDiag>>,
++) -> Value {
++    outcomes
++        .iter()
++        .map(|(name, outcome)| (name.as_str(), recorded_result_to_json(outcome)))
++        .collect::<Object>()
++        .into()
++}
++
+ struct UnitSuccess;
+ 
+ impl FromJson for UnitSuccess {
+diff --git a/crates/logic-compile/src/ir/json.rs b/crates/logic-compile/src/ir/json.rs
+index 15a3ed3fa..f42f0e98f 100644
+--- a/crates/logic-compile/src/ir/json.rs
++++ b/crates/logic-compile/src/ir/json.rs
+@@ -2,12 +2,43 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+ //! Native canonical AST transport with checked term/atom admission.
+-use super::{Formula, PreservationKind, Term, literal_serde};
++use super::{AtomicTerm, Formula, PreservationKind, Term, literal_serde};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson, Within},
+ };
+ 
++// Atomic inspection values retain their explicit kind and verbatim payload.
++impl ToJson for AtomicTerm {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Var(value) => Object::new().with("Var", value.to_json()).into(),
++            Self::Iri(value) => Object::new().with("Iri", value.to_json()).into(),
++            Self::Blank(value) => Object::new().with("Blank", value.to_json()).into(),
++            Self::Literal(value) => Object::new()
++                .with("Literal", literal_serde::single::to_json(value))
++                .into(),
++        }
++    }
++}
++impl FromJson for AtomicTerm {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (tag, payload) =
++            gmeow_errors::json::read_variant(value, "AtomicTerm", "one AtomicTerm variant")?;
++        let decoded = match tag {
++            "Var" => String::from_json(payload).map(Self::Var),
++            "Iri" => String::from_json(payload).map(Self::Iri),
++            "Blank" => String::from_json(payload).map(Self::Blank),
++            "Literal" => literal_serde::single::from_json(payload).map(Self::Literal),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["Var", "Iri", "Blank", "Literal"],
++            )),
++        };
++        decoded.map_err(|error| error.within(tag))
++    }
++}
++
+ impl ToJson for Term {
+     fn to_json(&self) -> Value {
+         match self {
+diff --git a/crates/logic-compile/src/relational_core.rs b/crates/logic-compile/src/relational_core.rs
+index 6f68f12f3..d0d2b9ee5 100644
+--- a/crates/logic-compile/src/relational_core.rs
++++ b/crates/logic-compile/src/relational_core.rs
+@@ -58,6 +58,7 @@ use crate::ir::{
+ };
+ 
+ pub mod formula_analysis;
++mod json;
+ 
+ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+ 
+diff --git a/crates/logic-compile/src/relational_core/json.rs b/crates/logic-compile/src/relational_core/json.rs
+new file mode 100644
+index 000000000..cc96ebef1
+--- /dev/null
++++ b/crates/logic-compile/src/relational_core/json.rs
+@@ -0,0 +1,99 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Data-only JSON for relational atoms and retained numeric operand metadata.
++
++use super::{NumericOperator, RcAtom, RcNumeric};
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++
++::purrdf_lex::json_record!(impl ToJson for RcAtom {
++    "subject" => subject,
++    "predicate" => predicate,
++    "object" => object,
++    "negated" => negated,
++});
++impl FromJson for RcAtom {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct RcAtom")?;
++        Ok(Self {
++            subject: fields.required("subject")?,
++            predicate: fields.required("predicate")?,
++            object: fields.required("object")?,
++            negated: fields.required("negated")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for RcNumeric {
++    "operator" => operator,
++    "left" => left,
++    "right" => right,
++    "result" => result,
++});
++impl FromJson for RcNumeric {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct RcNumeric")?;
++        // This is retained diagnostic data, not numeric execution admission.
++        Ok(Self {
++            operator: fields.required("operator")?,
++            left: fields.required("left")?,
++            right: fields.required("right")?,
++            result: fields.optional("result")?,
++        })
++    }
++}
++
++impl ToJson for NumericOperator {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Add => "Add",
++            Self::Subtract => "Subtract",
++            Self::Multiply => "Multiply",
++            Self::Divide => "Divide",
++            Self::ExactDivide => "ExactDivide",
++            Self::Equal => "Equal",
++            Self::NotEqual => "NotEqual",
++            Self::Less => "Less",
++            Self::LessOrEqual => "LessOrEqual",
++            Self::Greater => "Greater",
++            Self::GreaterOrEqual => "GreaterOrEqual",
++        }
++        .to_json()
++    }
++}
++impl FromJson for NumericOperator {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "NumericOperator")? {
++            "Add" => Ok(Self::Add),
++            "Subtract" => Ok(Self::Subtract),
++            "Multiply" => Ok(Self::Multiply),
++            "Divide" => Ok(Self::Divide),
++            "ExactDivide" => Ok(Self::ExactDivide),
++            "Equal" => Ok(Self::Equal),
++            "NotEqual" => Ok(Self::NotEqual),
++            "Less" => Ok(Self::Less),
++            "LessOrEqual" => Ok(Self::LessOrEqual),
++            "Greater" => Ok(Self::Greater),
++            "GreaterOrEqual" => Ok(Self::GreaterOrEqual),
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &[
++                    "Add",
++                    "Subtract",
++                    "Multiply",
++                    "Divide",
++                    "ExactDivide",
++                    "Equal",
++                    "NotEqual",
++                    "Less",
++                    "LessOrEqual",
++                    "Greater",
++                    "GreaterOrEqual",
++                ],
++            )),
++        }
++    }
++}
+diff --git a/crates/logic/src/relational_core/inspection.rs b/crates/logic/src/relational_core/inspection.rs
+index a2544297d..857b632ba 100644
+--- a/crates/logic/src/relational_core/inspection.rs
++++ b/crates/logic/src/relational_core/inspection.rs
+@@ -6,13 +6,13 @@
+ 
+ use gmeow_logic_compile::ir::LogicProgram;
+ use gmeow_logic_compile::relational_core::{RcAtom, RcNumeric, RcTerm};
+-use serde::{Deserialize, Serialize};
++mod json;
+ 
+ use crate::result::PreservationClaim;
+ use crate::rule_ir::{EvalAtom, EvalTerm};
+ 
+ /// The actual native rule shapes and lowering residue of a selected formula set.
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub struct FormulaLoweringInspection {
+     /// Ordinary Horn rules after the native adapter accepted their terms.
+     pub rules: Vec<RuleInspection>,
+@@ -23,7 +23,7 @@ pub struct FormulaLoweringInspection {
+ }
+ 
+ /// A diagnostic rule shape. Head order and common witness variables are retained.
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ pub struct RuleInspection {
+     /// Canonical numeric operator identities, operand metadata and binding schedule.
+     pub numeric: Vec<RcNumeric>,
+diff --git a/crates/logic/src/relational_core/inspection.tests.rs b/crates/logic/src/relational_core/inspection.tests.rs
+index d961d953f..a2034e850 100644
+--- a/crates/logic/src/relational_core/inspection.tests.rs
++++ b/crates/logic/src/relational_core/inspection.tests.rs
+@@ -18,8 +18,8 @@ fn native_observation_preserves_literal_components_and_polarity() {
+         negated: true,
+     };
+     let observed = inspect_atom(&atom).unwrap();
+-    let bytes = serde_json::to_vec(&observed).unwrap();
+-    let restored: RcAtom = serde_json::from_slice(&bytes).unwrap();
++    let bytes = purrdf_lex::json::record::to_vec(&observed);
++    let restored: RcAtom = purrdf_lex::json::record::from_slice(&bytes).unwrap();
+     assert!(restored.negated);
+     assert_eq!(restored.subject, RcTerm::Var("?s".to_owned()));
+     assert_eq!(restored.object, RcTerm::Literal(literal));
+diff --git a/crates/logic/src/relational_core/inspection/json.rs b/crates/logic/src/relational_core/inspection/json.rs
+new file mode 100644
+index 000000000..c4ba68dca
+--- /dev/null
++++ b/crates/logic/src/relational_core/inspection/json.rs
+@@ -0,0 +1,51 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Native observation transport; decoding does not repeat lowering or scheduling.
++
++use super::{FormulaLoweringInspection, RuleInspection};
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record, items_with},
++};
++
++::purrdf_lex::json_record!(impl ToJson for FormulaLoweringInspection {
++    "rules" => rules,
++    "existential_rules" => existential_rules,
++    "preservation" => preservation,
++});
++impl FromJson for FormulaLoweringInspection {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct FormulaLoweringInspection")?;
++        Ok(Self {
++            rules: fields.required("rules")?,
++            existential_rules: fields.required("existential_rules")?,
++            preservation: fields.required("preservation")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for RuleInspection {
++    "numeric" => numeric,
++    "rule_iri" => rule_iri,
++    "head" => head,
++    "body" => body,
++    "distinct_pairs" => distinct_pairs,
++});
++impl FromJson for RuleInspection {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct RuleInspection")?;
++        Ok(Self {
++            numeric: fields.required("numeric")?,
++            rule_iri: fields.required("rule_iri")?,
++            head: fields.required("head")?,
++            body: fields.required("body")?,
++            distinct_pairs: fields.required_with("distinct_pairs", |value| {
++                items_with(value, |row| -> Result<_, DecodeError> {
++                    let [left, right] = gmeow_errors::json::read_string_row(row)?;
++                    Ok((left, right))
++                })
++            })?,
++        })
++    }
++}
+diff --git a/crates/pipeline/src/stages/compile_logic/abduction/json.rs b/crates/pipeline/src/stages/compile_logic/abduction/json.rs
+index 63acdc261..922754a6d 100644
+--- a/crates/pipeline/src/stages/compile_logic/abduction/json.rs
++++ b/crates/pipeline/src/stages/compile_logic/abduction/json.rs
+@@ -25,20 +25,13 @@ impl FromJson for Reconstructed {
+ 
+ impl ToJson for Observation {
+     fn to_json(&self) -> Value {
+-        let reconstructed: Object = self
+-            .reconstructed
+-            .iter()
+-            .map(|(name, result)| {
+-                (
+-                    name.as_str(),
+-                    gmeow_errors::json::recorded_result_to_json(result),
+-                )
+-            })
+-            .collect();
+         Object::new()
+             .with("diagnostics", self.diagnostics.to_json())
+             .with("declared_roots", self.declared_roots.to_json())
+-            .with("reconstructed", Value::from(reconstructed))
++            .with(
++                "reconstructed",
++                gmeow_errors::json::recorded_map_to_json(&self.reconstructed),
++            )
+             .with("asserted", self.asserted.to_json())
+             .with("axiom_predicates", self.axiom_predicates.to_json())
+             .into()
+diff --git a/crates/pipeline/src/stages/compile_logic/formula_fixtures.rs b/crates/pipeline/src/stages/compile_logic/formula_fixtures.rs
+index 7f442f576..000b97253 100644
+--- a/crates/pipeline/src/stages/compile_logic/formula_fixtures.rs
++++ b/crates/pipeline/src/stages/compile_logic/formula_fixtures.rs
+@@ -9,14 +9,14 @@ use std::path::{Path, PathBuf};
+ use gmeow_logic::relational_core::{FormulaLoweringInspection, inspect_formula_lowering};
+ use gmeow_logic_compile::frontend::{Diagnostic, parse_logic_dataset};
+ use gmeow_logic_compile::ir::{Formula, LogicProgram, Term};
+-use serde::{Deserialize, Serialize};
++mod json;
+ 
+ const CHANNEL: &str = "pipeline/formula-lowering-fixtures.json";
+ const CATS: &str = "slices/grounding/lang/tests/conformance-fixtures/meaning-cats-chase-mice.ttl";
+ const TYPED: &str = "slices/grounding/logic/examples/typed-ir.ttl";
+ const BETWEEN: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/between";
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct FormulaObservation {
+     formulas: Vec<Formula>,
+     diagnostics: Vec<Diagnostic>,
+@@ -49,8 +49,8 @@ pub(super) fn record(
+         .collect();
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&observations)
+-            .map_err(|error| super::stage_err(format!("encode formula observations: {error}")))?,
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
+     );
+     Ok(())
+ }
+diff --git a/crates/pipeline/src/stages/compile_logic/formula_fixtures.tests.rs b/crates/pipeline/src/stages/compile_logic/formula_fixtures.tests.rs
+index 426f40635..86c5cc191 100644
+--- a/crates/pipeline/src/stages/compile_logic/formula_fixtures.tests.rs
++++ b/crates/pipeline/src/stages/compile_logic/formula_fixtures.tests.rs
+@@ -37,8 +37,13 @@ fn selected_ternary_formula_records_actual_shared_native_witness() {
+     let program =
+         LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), None).with_formulas(vec![formula]);
+     let observation = observe(program, Vec::new(), Some("urn:selected"));
+-    let bytes = serde_json::to_vec(&observation).unwrap();
+-    let restored: FormulaObservation = serde_json::from_slice(&bytes).unwrap();
++    let observations = BTreeMap::from([("authored".to_owned(), Ok(observation))]);
++    let mut restored = json::from_bytes(
++        &purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
++    )
++    .unwrap();
++    let restored = restored.remove("authored").unwrap().unwrap();
+     assert_eq!(restored.selected_formulas, 1);
+     let lowered = restored.lowering.unwrap();
+     assert!(lowered.rules.is_empty());
+@@ -53,3 +58,200 @@ fn selected_ternary_formula_records_actual_shared_native_witness() {
+             .contains(&PreservationKind::Exact)
+     );
+ }
++
++const FORMULA_WIRE: &str = r#"{"authored":{"Ok":{"formulas":[{"Not":{"Atom":{"relation":{"Iri":"urn:predicate"},"args":[{"Var":"x"}]}}}],"diagnostics":[{"severity":"Warning","code":"inspection","message":"retained 中","subject":"urn:formula"}],"selected_formulas":1,"lowering":{"Ok":{"rules":[{"numeric":[{"operator":"Add","left":{"Var":"?left"},"right":{"Literal":["01","http://www.w3.org/2001/XMLSchema#integer",null,null]},"result":{"Var":"?sum"}},{"operator":"Equal","left":{"Var":"?sum"},"right":{"Var":"?left"},"result":null}],"rule_iri":"urn:rule","head":[{"subject":{"Blank":"urn:explicit-blank"},"predicate":"urn:head","object":{"Literal":["directional","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","ar","rtl"]},"negated":false}],"body":[{"subject":{"Var":"urn:explicit-variable"},"predicate":"urn:body","object":{"Iri":"?explicit-iri"},"negated":true}],"distinct_pairs":[["?sum","?left"],["?left","?sum"]]}],"existential_rules":[{"numeric":[],"rule_iri":"urn:existential","head":[{"subject":{"Var":"?witness"},"predicate":"urn:existential-head","object":{"Iri":"urn:object"},"negated":false}],"body":[],"distinct_pairs":[]}],"preservation":{"polarities":["Exact"],"unsupported_constructs":[]}}}}}}"#;
++
++#[test]
++fn native_formula_wire_retains_complete_inspection_and_raw_numeric_metadata() {
++    use gmeow_logic_compile::relational_core::{NumericOperator, RcNumeric, RcTerm};
++    let mut observations = json::from_bytes(FORMULA_WIRE.as_bytes()).unwrap();
++    assert_eq!(
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
++        FORMULA_WIRE.as_bytes()
++    );
++    let observation = observations.get_mut("authored").unwrap().as_mut().unwrap();
++    let lowering = observation.lowering.as_mut().unwrap();
++    assert_eq!(
++        lowering.rules[0].head[0].subject,
++        RcTerm::Blank("urn:explicit-blank".into())
++    );
++    assert_eq!(
++        lowering.rules[0].body[0].subject,
++        RcTerm::Var("urn:explicit-variable".into())
++    );
++    assert_eq!(
++        lowering.rules[0].body[0].object,
++        RcTerm::Iri("?explicit-iri".into())
++    );
++    let operators = [
++        (NumericOperator::Add, "Add"),
++        (NumericOperator::Subtract, "Subtract"),
++        (NumericOperator::Multiply, "Multiply"),
++        (NumericOperator::Divide, "Divide"),
++        (NumericOperator::ExactDivide, "ExactDivide"),
++        (NumericOperator::Equal, "Equal"),
++        (NumericOperator::NotEqual, "NotEqual"),
++        (NumericOperator::Less, "Less"),
++        (NumericOperator::LessOrEqual, "LessOrEqual"),
++        (NumericOperator::Greater, "Greater"),
++        (NumericOperator::GreaterOrEqual, "GreaterOrEqual"),
++    ];
++    // Inspection transport retains data even when it is not an executable call.
++    lowering.rules[0].numeric = operators
++        .iter()
++        .map(|(operator, _)| RcNumeric {
++            operator: *operator,
++            left: RcTerm::Iri("?raw-left".into()),
++            right: RcTerm::Blank("urn:raw-right".into()),
++            result: Some(RcTerm::Var("urn:raw-result".into())),
++        })
++        .collect();
++    let bytes =
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes();
++    let text = std::str::from_utf8(&bytes).unwrap();
++    for (_, name) in operators {
++        assert!(text.contains(&format!("\"operator\":\"{name}\"")));
++    }
++    let restored = json::from_bytes(&bytes).unwrap();
++    let actual = restored["authored"]
++        .as_ref()
++        .unwrap()
++        .lowering
++        .as_ref()
++        .unwrap();
++    let expected = observations["authored"]
++        .as_ref()
++        .unwrap()
++        .lowering
++        .as_ref()
++        .unwrap();
++    assert_eq!(actual.rules[0].numeric, expected.rules[0].numeric);
++    assert_eq!(actual.rules[0].head, expected.rules[0].head);
++    assert_eq!(actual.rules[0].body, expected.rules[0].body);
++    assert_eq!(
++        actual.rules[0].distinct_pairs,
++        expected.rules[0].distinct_pairs
++    );
++    assert_eq!(
++        actual.existential_rules[0].head,
++        expected.existential_rules[0].head
++    );
++    let omitted = FORMULA_WIRE.replace(",\"result\":null", "");
++    assert_eq!(
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
++            &json::from_bytes(omitted.as_bytes()).unwrap()
++        ))
++        .into_bytes(),
++        FORMULA_WIRE.as_bytes()
++    );
++    let object_enum =
++        FORMULA_WIRE.replace("\"operator\":\"Equal\"", "\"operator\":{\"Equal\":null}");
++    assert_eq!(
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
++            &json::from_bytes(object_enum.as_bytes()).unwrap()
++        ))
++        .into_bytes(),
++        FORMULA_WIRE.as_bytes()
++    );
++}
++
++#[test]
++fn native_formula_observations_retain_both_causal_refusal_levels() {
++    let mut observations = json::from_bytes(FORMULA_WIRE.as_bytes()).unwrap();
++    let mut ledger = gmeow_errors::DiagLedger::new();
++    let premise = ledger.attach(
++        gmeow_errors::Diag::from(std::io::Error::other("authored formula premise"))
++            .with_focus("urn:formula:premise"),
++        gmeow_errors::StageId::new("formula-source"),
++    );
++    let refusal = ledger.record(
++        gmeow_errors::Diag::from(std::io::Error::other("authored lowering refusal"))
++            .with_focus("urn:formula:lowering")
++            .with_antecedents([premise]),
++        gmeow_errors::StageId::new("formula-observation"),
++    );
++    observations
++        .get_mut("authored")
++        .unwrap()
++        .as_mut()
++        .unwrap()
++        .lowering = Err(refusal.clone());
++    observations.insert("refused-source".into(), Err(refusal.clone()));
++    let restored = json::from_bytes(
++        &purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
++    )
++    .unwrap();
++    assert_eq!(restored["refused-source"].as_ref().unwrap_err(), &refusal);
++    let observation = restored["authored"].as_ref().unwrap();
++    assert_eq!(observation.lowering.as_ref().unwrap_err(), &refusal);
++    assert_eq!(
++        observation.formulas,
++        observations["authored"].as_ref().unwrap().formulas
++    );
++    assert_eq!(
++        observation.diagnostics,
++        observations["authored"].as_ref().unwrap().diagnostics
++    );
++    assert_eq!(observation.selected_formulas, 1);
++    assert_eq!(refusal.causes.len(), 1);
++    assert_eq!(
++        refusal.root.antecedents.as_ref(),
++        &[refusal.causes[0].fingerprint]
++    );
++}
++
++#[test]
++fn native_formula_admission_refuses_ambiguous_records_and_shadowed_invalid_sources() {
++    let unknown = FORMULA_WIRE
++        .replace("\"formulas\":", "\"future\":null,\"formulas\":")
++        .replace("\"rules\":", "\"future\":null,\"rules\":")
++        .replace("\"numeric\":", "\"future\":null,\"numeric\":")
++        .replace("\"operator\":", "\"future\":null,\"operator\":")
++        .replace("\"subject\":", "\"future\":null,\"subject\":");
++    assert_eq!(
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
++            &json::from_bytes(unknown.as_bytes()).unwrap()
++        ))
++        .into_bytes(),
++        FORMULA_WIRE.as_bytes()
++    );
++    let valid_shadow = FORMULA_WIRE.replacen('{', "{\"authored\":{\"Ok\":{\"formulas\":[],\"diagnostics\":[],\"selected_formulas\":0,\"lowering\":{\"Ok\":{\"rules\":[],\"existential_rules\":[],\"preservation\":{\"polarities\":[\"Exact\"],\"unsupported_constructs\":[]}}}}},", 1);
++    assert_eq!(
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
++            &json::from_bytes(valid_shadow.as_bytes()).unwrap()
++        ))
++        .into_bytes(),
++        FORMULA_WIRE.as_bytes()
++    );
++    for invalid in [
++        FORMULA_WIRE.replacen('{', "{\"authored\":{\"Ok\":null},", 1),
++        FORMULA_WIRE.replace("\"formulas\":", "\"formulas\":[],\"formulas\":"),
++        FORMULA_WIRE.replace("\"selected_formulas\":1,", ""),
++        FORMULA_WIRE.replace("\"selected_formulas\":1", "\"selected_formulas\":1e0"),
++        FORMULA_WIRE.replace("\"selected_formulas\":1", "\"selected_formulas\":-1"),
++        FORMULA_WIRE.replace("\"selected_formulas\":1", "\"selected_formulas\":18446744073709551616"),
++        FORMULA_WIRE.replace("\"Ok\":{\"rules\":", "\"Ok\":null,\"Ok\":{\"rules\":"),
++        FORMULA_WIRE.replace("\"rules\":", "\"rules\":[],\"rules\":"),
++        FORMULA_WIRE.replace("\"numeric\":", "\"numeric\":[],\"numeric\":"),
++        FORMULA_WIRE.replace("\"rule_iri\":\"urn:rule\",", ""),
++        FORMULA_WIRE.replace("\"operator\":\"Add\",", ""),
++        FORMULA_WIRE.replace("\"result\":null", "\"result\":null,\"result\":null"),
++        FORMULA_WIRE.replace("\"operator\":\"Add\"", "\"operator\":\"Unknown\""),
++        FORMULA_WIRE.replace("\"Equal\"", "{\"Equal\":false}"),
++        FORMULA_WIRE.replace("\"subject\":", "\"subject\":null,\"subject\":"),
++        FORMULA_WIRE.replace("\"negated\":true", "\"negated\":null"),
++        FORMULA_WIRE.replace("\"Blank\":\"urn:explicit-blank\"", "\"Blank\":null"),
++        FORMULA_WIRE.replace("\"Iri\":\"?explicit-iri\"", "\"Iri\":\"?explicit-iri\",\"Blank\":\"other\""),
++        FORMULA_WIRE.replace("[\"?sum\",\"?left\"]", "[\"?sum\",\"?left\",\"extra\"]"),
++        FORMULA_WIRE.replace("[\"?sum\",\"?left\"]", "[\"?sum\",null]"),
++        FORMULA_WIRE.replace("\"ar\",\"rtl\"", "\"ar\",\"rtl\",null"),
++        FORMULA_WIRE.replace("\"ar\",\"rtl\"", "null,\"rtl\""),
++        r#"{"authored":{"Ok":[[],[],0,{"Ok":{}}]}}"#.to_owned(),
++        r#"{"authored":{"Ok":{"formulas":[],"diagnostics":[],"selected_formulas":0,"lowering":{"Ok":[[],[],{"polarities":["Exact"],"unsupported_constructs":[]}]}}}}"#.to_owned(),
++    ] {
++        assert!(json::from_bytes(invalid.as_bytes()).is_err(), "{invalid}");
++    }
++}
+diff --git a/crates/pipeline/src/stages/compile_logic/formula_fixtures/corpus_tests.rs b/crates/pipeline/src/stages/compile_logic/formula_fixtures/corpus_tests.rs
+index 4d0109b78..d86658cae 100644
+--- a/crates/pipeline/src/stages/compile_logic/formula_fixtures/corpus_tests.rs
++++ b/crates/pipeline/src/stages/compile_logic/formula_fixtures/corpus_tests.rs
+@@ -15,7 +15,7 @@ fn observation(source: &str) -> &'static FormulaObservation {
+             let bytes =
+                 crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
+                     .expect("authenticated native formula observations");
+-            serde_json::from_slice(&bytes).expect("decode formula observations")
++            super::json::from_bytes(&bytes).expect("decode formula observations")
+         })
+         .get(source)
+         .expect("producer selected the exact source")
+diff --git a/crates/pipeline/src/stages/compile_logic/formula_fixtures/json.rs b/crates/pipeline/src/stages/compile_logic/formula_fixtures/json.rs
+new file mode 100644
+index 000000000..e9c9b6abd
+--- /dev/null
++++ b/crates/pipeline/src/stages/compile_logic/formula_fixtures/json.rs
+@@ -0,0 +1,46 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete selected formula observations and both recorded outcome levels.
++
++use super::FormulaObservation;
++use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++
++#[cfg(test)]
++mod reader;
++#[cfg(test)]
++pub(super) use reader::from_bytes;
++
++impl ToJson for FormulaObservation {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("formulas", self.formulas.to_json())
++            .with("diagnostics", self.diagnostics.to_json())
++            .with("selected_formulas", self.selected_formulas.to_json())
++            .with("lowering", recorded_result_to_json(&self.lowering))
++            .into()
++    }
++}
++impl FromJson for FormulaObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct FormulaObservation")?;
++        Ok(Self {
++            formulas: fields.required("formulas")?,
++            diagnostics: fields.required("diagnostics")?,
++            selected_formulas: fields.required_with("selected_formulas", |value| {
++                gmeow_errors::json::read_unsigned(value, "usize formula selection count")
++            })?,
++            lowering: fields.required_with("lowering", |value| {
++                read_recorded_result(
++                    value,
++                    "formula lowering outcome",
++                    "one formula lowering outcome variant",
++                )
++            })?,
++        })
++    }
++}
+diff --git a/crates/pipeline/src/stages/compile_logic/formula_fixtures/json/reader.rs b/crates/pipeline/src/stages/compile_logic/formula_fixtures/json/reader.rs
+new file mode 100644
+index 000000000..a9fc2892a
+--- /dev/null
++++ b/crates/pipeline/src/stages/compile_logic/formula_fixtures/json/reader.rs
+@@ -0,0 +1,28 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Read-only consumers retain the complete producer-selected source outcomes.
++
++use super::super::Observations;
++use super::*;
++use std::collections::BTreeMap;
++
++struct SourceOutcome(Result<FormulaObservation, gmeow_errors::RecordedDiag>);
++impl FromJson for SourceOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_recorded_result(
++            value,
++            "formula source outcome",
++            "one formula source outcome variant",
++        )
++        .map(Self)
++    }
++}
++
++pub(in super::super) fn from_bytes(bytes: &[u8]) -> Result<Observations, DecodeError> {
++    let sources: BTreeMap<String, SourceOutcome> = purrdf_lex::json::record::from_slice(bytes)?;
++    Ok(sources
++        .into_iter()
++        .map(|(name, outcome)| (name, outcome.0))
++        .collect())
++}
+diff --git a/crates/pipeline/src/stages/compile_logic/projection_fixtures.rs b/crates/pipeline/src/stages/compile_logic/projection_fixtures.rs
+index 6d0a2dc12..da583b763 100644
+--- a/crates/pipeline/src/stages/compile_logic/projection_fixtures.rs
++++ b/crates/pipeline/src/stages/compile_logic/projection_fixtures.rs
+@@ -59,7 +59,11 @@ pub(super) fn record(
+             (case.to_owned(), super::observed(observation))
+         })
+         .collect();
+-    artifacts.insert(CHANNEL.to_owned(), json::to_bytes(&observations));
++    artifacts.insert(
++        CHANNEL.to_owned(),
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
++    );
+     Ok(())
+ }
+ 
+diff --git a/crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs b/crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs
+index 39c586103..d7eefc865 100644
+--- a/crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs
++++ b/crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs
+@@ -21,7 +21,11 @@ fn selected_projection_observation_retains_all_seven_outputs() {
+         projections: Ok(outputs.clone()),
+     };
+     let observations = BTreeMap::from([("authored".to_owned(), Ok(observation))]);
+-    let restored = json::from_bytes(&json::to_bytes(&observations)).unwrap();
++    let restored = json::from_bytes(
++        &purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
++    )
++    .unwrap();
+     assert_eq!(
+         restored["authored"]
+             .as_ref()
+@@ -38,10 +42,17 @@ const PROJECTION_WIRE: &str = r#"{"a":{"Ok":{"diagnostics":[{"severity":"Info","
+ #[test]
+ fn native_projection_wire_preserves_terminals_and_both_causal_outcomes() {
+     let mut observations = json::from_bytes(PROJECTION_WIRE.as_bytes()).unwrap();
+-    assert_eq!(json::to_bytes(&observations), PROJECTION_WIRE.as_bytes());
++    assert_eq!(
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
++        PROJECTION_WIRE.as_bytes()
++    );
+     let unknown = PROJECTION_WIRE.replace("\"diagnostics\":", "\"future\":null,\"diagnostics\":");
+     assert_eq!(
+-        json::to_bytes(&json::from_bytes(unknown.as_bytes()).unwrap()),
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
++            &json::from_bytes(unknown.as_bytes()).unwrap()
++        ))
++        .into_bytes(),
+         PROJECTION_WIRE.as_bytes()
+     );
+     let mut ledger = gmeow_errors::DiagLedger::new();
+@@ -63,7 +74,11 @@ fn native_projection_wire_preserves_terminals_and_both_causal_outcomes() {
+         .unwrap()
+         .projections = Err(refusal.clone());
+     observations.insert("b".into(), Err(refusal.clone()));
+-    let restored = json::from_bytes(&json::to_bytes(&observations)).unwrap();
++    let restored = json::from_bytes(
++        &purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
++            .into_bytes(),
++    )
++    .unwrap();
+     assert_eq!(
+         restored["a"].as_ref().unwrap().diagnostics,
+         observations["a"].as_ref().unwrap().diagnostics
+@@ -96,7 +111,10 @@ fn native_projection_admission_validates_shadowed_map_values_and_named_records()
+     }
+     let duplicate = PROJECTION_WIRE.replace("\"n3\":", "\"n3\":\"earlier\",\"n3\":");
+     assert_eq!(
+-        json::to_bytes(&json::from_bytes(duplicate.as_bytes()).unwrap()),
++        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
++            &json::from_bytes(duplicate.as_bytes()).unwrap()
++        ))
++        .into_bytes(),
+         PROJECTION_WIRE.as_bytes()
+     );
+ }
+diff --git a/crates/pipeline/src/stages/compile_logic/projection_fixtures/json.rs b/crates/pipeline/src/stages/compile_logic/projection_fixtures/json.rs
+index 461ddd675..916845de1 100644
+--- a/crates/pipeline/src/stages/compile_logic/projection_fixtures/json.rs
++++ b/crates/pipeline/src/stages/compile_logic/projection_fixtures/json.rs
+@@ -3,7 +3,7 @@
+ 
+ //! Selected projection observations, retaining every terminal byte string and cause.
+ 
+-use super::{Observations, ProjectionObservation};
++use super::ProjectionObservation;
+ use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
+ use purrdf_lex::json::{
+     Object, Value,
+@@ -15,14 +15,6 @@ mod reader;
+ #[cfg(test)]
+ pub(super) use reader::from_bytes;
+ 
+-pub(super) fn to_bytes(observations: &Observations) -> Vec<u8> {
+-    let cases: Object = observations
+-        .iter()
+-        .map(|(name, outcome)| (name.as_str(), recorded_result_to_json(outcome)))
+-        .collect();
+-    purrdf_lex::json::write_compact(&cases.into()).into_bytes()
+-}
+-
+ impl ToJson for ProjectionObservation {
+     fn to_json(&self) -> Value {
+         Object::new()
+diff --git a/crates/pipeline/src/stages/compile_logic/projection_fixtures/json/reader.rs b/crates/pipeline/src/stages/compile_logic/projection_fixtures/json/reader.rs
+index 6f16eb104..7af4d3aa0 100644
+--- a/crates/pipeline/src/stages/compile_logic/projection_fixtures/json/reader.rs
++++ b/crates/pipeline/src/stages/compile_logic/projection_fixtures/json/reader.rs
+@@ -3,6 +3,7 @@
+ 
+ //! Test consumers decode complete observations without executing their producer.
+ 
++use super::super::Observations;
+ use super::*;
+ use std::collections::BTreeMap;
+ 

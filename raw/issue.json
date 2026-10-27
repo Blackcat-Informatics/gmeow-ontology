@@ -1,0 +1,57 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Move the complete formula-lowering observation operation to PurRDF native JSON under Principles 4 and 7. Its actual publisher, cache bytes and authenticated reader must retain the whole observation and nested inspection family, not only an outer envelope.\n\nAcceptance:\n\n- Migrate FormulaObservation, FormulaLoweringInspection, RuleInspection, RcAtom and RcNumeric, plus all four AtomicTerm variants and all eleven NumericOperator variants. Reuse the existing native Formula, Diagnostic, PreservationClaim, recorded-outcome and checked four-component literal owners.\n- Wire the actual formula fixture publisher, authenticated reader and authored readers. Preserve source selection, selected count, formulas, diagnostics, both recorded outcome levels, all Horn and existential rule fields, numeric operand and rule order, nullable numeric result, distinct pairs, literal metadata and complete causal diagnostics.\n- Require named records and required fields, tolerate unknown fields, refuse duplicate known fields and positional records, and validate malformed shadowed map values before typed last-wins replacement. Preserve existing nullable defaults. Preserve explicitly tagged atomic kinds and strings without resource-token inference.\n- Inspection records remain data-only diagnostics. Hydration must not rerun lowering, numeric validation scheduling, execution or preservation computation; it must not normalize a recorded rule into another rule.\n- Remove obsolete JSON-only DTO Serde ownership after verifying callers. Retain shared AtomicTerm, RcAtom, RcNumeric and NumericOperator Serde for genuine RelationalCoreProgram binary persistence and typed hashing; their binary representation must remain unchanged.\n- Reuse the four existing authored selection, shared-witness, literal/polarity and invalid-literal-slot controls. Add only focused complete transport, numeric metadata, causal-outcome and admission coverage. Compile the actual logic compiler, logic engine, pipeline and developer CLI callers and run normal hooks.\n\nRemaining contracts: #1776, #1777, #1336 and #1962. Full prepared programs, complete workspace Serde retirement, actual corpus execution and release acceptance remain with their existing owners. The user retains the explicit restriction against local optimized producer, corpus production, synchronization and full gate execution, and authorizes sequential merges with CI waived. Report unverified acceptance accurately.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-27T01:07:49Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1989,
+  "state": "OPEN",
+  "title": "Use native JSON for complete formula-lowering observations",
+  "updatedAt": "2026-10-27T01:08:20Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1989"
+}
