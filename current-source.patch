@@ -1,0 +1,993 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 453f2f3eb..d634e0c97 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1647,7 +1647,6 @@ dependencies = [
+ name = "gmeow-lang-bridge"
+ version = "0.3.0"
+ dependencies = [
+- "ciborium",
+  "gmeow-errors",
+  "gmeow-lang-form",
+  "gmeow-license",
+diff --git a/crates/lang-bridge/Cargo.toml b/crates/lang-bridge/Cargo.toml
+index b368cd79d..749941307 100644
+--- a/crates/lang-bridge/Cargo.toml
++++ b/crates/lang-bridge/Cargo.toml
+@@ -13,11 +13,6 @@ crate-type = ["rlib"]
+ path = "src/lib.rs"
+ 
+ [dependencies]
+-# The codebook Merkle-root digest and the RDFC-1.0 content digest fold with blake3 — the
+-# SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
+-# an independent implementation reproduces the byte-exact digest.
+-# Compact prepared dictionaries hydrate on browser targets without parsing source RDF.
+-ciborium.workspace = true
+ gmeow-errors = { path = "../errors" }
+ gmeow-lang-form = { path = "../lang-form" }
+ gmeow-logic-compile = { path = "../logic-compile" }
+@@ -25,8 +20,11 @@ gmeow-logic-compile = { path = "../logic-compile" }
+ # (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
+ gmeow-ns = { path = "../ns" }
+ purrdf.workspace = true
++# The codebook Merkle-root digest and the RDFC-1.0 content digest fold with blake3 — the
++# SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
++# an independent implementation reproduces the byte-exact digest.
+ purrdf-hash.workspace = true
+-# Shared GMN verdict JSON uses the native record owner on host and browser targets.
++# GMN JSON records and prepared CBOR tables use the native codec owner.
+ purrdf-lex.workspace = true
+ serde.workspace = true
+ sha2.workspace = true
+diff --git a/crates/lang-bridge/src/gmn1_codec/native.rs b/crates/lang-bridge/src/gmn1_codec/native.rs
+index b53195fba..a8c5183d6 100644
+--- a/crates/lang-bridge/src/gmn1_codec/native.rs
++++ b/crates/lang-bridge/src/gmn1_codec/native.rs
+@@ -5,11 +5,8 @@
+ //! tables; consumers validate and hydrate them without RDF parsing or source lowering.
+ 
+ use std::collections::{BTreeMap, BTreeSet};
+-use std::io::Cursor;
+ 
+-use gmeow_errors::{FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
+-use serde::ser::{SerializeSeq, Serializer};
+-use serde::{Deserialize, Serialize};
++use gmeow_errors::{DiagKind as _, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
+ use sha2::{Digest as _, Sha256};
+ 
+ use super::{
+@@ -31,6 +28,9 @@ const HEADER_BYTES: usize = MAGIC.len() + 32;
+ const PROFILE: &str = "gmn-native-dictionary-v1";
+ type Binding = (String, String, Option<String>, Option<u32>, String);
+ 
++#[path = "native/wire.rs"]
++mod wire;
++
+ define_diag_kind! {
+     /// A prepared native codebook cannot be admitted with its exact source identity.
+     pub struct NativeCodebookInvalid { detail: String }
+@@ -88,6 +88,21 @@ fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
+     })
+ }
+ 
++fn fail_with_source(
++    detail: impl Into<String>,
++    source: impl std::error::Error + Send + Sync + 'static,
++) -> gmeow_errors::Diag {
++    let kind = NativeCodebookInvalid {
++        detail: detail.into(),
++    };
++    let mut diag =
++        gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(source);
++    if let Some(class) = kind.failure_class() {
++        diag = diag.with_failure_class(class);
++    }
++    diag
++}
++
+ fn hex_digest(value: &str) -> bool {
+     value.len() == 64
+         && value
+@@ -95,106 +110,6 @@ fn hex_digest(value: &str) -> bool {
+             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+ }
+ 
+-#[derive(Serialize, Deserialize)]
+-#[serde(deny_unknown_fields)]
+-struct Acceptance {
+-    latest_major: u32,
+-    accept_window: u32,
+-}
+-
+-#[derive(Serialize, Deserialize)]
+-#[serde(deny_unknown_fields)]
+-struct CodebookWire {
+-    references: Vec<String>,
+-    dictionary_version: String,
+-    glyph_version: String,
+-    graphemes: Vec<String>,
+-    dictionary_entries: Vec<String>,
+-}
+-
+-#[derive(Serialize, Deserialize)]
+-#[serde(deny_unknown_fields)]
+-struct DictionaryWire {
+-    version: String,
+-    term_to_alias: Vec<(String, String)>,
+-    alias_to_term: Vec<(String, String)>,
+-    glyph_version: String,
+-    term_to_glyph: Vec<Binding>,
+-    glyph_to_term: Vec<Binding>,
+-    fallback_to_term: Vec<Binding>,
+-    acceptance: Acceptance,
+-}
+-
+-#[derive(Serialize, Deserialize)]
+-#[serde(deny_unknown_fields)]
+-struct Wire {
+-    schema_version: u32,
+-    profile: String,
+-    source_path: String,
+-    source_sha256: String,
+-    source_blake3: String,
+-    codebook_digest: String,
+-    codebook: CodebookWire,
+-    dictionary: DictionaryWire,
+-}
+-
+-// Borrow native inventories during serialization. Only the final compact packet is
+-// allocated; no second dictionary, registry or RDF representation is materialized.
+-struct Pairs<'a>(&'a BTreeMap<String, String>);
+-impl Serialize for Pairs<'_> {
+-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+-        let mut sequence = serializer.serialize_seq(Some(self.0.len()))?;
+-        for row in self.0 {
+-            sequence.serialize_element(&row)?;
+-        }
+-        sequence.end()
+-    }
+-}
+-
+-struct Bindings<'a>(&'a BTreeMap<(String, String, GmnGlyphSignature), String>);
+-impl Serialize for Bindings<'_> {
+-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+-        let mut sequence = serializer.serialize_seq(Some(self.0.len()))?;
+-        for ((scope, key, signature), value) in self.0 {
+-            sequence.serialize_element(&(scope, key, &signature.fixity, signature.arity, value))?;
+-        }
+-        sequence.end()
+-    }
+-}
+-
+-#[derive(Serialize)]
+-struct CodebookRef<'a> {
+-    references: &'a BTreeSet<String>,
+-    dictionary_version: &'a str,
+-    glyph_version: &'a str,
+-    graphemes: &'a BTreeSet<String>,
+-    dictionary_entries: &'a BTreeSet<String>,
+-}
+-
+-#[derive(Serialize)]
+-struct DictionaryRef<'a> {
+-    version: &'a str,
+-    term_to_alias: Pairs<'a>,
+-    alias_to_term: Pairs<'a>,
+-    glyph_version: &'a str,
+-    term_to_glyph: Bindings<'a>,
+-    glyph_to_term: Bindings<'a>,
+-    fallback_to_term: Bindings<'a>,
+-    acceptance: Acceptance,
+-}
+-
+-#[derive(Serialize)]
+-struct WireRef<'a> {
+-    schema_version: u32,
+-    profile: &'a str,
+-    source_path: &'a str,
+-    source_sha256: &'a str,
+-    source_blake3: &'a str,
+-    codebook_digest: String,
+-    codebook: CodebookRef<'a>,
+-    dictionary: DictionaryRef<'a>,
+-}
+-
+ /// Encode the producer's shared native objects, retaining every reader/writer field.
+ ///
+ /// Source digests must describe the same original document used to compile the supplied
+@@ -212,41 +127,17 @@ pub fn encode(
+         return Err(fail("native codebook requires exact source digests"));
+     }
+     validate_tables(dictionary, codebook)?;
+-    let glyphs = &dictionary.glyphs;
+-    packet(&WireRef {
+-        schema_version: 1,
+-        profile: PROFILE,
+-        source_path: SOURCE_PATH,
++    let mut bytes = vec![0; HEADER_BYTES];
++    let codebook_digest = crate::gmn1_digest::codebook_digest(codebook, dictionary);
++    wire::write(
++        &mut bytes,
++        dictionary,
++        codebook,
+         source_sha256,
+         source_blake3,
+-        codebook_digest: crate::gmn1_digest::codebook_digest(codebook, dictionary),
+-        codebook: CodebookRef {
+-            references: &codebook.references,
+-            dictionary_version: &codebook.dictionary_version,
+-            glyph_version: &codebook.glyph_version,
+-            graphemes: &codebook.graphemes,
+-            dictionary_entries: &codebook.dictionary_entries,
+-        },
+-        dictionary: DictionaryRef {
+-            version: &dictionary.version,
+-            term_to_alias: Pairs(&dictionary.term_to_alias),
+-            alias_to_term: Pairs(&dictionary.alias_to_term),
+-            glyph_version: &glyphs.version,
+-            term_to_glyph: Bindings(&glyphs.term_to_glyph),
+-            glyph_to_term: Bindings(&glyphs.glyph_to_term),
+-            fallback_to_term: Bindings(&glyphs.fallback_to_term),
+-            acceptance: Acceptance {
+-                latest_major: dictionary.acceptance.latest_major,
+-                accept_window: dictionary.acceptance.accept_window,
+-            },
+-        },
+-    })
+-}
+-
+-fn packet(value: &impl Serialize) -> gmeow_errors::Result<Vec<u8>> {
+-    let mut bytes = vec![0; HEADER_BYTES];
+-    ciborium::ser::into_writer(value, &mut bytes)
+-        .map_err(|error| fail(format!("encode native codebook: {error}")))?;
++        &codebook_digest,
++    )
++    .map_err(|error| fail_with_source(format!("encode native codebook: {error}"), error))?;
+     if bytes.len() > MAX_NATIVE_CODEBOOK_BYTES {
+         return Err(fail("native codebook exceeds its 8-MiB bound"));
+     }
+@@ -275,12 +166,12 @@ pub fn decode(bytes: &[u8], expected_source_blake3: &str) -> gmeow_errors::Resul
+     if Sha256::digest(&bytes[HEADER_BYTES..])[..] != bytes[MAGIC.len()..HEADER_BYTES] {
+         return Err(fail("native codebook payload checksum mismatch"));
+     }
+-    let mut reader = Cursor::new(&bytes[HEADER_BYTES..]);
+-    let wire: Wire = ciborium::de::from_reader_with_recursion_limit(&mut reader, 32)
+-        .map_err(|error| fail(format!("decode native codebook: {error}")))?;
+-    if reader.position() as usize != bytes.len() - HEADER_BYTES {
+-        return Err(fail("native codebook contains trailing data"));
+-    }
++    let value = purrdf_lex::cbor::decode(
++        &bytes[HEADER_BYTES..],
++        purrdf_lex::cbor::Limits { max_depth: 32 },
++    )
++    .map_err(|error| fail_with_source(format!("decode native codebook: {error}"), error))?;
++    let wire = wire::Wire::from_value(value)?;
+     if wire.schema_version != 1
+         || wire.profile != PROFILE
+         || wire.source_path != SOURCE_PATH
+diff --git a/crates/lang-bridge/src/gmn1_codec/native.tests.rs b/crates/lang-bridge/src/gmn1_codec/native.tests.rs
+index 7995bedab..e8a379539 100644
+--- a/crates/lang-bridge/src/gmn1_codec/native.tests.rs
++++ b/crates/lang-bridge/src/gmn1_codec/native.tests.rs
+@@ -2,6 +2,7 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+ use super::*;
++use purrdf_lex::cbor::{self, Value};
+ 
+ fn tiny() -> (GmnDictionary, CurrentCodebook) {
+     let signature = GmnGlyphSignature {
+@@ -72,6 +73,60 @@ fn tiny_packet() -> (Vec<u8>, String) {
+     )
+ }
+ 
++fn reference_packet() -> (Vec<u8>, String) {
++    let (mut dictionary, codebook) = tiny();
++    dictionary.acceptance.latest_major = 257;
++    let scope = super::super::SIGIL_MATH.to_owned();
++    let term = "urn:synthetic:multiply".to_owned();
++    let signature = GmnGlyphSignature {
++        fixity: None,
++        arity: None,
++    };
++    dictionary.glyphs.term_to_glyph.insert(
++        (scope.clone(), term.clone(), signature.clone()),
++        "×".to_owned(),
++    );
++    dictionary.glyphs.glyph_to_term.insert(
++        (scope.clone(), "×".to_owned(), signature.clone()),
++        term.clone(),
++    );
++    dictionary
++        .glyphs
++        .fallback_to_term
++        .insert((scope, "multiply".to_owned(), signature), term);
++    let source = b"explicit native CBOR reference packet";
++    let expected = purrdf_hash::hex::encode(purrdf_hash::blake3::hash(source).as_bytes());
++    let bytes = encode(
++        &dictionary,
++        &codebook,
++        &format!("{:x}", Sha256::digest(source)),
++        &expected,
++    )
++    .expect("authored complete reference packet");
++    (bytes, expected)
++}
++
++#[test]
++fn native_transport_preserves_frozen_packet_bytes() {
++    let (bytes, expected) = reference_packet();
++    let reference = purrdf_hash::hex::decode(include_str!("native/fixtures/packet-v1.hex").trim())
++        .expect("frozen complete packet hex");
++    assert_eq!(
++        bytes, reference,
++        "complete producer packet bytes remain fixed"
++    );
++    let hydrated = decode(&bytes, &expected).expect("authored reference packet");
++    assert_eq!(hydrated.dictionary.acceptance.latest_major, 257);
++    assert!(
++        hydrated
++            .dictionary
++            .glyphs
++            .term_to_glyph
++            .keys()
++            .any(|(_, _, signature)| { signature.fixity.is_none() && signature.arity.is_none() })
++    );
++}
++
+ #[test]
+ fn native_transport_preserves_all_tables_memberships_signatures_and_acceptance() {
+     let (bytes, expected) = tiny_packet();
+@@ -136,6 +191,26 @@ fn native_transport_preserves_all_tables_memberships_signatures_and_acceptance()
+         .unwrap(),
+         bytes
+     );
++    let mut boundary = tiny().0;
++    boundary.acceptance.latest_major = u32::MAX;
++    boundary.acceptance.accept_window = u32::MAX;
++    let boundary_bytes = encode(&boundary, &codebook, hydrated.source_sha256(), &expected).unwrap();
++    let boundary = decode(&boundary_bytes, &expected).unwrap();
++    assert_eq!(boundary.dictionary.acceptance.latest_major, u32::MAX);
++    assert_eq!(boundary.dictionary.acceptance.accept_window, u32::MAX);
++
++    // Keep accepted well-formed CBOR containers; producer spelling remains definite.
++    let original = &bytes[HEADER_BYTES..];
++    assert_eq!(original[0], 0xa8);
++    let mut long_head = vec![0xb8, 8];
++    long_head.extend_from_slice(&original[1..]);
++    let mut indefinite = vec![0xbf];
++    indefinite.extend_from_slice(&original[1..]);
++    indefinite.push(0xff);
++    for payload in [long_head, indefinite] {
++        let hydrated = decode(&packet_payload(&payload), &expected).unwrap();
++        assert_eq!(hydrated.dictionary.term_to_alias, dictionary.term_to_alias);
++    }
+ }
+ 
+ #[test]
+@@ -146,22 +221,182 @@ fn native_transport_rejects_wrong_identity_tamper_and_inconsistent_tables() {
+     *corrupt.last_mut().unwrap() ^= 1;
+     assert!(decode(&corrupt, &expected).is_err());
+     for mutation in 0..8 {
+-        let mut wire: Wire = ciborium::de::from_reader(&bytes[HEADER_BYTES..]).unwrap();
++        let mut value = payload(&bytes);
+         match mutation {
+-            0 => wire
+-                .dictionary
+-                .term_to_alias
+-                .push(wire.dictionary.term_to_alias[0].clone()),
+-            1 => wire.dictionary.term_to_glyph[0].3 = Some(3),
+-            2 => wire.dictionary.fallback_to_term[0].1 = "subject".into(),
+-            3 => wire.profile = "different-native-profile".into(),
+-            4 => wire.schema_version += 1,
+-            5 => wire.source_path = "different/source.ttl".into(),
+-            6 => wire.source_sha256 = "malformed".into(),
+-            _ => wire.codebook_digest = "different-codebook".into(),
++            0 => {
++                let rows = field(field(&mut value, "dictionary"), "term_to_alias")
++                    .as_array_mut()
++                    .unwrap();
++                rows.push(rows[0].clone());
++            }
++            1 => {
++                field(field(&mut value, "dictionary"), "term_to_glyph")
++                    .as_array_mut()
++                    .unwrap()[0]
++                    .as_array_mut()
++                    .unwrap()[3] = Value::from(3_u32)
++            }
++            2 => {
++                field(field(&mut value, "dictionary"), "fallback_to_term")
++                    .as_array_mut()
++                    .unwrap()[0]
++                    .as_array_mut()
++                    .unwrap()[1] = Value::from("subject")
++            }
++            3 => *field(&mut value, "profile") = Value::from("different-native-profile"),
++            4 => *field(&mut value, "schema_version") = Value::from(2_u32),
++            5 => *field(&mut value, "source_path") = Value::from("different/source.ttl"),
++            6 => *field(&mut value, "source_sha256") = Value::from("malformed"),
++            _ => *field(&mut value, "codebook_digest") = Value::from("different-codebook"),
+         }
+-        assert!(decode(&packet(&wire).unwrap(), &expected).is_err());
++        assert!(decode(&packet(&value), &expected).is_err());
+     }
++    // Every named-record boundary refuses ambiguity, omission and alternate shapes.
++    for path in [
++        vec![],
++        vec!["codebook"],
++        vec!["dictionary"],
++        vec!["dictionary", "acceptance"],
++    ] {
++        for mutation in 0..5 {
++            let mut value = payload(&bytes);
++            let mut record = &mut value;
++            for name in &path {
++                record = field(record, name);
++            }
++            if mutation == 0 {
++                *record = Value::Array(
++                    record
++                        .as_map()
++                        .unwrap()
++                        .iter()
++                        .map(|(_, value)| value.clone())
++                        .collect(),
++                );
++            } else {
++                let fields = record.as_map_mut().unwrap();
++                match mutation {
++                    1 => fields.push((Value::from("unknown"), Value::Null)),
++                    2 => fields.push(fields[0].clone()),
++                    3 => {
++                        fields.remove(0);
++                    }
++                    _ => {
++                        fields[0].0 =
++                            Value::Bytes(fields[0].0.as_text().unwrap().as_bytes().to_vec())
++                    }
++                }
++            }
++            assert!(
++                decode(&packet(&value), &expected).is_err(),
++                "record {path:?}, mutation {mutation}"
++            );
++        }
++    }
++    for table in ["term_to_alias", "term_to_glyph"] {
++        for extra in [false, true] {
++            let mut value = payload(&bytes);
++            let row = field(field(&mut value, "dictionary"), table)
++                .as_array_mut()
++                .unwrap()[0]
++                .as_array_mut()
++                .unwrap();
++            if extra {
++                row.push(Value::Null);
++            } else {
++                row.pop().unwrap();
++            }
++            assert!(
++                decode(&packet(&value), &expected).is_err(),
++                "exact width for {table}"
++            );
++        }
++    }
++    for mutation in 0..8 {
++        let mut value = payload(&bytes);
++        let row = field(field(&mut value, "dictionary"), "term_to_glyph")
++            .as_array_mut()
++            .unwrap()[0]
++            .as_array_mut()
++            .unwrap();
++        match mutation {
++            0 => row[0] = Value::Bool(false),
++            1 => row[3] = Value::from(u64::from(u32::MAX) + 1),
++            2 => row[3] = Value::from(-1_i32),
++            3 => row[3] = Value::Float(2.0),
++            4 => row[2] = Value::Tag(0, Box::new(row[2].clone())),
++            5 => row[3] = Value::Tag(2, Box::new(Value::Bytes(vec![2]))),
++            6 => row[2] = Value::Bytes(b"infix".to_vec()),
++            _ => row[3] = Value::Bool(true),
++        }
++        assert!(
++            decode(&packet(&value), &expected).is_err(),
++            "typed binding cells, mutation {mutation}"
++        );
++    }
++    // Undefined must not become an absent signature on an otherwise valid bare row.
++    let (reference, reference_identity) = reference_packet();
++    for index in [2, 3] {
++        let mut value = payload(&reference);
++        let row = field(field(&mut value, "dictionary"), "term_to_glyph")
++            .as_array_mut()
++            .unwrap()
++            .iter_mut()
++            .find(|row| row.as_array().unwrap()[2].is_null())
++            .unwrap()
++            .as_array_mut()
++            .unwrap();
++        row[index] = Value::Simple(23);
++        assert!(
++            decode(&packet(&value), &reference_identity).is_err(),
++            "undefined is not null"
++        );
++    }
++    // Empty byte strings must not hydrate legitimate empty table arrays.
++    let decoded = decode(&bytes, &expected).unwrap();
++    let (mut empty_dictionary, mut empty_codebook) = tiny();
++    empty_dictionary.term_to_alias.clear();
++    empty_dictionary.alias_to_term.clear();
++    empty_codebook.dictionary_entries.clear();
++    let empty = encode(
++        &empty_dictionary,
++        &empty_codebook,
++        decoded.source_sha256(),
++        &expected,
++    )
++    .unwrap();
++    assert!(decode(&empty, &expected).is_ok());
++    for path in [
++        vec!["codebook", "dictionary_entries"],
++        vec!["dictionary", "term_to_alias"],
++    ] {
++        let mut value = payload(&empty);
++        *field(field(&mut value, path[0]), path[1]) = Value::Bytes(vec![]);
++        assert!(
++            decode(&packet(&value), &expected).is_err(),
++            "only real arrays for {path:?}"
++        );
++    }
++    for invalid in [
++        Value::from(-1_i32),
++        Value::from(u64::from(u32::MAX) + 1),
++        Value::Float(7.0),
++    ] {
++        let mut value = payload(&bytes);
++        *field(
++            field(field(&mut value, "dictionary"), "acceptance"),
++            "latest_major",
++        ) = invalid;
++        assert!(
++            decode(&packet(&value), &expected).is_err(),
++            "u32 acceptance domain"
++        );
++    }
++    let tagged = Value::Tag(0, Box::new(payload(&bytes)));
++    assert!(
++        decode(&packet(&tagged), &expected).is_err(),
++        "packet must be an untagged named map"
++    );
+ }
+ 
+ #[test]
+@@ -174,6 +409,12 @@ fn native_transport_rejects_trailing_and_oversized_packets() {
+     let digest = Sha256::digest(&bytes[HEADER_BYTES..]);
+     bytes[MAGIC.len()..HEADER_BYTES].copy_from_slice(&digest);
+     assert!(decode(&bytes, &expected).is_err());
++    let truncated_item = packet_payload(&[0x81]);
++    let error = decode(&truncated_item, &expected).unwrap_err();
++    assert!(
++        error.is::<cbor::DecodeError>(),
++        "retain the typed native decoder cause"
++    );
+     bytes.resize(MAX_NATIVE_CODEBOOK_BYTES + 1, 0);
+     assert!(decode(&bytes, &expected).is_err());
+ }
+@@ -188,3 +429,30 @@ fn browser_source_identity_pin_matches_original_bytes_without_compilation() {
+         SOURCE_BLAKE3
+     );
+ }
++
++fn payload(bytes: &[u8]) -> Value {
++    cbor::decode(&bytes[HEADER_BYTES..], cbor::Limits { max_depth: 32 }).unwrap()
++}
++
++fn field<'a>(value: &'a mut Value, name: &str) -> &'a mut Value {
++    &mut value
++        .as_map_mut()
++        .unwrap()
++        .iter_mut()
++        .find(|(key, _)| key.as_text() == Some(name))
++        .unwrap()
++        .1
++}
++
++fn packet(value: &Value) -> Vec<u8> {
++    packet_payload(&cbor::encode(value))
++}
++
++fn packet_payload(payload: &[u8]) -> Vec<u8> {
++    let mut bytes = vec![0; HEADER_BYTES];
++    bytes.extend_from_slice(payload);
++    let digest = Sha256::digest(payload);
++    bytes[..MAGIC.len()].copy_from_slice(MAGIC);
++    bytes[MAGIC.len()..HEADER_BYTES].copy_from_slice(&digest);
++    bytes
++}
+diff --git a/crates/lang-bridge/src/gmn1_codec/native/fixtures/packet-v1.hex b/crates/lang-bridge/src/gmn1_codec/native/fixtures/packet-v1.hex
+new file mode 100644
+index 000000000..a2568e6eb
+--- /dev/null
++++ b/crates/lang-bridge/src/gmn1_codec/native/fixtures/packet-v1.hex
+@@ -0,0 +1 @@
++474d4e43424b30310c978782604c25ced96b3154a0855b51751ecc80a714855e28680e30029429b1a86e736368656d615f76657273696f6e016770726f66696c657818676d6e2d6e61746976652d64696374696f6e6172792d76316b736f757263655f706174687820736c696365732f67726f756e64696e672f6c616e672f6d6f64756c652e74746c6d736f757263655f7368613235367840336632366638363664346332646235653761373737383531303366353538633961643539653165353330623965666530323234643564633332346233633738626d736f757263655f626c616b65337840366161616433373039303635366537383561343731393530613965373062353434386234613739356165306631346264613662323564373230303739393838346f636f6465626f6f6b5f6469676573747847626c616b65333a6437623836306239613831613565303062373365663639353036643138663337616565623836666434356536363630316236313833636432353966303533393068636f6465626f6f6ba56a7265666572656e63657382781875726e3a73796e7468657469633a64696374696f6e6172797475726e3a73796e7468657469633a7363726970747264696374696f6e6172795f76657273696f6e61336d676c7970685f76657273696f6e6132696772617068656d6573817275726e3a73796e7468657469633a706c75737264696374696f6e6172795f656e7472696573827375726e3a73796e7468657469633a656e7472797775726e3a73796e7468657469633a6f6c642d656e7472796a64696374696f6e617279a86776657273696f6e61336d7465726d5f746f5f616c69617381827575726e3a73796e7468657469633a7375626a656374677375626a6563746d616c6961735f746f5f7465726d8282677375626a6563747575726e3a73796e7468657469633a7375626a656374826b7375626a6563745f6f6c647575726e3a73796e7468657469633a7375626a6563746d676c7970685f76657273696f6e61326d7465726d5f746f5f676c79706882856340cebc7175726e3a73796e7468657469633a61646465696e66697802612b856340cebc7675726e3a73796e7468657469633a6d756c7469706c79f6f662c3976d676c7970685f746f5f7465726d82856340cebc612b65696e666978027175726e3a73796e7468657469633a616464856340cebc62c397f6f67675726e3a73796e7468657469633a6d756c7469706c797066616c6c6261636b5f746f5f7465726d83856340cebc6361646465696e666978027175726e3a73796e7468657469633a616464856340cebc686d756c7469706c79f6f67675726e3a73796e7468657469633a6d756c7469706c79856340cebc64706c757365696e666978027175726e3a73796e7468657469633a6164646a616363657074616e6365a26c6c61746573745f6d616a6f721901016d6163636570745f77696e646f7702
+diff --git a/crates/lang-bridge/src/gmn1_codec/native/wire.rs b/crates/lang-bridge/src/gmn1_codec/native/wire.rs
+new file mode 100644
+index 000000000..11b519c54
+--- /dev/null
++++ b/crates/lang-bridge/src/gmn1_codec/native/wire.rs
+@@ -0,0 +1,373 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! The codebook's named-map domain codec over the shared native CBOR substrate.
++//! Writers borrow the prepared inventories; readers consume the decoded values.
++
++use super::{
++    Binding, CurrentCodebook, GmnDictionary, GmnGlyphSignature, PROFILE, SOURCE_PATH, fail,
++};
++use purrdf_lex::cbor::{
++    Value,
++    head::{self, ARRAY, MAP, SIMPLE, UNSIGNED},
++};
++use std::collections::{BTreeMap, BTreeSet};
++use std::io::{self, Write};
++
++type Result<T> = gmeow_errors::Result<T>;
++
++pub(super) struct Acceptance {
++    pub(super) latest_major: u32,
++    pub(super) accept_window: u32,
++}
++
++pub(super) struct CodebookWire {
++    pub(super) references: Vec<String>,
++    pub(super) dictionary_version: String,
++    pub(super) glyph_version: String,
++    pub(super) graphemes: Vec<String>,
++    pub(super) dictionary_entries: Vec<String>,
++}
++
++pub(super) struct DictionaryWire {
++    pub(super) version: String,
++    pub(super) term_to_alias: Vec<(String, String)>,
++    pub(super) alias_to_term: Vec<(String, String)>,
++    pub(super) glyph_version: String,
++    pub(super) term_to_glyph: Vec<Binding>,
++    pub(super) glyph_to_term: Vec<Binding>,
++    pub(super) fallback_to_term: Vec<Binding>,
++    pub(super) acceptance: Acceptance,
++}
++
++pub(super) struct Wire {
++    pub(super) schema_version: u32,
++    pub(super) profile: String,
++    pub(super) source_path: String,
++    pub(super) source_sha256: String,
++    pub(super) source_blake3: String,
++    pub(super) codebook_digest: String,
++    pub(super) codebook: CodebookWire,
++    pub(super) dictionary: DictionaryWire,
++}
++
++pub(super) fn write(
++    out: &mut impl Write,
++    dictionary: &GmnDictionary,
++    codebook: &CurrentCodebook,
++    source_sha256: &str,
++    source_blake3: &str,
++    codebook_digest: &str,
++) -> io::Result<()> {
++    head::write_head(out, MAP, 8)?;
++    head::write_text(out, "schema_version")?;
++    head::write_head(out, UNSIGNED, 1)?;
++    for (name, value) in [
++        ("profile", PROFILE),
++        ("source_path", SOURCE_PATH),
++        ("source_sha256", source_sha256),
++        ("source_blake3", source_blake3),
++        ("codebook_digest", codebook_digest),
++    ] {
++        head::write_text(out, name)?;
++        head::write_text(out, value)?;
++    }
++    head::write_text(out, "codebook")?;
++    write_codebook(out, codebook)?;
++    head::write_text(out, "dictionary")?;
++    write_dictionary(out, dictionary)
++}
++
++fn write_strings(out: &mut impl Write, values: &BTreeSet<String>) -> io::Result<()> {
++    head::write_head(out, ARRAY, values.len() as u64)?;
++    for value in values {
++        head::write_text(out, value)?;
++    }
++    Ok(())
++}
++
++fn write_codebook(out: &mut impl Write, codebook: &CurrentCodebook) -> io::Result<()> {
++    head::write_head(out, MAP, 5)?;
++    head::write_text(out, "references")?;
++    write_strings(out, &codebook.references)?;
++    head::write_text(out, "dictionary_version")?;
++    head::write_text(out, &codebook.dictionary_version)?;
++    head::write_text(out, "glyph_version")?;
++    head::write_text(out, &codebook.glyph_version)?;
++    head::write_text(out, "graphemes")?;
++    write_strings(out, &codebook.graphemes)?;
++    head::write_text(out, "dictionary_entries")?;
++    write_strings(out, &codebook.dictionary_entries)
++}
++
++fn write_dictionary(out: &mut impl Write, dictionary: &GmnDictionary) -> io::Result<()> {
++    let glyphs = &dictionary.glyphs;
++    head::write_head(out, MAP, 8)?;
++    head::write_text(out, "version")?;
++    head::write_text(out, &dictionary.version)?;
++    head::write_text(out, "term_to_alias")?;
++    write_pairs(out, &dictionary.term_to_alias)?;
++    head::write_text(out, "alias_to_term")?;
++    write_pairs(out, &dictionary.alias_to_term)?;
++    head::write_text(out, "glyph_version")?;
++    head::write_text(out, &glyphs.version)?;
++    for (name, values) in [
++        ("term_to_glyph", &glyphs.term_to_glyph),
++        ("glyph_to_term", &glyphs.glyph_to_term),
++        ("fallback_to_term", &glyphs.fallback_to_term),
++    ] {
++        head::write_text(out, name)?;
++        write_bindings(out, values)?;
++    }
++    head::write_text(out, "acceptance")?;
++    head::write_head(out, MAP, 2)?;
++    head::write_text(out, "latest_major")?;
++    head::write_head(out, UNSIGNED, u64::from(dictionary.acceptance.latest_major))?;
++    head::write_text(out, "accept_window")?;
++    head::write_head(
++        out,
++        UNSIGNED,
++        u64::from(dictionary.acceptance.accept_window),
++    )
++}
++
++fn write_pairs(out: &mut impl Write, values: &BTreeMap<String, String>) -> io::Result<()> {
++    head::write_head(out, ARRAY, values.len() as u64)?;
++    for (left, right) in values {
++        head::write_head(out, ARRAY, 2)?;
++        head::write_text(out, left)?;
++        head::write_text(out, right)?;
++    }
++    Ok(())
++}
++
++fn write_bindings(
++    out: &mut impl Write,
++    values: &BTreeMap<(String, String, GmnGlyphSignature), String>,
++) -> io::Result<()> {
++    head::write_head(out, ARRAY, values.len() as u64)?;
++    for ((scope, key, signature), value) in values {
++        head::write_head(out, ARRAY, 5)?;
++        head::write_text(out, scope)?;
++        head::write_text(out, key)?;
++        match &signature.fixity {
++            Some(fixity) => head::write_text(out, fixity)?,
++            None => head::write_head(out, SIMPLE, 22)?,
++        }
++        match signature.arity {
++            Some(arity) => head::write_head(out, UNSIGNED, u64::from(arity))?,
++            None => head::write_head(out, SIMPLE, 22)?,
++        }
++        head::write_text(out, value)?;
++    }
++    Ok(())
++}
++
++// Fixed domain fields only. The shared decoder has already parsed CBOR syntax.
++// Moving each retained value avoids cloning text or a second inventory tree.
++fn record<const N: usize>(value: Value, name: &str, names: [&str; N]) -> Result<[Value; N]> {
++    let entries = value
++        .into_map()
++        .map_err(|_| fail(format!("{name} must be a named CBOR map")))?;
++    let mut fields: [Value; N] = std::array::from_fn(|_| Value::Null);
++    let mut seen = [false; N];
++    for (key, value) in entries {
++        let key = text(key, name)?;
++        let Some(index) = names.iter().position(|name| *name == key.as_str()) else {
++            return Err(fail(format!("{name} has unknown field {key:?}")));
++        };
++        if seen[index] {
++            return Err(fail(format!("{name} has duplicate field {key:?}")));
++        }
++        seen[index] = true;
++        fields[index] = value;
++    }
++    for (index, present) in seen.into_iter().enumerate() {
++        if !present {
++            return Err(fail(format!("{name} is missing field {:?}", names[index])));
++        }
++    }
++    Ok(fields)
++}
++
++fn text(value: Value, context: &str) -> Result<String> {
++    value
++        .into_text()
++        .map_err(|_| fail(format!("{context} must be CBOR text")))
++}
++
++fn array(value: Value, context: &str) -> Result<Vec<Value>> {
++    value
++        .into_array()
++        .map_err(|_| fail(format!("{context} must be a CBOR array")))
++}
++
++fn row<const N: usize>(value: Value, context: &str) -> Result<[Value; N]> {
++    array(value, context)?
++        .try_into()
++        .map_err(|_| fail(format!("{context} must contain exactly {N} cells")))
++}
++
++fn unsigned(value: Value, context: &str) -> Result<u32> {
++    if let Value::Integer(value) = value {
++        return u32::try_from(value.get())
++            .map_err(|_| fail(format!("{context} must be an unsigned u32")));
++    }
++    Err(fail(format!("{context} must be an unsigned u32")))
++}
++
++fn optional<T>(value: Value, read: impl FnOnce(Value) -> Result<T>) -> Result<Option<T>> {
++    match value {
++        Value::Null => Ok(None),
++        value => read(value).map(Some),
++    }
++}
++
++fn strings(value: Value, context: &str) -> Result<Vec<String>> {
++    array(value, context)?
++        .into_iter()
++        .map(|value| text(value, context))
++        .collect()
++}
++
++fn pairs(value: Value, context: &str) -> Result<Vec<(String, String)>> {
++    array(value, context)?
++        .into_iter()
++        .map(|value| {
++            let [left, right] = row(value, context)?;
++            Ok((text(left, context)?, text(right, context)?))
++        })
++        .collect()
++}
++
++fn bindings(value: Value, context: &str) -> Result<Vec<Binding>> {
++    array(value, context)?
++        .into_iter()
++        .map(|value| {
++            let [scope, key, fixity, arity, value] = row(value, context)?;
++            Ok((
++                text(scope, context)?,
++                text(key, context)?,
++                optional(fixity, |value| text(value, context))?,
++                optional(arity, |value| unsigned(value, context))?,
++                text(value, context)?,
++            ))
++        })
++        .collect()
++}
++
++impl Wire {
++    pub(super) fn from_value(value: Value) -> Result<Self> {
++        let [
++            schema_version,
++            profile,
++            source_path,
++            source_sha256,
++            source_blake3,
++            codebook_digest,
++            codebook,
++            dictionary,
++        ] = record(
++            value,
++            "codebook packet",
++            [
++                "schema_version",
++                "profile",
++                "source_path",
++                "source_sha256",
++                "source_blake3",
++                "codebook_digest",
++                "codebook",
++                "dictionary",
++            ],
++        )?;
++        Ok(Self {
++            schema_version: unsigned(schema_version, "schema_version")?,
++            profile: text(profile, "profile")?,
++            source_path: text(source_path, "source_path")?,
++            source_sha256: text(source_sha256, "source_sha256")?,
++            source_blake3: text(source_blake3, "source_blake3")?,
++            codebook_digest: text(codebook_digest, "codebook_digest")?,
++            codebook: CodebookWire::from_value(codebook)?,
++            dictionary: DictionaryWire::from_value(dictionary)?,
++        })
++    }
++}
++
++impl CodebookWire {
++    fn from_value(value: Value) -> Result<Self> {
++        let [
++            references,
++            dictionary_version,
++            glyph_version,
++            graphemes,
++            dictionary_entries,
++        ] = record(
++            value,
++            "codebook",
++            [
++                "references",
++                "dictionary_version",
++                "glyph_version",
++                "graphemes",
++                "dictionary_entries",
++            ],
++        )?;
++        Ok(Self {
++            references: strings(references, "references")?,
++            dictionary_version: text(dictionary_version, "dictionary_version")?,
++            glyph_version: text(glyph_version, "glyph_version")?,
++            graphemes: strings(graphemes, "graphemes")?,
++            dictionary_entries: strings(dictionary_entries, "dictionary_entries")?,
++        })
++    }
++}
++
++impl DictionaryWire {
++    fn from_value(value: Value) -> Result<Self> {
++        let [
++            version,
++            term_to_alias,
++            alias_to_term,
++            glyph_version,
++            term_to_glyph,
++            glyph_to_term,
++            fallback_to_term,
++            acceptance,
++        ] = record(
++            value,
++            "dictionary",
++            [
++                "version",
++                "term_to_alias",
++                "alias_to_term",
++                "glyph_version",
++                "term_to_glyph",
++                "glyph_to_term",
++                "fallback_to_term",
++                "acceptance",
++            ],
++        )?;
++        Ok(Self {
++            version: text(version, "dictionary.version")?,
++            term_to_alias: pairs(term_to_alias, "term_to_alias")?,
++            alias_to_term: pairs(alias_to_term, "alias_to_term")?,
++            glyph_version: text(glyph_version, "dictionary.glyph_version")?,
++            term_to_glyph: bindings(term_to_glyph, "term_to_glyph")?,
++            glyph_to_term: bindings(glyph_to_term, "glyph_to_term")?,
++            fallback_to_term: bindings(fallback_to_term, "fallback_to_term")?,
++            acceptance: Acceptance::from_value(acceptance)?,
++        })
++    }
++}
++
++impl Acceptance {
++    fn from_value(value: Value) -> Result<Self> {
++        let [latest_major, accept_window] =
++            record(value, "acceptance", ["latest_major", "accept_window"])?;
++        Ok(Self {
++            latest_major: unsigned(latest_major, "latest_major")?,
++            accept_window: unsigned(accept_window, "accept_window")?,
++        })
++    }
++}

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2007,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2007-use-native-cbor-for-complete-gmn",
+  "branch": "paudley/2007-use-native-cbor-for-complete-gmn",
+  "slug": "use-native-cbor-for-complete-gmn",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2007-use-native-cbor-for-complete-gmn/.stage/use-native-cbor-for-complete-gmn",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "d3d7b6858303c748c3337af0a9fa95d8327cbc05",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2007-use-native-cbor-for-complete-gmn",
+    "branch:paudley/2007-use-native-cbor-for-complete-gmn",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2007-use-native-cbor-for-complete-gmn/.stage/use-native-cbor-for-complete-gmn",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2007-use-native-cbor-for-complete-gmn/.stage/use-native-cbor-for-complete-gmn/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-27T00:48:11-0600"
+}

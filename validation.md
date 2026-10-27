@@ -1,0 +1,11 @@
+Complete GMN transport qualification
+
+- Original encoder reference: one authored case PASS after 6 minutes 51 seconds build and 0.275 second execution. The complete 1,080-byte frozen fixture matches the captured packet; fixed header and checksum independently checked. See reference-capture.md.
+- Final strict actual-caller check: `make clippy-prebuild RUST_PREBUILD_WORKSPACE_ARGS='-p gmeow-lang-bridge -p gmeow-pipeline -p gmeow-dev-cli -p gmeow-mcp'` PASS in 36.14 seconds, all selected targets with warnings denied. Log: clippy-cause-fix.log.
+- Final runtime: `make nextest-synthetic RUST_PREBUILD_WORKSPACE_ARGS='-p gmeow-lang-bridge --lib' NEXTEST_FILTER='package(gmeow-lang-bridge) & test(native_transport_)'` PASS, four cases, 152 skipped; 9.79 seconds build and 0.008 second execution. Log: runtime-cause-fix.log. These independently authored tables do not enter corpus production. The source-pin control remains unchanged and excluded.
+- Formatting, diff hygiene and static `make producer-recipe` PASS. No optimized producer was built or run. Complete helper hygiene passed before and after the diagnostic correction; final log: helpers-cause-fix.log.
+- Independent review found no required findings after the malformed-input corrections and diagnostic fix. The original security, ordering and Merkle validation block remains unchanged.
+
+Failures diagnosed and corrected: the initial strict check used nonexistent `Diag::source` in a new assertion; changed to the actual `Diag::is` API. The first replacement runtime then passed three cases and failed the malformed-input case because `Diag::of_kind` already owns a cause. The final diagnostic helper constructs the domain metadata and attaches the native source exactly once. Final strict compilation and all four runtime cases passed after that production correction. Earlier failed logs are preserved.
+
+Scope and limits: actual pipeline producer, developer CLI and default MCP core/reasoning callers compile. Public CLI and browser entrypoints were inspected; their embedded assets and execution were not qualified. No authenticated corpus, installed consumer, release, browser matrix, synchronization or full gate was run. CI is waived under the standing user instruction, not recorded as passing. Normal signed commit and push hooks passed. PR 2008 is published at the qualified source head.
