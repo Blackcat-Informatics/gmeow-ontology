@@ -9,14 +9,14 @@ use std::path::{Path, PathBuf};
 use gmeow_logic::relational_core::{FormulaLoweringInspection, inspect_formula_lowering};
 use gmeow_logic_compile::frontend::{Diagnostic, parse_logic_dataset};
 use gmeow_logic_compile::ir::{Formula, LogicProgram, Term};
-use serde::{Deserialize, Serialize};
+mod json;
 
 const CHANNEL: &str = "pipeline/formula-lowering-fixtures.json";
 const CATS: &str = "slices/grounding/lang/tests/conformance-fixtures/meaning-cats-chase-mice.ttl";
 const TYPED: &str = "slices/grounding/logic/examples/typed-ir.ttl";
 const BETWEEN: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/between";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct FormulaObservation {
     formulas: Vec<Formula>,
     diagnostics: Vec<Diagnostic>,
@@ -49,8 +49,8 @@ pub(super) fn record(
         .collect();
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observations)
-            .map_err(|error| super::stage_err(format!("encode formula observations: {error}")))?,
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
+            .into_bytes(),
     );
     Ok(())
 }

@@ -152,6 +152,18 @@ pub fn recorded_result_to_json<T: ToJson>(outcome: &Result<T, crate::RecordedDia
     }
 }
 
+/// Project sorted producer keys and complete typed recorded outcomes without cloning.
+#[must_use]
+pub fn recorded_map_to_json<T: ToJson>(
+    outcomes: &std::collections::BTreeMap<String, Result<T, crate::RecordedDiag>>,
+) -> Value {
+    outcomes
+        .iter()
+        .map(|(name, outcome)| (name.as_str(), recorded_result_to_json(outcome)))
+        .collect::<Object>()
+        .into()
+}
+
 struct UnitSuccess;
 
 impl FromJson for UnitSuccess {

@@ -15,7 +15,7 @@ fn observation(source: &str) -> &'static FormulaObservation {
             let bytes =
                 crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
                     .expect("authenticated native formula observations");
-            serde_json::from_slice(&bytes).expect("decode formula observations")
+            super::json::from_bytes(&bytes).expect("decode formula observations")
         })
         .get(source)
         .expect("producer selected the exact source")
