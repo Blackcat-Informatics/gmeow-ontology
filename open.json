@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1985,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1985-use-native-json-for-complete-common",
+  "branch": "paudley/1985-use-native-json-for-complete-common",
+  "slug": "use-native-json-for-complete-common",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1985-use-native-json-for-complete-common/.stage/use-native-json-for-complete-common",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "4659e3cca981743ad295cd5a5eb0f9628d85c61e",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1985-use-native-json-for-complete-common",
+    "branch:paudley/1985-use-native-json-for-complete-common",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1985-use-native-json-for-complete-common/.stage/use-native-json-for-complete-common",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1985-use-native-json-for-complete-common/.stage/use-native-json-for-complete-common/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T18:06:51-0600"
+}

@@ -1,0 +1,349 @@
+diff --git crates/errors/src/json.rs crates/errors/src/json.rs
+index b10c2f39b..667586812 100644
+--- crates/errors/src/json.rs
++++ crates/errors/src/json.rs
+@@ -58,6 +58,19 @@ pub fn read_string_row<const N: usize>(value: &Value) -> Result<[String; N], Dec
+         .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} string cells")))
+ }
+ 
++/// Admit the null payload of a successful unit observation.
++/// The owning transport supplies its existing diagnostic wording.
++///
++/// # Errors
++/// Refuses every non-null value without normalization.
++pub fn read_null(value: &Value, expected: &str) -> Result<(), DecodeError> {
++    if matches!(value, Value::Null) {
++        Ok(())
++    } else {
++        Err(DecodeError::invalid_type(value, expected))
++    }
++}
++
+ /// Read a signed integer token followed by a checked target-width conversion.
+ /// The float-like spelling `-0` is refused.
+ ///
+diff --git crates/lang-bridge/src/gmn_conformance/json.rs crates/lang-bridge/src/gmn_conformance/json.rs
+index f0baf8ab5..eb17d67fa 100644
+--- crates/lang-bridge/src/gmn_conformance/json.rs
++++ crates/lang-bridge/src/gmn_conformance/json.rs
+@@ -11,11 +11,7 @@ use purrdf_lex::json::{
+ struct NullWitness;
+ impl FromJson for NullWitness {
+     fn from_json(value: &Value) -> Result<Self, DecodeError> {
+-        if matches!(value, Value::Null) {
+-            Ok(Self)
+-        } else {
+-            Err(DecodeError::invalid_type(value, "null unit witness"))
+-        }
++        gmeow_errors::json::read_null(value, "null unit witness").map(|()| Self)
+     }
+ }
+ impl ToJson for PositiveObservation {
+diff --git crates/pipeline/src/stages/compile_logic/roundtrip.rs crates/pipeline/src/stages/compile_logic/roundtrip.rs
+index a6882c078..0fb109b0b 100644
+--- crates/pipeline/src/stages/compile_logic/roundtrip.rs
++++ crates/pipeline/src/stages/compile_logic/roundtrip.rs
+@@ -8,6 +8,8 @@
+ //! distinct from the aggregate source program: another module cannot supply a
+ //! missing declaration. Tests authenticate and grade the small observation only.
+ 
++mod json;
++
+ use std::collections::BTreeMap;
+ 
+ use gmeow_logic_compile::adapter::assert_ir_isomorphic;
+@@ -15,18 +17,17 @@ use gmeow_logic_compile::frontend::{Diagnostic, Severity, parse_logic_dataset};
+ use gmeow_logic_compile::ir::LogicProgram;
+ use gmeow_logic_compile::projections::{ProjectionResult, rdf};
+ use gmeow_logic_compile::{cgif, clif, xcl};
+-use serde::{Deserialize, Serialize};
+ 
+ /// Internal authenticated artifact; it is not a new public serialization.
+ const CHANNEL: &str = "pipeline/logic-module-roundtrip.json";
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct Observation {
+     source: String,
+     dialects: Result<[DialectObservation; 3], gmeow_errors::RecordedDiag>,
+ }
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct DialectObservation {
+     dialect: String,
+     result: Result<(), gmeow_errors::RecordedDiag>,
+@@ -42,8 +43,7 @@ pub(super) fn record(
+     };
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&observation)
+-            .map_err(|error| super::stage_err(format!("encode CL observation: {error}")))?,
++        purrdf_lex::json::record::to_vec(&observation),
+     );
+     Ok(())
+ }
+diff --git crates/pipeline/src/stages/compile_logic/roundtrip.tests.rs crates/pipeline/src/stages/compile_logic/roundtrip.tests.rs
+index b03464ec2..6bfef1f4f 100644
+--- crates/pipeline/src/stages/compile_logic/roundtrip.tests.rs
++++ crates/pipeline/src/stages/compile_logic/roundtrip.tests.rs
+@@ -3,13 +3,14 @@
+ 
+ use super::*;
+ use purrdf::RdfDataset;
++use purrdf_lex::json::record::{from_slice, to_vec};
+ 
+ #[test]
+ fn corpus_logic_module_common_logic_roundtrips() {
+     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+     let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
+         .expect("producer-authenticated Common Logic observation");
+-    let observation: Observation = serde_json::from_slice(&bytes).expect("decode observation");
++    let observation: Observation = from_slice(&bytes).expect("decode observation");
+     assert_eq!(observation.source, super::super::SOURCE_PATH);
+     let dialects = observation
+         .dialects
+@@ -36,7 +37,7 @@ fn native_reference_records_every_dialect() {
+     let mut artifacts = BTreeMap::new();
+     let (program, _) = parse_logic_dataset(&synthetic(), None).unwrap();
+     record(&program, &mut artifacts).unwrap();
+-    let observation: Observation = serde_json::from_slice(&artifacts[CHANNEL]).unwrap();
++    let observation: Observation = from_slice(&artifacts[CHANNEL]).unwrap();
+     let dialects = observation.dialects.unwrap();
+     for (name, observation) in ["clif", "cgif", "xcl"].into_iter().zip(dialects) {
+         assert_eq!(observation.dialect, name);
+@@ -68,3 +69,118 @@ fn complete_ir_comparison_records_source_drift() {
+             .contains("source_iri differs")
+     );
+ }
++
++const ROUNDTRIP_WIRE: &str = r#"{"source":"slices/grounding/logic/module.ttl","dialects":{"Ok":[{"dialect":"clif","result":{"Ok":null}},{"dialect":"cgif","result":{"Ok":null}},{"dialect":"xcl","result":{"Ok":null}}]}}"#;
++
++#[test]
++fn native_common_logic_wire_preserves_order_open_names_and_causal_outcomes() {
++    let observation: Observation = from_slice(ROUNDTRIP_WIRE.as_bytes()).unwrap();
++    assert_eq!(observation.source, super::super::SOURCE_PATH);
++    assert_eq!(to_vec(&observation), ROUNDTRIP_WIRE.as_bytes());
++    let open = ROUNDTRIP_WIRE.replace("clif", "future dialect 中");
++    let observation: Observation = from_slice(open.as_bytes()).unwrap();
++    assert_eq!(
++        observation.dialects.as_ref().unwrap()[0].dialect,
++        "future dialect 中"
++    );
++    assert_eq!(to_vec(&observation), open.as_bytes());
++    let unknown = ROUNDTRIP_WIRE
++        .replacen('{', "{\"future\":null,", 1)
++        .replace("\"dialect\":", "\"future\":null,\"dialect\":");
++    assert_eq!(
++        to_vec(&from_slice::<Observation>(unknown.as_bytes()).unwrap()),
++        ROUNDTRIP_WIRE.as_bytes()
++    );
++
++    use gmeow_errors::{Diag, DiagLedger, StageId};
++    let mut ledger = DiagLedger::new();
++    let premise = ledger.attach(
++        Diag::from(std::io::Error::other("authored premise")).with_focus("urn:premise"),
++        StageId::new("roundtrip-input"),
++    );
++    let refusal = ledger.record(
++        Diag::from(std::io::Error::other("authored refusal"))
++            .with_focus("urn:projection")
++            .with_antecedents([premise]),
++        StageId::new("roundtrip-observation"),
++    );
++    let outer = Observation {
++        source: super::super::SOURCE_PATH.into(),
++        dialects: Err(refusal.clone()),
++    };
++    let restored: Observation = from_slice(&to_vec(&outer)).unwrap();
++    assert_eq!(restored.dialects.unwrap_err(), refusal);
++    let mut observation: Observation = from_slice(ROUNDTRIP_WIRE.as_bytes()).unwrap();
++    observation.dialects.as_mut().unwrap()[1].result = Err(refusal.clone());
++    let restored: Observation = from_slice(&to_vec(&observation)).unwrap();
++    let dialects = restored.dialects.unwrap();
++    assert!(dialects[0].result.is_ok() && dialects[2].result.is_ok());
++    assert_eq!(dialects[1].dialect, "cgif");
++    assert_eq!(dialects[1].result.as_ref().unwrap_err(), &refusal);
++    let retained = dialects[1].result.as_ref().unwrap_err();
++    assert_eq!(retained.causes.len(), 1);
++    assert_eq!(
++        retained.root.antecedents.as_ref(),
++        &[retained.causes[0].fingerprint]
++    );
++}
++
++#[test]
++fn native_common_logic_admission_refuses_record_width_and_unit_shape_drift() {
++    let named = purrdf_lex::json::read(ROUNDTRIP_WIRE).unwrap();
++    let positional = purrdf_lex::json::Value::from(
++        named
++            .as_object()
++            .unwrap()
++            .iter()
++            .map(|(_, value)| value.clone())
++            .collect::<Vec<_>>(),
++    );
++    assert!(from_slice::<Observation>(&to_vec(&positional)).is_err());
++    for invalid in [
++        ROUNDTRIP_WIRE.replace("\"source\":", "\"source\":\"duplicate\",\"source\":"),
++        ROUNDTRIP_WIRE.replace("\"source\":\"slices/grounding/logic/module.ttl\",", ""),
++        ROUNDTRIP_WIRE.replace("\"dialects\":", "\"dialects\":null,\"dialects\":"),
++        ROUNDTRIP_WIRE.replace("\"dialect\":\"clif\",", ""),
++        ROUNDTRIP_WIRE.replace(
++            "{\"dialect\":\"clif\",\"result\":{\"Ok\":null}}",
++            "[\"clif\",{\"Ok\":null}]",
++        ),
++        ROUNDTRIP_WIRE.replace("\"result\":", "\"result\":null,\"result\":"),
++        ROUNDTRIP_WIRE.replacen("\"Ok\":null", "\"Ok\":null,\"Err\":null", 1),
++        ROUNDTRIP_WIRE.replacen("\"Ok\":null", "\"Unknown\":null", 1),
++        ROUNDTRIP_WIRE.replace(
++            "\"dialects\":{\"Ok\":[",
++            "\"dialects\":{\"Err\":null,\"Ok\":[",
++        ),
++        "{".into(),
++    ] {
++        assert!(
++            from_slice::<Observation>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++    for payload in ["{}", "[]", "true", "\"unit\"", "0"] {
++        let invalid = ROUNDTRIP_WIRE.replacen("\"Ok\":null", &format!("\"Ok\":{payload}"), 1);
++        let error = from_slice::<Observation>(invalid.as_bytes())
++            .unwrap_err()
++            .to_string();
++        assert!(error.contains("/dialects/Ok/0/result/Ok"), "{error}");
++    }
++    let cell = r#"{"dialect":"future","result":{"Ok":null}}"#;
++    for width in [0, 1, 2, 4] {
++        let cells = std::iter::repeat_n(cell, width)
++            .collect::<Vec<_>>()
++            .join(",");
++        let invalid = format!(
++            r#"{{"source":"slices/grounding/logic/module.ttl","dialects":{{"Ok":[{cells}]}}}}"#
++        );
++        let error = from_slice::<Observation>(invalid.as_bytes())
++            .unwrap_err()
++            .to_string();
++        assert!(
++            error.contains("/dialects/Ok") && error.contains("exactly three"),
++            "{error}"
++        );
++    }
++}
+diff --git crates/pipeline/src/stages/compile_logic/roundtrip/json.rs crates/pipeline/src/stages/compile_logic/roundtrip/json.rs
+new file mode 100644
+index 000000000..a9266ec55
+--- /dev/null
++++ crates/pipeline/src/stages/compile_logic/roundtrip/json.rs
+@@ -0,0 +1,93 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Native transport of the exact three ordered dialect observations and refusals.
++
++use super::{DialectObservation, Observation};
++use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++
++struct Dialects([DialectObservation; 3]);
++
++impl FromJson for Dialects {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let dialects = Vec::<DialectObservation>::from_json(value)?;
++        dialects
++            .try_into()
++            .map(Self)
++            .map_err(|_| DecodeError::invalid_value(value, "exactly three dialect observations"))
++    }
++}
++
++struct UnitSuccess;
++
++impl FromJson for UnitSuccess {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        gmeow_errors::json::read_null(value, "null unit success").map(|()| Self)
++    }
++}
++
++impl ToJson for Observation {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("source", self.source.to_json())
++            .with("dialects", recorded_result_to_json(&self.dialects))
++            .into()
++    }
++}
++
++impl FromJson for Observation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observation")?;
++        let source = fields.required("source")?;
++        let dialects: Result<Dialects, gmeow_errors::RecordedDiag> =
++            fields.required_with("dialects", |value| {
++                read_recorded_result(
++                    value,
++                    "Common Logic dialect outcome",
++                    "one Common Logic dialect outcome variant",
++                )
++            })?;
++        Ok(Self {
++            source,
++            dialects: dialects.map(|dialects| dialects.0),
++        })
++    }
++}
++
++impl ToJson for DialectObservation {
++    fn to_json(&self) -> Value {
++        // The pinned record traits have no unit codec. The success carrier is
++        // exactly JSON null; failures use the complete native diagnostic owner.
++        let result: Value = match &self.result {
++            Ok(()) => Object::new().with("Ok", Value::Null).into(),
++            Err(error) => Object::new().with("Err", error.to_json()).into(),
++        };
++        Object::new()
++            .with("dialect", self.dialect.to_json())
++            .with("result", result)
++            .into()
++    }
++}
++
++impl FromJson for DialectObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct DialectObservation")?;
++        let dialect = fields.required("dialect")?;
++        let result: Result<UnitSuccess, gmeow_errors::RecordedDiag> =
++            fields.required_with("result", |value| {
++                read_recorded_result(
++                    value,
++                    "Common Logic dialect result",
++                    "one Common Logic dialect result variant",
++                )
++            })?;
++        Ok(Self {
++            dialect,
++            result: result.map(|UnitSuccess| ()),
++        })
++    }
++}
+diff --git crates/pipeline/src/stages/conformance/gmn_dictionary/json.rs crates/pipeline/src/stages/conformance/gmn_dictionary/json.rs
+index 5094d3d7b..6068e5e80 100644
+--- crates/pipeline/src/stages/conformance/gmn_dictionary/json.rs
++++ crates/pipeline/src/stages/conformance/gmn_dictionary/json.rs
+@@ -41,11 +41,7 @@ fn read_outcome<T, E: FromJson>(
+     .map_err(|error| error.within(tag))
+ }
+ fn unit(value: &Value) -> Result<(), DecodeError> {
+-    if matches!(value, Value::Null) {
+-        Ok(())
+-    } else {
+-        Err(DecodeError::invalid_type(value, "null unit witness"))
+-    }
++    gmeow_errors::json::read_null(value, "null unit witness")
+ }
+ fn acceptance(value: &Value) -> Result<(u32, u32), DecodeError> {
+     let items = value
