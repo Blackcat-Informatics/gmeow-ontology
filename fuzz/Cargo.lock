@@ -393,6 +393,7 @@ version = "0.3.0"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
+ "purrdf-lex",
  "serde",
  "serde_json",
 ]
@@ -445,6 +446,7 @@ dependencies = [
  "purrdf",
  "purrdf-core",
  "purrdf-hash",
+ "purrdf-lex",
  "rayon",
  "serde",
  "serde_json",
@@ -459,6 +461,7 @@ name = "gmeow-logic-compile"
 version = "0.3.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-ns",
  "gmeow-term-arena",
  "purrdf",
