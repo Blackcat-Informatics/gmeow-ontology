@@ -10,7 +10,7 @@ use std::path::Path;
 
 use purrdf::RdfDataset;
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
-use serde::{Deserialize, Serialize};
+mod json;
 
 pub(super) const MODULE: &str = "slices/core/diagnostics/module.ttl";
 pub(super) const LEGACY_PATH: &str = "slices/core/diagnostics/shapes.ttl";
@@ -19,7 +19,7 @@ const PROJECTED_SHAPE: &str =
     "https://blackcatinformatics.ca/gmeow/GateFatalUpsetConstraintProceduralConstraintShape";
 const EX: &str = "https://blackcatinformatics.ca/gmeow/testing/diagnostic-migration/";
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) struct Finding {
     pub(super) focus: String,
     path: Option<String>,
@@ -29,7 +29,7 @@ pub(super) struct Finding {
     messages: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Agreement {
     pub(super) legacy_shape: String,
     pub(super) projected_shape: String,

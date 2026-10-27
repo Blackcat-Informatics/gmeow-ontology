@@ -18,6 +18,8 @@
 //! [`super::opt_axis_key`] signed-zero helper directly, so the key style matches the rest
 //! of the IR verbatim.
 
+mod json;
+
 use super::{NodeKind, SEP, opt_axis_key};
 use gmeow_errors::Diag;
 

@@ -22,8 +22,8 @@ fn typed_shape_and_emitted_surface_survive_the_producer_record() {
             ex:D a logic:Class . ex:p a logic:ObjectProperty .
         "#,
     );
-    let wire = serde_json::to_vec(&product).unwrap();
-    let restored: ModuleProduct = serde_json::from_slice(&wire).unwrap();
+    let wire = purrdf_lex::json::record::to_vec(&product);
+    let restored: ModuleProduct = purrdf_lex::json::record::from_slice(&wire).unwrap();
     let shape = restored
         .shapes
         .iter()
@@ -57,8 +57,8 @@ fn malformed_constraints_remain_visible_in_the_record() {
             <urn:broken> a logic:Constraint ; logic:integrity <urn:missing-formula> .
         "#,
     );
-    let wire = serde_json::to_vec(&product).unwrap();
-    let restored: ModuleProduct = serde_json::from_slice(&wire).unwrap();
+    let wire = purrdf_lex::json::record::to_vec(&product);
+    let restored: ModuleProduct = purrdf_lex::json::record::from_slice(&wire).unwrap();
     assert!(
         restored
             .diagnostics
