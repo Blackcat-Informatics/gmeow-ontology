@@ -27,14 +27,15 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use gmeow_logic::goal_directed::{evaluate_reasoning_programs, project_goal_directed};
+use gmeow_logic::goal_directed::{
+    GOAL_DIRECTED_OBSERVATION_CHANNEL, GoalDirectedObservation, evaluate_reasoning_programs,
+    project_goal_directed,
+};
 use gmeow_logic::result_rdf::GRAPH_REASONING;
+use purrdf_lex::json::record::ToJson;
 
 use crate::bundle::PipelineHandle;
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
-
-/// Producer-owned evaluations and independent serialization witnesses.
-pub(crate) const OBSERVATION_CHANNEL: &str = "pipeline/goal-directed-observation.json";
 
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -271,22 +272,21 @@ impl Stage for GoalDirectedStage {
                 )
             })
             .collect();
-        let observation = serde_json::json!({
-            "evaluations": evals,
-            "projection": nt,
-            "repeated_projection": project_goal_directed(&repeated),
-            "program_projections": projections,
-            "repeated_program_projections": repeated_projections,
-        });
+        let observation = GoalDirectedObservation {
+            evaluations: evals,
+            projection: nt,
+            repeated_projection: project_goal_directed(&repeated),
+            program_projections: projections,
+            repeated_program_projections: repeated_projections,
+        };
         let artifacts = BTreeMap::from([(
-            OBSERVATION_CHANNEL.to_owned(),
-            serde_json::to_vec(&observation)
-                .map_err(|error| stage_err(format!("encode goal-directed observation: {error}")))?,
+            GOAL_DIRECTED_OBSERVATION_CHANNEL.to_owned(),
+            purrdf_lex::json::write_compact(&observation.to_json()).into_bytes(),
         )]);
         // Route the projected N-Triples into the bundle-internal graph/goal-directed named
         // graph (the stage's sole attach delta).
         let dataset = crate::stages::carrier::parse_into_graph(
-            nt.as_bytes(),
+            observation.projection.as_bytes(),
             "application/n-triples",
             GRAPH_GOAL_DIRECTED,
         )?;

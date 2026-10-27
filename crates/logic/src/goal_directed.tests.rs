@@ -84,6 +84,7 @@ fn compiled_peano_add_reasoning_program_resolves_and_proof_checks() {
 
     let evals = evaluate_reasoning_programs(&prog.reasoning_programs, &[])
         .expect("evaluate the compiled reasoning program");
+    let evals = native_evaluations(evals);
     assert_eq!(evals.len(), 1);
     let peano = &evals[0];
     assert_eq!(peano.status, "ok");
@@ -718,24 +719,15 @@ fn compiled_member_cons_projection_carries_structured_answers_and_derivation() {
 
 // Corpus controls hydrate exact producer observations; they never compile or
 // evaluate the repository demonstrators inside the test process.
-#[derive(serde::Deserialize)]
-struct AuthoredGoalObservation {
-    evaluations: Vec<GoalDirectedEvaluation>,
-    projection: String,
-    repeated_projection: String,
-    program_projections: BTreeMap<String, String>,
-    repeated_program_projections: BTreeMap<String, String>,
-}
-
-fn authored_goal_observation() -> AuthoredGoalObservation {
+fn authored_goal_observation() -> GoalDirectedObservation {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let bytes = gmeow_action_cache::selection::source_artifacts::load(
         &root,
         "stage-goal-directed",
-        "pipeline/goal-directed-observation.json",
+        GOAL_DIRECTED_OBSERVATION_CHANNEL,
     )
     .expect("authenticated goal-directed observation");
-    serde_json::from_slice(&bytes).expect("typed goal-directed observation")
+    purrdf_lex::json::record::from_slice(&bytes).expect("typed goal-directed observation")
 }
 
 #[test]
@@ -988,6 +980,9 @@ fn answer_and_verdict_iris_are_content_addressed_not_positional() {
         vec![verdict_b.clone(), verdict_a.clone()],
     );
 
+    let mut hydrated = native_evaluations(vec![eval_forward, eval_reversed]).into_iter();
+    let eval_forward = hydrated.next().expect("forward evaluation");
+    let eval_reversed = hydrated.next().expect("reversed evaluation");
     let nt_forward = project_goal_directed(std::slice::from_ref(&eval_forward));
     let nt_reversed = project_goal_directed(std::slice::from_ref(&eval_reversed));
     assert_eq!(
@@ -1204,4 +1199,30 @@ fn a_constant_with_two_asserted_sorts_binds_when_one_is_comparable() {
         "without ℤ⊑ℝ, neither Set nor Integer reaches RealNumber, so no binding: {:?}",
         evals_no_edge[0].answers
     );
+}
+
+fn native_evaluations(evaluations: Vec<GoalDirectedEvaluation>) -> Vec<GoalDirectedEvaluation> {
+    use purrdf_lex::json::record::ToJson;
+    let projection = project_goal_directed(&evaluations);
+    let program_projections: BTreeMap<_, _> = evaluations
+        .iter()
+        .map(|evaluation| {
+            (
+                evaluation.iri.clone(),
+                project_goal_directed(std::slice::from_ref(evaluation)),
+            )
+        })
+        .collect();
+    let observation = GoalDirectedObservation {
+        evaluations,
+        projection: projection.clone(),
+        repeated_projection: projection,
+        repeated_program_projections: program_projections.clone(),
+        program_projections,
+    };
+    let bytes = purrdf_lex::json::write_compact(&observation.to_json()).into_bytes();
+    let hydrated: GoalDirectedObservation = purrdf_lex::json::record::from_slice(&bytes)
+        .expect("native authored goal-directed observation");
+    assert_eq!(hydrated, observation);
+    hydrated.evaluations
 }

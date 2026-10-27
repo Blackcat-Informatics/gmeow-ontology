@@ -78,7 +78,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// proof checker re-derives as exactly that atom. Every field is RDF-serializable
 /// (strings), so the
 /// pipeline can fold it without reaching into the engine's private term handles.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoalDirectedAnswer {
     /// The ground answer atom rendered to its functional surface, e.g.
     /// `add(s(s(zero)),s(zero),s(s(s(zero))))`.
@@ -98,7 +98,7 @@ pub struct GoalDirectedAnswer {
 /// the observable surface that makes three-valued negation a SHIPPED behaviour. Unlike a
 /// two-valued proof-checked answer, a verdict can be `undefined` (an atom trapped in a
 /// negative loop), so it is a plain three-valued string surface, never an `xsd:boolean`.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoalDirectedVerdict {
     /// The probed ground atom rendered to its functional surface, e.g. `win(a)`.
     pub atom: String,
@@ -108,7 +108,7 @@ pub struct GoalDirectedVerdict {
 
 /// One evaluated goal-directed demonstrator: its stable name, prose description, rendered
 /// goal template, budget status, every proof-checked answer, and any probed WFS verdicts.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoalDirectedEvaluation {
     /// The FULL authored `logic:ReasoningProgram` IRI — the demonstrator's collision-free
     /// identity. Every minted resource IRI (query / answer / verdict / program node) folds
@@ -148,6 +148,27 @@ pub struct GoalDirectedEvaluation {
     /// with no verdict probes.
     pub verdict_probe_atoms: Vec<String>,
 }
+
+/// Exact artifact carrying producer evaluations and independent projection witnesses.
+pub const GOAL_DIRECTED_OBSERVATION_CHANNEL: &str = "pipeline/goal-directed-observation.json";
+
+/// Retained goal-directed observations, without executing or repairing their evidence.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GoalDirectedObservation {
+    /// Evaluations in the producer's supplied order.
+    pub evaluations: Vec<GoalDirectedEvaluation>,
+    /// Per-program projections from the first evaluation.
+    pub program_projections: BTreeMap<String, String>,
+    /// Complete projection from the first evaluation.
+    pub projection: String,
+    /// Per-program projections from the independent repeated evaluation.
+    pub repeated_program_projections: BTreeMap<String, String>,
+    /// Complete projection from the independent repeated evaluation.
+    pub repeated_projection: String,
+}
+
+#[path = "goal_directed/json.rs"]
+mod json;
 
 /// A fully interned demonstrator: its structured program, the order-sorted context to
 /// resolve it under (`SortContext::default()` for the unsorted demonstrators), and the ground
