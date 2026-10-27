@@ -8,6 +8,8 @@
 //! distinct from the aggregate source program: another module cannot supply a
 //! missing declaration. Tests authenticate and grade the small observation only.
 
+mod json;
+
 use std::collections::BTreeMap;
 
 use gmeow_logic_compile::adapter::assert_ir_isomorphic;
@@ -15,18 +17,17 @@ use gmeow_logic_compile::frontend::{Diagnostic, Severity, parse_logic_dataset};
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::projections::{ProjectionResult, rdf};
 use gmeow_logic_compile::{cgif, clif, xcl};
-use serde::{Deserialize, Serialize};
 
 /// Internal authenticated artifact; it is not a new public serialization.
 const CHANNEL: &str = "pipeline/logic-module-roundtrip.json";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct Observation {
     source: String,
     dialects: Result<[DialectObservation; 3], gmeow_errors::RecordedDiag>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct DialectObservation {
     dialect: String,
     result: Result<(), gmeow_errors::RecordedDiag>,
@@ -42,8 +43,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observation)
-            .map_err(|error| super::stage_err(format!("encode CL observation: {error}")))?,
+        purrdf_lex::json::record::to_vec(&observation),
     );
     Ok(())
 }

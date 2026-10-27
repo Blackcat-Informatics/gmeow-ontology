@@ -58,6 +58,19 @@ pub fn read_string_row<const N: usize>(value: &Value) -> Result<[String; N], Dec
         .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} string cells")))
 }
 
+/// Admit the null payload of a successful unit observation.
+/// The owning transport supplies its existing diagnostic wording.
+///
+/// # Errors
+/// Refuses every non-null value without normalization.
+pub fn read_null(value: &Value, expected: &str) -> Result<(), DecodeError> {
+    if matches!(value, Value::Null) {
+        Ok(())
+    } else {
+        Err(DecodeError::invalid_type(value, expected))
+    }
+}
+
 /// Read a signed integer token followed by a checked target-width conversion.
 /// The float-like spelling `-0` is refused.
 ///
