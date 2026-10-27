@@ -56,4 +56,28 @@ fn cq_rationale_literal_transport_refuses_inconsistent_language_direction_and_da
         }],
     };
     assert!(serde_json::to_vec(&malformed).is_err());
+    let error = validate(&malformed.values[0]).unwrap_err();
+    assert!(matches!(
+        error.downcast_ref::<LiteralTransportError>(),
+        Some(LiteralTransportError::Components(_))
+    ));
+
+    let invalid_datatype = Envelope {
+        values: vec![RdfLiteral {
+            lexical_form: "x".to_owned(),
+            datatype: Some("relative".to_owned()),
+            language: None,
+            direction: None,
+        }],
+    };
+    assert!(serde_json::to_vec(&invalid_datatype).is_err());
+    let error = validate(&invalid_datatype.values[0]).unwrap_err();
+    let typed = error
+        .downcast_ref::<LiteralTransportError>()
+        .expect("literal validation retains its typed transport refusal");
+    assert!(
+        std::error::Error::source(typed)
+            .expect("datatype refusal retains the native IRI cause")
+            .is::<purrdf_core::IriError>()
+    );
 }

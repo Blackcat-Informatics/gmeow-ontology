@@ -1374,6 +1374,8 @@ fn projection_programs(
         .with_ctx(|| format!("read required native catalog {}", bundle_path.display()))?;
     let catalog =
         gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_bundle(&bytes)?;
+    // GENERATED-READ-OK: acceptance and feedback audits load the on-disk
+    // profiles; these results never feed the canonical snapshot DAG.
     let dir = root.join("generated/queries");
     ACCEPTANCE_PROFILES.iter().map(|profile| {
         let path = dir.join(format!("{profile}.projection.json"));
