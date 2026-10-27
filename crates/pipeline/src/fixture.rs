@@ -848,7 +848,7 @@ pub const AUTHENTICATED_SOURCE_ARTIFACTS: &[(&str, &str)] = &[
     ),
     (
         "stage-goal-directed",
-        crate::stages::goal_directed::OBSERVATION_CHANNEL,
+        gmeow_logic::goal_directed::GOAL_DIRECTED_OBSERVATION_CHANNEL,
     ),
     (
         "stage-compile-logic",
