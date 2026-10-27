@@ -138,19 +138,93 @@ fn source_rules_compute_axes_without_overwriting_claims_or_losing_derivations() 
             .iter()
             .any(|q| q.predicate == iri("composedWeight") && !q.source_quad_ids.is_empty())
     );
-    let report: serde_json::Value = serde_json::from_slice(&execution.report().unwrap()).unwrap();
-    assert_eq!(report["runs"][0]["rules"][0], "urn:axes:rule");
+    let report_bytes = execution
+        .report()
+        .expect("authored axes have a complete terminal report");
+    assert!(!report_bytes.ends_with(b"\n"));
+    // Each frozen reference stores one LF outside its original payload.
+    assert_eq!(
+        report_bytes,
+        include_bytes!("fixtures/report-v1.json")
+            .strip_suffix(b"\n")
+            .expect("original report reference has one storage LF")
+    );
+    let report = purrdf_lex::json::read_slice(&report_bytes, purrdf_lex::json::Limits::DEFAULT)
+        .expect("native axes report is complete JSON");
+    assert_eq!(
+        report["runs"][0]["rules"][0].as_str(),
+        Some("urn:axes:rule")
+    );
     assert!(
         report["runs"][0]["derivations"]
             .as_array()
             .unwrap()
             .iter()
-            .any(|quad| quad["predicate"] == iri("composedWeight")
-                && !quad["source_quad_ids"].as_array().unwrap().is_empty())
+            .any(
+                |quad| quad["predicate"].as_str() == Some(iri("composedWeight").as_str())
+                    && !quad["source_quad_ids"].as_array().unwrap().is_empty()
+            )
     );
     assert_eq!(
         execute(theory).unwrap().report().unwrap(),
         execution.report().unwrap()
+    );
+
+    let results = BTreeMap::from([
+        (
+            "raw chain z\0中".to_owned(),
+            BTreeMap::from([
+                ("not-selected".to_owned(), AxisResult::NotSelected),
+                ("not-evaluated".to_owned(), AxisResult::NotEvaluated),
+                (
+                    "computed-unclaimed".to_owned(),
+                    AxisResult::Computed {
+                        value: Box::new(
+                            FiniteNumericLiteral::new(RdfLiteral::typed(
+                                "-0.00",
+                                "http://www.w3.org/2001/XMLSchema#decimal",
+                            ))
+                            .expect("finite authored signed zero retains its literal metadata"),
+                        ),
+                        claimed: false,
+                    },
+                ),
+                (
+                    "computed-claimed".to_owned(),
+                    AxisResult::Computed {
+                        value: Box::new(
+                            FiniteNumericLiteral::new(RdfLiteral::typed(
+                                "2.50",
+                                "http://www.w3.org/2001/XMLSchema#decimal",
+                            ))
+                            .expect("finite authored weight is not restricted to a unit interval"),
+                        ),
+                        claimed: true,
+                    },
+                ),
+            ]),
+        ),
+        ("raw chain a".to_owned(), BTreeMap::new()),
+    ]);
+    let frontier = crate::query_ir::CompletionFrontier {
+        completed: 5,
+        total: 9,
+        saturated_preds: BTreeSet::from([
+            "raw predicate z".to_owned(),
+            "raw predicate a\0中".to_owned(),
+        ]),
+        consumed_steps: u64::MAX,
+    };
+    // Compare every result arm and frontier field in original declaration order,
+    // including status before computed fields and complete numeric RDF metadata.
+    let atlas_bytes =
+        purrdf_lex::json::write(&(results, frontier).to_json(), Format::PRETTY).into_bytes();
+    assert!(!atlas_bytes.ends_with(b"\n"));
+    assert_eq!(
+        atlas_bytes,
+        include_bytes!("fixtures/projections-v1.json")
+            .strip_suffix(b"\n")
+            .expect("original projection reference has one storage LF")
     );
 }
 

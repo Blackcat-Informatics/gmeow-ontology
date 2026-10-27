@@ -1,0 +1,223 @@
+{
+  "results": {
+    "urn:axes:chain": {
+      "confidence": {
+        "status": "not-selected"
+      },
+      "evidenceStrength": {
+        "status": "not-selected"
+      },
+      "probability": {
+        "status": "not-selected"
+      },
+      "weight": {
+        "status": "computed",
+        "value": [
+          "1.3",
+          "http://www.w3.org/2001/XMLSchema#decimal",
+          null,
+          null
+        ],
+        "claimed": true
+      }
+    }
+  },
+  "runs": [
+    {
+      "rules": [
+        "urn:axes:rule"
+      ],
+      "standpoint": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+      "derivations": [
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:chain"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/composedWeight",
+          "object": {
+            "Literal": {
+              "lexical_form": "1.3",
+              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+              "language": null,
+              "direction": null
+            }
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/194bb1d8c22d942450e1f5060abc11096f33b40d",
+          "rule_iri": "https://blackcatinformatics.ca/logic/formula-rule/df23201d1fe4c93a75bf6d0a17a8c3283b57ce36",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/7b8eb33bedad735284fa9144f586556a8a4d484a",
+            "https://blackcatinformatics.ca/gmeow/reifier/7197c9e324459e7089016fb93377d4ee7872a39d",
+            "https://blackcatinformatics.ca/gmeow/reifier/b695113d13907699132a1f2988ff5704f2ca4dff",
+            "https://blackcatinformatics.ca/gmeow/reifier/d93ed50b8e25e168da218f0ef9c9bc524848bae3",
+            "https://blackcatinformatics.ca/gmeow/reifier/d94b155c377977465056cb478045f34734bf09ab",
+            "https://blackcatinformatics.ca/gmeow/reifier/d9584ae7b9c806df545d4941f70366a31eec6e87"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        },
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:chain"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/compositionAxisRule",
+          "object": {
+            "Iri": "urn:axes:rule"
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/75a59643bb91d6f25a50b740a0a5ffb8515c68c7",
+          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/7b8eb33bedad735284fa9144f586556a8a4d484a"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        },
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:chain"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/compositionFirst",
+          "object": {
+            "Iri": "urn:axes:first"
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/ee1cfef5b2ec9fc9697ab551e1e7b240fec49f62",
+          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/7197c9e324459e7089016fb93377d4ee7872a39d"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        },
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:chain"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/compositionResult",
+          "object": {
+            "Iri": "urn:axes:result"
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/acf0f958c3cae8e511f6d5afccff1d96a1540a5e",
+          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/b695113d13907699132a1f2988ff5704f2ca4dff"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        },
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:chain"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/compositionSecond",
+          "object": {
+            "Iri": "urn:axes:second"
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/59d3901cb1ebf299106b09c1ff1f49ee8585f93d",
+          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/d93ed50b8e25e168da218f0ef9c9bc524848bae3"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        },
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:first"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/weight",
+          "object": {
+            "Literal": {
+              "lexical_form": "0.80",
+              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+              "language": null,
+              "direction": null
+            }
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/1a622157d857e0cd4f7a0493e554beb81bb79ecf",
+          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/d94b155c377977465056cb478045f34734bf09ab"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        },
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:result"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/weight",
+          "object": {
+            "Literal": {
+              "lexical_form": "1.30",
+              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+              "language": null,
+              "direction": null
+            }
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/7b8bc49fd3f0f754bd59a61ccdb612ab04ed87fb",
+          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/8635fbb5d2ade68f9a1f891b009278ece3ecdc98"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        },
+        {
+          "graph": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "subject": {
+            "Iri": "urn:axes:second"
+          },
+          "predicate": "https://blackcatinformatics.ca/logic/weight",
+          "object": {
+            "Literal": {
+              "lexical_form": "0.5",
+              "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+              "language": null,
+              "direction": null
+            }
+          },
+          "graph_component": "https://blackcatinformatics.ca/gmeow/unspecifiedStandpoint",
+          "derivation_id": "https://blackcatinformatics.ca/gmeow/derivation/4eaa5b4ca777944ae4ad0f784dbe6784de0fb3bf",
+          "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+          "source_quad_ids": [
+            "https://blackcatinformatics.ca/gmeow/reifier/d9584ae7b9c806df545d4941f70366a31eec6e87"
+          ],
+          "profile": "https://blackcatinformatics.ca/logic/PositiveHornProfile",
+          "budget_status": "Ok"
+        }
+      ],
+      "preservation": {
+        "polarities": [
+          "Exact"
+        ],
+        "unsupported_constructs": []
+      },
+      "frontier": {
+        "completed": 1,
+        "total": 1,
+        "saturated_preds": [
+          "https://blackcatinformatics.ca/logic/composedWeight",
+          "https://blackcatinformatics.ca/logic/compositionAxisRule",
+          "https://blackcatinformatics.ca/logic/compositionFirst",
+          "https://blackcatinformatics.ca/logic/compositionResult",
+          "https://blackcatinformatics.ca/logic/compositionSecond",
+          "https://blackcatinformatics.ca/logic/weight"
+        ],
+        "consumed_steps": 1
+      }
+    }
+  ]
+}
