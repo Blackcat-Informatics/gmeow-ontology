@@ -152,5 +152,35 @@ pub fn recorded_result_to_json<T: ToJson>(outcome: &Result<T, crate::RecordedDia
     }
 }
 
+struct UnitSuccess;
+
+impl FromJson for UnitSuccess {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        read_null(value, "null unit success").map(|()| Self)
+    }
+}
+
+/// Read a recorded unit outcome through the same typed variant admission.
+///
+/// # Errors
+/// Refuses malformed variants, non-null successes and incomplete diagnostics.
+pub fn read_recorded_unit_result(
+    value: &Value,
+    type_expected: &str,
+    cardinality_expected: &str,
+) -> Result<Result<(), crate::RecordedDiag>, DecodeError> {
+    read_recorded_result::<UnitSuccess>(value, type_expected, cardinality_expected)
+        .map(|outcome| outcome.map(|UnitSuccess| ()))
+}
+
+/// Write a null unit success or its complete recorded causal diagnostic.
+#[must_use]
+pub fn recorded_unit_result_to_json(outcome: &Result<(), crate::RecordedDiag>) -> Value {
+    match outcome {
+        Ok(()) => Object::new().with("Ok", Value::Null).into(),
+        Err(error) => Object::new().with("Err", error.to_json()).into(),
+    }
+}
+
 #[cfg(test)]
 mod tests;
