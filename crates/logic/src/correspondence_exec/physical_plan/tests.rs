@@ -7,6 +7,7 @@ use gmeow_logic_compile::ir::{
 use purrdf::{BlankScope, RdfDatasetBuilder};
 
 use super::*;
+use purrdf_lex::json::record::from_slice;
 
 const FIRST: &str = "urn:gmeow:composition:first";
 const SECOND: &str = "urn:gmeow:composition:second";
@@ -135,6 +136,16 @@ fn fused_witness_join_matches_original_without_intermediate_relations() {
         }
     ));
 
+    let fused_bytes = fused.report_json();
+    assert!(fused_bytes.starts_with(b"{\n  \"version\": "));
+    assert!(!fused_bytes.ends_with(b"\n"));
+    let fused_report: CompositionPlanReport = from_slice(&fused_bytes).unwrap();
+    assert_eq!(&fused_report, fused.report());
+    verify_composition_report(&fused_report, &program).unwrap();
+    let original_report: CompositionPlanReport = from_slice(&original.report_json()).unwrap();
+    assert_eq!(&original_report, original.report());
+    verify_composition_report(&original_report, &program).unwrap();
+
     let dataset = dataset();
     let fused_result = fused.execute(DECLARATION, &dataset).unwrap();
     let original_result = original.execute(DECLARATION, &dataset).unwrap();
@@ -157,8 +168,10 @@ fn certificate_recheck_rejects_context_and_program_rebinding() {
     let program = program();
     let prepared =
         PreparedCompositionProgram::prepare(&program, CompositionPlanLimits::default()).unwrap();
-    verify_composition_report(prepared.report(), &program).unwrap();
-    let certificate = &prepared.report().certificates[0];
+    let report: CompositionPlanReport = from_slice(&prepared.report_json()).unwrap();
+    assert_eq!(&report, prepared.report());
+    verify_composition_report(&report, &program).unwrap();
+    let certificate = &report.certificates[0];
     verify_composition_certificate(certificate, &program).unwrap();
 
     let mut forged = certificate.clone();

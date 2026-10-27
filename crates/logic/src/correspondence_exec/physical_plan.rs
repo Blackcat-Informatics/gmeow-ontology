@@ -10,6 +10,8 @@
 //! recovery law from a bounded corpus, or treats a relation path as an atomic
 //! predicate-renaming lens.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
@@ -250,9 +252,11 @@ impl PreparedCompositionProgram {
         &self.report
     }
 
-    pub fn report_json(&self) -> gmeow_errors::Result<Vec<u8>> {
-        serde_json::to_vec_pretty(&self.report)
-            .map_err(|error| exec_error(format!("encode correspondence physical plans: {error}")))
+    /// Complete portable report as two-space JSON, with no trailing newline.
+    #[must_use]
+    pub fn report_json(&self) -> Vec<u8> {
+        purrdf_lex::json::write_pretty(&purrdf_lex::json::record::ToJson::to_json(&self.report))
+            .into_bytes()
     }
 
     /// Execute one exact declaration against caller data.
