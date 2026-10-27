@@ -1,0 +1,677 @@
+diff --git crates/errors/src/json.rs crates/errors/src/json.rs
+index 667586812..7e942015f 100644
+--- crates/errors/src/json.rs
++++ crates/errors/src/json.rs
+@@ -152,5 +152,35 @@ pub fn recorded_result_to_json<T: ToJson>(outcome: &Result<T, crate::RecordedDia
+     }
+ }
+ 
++struct UnitSuccess;
++
++impl FromJson for UnitSuccess {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_null(value, "null unit success").map(|()| Self)
++    }
++}
++
++/// Read a recorded unit outcome through the same typed variant admission.
++///
++/// # Errors
++/// Refuses malformed variants, non-null successes and incomplete diagnostics.
++pub fn read_recorded_unit_result(
++    value: &Value,
++    type_expected: &str,
++    cardinality_expected: &str,
++) -> Result<Result<(), crate::RecordedDiag>, DecodeError> {
++    read_recorded_result::<UnitSuccess>(value, type_expected, cardinality_expected)
++        .map(|outcome| outcome.map(|UnitSuccess| ()))
++}
++
++/// Write a null unit success or its complete recorded causal diagnostic.
++#[must_use]
++pub fn recorded_unit_result_to_json(outcome: &Result<(), crate::RecordedDiag>) -> Value {
++    match outcome {
++        Ok(()) => Object::new().with("Ok", Value::Null).into(),
++        Err(error) => Object::new().with("Err", error.to_json()).into(),
++    }
++}
++
+ #[cfg(test)]
+ mod tests;
+diff --git crates/pipeline/src/stages/compile_logic/abduction.rs crates/pipeline/src/stages/compile_logic/abduction.rs
+index f121249ce..7f5c66785 100644
+--- crates/pipeline/src/stages/compile_logic/abduction.rs
++++ crates/pipeline/src/stages/compile_logic/abduction.rs
+@@ -3,12 +3,13 @@
+ 
+ //! Producer-owned observations for the authored abductive advice schema.
+ 
++mod json;
++
+ use std::collections::{BTreeMap, BTreeSet};
+ 
+ use gmeow_logic_compile::frontend::{CompiledTheory, Diagnostic, reconstruct_formula};
+ use gmeow_logic_compile::ir::Formula;
+ use purrdf::TermRef;
+-use serde::{Deserialize, Serialize};
+ 
+ const CHANNEL: &str = "pipeline/logic-module-abduction.json";
+ const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+@@ -22,7 +23,7 @@ const REQUIRED_ROOTS: &[&str] = &[
+     "besForall",
+ ];
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct Observation {
+     diagnostics: Vec<Diagnostic>,
+     declared_roots: BTreeSet<String>,
+@@ -88,11 +89,14 @@ pub(super) fn record(
+     };
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&observation)
+-            .map_err(|error| super::stage_err(format!("encode abduction observations: {error}")))?,
++        purrdf_lex::json::record::to_vec(&observation),
+     );
+     Ok(())
+ }
+ 
+ #[cfg(test)]
+ mod corpus_tests;
++
++#[path = "abduction.tests.rs"]
++#[cfg(test)]
++mod tests;
+diff --git crates/pipeline/src/stages/compile_logic/abduction.tests.rs crates/pipeline/src/stages/compile_logic/abduction.tests.rs
+new file mode 100644
+index 000000000..5c385f4d4
+--- /dev/null
++++ crates/pipeline/src/stages/compile_logic/abduction.tests.rs
+@@ -0,0 +1,83 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++use purrdf_lex::json::record::{from_slice, to_vec};
++
++const WIRE: &str = r#"{"diagnostics":[{"severity":"Warning","code":"authored","message":"retained 中","subject":"urn:root"}],"declared_roots":["urn:a","urn:z"],"reconstructed":{"urn:a":{"Ok":{"Not":{"Atom":{"relation":{"Iri":"urn:p"},"args":[{"Var":"x"},{"Iri":"urn:o"}]}}}}},"asserted":[{"Atom":{"relation":{"Iri":"urn:q"},"args":[]}},{"Not":{"Atom":{"relation":{"Iri":"urn:p"},"args":[{"Var":"x"},{"Iri":"urn:o"}]}}}],"axiom_predicates":["urn:p","urn:q"]}"#;
++
++#[test]
++fn native_abduction_wire_retains_formulas_sets_and_causal_reconstruction() {
++    let mut observation: Observation = from_slice(WIRE.as_bytes()).unwrap();
++    assert_eq!(to_vec(&observation), WIRE.as_bytes());
++    assert_eq!(
++        observation.asserted[1],
++        observation.reconstructed["urn:a"].as_ref().unwrap().clone()
++    );
++    let unordered = WIRE.replace("[\"urn:a\",\"urn:z\"]", "[\"urn:z\",\"urn:a\",\"urn:z\"]");
++    assert_eq!(
++        to_vec(&from_slice::<Observation>(unordered.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let unknown = WIRE.replacen('{', "{\"future\":null,", 1);
++    assert_eq!(
++        to_vec(&from_slice::<Observation>(unknown.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++    let mut ledger = gmeow_errors::DiagLedger::new();
++    let cause = ledger.attach(
++        gmeow_errors::Diag::from(std::io::Error::other("missing premise"))
++            .with_focus("urn:abduction:premise"),
++        gmeow_errors::StageId::new("abduction-source"),
++    );
++    let refusal = ledger.record(
++        gmeow_errors::Diag::from(std::io::Error::other("reconstruction refused"))
++            .with_focus("urn:abduction:reconstruction")
++            .with_antecedents([cause]),
++        gmeow_errors::StageId::new("abduction-observation"),
++    );
++    observation
++        .reconstructed
++        .insert("urn:z".into(), Err(refusal.clone()));
++    let restored: Observation = from_slice(&to_vec(&observation)).unwrap();
++    assert_eq!(restored.diagnostics, observation.diagnostics);
++    assert_eq!(restored.asserted, observation.asserted);
++    assert_eq!(restored.reconstructed, observation.reconstructed);
++    assert_eq!(
++        restored.reconstructed["urn:z"].as_ref().unwrap_err(),
++        &refusal
++    );
++    assert_eq!(refusal.causes.len(), 1);
++}
++
++#[test]
++fn native_abduction_admission_refuses_incomplete_and_shadowed_invalid_evidence() {
++    for invalid in [
++        WIRE.replacen("\"diagnostics\":", "\"diagnostics\":[],\"diagnostics\":", 1),
++        WIRE.replace("\"declared_roots\":[\"urn:a\",\"urn:z\"],", ""),
++        WIRE.replace("\"asserted\":[", "\"asserted\":null,\"asserted\":["),
++        WIRE.replace(
++            "\"reconstructed\":{",
++            "\"reconstructed\":{\"urn:a\":{\"Ok\":null},",
++        ),
++        WIRE.replace("\"Ok\":{\"Not\":", "\"Ok\":null,\"Ok\":{\"Not\":"),
++        WIRE.replace(
++            "\"declared_roots\":[\"urn:a\",\"urn:z\"]",
++            "\"declared_roots\":[false]",
++        ),
++        "[[],[],{},[],[]]".to_owned(),
++    ] {
++        assert!(
++            from_slice::<Observation>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
++    let last_wins = WIRE.replace(
++        "\"reconstructed\":{",
++        "\"reconstructed\":{\"urn:a\":{\"Ok\":{\"And\":[]}},",
++    );
++    assert_eq!(
++        to_vec(&from_slice::<Observation>(last_wins.as_bytes()).unwrap()),
++        WIRE.as_bytes()
++    );
++}
+diff --git crates/pipeline/src/stages/compile_logic/abduction/corpus_tests.rs crates/pipeline/src/stages/compile_logic/abduction/corpus_tests.rs
+index 5e566451e..55b2e25c6 100644
+--- crates/pipeline/src/stages/compile_logic/abduction/corpus_tests.rs
++++ crates/pipeline/src/stages/compile_logic/abduction/corpus_tests.rs
+@@ -10,7 +10,7 @@ fn observation() -> Observation {
+     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+     let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
+         .expect("authenticated producer-selected abduction observation");
+-    serde_json::from_slice(&bytes).expect("complete typed abduction observation")
++    purrdf_lex::json::record::from_slice(&bytes).expect("complete typed abduction observation")
+ }
+ 
+ /// Authored abductive vocabulary must survive compilation without malformed nodes.
+diff --git crates/pipeline/src/stages/compile_logic/abduction/json.rs crates/pipeline/src/stages/compile_logic/abduction/json.rs
+new file mode 100644
+index 000000000..63acdc261
+--- /dev/null
++++ crates/pipeline/src/stages/compile_logic/abduction/json.rs
+@@ -0,0 +1,64 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete abductive-schema declarations and reconstruction outcomes.
++
++use super::Observation;
++use gmeow_logic_compile::ir::Formula;
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++use std::collections::BTreeMap;
++
++struct Reconstructed(Result<Formula, gmeow_errors::RecordedDiag>);
++impl FromJson for Reconstructed {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        gmeow_errors::json::read_recorded_result(
++            value,
++            "abduction reconstruction outcome",
++            "one abduction reconstruction outcome variant",
++        )
++        .map(Self)
++    }
++}
++
++impl ToJson for Observation {
++    fn to_json(&self) -> Value {
++        let reconstructed: Object = self
++            .reconstructed
++            .iter()
++            .map(|(name, result)| {
++                (
++                    name.as_str(),
++                    gmeow_errors::json::recorded_result_to_json(result),
++                )
++            })
++            .collect();
++        Object::new()
++            .with("diagnostics", self.diagnostics.to_json())
++            .with("declared_roots", self.declared_roots.to_json())
++            .with("reconstructed", Value::from(reconstructed))
++            .with("asserted", self.asserted.to_json())
++            .with("axiom_predicates", self.axiom_predicates.to_json())
++            .into()
++    }
++}
++impl FromJson for Observation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observation")?;
++        let diagnostics = fields.required("diagnostics")?;
++        let declared_roots = fields.required("declared_roots")?;
++        let reconstructed: BTreeMap<String, Reconstructed> = fields.required("reconstructed")?;
++        Ok(Self {
++            diagnostics,
++            declared_roots,
++            reconstructed: reconstructed
++                .into_iter()
++                .map(|(name, result)| (name, result.0))
++                .collect(),
++            asserted: fields.required("asserted")?,
++            axiom_predicates: fields.required("axiom_predicates")?,
++        })
++    }
++}
+diff --git crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.rs crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.rs
+index 4ea9ee205..1f07ea82f 100644
+--- crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.rs
++++ crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.rs
+@@ -15,6 +15,27 @@ use purrdf::RdfDataset;
+ 
+ const CHANNEL: &str = "pipeline/correspondence-roundtrip.json";
+ 
++struct Outcome(Result<(), gmeow_errors::RecordedDiag>);
++
++impl purrdf_lex::json::record::ToJson for Outcome {
++    fn to_json(&self) -> purrdf_lex::json::Value {
++        gmeow_errors::json::recorded_unit_result_to_json(&self.0)
++    }
++}
++
++impl purrdf_lex::json::record::FromJson for Outcome {
++    fn from_json(
++        value: &purrdf_lex::json::Value,
++    ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
++        gmeow_errors::json::read_recorded_unit_result(
++            value,
++            "correspondence reconstruction outcome",
++            "one correspondence reconstruction outcome variant",
++        )
++        .map(Self)
++    }
++}
++
+ fn observe(authored: &CorrespondenceProgram, projection: &RdfDataset) -> gmeow_errors::Result<()> {
+     let reconstructed = parse_correspondence(projection)?;
+     if reconstructed != *authored {
+@@ -32,8 +53,7 @@ pub(super) fn record(
+ ) -> gmeow_errors::Result<()> {
+     artifacts.insert(
+         CHANNEL.to_owned(),
+-        serde_json::to_vec(&super::observed(observe(authored, projection)))
+-            .map_err(gmeow_errors::Diag::from)?,
++        purrdf_lex::json::record::to_vec(&Outcome(super::observed(observe(authored, projection)))),
+     );
+     Ok(())
+ }
+diff --git crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.tests.rs crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.tests.rs
+index 0bb9b510b..a2861ea4c 100644
+--- crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.tests.rs
++++ crates/pipeline/src/stages/compile_logic/correspondence_roundtrip.tests.rs
+@@ -13,7 +13,44 @@ fn fidelity_observation_rejects_an_altered_cell() {
+     changed.correspondences.clear();
+     let mut artifacts = BTreeMap::new();
+     record(&changed, &projection, &mut artifacts).unwrap();
+-    let result: Result<(), gmeow_errors::RecordedDiag> =
+-        serde_json::from_slice(&artifacts[CHANNEL]).unwrap();
+-    assert!(result.is_err());
++    let result: Outcome = purrdf_lex::json::record::from_slice(&artifacts[CHANNEL]).unwrap();
++    assert!(result.0.is_err());
++}
++
++#[test]
++fn native_correspondence_outcome_preserves_null_and_complete_refusals() {
++    use purrdf_lex::json::record::{from_slice, to_vec};
++    let success: Outcome = from_slice(br#"{"Ok":null}"#).unwrap();
++    assert!(success.0.is_ok());
++    assert_eq!(to_vec(&success), br#"{"Ok":null}"#);
++    let mut ledger = gmeow_errors::DiagLedger::new();
++    let premise = ledger.attach(
++        gmeow_errors::Diag::from(std::io::Error::other("authored inverse premise"))
++            .with_focus("urn:correspondence:premise"),
++        gmeow_errors::StageId::new("correspondence-input"),
++    );
++    let refusal = ledger.record(
++        gmeow_errors::Diag::from(std::io::Error::other("inverse differs"))
++            .with_focus("urn:correspondence:inverse")
++            .with_antecedents([premise]),
++        gmeow_errors::StageId::new("correspondence-inverse"),
++    );
++    let retained: Outcome = from_slice(&to_vec(&Outcome(Err(refusal.clone())))).unwrap();
++    assert_eq!(retained.0.unwrap_err(), refusal);
++    assert_eq!(refusal.causes.len(), 1);
++    for invalid in [
++        r#"{"Ok":[]}"#,
++        r#"{"Ok":null,"Ok":null}"#,
++        r#"{"Ok":null,"Err":null}"#,
++        r#"{"Err":{}}"#,
++        r#"{"Other":null}"#,
++        "{}",
++        "null",
++        "[null]",
++    ] {
++        assert!(
++            from_slice::<Outcome>(invalid.as_bytes()).is_err(),
++            "{invalid}"
++        );
++    }
+ }
+diff --git crates/pipeline/src/stages/compile_logic/correspondence_roundtrip_test_support.rs crates/pipeline/src/stages/compile_logic/correspondence_roundtrip_test_support.rs
+index 78f45a3f1..8e207911c 100644
+--- crates/pipeline/src/stages/compile_logic/correspondence_roundtrip_test_support.rs
++++ crates/pipeline/src/stages/compile_logic/correspondence_roundtrip_test_support.rs
+@@ -10,7 +10,9 @@ pub(in super::super) fn assert_roundtrip(product: &crate::node::StageProduct) {
+     let bytes = product
+         .artifact(CHANNEL)
+         .expect("authenticated correspondence reconstruction observation");
+-    let result: Result<(), gmeow_errors::RecordedDiag> =
+-        serde_json::from_slice(bytes).expect("complete typed observation");
+-    result.expect("native projection reconstructs the complete authored correspondence program");
++    let result: Outcome =
++        purrdf_lex::json::record::from_slice(bytes).expect("complete typed observation");
++    result
++        .0
++        .expect("native projection reconstructs the complete authored correspondence program");
+ }
+diff --git crates/pipeline/src/stages/compile_logic/projection_fixtures.rs crates/pipeline/src/stages/compile_logic/projection_fixtures.rs
+index a6a8f515d..6d0a2dc12 100644
+--- crates/pipeline/src/stages/compile_logic/projection_fixtures.rs
++++ crates/pipeline/src/stages/compile_logic/projection_fixtures.rs
+@@ -5,6 +5,8 @@
+ //! Native RDF outputs go directly to their terminal comparison representation;
+ //! they are never serialized to Turtle and reparsed to hand data to this stage.
+ 
++mod json;
++
+ use std::collections::BTreeMap;
+ use std::path::{Path, PathBuf};
+ 
+@@ -12,7 +14,6 @@ use gmeow_logic_compile::frontend::{Diagnostic, parse_logic_dataset};
+ use gmeow_logic_compile::ir::LogicProgram;
+ use gmeow_logic_compile::projections::compile_program;
+ use purrdf::{RdfDataset, SerializeGraph, serialize_dataset};
+-use serde::{Deserialize, Serialize};
+ 
+ const CHANNEL: &str = "pipeline/projection-fixtures.json";
+ const CASES: [&str; 3] = [
+@@ -23,7 +24,7 @@ const CASES: [&str; 3] = [
+ 
+ type Observations = BTreeMap<String, Result<ProjectionObservation, gmeow_errors::RecordedDiag>>;
+ 
+-#[derive(Debug, Serialize, Deserialize)]
++#[derive(Debug)]
+ struct ProjectionObservation {
+     diagnostics: Vec<Diagnostic>,
+     projections: Result<BTreeMap<String, String>, gmeow_errors::RecordedDiag>,
+@@ -58,12 +59,7 @@ pub(super) fn record(
+             (case.to_owned(), super::observed(observation))
+         })
+         .collect();
+-    artifacts.insert(
+-        CHANNEL.to_owned(),
+-        serde_json::to_vec(&observations).map_err(|error| {
+-            super::stage_err(format!("encode projection observations: {error}"))
+-        })?,
+-    );
++    artifacts.insert(CHANNEL.to_owned(), json::to_bytes(&observations));
+     Ok(())
+ }
+ 
+diff --git crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs
+index 6b8683274..39c586103 100644
+--- crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs
++++ crates/pipeline/src/stages/compile_logic/projection_fixtures.tests.rs
+@@ -20,7 +20,83 @@ fn selected_projection_observation_retains_all_seven_outputs() {
+         diagnostics: Vec::new(),
+         projections: Ok(outputs.clone()),
+     };
+-    let bytes = serde_json::to_vec(&observation).unwrap();
+-    let restored: ProjectionObservation = serde_json::from_slice(&bytes).unwrap();
+-    assert_eq!(restored.projections.unwrap(), outputs);
++    let observations = BTreeMap::from([("authored".to_owned(), Ok(observation))]);
++    let restored = json::from_bytes(&json::to_bytes(&observations)).unwrap();
++    assert_eq!(
++        restored["authored"]
++            .as_ref()
++            .unwrap()
++            .projections
++            .as_ref()
++            .unwrap(),
++        &outputs
++    );
++}
++
++const PROJECTION_WIRE: &str = r#"{"a":{"Ok":{"diagnostics":[{"severity":"Info","code":"loss","message":"retained","subject":null}],"projections":{"Ok":{"n3":"line\n中","owl-dl":"<urn:a> <urn:p> <urn:b> ."}}}}}"#;
++
++#[test]
++fn native_projection_wire_preserves_terminals_and_both_causal_outcomes() {
++    let mut observations = json::from_bytes(PROJECTION_WIRE.as_bytes()).unwrap();
++    assert_eq!(json::to_bytes(&observations), PROJECTION_WIRE.as_bytes());
++    let unknown = PROJECTION_WIRE.replace("\"diagnostics\":", "\"future\":null,\"diagnostics\":");
++    assert_eq!(
++        json::to_bytes(&json::from_bytes(unknown.as_bytes()).unwrap()),
++        PROJECTION_WIRE.as_bytes()
++    );
++    let mut ledger = gmeow_errors::DiagLedger::new();
++    let cause = ledger.attach(
++        gmeow_errors::Diag::from(std::io::Error::other("authored source refusal"))
++            .with_focus("urn:projection:source"),
++        gmeow_errors::StageId::new("projection-input"),
++    );
++    let refusal = ledger.record(
++        gmeow_errors::Diag::from(std::io::Error::other("authored projection refusal"))
++            .with_focus("urn:projection:output")
++            .with_antecedents([cause]),
++        gmeow_errors::StageId::new("projection-output"),
++    );
++    observations
++        .get_mut("a")
++        .unwrap()
++        .as_mut()
++        .unwrap()
++        .projections = Err(refusal.clone());
++    observations.insert("b".into(), Err(refusal.clone()));
++    let restored = json::from_bytes(&json::to_bytes(&observations)).unwrap();
++    assert_eq!(
++        restored["a"].as_ref().unwrap().diagnostics,
++        observations["a"].as_ref().unwrap().diagnostics
++    );
++    assert_eq!(
++        restored["a"]
++            .as_ref()
++            .unwrap()
++            .projections
++            .as_ref()
++            .unwrap_err(),
++        &refusal
++    );
++    assert_eq!(restored["b"].as_ref().unwrap_err(), &refusal);
++    assert_eq!(refusal.causes.len(), 1);
++}
++
++#[test]
++fn native_projection_admission_validates_shadowed_map_values_and_named_records() {
++    for invalid in [
++        PROJECTION_WIRE.replacen('{', "{\"a\":{\"Ok\":null},", 1),
++        PROJECTION_WIRE.replace("\"diagnostics\":", "\"diagnostics\":[],\"diagnostics\":"),
++        PROJECTION_WIRE.replace("\"projections\":", "\"projections\":null,\"projections\":"),
++        PROJECTION_WIRE.replace("\"diagnostics\":[{\"severity\":\"Info\",\"code\":\"loss\",\"message\":\"retained\",\"subject\":null}],", ""),
++        PROJECTION_WIRE.replace("\"n3\":", "\"n3\":false,\"n3\":"),
++        PROJECTION_WIRE.replace("\"Ok\":{\"diagnostics\":", "\"Ok\":null,\"Ok\":{\"diagnostics\":"),
++        r#"{"a":{"Ok":[[],{"Ok":{}}]}}"#.to_owned(),
++    ] {
++        assert!(json::from_bytes(invalid.as_bytes()).is_err(), "{invalid}");
++    }
++    let duplicate = PROJECTION_WIRE.replace("\"n3\":", "\"n3\":\"earlier\",\"n3\":");
++    assert_eq!(
++        json::to_bytes(&json::from_bytes(duplicate.as_bytes()).unwrap()),
++        PROJECTION_WIRE.as_bytes()
++    );
+ }
+diff --git crates/pipeline/src/stages/compile_logic/projection_fixtures/corpus_tests.rs crates/pipeline/src/stages/compile_logic/projection_fixtures/corpus_tests.rs
+index 5830daa35..56d254c56 100644
+--- crates/pipeline/src/stages/compile_logic/projection_fixtures/corpus_tests.rs
++++ crates/pipeline/src/stages/compile_logic/projection_fixtures/corpus_tests.rs
+@@ -11,7 +11,7 @@ fn run_case(case: &str) {
+         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+         let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
+             .expect("authenticated selected projection observations");
+-        serde_json::from_slice(&bytes).expect("decode projection observations")
++        super::json::from_bytes(&bytes).expect("decode projection observations")
+     });
+     let observation = observations
+         .get(case)
+diff --git crates/pipeline/src/stages/compile_logic/projection_fixtures/json.rs crates/pipeline/src/stages/compile_logic/projection_fixtures/json.rs
+new file mode 100644
+index 000000000..461ddd675
+--- /dev/null
++++ crates/pipeline/src/stages/compile_logic/projection_fixtures/json.rs
+@@ -0,0 +1,48 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Selected projection observations, retaining every terminal byte string and cause.
++
++use super::{Observations, ProjectionObservation};
++use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson},
++};
++
++#[cfg(test)]
++mod reader;
++#[cfg(test)]
++pub(super) use reader::from_bytes;
++
++pub(super) fn to_bytes(observations: &Observations) -> Vec<u8> {
++    let cases: Object = observations
++        .iter()
++        .map(|(name, outcome)| (name.as_str(), recorded_result_to_json(outcome)))
++        .collect();
++    purrdf_lex::json::write_compact(&cases.into()).into_bytes()
++}
++
++impl ToJson for ProjectionObservation {
++    fn to_json(&self) -> Value {
++        Object::new()
++            .with("diagnostics", self.diagnostics.to_json())
++            .with("projections", recorded_result_to_json(&self.projections))
++            .into()
++    }
++}
++impl FromJson for ProjectionObservation {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct ProjectionObservation")?;
++        Ok(Self {
++            diagnostics: fields.required("diagnostics")?,
++            projections: fields.required_with("projections", |value| {
++                read_recorded_result(
++                    value,
++                    "projection output outcome",
++                    "one projection output outcome variant",
++                )
++            })?,
++        })
++    }
++}
+diff --git crates/pipeline/src/stages/compile_logic/projection_fixtures/json/reader.rs crates/pipeline/src/stages/compile_logic/projection_fixtures/json/reader.rs
+new file mode 100644
+index 000000000..6f16eb104
+--- /dev/null
++++ crates/pipeline/src/stages/compile_logic/projection_fixtures/json/reader.rs
+@@ -0,0 +1,27 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Test consumers decode complete observations without executing their producer.
++
++use super::*;
++use std::collections::BTreeMap;
++
++struct CaseOutcome(Result<ProjectionObservation, gmeow_errors::RecordedDiag>);
++impl FromJson for CaseOutcome {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        read_recorded_result(
++            value,
++            "projection case outcome",
++            "one projection case outcome variant",
++        )
++        .map(Self)
++    }
++}
++
++pub(in super::super) fn from_bytes(bytes: &[u8]) -> Result<Observations, DecodeError> {
++    let cases: BTreeMap<String, CaseOutcome> = purrdf_lex::json::record::from_slice(bytes)?;
++    Ok(cases
++        .into_iter()
++        .map(|(name, outcome)| (name, outcome.0))
++        .collect())
++}
+diff --git crates/pipeline/src/stages/compile_logic/roundtrip/json.rs crates/pipeline/src/stages/compile_logic/roundtrip/json.rs
+index a9266ec55..2a57086fa 100644
+--- crates/pipeline/src/stages/compile_logic/roundtrip/json.rs
++++ crates/pipeline/src/stages/compile_logic/roundtrip/json.rs
+@@ -4,7 +4,10 @@
+ //! Native transport of the exact three ordered dialect observations and refusals.
+ 
+ use super::{DialectObservation, Observation};
+-use gmeow_errors::json::{read_recorded_result, recorded_result_to_json};
++use gmeow_errors::json::{
++    read_recorded_result, read_recorded_unit_result, recorded_result_to_json,
++    recorded_unit_result_to_json,
++};
+ use purrdf_lex::json::{
+     Object, Value,
+     record::{DecodeError, FromJson, Record, ToJson},
+@@ -22,14 +25,6 @@ impl FromJson for Dialects {
+     }
+ }
+ 
+-struct UnitSuccess;
+-
+-impl FromJson for UnitSuccess {
+-    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+-        gmeow_errors::json::read_null(value, "null unit success").map(|()| Self)
+-    }
+-}
+-
+ impl ToJson for Observation {
+     fn to_json(&self) -> Value {
+         Object::new()
+@@ -60,15 +55,9 @@ impl FromJson for Observation {
+ 
+ impl ToJson for DialectObservation {
+     fn to_json(&self) -> Value {
+-        // The pinned record traits have no unit codec. The success carrier is
+-        // exactly JSON null; failures use the complete native diagnostic owner.
+-        let result: Value = match &self.result {
+-            Ok(()) => Object::new().with("Ok", Value::Null).into(),
+-            Err(error) => Object::new().with("Err", error.to_json()).into(),
+-        };
+         Object::new()
+             .with("dialect", self.dialect.to_json())
+-            .with("result", result)
++            .with("result", recorded_unit_result_to_json(&self.result))
+             .into()
+     }
+ }
+@@ -77,17 +66,13 @@ impl FromJson for DialectObservation {
+     fn from_json(value: &Value) -> Result<Self, DecodeError> {
+         let mut fields = Record::new(value, "struct DialectObservation")?;
+         let dialect = fields.required("dialect")?;
+-        let result: Result<UnitSuccess, gmeow_errors::RecordedDiag> =
+-            fields.required_with("result", |value| {
+-                read_recorded_result(
+-                    value,
+-                    "Common Logic dialect result",
+-                    "one Common Logic dialect result variant",
+-                )
+-            })?;
+-        Ok(Self {
+-            dialect,
+-            result: result.map(|UnitSuccess| ()),
+-        })
++        let result = fields.required_with("result", |value| {
++            read_recorded_unit_result(
++                value,
++                "Common Logic dialect result",
++                "one Common Logic dialect result variant",
++            )
++        })?;
++        Ok(Self { dialect, result })
+     }
+ }

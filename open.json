@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 1987,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1987-use-native-json-for-abduction",
+  "branch": "paudley/1987-use-native-json-for-abduction",
+  "slug": "use-native-json-for-abduction",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1987-use-native-json-for-abduction/.stage/use-native-json-for-abduction",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "7d14dde5f7b3906b2a5c4f60bb19b737bd74f811",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/1987-use-native-json-for-abduction",
+    "branch:paudley/1987-use-native-json-for-abduction",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/1987-use-native-json-for-abduction/.stage/use-native-json-for-abduction",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1987-use-native-json-for-abduction/.stage/use-native-json-for-abduction/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-26T18:32:09-0600"
+}
