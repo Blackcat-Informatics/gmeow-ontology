@@ -125,7 +125,7 @@ impl Stage for JsonSchemaStage {
         // (`slices/**/module.ttl`), so those sources bust the cache too — a new
         // vocabulary member must reflow the schema.
         let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
-        files.extend(crate::stages::value_vocab::ontology_module_files(root));
+        files.extend(crate::stages::value_vocab::ontology_module_files(root)?);
         files.sort();
         files.dedup();
         Ok(files)
