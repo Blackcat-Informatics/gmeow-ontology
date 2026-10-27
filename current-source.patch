@@ -1,0 +1,106 @@
+diff --git a/crates/docs-model/src/model/literal_values.rs b/crates/docs-model/src/model/literal_values.rs
+index 2b01d226a..c19239ed1 100644
+--- a/crates/docs-model/src/model/literal_values.rs
++++ b/crates/docs-model/src/model/literal_values.rs
+@@ -15,14 +15,41 @@ struct LiteralFields {
+     direction: Option<String>,
+ }
+ 
+-fn validate(literal: &RdfLiteral) -> Result<(), String> {
++#[derive(Debug)]
++enum LiteralTransportError {
++    Datatype(purrdf_core::IriError),
++    Components(&'static str),
++    Direction(String),
++}
++
++impl std::fmt::Display for LiteralTransportError {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        match self {
++            Self::Datatype(error) => std::fmt::Display::fmt(error, f),
++            Self::Components(message) => f.write_str(message),
++            Self::Direction(token) => write!(f, "invalid RDF base direction {token:?}"),
++        }
++    }
++}
++
++impl std::error::Error for LiteralTransportError {
++    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
++        match self {
++            Self::Datatype(error) => Some(error),
++            Self::Components(_) | Self::Direction(_) => None,
++        }
++    }
++}
++
++fn validate(literal: &RdfLiteral) -> gmeow_errors::Result<()> {
+     let datatype = literal
+         .datatype
+         .as_deref()
+         .unwrap_or_else(|| literal.datatype_iri());
+-    purrdf_core::BaseIri::parse(datatype).map_err(|error| error.to_string())?;
++    purrdf_core::BaseIri::parse(datatype).map_err(LiteralTransportError::Datatype)?;
+     RdfLiteral::validate_components(datatype, literal.language.as_deref(), literal.direction)
+-        .map_err(str::to_owned)
++        .map_err(LiteralTransportError::Components)
++        .map_err(Into::into)
+ }
+ 
+ pub(super) fn serialize<S: Serializer>(
+@@ -56,8 +83,8 @@ pub(super) fn deserialize<'de, D: Deserializer<'de>>(
+                 .as_deref()
+                 .map(|token| {
+                     RdfTextDirection::from_str_token(token).ok_or_else(|| {
+-                        <D::Error as de::Error>::custom(format!(
+-                            "invalid RDF base direction {token:?}"
++                        <D::Error as de::Error>::custom(gmeow_errors::Diag::from(
++                            LiteralTransportError::Direction(token.to_owned()),
+                         ))
+                     })
+                 })
+diff --git a/crates/docs-model/src/model/literal_values/tests.rs b/crates/docs-model/src/model/literal_values/tests.rs
+index ff1da8a2c..724c84292 100644
+--- a/crates/docs-model/src/model/literal_values/tests.rs
++++ b/crates/docs-model/src/model/literal_values/tests.rs
+@@ -56,4 +56,28 @@ fn cq_rationale_literal_transport_refuses_inconsistent_language_direction_and_da
+         }],
+     };
+     assert!(serde_json::to_vec(&malformed).is_err());
++    let error = validate(&malformed.values[0]).unwrap_err();
++    assert!(matches!(
++        error.downcast_ref::<LiteralTransportError>(),
++        Some(LiteralTransportError::Components(_))
++    ));
++
++    let invalid_datatype = Envelope {
++        values: vec![RdfLiteral {
++            lexical_form: "x".to_owned(),
++            datatype: Some("relative".to_owned()),
++            language: None,
++            direction: None,
++        }],
++    };
++    assert!(serde_json::to_vec(&invalid_datatype).is_err());
++    let error = validate(&invalid_datatype.values[0]).unwrap_err();
++    let typed = error
++        .downcast_ref::<LiteralTransportError>()
++        .expect("literal validation retains its typed transport refusal");
++    assert!(
++        std::error::Error::source(typed)
++            .expect("datatype refusal retains the native IRI cause")
++            .is::<purrdf_core::IriError>()
++    );
+ }
+diff --git a/crates/pipeline/src/scoreboards.rs b/crates/pipeline/src/scoreboards.rs
+index a64e6506d..a914e4dc4 100644
+--- a/crates/pipeline/src/scoreboards.rs
++++ b/crates/pipeline/src/scoreboards.rs
+@@ -1374,6 +1374,8 @@ fn projection_programs(
+         .with_ctx(|| format!("read required native catalog {}", bundle_path.display()))?;
+     let catalog =
+         gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_bundle(&bytes)?;
++    // GENERATED-READ-OK: acceptance and feedback audits load the on-disk
++    // profiles; these results never feed the canonical snapshot DAG.
+     let dir = root.join("generated/queries");
+     ACCEPTANCE_PROFILES.iter().map(|profile| {
+         let path = dir.join(format!("{profile}.projection.json"));
