@@ -2,11 +2,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Persistent query operands; arena-local compound handles are never a wire value.
-use super::{ArithOp, CmpOp, QBuiltin, QTerm};
+use super::{ArithOp, CmpOp, CompletionFrontier, QBuiltin, QTerm};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson, Within},
 };
+
+::purrdf_lex::json_record!(impl ToJson for CompletionFrontier {
+    "completed" => completed,
+    "total" => total,
+    "saturated_preds" => saturated_preds,
+    "consumed_steps" => consumed_steps,
+});
+
 impl ToJson for ArithOp {
     fn to_json(&self) -> Value {
         match self {
