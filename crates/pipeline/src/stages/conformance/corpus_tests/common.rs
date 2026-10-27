@@ -111,7 +111,8 @@ pub(super) fn native_admission(
             super::super::native_cases::CLASS_ADMISSION_CHANNEL,
         )
         .expect("authenticated source-admission observations");
-        serde_json::from_slice(&bytes).expect("typed source-admission observations")
+        super::super::native_cases::admissions_from_bytes(&bytes)
+            .expect("typed source-admission observations")
     });
     let key = input_key(input_nq);
     let observed = values

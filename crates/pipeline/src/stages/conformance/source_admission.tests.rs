@@ -29,7 +29,7 @@ fn shipped_admission_keeps_native_graph_receipt_and_external_status_without_sema
     };
     std::fs::write(
         directory.path().join("expected/verdicts.json"),
-        serde_json::to_vec(&observation.admission).unwrap(),
+        purrdf_lex::json::record::to_vec(&observation.admission),
     )
     .unwrap();
     let record = grade(

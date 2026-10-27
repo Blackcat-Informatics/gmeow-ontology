@@ -34,7 +34,7 @@ pub(super) fn grade(
             "source-admission producer observed different input bytes",
         ));
     }
-    let expected: ClassAdmissionObservation = serde_json::from_slice(
+    let expected: ClassAdmissionObservation = purrdf_lex::json::record::from_slice(
         &std::fs::read(directory.join("expected/verdicts.json"))
             .map_err(|error| super::stage_err(&error.to_string()))?,
     )

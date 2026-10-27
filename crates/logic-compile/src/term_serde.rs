@@ -111,6 +111,26 @@ pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<TermVal
 pub mod optional {
     use super::{Deserialize, Deserializer, Serialize, Serializer, TermValue, Value};
 
+    /// Encode an explicit graph choice through the retained native term owner.
+    #[must_use]
+    pub fn to_json(value: &Option<TermValue>) -> purrdf_lex::json::Value {
+        value
+            .as_ref()
+            .map_or(purrdf_lex::json::Value::Null, super::to_json)
+    }
+
+    /// Decode a present nullable graph field without RDF role normalization.
+    /// The containing record owns requiredness.
+    ///
+    /// # Errors
+    /// Refuses malformed non-null retained terms with their native field pointers.
+    pub fn from_json(
+        value: &purrdf_lex::json::Value,
+    ) -> Result<Option<TermValue>, purrdf_lex::json::record::DecodeError> {
+        use purrdf_lex::json::record::FromJson;
+        Option::<Value>::from_json(value).map(|term| term.map(Into::into))
+    }
+
     /// Serialize an optional complete native term; absence remains explicit.
     pub fn serialize<S: Serializer>(
         value: &Option<TermValue>,
