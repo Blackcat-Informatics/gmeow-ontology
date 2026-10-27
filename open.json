@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2018,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2018-use-complete-native-json-for-gmn-pack",
+  "branch": "paudley/2018-use-complete-native-json-for-gmn-pack",
+  "slug": "use-complete-native-json-for-gmn-pack",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2018-use-complete-native-json-for-gmn-pack/.stage/use-complete-native-json-for-gmn-pack",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "6ff6c573419b3d1bdeac0fc6d794cc9f76655c2d",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2018-use-complete-native-json-for-gmn-pack",
+    "branch:paudley/2018-use-complete-native-json-for-gmn-pack",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2018-use-complete-native-json-for-gmn-pack/.stage/use-complete-native-json-for-gmn-pack",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2018-use-complete-native-json-for-gmn-pack/.stage/use-complete-native-json-for-gmn-pack/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-27T04:54:49-0600"
+}

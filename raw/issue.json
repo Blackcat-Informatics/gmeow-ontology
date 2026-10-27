@@ -1,0 +1,20 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Move the complete GMN pack-observation publication and authenticated reader to PurRDF native JSON through all six records. Principles 4 and 7.\n\nFrozen scope: Observations (eleven fields), EmissionWitness (six), Metrics (seventeen: eleven unsigned counts, five floating measurements and one boolean), Controls (six), VerbalizerControl (four) and Pair (four). Reuse complete native Correspondence and LegPath::pair_from_json. Preserve exact three-string ecosystem rows through native items_with and the existing read_string_row helper. Correct the touched Metrics comment to describe its actual floating measurements.\n\nAcceptance:\n\n- Implement native ToJson/FromJson for all six records at their current owners. Wire the actual lang_projection pack publisher and authenticated contract_fixtures reader through the native implementation. Retire the six obsolete Serde derivations and the last Serde observation decoder/import; all three language observation channels must use the native authenticated-byte reader. Do not remove other genuine Serde users.\n- Preserve declaration-order compact bytes with no terminal newline, every vector order/duplicate, raw strings, booleans and contradictory stored verdicts. Keep required named fields, unknown-field tolerance and known-duplicate refusal. Hydrate records directly without recomputing measurements, digest leaves, inverse checks, source identities or control outcomes.\n- All eleven u64 fields use existing strict unsigned admission, refusing negative zero, signed, fractional, exponent, null and overflow inputs. Preserve native/Serde finite f64 formatting, including negative zero, whole-valued floats and scientific notation. Nonfinite writing remains null; null, nonfinite and overflow hydration fail. No clamping, new range restrictions, fallback or altered metric algorithms.\n- Optional leg pairs retain missing/null admission and exact two-cell/native indexed errors. Ecosystem rows are exactly three strings, retaining row and cell diagnostics. Preserve all existing recorder/measurement/control behavior, complete action/selector authentication, selected-product commitments and every authenticated corpus assertion.\n- Capture the complete original channel bytes before editing production codecs, records or derivations, using independently authored DTO values covering all six records, nonempty nested controls, both leg-option states, unsorted/duplicate vectors, NUL/Unicode, distinct float spellings and raw verdicts. Freeze and compare the full payload. Two bounded final authored controls cover complete byte/raw-value fidelity and admission/refusal, including nonfinite writing and refusal. Do not call Recorder::finish, grounding_scope or controls::record; do not read/discover/produce canonical corpus or fixtures from tests. Keep existing authenticated pack contracts unchanged and excluded locally.\n- Independently review, compile actual pipeline/developer CLI consumers with warnings denied, run the two exact authored controls and normal hooks, and complete helper/static-recipe checks. No optimized producer, canonical corpus/source compilation, sync or full gate under the standing exception. Authenticated corpus/browser/installed/release acceptance remains unverified. CI is waived, not passing.\n\nRemaining contracts: #1776, #1777, #1336 and #1962, including prepared operators, other binary owners and full production acceptance. This child closes only the complete GMN pack-observation owner.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-27T10:54:17Z",
+  "labels": [],
+  "milestone": null,
+  "number": 2018,
+  "state": "OPEN",
+  "title": "Use complete native JSON for GMN pack observations",
+  "updatedAt": "2026-10-27T10:54:17Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2018"
+}

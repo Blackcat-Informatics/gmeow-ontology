@@ -1,0 +1,706 @@
+diff --git a/crates/pipeline/src/stages/lang_projection.rs b/crates/pipeline/src/stages/lang_projection.rs
+index 5608a61a2..b16a79fa0 100644
+--- a/crates/pipeline/src/stages/lang_projection.rs
++++ b/crates/pipeline/src/stages/lang_projection.rs
+@@ -177,12 +177,7 @@ pub fn build_corpus(
+     if let Some(pack) = pack.finish(&input, catalog, &artifacts)? {
+         let gates = gates.finish(root, catalog, sources, &pack)?;
+         artifacts.push((gmn_gate::CHANNEL.to_owned(), gates.to_bytes()));
+-        artifacts.push((
+-            gmn_pack::CHANNEL.to_owned(),
+-            serde_json::to_vec(&pack).map_err(|error| {
+-                stage_err(format!("encode native GMN pack observations: {error}"))
+-            })?,
+-        ));
++        artifacts.push((gmn_pack::CHANNEL.to_owned(), pack.to_bytes()));
+     }
+     artifacts.push((
+         grammar_observations::CHANNEL.to_owned(),
+diff --git a/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs b/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
+index a92634be4..828ae3971 100644
+--- a/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
++++ b/crates/pipeline/src/stages/lang_projection/contract_fixtures.rs
+@@ -8,7 +8,6 @@ use std::path::{Path, PathBuf};
+ use std::sync::OnceLock;
+ 
+ use gmeow_errors::ResultExt;
+-use serde::de::DeserializeOwned;
+ 
+ use super::{gmn_gate, gmn_pack, grammar_observations};
+ 
+@@ -124,7 +123,7 @@ fn load(root: &Path, selector_sha256: &str) -> Result<LanguageFixtures, gmeow_er
+     ];
+     paths.extend(product_paths.values().map(String::as_str));
+     let mut artifacts = crate::fixture::authenticated_artifacts(root, STAGE, &paths)?;
+-    let pack: gmn_pack::Observations = decode(&mut artifacts, gmn_pack::CHANNEL)?;
++    let pack: gmn_pack::Observations = decode_native(&mut artifacts, gmn_pack::CHANNEL)?;
+     let gates = decode_native(&mut artifacts, gmn_gate::CHANNEL)?;
+     let grammars = decode_native(&mut artifacts, grammar_observations::CHANNEL)?;
+     if selected_major != Some(pack.major.as_str()) {
+@@ -172,32 +171,17 @@ fn load(root: &Path, selector_sha256: &str) -> Result<LanguageFixtures, gmeow_er
+     })
+ }
+ 
+-fn decode<T: DeserializeOwned>(
+-    artifacts: &mut BTreeMap<String, Vec<u8>>,
+-    path: &str,
+-) -> Result<T, gmeow_errors::Diag> {
+-    let bytes = artifact_bytes(artifacts, path)?;
+-    serde_json::from_slice(&bytes).with_ctx(|| format!("native language observations {path}"))
+-}
+-
+ fn decode_native<T: purrdf_lex::json::record::FromJson>(
+     artifacts: &mut BTreeMap<String, Vec<u8>>,
+     path: &str,
+ ) -> Result<T, gmeow_errors::Diag> {
+-    let bytes = artifact_bytes(artifacts, path)?;
++    let bytes = artifacts
++        .remove(path)
++        .ok_or_else(|| fail(format!("authenticated language action omitted {path}")))?;
+     purrdf_lex::json::record::from_slice(&bytes)
+         .with_ctx(|| format!("native language observations {path}"))
+ }
+ 
+-fn artifact_bytes(
+-    artifacts: &mut BTreeMap<String, Vec<u8>>,
+-    path: &str,
+-) -> Result<Vec<u8>, gmeow_errors::Diag> {
+-    artifacts
+-        .remove(path)
+-        .ok_or_else(|| fail(format!("authenticated language action omitted {path}")))
+-}
+-
+ fn fail(message: impl Into<String>) -> gmeow_errors::Diag {
+     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+         stage: STAGE.to_owned(),
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_pack.rs b/crates/pipeline/src/stages/lang_projection/gmn_pack.rs
+index 08126ca6b..f438bdc6a 100644
+--- a/crates/pipeline/src/stages/lang_projection/gmn_pack.rs
++++ b/crates/pipeline/src/stages/lang_projection/gmn_pack.rs
+@@ -11,9 +11,9 @@ use gmeow_lang_bridge::gmn1_digest::{EcosystemLeaves, codebook_digest, grammar_l
+ use gmeow_lang_bridge::registry::{LangEmission, LangEmissionBatch, LangProjectionInput};
+ use gmeow_logic_compile::ir::{Correspondence, LegPath};
+ use purrdf::slice::SliceCatalog;
+-use serde::{Deserialize, Serialize};
+ 
+ mod controls;
++mod json;
+ 
+ pub(crate) const CHANNEL: &str = "pipeline/gmn-pack-observations.json";
+ const PRODUCTS: [&str; 3] = [
+@@ -22,7 +22,6 @@ const PRODUCTS: [&str; 3] = [
+     "verbalizations.ttl",
+ ];
+ 
+-#[derive(Serialize, Deserialize)]
+ pub(crate) struct Observations {
+     pub major: String,
+     pub paths: Vec<String>,
+@@ -37,7 +36,6 @@ pub(crate) struct Observations {
+     pub controls: controls::Controls,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
+ pub(crate) struct EmissionWitness {
+     pub path: String,
+     pub is_rdf: bool,
+@@ -47,6 +45,13 @@ pub(crate) struct EmissionWitness {
+     pub source_matches_artifact: bool,
+ }
+ 
++impl Observations {
++    /// Publish the complete compact pack channel without a terminal newline.
++    pub(super) fn to_bytes(&self) -> Vec<u8> {
++        purrdf_lex::json::record::to_vec(self)
++    }
++}
++
+ impl EmissionWitness {
+     fn from_emission(emission: &LangEmission, path: &str) -> gmeow_errors::Result<Self> {
+         let artifact = emission
+@@ -67,8 +72,7 @@ impl EmissionWitness {
+     }
+ }
+ 
+-/// All seven rates and every integer witness, before RDF formatting rounds decimal values.
+-#[derive(Serialize, Deserialize)]
++/// Five floating measurements, eleven integer witnesses and the stored gate verdict.
+ pub(crate) struct Metrics {
+     pub bytes_on_disk: u64,
+     pub tokens_in_context: u64,
+@@ -314,3 +318,6 @@ fn grounding_scope(
+     sources.sort();
+     Ok((indices, sources))
+ }
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_pack/controls.rs b/crates/pipeline/src/stages/lang_projection/gmn_pack/controls.rs
+index ec3e7f01e..bae901c61 100644
+--- a/crates/pipeline/src/stages/lang_projection/gmn_pack/controls.rs
++++ b/crates/pipeline/src/stages/lang_projection/gmn_pack/controls.rs
+@@ -8,11 +8,9 @@ use gmeow_lang_bridge::gmn_verbalize::{
+     forward_index, invert_nl, round_trip_holds,
+ };
+ use gmeow_lang_bridge::registry::{LangEmission, LangProjectionInput, registry};
+-use serde::{Deserialize, Serialize};
+ 
+ use super::EmissionWitness;
+ 
+-#[derive(Serialize, Deserialize)]
+ pub(crate) struct Controls {
+     pub bumped_major: String,
+     pub bumped_paths: Vec<String>,
+@@ -22,7 +20,6 @@ pub(crate) struct Controls {
+     pub erased_scope_error: String,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
+ pub(crate) struct VerbalizerControl {
+     pub emission: EmissionWitness,
+     pub text: String,
+@@ -30,7 +27,6 @@ pub(crate) struct VerbalizerControl {
+     pub round_trip: bool,
+ }
+ 
+-#[derive(Serialize, Deserialize)]
+ pub(crate) struct Pair {
+     pub label: String,
+     pub nl: String,
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_pack/fixtures/channel-v1.json b/crates/pipeline/src/stages/lang_projection/gmn_pack/fixtures/channel-v1.json
+new file mode 100644
+index 000000000..a0c6a2984
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/gmn_pack/fixtures/channel-v1.json
+@@ -0,0 +1 @@
++{"major":"raw-major","paths":["z","a","z"],"emissions":[{"path":"z","is_rdf":false,"correspondence":{"iri":"urn:test:pack-correspondence","relation":"Overlaps","morphism_class":"LossyLens","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":"raw","put_leg":null,"law_claims":[],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"round_trip":false,"leg_pair":[{"Seq":[{"Step":"z"},{"Step":"a"},{"Step":"z"}]},{"Inverse":{"Alt":[]}}],"source_matches_artifact":true},{"path":"a","is_rdf":false,"correspondence":{"iri":"urn:test:pack-correspondence","relation":"Overlaps","morphism_class":"LossyLens","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":"raw","put_leg":null,"law_claims":[],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"round_trip":false,"leg_pair":null,"source_matches_artifact":true},{"path":"z","is_rdf":false,"correspondence":{"iri":"urn:test:pack-correspondence","relation":"Overlaps","morphism_class":"LossyLens","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":"raw","put_leg":null,"law_claims":[],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"round_trip":false,"leg_pair":[{"Seq":[{"Step":"z"},{"Step":"a"},{"Step":"z"}]},{"Inverse":{"Alt":[]}}],"source_matches_artifact":true}],"metrics":{"bytes_on_disk":18446744073709551615,"tokens_in_context":2,"ast_validity_rate":-0.0,"roundtrip_loss":1.0,"compression_ratio":1.5e-7,"glyph_density":1e+20,"dictionary_hit_rate":-2.5,"gmn_worst_case_tokens":3,"gmn_realistic_tokens":4,"turtle_best_case_tokens":5,"gmn_ascii_bytes":6,"gmn_nonascii_bytes":7,"turtle_bytes_on_disk":8,"jsonld_bytes_on_disk":9,"total_sources":10,"measured_sources":11,"compression_gate_holds":false},"grounding_metrics":{"bytes_on_disk":18446744073709551615,"tokens_in_context":2,"ast_validity_rate":0.0,"roundtrip_loss":1.0,"compression_ratio":1.5e-7,"glyph_density":1e+20,"dictionary_hit_rate":-2.5,"gmn_worst_case_tokens":3,"gmn_realistic_tokens":4,"turtle_best_case_tokens":5,"gmn_ascii_bytes":6,"gmn_nonascii_bytes":7,"turtle_bytes_on_disk":8,"jsonld_bytes_on_disk":9,"total_sources":10,"measured_sources":18446744073709551615,"compression_gate_holds":true},"grounding_sources":["z","a","z"],"expected_codebook_digest":"raw\u0000 codebook 中😀","expected_pack_root":"not-a-normalized-pack-root","expected_grammar_leaf":"not-a-normalized-grammar-leaf","ecosystem_leaves":[["z","predicate-z","raw\u0000 leaf 中😀"],["a","predicate-a","opaque"],["z","predicate-z","raw\u0000 leaf 中😀"]],"controls":{"bumped_major":"not-a-version","bumped_paths":["z","a","z"],"verbalizer":{"emission":{"path":"raw/verbalizer","is_rdf":false,"correspondence":{"iri":"urn:test:pack-correspondence","relation":"Overlaps","morphism_class":"LossyLens","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":"raw","put_leg":null,"law_claims":[],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"round_trip":false,"leg_pair":[{"Seq":[{"Step":"z"},{"Step":"a"},{"Step":"z"}]},{"Inverse":{"Alt":[]}}],"source_matches_artifact":true},"text":"raw\u0000 verbalizer 中😀","pairs":[{"label":"z","nl":"raw\u0000 NL 中😀","surface":"opaque","inverse_recovers_form":false},{"label":"a","nl":"duplicate","surface":"duplicate","inverse_recovers_form":true},{"label":"z","nl":"raw\u0000 NL 中😀","surface":"opaque","inverse_recovers_form":false}],"round_trip":true},"perturbed_text":"raw\u0000 perturbed 中😀","scoped":{"emission":{"path":"raw/scoped","is_rdf":false,"correspondence":{"iri":"urn:test:pack-correspondence","relation":"Overlaps","morphism_class":"LossyLens","morphism_kind":"CommitmentShiftingBridge","mnemomorphic":false,"determinacy":null,"get_leg":"raw","put_leg":null,"law_claims":[],"caveats":[],"loss_evidence":[],"confidence":null,"evidence_strength":null,"axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},"weight":null,"probability":null,"according_to":null,"preservation":null,"source_endpoint":null,"target_endpoint":null,"grounding":false,"recovery_cases":[]},"round_trip":false,"leg_pair":null,"source_matches_artifact":true},"text":"raw\u0000 verbalizer 中😀","pairs":[{"label":"z","nl":"raw\u0000 NL 中😀","surface":"opaque","inverse_recovers_form":false},{"label":"a","nl":"duplicate","surface":"duplicate","inverse_recovers_form":true},{"label":"z","nl":"raw\u0000 NL 中😀","surface":"opaque","inverse_recovers_form":false}],"round_trip":true},"erased_scope_error":"raw\u0000 scope refusal 中😀"}}
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_pack/json.rs b/crates/pipeline/src/stages/lang_projection/gmn_pack/json.rs
+new file mode 100644
+index 000000000..93f80858c
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/gmn_pack/json.rs
+@@ -0,0 +1,195 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Complete pack evidence transport without recomputing measurements or verdicts.
++use super::controls::{Controls, Pair, VerbalizerControl};
++use super::{EmissionWitness, Metrics, Observations};
++use gmeow_logic_compile::ir::LegPath;
++use purrdf_lex::json::{
++    Value,
++    record::{DecodeError, FromJson, Record, items_with},
++};
++
++::purrdf_lex::json_record!(impl ToJson for Observations {
++    "major" => major,
++    "paths" => paths,
++    "emissions" => emissions,
++    "metrics" => metrics,
++    "grounding_metrics" => grounding_metrics,
++    "grounding_sources" => grounding_sources,
++    "expected_codebook_digest" => expected_codebook_digest,
++    "expected_pack_root" => expected_pack_root,
++    "expected_grammar_leaf" => expected_grammar_leaf,
++    "ecosystem_leaves" => ecosystem_leaves,
++    "controls" => controls,
++});
++impl FromJson for Observations {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Observations")?;
++        Ok(Self {
++            major: fields.required("major")?,
++            paths: fields.required("paths")?,
++            emissions: fields.required("emissions")?,
++            metrics: fields.required("metrics")?,
++            grounding_metrics: fields.required("grounding_metrics")?,
++            grounding_sources: fields.required("grounding_sources")?,
++            expected_codebook_digest: fields.required("expected_codebook_digest")?,
++            expected_pack_root: fields.required("expected_pack_root")?,
++            expected_grammar_leaf: fields.required("expected_grammar_leaf")?,
++            ecosystem_leaves: fields.required_with("ecosystem_leaves", |value| {
++                items_with(value, |row| -> Result<_, DecodeError> {
++                    let [subject, predicate, digest] =
++                        gmeow_errors::json::read_string_row::<3>(row)?;
++                    Ok((subject, predicate, digest))
++                })
++            })?,
++            controls: fields.required("controls")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for EmissionWitness {
++    "path" => path,
++    "is_rdf" => is_rdf,
++    "correspondence" => correspondence,
++    "round_trip" => round_trip,
++    "leg_pair" => leg_pair,
++    "source_matches_artifact" => source_matches_artifact,
++});
++impl FromJson for EmissionWitness {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct EmissionWitness")?;
++        Ok(Self {
++            path: fields.required("path")?,
++            is_rdf: fields.required("is_rdf")?,
++            correspondence: fields.required("correspondence")?,
++            round_trip: fields.required("round_trip")?,
++            leg_pair: fields.optional_with("leg_pair", LegPath::pair_from_json)?,
++            source_matches_artifact: fields.required("source_matches_artifact")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for Metrics {
++    "bytes_on_disk" => bytes_on_disk,
++    "tokens_in_context" => tokens_in_context,
++    "ast_validity_rate" => ast_validity_rate,
++    "roundtrip_loss" => roundtrip_loss,
++    "compression_ratio" => compression_ratio,
++    "glyph_density" => glyph_density,
++    "dictionary_hit_rate" => dictionary_hit_rate,
++    "gmn_worst_case_tokens" => gmn_worst_case_tokens,
++    "gmn_realistic_tokens" => gmn_realistic_tokens,
++    "turtle_best_case_tokens" => turtle_best_case_tokens,
++    "gmn_ascii_bytes" => gmn_ascii_bytes,
++    "gmn_nonascii_bytes" => gmn_nonascii_bytes,
++    "turtle_bytes_on_disk" => turtle_bytes_on_disk,
++    "jsonld_bytes_on_disk" => jsonld_bytes_on_disk,
++    "total_sources" => total_sources,
++    "measured_sources" => measured_sources,
++    "compression_gate_holds" => compression_gate_holds,
++});
++impl FromJson for Metrics {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Metrics")?;
++        Ok(Self {
++            bytes_on_disk: fields.required_with("bytes_on_disk", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 bytes_on_disk")
++            })?,
++            tokens_in_context: fields.required_with("tokens_in_context", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 tokens_in_context")
++            })?,
++            ast_validity_rate: fields.required("ast_validity_rate")?,
++            roundtrip_loss: fields.required("roundtrip_loss")?,
++            compression_ratio: fields.required("compression_ratio")?,
++            glyph_density: fields.required("glyph_density")?,
++            dictionary_hit_rate: fields.required("dictionary_hit_rate")?,
++            gmn_worst_case_tokens: fields.required_with("gmn_worst_case_tokens", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 gmn_worst_case_tokens")
++            })?,
++            gmn_realistic_tokens: fields.required_with("gmn_realistic_tokens", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 gmn_realistic_tokens")
++            })?,
++            turtle_best_case_tokens: fields.required_with("turtle_best_case_tokens", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 turtle_best_case_tokens")
++            })?,
++            gmn_ascii_bytes: fields.required_with("gmn_ascii_bytes", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 gmn_ascii_bytes")
++            })?,
++            gmn_nonascii_bytes: fields.required_with("gmn_nonascii_bytes", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 gmn_nonascii_bytes")
++            })?,
++            turtle_bytes_on_disk: fields.required_with("turtle_bytes_on_disk", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 turtle_bytes_on_disk")
++            })?,
++            jsonld_bytes_on_disk: fields.required_with("jsonld_bytes_on_disk", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 jsonld_bytes_on_disk")
++            })?,
++            total_sources: fields.required_with("total_sources", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 total_sources")
++            })?,
++            measured_sources: fields.required_with("measured_sources", |value| {
++                gmeow_errors::json::read_unsigned(value, "u64 measured_sources")
++            })?,
++            compression_gate_holds: fields.required("compression_gate_holds")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for Controls {
++    "bumped_major" => bumped_major,
++    "bumped_paths" => bumped_paths,
++    "verbalizer" => verbalizer,
++    "perturbed_text" => perturbed_text,
++    "scoped" => scoped,
++    "erased_scope_error" => erased_scope_error,
++});
++impl FromJson for Controls {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Controls")?;
++        Ok(Self {
++            bumped_major: fields.required("bumped_major")?,
++            bumped_paths: fields.required("bumped_paths")?,
++            verbalizer: fields.required("verbalizer")?,
++            perturbed_text: fields.required("perturbed_text")?,
++            scoped: fields.required("scoped")?,
++            erased_scope_error: fields.required("erased_scope_error")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for VerbalizerControl {
++    "emission" => emission,
++    "text" => text,
++    "pairs" => pairs,
++    "round_trip" => round_trip,
++});
++impl FromJson for VerbalizerControl {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct VerbalizerControl")?;
++        Ok(Self {
++            emission: fields.required("emission")?,
++            text: fields.required("text")?,
++            pairs: fields.required("pairs")?,
++            round_trip: fields.required("round_trip")?,
++        })
++    }
++}
++
++::purrdf_lex::json_record!(impl ToJson for Pair {
++    "label" => label,
++    "nl" => nl,
++    "surface" => surface,
++    "inverse_recovers_form" => inverse_recovers_form,
++});
++impl FromJson for Pair {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let mut fields = Record::new(value, "struct Pair")?;
++        Ok(Self {
++            label: fields.required("label")?,
++            nl: fields.required("nl")?,
++            surface: fields.required("surface")?,
++            inverse_recovers_form: fields.required("inverse_recovers_form")?,
++        })
++    }
++}
+diff --git a/crates/pipeline/src/stages/lang_projection/gmn_pack/tests.rs b/crates/pipeline/src/stages/lang_projection/gmn_pack/tests.rs
+new file mode 100644
+index 000000000..e8f6cdd4a
+--- /dev/null
++++ b/crates/pipeline/src/stages/lang_projection/gmn_pack/tests.rs
+@@ -0,0 +1,323 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Authored observation values only; no projection, measurements or corpus are produced.
++use super::controls::{Controls, Pair, VerbalizerControl};
++use super::*;
++use purrdf_lex::json::record::{ToJson, from_slice, to_vec};
++
++fn authored_metrics() -> Metrics {
++    Metrics {
++        bytes_on_disk: u64::MAX,
++        tokens_in_context: 2,
++        ast_validity_rate: -0.0,
++        roundtrip_loss: 1.0,
++        compression_ratio: 1.5e-7,
++        glyph_density: 1e20,
++        dictionary_hit_rate: -2.5,
++        gmn_worst_case_tokens: 3,
++        gmn_realistic_tokens: 4,
++        turtle_best_case_tokens: 5,
++        gmn_ascii_bytes: 6,
++        gmn_nonascii_bytes: 7,
++        turtle_bytes_on_disk: 8,
++        jsonld_bytes_on_disk: 9,
++        total_sources: 10,
++        measured_sources: 11,
++        compression_gate_holds: false,
++    }
++}
++
++fn authored_witness(path: &str, with_legs: bool) -> EmissionWitness {
++    let correspondence: Correspondence = from_slice(
++        br#"{
++        "iri":"urn:test:pack-correspondence", "relation":"Overlaps",
++        "morphism_class":"LossyLens", "morphism_kind":"CommitmentShiftingBridge",
++        "mnemomorphic":false, "determinacy":null, "get_leg":"raw", "put_leg":null,
++        "law_claims":[], "caveats":[], "loss_evidence":[],
++        "confidence":null, "evidence_strength":null,
++        "axis_evidence":{"sources":["z","a","z"],"scale":null,"probability_model":null},
++        "weight":null, "probability":null, "according_to":null, "preservation":null,
++        "source_endpoint":null, "target_endpoint":null, "grounding":false,
++        "recovery_cases":[]
++    }"#,
++    )
++    .expect("authored correspondence must hydrate without source compilation");
++    EmissionWitness {
++        path: path.to_owned(),
++        is_rdf: false,
++        correspondence,
++        round_trip: false,
++        leg_pair: if with_legs {
++            Some((
++                LegPath::Seq(vec![
++                    LegPath::Step("z".to_owned()),
++                    LegPath::Step("a".to_owned()),
++                    LegPath::Step("z".to_owned()),
++                ]),
++                LegPath::Inverse(Box::new(LegPath::Alt(vec![]))),
++            ))
++        } else {
++            None
++        },
++        source_matches_artifact: true,
++    }
++}
++
++fn authored_verbalizer(path: &str, with_legs: bool) -> VerbalizerControl {
++    VerbalizerControl {
++        emission: authored_witness(path, with_legs),
++        text: "raw\0 verbalizer 中😀".to_owned(),
++        pairs: vec![
++            Pair {
++                label: "z".to_owned(),
++                nl: "raw\0 NL 中😀".to_owned(),
++                surface: "opaque".to_owned(),
++                inverse_recovers_form: false,
++            },
++            Pair {
++                label: "a".to_owned(),
++                nl: "duplicate".to_owned(),
++                surface: "duplicate".to_owned(),
++                inverse_recovers_form: true,
++            },
++            Pair {
++                label: "z".to_owned(),
++                nl: "raw\0 NL 中😀".to_owned(),
++                surface: "opaque".to_owned(),
++                inverse_recovers_form: false,
++            },
++        ],
++        round_trip: true,
++    }
++}
++
++fn authored_observations() -> Observations {
++    let mut grounding_metrics = authored_metrics();
++    grounding_metrics.measured_sources = u64::MAX;
++    grounding_metrics.ast_validity_rate = 0.0;
++    grounding_metrics.compression_gate_holds = true;
++    Observations {
++        major: "raw-major".to_owned(),
++        paths: vec!["z".to_owned(), "a".to_owned(), "z".to_owned()],
++        emissions: vec![
++            authored_witness("z", true),
++            authored_witness("a", false),
++            authored_witness("z", true),
++        ],
++        metrics: authored_metrics(),
++        grounding_metrics,
++        grounding_sources: vec!["z".to_owned(), "a".to_owned(), "z".to_owned()],
++        expected_codebook_digest: "raw\0 codebook 中😀".to_owned(),
++        expected_pack_root: "not-a-normalized-pack-root".to_owned(),
++        expected_grammar_leaf: "not-a-normalized-grammar-leaf".to_owned(),
++        ecosystem_leaves: vec![
++            (
++                "z".to_owned(),
++                "predicate-z".to_owned(),
++                "raw\0 leaf 中😀".to_owned(),
++            ),
++            (
++                "a".to_owned(),
++                "predicate-a".to_owned(),
++                "opaque".to_owned(),
++            ),
++            (
++                "z".to_owned(),
++                "predicate-z".to_owned(),
++                "raw\0 leaf 中😀".to_owned(),
++            ),
++        ],
++        controls: Controls {
++            bumped_major: "not-a-version".to_owned(),
++            bumped_paths: vec!["z".to_owned(), "a".to_owned(), "z".to_owned()],
++            verbalizer: authored_verbalizer("raw/verbalizer", true),
++            perturbed_text: "raw\0 perturbed 中😀".to_owned(),
++            scoped: authored_verbalizer("raw/scoped", false),
++            erased_scope_error: "raw\0 scope refusal 中😀".to_owned(),
++        },
++    }
++}
++
++#[test]
++fn native_gmn_pack_wire_preserves_complete_original_channel() {
++    let observations = authored_observations();
++    let bytes = observations.to_bytes();
++    let original = include_bytes!("fixtures/channel-v1.json")
++        .strip_suffix(b"\n")
++        .expect("reference stores one terminal LF outside the original JSON");
++    assert_eq!(bytes, original, "complete original pack-channel encoding");
++    assert!(!bytes.ends_with(b"\n"));
++    let decoded: Observations =
++        from_slice(&bytes).expect("complete native pack channel must hydrate");
++    assert_eq!(decoded.to_bytes(), bytes);
++    assert_eq!(decoded.metrics.bytes_on_disk, u64::MAX);
++    assert_eq!(decoded.grounding_metrics.measured_sources, u64::MAX);
++    assert_eq!(
++        decoded.metrics.ast_validity_rate.to_bits(),
++        (-0.0_f64).to_bits()
++    );
++    assert_eq!(
++        decoded.grounding_metrics.ast_validity_rate.to_bits(),
++        0.0_f64.to_bits()
++    );
++    assert_eq!(decoded.metrics.dictionary_hit_rate, -2.5);
++    assert!(!decoded.metrics.compression_gate_holds);
++    assert!(decoded.grounding_metrics.compression_gate_holds);
++    assert_eq!(decoded.paths, ["z", "a", "z"]);
++    assert_eq!(decoded.ecosystem_leaves[0], decoded.ecosystem_leaves[2]);
++    assert!(decoded.emissions[0].leg_pair.is_some());
++    assert!(decoded.emissions[1].leg_pair.is_none());
++    assert!(decoded.controls.verbalizer.round_trip);
++    assert!(!decoded.controls.verbalizer.pairs[0].inverse_recovers_form);
++    assert_eq!(decoded.controls.verbalizer.pairs[0].nl, "raw\0 NL 中😀");
++}
++
++#[test]
++fn native_gmn_pack_admission_preserves_raw_evidence_and_refuses_invalid_members() {
++    let mut observations = authored_observations();
++    let wire = String::from_utf8(observations.to_bytes()).expect("pack JSON is UTF-8");
++    let future = wire
++        .replacen("{", r#"{"future":[],"#, 1)
++        .replace(r#"{"path":"#, r#"{"future":null,"path":"#)
++        .replace(r#""metrics":{"#, r#""metrics":{"future":false,"#)
++        .replace(r#""controls":{"#, r#""controls":{"future":{},"#)
++        .replace(r#""verbalizer":{"#, r#""verbalizer":{"future":0,"#)
++        .replace(r#"{"label":"#, r#"{"future":"raw","label":"#);
++    assert!(from_slice::<Observations>(future.as_bytes()).is_ok());
++    for count in ["-0", "-1", "1.0", "1e0", "null", "18446744073709551616"] {
++        let bad = wire.replacen(
++            r#""tokens_in_context":2"#,
++            &format!(r#""tokens_in_context":{count}"#),
++            1,
++        );
++        assert_ne!(bad, wire, "count mutation must reach its intended field");
++        assert!(
++            from_slice::<Observations>(bad.as_bytes()).is_err(),
++            "{count}"
++        );
++    }
++    for float in ["null", "1e400", "-1e400", r#""NaN""#] {
++        let bad = wire.replacen(
++            r#""ast_validity_rate":-0.0"#,
++            &format!(r#""ast_validity_rate":{float}"#),
++            1,
++        );
++        assert_ne!(bad, wire, "float mutation must reach its intended field");
++        assert!(
++            from_slice::<Observations>(bad.as_bytes()).is_err(),
++            "{float}"
++        );
++    }
++    for nonfinite in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
++        observations.metrics.ast_validity_rate = nonfinite;
++        let bytes = observations.to_bytes();
++        let encoded = String::from_utf8(bytes.clone()).expect("nonfinite JSON is UTF-8");
++        assert!(encoded.contains(r#""ast_validity_rate":null"#));
++        assert!(
++            from_slice::<Observations>(&bytes).is_err(),
++            "null cannot hydrate a required float"
++        );
++    }
++    for bad in [
++        wire.replacen(r#""major":"raw-major","#, "", 1),
++        wire.replacen(r#""paths":["z","a","z"]"#, r#""paths":null"#, 1),
++        wire.replacen(r#""metrics":{"#, r#""metrics":null,"unused":{"#, 1),
++        wire.replacen(r#""is_rdf":false,"#, "", 1),
++        wire.replacen(r#""round_trip":false"#, r#""round_trip":null"#, 1),
++        wire.replacen(r#""bumped_major":"not-a-version","#, "", 1),
++        wire.replacen(r#""text":"#, r#""text":null,"unused":"#, 1),
++        wire.replacen(
++            r#""inverse_recovers_form":false"#,
++            r#""inverse_recovers_form":null"#,
++            1,
++        ),
++        "[]".to_owned(),
++    ] {
++        assert_ne!(
++            bad, wire,
++            "record mutation must reach its intended boundary"
++        );
++        assert!(from_slice::<Observations>(bad.as_bytes()).is_err(), "{bad}");
++    }
++    // Both duplicate values are individually valid; each record must still refuse ambiguity.
++    for bad in [
++        wire.replacen(r#""major":"#, r#""major":"duplicate","major":"#, 1),
++        wire.replacen(r#""is_rdf":false"#, r#""is_rdf":true,"is_rdf":false"#, 1),
++        wire.replacen(
++            r#""tokens_in_context":2"#,
++            r#""tokens_in_context":0,"tokens_in_context":2"#,
++            1,
++        ),
++        wire.replacen(
++            r#""bumped_major":"#,
++            r#""bumped_major":"duplicate","bumped_major":"#,
++            1,
++        ),
++        wire.replacen(r#""text":"#, r#""text":"duplicate","text":"#, 1),
++        wire.replacen(r#""label":"#, r#""label":"duplicate","label":"#, 1),
++    ] {
++        let error = from_slice::<Observations>(bad.as_bytes())
++            .err()
++            .expect("duplicate known field must fail");
++        assert!(error.to_string().contains("duplicate field"), "{error}");
++    }
++    let leaf = to_vec(&observations.ecosystem_leaves);
++    let leaf = String::from_utf8(leaf).expect("ecosystem row JSON is UTF-8");
++    for rows in [
++        "null",
++        "[null]",
++        "[[]]",
++        r#"[["subject","predicate"]]"#,
++        r#"[["subject","predicate","digest","extra"]]"#,
++    ] {
++        let bad = wire.replace(
++            &format!(r#""ecosystem_leaves":{leaf}"#),
++            &format!(r#""ecosystem_leaves":{rows}"#),
++        );
++        assert_ne!(bad, wire, "ecosystem mutation must reach the actual field");
++        assert!(from_slice::<Observations>(bad.as_bytes()).is_err(), "{bad}");
++    }
++    let bad = wire.replace(
++        &format!(r#""ecosystem_leaves":{leaf}"#),
++        r#""ecosystem_leaves":[["subject",false,"digest"]]"#,
++    );
++    let error = from_slice::<Observations>(bad.as_bytes())
++        .err()
++        .expect("nonstring row cell must fail");
++    assert_eq!(error.pointer(), "/ecosystem_leaves/0/1");
++    let witness = &observations.emissions[0];
++    let witness_wire = String::from_utf8(to_vec(witness)).expect("emission JSON is UTF-8");
++    let pair = format!(
++        r#""leg_pair":{},"#,
++        purrdf_lex::json::write_compact(&witness.leg_pair.to_json())
++    );
++    assert!(witness_wire.contains(&pair));
++    for optional in [
++        witness_wire.replace(&pair, ""),
++        witness_wire.replace(&pair, r#""leg_pair":null,"#),
++    ] {
++        assert!(
++            from_slice::<EmissionWitness>(optional.as_bytes())
++                .expect("missing/null legs are absent")
++                .leg_pair
++                .is_none()
++        );
++    }
++    for invalid in [
++        "[]",
++        r#"[{"Step":"p"}]"#,
++        r#"[{"Step":"p"},{"Step":"q"},{"Step":"r"}]"#,
++    ] {
++        let bad = witness_wire.replace(&pair, &format!(r#""leg_pair":{invalid},"#));
++        assert!(
++            from_slice::<EmissionWitness>(bad.as_bytes()).is_err(),
++            "{bad}"
++        );
++    }
++    let bad = witness_wire.replace(&pair, r#""leg_pair":[{"Step":"p"},{"Step":false}],"#);
++    let error = from_slice::<EmissionWitness>(bad.as_bytes())
++        .err()
++        .expect("malformed second leg must fail");
++    assert_eq!(error.pointer(), "/leg_pair/1/Step");
++}

@@ -1,0 +1,5 @@
+refactor: use native JSON for complete GMN pack observations
+
+Move all six pack records through native publication and authenticated
+hydration. Preserve original bytes, raw metrics and controls while retiring
+the last Serde language-observation decoder. Principles 4 and 7.
