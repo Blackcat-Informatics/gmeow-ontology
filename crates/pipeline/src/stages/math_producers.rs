@@ -157,7 +157,13 @@ fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::D
             message: format!("cannot freeze {label} graph for producer parity: {error}"),
         })
     })?;
-    Ok(purrdf::canonicalize(&flat).nquads)
+    let canonical = purrdf::try_canonicalize(&flat).map_err(|error| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-math-producers".to_owned(),
+            message: format!("cannot canonicalize {label} graph for producer parity: {error}"),
+        })
+    })?;
+    Ok(canonical.nquads)
 }
 
 /// Retain the graph already computed by a failing parity check, never a stage product.
@@ -396,6 +402,6 @@ impl Stage for MathProducersStage {
             self.id(),
             dataset,
             artifacts,
-        )))
+        )?))
     }
 }

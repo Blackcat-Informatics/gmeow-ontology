@@ -1777,7 +1777,8 @@ fn graphs_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 }
 
 /// Parse RDF (lenient, Turtle for `.ttl`, N-Quads otherwise) and return the
-/// canonicalized quad set as sorted strings. `None` on a parse error.
+/// canonicalized quad set as sorted strings. `None` on a parse error or a
+/// canonicalization refusal, which the caller reports as drift.
 fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
     // Try Turtle first, then N-Quads — the leaves emit one of these.
     // Native text ingress + native full RDFC-1.0: no oxigraph::io
@@ -1796,7 +1797,8 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
         let quads = purrdf::flat_rdf_quads_from_dataset(&ir);
         if !quads.is_empty() {
             let flat = purrdf::flat_dataset_from_quads(&quads).ok()?;
-            let set: std::collections::BTreeSet<String> = purrdf::canonicalize(&flat)
+            let set: std::collections::BTreeSet<String> = purrdf::try_canonicalize(&flat)
+                .ok()?
                 .nquads
                 .lines()
                 .map(str::to_owned)

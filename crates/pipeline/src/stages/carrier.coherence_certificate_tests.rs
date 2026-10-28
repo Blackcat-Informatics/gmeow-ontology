@@ -23,7 +23,7 @@ fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct
             pinned,
         )
         .unwrap();
-    StageProduct::from_bundle("stage-reason", Arc::new(bundle))
+    StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
 }
 
 /// `fold_coherence_certificate` folds a `graph/attestations` coherence artifact over the

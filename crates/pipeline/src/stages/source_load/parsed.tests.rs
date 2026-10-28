@@ -351,10 +351,10 @@ fn catalog_identity_binds_exact_bytes_roles_and_document_names() {
             &format!("{text} # changed source span"),
         ),
     ] {
-        assert!(purrdf::datasets_isomorphic(
-            first.materialized(),
-            changed.materialized()
-        ));
+        assert!(
+            purrdf::datasets_isomorphic(first.materialized(), changed.materialized())
+                .expect("isomorphism is decided by canonical bytes")
+        );
         assert_ne!(
             first.identity(),
             changed.identity(),
@@ -398,7 +398,8 @@ fn persistent_cache_refuses_the_ephemeral_native_source_catalog() {
             pin,
         )
         .unwrap();
-    let product = StageProduct::from_bundle("stage-parse-sources", Arc::new(bundle));
+    let product = StageProduct::from_bundle("stage-parse-sources", Arc::new(bundle))
+        .expect("the stage carrier digests");
     let selection = ReceiptOutputSelection {
         graphs: vec![GRAPH_SOURCE_CATALOG.to_owned()],
         handles: vec![GRAPH_SOURCE_CATALOG.to_owned()],

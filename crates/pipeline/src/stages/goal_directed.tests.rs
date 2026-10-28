@@ -54,6 +54,7 @@ fn compile_logic_upstream_for_missing_reason() -> StageProduct {
         )
         .expect("pin the Logic handle to graph/logic");
     StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+        .expect("the stage carrier digests")
 }
 
 /// Build a REAL `stage-reason` upstream product carrying a typed `Reasoning` handle
@@ -107,7 +108,7 @@ fn reason_upstream_with_math_tower() -> StageProduct {
             pinned,
         )
         .expect("pin the Reasoning handle to graph/reasoning");
-    StageProduct::from_bundle("stage-reason", Arc::new(bundle))
+    StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
 }
 
 #[test]
@@ -287,7 +288,8 @@ fn run_hard_fails_when_the_logic_handle_carries_zero_reasoning_programs() {
     let mut upstream = BTreeMap::new();
     upstream.insert(
         "stage-compile-logic".to_string(),
-        StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle)),
+        StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+            .expect("the stage carrier digests"),
     );
     upstream.insert(
         "stage-reason".to_string(),

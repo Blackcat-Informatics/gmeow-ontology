@@ -354,7 +354,10 @@ fn native_reasoning_summary_matches_the_wire_projection() {
     let derived = rows[0].clone();
     let native = project_reasoning_dataset(&result).unwrap();
     let wire = parse_nt(&project_reasoning_result(&result).unwrap()).unwrap();
-    assert!(purrdf::datasets_isomorphic(&native, &wire));
+    assert!(
+        purrdf::datasets_isomorphic(&native, &wire)
+            .expect("isomorphism is decided by canonical bytes")
+    );
     let restored = parse_reasoning_dataset(&native, GraphMatch::Default)
         .expect("authored placeholder text must not invalidate a derivation receipt");
     assert_eq!(restored.provenance.query, result.provenance.query);

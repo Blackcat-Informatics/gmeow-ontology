@@ -822,7 +822,7 @@ impl ValidateStage {
             )?),
         )?;
         Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
+            product: StageProduct::from_bundle(self.id(), Arc::new(bundle))?,
             diags: nodes,
             timings: {
                 timings.push(StageRunTiming::new(

@@ -56,12 +56,6 @@ fn first_literal(ds: &RdfDataset, subject: &str, predicate: &str) -> String {
     String::new()
 }
 
-fn reference_validation_error(message: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Parse {
-        message: message.into(),
-    })
-}
-
 fn label_identity(label: &str) -> Result<Option<String>, gmeow_errors::Diag> {
     let (rest, identity_prefix) = if let Some(rest) = label.strip_prefix(REVIEW_LABEL_PREFIX) {
         (rest, "discussion_r")
@@ -72,7 +66,7 @@ fn label_identity(label: &str) -> Result<Option<String>, gmeow_errors::Diag> {
     };
 
     let Some((identity, authority)) = rest.split_once(" by ") else {
-        return Err(reference_validation_error(format!(
+        return Err(crate::error::parse_diag(format!(
             "canonical GitHub comment label lacks an authority: {label}"
         )));
     };
@@ -81,7 +75,7 @@ fn label_identity(label: &str) -> Result<Option<String>, gmeow_errors::Diag> {
         || !digits.as_bytes().iter().all(u8::is_ascii_digit)
         || authority.trim().is_empty()
     {
-        return Err(reference_validation_error(format!(
+        return Err(crate::error::parse_diag(format!(
             "malformed canonical GitHub comment label: {label}"
         )));
     }
@@ -130,7 +124,7 @@ fn validate_github_citation_labels(ds: &RdfDataset) -> Result<(), gmeow_errors::
             continue;
         };
         if label.contains(UNKNOWN_LABEL_MARKER) {
-            return Err(reference_validation_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "citation label retains an unknown GitHub comment identity: {label}"
             )));
         }
@@ -138,7 +132,7 @@ fn validate_github_citation_labels(ds: &RdfDataset) -> Result<(), gmeow_errors::
             continue;
         };
         let TermRef::Iri(subject) = ds.resolve(q.s) else {
-            return Err(reference_validation_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "canonical GitHub comment label is attached to a non-IRI subject: {label}"
             )));
         };
@@ -147,7 +141,7 @@ fn validate_github_citation_labels(ds: &RdfDataset) -> Result<(), gmeow_errors::
             .filter_map(|value| github_fragment_identity(&value))
             .collect::<std::collections::BTreeSet<_>>();
         if url_identities.len() != 1 || !url_identities.contains(&label_identity) {
-            return Err(reference_validation_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "GitHub comment label identity {label_identity} does not agree with its exact URL identity for {subject}"
             )));
         }
@@ -448,7 +442,7 @@ impl Stage for ReferencesStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_references(input.root)?,
-        )))
+        )?))
     }
 }
 

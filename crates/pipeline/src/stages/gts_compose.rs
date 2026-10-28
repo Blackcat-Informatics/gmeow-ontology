@@ -204,7 +204,7 @@ impl Stage for GtsComposeStage {
             self.id(),
             Arc::new(composed),
             BTreeMap::new(),
-        )))
+        )?))
     }
 }
 

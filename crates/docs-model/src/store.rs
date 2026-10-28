@@ -83,8 +83,10 @@ impl Store {
     /// Parse Turtle `bytes` into a fresh store via the native codecs (lenient on
     /// GMEOW's `@x-gmeow-*` language tags). Errors on a syntax fault.
     pub(crate) fn parse_turtle(bytes: &[u8]) -> Result<Self, SliceError> {
-        let ds = parse_dataset(bytes, "text/turtle", None)
-            .map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
+        let ds = parse_dataset(bytes, "text/turtle", None).map_err(|e| SliceError::Rdf {
+            context: "syntax error".to_owned(),
+            cause: Box::new(e),
+        })?;
         Ok(Self { ds })
     }
 
@@ -112,8 +114,11 @@ impl Store {
     /// [`Store::subjects_of_type_any`] helpers rather than the default-graph
     /// [`Store::objects`] family. Errors on a syntax fault.
     pub(crate) fn parse_nquads(bytes: &[u8]) -> Result<Self, SliceError> {
-        let ds = parse_dataset(bytes, "application/n-quads", None)
-            .map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
+        let ds =
+            parse_dataset(bytes, "application/n-quads", None).map_err(|e| SliceError::Rdf {
+                context: "syntax error".to_owned(),
+                cause: Box::new(e),
+            })?;
         Ok(Self { ds })
     }
 
@@ -316,7 +321,7 @@ impl Store {
         &self,
         subject_iri: &str,
         pred: &str,
-    ) -> Result<Vec<purrdf::RdfLiteral>, SliceError> {
+    ) -> Result<Vec<purrdf::RdfLiteral>, crate::model::DocsError> {
         let (Some(subject), Some(predicate)) = (self.iri_id(subject_iri), self.iri_id(pred)) else {
             return Ok(Vec::new());
         };
@@ -326,9 +331,10 @@ impl Store {
                 .quads_for_pattern(Some(subject), Some(predicate), None, GraphMatch::Default)
         {
             let purrdf::RdfTerm::Literal(literal) = self.ds.as_ref().to_owned_term(quad.o) else {
-                return Err(SliceError::Parse(format!(
-                    "<{subject_iri}> <{pred}> requires a literal rationale"
-                )));
+                return Err(crate::model::DocsError::NonliteralRationale {
+                    subject: subject_iri.to_owned(),
+                    predicate: pred.to_owned(),
+                });
             };
             values.push(literal);
         }

@@ -26,17 +26,17 @@
 //! Hard-fail, no warning-only (CONSTITUTION / no-optionality). Ontology-specific
 //! (it names the alignment cell shape and the `dsl/mappings/` tree), so it stays
 //! in gmeow rather than the namespace-neutral `purrdf::slice` carrier — it
-//! consumes purrdf::slice's [`ProjectionDiagnostic`]/[`SliceError`] primitives.
+//! consumes purrdf::slice's [`ProjectionDiagnostic`] primitive.
 
 use std::path::{Path, PathBuf};
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::sssom::equivalence_cells;
-use purrdf::slice::{ProjectionDiagnostic, SliceError};
+use purrdf::slice::ProjectionDiagnostic;
 
 /// Recursively collect `.ttl` files under `dir` (a missing root yields nothing;
 /// a transient FS error surfaces — no silent drop).
-fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError> {
+fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
     if !dir.is_dir() {
         return Ok(());
     }
@@ -62,11 +62,11 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError> {
 ///
 /// # Errors
 ///
-/// Returns [`SliceError`] on a filesystem error reading the scanned tree (a
+/// Returns a diagnostic on a filesystem error reading the scanned tree (a
 /// missing `dsl/mappings/` is not an error — it simply contributes no sources), or
 /// on a malformed alignment cell / unparsable Turtle surfaced by the canonical
 /// native reader.
-pub fn lint_dsl_mapping_purity(root: &Path) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
+pub fn lint_dsl_mapping_purity(root: &Path) -> gmeow_errors::Result<Vec<ProjectionDiagnostic>> {
     let mut files: Vec<PathBuf> = Vec::new();
     collect_ttl(&root.join("dsl").join("mappings"), &mut files)?;
     files.sort();
@@ -84,11 +84,14 @@ pub fn lint_dsl_mapping_purity(root: &Path) -> Result<Vec<ProjectionDiagnostic>,
         // treats as an alignment cell (a reified skos:*Match / owl: / rdfs: statement
         // carrying gmeow:sssomFile).
         let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| SliceError::Parse(format!("{rel}: {e}")))?;
+            .map_err(|e| crate::error::parse_diag(format!("{rel}: {e}")))?;
         let view = DslView::new(&dataset);
         let count = equivalence_cells(&view)
             .map_err(|e| {
-                SliceError::Parse(format!("{rel}: malformed alignment cell: {}", e.message()))
+                crate::error::parse_diag(format!(
+                    "{rel}: malformed alignment cell: {}",
+                    e.message()
+                ))
             })?
             .len();
         if count == 0 {

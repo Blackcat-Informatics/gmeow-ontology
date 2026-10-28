@@ -34,7 +34,8 @@ fn typed_shacl_shex_sidecars_round_trip_through_gmeow_gts() {
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     upstream.insert(
         "stage-compile-logic".to_string(),
-        StageProduct::from_artifacts("stage-compile-logic", compile_arts),
+        StageProduct::from_artifacts("stage-compile-logic", compile_arts)
+            .expect("the stage carrier digests"),
     );
 
     // Build the typed sidecars through the PRODUCTION helper, fold them into a

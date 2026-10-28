@@ -2519,27 +2519,24 @@ fn reason_program_routes_modal_evaluation_through_the_native_closure() {
 
 #[test]
 fn portable_semantic_identity_excludes_target_execution_contracts() {
-    use purrdf::datalog::seminaive::{
-        EvalOptions, NATIVE_DEFAULT_MAX_STORED_FACTS, WASM_DEFAULT_MAX_STORED_FACTS,
-    };
+    use purrdf::datalog::seminaive::EvalOptions;
     let semantic = purrdf_substrate_identity();
     for regime in [purrdf::entail::Regime::OwlRl, purrdf::entail::Regime::D] {
         let rules = purrdf::entail::calculus_program(regime);
-        // Hash two real operation profiles without evaluating under either one.
-        let native = purrdf::datalog::cache::contract_hash_with(
+        // Hash two real operation profiles without evaluating under either one: the
+        // unstated profile, which imposes no stored-fact ceiling, and an explicitly
+        // selected finite ceiling.
+        let unbounded = purrdf::datalog::cache::contract_hash_with(&rules, &EvalOptions::default());
+        let bounded = purrdf::datalog::cache::contract_hash_with(
             &rules,
-            &EvalOptions::default().with_max_stored_facts(NATIVE_DEFAULT_MAX_STORED_FACTS),
-        );
-        let browser = purrdf::datalog::cache::contract_hash_with(
-            &rules,
-            &EvalOptions::default().with_max_stored_facts(WASM_DEFAULT_MAX_STORED_FACTS),
+            &EvalOptions::default().with_max_stored_facts(1 << 17),
         );
         assert_ne!(
-            native, browser,
+            unbounded, bounded,
             "actual execution contracts retain their selected limits"
         );
-        assert!(!semantic.contains(&native.to_hex()));
-        assert!(!semantic.contains(&browser.to_hex()));
+        assert!(!semantic.contains(&unbounded.to_hex()));
+        assert!(!semantic.contains(&bounded.to_hex()));
         let rules_hash =
             purrdf_hash::hex::Digest32::new(purrdf::datalog::cache::canonical_rule_hash(&rules));
         assert!(

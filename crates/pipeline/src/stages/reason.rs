@@ -110,7 +110,7 @@ fn reason_product_from_artifacts(
                 message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
             })
         })?;
-    Ok(StageProduct::from_bundle("stage-reason", Arc::new(bundle)))
+    StageProduct::from_bundle("stage-reason", Arc::new(bundle))
 }
 
 /// Reason over an in-memory EDB and return the three artifacts plus the typed
@@ -869,7 +869,7 @@ impl Stage for ReasonStage {
                 })
             })?;
         let output_quads = bundle.dataset().quad_count();
-        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle));
+        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle))?;
         tracing::info!(
             target: "pipeline_phase",
             stage = self.id(),

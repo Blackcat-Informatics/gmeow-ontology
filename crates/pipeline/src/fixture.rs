@@ -253,7 +253,7 @@ fn settled_source_load_digest(
         hit.product.bundle(),
         crate::stages::carrier::REP_SPAN_TABLE,
     )?;
-    let settled = StageProduct::from_bundle(hit.product.stage_id.clone(), Arc::new(stripped));
+    let settled = StageProduct::from_bundle(hit.product.stage_id.clone(), Arc::new(stripped))?;
     let witness = SettledSourceLoadWitness {
         schema_version: 1,
         source_action_key: source.action_key.clone(),

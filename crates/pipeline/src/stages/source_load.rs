@@ -638,7 +638,7 @@ impl Stage for SourceLoadStage {
             "application/json",
             span_blob,
         );
-        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle));
+        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle))?;
         timings.push(crate::node::StageRunTiming::new(
             "product-assembly",
             started.elapsed().as_millis(),

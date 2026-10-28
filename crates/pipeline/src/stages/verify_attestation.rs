@@ -329,7 +329,7 @@ fn build_output_from_report(
         diag_blob,
     );
     Ok(StageOutput {
-        product: StageProduct::from_bundle(stage_id, Arc::new(bundle)),
+        product: StageProduct::from_bundle(stage_id, Arc::new(bundle))?,
         diags: nodes,
         timings: Vec::new(),
     })

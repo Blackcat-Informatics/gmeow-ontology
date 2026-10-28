@@ -347,7 +347,8 @@ fn diagnostics_digest_joins_term_and_slice_and_hard_fails_on_missing_upstream() 
     let mut missing_publication: BTreeMap<String, StageProduct> = BTreeMap::new();
     missing_publication.insert(
         "stage-validate".to_string(),
-        StageProduct::from_artifacts("stage-validate", BTreeMap::new()),
+        StageProduct::from_artifacts("stage-validate", BTreeMap::new())
+            .expect("the stage carrier digests"),
     );
     missing_publication.insert(
         "stage-compile-logic".to_string(),
@@ -377,6 +378,7 @@ fn mappings_product_with_ledger(turtle_body: &str) -> StageProduct {
     )
     .expect("parse synthetic projection-ledger turtle");
     StageProduct::from_artifacts_over("stage-mappings", dataset, BTreeMap::new())
+        .expect("the stage carrier digests")
 }
 
 #[test]

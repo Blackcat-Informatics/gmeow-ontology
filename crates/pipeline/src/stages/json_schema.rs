@@ -199,7 +199,7 @@ fn publish_schema(
         diag_blob,
     );
     Ok(StageOutput {
-        product: StageProduct::from_bundle(stage, std::sync::Arc::new(bundle)),
+        product: StageProduct::from_bundle(stage, std::sync::Arc::new(bundle))?,
         diags: nodes,
         timings: Vec::new(),
     })

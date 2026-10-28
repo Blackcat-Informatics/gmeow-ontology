@@ -87,11 +87,12 @@ fn build_reasoning_blob_folds_the_report_artifacts() {
                 gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL.into(),
                 b"synthetic canon admission observation".to_vec(),
             )]),
-        ),
+        )
+        .expect("the stage carrier digests"),
     );
     upstream.insert(
         "stage-reason".to_string(),
-        StageProduct::from_artifacts("stage-reason", artifacts),
+        StageProduct::from_artifacts("stage-reason", artifacts).expect("the stage carrier digests"),
     );
     upstream.insert(
         "stage-verify-attestation".to_owned(),
@@ -101,7 +102,8 @@ fn build_reasoning_blob_folds_the_report_artifacts() {
                 gmeow_logic::verify::PREPARED_GATES_CHANNEL.to_owned(),
                 b"synthetic prepared laws".to_vec(),
             )]),
-        ),
+        )
+        .expect("the stage carrier digests"),
     );
     upstream.insert(
         "stage-conformance".to_owned(),
@@ -117,7 +119,8 @@ fn build_reasoning_blob_folds_the_report_artifacts() {
                     b"synthetic operator rules".to_vec(),
                 ),
             ]),
-        ),
+        )
+        .expect("the stage carrier digests"),
     );
     let blob = build_reasoning_blob(&upstream).expect("reasoning blob");
     assert_eq!(blob.rep, REP_REASONING);
@@ -317,7 +320,8 @@ fn print_upstream() -> BTreeMap<String, StageProduct> {
     );
     upstream.insert(
         "stage-export-references".to_string(),
-        StageProduct::from_artifacts("stage-export-references", refs),
+        StageProduct::from_artifacts("stage-export-references", refs)
+            .expect("the stage carrier digests"),
     );
     let mut logic: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for rel in AXIOM_FILES {
@@ -328,7 +332,8 @@ fn print_upstream() -> BTreeMap<String, StageProduct> {
     }
     upstream.insert(
         "stage-compile-logic".to_string(),
-        StageProduct::from_artifacts("stage-compile-logic", logic),
+        StageProduct::from_artifacts("stage-compile-logic", logic)
+            .expect("the stage carrier digests"),
     );
     upstream
 }

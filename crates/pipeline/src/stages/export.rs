@@ -129,6 +129,6 @@ impl Stage for ExportStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_all(graph.as_ref(), &modeled_defs)?,
-        )))
+        )?))
     }
 }

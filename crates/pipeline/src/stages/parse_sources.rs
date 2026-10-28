@@ -448,7 +448,7 @@ fn source_catalog_product(catalog: Arc<SourceCatalog>) -> gmeow_errors::Result<S
             pin,
         )
         .map_err(|error| stage_error(error.to_string()))?;
-    Ok(StageProduct::from_bundle(STAGE_ID, Arc::new(bundle)))
+    StageProduct::from_bundle(STAGE_ID, Arc::new(bundle))
 }
 
 #[path = "parse_sources.document_cache_tests.rs"]

@@ -16,7 +16,7 @@
 //! GMN-0 (`gmeow:gmnNormalForm`) is charter-defined as "the RDFC-1.0 canonically
 //! blank-node-labeled, content-sorted term-table normal form of the bundle" — i.e. a
 //! canonical *quad set*. [`Gmn0Model`] is that quad set, built from a [`purrdf::RdfDataset`]
-//! and compared for canonical equality through [`purrdf::canonicalize`] — the SAME
+//! and compared for canonical equality through [`purrdf::try_canonicalize`] — the SAME
 //! canonical-comparison primitive the GTS/N-Quads byte-teeth gates use.
 //!
 //! # The record model (design decision, documented here because it is load-bearing)
@@ -228,10 +228,11 @@ impl Gmn0Model {
     /// this codec's round-trip gate (and the GTS/N-Quads byte-teeth gates) share.
     ///
     /// # Errors
-    /// Returns the original native model-construction failure.
+    /// Returns the original native model-construction failure or canonicalization
+    /// refusal.
     pub fn canonical_nquads(&self) -> gmeow_errors::Result<String> {
         let dataset = self.to_dataset()?;
-        Ok(purrdf::canonicalize(&dataset).nquads)
+        Ok(purrdf::try_canonicalize(&dataset)?.nquads)
     }
 }
 
@@ -4375,7 +4376,7 @@ impl RoundTrip {
 }
 
 /// Run `gmn1_read(gmn1_write(model))` and assert canonical equality via
-/// [`purrdf::canonicalize`] — the pure primitive the executed pipeline gate
+/// [`purrdf::try_canonicalize`] — the pure primitive the executed pipeline gate
 /// (`crates/pipeline/src/stages/gmn1_gate.rs`) and this crate's own fixture tests both
 /// call. `Ok(())` iff the round-trip is exact; `Err` names the concrete failure
 /// (write-side uncovered term, read-side parse/uncovered defect, or a canonical

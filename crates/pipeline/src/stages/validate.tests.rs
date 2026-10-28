@@ -335,7 +335,8 @@ ex:RequiredShape a sh:NodeShape ;
         "application/json",
         span_blob,
     );
-    let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+    let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
+        .expect("the stage carrier digests");
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     upstream.insert("stage-source-load".to_string(), product);
     add_catalog(&mut upstream, SYNTHETIC_SOURCE);
@@ -369,7 +370,7 @@ ex:RequiredShape a sh:NodeShape ;
             .collect();
         upstream.insert(
             producer.to_string(),
-            StageProduct::from_artifacts(producer, artifacts),
+            StageProduct::from_artifacts(producer, artifacts).expect("the stage carrier digests"),
         );
     }
     // The D5 abductive tier consumes stage-reason's reasoned closure; an empty-EDB
@@ -462,7 +463,8 @@ fn run_full_stage_with_reason(base_nq: &str, shapes: &str, reason_nq: &[u8]) -> 
         "application/json",
         span_blob,
     );
-    let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+    let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
+        .expect("the stage carrier digests");
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     upstream.insert("stage-source-load".to_string(), product);
     add_catalog(&mut upstream, base_nq);
@@ -493,7 +495,7 @@ fn run_full_stage_with_reason(base_nq: &str, shapes: &str, reason_nq: &[u8]) -> 
             .collect();
         upstream.insert(
             producer.to_string(),
-            StageProduct::from_artifacts(producer, artifacts),
+            StageProduct::from_artifacts(producer, artifacts).expect("the stage carrier digests"),
         );
     }
     // Tiny explicit synthetic inputs exercise the consumer without a corpus build.
@@ -795,7 +797,8 @@ fn stage_validate_hard_fails_without_the_reasoned_upstream() {
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     upstream.insert(
         "stage-source-load".to_string(),
-        StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
+        StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
+            .expect("the stage carrier digests"),
     );
     add_catalog(&mut upstream, SYNTHETIC_SOURCE);
     // Every generated-shape producer is present, so the stage reaches the abductive
@@ -827,7 +830,7 @@ fn stage_validate_hard_fails_without_the_reasoned_upstream() {
             .collect();
         upstream.insert(
             producer.to_string(),
-            StageProduct::from_artifacts(producer, artifacts),
+            StageProduct::from_artifacts(producer, artifacts).expect("the stage carrier digests"),
         );
     }
     let err = match ValidateStage::new().validate_input(

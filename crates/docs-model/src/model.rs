@@ -426,6 +426,14 @@ pub enum DocsError {
         /// The second document's `slice-iri :: source-path` identity.
         second: String,
     },
+    /// A competency question's rationale path carries a nonliteral value, which the
+    /// documentation would otherwise silently lose. Carries the subject and predicate.
+    NonliteralRationale {
+        /// The competency question IRI.
+        subject: String,
+        /// The rationale predicate IRI.
+        predicate: String,
+    },
 }
 
 impl std::fmt::Display for DocsError {
@@ -472,6 +480,9 @@ impl std::fmt::Display for DocsError {
                 f,
                 "two documents map to the same generated page path `{page}`: {first} and {second}"
             ),
+            DocsError::NonliteralRationale { subject, predicate } => {
+                write!(f, "<{subject}> <{predicate}> requires a literal rationale")
+            }
         }
     }
 }
@@ -3722,7 +3733,7 @@ fn shape_messages(store: &Store, start: &Node) -> Vec<String> {
 /// `gmeow:cqQueryFile` reference needs the repo root to resolve (this function
 /// only sees one slice's parsed store), so that half is completed afterwards by
 /// `apply_competency_query_text` in [`DocsModel::discover`].
-fn extract_competency(store: &Store, owner_slice: &str) -> Result<Vec<DocCompetency>, SliceError> {
+fn extract_competency(store: &Store, owner_slice: &str) -> Result<Vec<DocCompetency>, DocsError> {
     let mut out = Vec::new();
     for cq in subjects_of_type(store, GMEOW_COMPETENCY_QUESTION) {
         let rationales = store.rdf_literals(&cq, GMEOW_CQ_RATIONALE)?;

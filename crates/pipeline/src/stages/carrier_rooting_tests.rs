@@ -93,7 +93,8 @@ fn compile_source(logic_standpoint: &str, diagnostic_standpoint: &str) -> Arc<Rd
 fn compile_inputs(source: Arc<RdfDataset>) -> BTreeMap<String, StageProduct> {
     BTreeMap::from([(
         "stage-compile-logic".to_owned(),
-        StageProduct::from_artifacts_over("stage-compile-logic", source, BTreeMap::new()),
+        StageProduct::from_artifacts_over("stage-compile-logic", source, BTreeMap::new())
+            .expect("the stage carrier digests"),
     )])
 }
 

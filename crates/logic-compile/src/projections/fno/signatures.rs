@@ -234,10 +234,20 @@ fn required(view: &DslView<'_>, subject: &str) -> gmeow_errors::Result<bool> {
     }
 }
 
-fn literal(view: &DslView<'_>, subject: &str, predicate: &str) -> gmeow_errors::Result<String> {
-    view.object_literal(subject, predicate)
-        .filter(|text| !text.is_empty())
-        .ok_or_else(|| refusal(subject, format!("missing nonempty literal {predicate}")))
+/// The first `predicate` value of `subject`, which must be a nonempty literal. The
+/// FnO model carries the complete source literal: datatype, language and direction.
+fn literal(view: &DslView<'_>, subject: &str, predicate: &str) -> gmeow_errors::Result<TermValue> {
+    match view.first_object(subject, predicate) {
+        Some(term @ TermValue::Literal { .. })
+            if crate::ingest::literal_lexical(&term).is_some_and(|text| !text.is_empty()) =>
+        {
+            Ok(term)
+        }
+        _ => Err(refusal(
+            subject,
+            format!("missing nonempty literal {predicate}"),
+        )),
+    }
 }
 
 impl Signatures {
@@ -363,8 +373,8 @@ impl Signatures {
         Ok(out)
     }
 
-    /// Source annotations carry their complete RDF literal identities. Replace the serializer
-    /// convenience strings with these values before the common annotation/retag pass.
+    /// The FnO model carries one label and one definition per subject. Replace them with
+    /// the complete source annotation set before the common annotation/retag pass.
     pub fn restore_annotations(&self, quads: &mut Vec<RdfQuad>) {
         quads.retain(|quad| {
             !matches!(&quad.subject, RdfTerm::Iri(iri)

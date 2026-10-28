@@ -627,6 +627,6 @@ impl Stage for StatementsStage {
             self.id(),
             dataset,
             artifacts,
-        )))
+        )?))
     }
 }

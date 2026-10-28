@@ -71,6 +71,7 @@ fn source_load_product_with_spans() -> StageProduct {
         span_blob,
     );
     StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
+        .expect("the stage carrier digests")
 }
 
 /// The four generated-shape producer products the fresh union hard-requires
@@ -83,7 +84,7 @@ fn insert_generated_shape_producers(upstream: &mut BTreeMap<String, StageProduct
         for rel in rels {
             artifacts.insert((*rel).to_string(), b"# generated\n".to_vec());
         }
-        StageProduct::from_artifacts(stage, artifacts)
+        StageProduct::from_artifacts(stage, artifacts).expect("the stage carrier digests")
     };
     upstream.insert(
         "stage-compile-logic".to_owned(),

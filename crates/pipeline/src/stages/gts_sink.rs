@@ -232,7 +232,7 @@ fn snapshot_output(
         PASS_ONE_RECEIPT_PATH.to_string(),
         serialized.pass_one_receipt,
     );
-    let mut output = StageOutput::new(StageProduct::from_artifacts(stage_id, artifacts));
+    let mut output = StageOutput::new(StageProduct::from_artifacts(stage_id, artifacts)?);
     output.timings = serialized.timings;
     Ok(output)
 }

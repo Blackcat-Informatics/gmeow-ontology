@@ -465,7 +465,7 @@ impl Stage for BenchLeaderboardStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_bench_leaderboard(input.root)?,
-        )))
+        )?))
     }
 }
 
@@ -1616,7 +1616,7 @@ impl Stage for CostLedgerStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 

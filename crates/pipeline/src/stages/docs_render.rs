@@ -1049,7 +1049,7 @@ impl Stage for DocsRenderStage {
             self.id(),
             dataset,
             artifacts,
-        )))
+        )?))
     }
 }
 

@@ -746,7 +746,7 @@ impl Stage for MetadataStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 
