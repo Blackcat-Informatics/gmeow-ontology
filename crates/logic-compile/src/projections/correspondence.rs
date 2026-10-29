@@ -33,6 +33,8 @@
 //! boundary re-derives it (via [`parse_correspondence`]) from the backing graph on a
 //! hit. The program is never re-serialized between phases.
 
+mod cbor;
+
 use std::fmt::Write as _;
 
 use crate::graphutil::{Subject, is_structural_type_predicate, nn, objects, term_as_subject};

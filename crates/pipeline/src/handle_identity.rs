@@ -97,6 +97,17 @@ pub(crate) fn source_catalog_digest(
     purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
+/// Stream the complete correspondence payload through its owned native writer.
+fn correspondence_digest(
+    program: &gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
+) -> String {
+    let mut sink = TypedDigest::default();
+    program
+        .write_cbor(&mut sink)
+        .expect("native correspondence serialization into an infallible hash sink");
+    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
+}
+
 /// The complete payload identity is independent of its governed RDF projection.
 pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
     let key = match handle {
@@ -106,7 +117,7 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::Diagnostics(publication) => typed_digest(publication.as_ref()),
         PipelineHandle::Reasoning(result) => typed_digest(result.as_ref()),
         PipelineHandle::RelationalCore(program) => relational_core_digest(program.as_ref()),
-        PipelineHandle::Correspondence(program) => typed_digest(program.as_ref()),
+        PipelineHandle::Correspondence(program) => correspondence_digest(program.as_ref()),
     };
     content_digest(&[
         b"typed-payload-v2",

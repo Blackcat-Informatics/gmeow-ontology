@@ -23,6 +23,32 @@ pub struct SelectedTemplate {
     pub support: LiteralProjectionSupport,
 }
 
+impl SelectedTemplate {
+    /// Retain the selected template occurrence and complete native support.
+    ///
+    /// # Errors
+    /// Returns the sink's original failure without reporting partial success.
+    pub(crate) fn write_cbor<W: std::io::Write + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> std::io::Result<()> {
+        use purrdf_lex::cbor::head;
+
+        head::write_head(out, head::MAP, 5)?;
+        head::write_text(out, "profile")?;
+        head::write_text(out, &self.profile)?;
+        head::write_text(out, "template_index")?;
+        head::write_head(out, head::UNSIGNED, self.template_index as u64)?;
+        head::write_text(out, "subject_variable")?;
+        head::write_text(out, &self.subject_variable)?;
+        head::write_text(out, "object_variable")?;
+        head::write_text(out, &self.object_variable)?;
+        head::write_text(out, "support")?;
+        self.support.write_cbor(out)?;
+        Ok(())
+    }
+}
+
 fn one(view: &DslView, node: &DslTerm, local: &str) -> gmeow_errors::Result<DslTerm> {
     let values = view.objects_of_term(node, &format!("{GM}{local}"));
     match values.as_slice() {

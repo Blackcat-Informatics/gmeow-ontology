@@ -93,6 +93,18 @@ impl<const UNIT_INTERVAL: bool> NumericLiteral<UNIT_INTERVAL> {
         })
     }
 
+    /// Stream the retained coordinate using the existing single-literal tuple.
+    /// The decoded numeric cache is not part of this boundary's wire.
+    ///
+    /// # Errors
+    /// Returns the sink's original failure.
+    pub(crate) fn write_cbor<W: std::io::Write + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> std::io::Result<()> {
+        super::literal_serde::single::write_cbor(&self.literal, out)
+    }
+
     /// The unchanged RDF coordinate for native transport and projection.
     pub fn literal(&self) -> &RdfLiteral {
         &self.literal
