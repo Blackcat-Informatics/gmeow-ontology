@@ -40,6 +40,7 @@ use std::sync::Arc;
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermId, TermRef, TermValue};
+use purrdf_lex::json::record::ToJson;
 use sha2::{Digest, Sha256};
 
 use gmeow_errors::{
@@ -357,10 +358,9 @@ fn obligation_diag(
         logical: Some(obligation.iri.clone()),
         ..Location::default()
     })
-    .with_focus(
-        serde_json::to_string(&(&obligation.forbidden_predicate, field))
-            .expect("native obligation coordinates serialize"),
-    )
+    .with_focus(purrdf_lex::json::write_compact(
+        &(&obligation.forbidden_predicate, field).to_json(),
+    ))
     .with_graph(world.clone())
     .with_tag("formalization-governance")
     .with_tag("non-entailment")

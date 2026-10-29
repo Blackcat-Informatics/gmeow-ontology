@@ -470,6 +470,37 @@ fn arm_b_finite_closure_green_then_red() {
     .expect("must fire");
     assert_eq!(finding.grade().severity, Severity::Error);
     assert!(gmeow_errors::code::code_str(finding.code()).contains("non-entailment.derived"));
+    // Focus bytes are identity coordinates, independent of emitted source positions.
+    // Literal focus and fingerprint values captured from the original diagnostic writer.
+    for (predicate, expected_focus, expected_fingerprint) in [
+        (
+            pred,
+            r#"["https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim","derived"]"#,
+            "ee74df1811034941cd03ce775d9b83d4",
+        ),
+        (
+            "https://example.org/猫/é/ادعاء",
+            r#"["https://example.org/猫/é/ادعاء","derived"]"#,
+            "1c0ab382d6f1d5575b8dd45aece93a26",
+        ),
+    ] {
+        let obligation = obligation("ex:deception", predicate, &["DischargeFiniteClosure"]);
+        let diagnostic = check_finite_closure(
+            &purrdf::iri::BaseIri::parse("urn:test:world").unwrap(),
+            &obligation,
+            &BTreeSet::from([predicate.to_owned()]),
+            &no_candidates,
+        )
+        .expect("committed counterexample");
+        let focus = &diagnostic.inner().source_ctx.focus.as_ref().unwrap().0;
+        let fingerprint = gmeow_errors::DiagFingerprint::compute(
+            gmeow_errors::code::code_str(diagnostic.code()),
+            diagnostic.grade().category,
+            &diagnostic.inner().source_ctx,
+        );
+        assert_eq!(focus, expected_focus);
+        assert_eq!(fingerprint.hex(), expected_fingerprint);
+    }
 }
 
 #[test]
