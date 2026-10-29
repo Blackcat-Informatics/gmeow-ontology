@@ -293,8 +293,8 @@ pub fn extract_module(
 ///
 /// purrdf exposes no evaluation-options variant of this service, so its restricted chase
 /// runs under purrdf's unstated capacity, which since purrdf 4.0 imposes no logical
-/// ceiling. Every other purrdf evaluation gmeow requests states
-/// [`crate::purrdf_limits`]'s ceilings.
+/// ceiling. Every other purrdf evaluation gmeow requests states gmeow's own stored-fact,
+/// join-step and term-arena ceilings (the crate-private `purrdf_limits` module).
 ///
 /// # Errors
 ///

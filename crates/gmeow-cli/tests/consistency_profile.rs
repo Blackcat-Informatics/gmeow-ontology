@@ -498,8 +498,9 @@ fn an_undecided_run_withholds_direct_answers_instead_of_emitting_an_empty_list()
         let report = json(&out);
         assert_eq!(report["verdict"], "partial", "{operation}");
         assert!(
-            report["result"][field].is_null(),
-            "{operation} withholds {field}, never an empty list: {report}"
+            report.get("result").and_then(|result| result.get(field))
+                == Some(&serde_json::Value::Null),
+            "{operation} withholds {field} as an explicit null, never an empty list: {report}"
         );
         assert!(
             report["diagnostics"].as_array().is_some_and(|rows| rows
