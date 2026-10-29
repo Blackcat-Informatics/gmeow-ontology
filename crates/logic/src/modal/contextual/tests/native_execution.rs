@@ -97,6 +97,13 @@ fn one_contextual_receipt_owns_every_metadata_head_and_rejects_tampering() {
     execution.validate_structure().unwrap();
     assert_preexisting_publication_retains_assessment(receipt);
 
+    let projection = crate::result_rdf::ResultProjection::reasoning(&result).unwrap();
+    let restored = crate::result_rdf::parse_reasoning_graph(&projection.to_ntriples()).unwrap();
+    assert_eq!(
+        restored.native_execution().unwrap(),
+        result.native_execution().unwrap()
+    );
+
     let mut truncated = receipt.clone();
     truncated.statements.pop();
     assert!(truncated.validate().is_err());

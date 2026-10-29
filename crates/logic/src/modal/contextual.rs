@@ -8,6 +8,8 @@
 //! the explicitly selected named world, as attributed RDF 1.2 claims. An
 //! unannotated positive quad is not an attributed claim.
 
+mod execution_cbor;
+
 mod monitor;
 pub(crate) mod native;
 mod path;

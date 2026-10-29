@@ -13,6 +13,7 @@ use crate::reason::refute::{
 };
 use purrdf::TermValue;
 use std::collections::{BTreeMap, BTreeSet};
+mod receipt_cbor;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";

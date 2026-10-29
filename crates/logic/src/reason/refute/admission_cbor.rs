@@ -212,3 +212,70 @@ impl RefutationSourceIssue {
         }
     }
 }
+
+// Complete receipt hydration shares only the genuinely identical source-row
+// and source-world writers above. No semantic constructor runs at this boundary.
+use crate::execution_cbor::{ExecutionCbor, Reader, Result as WireResult, descend};
+
+impl ExecutionCbor for RefutationPremise {
+    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+        RefutationPremise::write_cbor(self, out)
+    }
+
+    fn check_depth(&self, remaining: usize) -> WireResult<()> {
+        let remaining = descend(remaining)?;
+        ExecutionCbor::check_depth(&self.subject, remaining)?;
+        ExecutionCbor::check_depth(&self.predicate, remaining)?;
+        ExecutionCbor::check_depth(&self.object, remaining)?;
+        ExecutionCbor::check_depth(&self.graph, remaining)?;
+        Ok(())
+    }
+
+    fn read_cbor(input: &mut Reader<'_>) -> WireResult<Self> {
+        input.map(|input, length| {
+            if length != 4 {
+                return Err(input.invalid("expected complete RefutationPremise record"));
+            }
+            input.field("subject")?;
+            let subject = ExecutionCbor::read_cbor(input)?;
+            input.field("predicate")?;
+            let predicate = ExecutionCbor::read_cbor(input)?;
+            input.field("object")?;
+            let object = ExecutionCbor::read_cbor(input)?;
+            input.field("graph")?;
+            let graph = ExecutionCbor::read_cbor(input)?;
+            Ok(Self {
+                subject,
+                predicate,
+                object,
+                graph,
+            })
+        })
+    }
+}
+
+impl ExecutionCbor for ClassAdmissionSourceWorld {
+    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+        ClassAdmissionSourceWorld::write_cbor(self, out)
+    }
+
+    fn check_depth(&self, remaining: usize) -> WireResult<()> {
+        let remaining = descend(remaining)?;
+        ExecutionCbor::check_depth(&self.graph, remaining)?;
+        ExecutionCbor::check_depth(&self.assertions, remaining)?;
+        Ok(())
+    }
+
+    fn read_cbor(input: &mut Reader<'_>) -> WireResult<Self> {
+        input.map(|input, length| {
+            if length != 2 {
+                return Err(input.invalid("expected complete ClassAdmissionSourceWorld record"));
+            }
+            input.field("graph")?;
+            let graph = ExecutionCbor::read_cbor(input)?;
+            input.field("assertions")?;
+            let assertions = ExecutionCbor::read_cbor(input)?;
+            Ok(Self { graph, assertions })
+        })
+    }
+}

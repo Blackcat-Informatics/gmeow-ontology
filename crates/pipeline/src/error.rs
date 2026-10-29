@@ -59,40 +59,15 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// A cache or typed-publication encoding, decoding or validation failure.
     /// Covers JSON, binary product blobs and complete native publications;
     /// distinct from [`Parse`], which reports RDF parsing failures.
     /// Native codec failures retain their cause beneath this downcastable kind.
-    pub struct Decode {
-        message: String,
-        cause: Option<std::sync::Arc<dyn std::error::Error + Send + Sync>>
-    }
+    pub struct Decode { message: String }
     code = "pipeline.cache.decode";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "pipeline cache decode error: {}", message;
-    source = failure => failure.cause.as_deref()
-        .map(|cause| cause as &(dyn std::error::Error + 'static));
-}
-
-impl Decode {
-    /// Describe a validation refusal that has no lower native error cause.
-    pub fn new(message: String) -> Self {
-        Self {
-            message,
-            cause: None,
-        }
-    }
-
-    /// Retain a native codec cause beneath the existing cache diagnostic kind.
-    pub fn caused_by(
-        message: String,
-        cause: impl std::error::Error + Send + Sync + 'static,
-    ) -> Self {
-        Self {
-            message,
-            cause: Some(std::sync::Arc::new(cause)),
-        }
-    }
 }
 
 define_diag_kind! {

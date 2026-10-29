@@ -23,6 +23,7 @@ use proof::Support;
 pub(crate) mod execution;
 pub use execution::ClassExecutionOutcome;
 mod admission;
+mod receipt_cbor;
 pub use admission::{
     ClassAdmissionObservation, ClassAdmissionSourceWorld, ClassAdmissionWorld, ClassSourceRefusal,
     PreparedClassAnalysis,

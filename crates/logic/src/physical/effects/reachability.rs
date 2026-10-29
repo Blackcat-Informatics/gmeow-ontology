@@ -3,6 +3,8 @@
 
 //! Compact potential-writer inventories; no source facts or analysis state escape.
 
+mod execution_cbor;
+
 use std::collections::BTreeSet;
 
 use super::{StatementPattern, value_flow::ValueFlow};

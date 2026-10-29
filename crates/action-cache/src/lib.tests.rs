@@ -26,6 +26,80 @@ fn store(root: &Path) -> ActionStore {
 
 #[test]
 fn action_key_sorts_inputs_and_binds_dimensions() {
+    let rich = ActionContext::new(
+        "domain/é中😀\n\"\\",
+        "action\t\r\u{0000}",
+        ProducerIdentity {
+            digest: "producer-identity".into(),
+            toolchain: Some("compiler".into()),
+            target: Some("target".into()),
+            profile: Some("profile".into()),
+            features: vec!["z".into(), "a".into(), "z".into()],
+        },
+        "codec",
+        vec![
+            ActionInput::Upstream {
+                producer: "upstream".into(),
+                entity: Some("urn:entity".into()),
+                receipt_digest: Some("receipt".into()),
+                product_digest: "product".into(),
+            },
+            ActionInput::Upstream {
+                producer: "upstream".into(),
+                entity: None,
+                receipt_digest: None,
+                product_digest: "product".into(),
+            },
+            ActionInput::Raw {
+                logical_path: "file".into(),
+                file_kind: FileKind::File,
+                executable: false,
+                digest: "file-digest".into(),
+            },
+            ActionInput::Raw {
+                logical_path: "symlink".into(),
+                file_kind: FileKind::Symlink,
+                executable: true,
+                digest: "symlink-digest".into(),
+            },
+            ActionInput::Raw {
+                logical_path: "aggregate".into(),
+                file_kind: FileKind::Aggregate,
+                executable: false,
+                digest: "aggregate-digest".into(),
+            },
+        ],
+    )
+    .with_dimension("z", "last")
+    .with_dimension("a", "é中😀\u{001f}\u{0008}\u{000c}");
+    let mut raw = rich.clone();
+    raw.schema_version = u32::MAX;
+    raw.implementation.features = vec!["z".into(), "a".into(), "z".into()];
+    raw.inputs.reverse();
+    raw.inputs.push(raw.inputs[0].clone());
+    let references = include_str!("fixtures/action-key-json-v1.txt");
+    assert_eq!(references.lines().count(), 3);
+    for ((name, value), reference) in [
+        ("empty", context("x", vec![])),
+        ("rich", rich),
+        ("raw", raw),
+    ]
+    .into_iter()
+    .zip(references.lines())
+    {
+        use purrdf_lex::json::{self, record::ToJson as _};
+
+        let mut fields = reference.splitn(3, '|');
+        assert_eq!(fields.next().unwrap(), name);
+        let key = fields.next().unwrap();
+        let original = fields.next().unwrap();
+        let mut resident = purrdf_lex::allocation::Resident;
+        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+        let encoded =
+            json::write_with_memory(&value.to_json(), json::Format::COMPACT, &mut memory).unwrap();
+        assert_eq!(encoded, original, "complete {name} action context");
+        assert_eq!(value.key().as_str(), key, "actual {name} action key");
+    }
     let one = ActionInput::Raw {
         logical_path: "b".into(),
         file_kind: FileKind::File,
