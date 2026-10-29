@@ -39,6 +39,8 @@
 //! [`chase_materialize`] is the native forward entry for a value-inventing program
 //! (a rule with an existential head variable).
 
+mod execution_cbor;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::{Finding, Severity};

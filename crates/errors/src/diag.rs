@@ -892,9 +892,93 @@ macro_rules! ensure {
 /// An optional `source = kind => expression;` clause supplies the original
 /// typed cause through `std::error::Error::source`. The expression borrows the
 /// generated kind as `kind` and returns an optional error reference.
+///
+/// A leading `native_cause;` marker on a single-`String`-field declaration adds
+/// an optional shared native error cause, with `new` and `caused_by` constructors.
+/// It retains the original cause through `Error::source`.
 #[macro_export]
 macro_rules! define_diag_kind {
     (
+        native_cause;
+        $(#[$meta:meta])*
+        $vis:vis struct $name:ident { $field:ident : String $(,)? }
+        code = $code:literal;
+        grade = $grade:expr;
+        message = $msg:literal $(, $marg:ident)* $(,)?;
+        $(failure_class = $failure_class:literal;)?
+    ) => {
+        $crate::impl_diag_kind! {
+            @define
+            $(#[$meta])*
+            $vis struct $name {
+                $field: ::std::string::String,
+                cause: ::std::option::Option<
+                    ::std::sync::Arc<dyn ::std::error::Error + ::std::marker::Send + ::std::marker::Sync>
+                >
+            }
+            code = $code;
+            grade = $grade;
+            message = $msg $(, $marg)*;
+            $(failure_class = $failure_class;)?
+            source = failure => failure.cause.as_deref()
+                .map(|cause| cause as &(dyn ::std::error::Error + 'static));
+        }
+
+        impl $name {
+            /// Describe a refusal with no lower native error cause.
+            pub fn new($field: ::std::string::String) -> Self {
+                Self {
+                    $field,
+                    cause: ::std::option::Option::None,
+                }
+            }
+
+            /// Retain a native cause beneath this downcastable diagnostic kind.
+            pub fn caused_by(
+                $field: ::std::string::String,
+                cause: impl ::std::error::Error + ::std::marker::Send + ::std::marker::Sync + 'static,
+            ) -> Self {
+                Self {
+                    $field,
+                    cause: ::std::option::Option::Some(::std::sync::Arc::new(cause)),
+                }
+            }
+        }
+    };
+    (
+        $(#[$meta:meta])*
+        $vis:vis struct $name:ident { $( $field:ident : $fty:ty ),* $(,)? }
+        code = $code:literal;
+        grade = $grade:expr;
+        message = $msg:literal $(, $marg:ident)* $(,)?;
+        $(failure_class = $failure_class:literal;)?
+        $(source = $source_self:ident => $source:expr;)?
+    ) => {
+        $crate::impl_diag_kind! {
+            @define
+            $(#[$meta])*
+            $vis struct $name { $( $field: $fty ),* }
+            code = $code;
+            grade = $grade;
+            message = $msg $(, $marg)*;
+            $(failure_class = $failure_class;)?
+            $(source = $source_self => $source;)?
+        }
+    };
+}
+
+/// Bind an existing diagnostic payload to its registered code and grade.
+///
+/// This is the same registration authority used by [`define_diag_kind!`]. Use it
+/// when a payload owns non-cloneable evidence or a custom display/source chain;
+/// it does not replace those implementations or flatten their causes.
+///
+/// The internal `@define` arm serves `define_diag_kind!`; production declarations
+/// use the public authoring forms with literal diagnostic codes.
+#[macro_export]
+macro_rules! impl_diag_kind {
+    (
+        @define
         $(#[$meta:meta])*
         $vis:vis struct $name:ident { $( $field:ident : $fty:ty ),* $(,)? }
         code = $code:literal;
@@ -931,15 +1015,6 @@ macro_rules! define_diag_kind {
             })?
         }
     };
-}
-
-/// Bind an existing diagnostic payload to its registered code and grade.
-///
-/// This is the same registration authority used by [`define_diag_kind!`]. Use it
-/// when a payload owns non-cloneable evidence or a custom display/source chain;
-/// it does not replace those implementations or flatten their causes.
-#[macro_export]
-macro_rules! impl_diag_kind {
     (
         $name:ty;
         code = $code:literal;

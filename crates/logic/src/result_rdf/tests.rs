@@ -164,6 +164,17 @@ fn native_conflict_result() -> ReasoningResult {
 fn terminal_result_retains_native_execution_and_requires_the_separate_closure() {
     let result = native_conflict_result();
     let projection = ResultProjection::reasoning(&result).unwrap();
+    let reference: Vec<_> = include_str!("fixtures/native-execution-cbor-v2.txt")
+        .lines()
+        .next()
+        .unwrap()
+        .split('|')
+        .collect();
+    assert_eq!(reference[0], "conflict");
+    // Historical records retain their originating engine contract. Check their
+    // complete wire without promoting that contract to current execution authority.
+    let historical = native::decode(reference[1]).unwrap();
+    assert_eq!(native::encode(&historical).unwrap(), reference[1]);
     let wire = projection.to_ntriples();
     assert!(wire.contains(projection.node_iri()));
     let restored = parse_reasoning_graph(&wire).unwrap();
@@ -235,21 +246,28 @@ fn native_result_admission_refuses_missing_duplicate_and_corrupt_execution() {
 fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     let result = native_conflict_result();
     let wire = native::encode(result.native_execution().unwrap()).unwrap();
-    assert!(native::decode(&(wire.clone() + "00")).is_err());
+    let trailing = native::decode(&(wire.clone() + "00")).unwrap_err();
+    let kind = trailing.downcast_ref::<crate::error::Result>().unwrap();
+    assert!(
+        std::error::Error::source(kind)
+            .unwrap()
+            .is::<crate::execution_cbor::Error>()
+    );
     let bytes = purrdf_hash::hex::decode(&wire).unwrap();
-    let mut envelope: ciborium::Value = ciborium::de::from_reader(bytes.as_slice()).unwrap();
-    let ciborium::Value::Array(fields) = &mut envelope else {
+    let mut envelope: purrdf_lex::cbor::Value =
+        purrdf_lex::cbor::decode(&bytes, purrdf_lex::cbor::Limits::DEFAULT).unwrap();
+    let purrdf_lex::cbor::Value::Array(fields) = &mut envelope else {
         panic!("native receipt envelope")
     };
-    let ciborium::Value::Map(execution) = &mut fields[1] else {
+    let purrdf_lex::cbor::Value::Map(execution) = &mut fields[1] else {
         panic!("native execution record")
     };
     execution.push((
-        ciborium::Value::Text("discarded-proof".into()),
-        ciborium::Value::Bool(true),
+        purrdf_lex::cbor::Value::Text("discarded-proof".into()),
+        purrdf_lex::cbor::Value::Bool(true),
     ));
     let mut changed = Vec::new();
-    ciborium::ser::into_writer(&envelope, &mut changed).unwrap();
+    purrdf_lex::cbor::write(&envelope, &mut changed).unwrap();
     let changed = purrdf_hash::hex::encode(&changed);
     assert!(
         native::decode(&changed).is_err(),
@@ -263,22 +281,24 @@ fn native_execution_requires_the_selected_program_analysis_and_current_schema() 
     let wire = native::encode(result.native_execution().unwrap()).unwrap();
     let bytes = purrdf_hash::hex::decode(&wire).unwrap();
     for missing_field in [false, true] {
-        let mut envelope: ciborium::Value = ciborium::de::from_reader(bytes.as_slice()).unwrap();
-        let ciborium::Value::Array(fields) = &mut envelope else {
+        let mut envelope: purrdf_lex::cbor::Value =
+            purrdf_lex::cbor::decode(&bytes, purrdf_lex::cbor::Limits::DEFAULT).unwrap();
+        let purrdf_lex::cbor::Value::Array(fields) = &mut envelope else {
             panic!("native receipt envelope");
         };
         if missing_field {
-            let ciborium::Value::Map(execution) = &mut fields[1] else {
+            let purrdf_lex::cbor::Value::Map(execution) = &mut fields[1] else {
                 panic!("native execution record");
             };
             let before = execution.len();
-            execution.retain(|(key, _)| key != &ciborium::Value::Text("reachability".into()));
+            execution
+                .retain(|(key, _)| key != &purrdf_lex::cbor::Value::Text("reachability".into()));
             assert_eq!(execution.len() + 1, before);
         } else {
-            fields[0] = ciborium::Value::Text("gmeow-native-execution-v1".into());
+            fields[0] = purrdf_lex::cbor::Value::Text("gmeow-native-execution-v1".into());
         }
         let mut changed = Vec::new();
-        ciborium::ser::into_writer(&envelope, &mut changed).unwrap();
+        purrdf_lex::cbor::write(&envelope, &mut changed).unwrap();
         assert!(native::decode(&purrdf_hash::hex::encode(&changed)).is_err());
     }
 }
@@ -297,7 +317,106 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
     }
     execution.families[0].proofs[0].statement.object = object;
     let error = native::encode(&execution).unwrap_err();
-    assert!(error.message().contains("structural bound"));
+    assert!(error.message().contains("typed admission bound"));
+
+    use crate::reason::refute::{
+        BoundKind, NativeBoundEvidence, NativeFamilyCompletion, NativeFamilyOutcome,
+        NativeObligationScope, NativeProofOrigin, NativeRefutationFamily,
+    };
+
+    // Measure only neighboring depths of the same retained source-premise path.
+    // A directional literal adds a typed enum visit without adding a container.
+    // These altered evidence packets exercise the codec, not semantic admission;
+    // no RDF result identity is claimed for a deliberately modified proof.
+    let mut references = include_str!("fixtures/native-execution-cbor-v2.txt").lines();
+    let historical_base =
+        native::decode(references.next().unwrap().split('|').nth(1).unwrap()).unwrap();
+    for profile in ["ordinary", "directional", "ordinary-u128"] {
+        for depth in 25..=28 {
+            let mut packet = historical_base.as_ref().clone();
+            if profile == "ordinary-u128" {
+                // The public record can retain counts above u64 without a
+                // producer run. Both values require original CBOR tag 2.
+                packet.families[0].outcomes.push(NativeFamilyOutcome {
+                    family: NativeRefutationFamily::Cardinality,
+                    obligation: NativeObligationScope::World,
+                    bounds: vec![NativeBoundEvidence {
+                        owner: purrdf::TermValue::iri("urn:gmeow:test:capture-bound-owner"),
+                        predicate: "urn:gmeow:test:capture-bound".into(),
+                        value: purrdf::TermValue::Literal {
+                            lexical_form: "18446744073709551616".into(),
+                            datatype: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger".into(),
+                            language: None,
+                            direction: None,
+                        },
+                        kind: BoundKind::Max,
+                        interpreted: Some(u128::from(u64::MAX) + 1),
+                        qualifier: None,
+                        capacity: Some(u128::MAX),
+                        support: Vec::new(),
+                    }],
+                    conclusions: Vec::new(),
+                    obstructions: Vec::new(),
+                    completion: NativeFamilyCompletion::NotEngaged,
+                });
+            }
+            let directional = profile == "directional";
+            let mut object = purrdf::TermValue::Literal {
+                lexical_form: "receipt depth boundary".into(),
+                datatype: if directional {
+                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+                } else {
+                    "http://www.w3.org/2001/XMLSchema#string"
+                }
+                .into(),
+                language: directional.then(|| "ar".into()),
+                direction: directional.then_some(purrdf::RdfTextDirection::Rtl),
+            };
+            for _ in 0..depth {
+                object = purrdf::TermValue::Triple {
+                    s: purrdf::TermValue::iri("urn:gmeow:test:receipt-subject").into(),
+                    p: purrdf::TermValue::iri("urn:gmeow:test:receipt-predicate").into(),
+                    o: object.into(),
+                };
+            }
+            let source_object = packet
+                .families
+                .iter_mut()
+                .flat_map(|ledger| &mut ledger.proofs)
+                .find_map(|proof| match &mut proof.origin {
+                    NativeProofOrigin::Asserted { sources, .. } => {
+                        sources.first_mut().map(|source| &mut source.object)
+                    }
+                    _ => None,
+                })
+                .expect("the original tiny conflict retains an asserted source premise");
+            *source_object = object;
+            let reference: Vec<_> = references.next().unwrap().splitn(6, '|').collect();
+            assert_eq!(reference.len(), 6);
+            assert_eq!(reference[0], profile);
+            assert_eq!(reference[1], depth.to_string());
+            match (reference[2], reference[3]) {
+                ("admitted", "admitted") => {
+                    let encoded = native::encode(&packet).unwrap();
+                    assert_eq!(encoded, reference[4]);
+                    assert!(native::decode(&encoded).is_ok());
+                }
+                ("admitted", "refused") => {
+                    // The original directional boundary emitted unreadable bytes.
+                    // Keep its reader refusal, and reject emission before publishing.
+                    let error = native::encode(&packet).unwrap_err();
+                    assert!(error.message().contains("typed admission bound"));
+                    assert!(native::decode(reference[4]).is_err());
+                }
+                ("refused", "not-run") => {
+                    let error = native::encode(&packet).unwrap_err();
+                    assert!(error.message().contains("typed admission bound"));
+                }
+                _ => panic!("unexpected frozen receipt admission profile"),
+            }
+        }
+    }
+    assert!(references.next().is_none());
 }
 
 #[test]

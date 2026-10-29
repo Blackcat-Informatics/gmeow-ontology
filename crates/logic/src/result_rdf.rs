@@ -79,7 +79,7 @@ use crate::result::{
 /// Wrap a reasoning-result-projection condition message as a typed diagnostic on
 /// the shared substrate, preserving the authored text verbatim.
 fn result_err(detail: String) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Result { detail })
+    gmeow_errors::Diag::of_kind(crate::error::Result::new(detail))
 }
 
 /// The `graph/reasoning` named-graph IRI — the snapshot folds this projection here.
@@ -2509,9 +2509,9 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
         .find(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("Conjecture")))
         .map(|t| t.subject)
         .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Result {
-                detail: "graph/conjecture: no logic:Conjecture subject".to_owned(),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Result::new(
+                "graph/conjecture: no logic:Conjecture subject".to_owned(),
+            ))
         })?;
 
     let one_iri = |local: &str| -> Option<String> {
@@ -2535,18 +2535,18 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
         "conjectureLifecycleState",
     )?)?)
     .ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Result {
-            detail: "graph/conjecture: unrecognized conjectureLifecycleState".to_owned(),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Result::new(
+            "graph/conjecture: unrecognized conjectureLifecycleState".to_owned(),
+        ))
     })?;
     let discharge = ConjectureDischarge::from_local(local_of(&req(
         one_iri("conjectureDischargeVerdict"),
         "conjectureDischargeVerdict",
     )?)?)
     .ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Result {
-            detail: "graph/conjecture: unrecognized conjectureDischargeVerdict".to_owned(),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Result::new(
+            "graph/conjecture: unrecognized conjectureDischargeVerdict".to_owned(),
+        ))
     })?;
 
     // The embedded reasoning-result graph re-derives via the existing reader (it keys off

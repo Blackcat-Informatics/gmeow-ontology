@@ -3,6 +3,8 @@
 
 //! Source-bound syntactic evidence retained by the single native execution.
 
+mod execution_cbor;
+
 use std::collections::BTreeMap;
 
 use crate::physical::{LogicalGraph, WriterInventory};

@@ -4,6 +4,8 @@
 //! Fixed modal producers in the shared native dependency graph. Original frame
 //! admission and indexed world reads replace post-closure dataset reconstruction.
 
+mod execution_cbor;
+
 use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;

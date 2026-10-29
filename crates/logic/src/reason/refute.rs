@@ -64,6 +64,7 @@ pub use casesplit::{
 mod admission_cbor;
 mod admission_json;
 mod list_observation;
+mod receipt_cbor;
 pub use list_observation::{
     LIST_CORPUS_CHANNEL, ListCorpusObservation, decode_list_corpus_observation,
     encode_list_corpus_observation,

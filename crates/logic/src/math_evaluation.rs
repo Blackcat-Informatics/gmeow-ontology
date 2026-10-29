@@ -450,9 +450,7 @@ fn encode_identity(
     purrdf_lex::json::write_with_memory(&Value::Array(fields), Format::COMPACT, &mut memory)
         .map(String::into_bytes)
         .map_err(|error| {
-            let kind = crate::error::Result {
-                detail: format!("{PROFILE}: {error}"),
-            };
+            let kind = crate::error::Result::new(format!("{PROFILE}: {error}"));
             let mut diagnostic =
                 gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
                     .with_source(error)

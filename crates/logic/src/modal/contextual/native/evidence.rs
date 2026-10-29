@@ -4,6 +4,8 @@
 //! One shared typed receipt per contextual assessment. Proof nodes reference its
 //! identity instead of serializing the same metadata graph once for every row.
 
+mod execution_cbor;
+
 use super::*;
 use crate::contextual::{
     AssessmentAnchor, ContextualAssessment, ContextualInference, NativeEvidence, TemporalBasis,

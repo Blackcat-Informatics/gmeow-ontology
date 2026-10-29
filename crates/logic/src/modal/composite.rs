@@ -7,6 +7,8 @@
 //! The world binder is admitted structurally, before evaluation, so an ordinary
 //! first-order quantifier cannot silently become a finite-world quantifier.
 
+mod execution_cbor;
+
 mod monitor_cache;
 mod temporal_eval;
 mod temporal_lower;

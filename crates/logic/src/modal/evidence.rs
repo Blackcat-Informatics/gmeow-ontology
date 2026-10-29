@@ -5,6 +5,8 @@
 //! This records that selected evaluation; it is not a certificate of unrestricted
 //! source completeness, context merging, or an optimization rewrite.
 
+mod execution_cbor;
+
 mod json;
 
 use gmeow_errors::DiagKind as _;
