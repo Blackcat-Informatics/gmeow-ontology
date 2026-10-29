@@ -103,7 +103,10 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::SourceCatalog(catalog) => catalog.identity().to_owned(),
         PipelineHandle::Logic(program) => typed_digest(program.as_ref()),
         PipelineHandle::CompiledLogic(publication) => typed_digest(publication.as_ref()),
-        PipelineHandle::Diagnostics(publication) => typed_digest(publication.as_ref()),
+        PipelineHandle::Diagnostics(publication) => native_digest(
+            |sink| publication.write_cbor(sink),
+            "native diagnostic serialization into an infallible hash sink",
+        ),
         PipelineHandle::Reasoning(result) => typed_digest(result.as_ref()),
         PipelineHandle::RelationalCore(program) => native_digest(
             |sink| program.write_cbor(sink),

@@ -185,22 +185,20 @@ pub fn release_carrier(
             continue;
         }
         let digest = purrdf::ContentDigest::from_hex(hex).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("release_carrier: malformed resource content digest {hex:?}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "release_carrier: malformed resource content digest {hex:?}"
+            )))
         })?;
         let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "release_carrier: byte-artifact lane entry {name} references content \
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "release_carrier: byte-artifact lane entry {name} references content \
                      digest {hex} which the bundle's content store does not hold"
-                ),
-            })
+            )))
         })?;
         blobs.insert_checked(digest, bytes.clone()).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("release_carrier: re-insert content-store blob: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "release_carrier: re-insert content-store blob: {e}"
+            )))
         })?;
         lookaside.resources.push(resource.clone());
     }
@@ -308,9 +306,9 @@ pub fn attach_rep_blob(
     let mut blobs = ContentStore::new();
     for (digest, bytes) in bundle.blobs().iter() {
         blobs.insert_checked(*digest, bytes.clone()).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("attach_rep_blob: re-insert content-store blob: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "attach_rep_blob: re-insert content-store blob: {e}"
+            )))
         })?;
     }
     let mut lookaside = bundle.lookaside().clone();
@@ -336,9 +334,9 @@ pub fn attach_rep_blob(
         rebuilt
             .pin_handle(graph.clone(), entry.payload.clone(), entry.content_digest)
             .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("attach_rep_blob: re-pin handle <{graph}>: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "attach_rep_blob: re-pin handle <{graph}>: {e}"
+                )))
             })?;
     }
     Ok(rebuilt)
@@ -389,21 +387,19 @@ pub fn strip_rep_blob(
     for resource in &lookaside.resources {
         if let Some(hex) = resource.content_digest.as_deref() {
             let digest = purrdf::ContentDigest::from_hex(hex).ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("strip_rep_blob: malformed resource content digest {hex:?}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "strip_rep_blob: malformed resource content digest {hex:?}"
+                )))
             })?;
             referenced.insert(digest);
         }
     }
     for blob in &lookaside.blobs {
         let digest = purrdf::ContentDigest::from_hex(&blob.digest).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "strip_rep_blob: malformed lookaside blob digest {:?}",
-                    blob.digest
-                ),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "strip_rep_blob: malformed lookaside blob digest {:?}",
+                blob.digest
+            )))
         })?;
         referenced.insert(digest);
     }
@@ -411,9 +407,9 @@ pub fn strip_rep_blob(
     for (digest, bytes) in bundle.blobs().iter() {
         if referenced.contains(digest) {
             blobs.insert_checked(*digest, bytes.clone()).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("strip_rep_blob: re-insert content-store blob: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "strip_rep_blob: re-insert content-store blob: {e}"
+                )))
             })?;
         }
     }
@@ -427,9 +423,9 @@ pub fn strip_rep_blob(
         rebuilt
             .pin_handle(graph.clone(), entry.payload.clone(), entry.content_digest)
             .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("strip_rep_blob: re-pin handle <{graph}>: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "strip_rep_blob: re-pin handle <{graph}>: {e}"
+                )))
             })?;
     }
     Ok(rebuilt)
@@ -493,33 +489,29 @@ pub fn bundle_artifact_refs(
     let mut out: BTreeMap<&str, &[u8]> = BTreeMap::new();
     for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
         let name = resource.name.as_deref().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: "byte-artifact resource carries no logical name".to_string(),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                "byte-artifact resource carries no logical name".to_string(),
+            ))
         })?;
         let hex = resource.content_digest.as_deref().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("byte-artifact resource {name:?} carries no content digest"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "byte-artifact resource {name:?} carries no content digest"
+            )))
         })?;
         let digest = ContentDigest::from_hex(hex).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "byte-artifact resource {name:?} carries malformed content digest {hex:?}"
-                ),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "byte-artifact resource {name:?} carries malformed content digest {hex:?}"
+            )))
         })?;
         let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "byte-artifact resource {name:?} references missing content-store digest {hex}"
-                ),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "byte-artifact resource {name:?} references missing content-store digest {hex}"
+            )))
         })?;
         if out.insert(name, bytes.as_slice()).is_some() {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("byte-artifact lane carries duplicate logical name {name:?}"),
-            }));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                format!("byte-artifact lane carries duplicate logical name {name:?}"),
+            )));
         }
     }
     Ok(out)
