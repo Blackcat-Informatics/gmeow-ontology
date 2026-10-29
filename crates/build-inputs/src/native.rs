@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod json;
+
 use crate::{Result, checked_path, digest, fail};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -65,7 +66,7 @@ pub fn native_extraction_paths(workspace: &Path) -> Result<Vec<String>> {
 /// Portable semantic source contract, deliberately independent of a Cargo profile,
 /// target or selected feature set. Every non-test branch of the canonical kernel's
 /// module declarations belongs to this contract, on native and WebAssembly alike.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NativeSources {
     /// Complete selected file bytes, represented by their SHA-256 digests.
     pub files: BTreeMap<String, String>,
@@ -82,10 +83,10 @@ impl NativeSources {
 
     /// The same kernel bytes produce this identity under every host/build profile.
     pub fn digest(&self) -> Result<String> {
-        Ok(digest(
-            &serde_json::to_vec(&("gmeow-native-semantic-sources-v1", &self.files))
-                .map_err(fail)?,
-        ))
+        Ok(digest(&purrdf_lex::json::record::to_vec(&(
+            "gmeow-native-semantic-sources-v1",
+            &self.files,
+        ))))
     }
 
     /// Watch selected sources and the manifests/configuration proving macro ownership.
