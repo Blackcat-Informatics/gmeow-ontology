@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "head": "2efa5918dff8a4609fb5863dfad29910ca51eb7c",
+  "items": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABg1y9wQ",
+      "kind": "comment",
+      "body": "\n\n\n\n\n> [!WARNING]\n> ## Review limit reached\n> \n> Your organization has reached its usage spending cap. Adjust your spending cap in the [billing tab](https://app.coderabbit.ai/settings/billing?tab=usage&orgId=b268aba6-a194-4fd6-8ca5-f1a13a313209).\n> \n> **Next included review available in 44 minutes.**\n> \n> [Check out review usage here](https://app.coderabbit.ai/dashboard/review-capacity?orgId=b268aba6-a194-4fd6-8ca5-f1a13a313209).\n> \n> <details>\n> <summary><strong>View limit details</strong></summary>\n> <dl>\n> <dd>\n> \n> **Limit details:** You\u2019ve used the included review currently available. Your 135 included PR review attempts over the past 7 days set your current allowance at 1 review per hour.\n> \n> [Learn how review limits work](https://docs.coderabbit.ai/management/rate-limits).\n> \n> **Review configuration:**\n> \n> <details>\n> <summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Run configuration</strong></summary>\n> <dl>\n> <dd>\n> \n> - **Source mode**: Auto\n> - **Repository**: Unavailable\n> - **Branch**: Unavailable\n> - **File**: No configuration file from this repository applied\n> - **Commit**: Unavailable\n> - **Layers**: Repository UI (base), Organization UI (inherited)\n> - **Review profile**: ASSERTIVE\n> - **Plan**: Advanced\n> - **Run ID**: `fd0cbdd1-715b-42b7-9f46-864ee7639997`\n> \n> </dd>\n> </dl>\n> </details>\n> \n> <details>\n> <summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/git-commit-horizontal-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/git-commit-horizontal.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Commits</strong></summary>\n> <dl>\n> <dd>\n> \n> Reviewing files that changed from the base of the PR and between d0c5ee985fa7507d5b6f3b59d95f49b4cc5b2520 and 2efa5918dff8a4609fb5863dfad29910ca51eb7c.\n> \n> </dd>\n> </dl>\n> </details>\n> \n> <details>\n> <summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/file-plus-corner-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/file-plus-corner.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Files selected for processing: 3</strong></summary>\n> <dl>\n> <dd>\n> \n> * `crates/logic-compile/src/ir/axis_evidence.rs`\n> * `crates/logic-compile/src/projections/correspondence/fixtures/axis-evidence-identities-v1.jsonl`\n> * `crates/logic-compile/src/projections/correspondence/loss_tests.rs`\n> \n> </dd>\n> </dl>\n> </details>\n> \n> </dd>\n> </dl>\n> </details>\n\n\n\n<!-- autopilot:start -->\n- [ ] <!-- {\"checkboxId\":\"2708ad07-9f24-4260-9c11-7dc76a49f2e3\"} --> <strong title=\"Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\">Autofix</strong> \u00b7 Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\n<!-- autopilot:end -->\n<!-- tips_start -->\n\n\n\n\n\n\n<sub>Comment `@coderabbitai help` to get the list of available commands.</sub>\n\n<!-- tips_end -->",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2052#issuecomment-6498860481",
+      "author": "coderabbitai",
+      "updated_at": "2026-10-29T14:06:09Z",
+      "state": null,
+      "commit": null
+    }
+  ],
+  "coverage": {
+    "comments": "complete",
+    "reviews": "complete",
+    "inline_comments": "complete",
+    "threads": "complete"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Replace the remaining AxisEvidence::content_key Serde writer with the existing complete native PurRDF JSON owner. This is a bounded identity operation under #1776, governed by Principles 4 and 7.\n\nAcceptance:\n\n- Route the actual content-key writer through native compact String output of the existing AxisEvidence ToJson implementation. Preserve all three fields, declaration order, explicit nulls and raw source vector order/multiplicity. Do not call the validating/canonicalizing constructor during writing, introduce another codec or change the infallible String API.\n- Preserve default-evidence omission and UTF-8 byte-length framing in Correspondence::content_key, complete correspondence/program/LogicProgram identities, and preservation/catalog identity consumers. Keep their algorithms and shared Serde derives unchanged.\n- Before replacement, extend only the existing loss_identity_binds_all_literal_components_and_owner_context control to capture complete original axis JSON, full composed correspondence keys and actual preservation targets for default, sources-only and populated evidence, including Unicode and raw duplicate/order distinctions. Retain all original assertions. Freeze literal original references, then replay them through the native writer and actual callers; no replacement-derived expectations or new generic test matrix.\n- Qualify affected compiler and downstream logic/pipeline/validation/developer CLI consumers with warnings denied, the affected existing identity case and existing actual pipeline cache controls, independent source review, formatting, helpers, static recipe and normal signed hooks. Original and final captures use the same selected consumer graph.\n- Charge readiness from 13:35 UTC October 29 and land within the original eight-hour limit, including qualification and publication.\n\nNo source edit or build has started. Existing native codec and all identity consumers were inspected; no missing prerequisite was found. Graphify remains unavailable, so current source governs. Shared Serde and the remaining parent contract stay open. No local optimized producer, canonical corpus construction, sync or full gate. Authored controls do not establish authenticated corpus, installed/browser/release or performance acceptance. CI remains explicitly waived.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-29T13:40:16Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 2050,
+  "state": "OPEN",
+  "title": "Preserve axis-evidence identities with native JSON",
+  "updatedAt": "2026-10-29T13:40:16Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2050"
+}

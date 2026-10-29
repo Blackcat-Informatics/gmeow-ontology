@@ -1,0 +1,67 @@
+diff --git crates/logic-compile/src/ir/axis_evidence.rs crates/logic-compile/src/ir/axis_evidence.rs
+index b71035feb..c2d6c652b 100644
+--- crates/logic-compile/src/ir/axis_evidence.rs
++++ crates/logic-compile/src/ir/axis_evidence.rs
+@@ -44,6 +44,8 @@ impl AxisEvidence {
+ 
+     /// Complete reference identity; this contains no inferred numerical value.
+     pub fn content_key(&self) -> String {
+-        serde_json::to_string(self).expect("typed axis evidence serialization is infallible")
++        use purrdf_lex::json::record::ToJson as _;
++
++        purrdf_lex::json::write_compact(&self.to_json())
+     }
+ }
+diff --git crates/logic-compile/src/projections/correspondence/fixtures/axis-evidence-identities-v1.jsonl crates/logic-compile/src/projections/correspondence/fixtures/axis-evidence-identities-v1.jsonl
+new file mode 100644
+index 000000000..1a1684bde
+--- /dev/null
++++ crates/logic-compile/src/projections/correspondence/fixtures/axis-evidence-identities-v1.jsonl
+@@ -0,0 +1,3 @@
++["{\"sources\":[],\"scale\":null,\"probability_model\":null}","https://example.org/cell\u0000rel=Subsumes\u0000class=LossyLens\u0000kind=InstitutionMorphism\u0000mnemo=False\u0000det=\u0000get=\u0000put=\u0000conf=\u0000ev=\u0000w=\u0000prob=\u0000at=\u0000pres=SoundUnderApproximation\u0000laws=\u0000loss-evidence=2;49:1:a39:http://www.w3.org/2001/XMLSchema#string0:0:49:1:b39:http://www.w3.org/2001/XMLSchema#string0:0:","correspondence:https://example.org/cell:7629480b63a360336fd6ed4ec2272d60c3976cc7d1c27b5fc3cb549bb7e26cc8"]
++["{\"sources\":[\"https://example.org/evidence\"],\"scale\":null,\"probability_model\":null}","https://example.org/cell\u0000rel=Subsumes\u0000class=LossyLens\u0000kind=InstitutionMorphism\u0000mnemo=False\u0000det=\u0000get=\u0000put=\u0000conf=\u0000ev=\u0000w=\u0000prob=\u0000at=\u0000pres=SoundUnderApproximation\u0000laws=\u0000axis-evidence=82:{\"sources\":[\"https://example.org/evidence\"],\"scale\":null,\"probability_model\":null}\u0000loss-evidence=2;49:1:a39:http://www.w3.org/2001/XMLSchema#string0:0:49:1:b39:http://www.w3.org/2001/XMLSchema#string0:0:","correspondence:https://example.org/cell:02f7c726a3d6cde817fe68c7851217dd0cf273c431104e24bd6b14a14fe39f7b"]
++["{\"sources\":[\"https://example.org/z\",\"https://example.org/可能性\",\"https://example.org/z\"],\"scale\":\"https://example.org/échelle\",\"probability_model\":\"https://example.org/model\"}","https://example.org/cell\u0000rel=Subsumes\u0000class=LossyLens\u0000kind=InstitutionMorphism\u0000mnemo=False\u0000det=\u0000get=\u0000put=\u0000conf=\u0000ev=\u0000w=\u0000prob=\u0000at=\u0000pres=SoundUnderApproximation\u0000laws=\u0000axis-evidence=180:{\"sources\":[\"https://example.org/z\",\"https://example.org/可能性\",\"https://example.org/z\"],\"scale\":\"https://example.org/échelle\",\"probability_model\":\"https://example.org/model\"}\u0000loss-evidence=2;49:1:a39:http://www.w3.org/2001/XMLSchema#string0:0:49:1:b39:http://www.w3.org/2001/XMLSchema#string0:0:","correspondence:https://example.org/cell:0337227ec524cfa83db268bffd05bce84028d16767d3f83e5bed34280b1ebe89"]
+diff --git crates/logic-compile/src/projections/correspondence/loss_tests.rs crates/logic-compile/src/projections/correspondence/loss_tests.rs
+index 363904d9f..929348c6b 100644
+--- crates/logic-compile/src/projections/correspondence/loss_tests.rs
++++ crates/logic-compile/src/projections/correspondence/loss_tests.rs
+@@ -279,6 +279,39 @@ fn loss_identity_binds_all_literal_components_and_owner_context() {
+         crate::ir::AxisEvidence::new(vec!["https://example.org/evidence".to_owned()], None, None)
+             .unwrap();
+     assert_ne!(changed.content_key(), baseline.content_key());
++
++    use purrdf_lex::json::record::FromJson as _;
++
++    let mut references = include_str!("fixtures/axis-evidence-identities-v1.jsonl").lines();
++    for evidence in [
++        crate::ir::AxisEvidence::default(),
++        changed.axis_evidence.clone(),
++        crate::ir::AxisEvidence {
++            sources: vec![
++                "https://example.org/z".to_owned(),
++                "https://example.org/可能性".to_owned(),
++                "https://example.org/z".to_owned(),
++            ],
++            scale: Some("https://example.org/échelle".to_owned()),
++            probability_model: Some("https://example.org/model".to_owned()),
++        },
++    ] {
++        let mut owner = baseline.clone();
++        owner.axis_evidence = evidence;
++        let row =
++            crate::projections::correspondence_preservation_result(&owner, &mut LossLedger::new())
++                .unwrap()
++                .unwrap();
++        let reference = purrdf_lex::json::read(references.next().unwrap()).unwrap();
++        let [axis_key, owner_key, target]: [String; 3] = Vec::<String>::from_json(&reference)
++            .unwrap()
++            .try_into()
++            .unwrap();
++        assert_eq!(owner.axis_evidence.content_key(), axis_key);
++        assert_eq!(owner.content_key(), owner_key);
++        assert_eq!(row.target, target);
++    }
++    assert!(references.next().is_none());
+ }
+ 
+ #[test]

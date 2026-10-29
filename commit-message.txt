@@ -1,0 +1,4 @@
+refactor: reuse native JSON for axis evidence identities
+
+Preserve original complete keys, UTF-8 byte framing and actual preservation
+targets through the existing native owner. Principles 4 and 7.

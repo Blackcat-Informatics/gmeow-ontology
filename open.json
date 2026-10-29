@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2050,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2050-preserve-axis-evidence-identities-with",
+  "branch": "paudley/2050-preserve-axis-evidence-identities-with",
+  "slug": "preserve-axis-evidence-identities-with",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2050-preserve-axis-evidence-identities-with/.stage/preserve-axis-evidence-identities-with",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "d0c5ee985fa7507d5b6f3b59d95f49b4cc5b2520",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2050-preserve-axis-evidence-identities-with",
+    "branch:paudley/2050-preserve-axis-evidence-identities-with",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2050-preserve-axis-evidence-identities-with/.stage/preserve-axis-evidence-identities-with",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2050-preserve-axis-evidence-identities-with/.stage/preserve-axis-evidence-identities-with/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-29T07:40:35-0600"
+}
