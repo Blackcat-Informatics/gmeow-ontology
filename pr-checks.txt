@@ -1,0 +1,2 @@
+$ stagectl status --pr 2044
+CHECKS UNAVAILABLE: gh returned unparseable JSON: Expecting value: line 1 column 1 (char 0)

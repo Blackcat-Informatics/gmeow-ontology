@@ -1,0 +1,496 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-dev-cli -p gmeow-pipeline --lib -E 'package(gmeow-pipeline) & test(shipped_admission_keeps_native_graph_receipt_and_external_status_without_semantic_comparison)' --no-tests=fail
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.47
+   Compiling cfg-if v1.0.4
+   Compiling serde_core v1.0.229
+   Compiling memchr v2.8.3
+   Compiling hashbrown v0.17.1
+   Compiling serde v1.0.229
+   Compiling libc v0.2.189
+   Compiling typenum v1.20.1
+   Compiling regex-syntax v0.8.11
+   Compiling purrdf-hash v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling version_check v0.9.5
+   Compiling equivalent v1.0.2
+   Compiling itoa v1.0.18
+   Compiling cpufeatures v0.3.0
+   Compiling crossbeam-utils v0.8.22
+   Compiling crossbeam-epoch v0.9.20
+   Compiling const-oid v0.10.2
+   Compiling crossbeam-deque v0.8.7
+   Compiling rayon-core v1.13.0
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.151
+   Compiling either v1.17.0
+   Compiling smallvec v1.15.2
+   Compiling purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling once_cell v1.21.4
+   Compiling getrandom v0.4.3
+   Compiling winnow v0.7.15
+   Compiling generic-array v0.14.7
+   Compiling toml_write v0.1.2
+   Compiling fastrand v2.5.0
+   Compiling stable_deref_trait v1.2.1
+   Compiling autocfg v1.5.1
+   Compiling cmov v0.5.4
+   Compiling log v0.4.33
+   Compiling cpubits v0.1.1
+   Compiling winnow v1.0.4
+   Compiling num-traits v0.2.19
+   Compiling aho-corasick v1.1.4
+   Compiling twox-hash v2.1.3
+   Compiling simd-adler32 v0.3.10
+   Compiling zerocopy v0.8.55
+   Compiling crc32fast v1.5.0
+   Compiling structured-zstd v0.0.49
+   Compiling cpufeatures v0.2.17
+   Compiling visual-hashing v1.0.0
+   Compiling hybrid-array v0.4.15
+   Compiling adler2 v2.0.1
+   Compiling base64 v0.22.1
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling inout v0.2.2
+   Compiling ctutils v0.4.2
+   Compiling miniz_oxide v0.8.9
+   Compiling tinyvec_macros v0.1.1
+   Compiling find-msvc-tools v0.1.9
+   Compiling regex-automata v0.4.16
+   Compiling aead v0.6.1
+   Compiling digest v0.11.3
+   Compiling cipher v0.5.2
+   Compiling shlex v2.0.1
+   Compiling tinyvec v1.12.0
+   Compiling glob v0.3.4
+   Compiling universal-hash v0.6.1
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling rayon v1.12.0
+   Compiling aes v0.9.3
+   Compiling ctr v0.10.1
+   Compiling sha2 v0.11.0
+   Compiling polyval v0.7.3
+   Compiling cc v1.4.0
+   Compiling indexmap v2.14.0
+   Compiling purrdf-lex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-events v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-deflate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling ciborium-io v0.2.2
+   Compiling bit-vec v0.8.0
+   Compiling unicode-script v0.5.8
+   Compiling ghash v0.6.0
+   Compiling purrdf-ed25519 v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling libm v0.2.16
+   Compiling percent-encoding v2.3.2
+   Compiling unicode-normalization v0.1.25
+   Compiling siphasher v1.0.3
+   Compiling arrayvec v0.7.8
+   Compiling aes-gcm v0.11.1
+   Compiling allocator-api2 v0.2.21
+   Compiling bit-set v0.8.0
+   Compiling foldhash v0.1.5
+   Compiling thiserror v2.0.19
+   Compiling rustix v1.1.4
+   Compiling heck v0.5.0
+   Compiling flate2 v1.1.9
+   Compiling tracing-core v0.1.36
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling litemap v0.8.2
+   Compiling utf8_iter v1.0.4
+   Compiling writeable v0.6.3
+   Compiling linux-raw-sys v0.12.1
+   Compiling regex v1.13.1
+   Compiling ring v0.17.14
+   Compiling hashbrown v0.15.5
+   Compiling icu_properties_data v2.2.0
+   Compiling writeable v0.5.5
+   Compiling digest v0.10.7
+   Compiling icu_normalizer_data v2.2.0
+   Compiling pin-project-lite v0.2.17
+   Compiling fdeflate v0.3.7
+   Compiling slotmap v1.1.1
+   Compiling parking_lot_core v0.9.12
+   Compiling zeroize v1.9.0
+   Compiling syn v2.0.119
+   Compiling syn v3.0.3
+   Compiling purrdf-stack v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-xsd v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-iri v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling float-cmp v0.9.0
+   Compiling rustversion v1.0.23
+   Compiling bitflags v2.13.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling serde_spanned v1.1.1
+   Compiling sha2 v0.10.9
+   Compiling core_maths v0.1.1
+   Compiling rustls-pki-types v1.15.1
+   Compiling strict-num v0.1.1
+   Compiling getrandom v0.2.17
+   Compiling icu_locid_transform_data v1.5.1
+   Compiling untrusted v0.9.0
+   Compiling toml v1.1.3+spec-1.1.0
+   Compiling ttf-parser v0.24.1
+   Compiling gmeow-lang-form v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/lang-form)
+   Compiling arrayref v0.3.9
+   Compiling lazy_static v1.5.0
+   Compiling time-core v0.1.9
+   Compiling color_quant v1.1.0
+   Compiling fixedbitset v0.5.7
+   Compiling ryu v1.0.23
+   Compiling roxmltree v0.20.0
+   Compiling weezl v0.1.12
+   Compiling httparse v1.10.1
+   Compiling scopeguard v1.2.0
+   Compiling num-conv v0.2.2
+   Compiling same-file v1.0.6
+   Compiling chrono v0.4.45
+   Compiling memmap2 v0.9.11
+   Compiling kurbo v0.11.3
+   Compiling petgraph v0.8.3
+   Compiling unicode-properties v0.1.4
+   Compiling walkdir v2.5.0
+   Compiling lock_api v0.4.14
+   Compiling byteorder-lite v0.1.0
+   Compiling rand_core v0.6.4
+   Compiling fontconfig-parser v0.5.8
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.19
+   Compiling unicode-bidi-mirroring v0.3.0
+   Compiling time-macros v0.2.32
+   Compiling rustls v0.23.46
+   Compiling unicode-ccc v0.3.0
+   Compiling powerfmt v0.2.0
+   Compiling rustc-hash v2.1.3
+   Compiling deranged v0.5.8
+   Compiling portable-atomic v1.14.0
+   Compiling bitflags v1.3.2
+   Compiling paste v1.0.15
+   Compiling bytes v1.12.1
+   Compiling png v0.17.16
+   Compiling rand v0.8.7
+   Compiling purrdf-cdt v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling tempfile v3.27.0
+   Compiling phf_shared v0.11.3
+   Compiling synstructure v0.13.2
+   Compiling displaydoc v0.2.6
+   Compiling zerocopy-derive v0.8.55
+   Compiling zerovec-derive v0.11.3
+   Compiling bytemuck_derive v1.11.0
+   Compiling zerovec-derive v0.10.3
+   Compiling tracing-attributes v0.1.31
+   Compiling icu_provider_macros v1.5.0
+   Compiling http v1.4.2
+   Compiling strum_macros v0.26.4
+   Compiling fontdb v0.21.0
+   Compiling time v0.3.54
+   Compiling parking_lot v0.12.5
+   Compiling svgtypes v0.15.3
+   Compiling simplecss v0.2.2
+   Compiling quick-xml v0.41.0
+   Compiling downcast-rs v1.2.1
+   Compiling unicode-vo v0.1.0
+   Compiling xmlwriter v0.1.0
+   Compiling cobs v0.3.0
+   Compiling imagesize v0.13.0
+   Compiling zerofrom-derive v0.1.7
+   Compiling yoke-derive v0.8.2
+   Compiling yoke-derive v0.7.5
+   Compiling anyhow v1.0.104
+   Compiling tracing v0.1.44
+   Compiling thiserror v1.0.69
+   Compiling subtle v2.6.1
+   Compiling bytemuck v1.25.2
+   Compiling wasmparser v0.221.3
+   Compiling data-url v0.3.2
+   Compiling zune-core v0.5.1
+   Compiling unscanny v0.1.0
+   Compiling zerofrom v0.1.8
+   Compiling linked-hash-map v0.5.6
+   Compiling unicode-bidi v0.3.18
+   Compiling icu_properties_data v1.5.1
+   Compiling pxfm v0.1.30
+   Compiling pico-args v0.5.0
+   Compiling purrdf-sparql-algebra v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling ureq-proto v0.6.0
+   Compiling wasmi_core v0.40.0
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling litemap v0.7.5
+   Compiling cargo-config2 v0.1.45
+   Compiling postcard v1.1.3
+   Compiling yaml-rust v0.4.5
+   Compiling strum v0.26.3
+   Compiling zune-jpeg v0.5.15
+   Compiling bincode v1.3.3
+   Compiling yoke v0.8.3
+   Compiling yoke v0.7.5
+   Compiling quick-xml v0.36.2
+   Compiling phf_generator v0.11.3
+   Compiling toml_edit v0.22.27
+   Compiling tiny-skia-path v0.11.4
+   Compiling rustybuzz v0.18.0
+   Compiling zerovec v0.11.6
+   Compiling zerotrie v0.2.4
+   Compiling enum-ordinalize-derive v4.4.1
+   Compiling thiserror-impl v1.0.69
+   Compiling gif v0.14.2
+   Compiling webpki-roots v1.0.9
+   Compiling png v0.18.1
+   Compiling plist v1.10.0
+   Compiling zerovec v0.10.4
+   Compiling num-integer v0.1.46
+   Compiling fancy-regex v0.16.2
+   Compiling bstr v1.13.0
+   Compiling form_urlencoded v1.2.2
+   Compiling utf8-zero v0.8.1
+   Compiling thin-vec v0.2.18
+   Compiling unicode-math-class v0.1.0
+   Compiling unsafe-libyaml v0.2.11
+   Compiling codex v0.1.1
+   Compiling rust_decimal v1.42.1
+   Compiling fnv v1.0.7
+   Compiling palette v0.7.6
+   Compiling toml v0.8.23
+   Compiling tinystr v0.8.3
+   Compiling potential_utf v0.1.5
+   Compiling anstyle v1.0.14
+   Compiling moxcms v0.8.1
+   Compiling unicode-segmentation v1.13.3
+   Compiling numerals v0.1.4
+   Compiling utf8parse v0.2.2
+   Compiling by_address v1.2.1
+   Compiling tinystr v0.7.6
+   Compiling icu_collections v1.5.0
+   Compiling typst-utils v0.13.1
+   Compiling biblatex v0.10.0
+   Compiling syntect v5.3.0
+   Compiling zerotrie v0.1.3
+   Compiling citationberg v0.5.0
+   Compiling enum-ordinalize v4.4.1
+   Compiling icu_collections v2.2.0
+   Compiling icu_locale_core v2.2.0
+   Compiling unic-langid-impl v0.9.6
+   Compiling num-bigint v0.4.8
+   Compiling wasmi_ir v0.40.0
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/build-inputs)
+   Compiling half v2.7.1
+   Compiling usvg v0.43.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling palette_derive v0.7.6
+   Compiling phf_macros v0.11.3
+   Compiling icu_locid v1.5.0
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling unic-langid v0.9.6
+   Compiling ecow v0.2.6
+   Compiling typst-timing v0.13.1
+   Compiling icu_provider v2.2.0
+   Compiling comemo-macros v0.4.0
+   Compiling ciborium-ll v0.2.2
+   Compiling rand_chacha v0.3.1
+   Compiling purrdf-jsonschema v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling approx v0.5.1
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/action-cache)
+   Compiling fancy-regex v0.17.0
+   Compiling icu_provider v1.5.0
+   Compiling image v0.25.10
+   Compiling csv-core v0.1.13
+   Compiling mutate_once v0.1.2
+   Compiling chinese-variant v1.1.6
+   Compiling wasmi_collections v0.40.0
+   Compiling spin v0.9.9
+   Compiling fast-srgb8 v1.0.0
+   Compiling multi-stash v0.2.0
+   Compiling icu_normalizer v2.2.0
+   Compiling icu_properties v2.2.0
+   Compiling semver v1.0.28
+   Compiling object v0.37.3
+   Compiling csv v1.4.0
+   Compiling ciborium v0.2.2
+   Compiling lipsum v0.9.1
+   Compiling phf v0.11.3
+   Compiling tiktoken-rs v0.12.0
+   Compiling comemo v0.4.0
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic)
+   Compiling kamadak-exif v0.6.1
+   Compiling chinese-number v0.7.8
+   Compiling typst-syntax v0.13.1
+   Compiling two-face v0.4.5
+   Compiling icu_locid_transform v1.5.0
+   Compiling icu_provider_blob v1.5.0
+   Compiling typst-macros v0.13.1
+   Compiling unicode-security v0.1.2
+   Compiling az v1.3.0
+   Compiling bumpalo v3.20.3
+   Compiling typst-assets v0.13.1
+   Compiling typed-arena v2.0.2
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling qcms v0.3.0
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling font-types v0.11.3
+   Compiling anstyle-parse v0.2.7
+   Compiling polycool v0.4.0
+   Compiling idna_adapter v1.2.2
+   Compiling icu_segmenter_data v1.5.1
+   Compiling anstyle-parse v1.0.0
+   Compiling icu_properties v1.5.1
+   Compiling stacker v0.1.24
+   Compiling pulldown-cmark v0.13.4
+   Compiling zune-core v0.4.12
+   Compiling quick-error v2.0.1
+   Compiling tiny-skia v0.11.4
+   Compiling rgb v0.8.53
+   Compiling read-fonts v0.39.2
+   Compiling anstream v0.6.21
+   Compiling gif v0.13.3
+   Compiling idna v1.1.0
+   Compiling memo-map v0.3.3
+   Compiling zune-jpeg v0.4.21
+   Compiling image-webp v0.1.3
+   Compiling anstream v1.0.0
+   Compiling clap_lex v1.1.0
+   Compiling xmlparser v0.13.6
+   Compiling strsim v0.11.1
+   Compiling pulldown-cmark-escape v0.11.0
+   Compiling kurbo v0.13.1
+   Compiling unicase v2.9.0
+   Compiling icu_provider_adapters v1.5.0
+   Compiling clap_derive v4.6.4
+   Compiling pdf-writer v0.12.1
+   Compiling url v2.5.8
+   Compiling sharded-slab v0.1.7
+   Compiling tracing-log v0.2.0
+   Compiling matchers v0.2.0
+   Compiling thread_local v1.1.10
+   Compiling minijinja v2.21.0
+   Compiling nu-ansi-term v0.50.3
+   Compiling clap_builder v4.6.2
+   Compiling hypher v0.1.7
+   Compiling resvg v0.43.0
+   Compiling if_chain v1.0.3
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/bundle-import)
+   Compiling xmp-writer v0.3.3
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/pipeline)
+   Compiling normalize-line-endings v0.3.0
+   Compiling gmeow-license v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/license)
+   Compiling similar v2.7.0
+   Compiling hayagriva v0.8.1
+   Compiling icu_segmenter v1.5.0
+   Compiling tracing-subscriber v0.3.23
+   Compiling wait-timeout v0.2.1
+   Compiling predicates-core v1.0.10
+   Compiling getrandom v0.3.4
+   Compiling snapbox-macros v0.4.0
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/slicetest)
+   Compiling float-cmp v0.10.0
+   Compiling toml_datetime v0.7.5+spec-1.1.0
+   Compiling wasmi v0.40.0
+   Compiling ar_archive_writer v0.5.2
+   Compiling filetime v0.2.29
+   Compiling os_pipe v1.2.3
+   Compiling content_inspector v0.2.4
+   Compiling ahash v0.8.12
+   Compiling humantime v2.4.0
+   Compiling dunce v1.0.5
+   Compiling termtree v0.5.1
+   Compiling assert_cmd v2.2.2
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling difflib v0.4.0
+   Compiling clap v4.6.4
+   Compiling automod v1.0.17
+   Compiling console v0.16.4
+   Compiling shlex v1.3.0
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/cost-measure)
+   Compiling humantime-serde v1.1.1
+   Compiling snapbox v0.6.24
+   Compiling predicates-tree v1.0.13
+   Compiling toml_edit v0.23.10+spec-1.0.0
+   Compiling psm v0.1.31
+   Compiling predicates v3.1.4
+   Compiling insta v1.48.0
+   Compiling trycmd v0.15.11
+   Compiling skrifa v0.42.1
+   Compiling write-fonts v0.48.1
+   Compiling typst-library v0.13.1
+   Compiling subsetter v0.2.6
+   Compiling svg2pdf v0.12.0
+   Compiling typst-svg v0.13.1
+   Compiling typst-layout v0.13.1
+   Compiling typst-realize v0.13.1
+   Compiling typst-eval v0.13.1
+   Compiling typst-pdf v0.13.1
+   Compiling typst-html v0.13.1
+   Compiling rustls-webpki v0.103.15
+   Compiling typst v0.13.1
+   Compiling ureq v3.3.0
+   Compiling purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-glob v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-toml v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/errors)
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling gmeow-cli-core v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/cli-core)
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/gts-profile)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/term-arena)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/ns)
+   Compiling gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/foundation-corpus)
+   Compiling gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/music)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic-compile)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/math-lift)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/math)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/transcode)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/validate)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/affect)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/conformance)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs-model)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/bundle-view)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/mcp)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs-print)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/slice-brief)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 19m 50s
+────────────
+ Nextest run ID 30a0fe0a-9160-4d30-96ed-9a68527b63a1 with nextest profile: ci
+    Starting 1 test across 1 binary (1216 tests and 1 binary skipped)
+        PASS [   0.110s] (1/1) gmeow-pipeline stages::conformance::source_admission::tests::shipped_admission_keeps_native_graph_receipt_and_external_status_without_semantic_comparison
+  stdout ───
+
+    running 1 test
+    SOURCE_ADMISSION_CBOR_REFERENCE=outside|<urn:gmeow:source-admission:44f7c820f7ef8783e1f1062909bce5853ac3533b9484bb1d85934d48337d3fe8>|857825676d656f772d736f757263652d61646d697373696f6e2d6f62736572766174696f6e2d76316973796e746865746963676f7574736964656c696e636f6e73697374656e74a26c696e7075745f626c616b6533982018a3187a1879188d1840181c18231823189c18b8187318a1186b18b3183a18bd181b1851182e1844182c181f188b1896051418f018d318a518cf18c118af6961646d697373696f6ea368636f6e747261637478226e6174697665436c61737345787072657373696f6e4c69737441646d697373696f6e6d736f757263655f776f726c6473a16975726e3a776f726c64a2656772617068a1634972696975726e3a776f726c646a617373657274696f6e73016f73656c65637465645f776f726c6473a0
+    SOURCE_ADMISSION_CBOR_REFERENCE=rich-refused|<urn:gmeow:source-admission:b8fe07bc7b9b8467eac3e190700648ead782577f2c319af8c34bd5e260804865>|857825676d656f772d736f757263652d61646d697373696f6e2d6f62736572766174696f6e2d76316973796e7468657469636c726963682d726566757365646f65787465726e616c2d737461747573a26c696e7075745f626c616b6533982018a718bf185c18551886183e18d5186818ac18631867185e189018c60c185818c913182a18bd18901820187618e818d3183e18d5185b18cc18ac18e6184c6961646d697373696f6ea368636f6e747261637478226e6174697665436c61737345787072657373696f6e4c69737441646d697373696f6e6d736f757263655f776f726c6473a2783568747470733a2f2f626c61636b636174696e666f726d61746963732e63612f676d656f772f67726170682f726c2d64656661756c74a2656772617068f66a617373657274696f6e73006975726e3a776f726c64a2656772617068a1634972696975726e3a776f726c646a617373657274696f6e731bffffffffffffffff6f73656c65637465645f776f726c6473a16975726e3a776f726c64a3656772617068a1634972696975726e3a776f726c646b646566696e6974696f6e7383a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64a4677375626a656374a1634972696975726e3a706c61696e697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d6b706c61696e2076616c75656864617461747970657827687474703a2f2f7777772e77332e6f72672f323030312f584d4c536368656d6123737472696e67686c616e6775616765f669646972656374696f6ef6656772617068a1634972696975726e3a776f726c64a4677375626a656374a165426c616e6ba2656c6162656c6a6c6566742d636c61696d6573636f706500697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d6d6c65667420746f2072696768746864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562656e69646972656374696f6e634c7472656772617068a1634972696975726e3a776f726c64677265667573616ca168436f6d62696e656481a168436f6d62696e656488a16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c646569737375656c4d616c666f726d65644e696ca16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64656973737565a174436f6e666c696374696e674c6973744669656c64a2677375626a6563746875726e3a6c697374697072656469636174656975726e3a6669727374a16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64656973737565a17645787072657373696f6e4d756c7469706c6963697479a2677375626a6563746975726e3a6f776e6572697072656469636174656e75726e3a646566696e6974696f6ea16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64656973737565a1781a556e737570706f7274656445787072657373696f6e4f776e6572a2656f776e6572a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6ea16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64656973737565a1781c556e737570706f7274656445787072657373696f6e4f706572616e64a3656f776e65726975726e3a6f776e6572697072656469636174656e75726e3a646566696e6974696f6e676f706572616e64a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746ca16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64656973737565a175556e737570706f727465644c6973744d656d626572a2656f776e65726975726e3a6f776e657264686561646875726e3a6c697374a16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64656973737565a16a4379636c69634c697374a2656f776e65726975726e3a6f776e657264686561646875726e3a6c697374a16f536f7572636541646d697373696f6ea365776f726c646975726e3a776f726c64687072656d6973657381a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64656973737565a16e496e636f6d706c6574654c697374a2656f776e65726975726e3a6f776e657264686561646875726e3a6c697374
+    SOURCE_ADMISSION_CBOR_REFERENCE=rich-admitted|<urn:gmeow:source-admission:c4161b0ad9caa3e7288849aaf64cc18c8699f71614cfe74f715a4f1fb3081fa6>|857825676d656f772d736f757263652d61646d697373696f6e2d6f62736572766174696f6e2d76316973796e7468657469636d726963682d61646d69747465646f65787465726e616c2d737461747573a26c696e7075745f626c616b6533982018a718bf185c18551886183e18d5186818ac18631867185e189018c60c185818c913182a18bd18901820187618e818d3183e18d5185b18cc18ac18e6184c6961646d697373696f6ea368636f6e747261637478226e6174697665436c61737345787072657373696f6e4c69737441646d697373696f6e6d736f757263655f776f726c6473a2783568747470733a2f2f626c61636b636174696e666f726d61746963732e63612f676d656f772f67726170682f726c2d64656661756c74a2656772617068f66a617373657274696f6e73006975726e3a776f726c64a2656772617068a1634972696975726e3a776f726c646a617373657274696f6e731bffffffffffffffff6f73656c65637465645f776f726c6473a16975726e3a776f726c64a3656772617068a1634972696975726e3a776f726c646b646566696e6974696f6e7383a4677375626a656374a166547269706c65a36173a165426c616e6ba2656c6162656c6c736f757263652d636c61696d6573636f70651affffffff6170a1634972696975726e3a6f75746572616fa166547269706c65a36173a1634972696975726e3a696e6e65726170a1634972696d75726e3a707265646963617465616fa1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d77d985d984d8a7d8add8b8d8a90a22766572626174696d226864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562617269646972656374696f6e6352746c656772617068a1634972696975726e3a776f726c64a4677375626a656374a1634972696975726e3a706c61696e697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d6b706c61696e2076616c75656864617461747970657827687474703a2f2f7777772e77332e6f72672f323030312f584d4c536368656d6123737472696e67686c616e6775616765f669646972656374696f6ef6656772617068a1634972696975726e3a776f726c64a4677375626a656374a165426c616e6ba2656c6162656c6a6c6566742d636c61696d6573636f706500697072656469636174656e75726e3a646566696e6974696f6e666f626a656374a1674c69746572616ca46c6c65786963616c5f666f726d6d6c65667420746f2072696768746864617461747970657838687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73236469724c616e67537472696e67686c616e677561676562656e69646972656374696f6e634c7472656772617068a1634972696975726e3a776f726c64677265667573616cf6
+    test stages::conformance::source_admission::tests::shipped_admission_keeps_native_graph_receipt_and_external_status_without_semantic_comparison ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1216 filtered out; finished in 0.10s
+
+
+────────────
+     Summary [   0.165s] 1 test run: 1 passed, 1216 skipped

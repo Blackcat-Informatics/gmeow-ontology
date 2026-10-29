@@ -1,0 +1,5 @@
+Source-admission receipt publication still depended on Ciborium. Stream the complete receipt through native CBOR owners, including the existing retained-term wire, while preserving declaration order, source evidence, the integer-array digest, the one-MiB sink and exact BLAKE3 identities. Unsupported boundaries fail explicitly and encoding errors retain their native cause. Principles 4, 7 and 17.
+
+Before changing the encoder, captured three complete original receipts (281, 6,209 and 1,293 bytes) and their actual emitted identities. The same existing authored control now matches every byte and identity and retains its typed round-trips: passed, with 1,216 cases skipped. Formatting, prose, independent source/design review and normal signed hooks passed. Warnings-denied checks of all pipeline and developer CLI targets and helper hygiene passed. No new test function or dependency.
+
+Part of #1777. Other CBOR owners, the existing independent test decoder, dependency removal and full parent acceptance remain open. CI remains waived under the standing campaign instruction. No optimized producer, corpus/fixture construction, sync or full gate was run.

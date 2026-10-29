@@ -1,0 +1,87 @@
+{
+  "issue": 1777,
+  "pr_number": 2044,
+  "branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor",
+  "observed_at": "2026-10-29T11:16:09.140925+00:00",
+  "completed": [
+    "pr",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [
+    {
+      "source": "checks",
+      "reason": "gh returned unparseable JSON: Expecting value: line 1 column 1 (char 0)"
+    }
+  ],
+  "next_actions": [
+    "Restore checks evidence: gh returned unparseable JSON: Expecting value: line 1 column 1 (char 0)",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "40c4360e9c98a5763d30502eb093518587ce0a42",
+    "headRefName": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+    "headRefOid": "e2ae3d30e6600ba1e2629766459a94b157d936c4",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2044,
+    "state": "OPEN",
+    "title": "Stream source-admission receipts through native CBOR",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2044"
+  },
+  "reviews": {
+    "head": "e2ae3d30e6600ba1e2629766459a94b157d936c4",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "9d97fc232a2cda6ae26cdcaad4fec8ebd67769a9b0bce95bad91d507d32be627"
+  },
+  "local": {
+    "head": "e2ae3d30e6600ba1e2629766459a94b157d936c4",
+    "branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+    "dirty_paths": []
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABgx8f6w",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2044#issuecomment-6494822379",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
