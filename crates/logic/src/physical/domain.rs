@@ -5,6 +5,7 @@
 //! a domain law. The caller owns the source/role admission that supplies this contract.
 
 use purrdf::TermValue;
+use purrdf_lex::json::{Object, Value, record::ToJson};
 
 use super::chase::{ExistentialRule, WitnessPolicy};
 use super::store::metadata_identity;
@@ -15,6 +16,17 @@ use crate::rule_ir::{EvalAtom, EvalTerm};
 pub enum LogicalGraph {
     Default,
     Named(#[serde(with = "crate::term_serde")] TermValue),
+}
+
+impl ToJson for LogicalGraph {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Default => "Default".to_json(),
+            Self::Named(value) => Object::new()
+                .with("Named", crate::term_serde::to_json(value))
+                .into(),
+        }
+    }
 }
 
 impl LogicalGraph {
@@ -57,6 +69,14 @@ impl LogicalGraph {
 )]
 pub enum DomainProfile {
     NonemptyObjectDomainV1,
+}
+
+impl ToJson for DomainProfile {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::NonemptyObjectDomainV1 => "NonemptyObjectDomainV1".to_json(),
+        }
+    }
 }
 
 /// A caller-admitted logical world and the exact role/source selection receipt.
