@@ -1,0 +1,51 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-dev-cli -p gmeow-pipeline --lib -E 'package(gmeow-pipeline) & (test(binary_handle_codecs_preserve_mixed_loss_vectors_and_following_fields) | test(persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic-compile)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/lang-bridge)
+   Compiling gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/transcode)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/validate)
+   Compiling gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/affect)
+   Compiling gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/conformance)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs-model)
+   Compiling gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/slicetest)
+   Compiling gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs)
+   Compiling gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/slice-quality)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/bundle-view)
+   Compiling gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs-catalog)
+   Compiling gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/mcp)
+   Compiling docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/docs-print)
+   Compiling gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/slice-brief)
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 7m 43s
+────────────
+ Nextest run ID 49ff3f5c-996e-45f1-8753-8736a01f116f with nextest profile: ci
+    Starting 2 tests across 1 binary (1215 tests and 1 binary skipped)
+        PASS [   0.109s] (1/2) gmeow-pipeline cache::loss_codec_tests::binary_handle_codecs_preserve_mixed_loss_vectors_and_following_fields
+  stdout ───
+
+    running 1 test
+    test cache::loss_codec_tests::binary_handle_codecs_preserve_mixed_loss_vectors_and_following_fields ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1216 filtered out; finished in 0.09s
+
+
+        PASS [   0.149s] (2/2) gmeow-pipeline cache::loss_codec_tests::persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms
+  stdout ───
+
+    running 1 test
+    test cache::loss_codec_tests::persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1216 filtered out; finished in 0.13s
+
+
+────────────
+     Summary [   0.290s] 2 tests run: 2 passed, 1215 skipped

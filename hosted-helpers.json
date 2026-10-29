@@ -1,0 +1,100 @@
+{
+  "id": 123519127681,
+  "run_id": 40894307107,
+  "workflow_name": "CI",
+  "head_branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+  "run_url": "https://api.github.com/repos/Blackcat-Informatics/gmeow-ontology/actions/runs/40894307107",
+  "run_attempt": 1,
+  "node_id": "CR_kwDOSwdn1s8AAAAcwlBQgQ",
+  "head_sha": "62c51db1059ba15bfbaf02b50b5ebdcedf80d816",
+  "url": "https://api.github.com/repos/Blackcat-Informatics/gmeow-ontology/actions/jobs/123519127681",
+  "html_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40894307107/job/123519127681",
+  "status": "completed",
+  "conclusion": "failure",
+  "created_at": "2026-10-29T14:43:20Z",
+  "started_at": "2026-10-29T14:43:23Z",
+  "completed_at": "2026-10-29T14:45:07Z",
+  "name": "helpers",
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1,
+      "started_at": "2026-10-29T14:43:24Z",
+      "completed_at": "2026-10-29T14:43:26Z"
+    },
+    {
+      "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2,
+      "started_at": "2026-10-29T14:43:26Z",
+      "completed_at": "2026-10-29T14:43:33Z"
+    },
+    {
+      "name": "Install Rust (nightly)",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3,
+      "started_at": "2026-10-29T14:43:33Z",
+      "completed_at": "2026-10-29T14:43:43Z"
+    },
+    {
+      "name": "Cache the native helper checker",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4,
+      "started_at": "2026-10-29T14:43:43Z",
+      "completed_at": "2026-10-29T14:44:02Z"
+    },
+    {
+      "name": "Fetch locked workspace dependencies",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5,
+      "started_at": "2026-10-29T14:44:02Z",
+      "completed_at": "2026-10-29T14:44:05Z"
+    },
+    {
+      "name": "Helper ownership and dependency hygiene",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 6,
+      "started_at": "2026-10-29T14:44:05Z",
+      "completed_at": "2026-10-29T14:45:04Z"
+    },
+    {
+      "name": "Post Cache the native helper checker",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 11,
+      "started_at": "2026-10-29T14:45:04Z",
+      "completed_at": "2026-10-29T14:45:04Z"
+    },
+    {
+      "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12,
+      "started_at": "2026-10-29T14:45:04Z",
+      "completed_at": "2026-10-29T14:45:04Z"
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 13,
+      "started_at": "2026-10-29T14:45:04Z",
+      "completed_at": "2026-10-29T14:45:04Z"
+    }
+  ],
+  "check_run_url": "https://api.github.com/repos/Blackcat-Informatics/gmeow-ontology/check-runs/123519127681",
+  "labels": [
+    "ubuntu-latest"
+  ],
+  "runner_id": 1000163848,
+  "runner_name": "GitHub Actions 1000163848",
+  "runner_group_id": 0,
+  "runner_group_name": "GitHub Actions"
+}

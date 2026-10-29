@@ -1,0 +1,118 @@
+{
+  "issue": 1777,
+  "pr_number": 2054,
+  "branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor",
+  "observed_at": "2026-10-29T15:00:04.181638+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "b934524ae6119815d0548262b3ae4fd65246c339",
+    "headRefName": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+    "headRefOid": "9a2319576cd7e3d94a2479c8f5cd5288126b7e91",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2054,
+    "state": "OPEN",
+    "title": "Stream complete correspondence handle identities through native CBOR",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2054"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896334075/job/123526599676",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896334075/job/123526599846",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896334075/job/123526599602",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896334075/job/123526599249",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2054",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2054",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "9a2319576cd7e3d94a2479c8f5cd5288126b7e91",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "baff25f3fe9dd2aa782701f34c47bb049596e1a70c8de8c009e5b2fb98a202e8"
+  },
+  "local": {
+    "head": "9a2319576cd7e3d94a2479c8f5cd5288126b7e91",
+    "branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2054,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2054 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

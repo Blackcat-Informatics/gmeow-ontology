@@ -1,0 +1,51 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-dev-cli -p gmeow-pipeline --lib -E 'package(gmeow-pipeline) & (test(binary_handle_codecs_preserve_mixed_loss_vectors_and_following_fields) | test(persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms) | test(relational_residue_and_source_boundaries_change_native_identity) | test(standalone_compilation_shares_exact_selection_and_bounds_retention))' --no-tests=fail
+   Compiling gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/pipeline)
+   Compiling gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/mcp-dev)
+   Compiling gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/gmeow-dev-cli)
+    Finished `test` profile [optimized] target(s) in 1m 50s
+────────────
+ Nextest run ID f260c60a-ada3-46cb-9df9-e0a8012101db with nextest profile: ci
+    Starting 4 tests across 1 binary (1213 tests and 1 binary skipped)
+        PASS [   0.011s] (1/4) gmeow-pipeline cache::tests::relational_residue_and_source_boundaries_change_native_identity
+  stdout ───
+
+    running 1 test
+    test cache::tests::relational_residue_and_source_boundaries_change_native_identity ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1216 filtered out; finished in 0.00s
+
+
+        PASS [   0.013s] (2/4) gmeow-pipeline stages::parse_sources::document_cache_tests::standalone_compilation_shares_exact_selection_and_bounds_retention
+  stdout ───
+
+    running 1 test
+    test stages::parse_sources::document_cache_tests::standalone_compilation_shares_exact_selection_and_bounds_retention ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1216 filtered out; finished in 0.00s
+
+
+        PASS [   0.013s] (3/4) gmeow-pipeline cache::loss_codec_tests::binary_handle_codecs_preserve_mixed_loss_vectors_and_following_fields
+  stdout ───
+
+    running 1 test
+    test cache::loss_codec_tests::binary_handle_codecs_preserve_mixed_loss_vectors_and_following_fields ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1216 filtered out; finished in 0.00s
+
+
+        PASS [   0.023s] (4/4) gmeow-pipeline cache::loss_codec_tests::persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms
+  stdout ───
+
+    running 1 test
+    test cache::loss_codec_tests::persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1216 filtered out; finished in 0.01s
+
+
+────────────
+     Summary [   0.057s] 4 tests run: 4 passed, 1213 skipped

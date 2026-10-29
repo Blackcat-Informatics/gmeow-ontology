@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "issue": 1777,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor",
+  "branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+  "slug": "deps-move-gmeow-owned-serde-cbor",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "be73c4a6fca6f58f9faaed40401a08e498c74002",
+  "reused": true,
+  "adr_repo": false,
+  "created": [
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-29T06:52:13-0600"
+}
