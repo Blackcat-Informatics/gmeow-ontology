@@ -411,7 +411,7 @@ impl Stage for ResultShapesStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 

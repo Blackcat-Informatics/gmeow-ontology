@@ -172,7 +172,8 @@ fn term_panels_refuse_missing_native_source_even_when_explanation_bytes_exist() 
     let wrong_owner = StageProduct::from_bundle(
         "stage-snapshot",
         std::sync::Arc::clone(native["stage-reason"].bundle()),
-    );
+    )
+    .expect("the stage carrier digests");
     assert!(
         term_entailments_from_upstream(
             &BTreeMap::from([("stage-reason".to_owned(), wrong_owner)]),
@@ -187,7 +188,8 @@ fn term_panels_refuse_missing_native_source_even_when_explanation_bytes_exist() 
             crate::stages::reason::EXPLANATIONS_PATH.to_owned(),
             b"outward artifact only".to_vec(),
         )]),
-    );
+    )
+    .expect("the stage carrier digests");
     assert!(
         term_entailments_from_upstream(
             &BTreeMap::from([("stage-reason".to_owned(), serialized)]),

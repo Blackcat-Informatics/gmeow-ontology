@@ -1148,7 +1148,7 @@ impl Stage for ConformanceStage {
             self.id(),
             dataset,
             artifacts,
-        ));
+        )?);
         output.timings.push(gmn_timing);
         Ok(output)
     }

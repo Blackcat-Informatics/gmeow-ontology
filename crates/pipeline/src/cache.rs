@@ -80,7 +80,7 @@ use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
     ContentDigest, ContentStore, PackBuilder, QuadHandle, RdfBlobOrigin, RdfBlobRecord,
     RdfLocation, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataValue,
-    canonicalize, restore_pack,
+    restore_pack,
 };
 use serde::{Deserialize, Serialize};
 
@@ -890,7 +890,7 @@ fn validate_handle_projection(
         PipelineHandle::Reasoning(result) => {
             let expected = gmeow_logic::result_rdf::project_reasoning_dataset(result)
                 .map_err(|e| error(e.to_string()))?;
-            purrdf::datasets_isomorphic(graph, &expected)
+            purrdf::datasets_isomorphic(graph, &expected).map_err(|e| error(e.to_string()))?
         }
         PipelineHandle::RelationalCore(program) => {
             let projected = gmeow_logic_compile::relational_core::parse_relational_core(graph)
@@ -1506,7 +1506,12 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             // Derive the pin and typed payload from the SAME live graph projection.
             // `pin_handle` independently checks that pin against the restored carrier,
             // preserving the hard-fail invariant without a duplicate persisted graph.
-            let pinned = ContentDigest::of(canonicalize(&subgraph).nquads.as_bytes());
+            let canonical = purrdf::try_canonicalize(&subgraph).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("cache: canonicalize handle graph <{}> failed: {e}", h.graph),
+                })
+            })?;
+            let pinned = ContentDigest::of(canonical.nquads.as_bytes());
             let payload = rebuild_handle(&h.arm, h.typed_payload.as_ref().map(AsRef::as_ref))?;
             if let PipelineHandle::Diagnostics(publication) = &payload {
                 publication.validate_binding(&self.stage_id, &h.graph)?;
@@ -1532,13 +1537,21 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                 })?;
         }
 
-        let mut product = StageProduct::from_bundle(self.stage_id, Arc::new(bundle));
+        let mut product = StageProduct::from_bundle(self.stage_id, Arc::new(bundle))?;
         if product.digest != self.digest {
             // Abstract stages intentionally carry an external digest over an empty
             // carrier. This exception cannot admit any graph, payload or sidecar.
             let empty =
                 crate::bundle::bundle_from_artifacts(BTreeMap::new(), DatasetProvenance::new());
-            if !product.bundle().handles().is_empty() || product.bundle().digest() != empty.digest()
+            let carrier_digest = |bundle: &PipelineBundleAlias| {
+                bundle.digest().map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Decode {
+                        message: format!("cache: digest restored carrier failed: {e}"),
+                    })
+                })
+            };
+            if !product.bundle().handles().is_empty()
+                || carrier_digest(product.bundle())? != carrier_digest(&empty)?
             {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                     expected: self.digest,

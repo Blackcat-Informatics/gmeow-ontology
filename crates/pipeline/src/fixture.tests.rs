@@ -157,7 +157,8 @@ fn source_export_cannot_substitute_another_selected_parent_or_artifact() {
     let product = StageProduct::from_artifacts(
         "synthetic-stage",
         BTreeMap::from([(path.into(), bytes.to_vec())]),
-    );
+    )
+    .expect("the stage carrier digests");
     let receipt = PipelineCache::receipt_only(
         &StageKeyContext::new("synthetic-stage", "synthetic-v1", Vec::new(), Vec::new()),
         StageStability::StablePrefix.iri(),

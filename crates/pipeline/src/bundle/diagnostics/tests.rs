@@ -166,7 +166,7 @@ pub(crate) fn product(owner: DiagnosticReportOwner, report: Report) -> StageProd
         Arc::new(DiagnosticsPublication::producer(owner, rendered.report).unwrap()),
     )
     .unwrap();
-    StageProduct::from_bundle(stage, Arc::new(bundle))
+    StageProduct::from_bundle(stage, Arc::new(bundle)).expect("the stage carrier digests")
 }
 
 /// Assemble only the diagnostic contract of a tiny retained snapshot, reusing
@@ -189,6 +189,7 @@ pub(crate) fn snapshot_product(upstream: &BTreeMap<String, StageProduct>) -> Sta
     );
     pin_diagnostics(&mut bundle, "stage-snapshot", publication).unwrap();
     StageProduct::from_bundle("stage-snapshot", Arc::new(bundle))
+        .expect("the stage carrier digests")
 }
 
 /// The complete native Report equals the final rendered value, including every

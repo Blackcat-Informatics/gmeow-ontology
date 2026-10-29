@@ -2544,23 +2544,16 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_pipeline::stages::schemas::SchemasStage::new",
-    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
-    "gmeow_pipeline::stages::references::reference_validation_error",
-    "gmeow_pipeline::stages::term_manifest::manifest_error"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
     "gmeow_pipeline::stages::research_objects::ro_err",
     "gmeow_pipeline::stages::shape_union_fresh::parse_err",
     "gmeow_pipeline::stages::skos_surface::parse_err"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_pipeline::stages::schemas::SchemasStage::new",
+    "gmeow_pipeline::stages::slice_brief::SliceBriefStage::new"
    ]
   },
   {

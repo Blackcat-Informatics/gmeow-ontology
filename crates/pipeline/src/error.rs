@@ -548,6 +548,21 @@ pub fn register_all() -> Vec<Code> {
     ]
 }
 
+/// A [`Parse`] diagnostic: the one constructor pipeline modules use for an RDF
+/// source or semantic refusal in their own inputs.
+pub(crate) fn parse_diag(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(Parse {
+        message: message.into(),
+    })
+}
+
+/// An [`Io`] diagnostic for a filesystem failure reading a source artifact.
+pub(crate) fn io_diag(error: std::io::Error) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(Io {
+        message: error.to_string(),
+    })
+}
+
 #[path = "error.tests.rs"]
 #[cfg(test)]
 mod tests;

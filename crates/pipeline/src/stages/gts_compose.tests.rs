@@ -7,6 +7,7 @@ fn product(stage: &str, turtle: &str) -> StageProduct {
     let dataset = purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .expect("parse synthetic dataset");
     StageProduct::from_artifacts_over(stage, dataset, BTreeMap::new())
+        .expect("the stage carrier digests")
 }
 
 #[test]
@@ -44,7 +45,8 @@ fn compose_fails_closed_on_missing_or_empty_required_layers() {
         ),
         (
             "stage-statements".to_string(),
-            StageProduct::from_artifacts("stage-statements", BTreeMap::new()),
+            StageProduct::from_artifacts("stage-statements", BTreeMap::new())
+                .expect("the stage carrier digests"),
         ),
     ]);
     assert!(compose(&empty_statements).is_err());

@@ -193,7 +193,7 @@ impl Stage for SliceBriefStage {
             self.id(),
             dataset,
             BTreeMap::new(),
-        )))
+        )?))
     }
 }
 

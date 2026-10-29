@@ -526,12 +526,15 @@ fn compile_mappings_with_sources(
     // FnO catalog's `to_quads`) never emits `rdfs:isDefinedBy`/`gmeow:graphBoxRole`
     // for its A-Box `fno:Function`/`fno:Output`/`fno:Parameter` individuals —
     // complete them the same way `logic-compile`'s `fno.rs` does.
+    let list_functions = emit_list_functions(&vocab).map_err(|error| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-mappings".to_string(),
+            message: format!("purrdf refused the list-functions FnO catalog: {error}"),
+        })
+    })?;
     artifacts.insert(
         LIST_FUNCTIONS_PATH.to_string(),
-        canon_fanout_ttl(&complete_list_functions_abox(
-            &emit_list_functions(&vocab),
-            &vocab,
-        ))?,
+        canon_fanout_ttl(&complete_list_functions_abox(&list_functions, &vocab)?)?,
     );
 
     Ok(CompiledMappings {
@@ -834,8 +837,18 @@ fn complete_core_prefixes_abox(body: &str, vocab: &purrdf::SliceVocab) -> String
 /// IRIs — `body`'s serialized text (with its own retag/tag choices) is passed
 /// through unmodified, only appended to, so this never diverges from what
 /// `emit_list_functions` actually emitted.
-fn complete_list_functions_abox(body: &str, vocab: &purrdf::SliceVocab) -> String {
-    let catalog = purrdf::slice::list_functions::list_functions_catalog(vocab);
+fn complete_list_functions_abox(
+    body: &str,
+    vocab: &purrdf::SliceVocab,
+) -> Result<String, gmeow_errors::Diag> {
+    let admitted =
+        purrdf::slice::list_functions::list_functions_catalog(vocab).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!("purrdf refused the list-functions FnO catalog: {error}"),
+            })
+        })?;
+    let catalog = admitted.as_input();
     let mut subjects: Vec<&str> = Vec::new();
     for func in &catalog.functions {
         subjects.push(&func.iri);
@@ -855,7 +868,7 @@ fn complete_list_functions_abox(body: &str, vocab: &purrdf::SliceVocab) -> Strin
             box_abox = gmeow_errors::abox::BOX_ABOX,
         ));
     }
-    out
+    Ok(out)
 }
 
 /// Borrow the mandatory compiler report publication from its authenticated product.
@@ -1508,7 +1521,7 @@ impl Stage for MappingsStage {
             self.id(),
             dataset,
             artifacts,
-        )))
+        )?))
     }
 }
 

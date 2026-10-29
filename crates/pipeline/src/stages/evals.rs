@@ -1076,7 +1076,7 @@ impl Stage for EvalsStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_evals(input.root)?,
-        )))
+        )?))
     }
 }
 

@@ -33,8 +33,10 @@ fn blob_product(bytes: Option<Vec<u8>>) -> StageProduct {
                 "application/json",
                 bytes,
             )),
-        ),
-        None => StageProduct::from_artifacts_over("stage-source-load", dataset, BTreeMap::new()),
+        )
+        .expect("the stage carrier digests"),
+        None => StageProduct::from_artifacts_over("stage-source-load", dataset, BTreeMap::new())
+            .expect("the stage carrier digests"),
     }
 }
 

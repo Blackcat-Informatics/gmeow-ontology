@@ -242,7 +242,7 @@ impl Stage for LpgStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_from_dataset(dataset.as_ref())?,
-        )))
+        )?))
     }
 }
 

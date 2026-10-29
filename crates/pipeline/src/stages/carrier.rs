@@ -1911,7 +1911,9 @@ pub fn snapshot_stratum_digest(
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<(String, usize), gmeow_errors::Diag> {
     let union = flat_stratum_union(carrier, extra_graphs)?;
-    let canonical = purrdf::canonicalize(&union).nquads;
+    let canonical = purrdf::try_canonicalize(&union)
+        .map_err(|e| stage_err(&format!("canonicalize the pass-one stratum: {e}")))?
+        .nquads;
     drop(union);
     let len = canonical.len();
     let digest = crate::medium::blake3_digest(canonical.as_bytes());
@@ -2038,7 +2040,9 @@ mod stratum_canonical_tests;
 pub fn snapshot_stratum_nquads(payload: &purrdf::RdfDataset) -> Result<String, gmeow_errors::Diag> {
     let stripped = purrdf::flat_dataset_from_quads(&snapshot_stratum_quads(payload))
         .map_err(|e| stage_err(&format!("strip the medium-envelope subgraph: {e}")))?;
-    Ok(purrdf::canonicalize(&stripped).nquads)
+    Ok(purrdf::try_canonicalize(&stripped)
+        .map_err(|e| stage_err(&format!("canonicalize the stratum payload: {e}")))?
+        .nquads)
 }
 
 /// The stratum's quad set: every quad of an emitted snapshot payload EXCEPT the
@@ -3342,7 +3346,7 @@ impl Stage for SnapshotStage {
         Ok(StageOutput::new(StageProduct::from_bundle(
             self.id(),
             std::sync::Arc::new(bundle),
-        )))
+        )?))
     }
 }
 

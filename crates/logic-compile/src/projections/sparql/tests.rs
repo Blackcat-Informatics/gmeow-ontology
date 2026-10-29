@@ -68,7 +68,8 @@ fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> purrdf::backend::D
     let result = evaluate(&typed);
     let rendered = evaluate(&emitted);
     assert!(
-        purrdf::datasets_isomorphic(result.as_ref(), rendered.as_ref()),
+        purrdf::datasets_isomorphic(result.as_ref(), rendered.as_ref())
+            .expect("isomorphism is decided by canonical bytes"),
         "emitted mapping changed native execution"
     );
     result
@@ -89,19 +90,25 @@ fn typed_and_emitted_binding_preserve_get_suppression_and_unguarded_put() {
         "<urn:visible> <urn:source> <urn:value> . <urn:hidden> <urn:source> <urn:secret>; gm:displayable false .",
     );
     let get = run(&legs.get, &lowered.queries["test.rq"], &input);
-    assert!(purrdf::datasets_isomorphic(
-        get.as_ref(),
-        &dataset("<urn:visible> <urn:view> <urn:value> .")
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(
+            get.as_ref(),
+            &dataset("<urn:visible> <urn:view> <urn:value> .")
+        )
+        .expect("isomorphism is decided by canonical bytes")
+    );
     let put = run(
         legs.put.as_ref().unwrap(),
         &lowered.put_queries["test.put.rq"],
         &dataset("<urn:hidden> <urn:view> <urn:edit> ."),
     );
-    assert!(purrdf::datasets_isomorphic(
-        put.as_ref(),
-        &dataset("<urn:hidden> <urn:source> <urn:edit> .")
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(
+            put.as_ref(),
+            &dataset("<urn:hidden> <urn:source> <urn:edit> .")
+        )
+        .expect("isomorphism is decided by canonical bytes")
+    );
     assert_eq!(
         lowered.ledger.len(),
         1,
@@ -125,10 +132,13 @@ fn typed_cell_domains_stay_isolated_from_profile_union_and_other_contexts() {
     let input =
         dataset("<urn:item> <urn:source> <urn:value>; <urn:other-source> <urn:other-value> .");
     let isolated = run(&legs.get, &isolated_text, &input);
-    assert!(purrdf::datasets_isomorphic(
-        isolated.as_ref(),
-        &dataset("<urn:item> <urn:view> <urn:value> .")
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(
+            isolated.as_ref(),
+            &dataset("<urn:item> <urn:view> <urn:value> .")
+        )
+        .expect("isomorphism is decided by canonical bytes")
+    );
     let mut contextual = purrdf::RdfDatasetBuilder::new();
     let s = contextual.intern_iri("urn:item").unwrap();
     let p = contextual.intern_iri("urn:source").unwrap();
@@ -166,10 +176,10 @@ fn typed_mapping_executes_nested_paths_optionals_values_and_legalized_expression
         "<urn:s> <urn:edge> <urn:middle>; <urn:label> \"hello\"; <urn:approved> true . <urn:middle> <urn:right> <urn:kind> . <urn:unapproved> <urn:edge> <urn:middle>; <urn:label> \"hello\" .",
     );
     let output = run(&legs.get, &lowered.queries["test.rq"], &input);
-    assert!(purrdf::datasets_isomorphic(
-        output.as_ref(),
-        &dataset("<urn:s> a <urn:Target> .")
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(output.as_ref(), &dataset("<urn:s> a <urn:Target> ."))
+            .expect("isomorphism is decided by canonical bytes")
+    );
 }
 
 #[test]
@@ -193,10 +203,13 @@ fn typed_retag_preserves_script_selection_and_hidden_bearer_guard() {
 "#,
     );
     let output = run(&legs.get, &lowered.queries["test.rq"], &input);
-    assert!(purrdf::datasets_isomorphic(
-        output.as_ref(),
-        &dataset("<urn:visible> <urn:label> \"hello\"@en-Latn .")
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(
+            output.as_ref(),
+            &dataset("<urn:visible> <urn:label> \"hello\"@en-Latn .")
+        )
+        .expect("isomorphism is decided by canonical bytes")
+    );
 }
 
 #[test]
@@ -209,10 +222,10 @@ fn unsupported_expression_has_loss_evidence_without_a_placeholder_binding() {
         &lowered.queries["test.rq"],
         &dataset("<urn:s> <urn:source> <urn:o> ."),
     );
-    assert!(purrdf::datasets_isomorphic(
-        output.as_ref(),
-        &dataset("<urn:s> <urn:view> <urn:o> .")
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(output.as_ref(), &dataset("<urn:s> <urn:view> <urn:o> ."))
+            .expect("isomorphism is decided by canonical bytes")
+    );
     let drops = lowered.loss.projection_drops_for(&lowered.ledger[0].target);
     assert!(
         drops
@@ -318,13 +331,17 @@ fn full_profiles_equal_independent_binding_execution_despite_shared_variable_nam
         let input = dataset(input);
         let actual = profile_output(&lowered, put, &input);
         assert!(
-            purrdf::datasets_isomorphic(actual.as_ref(), &dataset(expected)),
+            purrdf::datasets_isomorphic(actual.as_ref(), &dataset(expected))
+                .expect("isomorphism is decided by canonical bytes"),
             "another binding's template crossed its branch"
         );
-        assert!(purrdf::datasets_isomorphic(
-            actual.as_ref(),
-            &independent_output(&lowered, put, &input)
-        ));
+        assert!(
+            purrdf::datasets_isomorphic(
+                actual.as_ref(),
+                &independent_output(&lowered, put, &input)
+            )
+            .expect("isomorphism is decided by canonical bytes")
+        );
     }
 }
 
@@ -353,7 +370,8 @@ fn candidate_ground_rows_and_template_blanks_belong_only_to_their_successful_bra
         purrdf::datasets_isomorphic(
             recovered.as_ref(),
             &dataset("<urn:item> <urn:source> <urn:value> .")
-        ),
+        )
+        .expect("isomorphism is decided by canonical bytes"),
         "inactive claim branches must not emit ground import metadata or partial blank claims"
     );
     for input in [
@@ -366,7 +384,8 @@ fn candidate_ground_rows_and_template_blanks_belong_only_to_their_successful_bra
             purrdf::datasets_isomorphic(
                 actual.as_ref(),
                 &independent_output(&lowered, true, &input)
-            ),
+            )
+            .expect("isomorphism is decided by canonical bytes"),
             "candidate templates must allocate independent blanks and retain branch-local claims"
         );
     }
@@ -384,14 +403,20 @@ fn optional_binding_remains_unbound_in_its_own_profile_branch() {
     let lowered = compile(&format!("{SIMPLE}\n{source}"), "");
     let input = dataset("<urn:item> <urn:source> <urn:value> .");
     let output = profile_output(&lowered, false, &input);
-    assert!(purrdf::datasets_isomorphic(
-        output.as_ref(),
-        &dataset("<urn:item> <urn:view> <urn:value> .")
-    ));
-    assert!(purrdf::datasets_isomorphic(
-        output.as_ref(),
-        &independent_output(&lowered, false, &input)
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(
+            output.as_ref(),
+            &dataset("<urn:item> <urn:view> <urn:value> .")
+        )
+        .expect("isomorphism is decided by canonical bytes")
+    );
+    assert!(
+        purrdf::datasets_isomorphic(
+            output.as_ref(),
+            &independent_output(&lowered, false, &input)
+        )
+        .expect("isomorphism is decided by canonical bytes")
+    );
 }
 
 #[test]
@@ -570,7 +595,8 @@ fn retag_helpers_never_capture_an_authored_value_with_the_same_name() {
             purrdf::datasets_isomorphic(
                 output.as_ref(),
                 &dataset("<urn:item> <urn:label> \"hello\"@en .")
-            ),
+            )
+            .expect("isomorphism is decided by canonical bytes"),
             "authored value ?{value} must remain distinct from generated retag roles"
         );
     }
@@ -606,7 +632,8 @@ fn authored_language_final_value_and_hidden_bearer_roles_keep_their_own_bindings
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:visible> <urn:label> \"hello\"@en-Latn .")
-        ),
+        )
+        .expect("isomorphism is decided by canonical bytes"),
         "authored language correlation, final-value filter and hidden-bearer exclusion must all survive fresh helper allocation"
     );
 }
@@ -626,10 +653,10 @@ fn value_class_lookup_does_not_capture_an_authored_class_suffixed_variable() {
     let input =
         dataset("<urn:item> <urn:kind> <urn:kind-value>; <urn:evidence> <urn:SourceEvidence> .");
     let output = profile_output(&lowered, false, &input);
-    assert!(purrdf::datasets_isomorphic(
-        output.as_ref(),
-        &dataset("<urn:item> a <urn:Target> .")
-    ));
+    assert!(
+        purrdf::datasets_isomorphic(output.as_ref(), &dataset("<urn:item> a <urn:Target> ."))
+            .expect("isomorphism is decided by canonical bytes")
+    );
 }
 
 #[test]
@@ -715,7 +742,8 @@ fn name_part_retag_reuses_an_authored_parent_language_binding() {
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:part> <urn:label> \"hello\"@en .")
-        ),
+        )
+        .expect("isomorphism is decided by canonical bytes"),
         "allocated helper names must not disconnect a real authored parent-language correlation"
     );
 }

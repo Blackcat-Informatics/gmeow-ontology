@@ -149,6 +149,6 @@ impl Stage for CatalogStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }

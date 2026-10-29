@@ -1681,7 +1681,7 @@ impl Stage for ResearchObjectsStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_research_objects(input.root, dcat_program, correspondence_program, scores_ttl)?,
-        )))
+        )?))
     }
 }
 

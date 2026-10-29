@@ -67,7 +67,7 @@ jobs:
       - name: Install wasm-bindgen-cli (pinned to the crate version)
         uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
         with:
-          tool: wasm-bindgen-cli@0.2.125
+          tool: wasm-bindgen-cli@0.2.129
 
       # wasm-opt (binaryen) is a REQUIRED build step: every `*-wasm-pkg` lane hard-fails
       # without it. DERIVED from the Makefile exactly as ci.yml derives it, never repeated

@@ -44,7 +44,8 @@ fn mappings_require_and_borrow_complete_native_report_inputs() {
         bundle.pin_handle(GRAPH_LOGIC, handle, digest).unwrap();
         BTreeMap::from([(
             "stage-compile-logic".into(),
-            StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle)),
+            StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+                .expect("the stage carrier digests"),
         )])
     };
     assert!(logic_report_inputs(&BTreeMap::new()).is_err());
@@ -223,15 +224,18 @@ fn load_mappings_with_authenticated_upstream() -> (StageProduct, BTreeMap<String
         crate::fixture::stage_artifacts(&root, jobs, "stage-export-constraint-shapes")
             .expect("exact constraint-shapes artifact fixture");
     (
-        StageProduct::from_artifacts("stage-mappings", mappings),
+        StageProduct::from_artifacts("stage-mappings", mappings)
+            .expect("the stage carrier digests"),
         BTreeMap::from([
             (
                 "stage-compile-logic".to_string(),
-                StageProduct::from_artifacts("stage-compile-logic", compile_logic),
+                StageProduct::from_artifacts("stage-compile-logic", compile_logic)
+                    .expect("the stage carrier digests"),
             ),
             (
                 "stage-export-constraint-shapes".to_string(),
-                StageProduct::from_artifacts("stage-export-constraint-shapes", constraint_shapes),
+                StageProduct::from_artifacts("stage-export-constraint-shapes", constraint_shapes)
+                    .expect("the stage carrier digests"),
             ),
         ]),
     )
@@ -526,8 +530,12 @@ fn list_functions_completion_satisfies_the_structural_contract() {
     use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 
     let vocab = gmeow_ns::gmeow_slice_vocab();
-    let catalog = purrdf::slice::list_functions::list_functions_catalog(&vocab);
-    let completed = complete_list_functions_abox(&emit_list_functions(&vocab), &vocab);
+    let admitted = purrdf::slice::list_functions::list_functions_catalog(&vocab)
+        .expect("purrdf admits the fixed list-functions catalog");
+    let catalog = admitted.as_input();
+    let emitted = emit_list_functions(&vocab).expect("purrdf emits the list-functions catalog");
+    let completed = complete_list_functions_abox(&emitted, &vocab)
+        .expect("complete the list-functions A-Box annotations");
     // The real bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the
     // kernel slice; add it here so the role-typing check has its declaration.
     let doc = format!(

@@ -1418,11 +1418,14 @@ impl Stage for TwoGraphProducer {
                     message: format!("producer dataset: {e}"),
                 })
             })?;
-        Ok(StageOutput::new(StageProduct::from_artifacts_over(
-            "producer",
-            dataset,
-            std::collections::BTreeMap::new(),
-        )))
+        Ok(StageOutput::new(
+            StageProduct::from_artifacts_over(
+                "producer",
+                dataset,
+                std::collections::BTreeMap::new(),
+            )
+            .expect("the stage carrier digests"),
+        ))
     }
 }
 
@@ -1483,7 +1486,8 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
                 pin,
             )
             .unwrap();
-        let product = StageProduct::from_bundle("source", Arc::new(bundle));
+        let product = StageProduct::from_bundle("source", Arc::new(bundle))
+            .expect("the stage carrier digests");
         if let Some(prior) = previous {
             let upstream = BTreeMap::from([("source".to_string(), prior)]);
             let mut output = product.clone();
@@ -1699,6 +1703,7 @@ fn lane_product(
             provenance,
         )),
     )
+    .expect("the stage carrier digests")
 }
 
 #[test]
@@ -1820,11 +1825,14 @@ impl Stage for AttachTestStage {
                             message: format!("attach-test dataset: {e}"),
                         })
                     })?;
-                Ok(StageOutput::new(StageProduct::from_artifacts_over(
-                    self.id.clone(),
-                    dataset,
-                    std::collections::BTreeMap::new(),
-                )))
+                Ok(StageOutput::new(
+                    StageProduct::from_artifacts_over(
+                        self.id.clone(),
+                        dataset,
+                        std::collections::BTreeMap::new(),
+                    )
+                    .expect("the stage carrier digests"),
+                ))
             }
             None => Ok(StageOutput::new(StageProduct::new(
                 self.id.clone(),
@@ -1996,10 +2004,10 @@ impl Stage for AttachBlobStage {
             "application/octet-stream",
             self.payload.clone(),
         );
-        Ok(StageOutput::new(StageProduct::from_bundle(
-            self.id.clone(),
-            Arc::new(bundle),
-        )))
+        Ok(StageOutput::new(
+            StageProduct::from_bundle(self.id.clone(), Arc::new(bundle))
+                .expect("the stage carrier digests"),
+        ))
     }
 }
 
@@ -2189,11 +2197,10 @@ impl Stage for CarrierStage {
             ),
             (format!("pipeline/{}.nq", self.id), nq.into_bytes()),
         ]);
-        Ok(StageOutput::new(StageProduct::from_artifacts_over(
-            self.id.clone(),
-            dataset,
-            artifacts,
-        )))
+        Ok(StageOutput::new(
+            StageProduct::from_artifacts_over(self.id.clone(), dataset, artifacts)
+                .expect("the stage carrier digests"),
+        ))
     }
 }
 

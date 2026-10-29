@@ -510,7 +510,7 @@ impl Stage for SchemasStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 

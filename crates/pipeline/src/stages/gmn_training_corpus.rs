@@ -754,6 +754,6 @@ impl Stage for GmnTrainingCorpusStage {
             self.id(),
             dataset,
             BTreeMap::new(),
-        )))
+        )?))
     }
 }

@@ -599,7 +599,7 @@ impl Stage for MediumDictionariesStage {
         Ok(StageOutput::new(StageProduct::from_bundle(
             self.id(),
             Arc::new(bundle),
-        )))
+        )?))
     }
 
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {

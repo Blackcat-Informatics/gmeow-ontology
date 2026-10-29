@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 
 use gmeow_action_cache::content_digest;
-use purrdf::{PipelineBundle, RdfTerm};
+use purrdf::{PipelineBundle, PipelineBundleError, RdfTerm};
 
 use crate::bundle::PipelineHandle;
 
@@ -105,19 +105,23 @@ pub(crate) fn handle_commitment(
 }
 
 /// The whole product includes typed bindings even when their graph is lossy.
+///
+/// # Errors
+/// Returns the carrier's canonicalization refusal; a product without a content
+/// identity has no digest to publish.
 pub(crate) fn product_digest(
     bundle: &PipelineBundle<PipelineHandle>,
     handles: &BTreeMap<String, HandleCommitment>,
-) -> String {
-    let base = bundle.digest().to_hex();
+) -> Result<String, PipelineBundleError> {
+    let base = bundle.digest()?.to_hex();
     if handles.is_empty() {
-        return base;
+        return Ok(base);
     }
     let mut fields = vec![b"typed-product-v1".as_slice(), base.as_bytes()];
     for binding in handles.values() {
         fields.extend([binding.identity.as_bytes(), binding.digest.as_bytes()]);
     }
-    content_digest(&fields)
+    Ok(content_digest(&fields))
 }
 
 /// A selected graph includes its typed payload binding when one is declared.

@@ -401,7 +401,8 @@ fn a_stage_product_selector_reads_the_named_product() {
                 b"<https://e/why> <https://e/because> \"rule\" .\n".to_vec(),
             )]
             .into(),
-        ),
+        )
+        .expect("the stage carrier digests"),
     );
     let registry = registry_of(
         "gmeow:corpusReason a gmeow:DictionaryCorpus ;\n\
@@ -435,7 +436,8 @@ fn a_stage_product_carrying_the_registry_graph_is_rejected() {
             "stage-reason",
             dataset,
             [("generated/reasoning/x.ttl".to_string(), b"# x\n".to_vec())].into(),
-        ),
+        )
+        .expect("the stage carrier digests"),
     );
     let registry = registry_of(
         "gmeow:corpusReason a gmeow:DictionaryCorpus ;\n\

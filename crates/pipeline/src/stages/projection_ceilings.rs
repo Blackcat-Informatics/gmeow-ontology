@@ -195,7 +195,7 @@ impl Stage for ProjectionCeilingsStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 

@@ -157,6 +157,7 @@ fn product(handle: PipelineHandle) -> StageProduct {
     let pin = bundle.graph_digest(GRAPH).unwrap();
     bundle.pin_handle(GRAPH, handle, pin).unwrap();
     StageProduct::from_bundle("stage-loss-codec", Arc::new(bundle))
+        .expect("the stage carrier digests")
 }
 
 #[test]

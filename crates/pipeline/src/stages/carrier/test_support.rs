@@ -48,7 +48,7 @@ pub(super) fn stratum_nquads(
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<String, gmeow_errors::Diag> {
     let union = flat_stratum_union(carrier, extra_graphs)?;
-    Ok(purrdf::canonicalize(&union).nquads)
+    Ok(purrdf::try_canonicalize(&union)?.nquads)
 }
 
 /// Render the mdbook `src/` source tree and pack it into the single `docs-book` archive blob

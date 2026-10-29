@@ -104,7 +104,8 @@ fn pass_one_receipt_key_binds_the_exact_snapshot_and_each_extra_graph() {
             "stage-snapshot",
             std::sync::Arc::clone(&carrier),
             BTreeMap::new(),
-        ),
+        )
+        .expect("the stage carrier digests"),
     );
     let first_graph = fixture_dataset("first");
     let second_graph = fixture_dataset("second");
@@ -157,7 +158,8 @@ fn present_pass_one_receipt_is_typed_and_fail_closed() {
             StageProduct::from_artifacts(
                 "stage-gts-sink",
                 BTreeMap::from([(PASS_ONE_RECEIPT_PATH.to_string(), bytes)]),
-            ),
+            )
+            .expect("the stage carrier digests"),
         )])
     };
     let mut upstream = with_receipt(encoded);
@@ -248,7 +250,8 @@ fn present_pass_one_receipt_is_typed_and_fail_closed() {
 
     upstream.insert(
         "stage-gts-sink".to_string(),
-        StageProduct::from_artifacts("stage-gts-sink", BTreeMap::new()),
+        StageProduct::from_artifacts("stage-gts-sink", BTreeMap::new())
+            .expect("the stage carrier digests"),
     );
     assert!(
         reusable_pass_one_receipt(&upstream, &expected_input).is_err(),

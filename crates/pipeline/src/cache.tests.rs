@@ -33,7 +33,8 @@ fn prior_diagnostic_cache_revisions_are_misses_before_hydration() {
                 "diagnostics.json".to_owned(),
                 b"old diagnostic identity".to_vec(),
             )]),
-        );
+        )
+        .expect("the stage carrier digests");
         let selection = full_selection(&product);
         let mut manifest = CachedBundle::from_product(&product, &selection).unwrap();
         manifest.version = prior_version;
@@ -91,7 +92,7 @@ fn diagnostic_test_product(
         "application/json",
         crate::node::encode_diag_nodes(encoded_producer, nodes),
     );
-    StageProduct::from_bundle(producer, Arc::new(bundle))
+    StageProduct::from_bundle(producer, Arc::new(bundle)).expect("the stage carrier digests")
 }
 
 #[test]
@@ -149,7 +150,9 @@ fn diagnostic_contribution_rejects_wrong_producer_even_when_empty() {
 #[test]
 #[should_panic(expected = "missing its required diagnostics:nodes contribution")]
 fn diagnostic_producer_rejects_absent_contribution() {
-    StageProduct::from_artifacts("stage-export-json-schema", BTreeMap::new()).diag_nodes();
+    StageProduct::from_artifacts("stage-export-json-schema", BTreeMap::new())
+        .expect("the stage carrier digests")
+        .diag_nodes();
 }
 
 #[test]
@@ -210,6 +213,7 @@ fn default_graph_commitment_covers_rdf12_reifiers_and_annotations() {
                 DatasetProvenance::new(),
             )),
         )
+        .expect("the stage carrier digests")
     }
 
     let complete = default_graph_commitment(&product(true))
@@ -483,6 +487,7 @@ fn report_product(publication: crate::bundle::CompiledLogicPublication) -> Stage
         )
         .unwrap();
     StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+        .expect("the stage carrier digests")
 }
 
 /// CBOR hydration retains the complete ledger and compact metadata; native
@@ -606,7 +611,8 @@ fn compiled_logic_codec_refuses_missing_truncated_and_trailing_payloads() {
 }
 
 fn canon_hex(ds: &purrdf::RdfDataset) -> String {
-    ContentDigest::of(canonicalize(ds).nquads.as_bytes()).to_hex()
+    let canonical = purrdf::try_canonicalize(ds).expect("the fixture graph canonicalizes");
+    ContentDigest::of(canonical.nquads.as_bytes()).to_hex()
 }
 
 #[test]
@@ -615,7 +621,8 @@ fn cached_bundle_structural_round_trip() {
     let cache = PipelineCache::open(dir.path()).unwrap();
 
     let original = rich_bundle();
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(original.clone()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(original.clone()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-rich", "structural-round-trip");
     persist_test_product(&cache, &context, &product);
 
@@ -671,7 +678,11 @@ fn cached_bundle_structural_round_trip() {
     );
 
     // digest: bundle content fold equal.
-    assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
+    assert_eq!(
+        recon.digest().expect("the restored carrier digests"),
+        original.digest().expect("the original carrier digests"),
+        "bundle digest preserved"
+    );
 
     // byte-artifact lane: reproduced byte-for-byte.
     assert_eq!(
@@ -688,7 +699,8 @@ fn cached_bundle_structural_round_trip() {
 
 #[test]
 fn cached_payloads_borrow_authenticated_input_without_changing_wire_bytes() {
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let owned = CachedBundle::from_product(&product, &full_selection(&product)).unwrap();
     let encoded = bincode::serialize(&owned).unwrap();
     let borrowed: CachedBundle<&[u8]> = bincode::deserialize(&encoded).unwrap();
@@ -720,7 +732,8 @@ fn exact_artifact_selection_returns_only_the_requested_payload() {
             ("wanted.json".to_owned(), b"wanted".to_vec()),
             ("other.json".to_owned(), "other".repeat(16_384).into_bytes()),
         ]),
-    );
+    )
+    .expect("the stage carrier digests");
     let context = test_context("stage-select", "one-artifact");
     let receipt = persist_test_product(&cache, &context, &product);
     let hit = cache
@@ -764,7 +777,8 @@ fn selected_artifacts_share_authentication_and_fail_on_missing_members() {
                 "other".repeat(16_384).into_bytes(),
             ),
         ]),
-    );
+    )
+    .expect("the stage carrier digests");
     let context = test_context("stage-select", "several-artifacts");
     let receipt = persist_test_product(&cache, &context, &product);
     let hit = cache
@@ -802,7 +816,8 @@ fn exact_artifact_selection_rejects_corruption_in_an_unselected_payload() {
             ("wanted.json".to_owned(), b"wanted".to_vec()),
             ("other.json".to_owned(), b"other".to_vec()),
         ]),
-    );
+    )
+    .expect("the stage carrier digests");
     let context = test_context("stage-select", "unselected-corruption");
     let mut receipt = persist_test_product(&cache, &context, &product);
     let original = std::fs::read(
@@ -839,7 +854,8 @@ fn exact_artifact_selection_rejects_corruption_in_an_unselected_payload() {
 fn selective_artifact_hit_matches_full_hydration_and_receipt() {
     let dir = tempfile::tempdir().unwrap();
     let cache = PipelineCache::open(dir.path()).unwrap();
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-rich", "artifact-only-hit");
     let receipt = persist_test_product(&cache, &context, &product);
 
@@ -867,7 +883,8 @@ fn selective_artifact_hit_matches_full_hydration_and_receipt() {
 fn selective_artifact_hit_rejects_inner_digest_corruption() {
     let dir = tempfile::tempdir().unwrap();
     let cache = PipelineCache::open(dir.path()).unwrap();
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-rich", "artifact-inner-corruption");
     let mut receipt = persist_test_product(&cache, &context, &product);
     let original_blob = cache
@@ -906,7 +923,8 @@ fn selective_artifact_hit_rejects_inner_digest_corruption() {
 /// product identity the authenticated producer published.
 #[test]
 fn restored_typed_product_rejects_a_changed_payload_under_the_old_digest() {
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let mut manifest = CachedBundle::from_product(&product, &full_selection(&product)).unwrap();
     let handle = &mut manifest.handles[0];
     let mut program: LogicProgram =
@@ -1031,7 +1049,8 @@ fn cached_bundle_binary_encoding_avoids_json_byte_array_expansion() {
 fn persistent_unit_rejects_unselected_cumulative_lanes() {
     let dir = tempfile::tempdir().unwrap();
     let cache = PipelineCache::open(dir.path()).unwrap();
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-rich", "bounded-delta");
 
     let mut missing_graph = full_selection(&product);
@@ -1109,6 +1128,7 @@ fn content_store_commitment_rejects_orphans_missing_bytes_and_length_drift() {
                 DatasetProvenance::new(),
             )),
         )
+        .expect("the stage carrier digests")
     }
 
     let mut orphan_store = ContentStore::new();
@@ -1149,7 +1169,8 @@ fn tampered_handle_manifest_hard_fails_on_reload() {
     let dir = tempfile::tempdir().unwrap();
     let cache = PipelineCache::open(dir.path()).unwrap();
 
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-rich", "tampered-handle");
     let mut receipt = persist_test_product(&cache, &context, &product);
 
@@ -1195,7 +1216,8 @@ fn tampered_handle_manifest_hard_fails_on_reload() {
 fn tampered_provenance_quad_key_hard_fails_on_reload() {
     let dir = tempfile::tempdir().unwrap();
     let cache = PipelineCache::open(dir.path()).unwrap();
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-rich", "tampered-provenance");
     let mut receipt = persist_test_product(&cache, &context, &product);
 
@@ -1235,7 +1257,8 @@ fn tampered_provenance_quad_key_hard_fails_on_reload() {
 fn receipt_is_cold_warm_identical_and_structurally_complete() {
     let dir = tempfile::tempdir().unwrap();
     let cache = PipelineCache::open(dir.path()).unwrap();
-    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+    let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-rich", "receipt-parity");
     let selection = full_selection(&product);
     let cold = persist_test_product(&cache, &context, &product);
@@ -1752,7 +1775,8 @@ fn cached_reasoning_preserves_full_answers_and_schema() {
         let product = StageProduct::from_bundle(
             "stage-reason",
             Arc::new(reasoning_bundle_with_result(result.clone(), &graph)),
-        );
+        )
+        .expect("the stage carrier digests");
         let context = test_context("stage-reason", &format!("full-reasoning-{i}"));
         persist_test_product(&cache, &context, &product);
         let restored = cache.get(&context).unwrap().unwrap();
@@ -1821,7 +1845,8 @@ fn cached_reasoning_refuses_malformed_governed_summary() {
         let product = StageProduct::from_bundle(
             "stage-reason",
             Arc::new(reasoning_bundle_with_result(result.clone(), &altered)),
-        );
+        )
+        .expect("the stage carrier digests");
         let dir = tempfile::tempdir().unwrap();
         let cache = PipelineCache::open(dir.path()).unwrap();
         let error = cache
@@ -1844,7 +1869,8 @@ fn cached_reasoning_handle_re_derives_the_result() {
     let cache = PipelineCache::open(dir.path()).unwrap();
 
     let original = reasoning_bundle();
-    let product = StageProduct::from_bundle("stage-reason", Arc::new(original.clone()));
+    let product = StageProduct::from_bundle("stage-reason", Arc::new(original.clone()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-reason", "reasoning-round-trip");
     persist_test_product(&cache, &context, &product);
 
@@ -1867,7 +1893,11 @@ fn cached_reasoning_handle_re_derives_the_result() {
     // The pin matches the reconstituted backing graph.
     assert_eq!(entry.content_digest, recon.graph_digest(graph_iri).unwrap());
     // The bundle content fold round-trips.
-    assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
+    assert_eq!(
+        recon.digest().expect("the restored carrier digests"),
+        original.digest().expect("the original carrier digests"),
+        "bundle digest preserved"
+    );
 }
 
 /// A bundle whose dataset carries a `graph/relational-core` named graph (the
@@ -1953,7 +1983,8 @@ fn cached_relational_core_refuses_changed_body_order_even_when_semantically_equa
             digest,
         )
         .unwrap();
-    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle));
+    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+        .expect("the stage carrier digests");
     let context = test_context("stage-compile-logic", "changed-relational-body-order");
     let error = cache
         .put(
@@ -1975,7 +2006,8 @@ fn cached_relational_core_handle_re_derives_the_dialect() {
     let cache = PipelineCache::open(dir.path()).unwrap();
 
     let (original, lowered) = relational_core_bundle();
-    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()));
+    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-compile-logic", "relational-round-trip");
     persist_test_product(&cache, &context, &product);
 
@@ -1998,7 +2030,11 @@ fn cached_relational_core_handle_re_derives_the_dialect() {
     // The pin matches the reconstituted backing graph.
     assert_eq!(entry.content_digest, recon.graph_digest(graph_iri).unwrap());
     // The bundle content fold round-trips.
-    assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
+    assert_eq!(
+        recon.digest().expect("the restored carrier digests"),
+        original.digest().expect("the original carrier digests"),
+        "bundle digest preserved"
+    );
 }
 
 /// A bundle whose dataset carries a `graph/correspondence` named graph (the §14
@@ -2055,7 +2091,8 @@ fn cached_correspondence_refuses_to_publish_a_changed_standpoint() {
             backing_digest,
         )
         .expect("graph bytes still match; the cache must also admit the semantic payload");
-    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle));
+    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+        .expect("the stage carrier digests");
     let context = test_context("stage-compile-logic", "changed-correspondence-standpoint");
     let error = cache
         .put(
@@ -2082,7 +2119,8 @@ fn cached_correspondence_handle_re_derives_the_program() {
     let cache = PipelineCache::open(dir.path()).unwrap();
 
     let (original, program) = correspondence_bundle();
-    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()));
+    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(original.clone()))
+        .expect("the stage carrier digests");
     let context = test_context("stage-compile-logic", "correspondence-round-trip");
     persist_test_product(&cache, &context, &product);
 
@@ -2102,5 +2140,9 @@ fn cached_correspondence_handle_re_derives_the_program() {
         "the cache preserved the complete native Correspondence program"
     );
     assert_eq!(entry.content_digest, recon.graph_digest(graph_iri).unwrap());
-    assert_eq!(recon.digest(), original.digest(), "bundle digest preserved");
+    assert_eq!(
+        recon.digest().expect("the restored carrier digests"),
+        original.digest().expect("the original carrier digests"),
+        "bundle digest preserved"
+    );
 }
