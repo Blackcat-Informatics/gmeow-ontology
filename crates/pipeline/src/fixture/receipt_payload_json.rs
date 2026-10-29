@@ -10,7 +10,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record},
 };
 
-purrdf_lex::json_record! { impl ToJson for SettledSourceLoadWitness {
+::purrdf_lex::json_record! { impl ToJson for SettledSourceLoadWitness {
     "schema_version" => schema_version,
     "source_action_key" => source_action_key,
     "source_receipt_digest" => source_receipt_digest,

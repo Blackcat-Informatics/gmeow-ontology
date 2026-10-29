@@ -10,7 +10,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record},
 };
 
-purrdf_lex::json_record! { impl ToJson for StageInputDigest {
+::purrdf_lex::json_record! { impl ToJson for StageInputDigest {
     "producer" => producer,
     "entity" => entity,
     "digest" => digest,
@@ -28,7 +28,7 @@ impl FromJson for StageInputDigest {
     }
 }
 
-purrdf_lex::json_record! { impl ToJson for RawInputDigest {
+::purrdf_lex::json_record! { impl ToJson for RawInputDigest {
     "path" => path,
     "digest" => digest,
 }}
@@ -44,7 +44,7 @@ impl FromJson for RawInputDigest {
     }
 }
 
-purrdf_lex::json_record! { impl ToJson for StageKeyContext {
+::purrdf_lex::json_record! { impl ToJson for StageKeyContext {
     "schema_version" => schema_version,
     "stage_id" => stage_id,
     "impl_version" => impl_version,
@@ -73,7 +73,7 @@ impl FromJson for StageKeyContext {
     }
 }
 
-purrdf_lex::json_record! { impl ToJson for ReceiptEntity {
+::purrdf_lex::json_record! { impl ToJson for ReceiptEntity {
     "identity" => identity,
     "digest" => digest,
     "structural_count" => structural_count,
@@ -96,7 +96,7 @@ impl FromJson for ReceiptEntity {
     }
 }
 
-purrdf_lex::json_record! { impl ToJson for StageReceipt {
+::purrdf_lex::json_record! { impl ToJson for StageReceipt {
     "schema_version" => schema_version,
     "action_key" => action_key,
     "context" => context,

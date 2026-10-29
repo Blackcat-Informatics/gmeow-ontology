@@ -47,7 +47,7 @@ impl FromJson for ImportReceipt {
     }
 }
 
-purrdf_lex::json_record! { impl ToJson for ReceiptEnvelope {
+::purrdf_lex::json_record! { impl ToJson for ReceiptEnvelope {
     "receipt_digest" => receipt_digest,
     "receipt" => receipt
 }}

@@ -79,7 +79,7 @@ impl ToJson for ActionContext {
     }
 }
 
-purrdf_lex::json_record! { impl FromJson for ProducerIdentity as "struct ProducerIdentity" {
+::purrdf_lex::json_record! { impl FromJson for ProducerIdentity as "struct ProducerIdentity" {
     "digest" => digest: required,
     "toolchain" => toolchain: required,
     "target" => target: required,

@@ -10,7 +10,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record},
 };
 
-purrdf_lex::json_record! { impl ToJson for CorpusArtifactPayload {
+::purrdf_lex::json_record! { impl ToJson for CorpusArtifactPayload {
     "schema_version" => schema_version,
     "name" => name,
     "source_sha256" => source_sha256,

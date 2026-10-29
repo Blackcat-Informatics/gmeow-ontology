@@ -64,7 +64,7 @@ impl FromJson for ActionKey {
     }
 }
 
-purrdf_lex::json_record! { impl ToJson for BlobRef {
+::purrdf_lex::json_record! { impl ToJson for BlobRef {
     "digest" => digest, "bytes" => bytes
 }}
 impl FromJson for BlobRef {

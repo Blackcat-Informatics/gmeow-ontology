@@ -10,12 +10,12 @@ struct StructuredPayload {
     input_digest: String,
 }
 
-purrdf_lex::json_record! { impl ToJson for StructuredPayload {
+::purrdf_lex::json_record! { impl ToJson for StructuredPayload {
     "schema_version" => schema_version,
     "artifact" => artifact,
     "input_digest" => input_digest
 }}
-purrdf_lex::json_record! { impl FromJson for StructuredPayload as "struct StructuredPayload" {
+::purrdf_lex::json_record! { impl FromJson for StructuredPayload as "struct StructuredPayload" {
     "schema_version" => schema_version: required,
     "artifact" => artifact: required,
     "input_digest" => input_digest: required
