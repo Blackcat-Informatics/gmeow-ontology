@@ -244,3 +244,59 @@ msgstr "Cette extraction reconstitue un artefact cible émis ; elle ne renforce 
 msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#example"
 msgid "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."
 msgstr "Extraire generated/projections/math/loss-ledger.ttl avec les artefacts cibles dont il porte les relevés de perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source-span path ID overflow"
+msgstr "dépassement de l’identifiant de chemin d’une position source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-span producer cannot encode a path-table index in the unsigned 32-bit path reference required by its JSON wire format."
+msgstr "Un producteur de positions source ne peut pas encoder un indice de la table des chemins dans la référence de chemin non signée de 32 bits exigée par son format JSON."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source-span path-table index exceeds the wire representation's maximum value."
+msgstr "À utiliser lorsqu’un indice de la table des chemins dépasse la valeur maximale de la représentation de transport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for malformed JSON input or a semantic failure in the source being annotated."
+msgstr "Ne pas utiliser pour une entrée JSON mal formée ou une erreur sémantique dans la source annotée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Refuse publication and retain the offending index and original integer-conversion cause."
+msgstr "Refuser la publication et conserver l’indice fautif ainsi que la cause originale de conversion entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a producer representation failure; it does not change source-span coordinates or authorize truncating a path reference."
+msgstr "Il s’agit d’un échec de représentation du producteur ; il ne modifie pas les coordonnées source et n’autorise pas la troncature d’une référence de chemin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A path-table index of 4294967296 is refused instead of wrapping to zero."
+msgstr "Un indice de chemin de 4294967296 est refusé au lieu de revenir à zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source-span path reference boundary"
+msgstr "frontière des références de chemin des positions source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-span JSON producer boundary requiring every path-table index to fit its unsigned 32-bit wire reference before publication."
+msgstr "La frontière du producteur JSON de positions source exigeant que chaque indice de chemin tienne dans sa référence non signée de 32 bits avant publication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the checked conversion enforced by the source-span JSON writer."
+msgstr "À utiliser pour identifier la conversion vérifiée imposée par le sérialiseur JSON des positions source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat an unrepresentable path reference as permission to omit source provenance."
+msgstr "Ne pas considérer une référence de chemin non représentable comme une autorisation d’omettre la provenance source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each path-table index and fail the selected encoding operation on overflow."
+msgstr "Vérifier chaque indice de chemin et faire échouer l’encodage sélectionné en cas de dépassement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The boundary governs path references, independently of the widths of line numbers and byte offsets."
+msgstr "Cette frontière régit les références de chemin, indépendamment de la largeur des numéros de ligne et des positions en octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "The maximum unsigned 32-bit index is accepted; its successor is refused with its typed cause."
+msgstr "L’indice maximal non signé de 32 bits est accepté ; son successeur est refusé avec sa cause typée."

@@ -3046,6 +3046,7 @@ fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
             "math.lift.empty-codomain",
             "math.lift.onnx.unliftable",
             "math.lift.onnx.wire",
+            "math.lift.projection.input",
             "math.lift.proof.parse",
             "math.lift.proof.unliftable",
             "math.lift.r.parse",
@@ -3066,6 +3067,7 @@ fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
             "pipeline.medium.unknown-dictionary",
             "pipeline.medium.unknown-schema",
             "pipeline.recorded-input",
+            "pipeline.spans.path-id-overflow",
             "slice-quality.record",
         ],
         "these are the failure-class-bound kinds today"

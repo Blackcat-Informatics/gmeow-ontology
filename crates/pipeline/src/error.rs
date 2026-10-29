@@ -292,6 +292,7 @@ define_diag_kind! {
     code = "pipeline.spans.path-id-overflow";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "encode source-span path ID {}: exceeds u32", index;
+    failure_class = "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow";
     source = failure => Some(&failure.cause);
 }
 

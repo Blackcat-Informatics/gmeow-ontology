@@ -205,6 +205,10 @@ fn json_span_writer_path_reference_conversion_is_checked_on_host_boundary() {
     }
     if let Ok(overflow) = usize::try_from(4_294_967_296_u64) {
         let error = encode_path_id(overflow).unwrap_err();
+        assert_eq!(
+            error.inner().failure_class.as_deref(),
+            Some("https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow")
+        );
         assert!(
             error
                 .to_string()

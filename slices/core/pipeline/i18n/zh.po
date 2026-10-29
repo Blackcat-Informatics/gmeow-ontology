@@ -244,3 +244,59 @@ msgstr "此导出重建已生成的目标产物，不会提升其保留性判断
 msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#example"
 msgid "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."
 msgstr "将 generated/projections/math/loss-ledger.ttl 与它所记录损失的目标产物一同导出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source-span path ID overflow"
+msgstr "源位置路径标识符溢出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-span producer cannot encode a path-table index in the unsigned 32-bit path reference required by its JSON wire format."
+msgstr "源位置生成器无法将路径表索引编码为其 JSON 传输格式要求的 32 位无符号路径引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source-span path-table index exceeds the wire representation's maximum value."
+msgstr "当源位置路径表索引超过传输表示的最大值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for malformed JSON input or a semantic failure in the source being annotated."
+msgstr "不用于格式错误的 JSON 输入或被标注源中的语义错误。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Refuse publication and retain the offending index and original integer-conversion cause."
+msgstr "拒绝发布，并保留出错的索引及原始整数转换原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a producer representation failure; it does not change source-span coordinates or authorize truncating a path reference."
+msgstr "这是生成器的表示失败；它不改变源位置坐标，也不允许截断路径引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathIdOverflow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A path-table index of 4294967296 is refused instead of wrapping to zero."
+msgstr "路径表索引 4294967296 会被拒绝，而不会回绕为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source-span path reference boundary"
+msgstr "源位置路径引用边界"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-span JSON producer boundary requiring every path-table index to fit its unsigned 32-bit wire reference before publication."
+msgstr "源位置 JSON 生成器的边界，要求每个路径表索引在发布前均可表示为 32 位无符号传输引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the checked conversion enforced by the source-span JSON writer."
+msgstr "用于标识源位置 JSON 写入器执行的受检转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat an unrepresentable path reference as permission to omit source provenance."
+msgstr "不可将无法表示的路径引用视为允许省略源出处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each path-table index and fail the selected encoding operation on overflow."
+msgstr "检查每个路径表索引，并在溢出时使所选编码操作失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The boundary governs path references, independently of the widths of line numbers and byte offsets."
+msgstr "该边界约束路径引用，与行号和字节偏移量的位宽无关。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceSpanPathReferenceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "The maximum unsigned 32-bit index is accepted; its successor is refused with its typed cause."
+msgstr "接受最大的 32 位无符号索引；拒绝其后继值并保留类型化原因。"

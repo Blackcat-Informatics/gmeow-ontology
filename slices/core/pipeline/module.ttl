@@ -2999,6 +2999,31 @@ gmeow:receiptOfExecutionFunctionality
     skos:example "gmeow:receiptOfExecutionFunctionality logic:characterizes gmeow:receiptOfExecution ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:SourceSpanPathIdOverflow
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "source-span path ID overflow"@x-gmeow-english ;
+    skos:definition "A source-span producer cannot encode a path-table index in the unsigned 32-bit path reference required by its JSON wire format."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source-span path-table index exceeds the wire representation's maximum value."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for malformed JSON input or a semantic failure in the source being annotated."@x-gmeow-english ;
+    gmeow:howToUse "Refuse publication and retain the offending index and original integer-conversion cause."@x-gmeow-english ;
+    skos:scopeNote "This is a producer representation failure; it does not change source-span coordinates or authorize truncating a path reference."@x-gmeow-english ;
+    skos:example "A path-table index of 4294967296 is refused instead of wrapping to zero."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SourceSpanPathReferenceBoundary
+    a logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:enforcesFailureClass gmeow:SourceSpanPathIdOverflow ;
+    rdfs:label "source-span path reference boundary"@x-gmeow-english ;
+    skos:definition "The source-span JSON producer boundary requiring every path-table index to fit its unsigned 32-bit wire reference before publication."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the checked conversion enforced by the source-span JSON writer."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat an unrepresentable path reference as permission to omit source provenance."@x-gmeow-english ;
+    gmeow:howToUse "Check each path-table index and fail the selected encoding operation on overflow."@x-gmeow-english ;
+    skos:scopeNote "The boundary governs path references, independently of the widths of line numbers and byte offsets."@x-gmeow-english ;
+    skos:example "The maximum unsigned 32-bit index is accepted; its successor is refused with its typed cause."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:RecordedConsumerFailure
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
