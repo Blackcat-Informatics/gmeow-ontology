@@ -1,0 +1,27 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy -p gmeow-action-cache -p gmeow-bundle-import -p gmeow-docs-model -p gmeow-docs -p gmeow-pipeline -p gmeow-slicetest -p gmeow-validate -p gmeow-dev-cli --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/logic)
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/action-cache)
+    Checking gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-import)
+    Checking gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/validate)
+    Checking gmeow-affect v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/affect)
+    Checking gmeow-conformance v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/conformance)
+    Checking gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-model)
+    Checking gmeow-slicetest v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slicetest)
+    Checking gmeow-slice-quality v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-quality)
+    Checking gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-view)
+    Checking gmeow-docs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs)
+    Checking gmeow-docs-catalog v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-catalog)
+    Checking gmeow-mcp v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp)
+    Checking docs-print v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/docs-print)
+    Checking gmeow-slice-brief v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/slice-brief)
+    Checking gmeow-pipeline v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/pipeline)
+    Checking gmeow-mcp-dev v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/mcp-dev)
+    Checking gmeow-dev-cli v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gmeow-dev-cli)
+    Finished `dev` profile [optimized] target(s) in 1m 46s

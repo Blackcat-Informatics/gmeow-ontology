@@ -1,0 +1,16 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-action-cache --lib -E 'test(action_key_sorts_inputs_and_binds_dimensions) | test(cold_publish_and_warm_read_share_one_receipt) | test(structured_payload_receipt_is_canonical_across_generic_gc_reads)' --no-tests=fail
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/action-cache)
+    Finished `test` profile [optimized] target(s) in 7.59s
+────────────
+ Nextest run ID 8b4a622a-83a7-4818-a63e-1cf05567cd00 with nextest profile: ci
+    Starting 3 tests across 1 binary (22 tests skipped)
+        PASS [   0.005s] (1/3) gmeow-action-cache tests::structured_payload_receipt_is_canonical_across_generic_gc_reads
+        PASS [   0.005s] (2/3) gmeow-action-cache tests::action_key_sorts_inputs_and_binds_dimensions
+        PASS [   0.013s] (3/3) gmeow-action-cache tests::cold_publish_and_warm_read_share_one_receipt
+────────────
+     Summary [   0.014s] 3 tests run: 3 passed, 22 skipped
