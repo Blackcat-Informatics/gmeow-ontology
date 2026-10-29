@@ -8,6 +8,9 @@
 use crate::frontend::{
     CompiledTheory, FofSemanticProfile, RootSelection, SourceAdmission, SourceSelection,
 };
+use gmeow_errors::DiagKind as _;
+
+mod json;
 
 /// Producer artifact, captured before worked-example augmentation.
 pub const CANON_ADMISSION_CHANNEL: &str = "pipeline/canon-proof-admission.json";
@@ -15,8 +18,7 @@ pub const CANON_ADMISSION_CHANNEL: &str = "pipeline/canon-proof-admission.json";
 pub const CANON_ADMISSION_MEMBER: &str = "reason/canon-proof-admission.json";
 
 /// Typed observation of every source owner's admission, including all refusals.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug)]
 pub struct CanonAdmissionPublication {
     schema_version: u32,
     admission: SourceAdmission,
@@ -45,19 +47,26 @@ impl CanonAdmissionPublication {
     /// Encode the complete deterministic observation, not executable source code.
     ///
     /// # Errors
-    /// Returns a diagnostic if the typed observation cannot be encoded.
+    /// Retains native storage failures if the complete observation cannot be encoded.
     pub fn to_bytes(&self) -> gmeow_errors::Result<Vec<u8>> {
-        serde_json::to_vec(self)
-            .map_err(|error| fail(format!("encode canon proof admission: {error}")))
+        let value = purrdf_lex::json::record::ToJson::to_json(self);
+        let mut resident = purrdf_lex::allocation::Resident;
+        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+        purrdf_lex::json::write_with_memory(&value, purrdf_lex::json::Format::COMPACT, &mut memory)
+            .map(String::into_bytes)
+            .map_err(|error| codec_failure("encode canon proof admission", error))
     }
 
     /// Decode an observation without rebuilding source or restoring live authority.
+    /// Records require named fields, including publication, admission, complexity
+    /// labels and class definitions; their positional struct arrays are refused.
+    /// Genuine tuple, literal and collection arrays retain their representation.
     ///
     /// # Errors
     /// Rejects corrupt bytes, unknown schema/profile, changed scope or selection identity.
     pub fn from_bytes(bytes: &[u8]) -> gmeow_errors::Result<Self> {
-        let publication: Self = serde_json::from_slice(bytes)
-            .map_err(|error| fail(format!("decode canon proof admission: {error}")))?;
+        let publication: Self = purrdf_lex::json::record::from_slice(bytes)
+            .map_err(|error| codec_failure("decode canon proof admission", error))?;
         let admission = &publication.admission;
         let selection = &admission.selection;
         if publication.schema_version != 1
@@ -80,4 +89,19 @@ fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Frontend {
         detail: detail.into(),
     })
+}
+
+fn codec_failure(
+    operation: &str,
+    source: impl std::error::Error + Send + Sync + 'static,
+) -> gmeow_errors::Diag {
+    let kind = crate::error::Frontend {
+        detail: format!("{operation}: {source}"),
+    };
+    let mut diagnostic =
+        gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(source);
+    if let Some(class) = kind.failure_class() {
+        diagnostic = diagnostic.with_failure_class(class);
+    }
+    diagnostic
 }
