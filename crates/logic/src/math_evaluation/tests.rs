@@ -32,6 +32,113 @@ fn run(text: &str) -> gmeow_errors::Result<Evaluation> {
     let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
     evaluate(&dataset, "urn:root", &bindings())
 }
+
+fn reference_prepare(
+    references: &mut std::str::Lines<'_>,
+    dataset: &RdfDataset,
+    root: &str,
+    bindings: &BTreeMap<String, String>,
+    context: &EvaluationContext,
+) -> gmeow_errors::Result<PreparedEvaluation> {
+    use purrdf_lex::json::record::FromJson;
+
+    assert_eq!(references.next(), Some("BEGIN_MATH_RESULT_REFERENCE"));
+    let preimage = references
+        .next()
+        .expect("each original packet contains its complete preimage")
+        .strip_prefix("MATH_RESULT_PREIMAGE=")
+        .expect("the original packet labels the preimage");
+    let quantity = references
+        .next()
+        .expect("each original packet contains the actual quantity identity")
+        .strip_prefix("MATH_RESULT_QUANTITY=")
+        .expect("the original packet labels the quantity identity");
+    let program = references
+        .next()
+        .expect("each original packet contains the actual program identity")
+        .strip_prefix("MATH_RESULT_PROGRAM=")
+        .expect("the original packet labels the program identity");
+    assert_eq!(references.next(), Some("END_MATH_RESULT_REFERENCE"));
+
+    let decoded =
+        purrdf_lex::json::read(preimage).expect("the complete original identity preimage is JSON");
+    let fields = decoded
+        .as_array()
+        .expect("an identity preimage is a tuple array");
+    assert!(matches!(fields.len(), 5 | 8));
+    assert_eq!(
+        String::from_json(&fields[0]).expect("the profile is text"),
+        PROFILE
+    );
+    let decoded_root = String::from_json(&fields[1]).expect("the selected root is text");
+    let decoded_bindings = BTreeMap::<String, String>::from_json(&fields[2])
+        .expect("the original bindings contain complete string pairs");
+    let premises = Vec::<Formula>::from_json(&fields[3])
+        .expect("the original lowering premises are complete formulas");
+    let calls = Vec::<Formula>::from_json(&fields[4])
+        .expect("the original arithmetic calls are complete formulas");
+    let decoded_context = if fields.len() == 8 {
+        EvaluationContext {
+            identity: String::from_json(&fields[5]).expect("the caller identity is text"),
+            premises: Vec::<Formula>::from_json(&fields[6])
+                .expect("the caller premises retain complete formula and literal metadata"),
+            quantity_classes: BTreeSet::<String>::from_json(&fields[7])
+                .expect("the caller quantity classes form an ordered string set"),
+        }
+    } else {
+        EvaluationContext::default()
+    };
+    assert_eq!(
+        encode_identity(
+            &decoded_root,
+            &decoded_bindings,
+            &premises,
+            &calls,
+            &decoded_context
+        )
+        .expect("the actual native identity encoder accepts the original typed fields"),
+        preimage.as_bytes(),
+        "every original compact preimage remains byte-identical"
+    );
+    let prepared = prepare(dataset, root, bindings, context)?;
+    assert_eq!(
+        prepared.quantity, quantity,
+        "actual preparation retains the original quantity identity"
+    );
+    assert_eq!(
+        prepared.program.source_iri.as_deref(),
+        Some(program),
+        "actual preparation retains the original program identity"
+    );
+    Ok(prepared)
+}
+
+fn reference_evaluate(
+    references: &mut std::str::Lines<'_>,
+    dataset: &RdfDataset,
+    bindings: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Evaluation> {
+    execute_prepared(
+        dataset,
+        reference_prepare(
+            references,
+            dataset,
+            "urn:root",
+            bindings,
+            &EvaluationContext::default(),
+        )?,
+    )
+}
+
+fn reference_run(
+    references: &mut std::str::Lines<'_>,
+    text: &str,
+) -> gmeow_errors::Result<Evaluation> {
+    // gmeow-test-input: synthetic-only
+    let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
+        .expect("the independent arithmetic identity fixture is valid Turtle");
+    reference_evaluate(references, &dataset, &bindings())
+}
 fn value(evaluation: &Evaluation) -> String {
     let row = evaluation
         .result
@@ -89,21 +196,31 @@ fn math_evaluation_executes_four_operations_with_native_source_proofs() {
 
 #[test]
 fn math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata() {
+    let mut references = include_str!("fixtures/result-identities-v1.txt").lines();
     let text = source("Addition", "1", "2");
-    let original = run(&text).unwrap();
-    assert_eq!(original.quantity, run(&text).unwrap().quantity);
+    let original = reference_run(&mut references, &text).unwrap();
+    assert_eq!(
+        original.quantity,
+        reference_run(&mut references, &text).unwrap().quantity
+    );
     // Statement order cannot alter the selected operation identity.
     let reordered = text.replace(
         "math:argumentSlot <urn:slot0>, <urn:slot1>",
         "math:argumentSlot <urn:slot1>, <urn:slot0>",
     );
-    assert_eq!(original.quantity, run(&reordered).unwrap().quantity);
+    assert_eq!(
+        original.quantity,
+        reference_run(&mut references, &reordered).unwrap().quantity
+    );
     for changed in [
         source("Multiplication", "1", "2"),
         source("Addition", "1.0", "2"),
         source("Addition", "2", "2"),
     ] {
-        assert_ne!(original.quantity, run(&changed).unwrap().quantity);
+        assert_ne!(
+            original.quantity,
+            reference_run(&mut references, &changed).unwrap().quantity
+        );
     }
     let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
     let mut swapped = bindings();
@@ -111,7 +228,82 @@ fn math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata() {
     swapped.insert("urn:symbol:right".into(), "urn:quantity:left".into());
     assert_ne!(
         original.quantity,
-        evaluate(&dataset, "urn:root", &swapped).unwrap().quantity
+        reference_evaluate(&mut references, &dataset, &swapped)
+            .unwrap()
+            .quantity
+    );
+
+    let context_identity = "authored caller\0\n雪😀";
+    let context_premises = vec![Formula::Atom {
+        relation: named("urn:authored:label"),
+        args: vec![
+            named("urn:quantity:left"),
+            Term::Literal(RdfLiteral {
+                lexical_form: "context \"label\"\n雪".into(),
+                datatype: Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".into()),
+                language: Some("ar".into()),
+                direction: Some(purrdf::RdfTextDirection::Rtl),
+            }),
+        ],
+    }];
+    let context_classes = BTreeSet::from([
+        "urn:authored:QuantitySubclassZ".to_owned(),
+        "urn:authored:QuantitySubclassA".to_owned(),
+    ]);
+    let mut contextual_quantities = BTreeSet::new();
+    for (label, context) in [
+        ("standalone", EvaluationContext::default()),
+        (
+            "identity-only",
+            EvaluationContext {
+                identity: context_identity.into(),
+                ..EvaluationContext::default()
+            },
+        ),
+        (
+            "premises-only",
+            EvaluationContext {
+                premises: context_premises.clone(),
+                ..EvaluationContext::default()
+            },
+        ),
+        (
+            "classes-only",
+            EvaluationContext {
+                quantity_classes: context_classes.clone(),
+                ..EvaluationContext::default()
+            },
+        ),
+        (
+            "complete-context",
+            EvaluationContext {
+                identity: context_identity.into(),
+                premises: context_premises,
+                quantity_classes: context_classes,
+            },
+        ),
+    ] {
+        assert_eq!(
+            references.next(),
+            Some(format!("MATH_RESULT_CONTEXT_LABEL={label}").as_str())
+        );
+        let prepared =
+            reference_prepare(&mut references, &dataset, "urn:root", &bindings(), &context).expect(
+                "the independently authored identity sample prepares without executing proof",
+            );
+        if label == "standalone" {
+            assert_eq!(prepared.quantity, original.quantity);
+        } else {
+            assert_ne!(prepared.quantity, original.quantity, "{label}");
+        }
+        assert!(
+            contextual_quantities.insert(prepared.quantity),
+            "every selected context has a distinct preparation identity: {label}"
+        );
+    }
+    assert!(
+        references.next().is_none(),
+        "all twelve complete original packets were consumed"
     );
 }
 

@@ -299,14 +299,57 @@ fn finance_evaluation_owner_import_retains_list_cells_members_and_override_check
 
 #[test]
 fn finance_evaluation_requires_every_selected_procedural_product() {
+    let complete = shapes();
+    require_shapes(&complete).expect("the complete independent owner fixture is admitted");
     for identity in PROCEDURAL_PRODUCTS {
-        let mut incomplete = shapes();
+        let mut incomplete = complete.clone();
         incomplete.node_shapes.retain(|shape| {
             !matches!(&shape.id,
             purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
         });
         assert!(require_shapes(&incomplete).is_err(), "missing {identity}");
     }
+
+    let selected = complete
+        .node_shapes
+        .iter()
+        .position(|shape| {
+            matches!(&shape.id,
+        purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == PROCEDURAL_PRODUCTS[0])
+        })
+        .expect("the complete owner contains the first required procedural root");
+    let mut disconnected = complete.clone();
+    disconnected.node_shapes[selected].constraints.clear();
+    assert!(
+        require_shapes(&disconnected).is_err(),
+        "a retained definition cannot substitute for the selected root's missing reference"
+    );
+
+    let root = &complete.node_shapes[selected];
+    let mut definitions: Vec<_> = root
+        .owner
+        .as_ref()
+        .expect("the selected native root retains its own definition owner")
+        .definitions()
+        .cloned()
+        .collect();
+    let definition = definitions
+        .iter_mut()
+        .find(|definition| definition.id == root.id)
+        .expect("the owner retains the selected root's exact identity");
+    definition
+        .constraints
+        .retain(|constraint| !matches!(constraint, Constraint::Sparql { .. }));
+    let owner = purrdf::shapes::shapes::ModelOwner::from_definitions(definitions)
+        .expect("the independently modified bare definitions form a native owner");
+    let mut without_query = complete.clone();
+    without_query.node_shapes[selected] = owner
+        .root(&root.id)
+        .expect("the native owner exports the unchanged selected identity");
+    assert!(
+        require_shapes(&without_query).is_err(),
+        "the selected root must retain a SPARQL body in its own owner, regardless of other owners"
+    );
 }
 
 #[test]
