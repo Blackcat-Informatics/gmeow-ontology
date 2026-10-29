@@ -202,6 +202,32 @@ pub(crate) mod single {
         Ok(literal)
     }
 
+    /// Stream the existing four-component single-literal CBOR wire.
+    /// The effective datatype and lowercase direction names match this owner's
+    /// serialized tuple; writing does not normalize or validate the literal.
+    ///
+    /// # Errors
+    /// Returns the sink's original failure without reporting partial success.
+    pub(crate) fn write_cbor<W: std::io::Write + ?Sized>(
+        literal: &RdfLiteral,
+        out: &mut W,
+    ) -> std::io::Result<()> {
+        use purrdf_lex::cbor::{self, Value, head};
+
+        head::write_head(out, head::ARRAY, 4)?;
+        head::write_text(out, &literal.lexical_form)?;
+        head::write_text(out, literal.datatype_iri())?;
+        match literal.language.as_deref() {
+            Some(language) => head::write_text(out, language)?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+        match literal.direction {
+            Some(direction) => head::write_text(out, direction.as_str())?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+        Ok(())
+    }
+
     /// Encode the exact four-component single-literal wire without RDF rendering.
     pub(crate) fn to_json(literal: &RdfLiteral) -> purrdf_lex::json::Value {
         use purrdf_lex::json::{Value, record::ToJson};

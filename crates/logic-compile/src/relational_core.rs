@@ -57,6 +57,7 @@ use crate::ir::{
     Term, TermKindPredicate,
 };
 
+mod cbor;
 pub mod formula_analysis;
 mod json;
 pub use json::read_signed_atom;
