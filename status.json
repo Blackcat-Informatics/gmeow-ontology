@@ -1,0 +1,118 @@
+{
+  "issue": 2053,
+  "pr_number": 2055,
+  "branch": "paudley/2053-preserve-complete-law-refusal",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal",
+  "observed_at": "2026-10-29T14:58:45.016027+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "b934524ae6119815d0548262b3ae4fd65246c339",
+    "headRefName": "paudley/2053-preserve-complete-law-refusal",
+    "headRefOid": "653e77e735dcb27958aa22d8f95bab10790c32c4",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2055,
+    "state": "OPEN",
+    "title": "Preserve complete law-refusal diagnostics with native JSON",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2055"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896423432/job/123526651737",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896423432/job/123526651051",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896423432/job/123526651492",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40896423432/job/123526651390",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2055",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "653e77e735dcb27958aa22d8f95bab10790c32c4",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "cc03e1e29f20c20c77f58bb3c7079d1e2453dba54dac00fcc9f6340306fab64e"
+  },
+  "local": {
+    "head": "653e77e735dcb27958aa22d8f95bab10790c32c4",
+    "branch": "paudley/2053-preserve-complete-law-refusal",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2055,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2055 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

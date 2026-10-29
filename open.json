@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2053,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal",
+  "branch": "paudley/2053-preserve-complete-law-refusal",
+  "slug": "preserve-complete-law-refusal",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "b934524ae6119815d0548262b3ae4fd65246c339",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal",
+    "branch:paudley/2053-preserve-complete-law-refusal",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2053-preserve-complete-law-refusal/.stage/preserve-complete-law-refusal/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-29T08:28:52-0600"
+}

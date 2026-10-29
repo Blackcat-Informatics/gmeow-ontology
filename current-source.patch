@@ -1,0 +1,68 @@
+diff --git crates/logic/src/correspondence_exec.rs crates/logic/src/correspondence_exec.rs
+index efbdedeca..62c7ccc59 100644
+--- crates/logic/src/correspondence_exec.rs
++++ crates/logic/src/correspondence_exec.rs
+@@ -58,6 +58,7 @@ use purrdf::sparql::{
+ use purrdf::{
+     RdfDataset, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SparqlResult, TermValue, canonical_relabel,
+ };
++use purrdf_lex::json::record::ToJson as _;
+ 
+ const VIEW_PREDICATE: &str = "https://blackcatinformatics.ca/logic/recovery#view";
+ const ATOMIC_SEED_SUBJECT: &str =
+@@ -149,6 +150,11 @@ pub struct LawCaseFailure {
+     pub diagnostic: gmeow_errors::RecordedDiag,
+ }
+ 
++::purrdf_lex::json_record!(impl ToJson for LawCaseFailure {
++    "case" => case,
++    "diagnostic" => diagnostic,
++});
++
+ fn record_failures(failures: Vec<(String, gmeow_errors::Diag)>) -> Vec<LawCaseFailure> {
+     failures
+         .into_iter()
+@@ -196,7 +202,7 @@ fn discharge_cases(
+         return Err(
+             exec_error("selected correspondence law cases could not execute").with_observed(
+                 gmeow_errors::Slot::typed(
+-                    serde_json::to_string(&failures).map_err(gmeow_errors::Diag::from)?,
++                    purrdf_lex::json::write_compact(&failures.to_json()),
+                     "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON",
+                 ),
+             ),
+diff --git crates/logic/src/correspondence_exec.tests.rs crates/logic/src/correspondence_exec.tests.rs
+index 35ba06d15..bc3a306d4 100644
+--- crates/logic/src/correspondence_exec.tests.rs
++++ crates/logic/src/correspondence_exec.tests.rs
+@@ -477,6 +477,8 @@ fn failed_law_cases_cannot_be_disguised_by_a_successful_case() {
+ 
+ #[test]
+ fn every_unavailable_law_case_survives_the_diagnostic_boundary() {
++    use purrdf_lex::json::record::ToJson as _;
++
+     let first = incomplete_law_seed("a-refused", "urn:purrdf:rdfc:first");
+     let second = incomplete_law_seed("b-refused", "urn:purrdf:rdfc:second");
+     let error = discharge_section_law(RECOVERY_GET, RECOVERY_PUT, &[second, first])
+@@ -501,6 +503,14 @@ fn every_unavailable_law_case_survives_the_diagnostic_boundary() {
+             .iter()
+             .all(|failure| !failure.diagnostic.root.frames.is_empty())
+     );
++    let original = include_str!("correspondence_exec/fixtures/law-case-failures-v1.json")
++        .strip_suffix('\n')
++        .unwrap();
++    let historical: Vec<LawCaseFailure> = serde_json::from_str(original).unwrap();
++    assert_eq!(
++        purrdf_lex::json::write_compact(&historical.to_json()).as_bytes(),
++        original.as_bytes()
++    );
+ }
+ 
+ #[test]
+diff --git crates/logic/src/correspondence_exec/fixtures/law-case-failures-v1.json crates/logic/src/correspondence_exec/fixtures/law-case-failures-v1.json
+new file mode 100644
+index 000000000..319c1dfed
+--- /dev/null
++++ crates/logic/src/correspondence_exec/fixtures/law-case-failures-v1.json
+@@ -0,0 +1 @@
++[{"case":"a-refused","diagnostic":{"root":{"fingerprint":[2,235,26,147,92,171,150,72,141,191,3,160,13,7,190,252],"stage":"correspondence-law-execution","grade":{"severity":"error","category":"modeling-discipline-violation","standpoint":"binding"},"code":"diag.foreign-error","observations":[{"message":"the dataset carries the reserved IRI <urn:purrdf:rdfc:first> in the subject position; <urn:purrdf:rdfc:…> is reserved by canonicalization profile purrdf-rdfc12 v2 for the RDF 1.2 overlay and cannot appear in an input dataset"}],"frames":[{"message":"canonicalize correspondence carrier","at":{"file":"crates/logic/src/correspondence_exec.rs","line":332,"column":45}},{"message":"put∘get = id_source carrier comparison","at":{"file":"crates/logic/src/correspondence_exec.rs","line":392,"column":41}},{"message":"the dataset carries the reserved IRI <urn:purrdf:rdfc:first> in the subject position; <urn:purrdf:rdfc:…> is reserved by canonicalization profile purrdf-rdfc12 v2 for the RDF 1.2 overlay and cannot appear in an input dataset"},{"message":"the dataset carries the reserved IRI <urn:purrdf:rdfc:first> in the subject position; <urn:purrdf:rdfc:…> is reserved by canonicalization profile purrdf-rdfc12 v2 for the RDF 1.2 overlay and cannot appear in an input dataset"}],"antecedents":[],"source_ctx":{"location":{},"focus":null,"term_role":null},"attributions":[],"advice":[],"labels":[],"tags":[],"knowledge":"supported","emitted_at":{"file":"crates/logic/src/correspondence_exec.rs","line":332,"column":13}},"causes":[]}},{"case":"b-refused","diagnostic":{"root":{"fingerprint":[2,235,26,147,92,171,150,72,141,191,3,160,13,7,190,252],"stage":"correspondence-law-execution","grade":{"severity":"error","category":"modeling-discipline-violation","standpoint":"binding"},"code":"diag.foreign-error","observations":[{"message":"the dataset carries the reserved IRI <urn:purrdf:rdfc:second> in the subject position; <urn:purrdf:rdfc:…> is reserved by canonicalization profile purrdf-rdfc12 v2 for the RDF 1.2 overlay and cannot appear in an input dataset"}],"frames":[{"message":"canonicalize correspondence carrier","at":{"file":"crates/logic/src/correspondence_exec.rs","line":332,"column":45}},{"message":"put∘get = id_source carrier comparison","at":{"file":"crates/logic/src/correspondence_exec.rs","line":392,"column":41}},{"message":"the dataset carries the reserved IRI <urn:purrdf:rdfc:second> in the subject position; <urn:purrdf:rdfc:…> is reserved by canonicalization profile purrdf-rdfc12 v2 for the RDF 1.2 overlay and cannot appear in an input dataset"},{"message":"the dataset carries the reserved IRI <urn:purrdf:rdfc:second> in the subject position; <urn:purrdf:rdfc:…> is reserved by canonicalization profile purrdf-rdfc12 v2 for the RDF 1.2 overlay and cannot appear in an input dataset"}],"antecedents":[],"source_ctx":{"location":{},"focus":null,"term_role":null},"attributions":[],"advice":[],"labels":[],"tags":[],"knowledge":"supported","emitted_at":{"file":"crates/logic/src/correspondence_exec.rs","line":332,"column":13}},"causes":[]}}]

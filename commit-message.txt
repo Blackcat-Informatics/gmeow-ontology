@@ -1,0 +1,4 @@
+refactor: publish complete law refusals with native JSON
+
+Preserve all recorded diagnostic fields and actual failure semantics while
+reusing the existing native diagnostic owner. Principles 4 and 7.
