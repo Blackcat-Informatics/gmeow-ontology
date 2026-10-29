@@ -1,0 +1,135 @@
+{
+  "issue": 1777,
+  "pr_number": 2047,
+  "branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor",
+  "observed_at": "2026-10-29T12:44:04.012530+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "dirty",
+      "message": "Source changes remain outside the selected Stage directory"
+    },
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Inspect and commit the intended source changes",
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/.stage/deps-move-gmeow-owned-serde-cbor/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "0b3beb946d3256d94770256ee5f0fe5c4a9cfbef",
+    "headRefName": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+    "headRefOid": "4b9a16f0dc55456a1c551e7d2da33f9d35481ec5",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2047,
+    "state": "OPEN",
+    "title": "Stream complete relational-core commitments through native CBOR",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2047"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2047?scope=ghh_OusAJGA4HG8ljoOV0wJvVx8NmnZIjc2DdjmxOu0xZWA",
+        "name": "CodeRabbit",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873361907/job/123445828208",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873361907/job/123445828361",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873361907/job/123445828038",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873361907/job/123445827654",
+        "name": "helpers",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "4b9a16f0dc55456a1c551e7d2da33f9d35481ec5",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "9d0d542d785577a95d6d2214d6c0012719090e0acb2f5a98887f484fe471d715"
+  },
+  "local": {
+    "head": "4b9a16f0dc55456a1c551e7d2da33f9d35481ec5",
+    "branch": "paudley/1777-deps-move-gmeow-owned-serde-cbor",
+    "dirty_paths": [
+      ".stage/relational-core-native-cbor/hosted-helpers.json",
+      ".stage/relational-core-native-cbor/native-runtime.txt",
+      ".stage/relational-core-native-cbor/pr-body.md",
+      ".stage/relational-core-native-cbor/reference-capture.txt",
+      ".stage/relational-core-native-cbor/strict.txt"
+    ]
+  },
+  "ci_logs": {
+    "pr": 2047,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2047 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABgzsfzQ",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2047#issuecomment-6496657357",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
