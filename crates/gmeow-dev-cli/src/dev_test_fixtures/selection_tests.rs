@@ -140,6 +140,7 @@ fn all_selection_is_in_memory_until_one_complete_publication() {
     assert_eq!(finalized.sha256, ContentDigest::of(&expected).to_hex());
 }
 
+/// Preserve exact telemetry packets and reject failures before selector publication.
 #[test]
 fn rejected_selection_and_failed_telemetry_preserve_published_bytes() {
     let root = tempfile::tempdir().unwrap();
@@ -157,12 +158,112 @@ fn rejected_selection_and_failed_telemetry_preserve_published_bytes() {
     let prepared =
         prepare_fixture_selector(root.path(), Some(prefix()), Some(&bundle()), Some(&docs()))
             .unwrap();
+    let packets = [
+        (
+            "heavy",
+            Value::from(
+                json::Object::new()
+                    .with("schema_version", 1)
+                    .with("scope", "conformance-heavy")
+                    .with("elapsed_ms", u64::MAX as u128)
+                    .with("selected_action", docs().model.to_json())
+                    .with("manifest_sha256", prepared.sha256.clone()),
+            ),
+        ),
+        (
+            "ordinary",
+            Value::from(
+                json::Object::new()
+                    .with("schema_version", 1)
+                    .with("command", "gmeow-dev test-fixtures produce")
+                    .with("scope", "all")
+                    .with("jobs", 3)
+                    .with(
+                        "deterministic_work",
+                        json::Object::new()
+                            .with("fixture_count", 2)
+                            .with(
+                                "stage_receipts",
+                                vec![Value::from(
+                                    json::Object::new()
+                                        .with("stage", "retained é中😀\n\"\\")
+                                        .with("bytes", u64::MAX),
+                                )],
+                            )
+                            .with(
+                                "stage_fixture_manifest",
+                                json::Object::new()
+                                    .with("path", ".cache/é中/selector.json")
+                                    .with("sha256", prepared.sha256.clone()),
+                            )
+                            .with("slice_spec_receipt", "selected slice receipt")
+                            .with("bundle_import_receipt", bundle().receipt.to_json()),
+                    )
+                    .with(
+                        "observations",
+                        json::Object::new()
+                            .with("total_elapsed_ms", u64::MAX as u128)
+                            .with(
+                                "fixtures",
+                                vec![Value::from(
+                                    json::Object::new()
+                                        .with("built", false)
+                                        .with("elapsed_ms", 0)
+                                        .with("transferred_bytes", u64::MAX)
+                                        .with("cache_outcome", "receipt-hit"),
+                                )],
+                            )
+                            .with(
+                                "slice_specs",
+                                json::Object::new()
+                                    .with("fixture", "slice-spec-verdict")
+                                    .with("built", true)
+                                    .with("elapsed_ms", 1),
+                            )
+                            .with("docs", Option::<Value>::None.to_json())
+                            .with(
+                                "pipeline_stage_phase",
+                                json::Object::new()
+                                    .with("fixture", "pipeline-stage-phase")
+                                    .with("stage_count", 1)
+                                    .with("built", 0),
+                            )
+                            .with(
+                                "bundle_import",
+                                json::Object::new()
+                                    .with("fixture", "bundle-import")
+                                    .with("receipt", bundle().receipt.to_json())
+                                    .with("corpus_artifacts", Vec::<Value>::new()),
+                            ),
+                    ),
+            ),
+        ),
+    ];
+    for (name, packet) in packets {
+        let telemetry_path = root.path().join(format!("{name}.json"));
+        write_json_atomic(&telemetry_path, &packet).unwrap();
+        let bytes = std::fs::read(telemetry_path).unwrap();
+        let reference = include_str!("selector_reference/telemetry-v1.txt")
+            .lines()
+            .find(|line| line.starts_with(&format!("{name} ")))
+            .unwrap();
+        let mut fields = reference.split_whitespace();
+        assert_eq!(fields.next(), Some(name));
+        assert_eq!(ContentDigest::of(&bytes).to_hex(), fields.next().unwrap());
+        assert_eq!(
+            bytes,
+            purrdf_hash::hex::decode(fields.next().unwrap()).unwrap()
+        );
+        assert_eq!(std::fs::read(&path).unwrap(), old);
+    }
     let telemetry = root.path().join("not-a-directory");
     std::fs::write(&telemetry, b"existing file").unwrap();
     assert!(
         write_json_atomic(
             &telemetry.join("timings.json"),
-            &serde_json::json!({"selector": prepared.sha256})
+            &json::Object::new()
+                .with("selector", prepared.sha256.clone())
+                .into()
         )
         .is_err()
     );
