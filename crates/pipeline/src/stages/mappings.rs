@@ -1079,9 +1079,9 @@ fn fold_up_projection_audit(
 
 /// Compile mappings and fold their diagnostics into the native report.
 ///
-/// This is the Rust-owned implementation behind the Python feedback surface:
-/// Python remains the CLI/interface, while compilation, SSSOM validation, and
-/// cross-layer projection linting all run through native Rust authorities.
+/// The developer feedback surface uses native Rust authorities for compilation,
+/// SSSOM validation and correspondence soundness. An unavailable soundness pass
+/// makes the selected diagnostics operation fail.
 pub fn compile_diagnostics_report(root: &Path) -> Report {
     let mut report = Report::new("mapping-compile");
     let artifacts = match compile_mappings(root) {
@@ -1126,9 +1126,9 @@ pub fn compile_diagnostics_report(root: &Path) -> Report {
         Err(err) => {
             report.add_finding(
                 Finding::new(
-                    Severity::Warning,
-                    "mapping-compile.projection-lint-skipped",
-                    format!("projection lint findings not surfaced: {err}"),
+                    Severity::Error,
+                    "mapping-compile.projection-lint-failed",
+                    format!("required native projection lint failed: {err}"),
                 )
                 .with_tool("mapping-compile"),
             );
