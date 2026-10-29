@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let plan = extract::plan(&root, &sources)?;
         std::fs::write(&args[3], serde_json::to_vec_pretty(&plan)?)?;
     } else if args[0] == "selected-plan" {
-        let selection = serde_json::from_slice(&std::fs::read(&args[2])?)?;
+        let selection = purrdf_lex::json::record::from_slice(&std::fs::read(&args[2])?)?;
         let sources = gmeow_build_inputs::production_extraction_paths(&root, &selection)?;
         let plan = extract::plan(&root, &sources)?;
         std::fs::write(&args[3], serde_json::to_vec_pretty(&plan)?)?;

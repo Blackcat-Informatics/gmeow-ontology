@@ -9,6 +9,8 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+gmeow-errors = { path = "../errors" }
+purrdf-lex.workspace = true
 cargo-config2.workspace = true
 glob = "0.3"
 serde.workspace = true
