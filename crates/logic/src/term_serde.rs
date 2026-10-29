@@ -4,7 +4,7 @@
 //! Value-only codec for retained native rule constants. No dataset-local term IDs.
 
 pub use gmeow_logic_compile::term_serde::{
-    deserialize, from_json, optional, serialize, to_json, vec,
+    deserialize, from_json, optional, serialize, to_json, vec, write_cbor,
 };
 
 #[path = "term_serde.tests.rs"]
