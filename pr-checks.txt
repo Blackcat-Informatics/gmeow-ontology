@@ -1,0 +1,10 @@
+$ stagectl pr-checks 2048
+IN_PROGRESS generation (a) https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873622782/job/123455751448
+IN_PROGRESS generation (b) https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873622782/job/123455751571
+IN_PROGRESS fixture-prefix https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873622782/job/123455751460
+NEUTRAL CodeRabbit https://coderabbit.ai?utm_source=cr_app&utm_medium=github
+SUCCESS producer-build https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873622782/job/123446737396
+SUCCESS helpers https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873622782/job/123446737334
+SUCCESS lint https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873622782/job/123446737520
+SUCCESS rust-prebuild https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40873622782/job/123446737456
+state: pending
