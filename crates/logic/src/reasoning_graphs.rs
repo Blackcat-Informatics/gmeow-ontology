@@ -16,7 +16,9 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use gmeow_errors::DiagKind as _;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf_lex::json::{Format, record::ToJson};
 
 /// The RDF 1.2 statement layer admitted to object-level reasoning.
 pub const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
@@ -75,12 +77,7 @@ pub fn object_level_domains() -> gmeow_errors::Result<crate::physical::SelectedD
                 .map(|graph| LogicalGraph::Named(purrdf::TermValue::iri(graph))),
         )
         .collect();
-    let bytes = serde_json::to_vec(&(AUTHORITY, DomainProfile::NonemptyObjectDomainV1, &roles))
-        .map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Reason {
-                detail: format!("object-level domain selection identity: {error}"),
-            })
-        })?;
+    let bytes = object_level_selection_bytes(AUTHORITY, &roles)?;
     let selection = *purrdf_hash::blake3::hash(&bytes).as_bytes();
     SelectedDomains::new(
         roles
@@ -95,6 +92,34 @@ pub fn object_level_domains() -> gmeow_errors::Result<crate::physical::SelectedD
             })
             .collect::<gmeow_errors::Result<Vec<_>>>()?,
     )
+}
+
+fn object_level_selection_bytes(
+    authority: &str,
+    roles: &[crate::physical::LogicalGraph],
+) -> gmeow_errors::Result<Vec<u8>> {
+    let value = (
+        authority,
+        crate::physical::DomainProfile::NonemptyObjectDomainV1,
+        roles,
+    )
+        .to_json();
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    purrdf_lex::json::write_with_memory(&value, Format::COMPACT, &mut memory)
+        .map(String::into_bytes)
+        .map_err(|error| {
+            let kind = crate::error::Reason {
+                detail: format!("object-level domain selection identity: {error}"),
+            };
+            let mut diagnostic =
+                gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
+                    .with_source(error);
+            if let Some(class) = kind.failure_class() {
+                diagnostic = diagnostic.with_failure_class(class);
+            }
+            diagnostic
+        })
 }
 
 /// Whether a named graph belongs to the object-level reasoning EDB.
