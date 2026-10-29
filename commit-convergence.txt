@@ -1,0 +1,7 @@
+fix: require active owned financial SPARQL constraints
+
+Refuse conditionally deactivated required bodies while retaining selected-root
+delegation and own-definition checks. Preserve original financial result IDs in
+the existing contextual identity control.
+
+Principles 4, 7 and 17.

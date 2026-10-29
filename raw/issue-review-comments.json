@@ -1,0 +1,49 @@
+[
+  {
+    "url": "https://api.github.com/repos/Blackcat-Informatics/gmeow-ontology/issues/comments/6492434170",
+    "html_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2039#issuecomment-6492434170",
+    "issue_url": "https://api.github.com/repos/Blackcat-Informatics/gmeow-ontology/issues/2039",
+    "id": 6492434170,
+    "node_id": "IC_kwDOSwdn1s8AAAABgvqu-g",
+    "user": {
+      "login": "paudley",
+      "id": 527555,
+      "node_id": "MDQ6VXNlcjUyNzU1NQ==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/527555?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/paudley",
+      "html_url": "https://github.com/paudley",
+      "followers_url": "https://api.github.com/users/paudley/followers",
+      "following_url": "https://api.github.com/users/paudley/following{/other_user}",
+      "gists_url": "https://api.github.com/users/paudley/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/paudley/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/paudley/subscriptions",
+      "organizations_url": "https://api.github.com/users/paudley/orgs",
+      "repos_url": "https://api.github.com/users/paudley/repos",
+      "events_url": "https://api.github.com/users/paudley/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/paudley/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "created_at": "2026-10-29T09:01:47Z",
+    "updated_at": "2026-10-29T09:01:47Z",
+    "body": "Source review of the current financial admission repair found one required correction before landing: `active_definition` checks shape activation and root delegation, but `require_shapes` accepts a direct SPARQL constraint without checking its `constraint_annotations` conditional deactivation. An owner can therefore retain the exact required product, root target and query while conditionally disabling that query. That does not establish an active required procedural product.\n\nPlease reject conditional deactivation on every required direct SPARQL constraint by matching `AnnotatedConstraint::Constraint(index)` against the retained definition annotations. Extend the existing procedural-product refusal control with an owned-definition constraint guard while leaving the global catalog intact. Preserve the current disconnected-root check. This is a necessary admission invariant. Principles 4, 7 and 17.\n\nThe separate parent checkout contains a reference implementation of this guard and an existing-control mutation, but it deliberately has no competing PR. Its source and original identity evidence remain preserved; do not replace the current root-delegation check with that donor helper.\n",
+    "author_association": "MEMBER",
+    "pin": null,
+    "reactions": {
+      "url": "https://api.github.com/repos/Blackcat-Informatics/gmeow-ontology/issues/comments/6492434170/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "performed_via_github_app": null,
+    "minimized": null
+  }
+]

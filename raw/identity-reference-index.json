@@ -1,0 +1,23 @@
+{
+  "base": "7fdd1bc2e146761eb215c3881c386fb826f5e538",
+  "math_quantity_ids": [
+    "urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680",
+    "urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680",
+    "urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680",
+    "urn:gmeow:math-evaluation:quantity:5071ffd974f5ec9c96e4fb1fa9180213a2d523b5169853202c30004ae9fa8c82",
+    "urn:gmeow:math-evaluation:quantity:5f5483c973cdbdc92913ea68002390df7d7ea23e861f035d01f464aaa9981dfe",
+    "urn:gmeow:math-evaluation:quantity:2bfaeeaa2d3860845a6c78152312a3fcc2f45a0c4ebaa7e2349ed8304dff9fbe",
+    "urn:gmeow:math-evaluation:quantity:962f550b011a54de208e210e29e8e21344cfe136ed1504c8798a7634f7d2df8e"
+  ],
+  "finance_quantity_ids": [
+    "urn:gmeow:math-evaluation:quantity:f6fa5a0bcf7a15ad031d453b2b3e8fa5badb7a21860cd619db5ce6e066366978",
+    "urn:gmeow:math-evaluation:quantity:f6fa5a0bcf7a15ad031d453b2b3e8fa5badb7a21860cd619db5ce6e066366978",
+    "urn:gmeow:math-evaluation:quantity:7f4811e2f16666c0e03f9e87d9df4b2ca4dae8398269263da0ed02438cd33569",
+    "urn:gmeow:math-evaluation:quantity:cddb8223a8c451dda86db9fe6dc0aac52b45ac5522022dd381bbc56acb0fff06",
+    "urn:gmeow:math-evaluation:quantity:753408bcffb1d8ac75c2f9edb49f3bcd742418bebbbdb41a03ac518fc8c099e6"
+  ],
+  "original_payload_bytes": {
+    "5": 29133,
+    "8": 137823
+  }
+}

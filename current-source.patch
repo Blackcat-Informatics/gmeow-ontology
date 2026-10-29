@@ -1,0 +1,640 @@
+diff --git a/crates/logic/src/finance_evaluation.rs b/crates/logic/src/finance_evaluation.rs
+index ebdc3751a..76500b212 100644
+--- a/crates/logic/src/finance_evaluation.rs
++++ b/crates/logic/src/finance_evaluation.rs
+@@ -8,7 +8,7 @@ use crate::math_evaluation::{self, Evaluation, EvaluationContext};
+ use gmeow_logic_compile::ir::{Formula, Term};
+ use purrdf::shapes::{
+     engine::validate_dataset,
+-    shapes::{Constraint, Shapes, Target},
++    shapes::{AnnotatedConstraint, Constraint, Shape, Shapes, Target},
+ };
+ use purrdf::{RdfDataset, TermValue};
+ use std::collections::{BTreeMap, BTreeSet};
+@@ -64,6 +64,26 @@ pub struct FinanceOwner<'a> {
+     pub identity: &'a str,
+ }
+ 
++// Exported roots retain targets, while the owning native definition retains
++// constraint bodies and conditional deactivation. Both must be active, and the
++// selected root must actually delegate to its own definition.
++fn active_definition(shape: &Shape) -> Option<&Shape> {
++    if shape.deactivated
++        || !shape.deactivated_when.is_empty()
++        || !shape
++            .constraints
++            .iter()
++            .any(|constraint| matches!(constraint, Constraint::Reference(id) if id == &shape.id))
++    {
++        return None;
++    }
++    let definition = shape.owner.as_ref()?.definition(&shape.id)?;
++    if definition.deactivated || !definition.deactivated_when.is_empty() {
++        return None;
++    }
++    Some(definition)
++}
++
+ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
+     for class in [
+         format!("{M}Quantity"),
+@@ -81,8 +101,7 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
+         format!("{G}FinancialReturnRatio"),
+     ] {
+         if !shapes.node_shapes.iter().any(|shape| {
+-            !shape.deactivated
+-                && shape.deactivated_when.is_empty()
++            active_definition(shape).is_some()
+                 && shape
+                     .targets
+                     .iter()
+@@ -96,10 +115,27 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
+     }
+     for identity in PROCEDURAL_PRODUCTS {
+         if !shapes.node_shapes.iter().any(|shape| {
+-            matches!(&shape.id, purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
+-                && !shape.deactivated && shape.deactivated_when.is_empty()
+-                && !shape.targets.is_empty()
+-                && shape.constraints.iter().any(|constraint| matches!(constraint, Constraint::Sparql { .. }))
++            if !matches!(&shape.id, purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
++                || shape.targets.is_empty()
++            {
++                return false;
++            }
++            let Some(definition) = active_definition(shape) else {
++                return false;
++            };
++            let mut has_sparql = false;
++            for (index, constraint) in definition.constraints.iter().enumerate() {
++                if matches!(constraint, Constraint::Sparql { .. }) {
++                    has_sparql = true;
++                    if definition.constraint_annotations.iter().any(|annotation| {
++                        annotation.constraint == AnnotatedConstraint::Constraint(index)
++                            && !annotation.deactivated_when.is_empty()
++                    }) {
++                        return false;
++                    }
++                }
++            }
++            has_sparql
+         }) {
+             return Err(crate::error::profile_result(PROFILE, format!("authenticated owner lacks active required procedural product {identity}")));
+         }
+diff --git a/crates/logic/src/finance_evaluation/tests.rs b/crates/logic/src/finance_evaluation/tests.rs
+index 35f667d87..81e57a0b0 100644
+--- a/crates/logic/src/finance_evaluation/tests.rs
++++ b/crates/logic/src/finance_evaluation/tests.rs
+@@ -5,6 +5,11 @@
+ //! authenticated repository owner acceptance is a separate producer-bound lane.
+ 
+ use super::*;
++use purrdf::shapes::{
++    expression::NodeExpr,
++    shapes::{ConstraintAnnotation, ModelOwner},
++    term::{Literal as ShapeLiteral, NamedNode, Term as ShapeTerm},
++};
+ 
+ fn list_text(members: Vec<String>, cell: impl FnMut(usize) -> String) -> String {
+     let vocab = purrdf_core::ListVocab {
+@@ -299,14 +304,91 @@ fn finance_evaluation_owner_import_retains_list_cells_members_and_override_check
+ 
+ #[test]
+ fn finance_evaluation_requires_every_selected_procedural_product() {
++    let complete = shapes();
++    require_shapes(&complete).expect("the complete independent owner fixture is admitted");
+     for identity in PROCEDURAL_PRODUCTS {
+-        let mut incomplete = shapes();
++        let mut incomplete = complete.clone();
+         incomplete.node_shapes.retain(|shape| {
+             !matches!(&shape.id,
+             purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
+         });
+         assert!(require_shapes(&incomplete).is_err(), "missing {identity}");
+     }
++
++    let selected = complete
++        .node_shapes
++        .iter()
++        .position(|shape| {
++            matches!(&shape.id,
++        purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == PROCEDURAL_PRODUCTS[0])
++        })
++        .expect("the complete owner contains the first required procedural root");
++    let mut disconnected = complete.clone();
++    disconnected.node_shapes[selected].constraints.clear();
++    assert!(
++        require_shapes(&disconnected).is_err(),
++        "a retained definition cannot substitute for the selected root's missing reference"
++    );
++
++    #[derive(Debug)]
++    enum UnavailableProduct {
++        Body,
++        ShapeGuard,
++        SparqlGuard,
++    }
++    for unavailable in [
++        UnavailableProduct::Body,
++        UnavailableProduct::ShapeGuard,
++        UnavailableProduct::SparqlGuard,
++    ] {
++        let root = &complete.node_shapes[selected];
++        let mut definitions: Vec<_> = root
++            .owner
++            .as_ref()
++            .expect("the selected native root retains its own definition owner")
++            .definitions()
++            .cloned()
++            .collect();
++        let definition = definitions
++            .iter_mut()
++            .find(|definition| definition.id == root.id)
++            .expect("the owner retains the selected root's exact identity");
++        let guard = NodeExpr::Constant(ShapeTerm::Literal(ShapeLiteral::new_typed_literal(
++            "true",
++            NamedNode::from("http://www.w3.org/2001/XMLSchema#boolean"),
++        )));
++        match unavailable {
++            UnavailableProduct::Body => definition
++                .constraints
++                .retain(|constraint| !matches!(constraint, Constraint::Sparql { .. })),
++            UnavailableProduct::ShapeGuard => definition.deactivated_when.push(guard),
++            UnavailableProduct::SparqlGuard => {
++                let index = definition
++                    .constraints
++                    .iter()
++                    .position(|constraint| matches!(constraint, Constraint::Sparql { .. }))
++                    .expect("the original product contains its SPARQL body");
++                definition
++                    .constraint_annotations
++                    .push(ConstraintAnnotation {
++                        constraint: AnnotatedConstraint::Constraint(index),
++                        severity: None,
++                        messages: Vec::new(),
++                        deactivated_when: vec![guard],
++                    });
++            }
++        }
++        let owner = ModelOwner::from_definitions(definitions)
++            .expect("the independently modified bare definitions form a native owner");
++        let mut unavailable_product = complete.clone();
++        unavailable_product.node_shapes[selected] = owner
++            .root(&root.id)
++            .expect("the native owner exports the unchanged selected identity");
++        assert!(
++            require_shapes(&unavailable_product).is_err(),
++            "the selected root must retain an active SPARQL body in its own owner: {unavailable:?}"
++        );
++    }
+ }
+ 
+ #[test]
+@@ -466,36 +548,42 @@ fn finance_evaluation_refuses_conflicting_frames_roles_recipes_and_inexact_resul
+ #[test]
+ fn finance_evaluation_identity_binds_owner_context_and_exact_input_values() {
+     let original = run(&input(false), &owner(), "synthetic-owner-v1").unwrap();
++    assert_eq!(
++        original.quantity,
++        "urn:gmeow:math-evaluation:quantity:f6fa5a0bcf7a15ad031d453b2b3e8fa5badb7a21860cd619db5ce6e066366978"
++    );
+     assert_eq!(
+         original.quantity,
+         run(&input(false), &owner(), "synthetic-owner-v1")
+             .unwrap()
+             .quantity
+     );
+-    assert_ne!(
+-        original.quantity,
+-        run(&input(false), &owner(), "synthetic-owner-v2")
+-            .unwrap()
+-            .quantity
++    let changed_owner = run(&input(false), &owner(), "synthetic-owner-v2").unwrap();
++    assert_ne!(original.quantity, changed_owner.quantity);
++    assert_eq!(
++        changed_owner.quantity,
++        "urn:gmeow:math-evaluation:quantity:7f4811e2f16666c0e03f9e87d9df4b2ca4dae8398269263da0ed02438cd33569"
+     );
+-    assert_ne!(
+-        original.quantity,
+-        run(
+-            &input(false).replace("1000.00", "1000.000"),
+-            &owner(),
+-            "synthetic-owner-v1"
+-        )
+-        .unwrap()
+-        .quantity
++    let changed_precision = run(
++        &input(false).replace("1000.00", "1000.000"),
++        &owner(),
++        "synthetic-owner-v1",
++    )
++    .unwrap();
++    assert_ne!(original.quantity, changed_precision.quantity);
++    assert_eq!(
++        changed_precision.quantity,
++        "urn:gmeow:math-evaluation:quantity:cddb8223a8c451dda86db9fe6dc0aac52b45ac5522022dd381bbc56acb0fff06"
+     );
+-    assert_ne!(
+-        original.quantity,
+-        run(
+-            &input(false).replace("urn:alice", "urn:other-vantage"),
+-            &owner(),
+-            "synthetic-owner-v1"
+-        )
+-        .unwrap()
+-        .quantity
++    let changed_vantage = run(
++        &input(false).replace("urn:alice", "urn:other-vantage"),
++        &owner(),
++        "synthetic-owner-v1",
++    )
++    .unwrap();
++    assert_ne!(original.quantity, changed_vantage.quantity);
++    assert_eq!(
++        changed_vantage.quantity,
++        "urn:gmeow:math-evaluation:quantity:753408bcffb1d8ac75c2f9edb49f3bcd742418bebbbdb41a03ac518fc8c099e6"
+     );
+ }
+diff --git a/crates/logic/src/math_evaluation.rs b/crates/logic/src/math_evaluation.rs
+index cdf686cd3..fceb11df0 100644
+--- a/crates/logic/src/math_evaluation.rs
++++ b/crates/logic/src/math_evaluation.rs
+@@ -418,6 +418,42 @@ fn validate_quantity_result(
+     Ok(())
+ }
+ 
++fn encode_identity(
++    root: &str,
++    bindings: &BTreeMap<String, String>,
++    premises: &[Formula],
++    calls: &[Formula],
++    context: &EvaluationContext,
++) -> gmeow_errors::Result<Vec<u8>> {
++    use purrdf_lex::json::{Format, Value, record::ToJson};
++
++    let mut fields = vec![
++        PROFILE.to_json(),
++        root.to_json(),
++        bindings.to_json(),
++        premises.to_json(),
++        calls.to_json(),
++    ];
++    if !context.identity.is_empty()
++        || !context.premises.is_empty()
++        || !context.quantity_classes.is_empty()
++    {
++        fields.extend([
++            context.identity.to_json(),
++            context.premises.to_json(),
++            context.quantity_classes.to_json(),
++        ]);
++    }
++    let mut resident = purrdf_lex::allocation::Resident;
++    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
++    purrdf_lex::json::write_with_memory(&Value::Array(fields), Format::COMPACT, &mut memory)
++        .map(String::into_bytes)
++        .map_err(|error| {
++            gmeow_errors::Diag::from(error)
++                .with_context(format!("encode {PROFILE} result identity"))
++        })
++}
++
+ /// Prepare the explicitly selected exact-scalar profile without executing it.
+ ///
+ /// # Errors
+@@ -449,25 +485,7 @@ pub fn prepare(
+             "unused binding: every selected symbol must occur in the root expression",
+         ));
+     }
+-    let identity = if context.identity.is_empty()
+-        && context.premises.is_empty()
+-        && context.quantity_classes.is_empty()
+-    {
+-        serde_json::to_vec(&(PROFILE, root, bindings, &lowering.premises, &lowering.calls))
+-            .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
+-    } else {
+-        serde_json::to_vec(&(
+-            PROFILE,
+-            root,
+-            bindings,
+-            &lowering.premises,
+-            &lowering.calls,
+-            &context.identity,
+-            &context.premises,
+-            &context.quantity_classes,
+-        ))
+-        .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
+-    };
++    let identity = encode_identity(root, bindings, &lowering.premises, &lowering.calls, context)?;
+     let digest = format!("{:x}", Sha256::digest(identity));
+     let quantity = format!("urn:gmeow:math-evaluation:quantity:{digest}");
+     if source.keys().any(|(subject, _)| subject == &quantity)
+diff --git a/crates/logic/src/math_evaluation/fixtures/result-identities-v1.txt b/crates/logic/src/math_evaluation/fixtures/result-identities-v1.txt
+new file mode 100644
+index 000000000..9c9e2a610
+--- /dev/null
++++ b/crates/logic/src/math_evaluation/fixtures/result-identities-v1.txt
+@@ -0,0 +1,65 @@
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++END_MATH_RESULT_REFERENCE
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++END_MATH_RESULT_REFERENCE
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++END_MATH_RESULT_REFERENCE
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Multiplication"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericMultiply"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:5071ffd974f5ec9c96e4fb1fa9180213a2d523b5169853202c30004ae9fa8c82
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:5071ffd974f5ec9c96e4fb1fa9180213a2d523b5169853202c30004ae9fa8c82
++END_MATH_RESULT_REFERENCE
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1.0","http://www.w3.org/2001/XMLSchema#decimal",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:5f5483c973cdbdc92913ea68002390df7d7ea23e861f035d01f464aaa9981dfe
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:5f5483c973cdbdc92913ea68002390df7d7ea23e861f035d01f464aaa9981dfe
++END_MATH_RESULT_REFERENCE
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:2bfaeeaa2d3860845a6c78152312a3fcc2f45a0c4ebaa7e2349ed8304dff9fbe
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:2bfaeeaa2d3860845a6c78152312a3fcc2f45a0c4ebaa7e2349ed8304dff9fbe
++END_MATH_RESULT_REFERENCE
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:right","urn:symbol:right":"urn:quantity:left"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:962f550b011a54de208e210e29e8e21344cfe136ed1504c8798a7634f7d2df8e
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:962f550b011a54de208e210e29e8e21344cfe136ed1504c8798a7634f7d2df8e
++END_MATH_RESULT_REFERENCE
++MATH_RESULT_CONTEXT_LABEL=standalone
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680
++END_MATH_RESULT_REFERENCE
++MATH_RESULT_CONTEXT_LABEL=identity-only
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}],"authored caller\u0000\n雪😀",[],[]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:9f3765bd71b48c11ace15aae8021a6167654cc61602235d9d5263dafefbb92a1
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:9f3765bd71b48c11ace15aae8021a6167654cc61602235d9d5263dafefbb92a1
++END_MATH_RESULT_REFERENCE
++MATH_RESULT_CONTEXT_LABEL=premises-only
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}],"",[{"Atom":{"relation":{"Iri":"urn:authored:label"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["context \"label\"\n雪","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","ar","rtl"]}]}}],[]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:0b827c4159d7bfa4598d0d0249493bcb2ac2d923aec2ab44a2a815747e643aa2
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:0b827c4159d7bfa4598d0d0249493bcb2ac2d923aec2ab44a2a815747e643aa2
++END_MATH_RESULT_REFERENCE
++MATH_RESULT_CONTEXT_LABEL=classes-only
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}],"",[],["urn:authored:QuantitySubclassA","urn:authored:QuantitySubclassZ"]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:714ec1d50b8845e9b13a329eb3712e237536d404c9f34931334db97fdd12b440
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:714ec1d50b8845e9b13a329eb3712e237536d404c9f34931334db97fdd12b440
++END_MATH_RESULT_REFERENCE
++MATH_RESULT_CONTEXT_LABEL=complete-context
++BEGIN_MATH_RESULT_REFERENCE
++MATH_RESULT_PREIMAGE=["math-exact-decimal-v1","urn:root",{"urn:symbol:left":"urn:quantity:left","urn:symbol:right":"urn:quantity:right"},[{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/ApplicationExpression"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot0"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/argumentSlot"},"args":[{"Iri":"urn:root"},{"Iri":"urn:slot1"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/operator"},"args":[{"Iri":"urn:root"},{"Iri":"https://blackcatinformatics.ca/math/Addition"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot0"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot0"},{"Iri":"urn:left"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot0"},{"Literal":["0","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:slot1"},{"Iri":"https://blackcatinformatics.ca/math/ArgumentSlot"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotExpression"},"args":[{"Iri":"urn:slot1"},{"Iri":"urn:right"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/slotIndex"},"args":[{"Iri":"urn:slot1"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:left"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:left"},{"Iri":"urn:symbol:left"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:left"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:left"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["1","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:left"},{"Var":"input0"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:right"},{"Iri":"https://blackcatinformatics.ca/math/SymbolReference"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasMathematicalSymbol"},"args":[{"Iri":"urn:right"},{"Iri":"urn:symbol:right"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:symbol:right"},{"Iri":"https://blackcatinformatics.ca/math/MathematicalSymbol"}]}},{"Atom":{"relation":{"Iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/Quantity"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/hasDimension"},"args":[{"Iri":"urn:quantity:right"},{"Iri":"https://blackcatinformatics.ca/math/dimensionless"}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Literal":["2","http://www.w3.org/2001/XMLSchema#integer",null,null]}]}},{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/math/quantityValue"},"args":[{"Iri":"urn:quantity:right"},{"Var":"input1"}]}}],[{"Atom":{"relation":{"Iri":"https://blackcatinformatics.ca/logic/rdfNumericAdd"},"args":[{"Var":"input0"},{"Var":"input1"},{"Var":"value2"}]}}],"authored caller\u0000\n雪😀",[{"Atom":{"relation":{"Iri":"urn:authored:label"},"args":[{"Iri":"urn:quantity:left"},{"Literal":["context \"label\"\n雪","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString","ar","rtl"]}]}}],["urn:authored:QuantitySubclassA","urn:authored:QuantitySubclassZ"]]
++MATH_RESULT_QUANTITY=urn:gmeow:math-evaluation:quantity:c62dd8953bc242ac6ef0d99f76efa9ad44d931f373638baf93e940594ce33e7a
++MATH_RESULT_PROGRAM=urn:gmeow:math-exact-decimal-v1:c62dd8953bc242ac6ef0d99f76efa9ad44d931f373638baf93e940594ce33e7a
++END_MATH_RESULT_REFERENCE
+diff --git a/crates/logic/src/math_evaluation/tests.rs b/crates/logic/src/math_evaluation/tests.rs
+index 952413095..39496bcf6 100644
+--- a/crates/logic/src/math_evaluation/tests.rs
++++ b/crates/logic/src/math_evaluation/tests.rs
+@@ -32,6 +32,113 @@ fn run(text: &str) -> gmeow_errors::Result<Evaluation> {
+     let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
+     evaluate(&dataset, "urn:root", &bindings())
+ }
++
++fn reference_prepare(
++    references: &mut std::str::Lines<'_>,
++    dataset: &RdfDataset,
++    root: &str,
++    bindings: &BTreeMap<String, String>,
++    context: &EvaluationContext,
++) -> gmeow_errors::Result<PreparedEvaluation> {
++    use purrdf_lex::json::record::FromJson;
++
++    assert_eq!(references.next(), Some("BEGIN_MATH_RESULT_REFERENCE"));
++    let preimage = references
++        .next()
++        .expect("each original packet contains its complete preimage")
++        .strip_prefix("MATH_RESULT_PREIMAGE=")
++        .expect("the original packet labels the preimage");
++    let quantity = references
++        .next()
++        .expect("each original packet contains the actual quantity identity")
++        .strip_prefix("MATH_RESULT_QUANTITY=")
++        .expect("the original packet labels the quantity identity");
++    let program = references
++        .next()
++        .expect("each original packet contains the actual program identity")
++        .strip_prefix("MATH_RESULT_PROGRAM=")
++        .expect("the original packet labels the program identity");
++    assert_eq!(references.next(), Some("END_MATH_RESULT_REFERENCE"));
++
++    let decoded =
++        purrdf_lex::json::read(preimage).expect("the complete original identity preimage is JSON");
++    let fields = decoded
++        .as_array()
++        .expect("an identity preimage is a tuple array");
++    assert!(matches!(fields.len(), 5 | 8));
++    assert_eq!(
++        String::from_json(&fields[0]).expect("the profile is text"),
++        PROFILE
++    );
++    let decoded_root = String::from_json(&fields[1]).expect("the selected root is text");
++    let decoded_bindings = BTreeMap::<String, String>::from_json(&fields[2])
++        .expect("the original bindings contain complete string pairs");
++    let premises = Vec::<Formula>::from_json(&fields[3])
++        .expect("the original lowering premises are complete formulas");
++    let calls = Vec::<Formula>::from_json(&fields[4])
++        .expect("the original arithmetic calls are complete formulas");
++    let decoded_context = if fields.len() == 8 {
++        EvaluationContext {
++            identity: String::from_json(&fields[5]).expect("the caller identity is text"),
++            premises: Vec::<Formula>::from_json(&fields[6])
++                .expect("the caller premises retain complete formula and literal metadata"),
++            quantity_classes: BTreeSet::<String>::from_json(&fields[7])
++                .expect("the caller quantity classes form an ordered string set"),
++        }
++    } else {
++        EvaluationContext::default()
++    };
++    assert_eq!(
++        encode_identity(
++            &decoded_root,
++            &decoded_bindings,
++            &premises,
++            &calls,
++            &decoded_context
++        )
++        .expect("the actual native identity encoder accepts the original typed fields"),
++        preimage.as_bytes(),
++        "every original compact preimage remains byte-identical"
++    );
++    let prepared = prepare(dataset, root, bindings, context)?;
++    assert_eq!(
++        prepared.quantity, quantity,
++        "actual preparation retains the original quantity identity"
++    );
++    assert_eq!(
++        prepared.program.source_iri.as_deref(),
++        Some(program),
++        "actual preparation retains the original program identity"
++    );
++    Ok(prepared)
++}
++
++fn reference_evaluate(
++    references: &mut std::str::Lines<'_>,
++    dataset: &RdfDataset,
++    bindings: &BTreeMap<String, String>,
++) -> gmeow_errors::Result<Evaluation> {
++    execute_prepared(
++        dataset,
++        reference_prepare(
++            references,
++            dataset,
++            "urn:root",
++            bindings,
++            &EvaluationContext::default(),
++        )?,
++    )
++}
++
++fn reference_run(
++    references: &mut std::str::Lines<'_>,
++    text: &str,
++) -> gmeow_errors::Result<Evaluation> {
++    // gmeow-test-input: synthetic-only
++    let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
++        .expect("the independent arithmetic identity fixture is valid Turtle");
++    reference_evaluate(references, &dataset, &bindings())
++}
+ fn value(evaluation: &Evaluation) -> String {
+     let row = evaluation
+         .result
+@@ -89,21 +196,31 @@ fn math_evaluation_executes_four_operations_with_native_source_proofs() {
+ 
+ #[test]
+ fn math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata() {
++    let mut references = include_str!("fixtures/result-identities-v1.txt").lines();
+     let text = source("Addition", "1", "2");
+-    let original = run(&text).unwrap();
+-    assert_eq!(original.quantity, run(&text).unwrap().quantity);
++    let original = reference_run(&mut references, &text).unwrap();
++    assert_eq!(
++        original.quantity,
++        reference_run(&mut references, &text).unwrap().quantity
++    );
+     // Statement order cannot alter the selected operation identity.
+     let reordered = text.replace(
+         "math:argumentSlot <urn:slot0>, <urn:slot1>",
+         "math:argumentSlot <urn:slot1>, <urn:slot0>",
+     );
+-    assert_eq!(original.quantity, run(&reordered).unwrap().quantity);
++    assert_eq!(
++        original.quantity,
++        reference_run(&mut references, &reordered).unwrap().quantity
++    );
+     for changed in [
+         source("Multiplication", "1", "2"),
+         source("Addition", "1.0", "2"),
+         source("Addition", "2", "2"),
+     ] {
+-        assert_ne!(original.quantity, run(&changed).unwrap().quantity);
++        assert_ne!(
++            original.quantity,
++            reference_run(&mut references, &changed).unwrap().quantity
++        );
+     }
+     let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
+     let mut swapped = bindings();
+@@ -111,7 +228,82 @@ fn math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata() {
+     swapped.insert("urn:symbol:right".into(), "urn:quantity:left".into());
+     assert_ne!(
+         original.quantity,
+-        evaluate(&dataset, "urn:root", &swapped).unwrap().quantity
++        reference_evaluate(&mut references, &dataset, &swapped)
++            .unwrap()
++            .quantity
++    );
++
++    let context_identity = "authored caller\0\n雪😀";
++    let context_premises = vec![Formula::Atom {
++        relation: named("urn:authored:label"),
++        args: vec![
++            named("urn:quantity:left"),
++            Term::Literal(RdfLiteral {
++                lexical_form: "context \"label\"\n雪".into(),
++                datatype: Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".into()),
++                language: Some("ar".into()),
++                direction: Some(purrdf::RdfTextDirection::Rtl),
++            }),
++        ],
++    }];
++    let context_classes = BTreeSet::from([
++        "urn:authored:QuantitySubclassZ".to_owned(),
++        "urn:authored:QuantitySubclassA".to_owned(),
++    ]);
++    let mut contextual_quantities = BTreeSet::new();
++    for (label, context) in [
++        ("standalone", EvaluationContext::default()),
++        (
++            "identity-only",
++            EvaluationContext {
++                identity: context_identity.into(),
++                ..EvaluationContext::default()
++            },
++        ),
++        (
++            "premises-only",
++            EvaluationContext {
++                premises: context_premises.clone(),
++                ..EvaluationContext::default()
++            },
++        ),
++        (
++            "classes-only",
++            EvaluationContext {
++                quantity_classes: context_classes.clone(),
++                ..EvaluationContext::default()
++            },
++        ),
++        (
++            "complete-context",
++            EvaluationContext {
++                identity: context_identity.into(),
++                premises: context_premises,
++                quantity_classes: context_classes,
++            },
++        ),
++    ] {
++        assert_eq!(
++            references.next(),
++            Some(format!("MATH_RESULT_CONTEXT_LABEL={label}").as_str())
++        );
++        let prepared =
++            reference_prepare(&mut references, &dataset, "urn:root", &bindings(), &context).expect(
++                "the independently authored identity sample prepares without executing proof",
++            );
++        if label == "standalone" {
++            assert_eq!(prepared.quantity, original.quantity);
++        } else {
++            assert_ne!(prepared.quantity, original.quantity, "{label}");
++        }
++        assert!(
++            contextual_quantities.insert(prepared.quantity),
++            "every selected context has a distinct preparation identity: {label}"
++        );
++    }
++    assert!(
++        references.next().is_none(),
++        "all twelve complete original packets were consumed"
+     );
+ }
+ 

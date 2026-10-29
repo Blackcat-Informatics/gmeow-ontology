@@ -1,0 +1,148 @@
+{
+  "issue": 2039,
+  "pr_number": 2042,
+  "branch": "paudley/2039-preserve-complete-math-result",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2039-preserve-complete-math-result/.stage/preserve-complete-math-result",
+  "observed_at": "2026-10-29T10:05:32.973852+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2039-preserve-complete-math-result/.stage/preserve-complete-math-result/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2039-preserve-complete-math-result/.stage/preserve-complete-math-result/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2039-preserve-complete-math-result/.stage/preserve-complete-math-result/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2039-preserve-complete-math-result/.stage/preserve-complete-math-result/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2039-preserve-complete-math-result/.stage/preserve-complete-math-result/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "e44df284fd4f211b43b4e79caeef320f34e5fc16",
+    "headRefName": "paudley/2039-preserve-complete-math-result",
+    "headRefOid": "ecc2695c3934ad59388bce42a04f9120772e2c1d",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2042,
+    "state": "OPEN",
+    "title": "Preserve native math identities and active financial shape ownership",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2042"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40854441560/job/123381775538",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2042",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40854441560/job/123381775439",
+        "name": "producer-build",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40854441560/job/123381775661",
+        "name": "helpers",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40854441560/job/123381775632",
+        "name": "lint",
+        "state": "QUEUED"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "ecc2695c3934ad59388bce42a04f9120772e2c1d",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "dd12e096a7725d8828dde1c2a286e0b62633e1aa26639f7d30dfe506d09faa36"
+  },
+  "local": {
+    "head": "ecc2695c3934ad59388bce42a04f9120772e2c1d",
+    "branch": "paudley/2039-preserve-complete-math-result",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2042,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2042 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 22,
+      "bytes": 316522,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "e44df284fd4f211b43b4e79caeef320f34e5fc16",
+      "head": "ecc2695c3934ad59388bce42a04f9120772e2c1d",
+      "status": "clean"
+    }
+  }
+}
