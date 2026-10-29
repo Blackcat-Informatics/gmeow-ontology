@@ -8,6 +8,7 @@ use gmeow_logic::reason::refute::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Receipts retain bytes, graph scope and external status without semantic comparison.
 #[test]
 fn shipped_admission_keeps_native_graph_receipt_and_external_status_without_semantic_comparison() {
     // Frozen before replacing the original encoder: complete envelope bytes and

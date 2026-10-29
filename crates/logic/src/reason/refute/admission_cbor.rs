@@ -39,6 +39,7 @@ impl ClassAdmissionObservation {
 }
 
 impl ClassAdmissionSourceWorld {
+    /// Retain nullable graph identity and the complete unsigned assertion census.
     fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
         head::write_text(out, "graph")?;
@@ -49,6 +50,7 @@ impl ClassAdmissionSourceWorld {
 }
 
 impl ClassAdmissionWorld {
+    /// Retain the selected graph, definition order and complete optional refusal.
     fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "graph")?;
@@ -67,6 +69,7 @@ impl ClassAdmissionWorld {
 }
 
 impl RefutationPremise {
+    /// Encode the original row, including graph and nested term identities.
     fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
         head::write_text(out, "subject")?;
@@ -81,6 +84,7 @@ impl RefutationPremise {
 }
 
 impl FragmentBoundary {
+    /// Stream source-supported boundary variants in their retained set order.
     fn write_admission_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
         let mut pending = vec![self];
         while let Some(boundary) = pending.pop() {
@@ -123,6 +127,7 @@ impl FragmentBoundary {
 }
 
 impl RefutationSourceIssue {
+    /// Preserve every selected source-issue tag and its original payload fields.
     fn write_admission_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
         match self {
             Self::MalformedNil => head::write_text(out, "MalformedNil"),

@@ -55,6 +55,7 @@ pub(super) fn grade(
 }
 
 impl GradedAdmission {
+    /// Encode the selected receipt envelope before it is hashed or projected.
     fn write_cbor<W: std::io::Write + ?Sized>(&self, out: &mut W) -> std::io::Result<()> {
         use purrdf_lex::cbor::head;
 
