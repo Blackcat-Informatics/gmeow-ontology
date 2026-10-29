@@ -1,0 +1,7 @@
+Use native JSON for complete canon-admission persistence
+
+Preserve canonical observation bytes and checked authoring admission while
+hydrating observations without live compiler authority. Require named records.
+Keep the independent live evidence hash streaming through its existing owner.
+
+Principles 4 and 7.

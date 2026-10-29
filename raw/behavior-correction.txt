@@ -1,0 +1,148 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-logic-compile -p gmeow-bundle-view -p gmeow-logic --lib -E '(package(gmeow-logic-compile) & (test(canon_admission_roundtrip_preserves_complete_source_without_authorizing_proof) | test(canon_admission_keeps_refusals_and_rejects_incompatible_observations) | test(json_compiler_ast_native_admission_uses_existing_checked_constructors) | test(json_compiler_ast_exact_binary_arity_and_nested_member_refusals))) | (package(gmeow-bundle-view) & test(canon_admission_reader_retains_typed_observation_and_rejects_bad_members)) | (package(gmeow-logic) & (test(native_plan_payloads_preserve_complete_wire_raw_literals_and_pretty_artifacts) | test(native_plan_admission_requires_named_records_counts_and_exact_kebab_tags)))' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling either v1.17.0
+   Compiling num-traits v0.2.19
+   Compiling gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/errors)
+   Compiling getrandom v0.3.4
+   Compiling derive_more-impl v2.1.1
+   Compiling anstyle v1.0.14
+   Compiling clap_lex v1.1.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling either-or-both v0.3.1
+   Compiling proc-macro-error3 v3.1.1
+   Compiling rapidhash v4.5.1
+   Compiling wait-timeout v0.2.1
+   Compiling quick-error v1.2.3
+   Compiling bit-vec v0.8.0
+   Compiling same-file v1.0.6
+   Compiling cast v0.3.0
+   Compiling fnv v1.0.7
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/logic)
+   Compiling unty-next v0.1.2
+   Compiling tinytemplate v1.2.1
+   Compiling is-terminal v0.4.17
+   Compiling oorandom v11.1.5
+   Compiling anes v0.1.6
+   Compiling unarray v0.1.4
+   Compiling memmap2 v0.9.11
+   Compiling gmeow-cost-measure v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/cost-measure)
+   Compiling clap_builder v4.6.2
+   Compiling rand_core v0.9.5
+   Compiling walkdir v2.5.0
+   Compiling rusty-fork v0.3.1
+   Compiling derive_more v2.1.1
+   Compiling gungraun-runner v0.19.4
+   Compiling rand_xorshift v0.4.0
+   Compiling rand v0.9.5
+   Compiling rand_chacha v0.9.0
+   Compiling rayon v1.12.0
+   Compiling itertools v0.10.5
+   Compiling clap v4.6.4
+   Compiling gungraun-macros v0.9.1
+   Compiling bit-set v0.8.0
+   Compiling bincode-next v3.1.1
+   Compiling chrono v0.4.45
+   Compiling proptest v1.11.0
+   Compiling gungraun v0.19.4
+   Compiling criterion-plot v0.5.0
+   Compiling purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling criterion v0.5.1
+   Compiling purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/term-arena)
+   Compiling gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/gts-profile)
+   Compiling gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/ns)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/bundle-import)
+   Compiling gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/math-lift)
+   Compiling gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/logic-compile)
+   Compiling gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/math)
+   Compiling gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/lang-bridge)
+   Compiling gmeow-validate v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/validate)
+   Compiling gmeow-docs-model v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/docs-model)
+   Compiling gmeow-bundle-view v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/2030-use-native-json-for-the-complete-canon/crates/bundle-view)
+    Finished `test` profile [optimized] target(s) in 6m 16s
+────────────
+ Nextest run ID 686e3d7a-bdde-4dc4-a029-1e6d01cc852b with nextest profile: ci
+    Starting 7 tests across 3 binaries (3275 tests skipped)
+        PASS [   0.009s] (1/7) gmeow-bundle-view bundle_blobs::reasoned_gates::tests::canon_admission_reader_retains_typed_observation_and_rejects_bad_members
+  stdout ───
+
+    running 1 test
+    test bundle_blobs::reasoned_gates::tests::canon_admission_reader_retains_typed_observation_and_rejects_bad_members ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.00s
+
+
+        PASS [   0.009s] (2/7) gmeow-logic correspondence_exec::plan_projection::json::tests::native_plan_payloads_preserve_complete_wire_raw_literals_and_pretty_artifacts
+  stdout ───
+
+    running 1 test
+    test correspondence_exec::plan_projection::json::tests::native_plan_payloads_preserve_complete_wire_raw_literals_and_pretty_artifacts ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2187 filtered out; finished in 0.00s
+
+
+        PASS [   0.010s] (3/7) gmeow-logic correspondence_exec::plan_projection::json::tests::native_plan_admission_requires_named_records_counts_and_exact_kebab_tags
+  stdout ───
+
+    running 1 test
+    test correspondence_exec::plan_projection::json::tests::native_plan_admission_requires_named_records_counts_and_exact_kebab_tags ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2187 filtered out; finished in 0.00s
+
+
+        PASS [   0.010s] (4/7) gmeow-logic-compile ir::json::tests::json_compiler_ast_exact_binary_arity_and_nested_member_refusals
+  stdout ───
+
+    running 1 test
+    test ir::json::tests::json_compiler_ast_exact_binary_arity_and_nested_member_refusals ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1069 filtered out; finished in 0.00s
+
+
+        PASS [   0.477s] (5/7) gmeow-logic-compile ir::json::tests::json_compiler_ast_native_admission_uses_existing_checked_constructors
+  stdout ───
+
+    running 1 test
+    test ir::json::tests::json_compiler_ast_native_admission_uses_existing_checked_constructors ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1069 filtered out; finished in 0.47s
+
+
+        PASS [   0.482s] (6/7) gmeow-logic-compile tptp::tests::canon_admission_tests::canon_admission_keeps_refusals_and_rejects_incompatible_observations
+  stdout ───
+
+    running 1 test
+    test tptp::tests::canon_admission_tests::canon_admission_keeps_refusals_and_rejects_incompatible_observations ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1069 filtered out; finished in 0.47s
+
+
+        PASS [   0.483s] (7/7) gmeow-logic-compile tptp::tests::canon_admission_tests::canon_admission_roundtrip_preserves_complete_source_without_authorizing_proof
+  stdout ───
+
+    running 1 test
+    test tptp::tests::canon_admission_tests::canon_admission_roundtrip_preserves_complete_source_without_authorizing_proof ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1069 filtered out; finished in 0.48s
+
+
+────────────
+     Summary [   0.529s] 7 tests run: 7 passed, 3275 skipped

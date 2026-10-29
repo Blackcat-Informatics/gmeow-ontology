@@ -1,0 +1,13 @@
+Original complete canon-admission persistence references
+
+Base: bca0671df53077ad2ec10541acf4a966598d610a. Root reviewed the phase-one changes in the two existing canon-admission controls, added the missing explicit RootSelection test import and verified all production/shared Serde/IR owners, guarded parent test, committed atlas and Cargo.lock remain base-equal. No new test case. Inputs are tiny independently authored RDF; no repository corpus or production asset is constructed.
+
+Original capture passed before production edits after 56.91 seconds compilation and 0.015 second Nextest summary: two selected cases passed, 1,068 excluded. Command: NEXTEST_SUCCESS_OUTPUT=immediate make nextest-synthetic RUST_PREBUILD_WORKSPACE_ARGS='-p gmeow-logic-compile --lib' NEXTEST_FILTER='package(gmeow-logic-compile) & (test(canon_admission_roundtrip_preserves_complete_source_without_authorizing_proof) | test(canon_admission_keeps_refusals_and_rejects_incompatible_observations))'.
+
+Root removed exactly four Nextest stdout framing spaces per line and verified lossless reconstruction. Known labels and separator LFs are framing, outside compact payloads. No JSON reserialization, normalization, redaction or replacement-computed expected output. Complete references:
+
+- canon-publication-v1.json: 6,669 original producer bytes plus one storage LF, 6,670 stored bytes.
+- canon-observation-v1.txt: complete 14,799-byte input and 14,799-byte original canonical output, with labels/separators, 29,636 stored bytes. Root parsed both and verified complete logical equality; all twenty-one rich rows were inspected, including every prior semantic-unit payload, all Term/Formula arms, raw constructor-refused forms, contextual atoms, every preset and raw empty/blank complexity labels.
+- canon-admission-probes-v1.txt: all thirty original label/input/outcome triples, 90 lines and 67,596 bytes. Complete records parse and pass the publication guard. Actual outcomes cover all status tags; ignored private authority; outer/inner unknown fields; missing optional/required fields; strict unsigned schema and index forms/bounds; duplicate maps and fields; and matching-digest scope refusal. Every accepted output omits checked_evidence. Four positional struct forms were accepted originally and canonicalized to named output; these four labels are the explicit intentional native profile tightening.
+
+The index maximum reference is the original 64-bit profile. A 32-bit reader must retain its own usize refusal; no fixture blessing may alter the original bytes. Genuine tuple/literal/collection arrays remain supported. All other captured outcomes and canonical output bytes must remain literal comparisons.
