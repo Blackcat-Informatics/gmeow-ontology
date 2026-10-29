@@ -58,6 +58,7 @@ use purrdf::sparql::{
 use purrdf::{
     RdfDataset, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SparqlResult, TermValue, canonical_relabel,
 };
+use purrdf_lex::json::record::ToJson as _;
 
 const VIEW_PREDICATE: &str = "https://blackcatinformatics.ca/logic/recovery#view";
 const ATOMIC_SEED_SUBJECT: &str =
@@ -149,6 +150,11 @@ pub struct LawCaseFailure {
     pub diagnostic: gmeow_errors::RecordedDiag,
 }
 
+::purrdf_lex::json_record!(impl ToJson for LawCaseFailure {
+    "case" => case,
+    "diagnostic" => diagnostic,
+});
+
 fn record_failures(failures: Vec<(String, gmeow_errors::Diag)>) -> Vec<LawCaseFailure> {
     failures
         .into_iter()
@@ -196,7 +202,7 @@ fn discharge_cases(
         return Err(
             exec_error("selected correspondence law cases could not execute").with_observed(
                 gmeow_errors::Slot::typed(
-                    serde_json::to_string(&failures).map_err(gmeow_errors::Diag::from)?,
+                    purrdf_lex::json::write_compact(&failures.to_json()),
                     "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON",
                 ),
             ),

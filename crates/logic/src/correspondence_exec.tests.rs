@@ -477,6 +477,8 @@ fn failed_law_cases_cannot_be_disguised_by_a_successful_case() {
 
 #[test]
 fn every_unavailable_law_case_survives_the_diagnostic_boundary() {
+    use purrdf_lex::json::record::ToJson as _;
+
     let first = incomplete_law_seed("a-refused", "urn:purrdf:rdfc:first");
     let second = incomplete_law_seed("b-refused", "urn:purrdf:rdfc:second");
     let error = discharge_section_law(RECOVERY_GET, RECOVERY_PUT, &[second, first])
@@ -500,6 +502,14 @@ fn every_unavailable_law_case_survives_the_diagnostic_boundary() {
         failures
             .iter()
             .all(|failure| !failure.diagnostic.root.frames.is_empty())
+    );
+    let original = include_str!("correspondence_exec/fixtures/law-case-failures-v1.json")
+        .strip_suffix('\n')
+        .unwrap();
+    let historical: Vec<LawCaseFailure> = serde_json::from_str(original).unwrap();
+    assert_eq!(
+        purrdf_lex::json::write_compact(&historical.to_json()).as_bytes(),
+        original.as_bytes()
     );
 }
 
