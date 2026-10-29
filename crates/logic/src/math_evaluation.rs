@@ -6,11 +6,13 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::DiagKind as _;
 use gmeow_logic_compile::{
     ir::{Formula, LogicProgram, Term},
     relational_core::NumericOperator,
 };
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfLiteral, TermRef};
+use purrdf_lex::json::{Value, record::ToJson as _};
 use sha2::{Digest, Sha256};
 
 use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
@@ -423,6 +425,7 @@ fn validate_quantity_result(
 /// # Errors
 /// Rejects malformed ASTs, binding ambiguity, unsupported dimensions or values,
 /// division by zero, and nonterminating decimal quotients. It never rounds.
+/// Retains native storage failures when encoding the result identity.
 pub fn prepare(
     dataset: &RdfDataset,
     root: &str,
@@ -449,25 +452,42 @@ pub fn prepare(
             "unused binding: every selected symbol must occur in the root expression",
         ));
     }
-    let identity = if context.identity.is_empty()
+    let mut fields = vec![
+        PROFILE.to_json(),
+        root.to_json(),
+        bindings.to_json(),
+        lowering.premises.to_json(),
+        lowering.calls.to_json(),
+    ];
+    if !(context.identity.is_empty()
         && context.premises.is_empty()
-        && context.quantity_classes.is_empty()
+        && context.quantity_classes.is_empty())
     {
-        serde_json::to_vec(&(PROFILE, root, bindings, &lowering.premises, &lowering.calls))
-            .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
-    } else {
-        serde_json::to_vec(&(
-            PROFILE,
-            root,
-            bindings,
-            &lowering.premises,
-            &lowering.calls,
-            &context.identity,
-            &context.premises,
-            &context.quantity_classes,
-        ))
-        .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
-    };
+        fields.extend([
+            context.identity.to_json(),
+            context.premises.to_json(),
+            context.quantity_classes.to_json(),
+        ]);
+    }
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    let identity = purrdf_lex::json::write_with_memory(
+        &Value::Array(fields),
+        purrdf_lex::json::Format::COMPACT,
+        &mut memory,
+    )
+    .map(String::into_bytes)
+    .map_err(|error| {
+        let kind = crate::error::Result {
+            detail: format!("{PROFILE}: {error}"),
+        };
+        let mut diagnostic =
+            gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(error);
+        if let Some(class) = kind.failure_class() {
+            diagnostic = diagnostic.with_failure_class(class);
+        }
+        diagnostic
+    })?;
     let digest = format!("{:x}", Sha256::digest(identity));
     let quantity = format!("urn:gmeow:math-evaluation:quantity:{digest}");
     if source.keys().any(|(subject, _)| subject == &quantity)

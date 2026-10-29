@@ -8,7 +8,7 @@ use crate::math_evaluation::{self, Evaluation, EvaluationContext};
 use gmeow_logic_compile::ir::{Formula, Term};
 use purrdf::shapes::{
     engine::validate_dataset,
-    shapes::{Constraint, Shapes, Target},
+    shapes::{AnnotatedConstraint, Constraint, Shape, Shapes, Target},
 };
 use purrdf::{RdfDataset, TermValue};
 use std::collections::{BTreeMap, BTreeSet};
@@ -64,6 +64,16 @@ pub struct FinanceOwner<'a> {
     pub identity: &'a str,
 }
 
+// Native roots retain targets while their original bodies and guards stay with
+// their owner. This profile requires the actual declaration to be active.
+fn active_definition(shape: &Shape) -> Option<&Shape> {
+    if shape.deactivated || !shape.deactivated_when.is_empty() {
+        return None;
+    }
+    let definition = shape.owner.as_ref()?.definition(&shape.id)?;
+    (!definition.deactivated && definition.deactivated_when.is_empty()).then_some(definition)
+}
+
 fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
     for class in [
         format!("{M}Quantity"),
@@ -81,8 +91,7 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
         format!("{G}FinancialReturnRatio"),
     ] {
         if !shapes.node_shapes.iter().any(|shape| {
-            !shape.deactivated
-                && shape.deactivated_when.is_empty()
+            active_definition(shape).is_some()
                 && shape
                     .targets
                     .iter()
@@ -96,10 +105,27 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
     }
     for identity in PROCEDURAL_PRODUCTS {
         if !shapes.node_shapes.iter().any(|shape| {
-            matches!(&shape.id, purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
-                && !shape.deactivated && shape.deactivated_when.is_empty()
-                && !shape.targets.is_empty()
-                && shape.constraints.iter().any(|constraint| matches!(constraint, Constraint::Sparql { .. }))
+            if !matches!(&shape.id, purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
+                || shape.targets.is_empty()
+            {
+                return false;
+            }
+            let Some(definition) = active_definition(shape) else {
+                return false;
+            };
+            let mut has_sparql = false;
+            for (index, constraint) in definition.constraints.iter().enumerate() {
+                if matches!(constraint, Constraint::Sparql { .. }) {
+                    has_sparql = true;
+                    if definition.constraint_annotations.iter().any(|annotation| {
+                        annotation.constraint == AnnotatedConstraint::Constraint(index)
+                            && !annotation.deactivated_when.is_empty()
+                    }) {
+                        return false;
+                    }
+                }
+            }
+            has_sparql
         }) {
             return Err(crate::error::profile_result(PROFILE, format!("authenticated owner lacks active required procedural product {identity}")));
         }

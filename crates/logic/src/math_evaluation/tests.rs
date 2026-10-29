@@ -91,6 +91,10 @@ fn math_evaluation_executes_four_operations_with_native_source_proofs() {
 fn math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata() {
     let text = source("Addition", "1", "2");
     let original = run(&text).unwrap();
+    assert_eq!(
+        original.quantity,
+        "urn:gmeow:math-evaluation:quantity:f6c1a63288008cbfe41d592b6708b251efb159a71fa7a45613fdf45254174680"
+    );
     assert_eq!(original.quantity, run(&text).unwrap().quantity);
     // Statement order cannot alter the selected operation identity.
     let reordered = text.replace(
@@ -98,20 +102,33 @@ fn math_evaluation_identity_retains_bindings_ast_values_and_literal_metadata() {
         "math:argumentSlot <urn:slot1>, <urn:slot0>",
     );
     assert_eq!(original.quantity, run(&reordered).unwrap().quantity);
-    for changed in [
-        source("Multiplication", "1", "2"),
-        source("Addition", "1.0", "2"),
-        source("Addition", "2", "2"),
+    for (changed, expected) in [
+        (
+            source("Multiplication", "1", "2"),
+            "urn:gmeow:math-evaluation:quantity:5071ffd974f5ec9c96e4fb1fa9180213a2d523b5169853202c30004ae9fa8c82",
+        ),
+        (
+            source("Addition", "1.0", "2"),
+            "urn:gmeow:math-evaluation:quantity:5f5483c973cdbdc92913ea68002390df7d7ea23e861f035d01f464aaa9981dfe",
+        ),
+        (
+            source("Addition", "2", "2"),
+            "urn:gmeow:math-evaluation:quantity:2bfaeeaa2d3860845a6c78152312a3fcc2f45a0c4ebaa7e2349ed8304dff9fbe",
+        ),
     ] {
-        assert_ne!(original.quantity, run(&changed).unwrap().quantity);
+        let evaluation = run(&changed).unwrap();
+        assert_ne!(original.quantity, evaluation.quantity);
+        assert_eq!(evaluation.quantity, expected);
     }
     let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
     let mut swapped = bindings();
     swapped.insert("urn:symbol:left".into(), "urn:quantity:right".into());
     swapped.insert("urn:symbol:right".into(), "urn:quantity:left".into());
-    assert_ne!(
-        original.quantity,
-        evaluate(&dataset, "urn:root", &swapped).unwrap().quantity
+    let evaluation = evaluate(&dataset, "urn:root", &swapped).unwrap();
+    assert_ne!(original.quantity, evaluation.quantity);
+    assert_eq!(
+        evaluation.quantity,
+        "urn:gmeow:math-evaluation:quantity:962f550b011a54de208e210e29e8e21344cfe136ed1504c8798a7634f7d2df8e"
     );
 }
 
