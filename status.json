@@ -1,0 +1,113 @@
+{
+  "issue": 1712,
+  "pr_number": 2041,
+  "branch": "paudley/1712-logic-mappings-salvage-the",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1712-logic-mappings-salvage-the/.stage/logic-mappings-salvage-the",
+  "observed_at": "2026-10-29T09:41:36.250181+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1712-logic-mappings-salvage-the/.stage/logic-mappings-salvage-the/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1712-logic-mappings-salvage-the/.stage/logic-mappings-salvage-the/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1712-logic-mappings-salvage-the/.stage/logic-mappings-salvage-the/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1712-logic-mappings-salvage-the/.stage/logic-mappings-salvage-the/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1712-logic-mappings-salvage-the/.stage/logic-mappings-salvage-the/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "6caed6c937097a71665ed7b9ffc5fd5dc2cc1888",
+    "headRefName": "paudley/1712-logic-mappings-salvage-the",
+    "headRefOid": "3c553211fc42785425578037e230dbf66882e9f0",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2041,
+    "state": "OPEN",
+    "title": "Fail mapping feedback when native soundness cannot run",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2041"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40849177235/job/123364075408",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40849177235/job/123364075572",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40849177235/job/123364075733",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40849177235/job/123364075696",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "3c553211fc42785425578037e230dbf66882e9f0",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "8dddd9798a9eea23a89763d871d3b96154363d40a9a71727ac4e96616b24a855"
+  },
+  "local": {
+    "head": "3c553211fc42785425578037e230dbf66882e9f0",
+    "branch": "paudley/1712-logic-mappings-salvage-the",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2041,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2041 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
