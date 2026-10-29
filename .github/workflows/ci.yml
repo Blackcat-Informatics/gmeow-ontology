@@ -61,7 +61,7 @@ jobs:
           toolchain: nightly-2026-09-05
 
       - name: Install the pinned nextest identity tool for build evidence
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -373,7 +373,7 @@ jobs:
       # `make lint` runs scripts/lint-issue-refs.sh, which hard-requires ripgrep;
       # it is not present on the runner image by default.
       - name: Install ripgrep
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: ripgrep
 
@@ -406,7 +406,7 @@ jobs:
           cache-targets: false
 
       - name: Install cargo-nextest (pinned build inventory semantics)
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -416,7 +416,7 @@ jobs:
       # before the build rather than letting an absent tool masquerade as a Rust
       # compilation failure.
       - name: Install ripgrep
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: ripgrep
 
@@ -734,7 +734,7 @@ jobs:
       # so a miss always recomputes the complete requested build rather than failing
       # on an absent Cargo subcommand.
       - name: Install cargo-nextest (pinned archive format and partition semantics)
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -742,7 +742,7 @@ jobs:
       # corpus-purity prerequisite requires the same explicit scanner tool as the
       # primary prebuild job.
       - name: Install ripgrep
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: ripgrep
 
@@ -960,7 +960,7 @@ jobs:
           path: .cache/gmeow-bundle-import
 
       - name: Install cargo-nextest (pinned archive format and partition semantics)
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -976,7 +976,7 @@ jobs:
       # the exit code rather than on what it is asserting. The test runs in the nextest
       # shards, so the tool has to be here too; a gate that cannot run is not a gate.
       - name: Install ripgrep
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: ripgrep
 
@@ -1106,7 +1106,7 @@ jobs:
           path: .cache/gmeow-bundle-import
 
       - name: Install cargo-nextest (pinned archive format and profile semantics)
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -1607,7 +1607,7 @@ jobs:
       # target invokes cargo-nextest. Provision the runner dependency explicitly;
       # the Rust matrix installs it in a different job and jobs share no tools.
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: cargo-nextest
 
@@ -1651,7 +1651,7 @@ jobs:
       # for byte, or it refuses to generate the JS bindings.
       - name: Install wasm-bindgen-cli (pinned to the crate version)
         if: ${{ matrix.task == 'wasm-parity' }}
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: wasm-bindgen-cli@0.2.129
 
