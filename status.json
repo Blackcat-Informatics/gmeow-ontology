@@ -1,0 +1,118 @@
+{
+  "issue": 2059,
+  "pr_number": 2060,
+  "branch": "paudley/2059-preserve-refutation-domain-identity",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity",
+  "observed_at": "2026-10-29T18:22:30.312519+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "7d86c24a789758da8f663b16eb6bb771759444ef",
+    "headRefName": "paudley/2059-preserve-refutation-domain-identity",
+    "headRefOid": "21197ca1b99f9e293dbdedaccf52730646495f6e",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2060,
+    "state": "OPEN",
+    "title": "Preserve refutation domain identity with native JSON",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2060"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40929851409/job/123645066253",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2060",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40929851409/job/123645065902",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40929851409/job/123645066226",
+        "name": "producer-build",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40929851409/job/123645066388",
+        "name": "helpers",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2060",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "21197ca1b99f9e293dbdedaccf52730646495f6e",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "b52339cae771d4bd50f32572b1cd43b951ae1b30815c87f1f7e0a2e1619948b4"
+  },
+  "local": {
+    "head": "21197ca1b99f9e293dbdedaccf52730646495f6e",
+    "branch": "paudley/2059-preserve-refutation-domain-identity",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2060,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2060 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

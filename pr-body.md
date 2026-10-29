@@ -1,0 +1,7 @@
+The complete entailment refutation-domain identity encoder now uses native PurRDF JSON for its authority, profile and world tuple. Compact bytes, tuple order and the BLAKE3 selection commitment are preserved; selected-world construction, source admission and inference remain unchanged. Native storage errors retain the Reason category and their original typed cause. Principles 4 and 7.
+
+The original production encoder was extracted mechanically before capture. Its complete 115-byte preimage and the actual execution's selection commitment are pinned literally in the existing ownership control, alongside all original world, authority, admission and inference assertions. The existing public positive-entailment control is also retained.
+
+Original capture, formatting/prose and independent source/reference reviews passed. Final post-correction consumer diagnostics passed for logic, pipeline, validation and developer CLI, all targets with warnings denied. Both existing native controls passed (4,497 skipped), preserving the full original bytes and actual selected commitment. Corrected helpers and static recipe passed without policy/debt changes; normal signed commit/push hooks passed. Broader CI is explicitly waived. No producer/corpus/sync/full gate ran; authenticated corpus, installed/browser/release and performance acceptance remain unverified. Parent #1776 stays open.
+
+Closes #2059.

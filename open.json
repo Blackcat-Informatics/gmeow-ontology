@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2059,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity",
+  "branch": "paudley/2059-preserve-refutation-domain-identity",
+  "slug": "preserve-refutation-domain-identity",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "7d86c24a789758da8f663b16eb6bb771759444ef",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity",
+    "branch:paudley/2059-preserve-refutation-domain-identity",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2059-preserve-refutation-domain-identity/.stage/preserve-refutation-domain-identity/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-29T11:30:31-0600"
+}
