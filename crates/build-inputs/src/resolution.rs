@@ -8,10 +8,11 @@
 //! selects it. Only the explicit controller resolves Cargo. These receipts let
 //! read-only consumers reject changes without running Cargo or guessing edges.
 
+mod json;
+
 use crate::{
     ProductionSelection, Result, cargo_policy_files, checked_path, digest, fail, relative,
 };
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
@@ -20,8 +21,7 @@ const RESOLUTION_SCHEMA: u32 = 1;
 /// Raw resolution inputs observed before asking Cargo for the selected graph.
 /// These bytes intentionally include development declarations, but NEVER enter
 /// executable, action, or portable native semantic identities.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CargoResolutionInputs {
     schema: u32,
     /// Every local manifest returned by Cargo metadata, including unselected
@@ -231,8 +231,7 @@ fn resolution_environment(
 
 /// Required freshness witness beside the executable recipe. It can be refreshed
 /// after a development-only Cargo edit while every semantic identity stays equal.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CargoResolutionEvidence {
     schema: u32,
     selection_sha256: String,
@@ -267,9 +266,10 @@ impl CargoResolutionEvidence {
 }
 
 fn selection_digest(selection: &ProductionSelection) -> Result<String> {
-    Ok(digest(
-        &serde_json::to_vec(&("cargo-selected-resolution-v1", selection)).map_err(fail)?,
-    ))
+    Ok(digest(&purrdf_lex::json::record::to_vec(&(
+        "cargo-selected-resolution-v1",
+        selection,
+    ))))
 }
 
 fn workspace_patterns(workspace: &Path) -> Result<BTreeMap<String, Vec<String>>> {

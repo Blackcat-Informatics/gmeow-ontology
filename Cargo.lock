@@ -1322,6 +1322,7 @@ name = "gmeow-action-cache"
 version = "0.3.0"
 dependencies = [
  "gmeow-build-inputs",
+ "gmeow-errors",
  "purrdf-hash",
  "purrdf-lex",
  "serde",
@@ -1372,7 +1373,9 @@ version = "0.3.0"
 dependencies = [
  "cargo-config2",
  "glob",
+ "gmeow-errors",
  "proc-macro2",
+ "purrdf-lex",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -5952,6 +5955,7 @@ dependencies = [
  "gmeow-action-cache",
  "gmeow-build-inputs",
  "gmeow-errors",
+ "purrdf-lex",
  "serde_json",
  "tempfile",
 ]

@@ -52,8 +52,29 @@ fn recipe(root: &Path) -> ExecutableRecipe {
         rustc: "compiler".into(),
         cargo: "cargo".into(),
         compiler_environment: BTreeMap::new(),
-        units: Vec::new(),
-        roots: Vec::new(),
+        units: vec![
+            CompilationUnit {
+                package: "path+file://<workspace>/crate#fixture@1".into(),
+                target: "fixture".into(),
+                target_kinds: vec!["lib".into()],
+                mode: "build".into(),
+                platform: None,
+                features: vec!["selected feature é中😀".into()],
+                profile: json::record::read_document(r#"{"codegen_units":1,"debug_assertions":true,"debuginfo":0,"incremental":false,"lto":"fat","observations":[null,18446744073709551615,"escape\n\"\\ é中😀"],"opt_level":"3","overflow_checks":true}"#.as_bytes()).unwrap(),
+                dependencies: vec![],
+            },
+            CompilationUnit {
+                package: "path+file://<workspace>/crate#fixture@1".into(),
+                target: "fixture-bin".into(),
+                target_kinds: vec!["bin".into()],
+                mode: "build".into(),
+                platform: Some("x86_64-unknown-linux-gnu".into()),
+                features: vec![],
+                profile: json::record::read_document(br#"{"opt_level":"3"}"#).unwrap(),
+                dependencies: vec![0],
+            },
+        ],
+        roots: vec![1],
     }
 }
 
@@ -77,6 +98,75 @@ fn executable_and_recipe_substitution_are_rejected() {
         executable_sha256: sha256_file(&binary).expect("digest"),
     };
     let digest = receipt.recipe.digest().expect("recipe");
+    let references = include_str!("fixtures/executable-json-v1.txt");
+    assert_eq!(references.lines().count(), 5);
+    let original = |name: &str| {
+        let row = references
+            .lines()
+            .find(|row| row.starts_with(&format!("{name}|")))
+            .unwrap();
+        let mut fields = row.splitn(3, '|');
+        assert_eq!(fields.next().unwrap(), name);
+        (
+            fields.next().unwrap(),
+            purrdf_hash::hex::decode(fields.next().unwrap()).unwrap(),
+        )
+    };
+    let (_, original_receipt) = original("receipt");
+    let historical: ExecutableReceipt = json::record::from_slice(&original_receipt).unwrap();
+    let historical_path = scratch.path().join("historical.receipt.json");
+    historical.write(&historical_path).unwrap();
+    assert_eq!(std::fs::read(&historical_path).unwrap(), original_receipt);
+    assert_eq!(
+        gmeow_build_inputs::digest(&original_receipt),
+        original("receipt").0
+    );
+    historical.verify(&binary, original("recipe").0).unwrap();
+    assert_eq!(historical.recipe.digest().unwrap(), original("recipe").0);
+    assert_eq!(
+        historical.recipe.compilation_digest().unwrap(),
+        original("compilation").0
+    );
+    assert_eq!(
+        historical.recipe.source_inventory.digest().unwrap(),
+        original("inventory").0
+    );
+    for (name, bytes) in [
+        (
+            "selection",
+            json::record::to_vec(&historical.recipe.source_inventory.selection),
+        ),
+        (
+            "inventory",
+            json::record::to_vec(&historical.recipe.source_inventory),
+        ),
+        ("recipe", json::record::to_vec(&historical.recipe)),
+        (
+            "compilation",
+            json::record::to_vec(&historical.recipe.compilation_json()),
+        ),
+    ] {
+        assert_eq!(bytes, original(name).1, "{name}");
+    }
+    assert_eq!(
+        gmeow_build_inputs::digest(&json::record::to_vec(
+            &historical.recipe.source_inventory.selection
+        )),
+        original("selection").0,
+    );
+    assert_eq!(
+        ExecutableReceipt::read(&historical_path).unwrap(),
+        historical
+    );
+    let invalid_path = scratch.path().join("invalid.receipt.json");
+    for bytes in [
+        br#"{"schema":2,"schema":2,"recipe":{"schema":2}}"#.as_slice(),
+        br#"{"schema":-0,"recipe":{"schema":2}}"#.as_slice(),
+        br#"{"schema":2,"recipe":{"schema":2,"schema":2}}"#.as_slice(),
+    ] {
+        std::fs::write(&invalid_path, bytes).unwrap();
+        assert!(ExecutableReceipt::read_versioned(&invalid_path).is_err());
+    }
     receipt.verify(&binary, &digest).expect("authentic");
     let mut changed = receipt.clone();
     changed.recipe.profile = "test".into();
@@ -107,11 +197,11 @@ fn runtime_source_admission_is_portable_across_cargo_environments() {
         recipe,
         executable_sha256: sha256_file(&binary).expect("digest"),
     };
-    let mut transferred = serde_json::to_value(receipt).expect("serialize receipt");
+    let mut transferred = receipt.to_json();
     transferred["resolution"]["inputs"]["environment"]["RUSTUP_TOOLCHAIN"] =
-        serde_json::Value::String("0".repeat(64));
+        json::Value::String("0".repeat(64));
     let transferred: ExecutableReceipt =
-        serde_json::from_value(transferred).expect("deserialize transferred receipt");
+        ExecutableReceipt::from_json(&transferred).expect("deserialize transferred receipt");
 
     transferred
         .verify_current_sources(scratch.path())

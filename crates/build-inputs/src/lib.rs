@@ -26,7 +26,8 @@ pub use embedded::VerifyQueries;
 pub use native::{NativeSources, native_extraction_paths, native_substrate_source};
 pub use resolution::{CargoResolutionEvidence, CargoResolutionInputs};
 
-use serde::{Deserialize, Serialize};
+mod json;
+
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
@@ -59,7 +60,7 @@ pub fn digest(bytes: &[u8]) -> String {
 }
 
 /// Why a complete physical file belongs to this selected compilation.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum InputRole {
     Rust,
     Embedded,
@@ -69,8 +70,7 @@ pub enum InputRole {
 }
 
 /// An exact selected file and all its semantic owners.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileInput {
     pub sha256: String,
     pub owners: BTreeSet<String>,
@@ -79,8 +79,7 @@ pub struct FileInput {
 
 /// Deterministic inputs to one selected operation. Cargo documents are parsed
 /// structurally; Rust and embedded content retain their complete original bytes.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct InputInventory {
     pub schema: u32,
     pub selection: ProductionSelection,
@@ -142,7 +141,7 @@ impl InputInventory {
     pub fn digest(&self) -> Result<String> {
         let mut hash = Sha256::new();
         hash.update(b"gmeow-production-input-inventory-v1\0");
-        hash.update(serde_json::to_vec(self).map_err(fail)?);
+        hash.update(purrdf_lex::json::record::to_vec(self));
         Ok(format!("{:x}", hash.finalize()))
     }
     /// Re-read the exact selected source contracts without invoking Cargo or building.

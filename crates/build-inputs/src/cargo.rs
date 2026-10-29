@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod json;
+
 use crate::{CfgContext, InputInventory, Result, SCHEMA, checked_path, digest, fail};
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 /// Cargo's actual resolved target, not an inferred lib.rs/main.rs convention.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UnitSelection {
     pub package: String,
     pub manifest: Option<String>,
@@ -24,8 +24,7 @@ pub struct UnitSelection {
 }
 /// Immutable build inputs selected before code generation. External package IDs
 /// are bound to their exact lock records; local roots are traversed semantically.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ProductionSelection {
     pub schema: u32,
     pub units: Vec<UnitSelection>,
