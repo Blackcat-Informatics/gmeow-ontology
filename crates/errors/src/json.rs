@@ -65,6 +65,20 @@ pub fn read_statement_fields<S: FromJson, O: FromJson>(
     ))
 }
 
+/// Read one fixed-width commitment as strictly unsigned byte tokens.
+/// The containing record supplies its field pointer; native array admission
+/// retains the index of any malformed or out-of-range byte.
+///
+/// # Errors
+/// Refuses nonarrays, non-byte tokens and a commitment of any other width.
+pub fn read_byte_array<const N: usize>(value: &Value) -> Result<[u8; N], DecodeError> {
+    purrdf_lex::json::record::items_with(value, |value| {
+        read_unsigned::<u8>(value, "an unsigned byte")
+    })?
+    .try_into()
+    .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} unsigned bytes")))
+}
+
 /// Read one fixed-width row of verbatim strings using native element admission.
 ///
 /// # Errors

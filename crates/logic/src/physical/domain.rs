@@ -11,6 +11,8 @@ use super::chase::{ExistentialRule, WitnessPolicy};
 use super::store::metadata_identity;
 use crate::rule_ir::{EvalAtom, EvalTerm};
 
+mod json;
+
 /// Original native graph identity, before the executor's resource-term projection.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub enum LogicalGraph {
