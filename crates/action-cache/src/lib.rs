@@ -12,6 +12,8 @@
 pub mod executable;
 pub mod selection;
 
+mod context_json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions, TryLockError};
 use std::io::{Read, Write};
@@ -162,8 +164,17 @@ impl ActionContext {
 
     #[must_use]
     pub fn key(&self) -> ActionKey {
-        let bytes = serde_json::to_vec(self).expect("closed ActionContext JSON");
-        ActionKey(content_digest(&[b"gmeow:action-key:v1", &bytes]))
+        use purrdf_lex::json::{self, record::ToJson as _};
+
+        let value = self.to_json();
+        let mut resident = purrdf_lex::allocation::Resident;
+        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+        let encoded = json::write_with_memory(&value, json::Format::COMPACT, &mut memory)
+            .expect("closed native ActionContext JSON");
+        ActionKey(content_digest(&[
+            b"gmeow:action-key:v1",
+            encoded.as_bytes(),
+        ]))
     }
 }
 
