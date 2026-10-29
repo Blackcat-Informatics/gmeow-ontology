@@ -23,4 +23,5 @@ sha2.workspace = true
 tempfile.workspace = true
 
 [dev-dependencies]
+purrdf-hash.workspace = true
 tempfile.workspace = true

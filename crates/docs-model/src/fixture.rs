@@ -30,6 +30,8 @@
 //! version bump. Publication, integrity, quota GC, and cross-process build election
 //! come from the workspace's single `gmeow-action-cache` authority.
 
+mod action_payload_json;
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -47,7 +49,7 @@ use crate::model::{COMPETENCY_QUERY_ROOTS, DocsError, DocsModel};
 
 const MODEL_CODEC: &str = "docs-model-json-2";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct DocsActionPayload {
     schema_version: u32,
     artifact: String,

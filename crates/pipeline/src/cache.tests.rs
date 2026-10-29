@@ -284,16 +284,19 @@ fn rewrite_test_receipt(
     mutate: impl FnOnce(&mut ActionReceipt<StageReceipt>),
 ) {
     let path = cache.receipt_path(action_key);
-    let envelope: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    let mut receipt: ActionReceipt<StageReceipt> =
-        serde_json::from_value(envelope["receipt"].clone()).unwrap();
+    let envelope = purrdf_lex::json::record::read_document(&std::fs::read(&path).unwrap()).unwrap();
+    let mut receipt: ActionReceipt<StageReceipt> = purrdf_lex::json::record::FromJson::from_json(
+        envelope.as_object().unwrap().get("receipt").unwrap(),
+    )
+    .unwrap();
     mutate(&mut receipt);
-    let envelope = serde_json::json!({
-        "receipt_digest": receipt.digest(),
-        "receipt": receipt,
-    });
-    std::fs::write(path, serde_json::to_vec_pretty(&envelope).unwrap()).unwrap();
+    let envelope = purrdf_lex::json::Object::new()
+        .with("receipt_digest", receipt.digest())
+        .with(
+            "receipt",
+            purrdf_lex::json::record::ToJson::to_json(&receipt),
+        );
+    std::fs::write(path, purrdf_lex::json::record::to_vec(&envelope)).unwrap();
 }
 
 fn write_test_receipt(cache: &PipelineCache, receipt: StageReceipt) {

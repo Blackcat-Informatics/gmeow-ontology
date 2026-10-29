@@ -67,7 +67,11 @@ pub fn produce(root: &Path) -> gmeow_errors::Result<SelectedAction> {
     let hit = store
         .coordinate::<_, gmeow_errors::Diag, _, _>(
             &context.key(),
-            || store.get::<()>(&context).map_err(fail),
+            || {
+                store
+                    .get::<gmeow_action_cache::EmptyPayload>(&context)
+                    .map_err(fail)
+            },
             || {
                 // Divergence consistency is serial: hard cases must not multiply the
                 // live native memory footprint. Native failures stay errors, never
@@ -99,7 +103,12 @@ pub fn produce(root: &Path) -> gmeow_errors::Result<SelectedAction> {
                 };
                 let bytes = serde_json::to_vec(&observations)?;
                 let receipt = store
-                    .publish(&context, bytes_digest(&bytes), (), &bytes)
+                    .publish(
+                        &context,
+                        bytes_digest(&bytes),
+                        gmeow_action_cache::EmptyPayload,
+                        &bytes,
+                    )
                     .map_err(fail)?;
                 Ok(gmeow_action_cache::VerifiedEntry { receipt, bytes })
             },
@@ -136,7 +145,7 @@ fn admit(root: &Path, selected: &SelectedAction) -> gmeow_errors::Result<Observa
     )
     .map_err(fail)?;
     let hit = store
-        .get::<()>(&selected.context)
+        .get::<gmeow_action_cache::EmptyPayload>(&selected.context)
         .map_err(fail)?
         .ok_or_else(|| fail("selected exhaustive conformance observation is absent"))?;
     selected.verify(&hit.receipt).map_err(fail)?;

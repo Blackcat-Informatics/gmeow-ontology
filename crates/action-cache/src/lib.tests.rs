@@ -3,11 +3,40 @@
 
 use super::*;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct StructuredPayload {
     schema_version: u32,
     artifact: String,
     input_digest: String,
+}
+
+purrdf_lex::json_record! { impl ToJson for StructuredPayload {
+    "schema_version" => schema_version,
+    "artifact" => artifact,
+    "input_digest" => input_digest
+}}
+purrdf_lex::json_record! { impl FromJson for StructuredPayload as "struct StructuredPayload" {
+    "schema_version" => schema_version: required,
+    "artifact" => artifact: required,
+    "input_digest" => input_digest: required
+}}
+
+fn assert_original_receipt<P: ToJson>(name: &str, cache: &ActionStore, receipt: &ActionReceipt<P>) {
+    let references = include_str!("fixtures/action-receipt-json-v1.txt");
+    assert_eq!(references.lines().count(), 2);
+    let row = references
+        .lines()
+        .find(|row| row.split('|').next() == Some(name))
+        .unwrap();
+    let mut fields = row.splitn(3, '|');
+    assert_eq!(fields.next().unwrap(), name);
+    assert_eq!(receipt.digest(), fields.next().unwrap());
+    let hex = fields.next().unwrap();
+    let expected = purrdf_hash::hex::decode(hex).unwrap();
+    assert_eq!(
+        fs::read(cache.receipt_path(&receipt.action_key)).unwrap(),
+        expected
+    );
 }
 
 fn context(action: &str, inputs: Vec<ActionInput>) -> ActionContext {
@@ -98,6 +127,7 @@ fn action_key_sorts_inputs_and_binds_dimensions() {
         let encoded =
             json::write_with_memory(&value.to_json(), json::Format::COMPACT, &mut memory).unwrap();
         assert_eq!(encoded, original, "complete {name} action context");
+        assert_eq!(ActionContext::from_json(&value.to_json()).unwrap(), value);
         assert_eq!(value.key().as_str(), key, "actual {name} action key");
     }
     let one = ActionInput::Raw {
@@ -129,6 +159,7 @@ fn cold_publish_and_warm_read_share_one_receipt() {
     let context = context("round-trip", vec![]);
     let bytes = vec![0xa5_u8; 2 * 1024 * 1024 + 17];
     let receipt = cache.publish(&context, "semantic", 7_u32, &bytes).unwrap();
+    assert_original_receipt("scalar", &cache, &receipt);
     assert_eq!(cache.inspect::<u32>(&context).unwrap().unwrap(), receipt);
     let hit = cache.get::<u32>(&context).unwrap().unwrap();
     assert_eq!(hit.receipt, receipt);
@@ -240,6 +271,7 @@ fn structured_payload_receipt_is_canonical_across_generic_gc_reads() {
         .expect("structured receipt remains valid after publish-time GC");
     assert_eq!(hit.receipt, receipt);
     assert_eq!(hit.receipt.payload, payload);
+    assert_original_receipt("structured", &cache, &receipt);
 }
 
 #[test]
@@ -287,6 +319,65 @@ fn malformed_receipt_missing_blob_and_wrong_root_hard_fail() {
     )
     .unwrap();
     assert!(wrong.get::<u32>(&target).is_err());
+
+    let named_root = tempfile::tempdir().unwrap();
+    let named = store(named_root.path());
+    let selected = context("named-receipt", vec![]);
+    named
+        .publish(&selected, "semantic", 1_u32, b"payload")
+        .unwrap();
+    let path = named.receipt_path(&selected.key());
+    let original = fs::read_to_string(&path).unwrap();
+    for (wire, reason) in [
+        (
+            original.replacen("{", "{\"unexpected\": null,", 1),
+            "unknown field",
+        ),
+        (
+            original.replace("\"payload\": 1", "\"payload\": 1, \"payload\": 1"),
+            "duplicate field",
+        ),
+        (
+            original.replacen("\"schema_version\": 1", "\"schema_version\": -0", 1),
+            "unsigned 32-bit schema version",
+        ),
+        (
+            original.replace("\"bytes\": 7", "\"bytes\": -0"),
+            "unsigned byte count",
+        ),
+    ] {
+        assert_ne!(wire, original);
+        fs::write(&path, wire).unwrap();
+        let error = named.get::<u32>(&selected).unwrap_err().to_string();
+        assert!(error.contains(reason), "{error}");
+    }
+
+    fs::write(&path, original).unwrap();
+    let selected = context("null-payload", vec![]);
+    named
+        .publish(&selected, "semantic", EmptyPayload, b"payload")
+        .unwrap();
+    assert_eq!(
+        named
+            .get::<EmptyPayload>(&selected)
+            .unwrap()
+            .unwrap()
+            .receipt
+            .payload,
+        EmptyPayload
+    );
+    let path = named.receipt_path(&selected.key());
+    let original = fs::read_to_string(&path).unwrap();
+    let wire = original.replace("\"payload\": null", "\"payload\": false");
+    assert_ne!(wire, original);
+    fs::write(path, wire).unwrap();
+    assert!(
+        named
+            .get::<EmptyPayload>(&selected)
+            .unwrap_err()
+            .to_string()
+            .contains("null")
+    );
 }
 
 #[test]

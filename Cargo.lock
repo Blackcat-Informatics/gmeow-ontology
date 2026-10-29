@@ -1322,6 +1322,7 @@ name = "gmeow-action-cache"
 version = "0.3.0"
 dependencies = [
  "gmeow-build-inputs",
+ "purrdf-hash",
  "purrdf-lex",
  "serde",
  "serde_json",

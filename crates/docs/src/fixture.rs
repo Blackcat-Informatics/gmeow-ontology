@@ -24,6 +24,8 @@
 //! disk cache. [`load_site`], [`load_site_lang`], and [`load_book`] are strict consumers:
 //! a missing receipt hard-fails and can never trigger a render or model rebuild.
 
+mod action_payload_json;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -36,7 +38,7 @@ use purrdf_lex::json::{
     self, Object, Value,
     record::{DecodeError, FromJson, Record, ToJson},
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::mdbook::render_book;
 use crate::render::{Site, render_site_lang};
@@ -55,7 +57,7 @@ use gmeow_docs_model::i18n::ENGLISH;
 const SITE_CODEC: &str = "docs-site-json-2";
 const BOOK_CODEC: &str = "docs-book-json-2";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct RenderActionPayload {
     schema_version: u32,
     artifact: String,
