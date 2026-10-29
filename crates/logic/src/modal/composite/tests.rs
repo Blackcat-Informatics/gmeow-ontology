@@ -481,6 +481,110 @@ fn shared_dag_work_is_charged_once_and_uncommitted_parent_proofs_are_removed() {
     assert!(cut.inferences[0].rule.ends_with("atomic-support"));
     assert_eq!(cut.anchors.len(), 1);
     assert_ne!(cut.anchors[0].instruction, program.root.0);
+
+    let first = NodeId(7);
+    let second = NodeId(3);
+    let literal = Term::rdf_literal(purrdf::RdfLiteral {
+        lexical_form: "مرحباً \"text\"\\line\n".into(),
+        datatype: Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString".into()),
+        language: Some("ar".into()),
+        direction: Some(purrdf::RdfTextDirection::Rtl),
+    })
+    .unwrap();
+    let atlas = [
+        (
+            "at-context",
+            Instruction::AtContext {
+                context: "urn:context:中".into(),
+                body: first,
+            },
+        ),
+        (
+            "atom-ground",
+            Instruction::Atom {
+                relation: "urn:relation:ق".into(),
+                subject: AtomTerm::Ground(Term::iri("urn:subject:中").unwrap()),
+                object: AtomTerm::Ground(literal),
+            },
+        ),
+        (
+            "atom-context",
+            Instruction::Atom {
+                relation: "urn:relation:context".into(),
+                subject: AtomTerm::Context,
+                object: AtomTerm::Context,
+            },
+        ),
+        ("not", Instruction::Not(first)),
+        ("and", Instruction::And(vec![first, second, first])),
+        ("or", Instruction::Or(vec![second, first])),
+        ("implies", Instruction::Implies(first, second)),
+        ("iff", Instruction::Iff(second, first)),
+        (
+            "modal-every",
+            Instruction::Modal {
+                quantifier: Quantifier::Every,
+                axis: Accessibility(0),
+                body: first,
+            },
+        ),
+        (
+            "modal-some",
+            Instruction::Modal {
+                quantifier: Quantifier::Some,
+                axis: Accessibility(1),
+                body: second,
+            },
+        ),
+        (
+            "temporal-next",
+            Instruction::Temporal {
+                operator: TemporalOperator::Next,
+                body: first,
+            },
+        ),
+        (
+            "temporal-eventually",
+            Instruction::Temporal {
+                operator: TemporalOperator::Eventually,
+                body: second,
+            },
+        ),
+        (
+            "temporal-globally",
+            Instruction::Temporal {
+                operator: TemporalOperator::Globally,
+                body: first,
+            },
+        ),
+        (
+            "until",
+            Instruction::Until {
+                left: first,
+                right: second,
+            },
+        ),
+    ];
+    let mut observed: Vec<[String; 2]> = atlas
+        .into_iter()
+        .map(|(label, instruction)| [label.to_owned(), instruction_key(&instruction)])
+        .collect();
+    observed.extend(
+        program
+            .instructions
+            .iter()
+            .enumerate()
+            .map(|(index, instruction)| [format!("lowered:{index}"), instruction_key(instruction)]),
+    );
+    observed.push(["root".to_owned(), program.root.0.to_string()]);
+    let expected: Vec<[String; 2]> = include_str!("tests/fixtures/modal-intern-keys-v1.jsonl")
+        .lines()
+        .map(|row| {
+            let value = purrdf_lex::json::read(row).unwrap();
+            gmeow_errors::json::read_string_row::<2>(&value).unwrap()
+        })
+        .collect();
+    assert_eq!(observed, expected);
 }
 
 #[test]
