@@ -1,0 +1,116 @@
+{
+  "assignees": [
+    {
+      "id": "MDQ6VXNlcjUyNzU1NQ==",
+      "login": "paudley",
+      "name": "Patrick Audley",
+      "databaseId": 527555
+    }
+  ],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "# EPIC — Closed-world constraint canonicalization: blanket shape-purity seal, zero legacy\n\nCanonicalize the entire closed-world constraint corpus so every SHACL/ShEx shape is a\nprojection of slice constraint axioms, land a **blanket** shape-purity seal, and delete the\nwhole hand-authored shape corpus + the structural `write_shex` export. Single source of truth.\n\nDriven by `.goals`/`.baseline` (no deferrals, no compromises, no optionality, keep no legacy):\nthe gate is blanket, and a blanket gate is green only when the corpus is clean — so the migration\nis executed to completion, not softened to a \"detector\".\n\n## Foundation (landed on `paudley/1193-shape-subsumption-blanket-seal`)\n- Subsumption engine (`≡`/`⊑` over the `ConstraintComponent` lattice).\n- Equivalence oracle + comparison-only SHACL→IR reader + non-vacuous cross-check.\n- Lift = the projector's Galois adjoint, certified against the real forward derive.\n- Blanket declarative purity gate (proven over the live corpus; activates at the terminal increment).\n- Typed `Shacl`/`Shex` lookaside sidecars into `gmeow.gts`.\n- `conformance/validation/` projection-correctness category.\n- `gmeow-dev shape-equivalence` — the per-increment verifier and the **live coverage ledger**\n  (exits non-zero until every authored shape is grounded; this is the epic done-condition, no\n  staleable committed snapshot).\n- Proving slices `inference` + `inhabitation` grounded end-to-end (14 classes), oracle-verified.\n\n## Remaining increments (per-slice; each: lift → author axioms in the owning slice → oracle `EQUIV` → delete legacy block)\n~160 legacy shapes remain, by owning slice:\n- `slices/extensions/music` (~33)\n- `shapes/gmeow-shapes.ttl` — re-home ~78 to owning slices\n- `slices/core/epistemics` (~8), `slices/core/ai` (~5)\n- `shapes/mapping-dsl-shapes.ttl` (~12), `shapes/test-dsl-shapes.ttl`\n- `slices/extensions/{model-serving,graphrag,agentic}`, `slices/core/{temporal,gts,standpoint,pipeline,notation,kernel,concepts,learning,diagnostics}`\n- tail singletons\n\nRun `gmeow-dev shape-equivalence --path <slice>` to see a slice's current verdicts.\n\n## Residue-bearing classes (no faithful shape projection — carried in the canon, ledgered)\nSome legacy shapes carry `sh:or` type-disjunction, value-keyed `sh:SPARQLTarget`, or nested\n`sh:node` conditions the dataset-derive cannot reproduce (e.g. `AttackShape`, `SupportShape`,\n`AbductionCommitmentShape`, `InhabitationTenureShape`). These are grounded either by extending the\nderive or by authoring the condition as a full-FOL `logic:` constraint (projecting to the SHACL\nconstraint surface) — never deleted with their check dropped.\n\n## Terminal increment\nWhen the ledger reaches 0: wire the blanket gate active into `check_repo_static`; delete all\nremaining hand-authored `**/shapes.ttl` + the structural `write_shex`/`dist/gmeow.shex`; repoint\nconsumers to the generated surface. This is where #1193 closes (`Closes #1193, #1194`) — its\nheadline gate reaches production with `make check` green.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABJL7jvg",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "\n<details>\n<summary>🔗 Related PRs</summary>\n\nBlackcat-Informatics/gmeow-ontology#52 - feat: standpoint / contested-claims facility — coexisting claims, no winner (`#43`) [merged]\nBlackcat-Informatics/gmeow-ontology#608 - feat(shacl): Python seam swap to gmeow_shacl behind a dual-run cross-check (`#578`) [closed]\nBlackcat-Informatics/gmeow-ontology#1232 - feat(1195): openEHR constraints axis — validation-shape IR + SHACL projection + OPT→logic: lift with u∘d=id law [merged]\nBlackcat-Informatics/gmeow-ontology#1283 - feat(logic): SHACL-as-projection consolidation — 9 FOL axioms single-sourced (H8) [merged]\nBlackcat-Informatics/gmeow-ontology#1387 - feat(logic): derive the full closed-world validation-shape fragment from slice constraint axioms [merged]\n</details>\n\n---\n<details>\n<summary>📝 Issue Planner</summary>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\": \"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</details>\n\n\n---\n<details>\n<summary> 🧪 Issue enrichment is currently in open beta.</summary>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</details>\n\n💬 Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-07-08T04:45:56Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1446#issuecomment-4911457214",
+      "viewerDidAuthor": false
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABJbV--Q",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Epic re-shaped by the 2026-07-09 backlog triage: the per-slice-group grounding children (#1447/#1450/#1451) are closed as consolidated into re-scoped #1449 (shape-grounding axis + docs + skill) and the continuous background uplift lane (#1476). Remaining tracker scope for this epic: #1449 (axis), #1448 (gmeow-shapes.ttl re-home, bounded), #1452 (terminal: blanket gate + legacy deletion, closes #1193/#1194).",
+      "createdAt": "2026-07-09T17:01:57Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1446#issuecomment-4927618809",
+      "viewerDidAuthor": true
+    },
+    {
+      "id": "IC_kwDOSwdn1s8AAAABKyMqxQ",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "## Binding architecture correction — “author axioms” now means logic-only\n\nFor every remaining increment, the cycle is:\n\n`lift legacy obligation → author realized logic validation/constraint node + formula in the owning slice → generate projection → oracle proves equivalence → delete legacy block`.\n\nThe wording “author axioms in the owning slice” must not be implemented as new OWL/RDFS/gUFO semantic axioms. The lift/oracle may read those legacy surfaces as evidence, but the sole new semantic source is `logic:`; all external formalism surfaces are generated and loss-ledgered.\n\nThe terminal zero must therefore mean zero legacy shapes and zero obligations backed only by OWL/RDFS/gUFO. Required RDFS annotation metadata remains unchanged. Principles 4, 17, and 19 apply.\n",
+      "createdAt": "2026-07-20T04:13:09Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1446#issuecomment-5018692293",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-07-08T04:42:55Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvS9A",
+      "name": "epic",
+      "description": "Tracking epic",
+      "color": "6f42c1"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 1446,
+  "state": "OPEN",
+  "title": "EPIC: Closed-world constraint canonicalization — blanket shape-purity seal, zero legacy",
+  "updatedAt": "2026-09-04T23:28:33Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1446"
+}

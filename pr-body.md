@@ -1,0 +1,5 @@
+Raw SPARQL equivalence clearance rejected supported blocks because native shape roots now reference their owned definitions. Read each root's actual definition while retaining exported targets and rules, effective severity/messages, result annotations, box roles and unconditional deactivation. Missing ownership fails explicitly; property bodies and conditional activation require a separate equivalence proof. Principles 4, 7 and 17.
+
+The existing clearance matrix, report/literal and native metadata controls cover the behavior, including retained definition guards and shape-level message defaults. Formatting, normal commit hooks and independent source review passed. All three selected synthetic runtime controls passed (135 skipped); warnings-denied diagnostics for all developer CLI targets passed; no corpus, fixture producer, sync or full gate was run. CI remains waived under the standing campaign instruction.
+
+Part of #1446 and #1452. Both full parent contracts remain open; this repair does not authorize deleting any legacy obligation.

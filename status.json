@@ -1,0 +1,128 @@
+{
+  "issue": 1446,
+  "pr_number": 2040,
+  "branch": "paudley/1446-epic-closed-world-constraint",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1446-epic-closed-world-constraint/.stage/epic-closed-world-constraint",
+  "observed_at": "2026-10-29T09:28:59.477321+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1446-epic-closed-world-constraint/.stage/epic-closed-world-constraint/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1446-epic-closed-world-constraint/.stage/epic-closed-world-constraint/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1446-epic-closed-world-constraint/.stage/epic-closed-world-constraint/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1446-epic-closed-world-constraint/.stage/epic-closed-world-constraint/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1446-epic-closed-world-constraint/.stage/epic-closed-world-constraint/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "78be5cf4b1bc6f156c8c988eb8542dcbe7c191eb",
+    "headRefName": "paudley/1446-epic-closed-world-constraint",
+    "headRefOid": "3505bc7ad593d4bc47dab67e6fc220a4fc8a208d",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2040,
+    "state": "OPEN",
+    "title": "Resolve native shape definitions for SPARQL equivalence clearance",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2040"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40848808083/job/123363783582",
+        "name": "fixture-prefix",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40848808083/job/123363783627",
+        "name": "generation (a)",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40848808083/job/123363783725",
+        "name": "generation (b)",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40848808083/job/123363050531",
+        "name": "producer-build",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40848808083/job/123363050693",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40848808083/job/123363050534",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40848808083/job/123363050117",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "3505bc7ad593d4bc47dab67e6fc220a4fc8a208d",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "080e2141c90635c8d1132a668c850d54423b8982108d66b486d8d176921508dc"
+  },
+  "local": {
+    "head": "3505bc7ad593d4bc47dab67e6fc220a4fc8a208d",
+    "branch": "paudley/1446-epic-closed-world-constraint",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2040,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2040 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
