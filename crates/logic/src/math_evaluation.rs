@@ -425,6 +425,7 @@ fn encode_identity(
     calls: &[Formula],
     context: &EvaluationContext,
 ) -> gmeow_errors::Result<Vec<u8>> {
+    use gmeow_errors::DiagKind;
     use purrdf_lex::json::{Format, Value, record::ToJson};
 
     let mut fields = vec![
@@ -449,8 +450,17 @@ fn encode_identity(
     purrdf_lex::json::write_with_memory(&Value::Array(fields), Format::COMPACT, &mut memory)
         .map(String::into_bytes)
         .map_err(|error| {
-            gmeow_errors::Diag::from(error)
-                .with_context(format!("encode {PROFILE} result identity"))
+            let kind = crate::error::Result {
+                detail: format!("{PROFILE}: {error}"),
+            };
+            let mut diagnostic =
+                gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
+                    .with_source(error)
+                    .with_context(format!("encode {PROFILE} result identity"));
+            if let Some(class) = kind.failure_class() {
+                diagnostic = diagnostic.with_failure_class(class);
+            }
+            diagnostic
         })
 }
 
@@ -459,6 +469,7 @@ fn encode_identity(
 /// # Errors
 /// Rejects malformed ASTs, binding ambiguity, unsupported dimensions or values,
 /// division by zero, and nonterminating decimal quotients. It never rounds.
+/// Retains native storage failures when encoding the result identity.
 pub fn prepare(
     dataset: &RdfDataset,
     root: &str,
