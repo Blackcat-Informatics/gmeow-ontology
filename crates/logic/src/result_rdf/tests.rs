@@ -537,61 +537,229 @@ fn native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity() {
 
 #[test]
 fn modal_derived_row_round_trips_its_complete_receipt() {
-    let mut result = rich_result();
-    let ResultPayload::Inferred(axioms) = &mut result.payload else {
-        panic!("fixture payload must be inferred");
-    };
-    let modal = &mut axioms[0];
-    modal.subject = "https://example.org/modal/F".to_owned();
-    modal.predicate = crate::modal::MODAL_NECESSITY_FAILS.to_owned();
-    modal.object = purrdf::TermValue::iri("https://example.org/modal/B");
-    modal.world = "https://example.org/modal/frame".to_owned();
-    modal.rule_name = Some(crate::modal::MODAL_RULE_IRI.to_owned());
-    let evidence = crate::modal::ModalEvaluation {
-        context: modal.world.clone(),
-        formula: modal.subject.clone(),
-        operator: crate::modal::ModalOp::Box,
-        body: "https://example.org/modal/B".to_owned(),
-        evaluation_world: "https://example.org/modal/w0".to_owned(),
-        accessibility_relation: crate::modal::TYPED_ACCESSIBILITY[0].to_owned(),
-        atom_subject: "https://example.org/modal/a".to_owned(),
-        atom_predicate: "https://example.org/modal/knows".to_owned(),
-        atom_object: "https://example.org/modal/b".to_owned(),
-        frontier: crate::modal::ModalFrontier::CompletedFinitePredecessor {
-            worlds: vec![crate::modal::ModalWorldEvidence {
+    use purrdf_lex::json::record::FromJson as _;
+
+    let mut references = include_str!("fixtures/modal-evaluation-wire-v1.jsonl").lines();
+    assert!(crate::modal::ModalEvaluation::from_wire("another-transport\0{}").is_none());
+    let malformed = crate::modal::ModalEvaluation::from_wire("gmeow-modal-evaluation-v1\0{")
+        .expect("the selected prefix cannot be ignored")
+        .expect_err("a malformed selected payload must fail");
+    assert_eq!(malformed.code(), crate::error::Reason::register());
+    assert!(malformed.is::<purrdf_lex::json::Error>());
+
+    for (operator, predicate, formula, relation, worlds) in [
+        (
+            crate::modal::ModalOp::Box,
+            crate::modal::MODAL_NECESSITY_FAILS,
+            "https://example.org/modal/F",
+            crate::modal::TYPED_ACCESSIBILITY[0],
+            vec![crate::modal::ModalWorldEvidence {
                 world: "https://example.org/modal/w1".to_owned(),
                 atom_present: false,
             }],
-        },
-        conclusion_predicate: modal.predicate.clone(),
-        conclusion_object: "https://example.org/modal/B".to_owned(),
-    };
-    modal.premises = evidence
-        .positive_premises()
-        .into_iter()
-        .map(|p| (p.subject, p.predicate, p.object))
-        .collect();
-    modal.modal_evaluation = Some(Box::new(evidence));
-    let expected = modal.clone();
-    let receipt = receipt_for_axiom(&expected);
+        ),
+        (
+            crate::modal::ModalOp::Diamond,
+            crate::modal::MODAL_POSSIBILITY_HOLDS,
+            "https://example.org/modal/可能性",
+            crate::modal::TYPED_ACCESSIBILITY[0],
+            vec![
+                crate::modal::ModalWorldEvidence {
+                    world: "https://example.org/modal/w1".to_owned(),
+                    atom_present: false,
+                },
+                crate::modal::ModalWorldEvidence {
+                    world: "https://example.org/modal/w2".to_owned(),
+                    atom_present: true,
+                },
+            ],
+        ),
+        (
+            crate::modal::ModalOp::Box,
+            crate::modal::MODAL_NECESSITY_UNDETERMINED,
+            "https://example.org/modal/F",
+            crate::modal::DEONTICALLY_IDEAL,
+            Vec::new(),
+        ),
+    ] {
+        let mut result = rich_result();
+        let ResultPayload::Inferred(axioms) = &mut result.payload else {
+            panic!("fixture payload must be inferred");
+        };
+        let modal = &mut axioms[0];
+        modal.subject = formula.to_owned();
+        modal.predicate = predicate.to_owned();
+        modal.object = purrdf::TermValue::iri("https://example.org/modal/B");
+        modal.world = "https://example.org/modal/frame".to_owned();
+        modal.rule_name = Some(crate::modal::MODAL_RULE_IRI.to_owned());
+        let evidence = crate::modal::ModalEvaluation {
+            context: modal.world.clone(),
+            formula: modal.subject.clone(),
+            operator,
+            body: "https://example.org/modal/B".to_owned(),
+            evaluation_world: "https://example.org/modal/w0".to_owned(),
+            accessibility_relation: relation.to_owned(),
+            atom_subject: "https://example.org/modal/a".to_owned(),
+            atom_predicate: "https://example.org/modal/knows".to_owned(),
+            atom_object: "https://example.org/modal/b".to_owned(),
+            frontier: crate::modal::ModalFrontier::CompletedFinitePredecessor { worlds },
+            conclusion_predicate: modal.predicate.clone(),
+            conclusion_object: "https://example.org/modal/B".to_owned(),
+        };
+        evidence
+            .validate()
+            .expect("the independently authored modal evaluation is intrinsically valid");
+        modal.premises = evidence
+            .positive_premises()
+            .into_iter()
+            .map(|p| (p.subject, p.predicate, p.object))
+            .collect();
+        modal.modal_evaluation = Some(Box::new(evidence));
+        let expected = modal.clone();
+        let receipt = receipt_for_axiom(&expected);
+        let evidence = expected
+            .modal_evaluation
+            .as_ref()
+            .expect("the expected modal row retains its complete evaluation evidence");
+        let reference = purrdf_lex::json::read(
+            references
+                .next()
+                .expect("each original modal wire reference is present"),
+        )
+        .expect("the lossless original reference container is valid JSON");
+        let [wire, evidence_id, receipt_id]: [String; 3] = Vec::<String>::from_json(&reference)
+            .expect("the original container consists of three complete strings")
+            .try_into()
+            .expect("the original container has exactly three members");
+        assert_eq!(evidence.to_wire(), wire);
+        assert_eq!(evidence.derivation_id(), evidence_id);
+        assert_eq!(receipt.row.derivation_id, receipt_id);
+        assert_eq!(
+            crate::modal::ModalEvaluation::from_wire(&wire)
+                .expect("the original prefix selects the modal transport")
+                .expect("complete original modal evidence remains valid"),
+            **evidence
+        );
 
-    let body = project_reasoning_result(&result).unwrap();
-    assert!(body.contains(crate::modal::MODAL_RULE_IRI));
-    assert!(body.contains(&receipt.row.derivation_id));
-    for source in &receipt.row.source_quad_ids {
-        assert!(body.contains(source));
+        let body = project_reasoning_result(&result).unwrap();
+        assert!(body.contains(crate::modal::MODAL_RULE_IRI));
+        assert!(body.contains(&receipt.row.derivation_id));
+        for source in &receipt.row.source_quad_ids {
+            assert!(body.contains(source));
+        }
+        assert!(body.contains(&format!("<{PROV_VALUE}>")));
+
+        let parsed = parse_reasoning_graph(&body).expect("receipt-bearing graph parses");
+        let ResultPayload::Inferred(rows) = parsed.payload else {
+            panic!("payload must remain inferred");
+        };
+        let actual = rows
+            .iter()
+            .find(|row| row.predicate == predicate)
+            .expect("modal row round-trips");
+        assert_eq!(actual, &expected);
+
+        if predicate == crate::modal::MODAL_NECESSITY_FAILS {
+            let payload = purrdf_lex::json::read(wire.split_once('\0').unwrap().1).unwrap();
+            let positional = purrdf_lex::json::Value::Array(
+                payload
+                    .as_object()
+                    .unwrap()
+                    .iter()
+                    .map(|(_, value)| value.clone())
+                    .collect(),
+            );
+            for (boundary, invalid) in [
+                (
+                    "missing false member",
+                    wire.replacen(",\"atom_present\":false", "", 1),
+                ),
+                (
+                    "duplicate context",
+                    wire.replacen(
+                        "\"context\":",
+                        "\"context\":\"https://example.org/modal/frame\",\"context\":",
+                        1,
+                    ),
+                ),
+                (
+                    "unknown evaluation member",
+                    wire.replacen("{\"context\":", "{\"unselected\":true,\"context\":", 1),
+                ),
+                (
+                    "unknown frontier member",
+                    wire.replacen("\"worlds\":[", "\"unselected\":true,\"worlds\":[", 1),
+                ),
+                (
+                    "positional evaluation",
+                    format!(
+                        "gmeow-modal-evaluation-v1\0{}",
+                        purrdf_lex::json::write_compact(&positional),
+                    ),
+                ),
+            ] {
+                assert_ne!(invalid, wire, "{boundary} changes the selected record");
+                let error = crate::modal::ModalEvaluation::from_wire(&invalid)
+                    .expect("a selected malformed record cannot become another format")
+                    .expect_err(boundary);
+                assert_eq!(error.code(), crate::error::Reason::register());
+                assert!(
+                    error.is::<purrdf_lex::json::record::DecodeError>(),
+                    "{boundary}"
+                );
+            }
+
+            let mut invalid = evidence.as_ref().clone();
+            invalid.conclusion_predicate = crate::modal::MODAL_NECESSITY_HOLDS.to_owned();
+            assert!(
+                crate::modal::ModalEvaluation::from_wire(&invalid.to_wire())
+                    .expect("the selected semantic refusal retains its format")
+                    .is_err(),
+                "well-shaped wire cannot bypass the intrinsic conclusion check"
+            );
+
+            let identity = format!(
+                "<{}> \"{}\"",
+                logic("derivationIdentifier"),
+                receipt.row.derivation_id,
+            );
+            let row = body
+                .lines()
+                .find(|line| line.contains(&identity))
+                .expect("the complete receipt names the modal row")
+                .split_whitespace()
+                .next()
+                .expect("the receipt triple retains its subject");
+            let original_world = format!("{row} <{}> <{}> .", logic("axiomWorld"), expected.world,);
+            assert_eq!(body.matches(&original_world).count(), 1);
+            let unbound = body.replacen(
+                &original_world,
+                &format!(
+                    "{row} <{}> <https://example.org/modal/other-frame> .",
+                    logic("axiomWorld"),
+                ),
+                1,
+            );
+            assert_ne!(unbound, body);
+            let error = parse_reasoning_graph(&unbound)
+                .expect_err("import must bind modal evidence to the actual axiom context");
+            assert!(
+                error.message().contains("modal axiom does not match"),
+                "{error}"
+            );
+        }
+        if predicate == crate::modal::MODAL_NECESSITY_UNDETERMINED {
+            let missing = wire.replacen("\"worlds\":[]", "", 1);
+            assert_ne!(missing, wire);
+            assert!(
+                crate::modal::ModalEvaluation::from_wire(&missing)
+                    .expect("the selected empty-frontier record retains its format")
+                    .is_err(),
+                "an omitted frontier cannot silently become a completed empty frontier"
+            );
+        }
     }
-    assert!(body.contains(&format!("<{PROV_VALUE}>")));
-
-    let parsed = parse_reasoning_graph(&body).expect("receipt-bearing graph parses");
-    let ResultPayload::Inferred(rows) = parsed.payload else {
-        panic!("payload must remain inferred");
-    };
-    let actual = rows
-        .iter()
-        .find(|row| row.predicate == crate::modal::MODAL_NECESSITY_FAILS)
-        .expect("modal row round-trips");
-    assert_eq!(actual, &expected);
+    assert_eq!(references.next(), None);
 }
 
 #[test]
