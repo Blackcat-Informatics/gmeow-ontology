@@ -1,0 +1,27 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-dev-cli -p gmeow-pipeline -p gmeow-logic --lib -E 'package(gmeow-logic) & (test(terminal_result_retains_native_execution_and_requires_the_separate_closure) | test(native_execution_receipt_refuses_trailing_bytes_and_unknown_fields) | test(native_execution_requires_the_selected_program_analysis_and_current_schema) | test(native_execution_publication_refuses_an_envelope_its_reader_cannot_admit) | test(one_contextual_receipt_owns_every_metadata_head_and_rejects_tampering))' --no-tests=fail
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic)
+error[E0369]: binary operation `==` cannot be applied to type `std::result::Result<&NativeExecutionEvidence, Diag>`
+   --> crates/logic/src/modal/contextual/tests/native_execution.rs:102:5
+    |
+102 |     assert_eq!(restored.native_execution(), result.native_execution());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     std::result::Result<&NativeExecutionEvidence, Diag>
+    |     std::result::Result<&NativeExecutionEvidence, Diag>
+    |
+note: `std::result::Result<&NativeExecutionEvidence, Diag>` does not implement `PartialEq<std::result::Result<&NativeExecutionEvidence, Diag>>`
+   --> /rustc/21b707e3f97e0b522ebd2f277a862339625ad83f/library/core/src/result.rs:558:1
+    |
+558 | pub enum Result<T, E> {
+    | ^^^^^^^^^^^^^^^^^^^^^ `std::result::Result<&NativeExecutionEvidence, Diag>` is defined in another crate
+
+For more information about this error, try `rustc --explain E0369`.
+error: could not compile `gmeow-logic` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: command `/home/paudley/stage/packages/rustup/toolchains/nightly-2026-10-01-x86_64-unknown-linux-gnu/bin/cargo test --no-run --message-format json-render-diagnostics --package gmeow-dev-cli --package gmeow-pipeline --package gmeow-logic --lib` exited with code 101
+make: *** [Makefile:717: nextest-synthetic] Error 101

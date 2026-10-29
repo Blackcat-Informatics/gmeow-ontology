@@ -1,0 +1,110 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy -p gmeow-dev-cli -p gmeow-pipeline -p gmeow-logic --all-targets --keep-going -- -D warnings
+    Checking either v1.17.0
+    Checking bit-vec v0.8.0
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic)
+    Checking getrandom v0.3.4
+    Checking rapidhash v4.5.1
+    Checking either-or-both v0.3.1
+    Checking quick-error v1.2.3
+    Checking cast v0.3.0
+    Checking unty-next v0.1.2
+    Checking derive_more v2.1.1
+    Checking tinytemplate v1.2.1
+    Checking is-terminal v0.4.17
+    Checking unarray v0.1.4
+    Checking oorandom v11.1.5
+    Checking anes v0.1.6
+    Checking rayon v1.12.0
+    Checking itertools v0.10.5
+    Checking bit-set v0.8.0
+    Checking rusty-fork v0.3.1
+    Checking rand_core v0.9.5
+    Checking ahash v0.8.12
+    Checking gungraun-runner v0.19.4
+    Checking fancy-regex v0.16.2
+    Checking fancy-regex v0.17.0
+    Checking bincode-next v3.1.1
+    Checking rand v0.9.5
+    Checking rand_xorshift v0.4.0
+    Checking rand_chacha v0.9.0
+    Checking criterion-plot v0.5.0
+    Checking syntect v5.3.0
+    Checking tiktoken-rs v0.12.0
+    Checking proptest v1.11.0
+    Checking gungraun v0.19.4
+    Checking criterion v0.5.1
+    Checking two-face v0.4.5
+    Checking purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking typst-utils v0.13.1
+    Checking trycmd v0.15.11
+    Checking typst-syntax v0.13.1
+    Checking typst-library v0.13.1
+    Checking purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking typst-svg v0.13.1
+    Checking typst-eval v0.13.1
+    Checking typst-layout v0.13.1
+    Checking typst-realize v0.13.1
+    Checking typst-pdf v0.13.1
+    Checking typst-html v0.13.1
+    Checking purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking typst v0.13.1
+    Checking purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking gmeow-term-arena v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/term-arena)
+    Checking gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/gts-profile)
+    Checking gmeow-ns v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/ns)
+    Checking gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/bundle-import)
+    Checking gmeow-foundation-corpus v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/foundation-corpus)
+    Checking gmeow-math-lift v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/math-lift)
+    Checking gmeow-logic-compile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic-compile)
+    Checking gmeow-music v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/music)
+    Checking gmeow-math v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/math)
+    Checking gmeow-lang-bridge v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/lang-bridge)
+    Checking gmeow-transcode v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/transcode)
+error[E0063]: missing field `cause` in initializer of `error::Result`
+  --> crates/logic/src/error.rs:28:33
+   |
+28 |     gmeow_errors::Diag::of_kind(Result {
+   |                                 ^^^^^^ missing `cause`
+
+error: unreachable call
+   --> crates/logic/src/execution_cbor.rs:271:38
+    |
+260 | macro_rules! unsigned {
+...
+271 |                     .map_err(|error| Error::caused_by(input.offset(), "receipt integer exceeds its target width", error))
+    |                                      ^^^^^^^^^^^^^^^^ unreachable call                                            ----- any code following this expression is unreachable
+...
+276 | unsigned!(u8, u32, u64, usize);
+    | ------------------------------ in this macro invocation
+    |
+    = note: `-D unreachable-code` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(unreachable_code)]`
+
+error[E0277]: the trait bound `gmeow_errors::Diag: std::error::Error` is not satisfied
+   --> crates/logic/src/result_rdf/tests.rs:251:42
+    |
+251 |     let kind = std::error::Error::source(&trailing).unwrap();
+    |                ------------------------- ^^^^^^^^^ the trait `std::error::Error` is not implemented for `gmeow_errors::Diag`
+    |                |
+    |                required by a bound introduced by this call
+
+Some errors have detailed explanations: E0063, E0277.
+For more information about an error, try `rustc --explain E0063`.
+error: could not compile `gmeow-logic` (lib test) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+For more information about this error, try `rustc --explain E0063`.
+error: could not compile `gmeow-logic` (lib) due to 2 previous errors
+make: *** [Makefile:289: clippy-prebuild] Error 101
