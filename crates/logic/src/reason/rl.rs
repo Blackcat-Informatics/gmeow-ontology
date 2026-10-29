@@ -4,25 +4,25 @@
 //! OWL 2 RL/RDF deductive closure, computed by purrdf's `entail` chase.
 //!
 //! This is the Docker/Java-free entailment authority for the RL lane. The closure
-//! is purrdf's OWL 2 RL materialization ([`purrdf::entail::materialize`] with
+//! is purrdf's OWL 2 RL materialization ([`purrdf::entail::materialize_with`] with
 //! [`purrdf::entail::Materialization::OwlRl`]) — the full 78-rule calculus of
 //! OWL 2 Profiles §4.3 Tables 4–9 — surfaced through the [`RlClosure`]/[`RlTriple`]
 //! contract this module's consumers depend on. The retired native rule table only
 //! ever fired a sound 32-rule subset; the cutover keeps the public shape and widens
 //! the entailments to the whole profile.
 //!
-//! # Evaluation ceilings are external and honestly hard-failed
+//! # Evaluation ceilings are stated and honestly hard-failed
 //!
-//! purrdf's chase runs under fixed evaluation ceilings (`MAX_JOIN_STEPS`,
-//! `MAX_STORED_FACTS`, `MAX_TERM_ARENA_BYTES` in the datalog engine) that are
-//! upstream `pub const`s — not tunable from this repository. The in-repo obligation
-//! is therefore honesty, not raising them: whenever [`purrdf::entail::materialize`]
-//! (or [`purrdf::entail::explain_conclusion`]) exhausts a ceiling, the refusal
-//! (`MatchBudget`, `Evaluate(EvalError::BudgetExhausted)`, `Chase(ChaseError::BudgetExhausted)`)
-//! is propagated verbatim as a hard [`gmeow_errors`] error through `?`, never
-//! swallowed and never presented as a complete-looking partial closure. Raising a
-//! ceiling to make a hard instance answerable is an upstream-purrdf change; the honest
-//! in-repo response to exhaustion is to fail, not to truncate silently.
+//! purrdf's chase runs under the stored-fact, join-step and term-arena ceilings
+//! gmeow states once in `crate::purrdf_limits` (purrdf itself imposes none when they
+//! are unstated). Both the materialization and the rule attribution
+//! ([`purrdf::entail::prepare_explanations`]) run under them. Whenever a run exhausts a
+//! ceiling, the refusal (`MatchBudget`, `Evaluate(EvalError::BudgetExhausted)`,
+//! `Chase(ChaseError::BudgetExhausted)`) is propagated verbatim as a hard
+//! [`gmeow_errors`] error through `?`, never swallowed and never presented as a
+//! complete-looking partial closure. Raising a ceiling to make a hard instance
+//! answerable is a deliberate edit to those stated limits; the honest response to
+//! exhaustion is to fail, not to truncate silently.
 //!
 //! # The RDF 1.2 world ⇔ graph mapping (the encode/decode boundary)
 //!
@@ -50,8 +50,9 @@
 //! The firing rule of a derived triple is attributed by re-explaining the conclusion
 //! over the retained lowered EDB ([`RlClosure::rule_name`] → [`rule_name_for_conclusion`]).
 //! This is computed ON DEMAND, not eagerly, because purrdf exposes no BULK per-triple
-//! provenance: [`purrdf::entail::materialize`]'s report gives only aggregate
-//! `rules_fired()` counts, and [`purrdf::entail::explain_conclusion`] re-runs the whole
+//! provenance: [`purrdf::entail::materialize_with`]'s report gives only aggregate
+//! `rules_fired()` counts, and each explanation ([`purrdf::entail::prepare_explanations`])
+//! re-runs the whole
 //! closure fixpoint for each conclusion. Attributing every derived triple eagerly is
 //! therefore `O(derived × closure)` — measured at ~27s for a two-module scoped closure
 //! whose materialization alone is ~0.1s — so a caller pays that cost only for the
@@ -155,7 +156,7 @@ impl RlClosure {
     /// The OWL 2 RL specification rule name credited with deriving `triple`, or `None`
     /// for an asserted (EDB) triple.
     ///
-    /// Computed ON DEMAND via purrdf's [`purrdf::entail::explain_conclusion`] over the
+    /// Computed ON DEMAND via purrdf's [`purrdf::entail::prepare_explanations`] over the
     /// retained lowered EDB — see the module docs for why eager attribution is
     /// impractical under purrdf's public API. Deterministic: the specification-table-first
     /// rule the derivation cites (the single head rule is not exposed on purrdf's public
@@ -373,7 +374,7 @@ fn lower_edb_for_rl(edb: &RdfDataset) -> gmeow_errors::Result<Option<std::sync::
 
 /// The OWL 2 RL specification rule name to credit a DERIVED closure triple to.
 ///
-/// purrdf's [`purrdf::entail::explain_conclusion`] rebuilds the conclusion's
+/// purrdf's [`purrdf::entail::prepare_explanations`] session rebuilds the conclusion's
 /// derivation over the same lowered EDB, and [`ChaseProof::rules`] returns every rule
 /// that derivation cites, in specification-table order, deduplicated. The single head
 /// rule is not exposed on the public `ChaseProof` surface, so the deterministic
@@ -394,14 +395,14 @@ fn rule_name_for_conclusion(
     predicate: &TermValue,
     object: &TermValue,
 ) -> gmeow_errors::Result<Option<String>> {
-    let proof = purrdf::entail::explain_conclusion(
+    let proof = purrdf::entail::prepare_explanations(
         lowered,
         purrdf::entail::Regime::OwlRl,
         graph,
-        subject,
-        predicate,
-        object,
+        &crate::purrdf_limits::eval_options(),
+        None,
     )
+    .and_then(|prepared| prepared.session()?.explain(subject, predicate, object))
     .map_err(|e| {
         reason_err(format!(
             "OWL 2 RL rule attribution refused for a derived triple \
@@ -432,9 +433,13 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
         });
     };
 
-    let (closure, _report) =
-        purrdf::entail::materialize(lowered.as_ref(), purrdf::entail::Materialization::OwlRl)
-            .map_err(|e| reason_err(format!("OWL 2 RL materialization refused: {e}")))?;
+    let (closure, _report) = purrdf::entail::materialize_with(
+        lowered.as_ref(),
+        purrdf::entail::Materialization::OwlRl,
+        &crate::purrdf_limits::eval_options(),
+        None,
+    )
+    .map_err(|e| reason_err(format!("OWL 2 RL materialization refused: {e}")))?;
 
     // The asserted rows of the lowered EDB, keyed by the same rendered surfaces the
     // closure decode produces, so a closure row present in the EDB reads `is_edb`.

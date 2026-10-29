@@ -38,7 +38,7 @@ make maint-refresh-reason-asset
 
 This first runs the verified native producer for `tests/WITNESS.conjecture.nq`, then
 rebuilds the wasm package (`make reason-wasm-pkg`: `cargo build … --target
-wasm32-unknown-unknown --release`, wasm-bindgen 0.2.125 `--target web`, and the REQUIRED
+wasm32-unknown-unknown --release`, wasm-bindgen 0.2.129 `--target web`, and the REQUIRED
 `wasm-opt -Oz`). It runs the complete Node native↔wasm witness lane before copying the
 four artifacts here and re-pinning `DIGESTS.blake3` through the shared explicit asset
 producer. Those steps are sequenced in the target recipe, so a parallel Make invocation

@@ -27,7 +27,8 @@ export function conjecture(kb: string, kb_format: string, formula: string, stand
 
 /**
  * Run the structured-DL chase over `data` (RDF text in `format`) and return the
- * **reasoned closure** — the inferred triples — as N-Quads text.
+ * **reasoned closure** as N-Quads text, retaining asserted facts, inferred facts,
+ * and the selected nonempty-domain witness.
  *
  * - `data` — the RDF document to reason over (UTF-8 text).
  * - `format` — a media type / short id purrdf understands (`turtle`/`ttl`,
