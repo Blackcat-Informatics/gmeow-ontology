@@ -994,6 +994,38 @@ fn relational_residue_and_source_boundaries_change_native_identity() {
     ];
     let mut source = first.clone();
     source.source_iri = Some(String::new());
+    // Complete original bytes and both production digests were captured before
+    // replacing the encoder; the fixture is never derived from the new writer.
+    let check_reference = |case: &str, program: &RelationalCoreProgram| {
+        let row = include_str!("fixtures/relational-core-cbor-v1.txt")
+            .lines()
+            .find(|row| row.split('|').next() == Some(case))
+            .expect("the original identity reference includes this case");
+        let fields: Vec<_> = row.split('|').collect();
+        let [_, wire, typed, wrapped] = fields.as_slice() else {
+            panic!("original identity reference must have four fields: {case}");
+        };
+        let mut bytes = Vec::new();
+        program.write_cbor(&mut bytes).unwrap();
+        assert_eq!(
+            purrdf_hash::hex::encode(&bytes),
+            *wire,
+            "complete CBOR: {case}"
+        );
+        assert_eq!(
+            purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&bytes).as_bytes()),
+            *typed,
+            "original typed digest: {case}",
+        );
+        assert_eq!(
+            handle_payload_digest(&PipelineHandle::RelationalCore(Arc::new(program.clone()))),
+            *wrapped,
+            "actual handle commitment: {case}",
+        );
+    };
+    check_reference("original-none", &first);
+    check_reference("split-residue", &second);
+    check_reference("empty-source", &source);
     for changed in [second, source] {
         assert_ne!(
             first.content_key().unwrap(),
@@ -1004,6 +1036,152 @@ fn relational_residue_and_source_boundaries_change_native_identity() {
             handle_payload_digest(&PipelineHandle::RelationalCore(Arc::new(first.clone()))),
             handle_payload_digest(&PipelineHandle::RelationalCore(Arc::new(changed))),
         );
+    }
+
+    use gmeow_logic_compile::relational_core::{
+        NumericOperator, RcAtom, RcNumeric, RcRule, RcTerm,
+    };
+    use purrdf::{RdfLiteral, RdfTextDirection};
+
+    let literal = |lexical: &str, datatype: Option<&str>, language: Option<&str>, direction| {
+        RcTerm::Literal(RdfLiteral {
+            lexical_form: lexical.to_owned(),
+            datatype: datatype.map(str::to_owned),
+            language: language.map(str::to_owned),
+            direction,
+        })
+    };
+    let atom = |subject: RcTerm, predicate: &str, object: RcTerm, negated| RcAtom {
+        subject,
+        predicate: predicate.to_owned(),
+        object,
+        negated,
+    };
+    let subject = RcTerm::Iri("urn:rc:subject".into());
+    let facts = [
+        literal("RDF λ\0𝄞", None, None, None),
+        literal(
+            "explicit string",
+            Some("http://www.w3.org/2001/XMLSchema#string"),
+            None,
+            None,
+        ),
+        literal(
+            "18446744073709551615",
+            Some("http://www.w3.org/2001/XMLSchema#integer"),
+            None,
+            None,
+        ),
+        literal("bonjour", None, Some("fr"), None),
+        literal("left", None, Some("en"), Some(RdfTextDirection::Ltr)),
+        literal("right", None, Some("ar"), Some(RdfTextDirection::Rtl)),
+    ]
+    .into_iter()
+    .map(|object| atom(subject.clone(), "urn:rc:value", object, false))
+    .chain([atom(
+        RcTerm::Blank("c14n0".into()),
+        "urn:rc:denied",
+        RcTerm::Iri("urn:rc:object".into()),
+        true,
+    )])
+    .collect();
+    let numeric = [
+        NumericOperator::Add,
+        NumericOperator::Subtract,
+        NumericOperator::Multiply,
+        NumericOperator::Divide,
+        NumericOperator::ExactDivide,
+        NumericOperator::Equal,
+        NumericOperator::NotEqual,
+        NumericOperator::Less,
+        NumericOperator::LessOrEqual,
+        NumericOperator::Greater,
+        NumericOperator::GreaterOrEqual,
+    ]
+    .into_iter()
+    .map(|operator| RcNumeric {
+        operator,
+        left: RcTerm::Var("?left".into()),
+        right: literal(
+            "2.50",
+            Some("http://www.w3.org/2001/XMLSchema#decimal"),
+            None,
+            None,
+        ),
+        result: match operator {
+            NumericOperator::Add
+            | NumericOperator::Subtract
+            | NumericOperator::Multiply
+            | NumericOperator::Divide
+            | NumericOperator::ExactDivide => Some(RcTerm::Var("?result".into())),
+            _ => None,
+        },
+    })
+    .collect();
+    let rich = RelationalCoreProgram {
+        facts,
+        rules: vec![RcRule {
+            head: atom(
+                RcTerm::Var("?left".into()),
+                "urn:rc:head",
+                RcTerm::Var("?result".into()),
+                false,
+            ),
+            head_conjuncts: vec![atom(
+                RcTerm::Var("?result".into()),
+                "urn:rc:witness",
+                RcTerm::Var("?witness".into()),
+                false,
+            )],
+            body: vec![
+                atom(
+                    RcTerm::Var("?left".into()),
+                    "urn:rc:input",
+                    RcTerm::Blank("c14n0".into()),
+                    false,
+                ),
+                atom(
+                    RcTerm::Var("?left".into()),
+                    "urn:rc:blocked",
+                    RcTerm::Iri("urn:rc:object".into()),
+                    true,
+                ),
+            ],
+            numeric,
+            distinct_pairs: vec![("?left".into(), "?result".into())],
+        }],
+        residue: vec![
+            RcResidue {
+                reason: "first\nresidue".into(),
+            },
+            RcResidue {
+                reason: "second λ".into(),
+            },
+        ],
+        source_iri: Some("urn:rc:source".into()),
+    };
+    check_reference("rich-source", &rich);
+    let mut no_source = rich.clone();
+    no_source.source_iri = None;
+    let mut empty_source = rich.clone();
+    empty_source.source_iri = Some(String::new());
+    let mut reordered = rich.clone();
+    reordered.rules[0].body.reverse();
+    let mut duplicated = rich.clone();
+    let repeated = duplicated.rules[0].body[0].clone();
+    duplicated.rules[0].body.push(repeated);
+    for (case, changed) in [
+        ("rich-none", no_source),
+        ("rich-empty-source", empty_source),
+        ("rich-reordered", reordered),
+        ("rich-duplicated", duplicated),
+    ] {
+        assert_ne!(
+            handle_payload_digest(&PipelineHandle::RelationalCore(Arc::new(rich.clone()))),
+            handle_payload_digest(&PipelineHandle::RelationalCore(Arc::new(changed.clone()))),
+            "typed relational payload retains source, recorded order and multiplicity: {case}",
+        );
+        check_reference(case, &changed);
     }
 }
 

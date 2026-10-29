@@ -55,6 +55,17 @@ pub(crate) fn typed_digest(value: &impl serde::Serialize) -> String {
     purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
+/// Stream the complete relational payload through its owned native CBOR writer.
+fn relational_core_digest(
+    program: &gmeow_logic_compile::relational_core::RelationalCoreProgram,
+) -> String {
+    let mut sink = TypedDigest::default();
+    program
+        .write_cbor(&mut sink)
+        .expect("native relational serialization into an infallible hash sink");
+    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
+}
+
 /// The complete payload identity is independent of its governed RDF projection.
 pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
     let key = match handle {
@@ -63,7 +74,7 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::CompiledLogic(publication) => typed_digest(publication.as_ref()),
         PipelineHandle::Diagnostics(publication) => typed_digest(publication.as_ref()),
         PipelineHandle::Reasoning(result) => typed_digest(result.as_ref()),
-        PipelineHandle::RelationalCore(program) => typed_digest(program.as_ref()),
+        PipelineHandle::RelationalCore(program) => relational_core_digest(program.as_ref()),
         PipelineHandle::Correspondence(program) => typed_digest(program.as_ref()),
     };
     content_digest(&[

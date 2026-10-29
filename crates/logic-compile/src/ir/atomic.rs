@@ -55,6 +55,39 @@ impl PartialEq for AtomicTerm {
 impl Eq for AtomicTerm {}
 
 impl AtomicTerm {
+    /// Stream this atomic term's existing externally tagged CBOR wire.
+    /// Literal values retain the single-literal owner's four-component tuple.
+    ///
+    /// # Errors
+    /// Returns the sink's original failure.
+    pub(crate) fn write_cbor<W: std::io::Write + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> std::io::Result<()> {
+        use purrdf_lex::cbor::head;
+
+        head::write_head(out, head::MAP, 1)?;
+        match self {
+            Self::Var(value) => {
+                head::write_text(out, "Var")?;
+                head::write_text(out, value)?;
+            }
+            Self::Iri(value) => {
+                head::write_text(out, "Iri")?;
+                head::write_text(out, value)?;
+            }
+            Self::Blank(value) => {
+                head::write_text(out, "Blank")?;
+                head::write_text(out, value)?;
+            }
+            Self::Literal(value) => {
+                head::write_text(out, "Literal")?;
+                crate::ir::literal_serde::single::write_cbor(value, out)?;
+            }
+        }
+        Ok(())
+    }
+
     /// Rename a logical variable while retaining every typed constant unchanged.
     #[must_use]
     pub fn map_variable(&self, rename: impl FnOnce(&str) -> String) -> Self {
