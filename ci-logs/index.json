@@ -1,0 +1,25 @@
+{
+  "pr": 2064,
+  "jobs": [
+    {
+      "name": "producer-build",
+      "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123688708588",
+      "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/ci-logs/github-job-123688708588.log",
+      "excerpt": [
+        "442: 2026-10-29T19:46:36.5220108Z bail() {",
+        "443: 2026-10-29T19:46:36.5220366Z   printf '::error::install-action: %s\\n' \"$*\"",
+        "444: 2026-10-29T19:46:36.5220675Z   exit 1",
+        "445: 2026-10-29T19:46:36.5220869Z }",
+        "668: 2026-10-29T19:47:25.3155031Z make: *** [Makefile:334: producer-recipe] Error 1",
+        "669: 2026-10-29T19:47:25.3171860Z ##[error]Process completed with exit code 2.",
+        "670: 2026-10-29T19:47:25.3254124Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+        "671: 2026-10-29T19:47:25.3254552Z with:",
+        "694: 2026-10-29T19:47:25.4706794Z The least common ancestor is /home/runner/work/gmeow-ontology/gmeow-ontology/dist. This will be the root directory of the artifact",
+        "695: 2026-10-29T19:47:25.4720284Z ##[error]No files were found with the provided path: dist/producer-build-recipe.json",
+        "696: dist/producer-build-sample.json. No artifacts will be uploaded.",
+        "697: 2026-10-29T19:47:25.4891846Z Post job cleanup."
+      ]
+    }
+  ],
+  "ok": true
+}

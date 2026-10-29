@@ -1,0 +1,45 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Move the complete finite-modal instruction interning key operation to native PurRDF JSON under parent #1776. Principles 4 and 7.\n\nAcceptance:\n\n- Complete all six private key owners: NodeId, Accessibility, Quantifier, TemporalOperator, AtomTerm and every one of the ten Instruction variants. Reuse the complete native compiler Term writer, including its original four-component RDF literal representation. No opaque wrapper, second term codec, parser, framework or public API.\n- Preserve every original key byte: numeric child/axis indices, unit and external variant tags, declaration-order fields, ordered child vectors and the two-element Implies/Iff payloads. Do not substitute accessibility IRIs, normalize admitted terms or alter child-before-parent insertion, canonical formula identity, sharing, memoization, evaluation charging, proof rollback or assessment anchors.\n- Mechanically extract the original key encoder and retain the actual lower/interner caller before capture. Extend only the existing shared_dag_work_is_charged_once_and_uncommitted_parent_proofs_are_removed control to capture a complete original-key atlas covering all ten variants, every unit tag, both atom forms and rich literal/string metadata. Also capture actual lowered instruction keys and addresses. Freeze the complete original bytes before replacement; compare through the actual native helper against literal references, without recalculating expectations from the replacement.\n- Use the existing native compact String writer for this admitted finite in-memory key. Remove the unreachable serialization-only Malformed mapping while retaining every genuine semantic admission, unsupported-fragment, journal-limit, budget and cancellation refusal. Keep Program lowering's semantic Result API unchanged. No new error framework or fallibility churn.\n- Remove obsolete Serde derives from these six types after confirming their only serializer was the replaced interner and that no reader/CBOR caller needs them. The physical plan remains a private execution DAG, never a second authored formula IR or external hydration authority.\n- Qualify the existing DAG-sharing/proof-rollback, equivalent-operand/world-binder and nested-temporal shared-budget/memo controls on the same original/final producer-independent library graph. Keep every original assertion. Add no test function or generic term/JSON compliance matrix. Run warnings-denied actual logic, pipeline, validation and developer CLI consumers, formatting/prose, helpers, static recipe, independent review and normal signed hooks.\n- Preserve the seventeen-site broader contextual/provenance identity operation and sibling native-execution CBOR work. Charge assessment from 18:30 UTC October 29 and land by 02:30 UTC October 30, including qualification and publication; never reset the clock. Parent #1776 stays open for every remaining requirement.\n\nNo local optimized producer, canonical corpus construction, sync or full gate. Authored models do not establish authenticated corpus, installed/browser/release or performance acceptance. Broader CI remains explicitly waived. Preserve held LinkML and protected donors.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-10-29T18:44:44Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 2061,
+  "state": "OPEN",
+  "title": "Preserve complete modal instruction interning with native JSON",
+  "updatedAt": "2026-10-29T18:44:44Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2061"
+}

@@ -1,0 +1,183 @@
+{
+  "issue": 2061,
+  "pr_number": 2064,
+  "branch": "paudley/2061-preserve-complete-modal-instruction",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction",
+  "observed_at": "2026-10-29T19:49:02.796532+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_fail",
+      "message": "CI state is fail"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Inspect saved failed-job excerpts",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "6be450a040b8d591365648456cbef88acd687843",
+    "headRefName": "paudley/2061-preserve-complete-modal-instruction",
+    "headRefOid": "81730ede9167cd15994f1ac2ebbd9d2358a74b81",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2064,
+    "state": "OPEN",
+    "title": "Preserve complete modal instruction interning with native JSON",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2064"
+  },
+  "checks": {
+    "state": "fail",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691762588",
+        "name": "ontology-generated",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691762281",
+        "name": "ontology-reason",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691762720",
+        "name": "heavy",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691761916",
+        "name": "ontology-misc",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691759861",
+        "name": "generation (${{ matrix.generation }})",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691760456",
+        "name": "fixture-prefix",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691761462",
+        "name": "fixture-complete",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691762475",
+        "name": "ontology-validate",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123691762161",
+        "name": "producer",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123688708588",
+        "name": "producer-build",
+        "state": "FAILURE"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123688708282",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123688708878",
+        "name": "helpers",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123688708766",
+        "name": "lint",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2064",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "81730ede9167cd15994f1ac2ebbd9d2358a74b81",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 2,
+    "change_token": "15ed266931c4fc15288fa059a564a1d874b326ff3d7c034dcb02a58021caf312"
+  },
+  "local": {
+    "head": "81730ede9167cd15994f1ac2ebbd9d2358a74b81",
+    "branch": "paudley/2061-preserve-complete-modal-instruction",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2064,
+    "jobs": [
+      {
+        "name": "producer-build",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123688708588",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/ci-logs/github-job-123688708588.log",
+        "excerpt": [
+          "442: 2026-10-29T19:46:36.5220108Z bail() {",
+          "443: 2026-10-29T19:46:36.5220366Z   printf '::error::install-action: %s\\n' \"$*\"",
+          "444: 2026-10-29T19:46:36.5220675Z   exit 1",
+          "445: 2026-10-29T19:46:36.5220869Z }",
+          "668: 2026-10-29T19:47:25.3155031Z make: *** [Makefile:334: producer-recipe] Error 1",
+          "669: 2026-10-29T19:47:25.3171860Z ##[error]Process completed with exit code 2.",
+          "670: 2026-10-29T19:47:25.3254124Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+          "671: 2026-10-29T19:47:25.3254552Z with:",
+          "694: 2026-10-29T19:47:25.4706794Z The least common ancestor is /home/runner/work/gmeow-ontology/gmeow-ontology/dist. This will be the root directory of the artifact",
+          "695: 2026-10-29T19:47:25.4720284Z ##[error]No files were found with the provided path: dist/producer-build-recipe.json",
+          "696: dist/producer-build-sample.json. No artifacts will be uploaded.",
+          "697: 2026-10-29T19:47:25.4891846Z Post job cleanup."
+        ]
+      }
+    ],
+    "ok": true,
+    "summary": "# PR #2064 failed CI logs\n\n## producer-build\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942346872/job/123688708588\n\n/home/paudley/Active/gmeow-ontology/.worktrees/2061-preserve-complete-modal-instruction/.stage/preserve-complete-modal-instruction/ci-logs/github-job-123688708588.log\n442: 2026-10-29T19:46:36.5220108Z bail() {\n443: 2026-10-29T19:46:36.5220366Z   printf '::error::install-action: %s\\n' \"$*\"\n444: 2026-10-29T19:46:36.5220675Z   exit 1\n445: 2026-10-29T19:46:36.5220869Z }\n668: 2026-10-29T19:47:25.3155031Z make: *** [Makefile:334: producer-recipe] Error 1\n669: 2026-10-29T19:47:25.3171860Z ##[error]Process completed with exit code 2.\n670: 2026-10-29T19:47:25.3254124Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n671: 2026-10-29T19:47:25.3254552Z with:\n694: 2026-10-29T19:47:25.4706794Z The least common ancestor is /home/runner/work/gmeow-ontology/gmeow-ontology/dist. This will be the root directory of the artifact\n695: 2026-10-29T19:47:25.4720284Z ##[error]No files were found with the provided path: dist/producer-build-recipe.json\n696: dist/producer-build-sample.json. No artifacts will be uploaded.\n697: 2026-10-29T19:47:25.4891846Z Post job cleanup.\n\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

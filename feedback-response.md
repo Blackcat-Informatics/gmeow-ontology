@@ -1,0 +1,5 @@
+The PR description now follows the repository's Summary, Validation, Checklist and Notes template, with each applicable command/result and each unrun or inapplicable item explicit.
+
+The module-declaration conflict is resolved at 81730ede9167cd15994f1ac2ebbd9d2358a74b81 by retaining both execution_cbor and instruction_json. The combined source passed the same three behavioral controls, all-target warnings-denied checks for four consumers, helper hygiene, static recipe and normal signed hooks; independent integration review found no coupling issue.
+
+The generic docstring-coverage suggestion is declined. These private implementations project the documented ToJson trait onto an internal key format; method comments repeating enum tags and field names would duplicate the implementation. Module documentation states the admitted-DAG boundary, and literal old-key references plus existing proof/budget controls provide the relevant evidence. No code defect or architecture concern was identified by the hosted source review; its original-head/comparison-baseline limits remain explicit.
