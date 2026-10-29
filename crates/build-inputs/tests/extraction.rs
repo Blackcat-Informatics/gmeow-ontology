@@ -9,6 +9,7 @@ mod native_json;
 
 use purrdf_lex::json::{self, record::ToJson};
 
+/// Pin actual CLI packets and require extracted source bodies to remain exact.
 #[test]
 fn module_extraction_preserves_exact_bodies_paths_and_module_names() {
     let root = tempfile::tempdir().unwrap();
@@ -76,6 +77,7 @@ fn module_extraction_preserves_exact_bodies_paths_and_module_names() {
     );
 }
 
+/// Reject malformed evidence and changed plans before source modification.
 #[test]
 fn changing_the_plan_body_or_original_input_refuses_application() {
     let root = tempfile::tempdir().unwrap();
@@ -195,6 +197,7 @@ fn changing_the_parent_declaration_or_production_bytes_refuses_application() {
     }
 }
 
+/// Preserve historical formatter records and reject changes beyond formatting.
 #[test]
 fn formatter_evidence_accepts_spacing_but_rejects_assertion_or_path_changes() {
     let root = tempfile::tempdir().unwrap();

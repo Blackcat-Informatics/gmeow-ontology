@@ -10,6 +10,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record},
 };
 
+/// Read exactly two typed entries while preserving element diagnostics.
 fn pair<T>(
     value: &Value,
     expected: &str,
@@ -27,6 +28,7 @@ fn range(value: &Value) -> Result<[usize; 2], DecodeError> {
     })
 }
 
+/// Decode complete function-name and body-digest evidence pairs.
 fn function_bodies(value: &Value) -> Result<Vec<(String, String)>, DecodeError> {
     purrdf_lex::json::record::items_with(value, |value| {
         pair(value, "a function name and digest pair", String::from_json)
@@ -41,6 +43,7 @@ fn function_bodies(value: &Value) -> Result<Vec<(String, String)>, DecodeError> 
 }}
 
 impl FromJson for Replacement {
+    /// Decode replacement contents and the optional original-file commitment.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct Replacement")?;
         Ok(Self {
@@ -63,6 +66,7 @@ impl FromJson for Replacement {
 }}
 
 impl FromJson for Preservation {
+    /// Decode exact ranges and complete body-preservation evidence.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct Preservation")?;
         Ok(Self {
@@ -86,6 +90,7 @@ impl FromJson for Preservation {
 }}
 
 impl FromJson for ExtractionPlan {
+    /// Read the complete reviewable plan with its existing open field profile.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct ExtractionPlan")?;
         Ok(Self {
@@ -107,6 +112,7 @@ impl FromJson for ExtractionPlan {
 }}
 
 impl FromJson for FormattedPreservation {
+    /// Read every formatter identity and source commitment verbatim.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct FormattedPreservation")?;
         Ok(Self {

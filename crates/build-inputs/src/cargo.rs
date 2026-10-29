@@ -110,6 +110,7 @@ impl ProductionSelection {
     }
 }
 
+/// Commit the selected Cargo manifests, configuration and exact external lock records.
 pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Result<()> {
     let profiles = production_profiles(workspace)?;
     let manifests: BTreeSet<_> = inventory

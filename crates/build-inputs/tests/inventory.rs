@@ -558,6 +558,7 @@ fn actual_compiler_reads_must_equal_declared_workspace_inputs() {
     );
 }
 
+/// Bind exact Cargo packets, selected registry identity and finite semantic inputs.
 #[test]
 fn selected_registry_identity_and_feature_resolution_are_binding() {
     let root = fixture("pub fn production() {}\n");
@@ -942,6 +943,7 @@ fn generated_compiler_inputs_are_bound_outside_the_checkout_to_their_owner() {
     );
 }
 
+/// Keep the native identity portable and independent of excluded test changes.
 #[test]
 fn native_semantic_contract_is_portable_and_omits_external_tests() {
     use gmeow_build_inputs::NativeSources;
@@ -2255,6 +2257,7 @@ fn tracing_extern_crate_scope_keeps_genuine_and_inactive_owners() {
     }
 }
 
+/// Reject dependency declarations that cannot prove tracing macro ownership.
 #[test]
 fn portable_tracing_requires_registry_package_identity() {
     for nested in [false, true] {
@@ -2367,6 +2370,7 @@ fn portable_tracing_preserves_registry_aliases_and_workspace_declarations() {
     }
 }
 
+/// Reach each precise ownership refusal through valid local fixture paths.
 #[test]
 fn portable_tracing_refuses_source_overrides_and_ambiguous_target_owners() {
     for (dependency, manifest_extra, workspace_extra, config, expected) in [
@@ -2607,6 +2611,7 @@ fn controller_profile_code_selection_is_owned_without_developer_optimization_chu
     );
 }
 
+/// Refuse ambiguous absolute macro owners before they can hide embedded sources.
 #[test]
 fn rust_2015_tracing_names_never_hide_embedded_source() {
     for alias in ["tracing", "telemetry"] {

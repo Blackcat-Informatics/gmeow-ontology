@@ -15,6 +15,7 @@ pub(super) fn encode(value: &toml::Value) -> Result<Vec<u8>> {
     Ok(record::to_vec(&project(value)?))
 }
 
+/// Project supported TOML values while retaining nested refusal locations.
 fn project(value: &toml::Value) -> Result<Value> {
     match value {
         toml::Value::String(value) => Ok(value.to_json()),

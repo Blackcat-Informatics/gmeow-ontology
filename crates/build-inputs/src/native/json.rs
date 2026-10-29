@@ -15,6 +15,7 @@ use purrdf_lex::json::{
 }}
 
 impl FromJson for NativeSources {
+    /// Read both required source maps with the existing open record profile.
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct NativeSources")?;
         Ok(Self {

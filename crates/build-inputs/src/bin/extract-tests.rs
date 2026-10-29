@@ -13,6 +13,7 @@ use purrdf_lex::json::{
     record::{self, ToJson},
 };
 
+/// Dispatch offline inventory, extraction, application and formatting evidence operations.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
     if args.len() != 4 {
