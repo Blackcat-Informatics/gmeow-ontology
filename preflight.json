@@ -1,0 +1,153 @@
+{
+  "issue": 2056,
+  "pr_number": 2058,
+  "branch": "paudley/2056-preserve-complete-scoped-witness",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2056-preserve-complete-scoped-witness/.stage/preserve-complete-scoped-witness",
+  "observed_at": "2026-10-29T17:11:22.692724+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2056-preserve-complete-scoped-witness/.stage/preserve-complete-scoped-witness/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2056-preserve-complete-scoped-witness/.stage/preserve-complete-scoped-witness/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2056-preserve-complete-scoped-witness/.stage/preserve-complete-scoped-witness/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2056-preserve-complete-scoped-witness/.stage/preserve-complete-scoped-witness/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2056-preserve-complete-scoped-witness/.stage/preserve-complete-scoped-witness/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "87491bb76555df09ff7451bc68bd6e31ef134fd4",
+    "headRefName": "paudley/2056-preserve-complete-scoped-witness",
+    "headRefOid": "3edf2a930c296c99d0972528bd9af8c7665e8d73",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2058,
+    "state": "OPEN",
+    "title": "Use native JSON for complete scoped witness receipts",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2058"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40918634114/job/123605529898",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40918634114/job/123605529188",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40918634114/job/123605529739",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40918634114/job/123605529646",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2058",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "3edf2a930c296c99d0972528bd9af8c7665e8d73",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "5a27f6243702b50c79f56045636061b486cb37e6b4c36d36d02821c04a6ecc68"
+  },
+  "local": {
+    "head": "3edf2a930c296c99d0972528bd9af8c7665e8d73",
+    "branch": "paudley/2056-preserve-complete-scoped-witness",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2058,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2058 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 15,
+      "bytes": 39182,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "87491bb76555df09ff7451bc68bd6e31ef134fd4",
+      "head": "3edf2a930c296c99d0972528bd9af8c7665e8d73",
+      "status": "clean"
+    }
+  }
+}
