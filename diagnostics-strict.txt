@@ -1,0 +1,85 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy -p gmeow-dev-cli -p gmeow-pipeline --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on build directory
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/errors)
+   Compiling gmeow-logic v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1777-deps-move-gmeow-owned-serde-cbor/crates/logic)
+error: redundant closure
+   --> crates/errors/src/cbor.rs:368:34
+    |
+368 | ...                   .map(|value| read_finding(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_finding`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+    = note: `-D clippy::redundant-closure` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::redundant_closure)]`
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:382:34
+    |
+382 | ...                   .map(|value| read_rule(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_rule`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:709:34
+    |
+709 | ...                   .map(|value| read_location(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_location`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:725:34
+    |
+725 | ...                   .map(|value| read_location(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_location`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:741:34
+    |
+741 | ...                   .map(|value| read_related_label(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_related_label`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:771:34
+    |
+771 | ...                   .map(|value| read_advice(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_advice`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:787:34
+    |
+787 | ...                   .map(|value| read_remediation(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_remediation`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:967:34
+    |
+967 | ...                   .map(|value| read_diagnostic_attribution(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_diagnostic_attribution`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: redundant closure
+   --> crates/errors/src/cbor.rs:997:34
+    |
+997 | ...                   .map(|value| read_guidance(value))
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `read_guidance`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
+
+error: could not compile `gmeow-errors` (lib) due to 9 previous errors
+warning: build failed, waiting for other jobs to finish...
+make: *** [Makefile:289: clippy-prebuild] Error 101
