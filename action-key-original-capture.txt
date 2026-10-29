@@ -1,0 +1,26 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-action-cache --lib -E 'test(action_key_sorts_inputs_and_binds_dimensions)' --success-output immediate --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [optimized] target(s) in 0.15s
+────────────
+ Nextest run ID bd362d88-0bde-472c-949f-0dcef88bc223 with nextest profile: ci
+    Starting 1 test across 1 binary (24 tests skipped)
+        PASS [   0.004s] (1/1) gmeow-action-cache tests::action_key_sorts_inputs_and_binds_dimensions
+  stdout ───
+
+    running 1 test
+    ACTION-REFERENCE|empty|87fa1b553e7545ace927de4e6383c133f2404d0ac2e3429ec60c2a0f78a40396|{"schema_version":1,"domain":"test","action":"x","implementation":{"digest":"producer","toolchain":null,"target":null,"profile":null,"features":[]},"codec":"json-v1","inputs":[],"dimensions":{}}
+    ACTION-REFERENCE|rich|a12e9e4bff058020a3d96e6540800a152013ee74b66df1988d7e9384a18223bc|{"schema_version":1,"domain":"domain/é中😀\n\"\\","action":"action\t\r\u0000","implementation":{"digest":"producer-identity","toolchain":"compiler","target":"target","profile":"profile","features":["a","z"]},"codec":"codec","inputs":[{"kind":"upstream","producer":"upstream","entity":null,"receipt_digest":null,"product_digest":"product"},{"kind":"upstream","producer":"upstream","entity":"urn:entity","receipt_digest":"receipt","product_digest":"product"},{"kind":"raw","logical_path":"aggregate","file_kind":"aggregate","executable":false,"digest":"aggregate-digest"},{"kind":"raw","logical_path":"file","file_kind":"file","executable":false,"digest":"file-digest"},{"kind":"raw","logical_path":"symlink","file_kind":"symlink","executable":true,"digest":"symlink-digest"}],"dimensions":{"a":"é中😀\u001f\b\f","z":"last"}}
+    ACTION-REFERENCE|raw|160870cce3cfce30b9c85ab02baeb3bde2dedf8598b68f39fe0c423157fabd9b|{"schema_version":4294967295,"domain":"domain/é中😀\n\"\\","action":"action\t\r\u0000","implementation":{"digest":"producer-identity","toolchain":"compiler","target":"target","profile":"profile","features":["z","a","z"]},"codec":"codec","inputs":[{"kind":"raw","logical_path":"symlink","file_kind":"symlink","executable":true,"digest":"symlink-digest"},{"kind":"raw","logical_path":"file","file_kind":"file","executable":false,"digest":"file-digest"},{"kind":"raw","logical_path":"aggregate","file_kind":"aggregate","executable":false,"digest":"aggregate-digest"},{"kind":"upstream","producer":"upstream","entity":"urn:entity","receipt_digest":"receipt","product_digest":"product"},{"kind":"upstream","producer":"upstream","entity":null,"receipt_digest":null,"product_digest":"product"},{"kind":"raw","logical_path":"symlink","file_kind":"symlink","executable":true,"digest":"symlink-digest"}],"dimensions":{"a":"é中😀\u001f\b\f","z":"last"}}
+    test tests::action_key_sorts_inputs_and_binds_dimensions ... ok
+
+    test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 24 filtered out; finished in 0.00s
+
+
+────────────
+     Summary [   0.005s] 1 test run: 1 passed, 24 skipped

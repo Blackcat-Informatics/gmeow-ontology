@@ -1,0 +1,61 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-action-cache --lib -E 'test(action_key_sorts_inputs_and_binds_dimensions)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+   Compiling unicode-ident v1.0.24
+   Compiling serde_core v1.0.229
+   Compiling quote v1.0.47
+   Compiling proc-macro2 v1.0.107
+   Compiling version_check v0.9.5
+   Compiling serde v1.0.229
+   Compiling typenum v1.20.1
+   Compiling hashbrown v0.17.1
+   Compiling zmij v1.0.23
+   Compiling equivalent v1.0.2
+   Compiling winnow v1.0.4
+   Compiling libc v0.2.189
+   Compiling cfg-if v1.0.4
+   Compiling toml_write v0.1.2
+   Compiling rustix v1.1.4
+   Compiling serde_json v1.0.151
+   Compiling winnow v0.7.15
+   Compiling getrandom v0.4.3
+   Compiling bitflags v2.13.1
+   Compiling memchr v2.8.3
+   Compiling cpufeatures v0.2.17
+   Compiling linux-raw-sys v0.12.1
+   Compiling itoa v1.0.18
+   Compiling generic-array v0.14.7
+   Compiling glob v0.3.4
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling indexmap v2.14.0
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling syn v2.0.119
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling serde_spanned v1.1.1
+   Compiling digest v0.10.7
+   Compiling toml v1.1.3+spec-1.1.0
+   Compiling sha2 v0.10.9
+   Compiling syn v3.0.3
+   Compiling tempfile v3.27.0
+   Compiling serde_derive v1.0.229
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling cargo-config2 v0.1.45
+   Compiling toml_edit v0.22.27
+   Compiling toml v0.8.23
+   Compiling gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/build-inputs)
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/action-cache)
+    Finished `test` profile [optimized] target(s) in 23.29s
+────────────
+ Nextest run ID bb586335-b423-458e-b359-1ece5a6b4a8f with nextest profile: ci
+    Starting 1 test across 1 binary (24 tests skipped)
+        PASS [   0.006s] (1/1) gmeow-action-cache tests::action_key_sorts_inputs_and_binds_dimensions
+────────────
+     Summary [   0.020s] 1 test run: 1 passed, 24 skipped
