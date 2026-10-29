@@ -3,6 +3,8 @@
 
 //! Complete report ownership across producer release and snapshot consumption.
 
+mod cbor;
+
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -14,9 +16,7 @@ use crate::stages::carrier::GRAPH_DIAGNOSTICS;
 
 /// The closed report inventory consumed by documentation. There are at most two
 /// owners; neither a tool label nor an arbitrary stage can create another owner.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DiagnosticReportOwner {
     /// Compiler findings, including the complete source-attributed loss report.
     CompileLogic,
@@ -37,9 +37,8 @@ impl DiagnosticReportOwner {
 /// Immutable, final rich reports selected from the diagnostic graph's producers.
 /// Gate/meta RDF conclusions can extend the backing graph; this publication does
 /// not claim that its reports reconstruct every row of the snapshot's union.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug)]
 pub struct DiagnosticsPublication {
-    #[serde(deserialize_with = "deserialize_reports")]
     pub(crate) reports: BTreeMap<DiagnosticReportOwner, Arc<Report>>,
 }
 
@@ -107,35 +106,6 @@ impl DiagnosticsPublication {
         }
         Ok(())
     }
-}
-
-/// Reject duplicate encoded owners rather than silently replacing a report while
-/// decoding a map. The enum itself bounds the admitted map to two entries.
-fn deserialize_reports<'de, D: serde::Deserializer<'de>>(
-    deserializer: D,
-) -> Result<BTreeMap<DiagnosticReportOwner, Arc<Report>>, D::Error> {
-    struct Reports;
-    impl<'de> serde::de::Visitor<'de> for Reports {
-        type Value = BTreeMap<DiagnosticReportOwner, Arc<Report>>;
-        fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            formatter.write_str("distinct native diagnostic report owners")
-        }
-        fn visit_map<A: serde::de::MapAccess<'de>>(
-            self,
-            mut map: A,
-        ) -> Result<Self::Value, A::Error> {
-            let mut reports = BTreeMap::new();
-            while let Some((owner, report)) = map.next_entry()? {
-                if reports.insert(owner, report).is_some() {
-                    return Err(serde::de::Error::custom(
-                        "duplicate native diagnostic report owner",
-                    ));
-                }
-            }
-            Ok(reports)
-        }
-    }
-    deserializer.deserialize_map(Reports)
 }
 
 /// Pin the exact report publication to the already produced diagnostic graph.
@@ -226,7 +196,7 @@ pub(crate) fn snapshot_diagnostics(
 
 /// Attribute publication or admission refusal through the pipeline decode kind.
 fn error(message: String) -> Diag {
-    Diag::of_kind(crate::error::Decode { message })
+    Diag::of_kind(crate::error::Decode::new(message))
 }
 
 #[cfg(test)]

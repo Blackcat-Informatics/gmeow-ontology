@@ -339,9 +339,9 @@ impl StageProduct {
     pub fn span_index(&self) -> gmeow_errors::Result<crate::ingest::SpanIndex> {
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_SPAN_TABLE) {
             Some(bytes) => purrdf_lex::json::record::from_slice(bytes).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("source-span table blob JSON: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "source-span table blob JSON: {e}"
+                )))
             }),
             None => Err(gmeow_errors::Diag::of_kind(
                 crate::error::SpanTableConsumedAfterDrop {

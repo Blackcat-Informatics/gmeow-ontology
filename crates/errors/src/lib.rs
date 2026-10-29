@@ -18,6 +18,7 @@
 mod snapshot_test_support;
 
 pub mod abox;
+pub mod cbor;
 pub mod code;
 pub mod dag;
 pub mod diag;
