@@ -432,7 +432,9 @@ pub enum Commands {
     /// natively over the purrdf DL reasoner. Emits every established subsumption
     /// (`subsumption C D`), the transitive reduction (`direct C D`), every
     /// equivalence (`equivalence C D`), every class forced empty (`unsatisfiable C`),
-    /// and the run's completeness + measured cost. Syntax is inferred from the file's
+    /// and the run's completeness + measured cost. The transitive reduction is
+    /// emitted only for a fully decided run; otherwise it is withheld with an
+    /// `owl-directness-unavailable` diagnostic. Syntax is inferred from the file's
     /// extension.
     Classify {
         /// The ontology RDF graph to classify.
@@ -447,7 +449,9 @@ pub enum Commands {
     /// Realize an ontology: print the entailed types of its named individuals,
     /// natively over the purrdf DL reasoner. Emits every established type
     /// (`type a C`), the most-specific ones (`direct-type a C`), and the run's
-    /// completeness + measured cost. Syntax is inferred from the file's extension.
+    /// completeness + measured cost. Most-specific types are emitted only for a fully
+    /// decided run; otherwise they are withheld with an `owl-directness-unavailable`
+    /// diagnostic. Syntax is inferred from the file's extension.
     Realize {
         /// The ontology RDF graph to realize.
         ontology: PathBuf,
