@@ -16,12 +16,39 @@ use std::path::{Path, PathBuf};
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
-#[derive(serde::Deserialize)]
 struct Observation {
     verdict: gmeow_logic::reason::DlVerdict,
 }
 
-type Observations = BTreeMap<String, Result<Observation, gmeow_errors::RecordedDiag>>;
+impl purrdf_lex::json::record::FromJson for Observation {
+    /// Decode only this consumer's selected evidence with raw typed admission.
+    fn from_json(
+        value: &purrdf_lex::json::Value,
+    ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
+        let mut fields = purrdf_lex::json::record::Record::new(value, "struct Observation")?;
+        // This consumer projects only the verdict; world census belongs to its producer.
+        Ok(Self {
+            verdict: fields.required("verdict")?,
+        })
+    }
+}
+
+struct RecordedObservation(Result<Observation, gmeow_errors::RecordedDiag>);
+impl purrdf_lex::json::record::FromJson for RecordedObservation {
+    /// Decode only this consumer's selected evidence with raw typed admission.
+    fn from_json(
+        value: &purrdf_lex::json::Value,
+    ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
+        gmeow_errors::json::read_recorded_result(
+            value,
+            "consistency observation outcome",
+            "one consistency observation outcome variant",
+        )
+        .map(Self)
+    }
+}
+
+type Observations = BTreeMap<String, RecordedObservation>;
 
 /// Resolve exactly one source member from the two disjoint native-profiled and
 /// divergence inventories. Missing or duplicate ownership fails before loading
@@ -55,7 +82,7 @@ pub fn native_token(slug: &str) -> String {
             "pipeline/native-consistency-observations.json",
         )
         .expect("exact producer-selected consistency observations");
-        serde_json::from_slice(&bytes).expect("typed consistency observations")
+        purrdf_lex::json::record::from_slice(&bytes).expect("typed consistency observations")
     });
     let input = case_input(slug)
         .canonicalize()
@@ -67,6 +94,7 @@ pub fn native_token(slug: &str) -> String {
     let verdict = &observations
         .get(key.as_ref())
         .unwrap_or_else(|| panic!("missing selected observation for {slug}"))
+        .0
         .as_ref()
         .unwrap_or_else(|error| panic!("native observation failed for {slug}: {error}"))
         .verdict;

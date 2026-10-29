@@ -13,6 +13,7 @@ use gmeow_logic::reason::DlVerdict;
 
 type Observations = BTreeMap<String, Result<Observation, gmeow_errors::RecordedDiag>>;
 
+/// Read the exact selected consistency outcome without executing its producer.
 pub fn native_verdict(input_nq: &Path) -> Result<DlVerdict, gmeow_errors::RecordedDiag> {
     static OBSERVATIONS: OnceLock<Result<Observations, gmeow_errors::Diag>> = OnceLock::new();
     let observations = OBSERVATIONS
@@ -23,7 +24,8 @@ pub fn native_verdict(input_nq: &Path) -> Result<DlVerdict, gmeow_errors::Record
                 super::super::execution::CONSISTENCY_CHANNEL,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)
+            gmeow_conformance::consistency::recorded_observations_from_bytes(&bytes)
+                .map_err(gmeow_errors::Diag::from)
         })
         .as_ref()
         .unwrap_or_else(|error| panic!("authenticated consistency observations: {error}"));
