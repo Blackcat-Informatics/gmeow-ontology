@@ -7,13 +7,19 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
+use gmeow_errors::DiagKind as _;
 use purrdf::TermValue;
+use purrdf_lex::json::record::{FromJson, ToJson};
 
 use crate::facts::skolem_iri;
 use crate::rule_ir::{DerivedRow, Fact, FactKey};
 use gmeow_term_arena::engine::native_term_key;
 
 use super::RelationStore;
+
+mod json;
+
+const WIRE_PREFIX: &str = "gmeow-witness-v2:";
 
 /// A streamed, typed debug commitment to immutable native execution metadata.
 /// Source terms retain their full values; no RDF serialization or term IDs enter it.
@@ -195,24 +201,27 @@ impl WitnessDerivation {
     /// Versioned output receipt. There is no legacy unscoped admission path.
     pub fn to_wire(&self) -> gmeow_errors::Result<String> {
         self.validate()?;
-        serde_json::to_string(self)
-            .map(|json| format!("gmeow-witness-v2:{json}"))
-            .map_err(|error| {
-                gmeow_errors::Diag::of_kind(crate::error::Physical {
-                    detail: format!("native witness receipt encoding: {error}"),
-                })
-            })
+        let value = self.to_json();
+        let mut resident = purrdf_lex::allocation::Resident;
+        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+        purrdf_lex::json::write_with_memory(&value, purrdf_lex::json::Format::COMPACT, &mut memory)
+            .map(|json| format!("{WIRE_PREFIX}{json}"))
+            .map_err(|error| wire_error("native witness receipt encoding", error))
     }
 
     /// Decode an explicit receipt and check its address and proof framing. This is
     /// intrinsic validation, not independent certification of a supplied source.
+    /// Records require every declared named member; unknown members, duplicate
+    /// fields and positional struct arrays are refused.
     pub fn from_wire(wire: &str) -> gmeow_errors::Result<Self> {
         let fail = |detail: String| gmeow_errors::Diag::of_kind(crate::error::Physical { detail });
         let json = wire
-            .strip_prefix("gmeow-witness-v2:")
+            .strip_prefix(WIRE_PREFIX)
             .ok_or_else(|| fail("unsupported native witness receipt version".to_owned()))?;
-        let witness: Self = serde_json::from_str(json)
-            .map_err(|error| fail(format!("native witness receipt decoding: {error}")))?;
+        let value = purrdf_lex::json::read(json)
+            .map_err(|error| wire_error("native witness receipt decoding", error))?;
+        let witness = Self::from_json(&value)
+            .map_err(|error| wire_error("native witness receipt decoding", error))?;
         witness.validate()?;
         Ok(witness)
     }
@@ -270,6 +279,21 @@ impl WitnessDerivation {
         }
         Ok(())
     }
+}
+
+fn wire_error(
+    operation: &str,
+    source: impl std::error::Error + Send + Sync + 'static,
+) -> gmeow_errors::Diag {
+    let kind = crate::error::Physical {
+        detail: format!("{operation}: {source}"),
+    };
+    let mut diagnostic =
+        gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(source);
+    if let Some(class) = kind.failure_class() {
+        diagnostic = diagnostic.with_failure_class(class);
+    }
+    diagnostic
 }
 
 mod frontier_serde {
