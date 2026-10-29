@@ -44,6 +44,8 @@ impl AxisEvidence {
 
     /// Complete reference identity; this contains no inferred numerical value.
     pub fn content_key(&self) -> String {
-        serde_json::to_string(self).expect("typed axis evidence serialization is infallible")
+        use purrdf_lex::json::record::ToJson as _;
+
+        purrdf_lex::json::write_compact(&self.to_json())
     }
 }
