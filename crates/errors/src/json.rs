@@ -173,6 +173,21 @@ pub fn read_recorded_result<T: FromJson>(
     }
 }
 
+/// A complete producer outcome admitted at a native JSON boundary.
+/// Readers unwrap the result after hydration; the recorded failure is retained verbatim.
+#[derive(Debug)]
+pub struct RecordedOutcome<T>(
+    /// The complete typed success or owned recorded diagnostic.
+    pub Result<T, crate::RecordedDiag>,
+);
+
+impl<T: FromJson> FromJson for RecordedOutcome<T> {
+    /// Hydrate the singleton outcome through the shared recorded-result reader.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        read_recorded_result(value, "recorded outcome", "one recorded outcome variant").map(Self)
+    }
+}
+
 /// Write a producer outcome with the same singleton tags as its recorded-result reader.
 /// The failure payload is always the complete owned RecordedDiag, including causes.
 #[must_use]

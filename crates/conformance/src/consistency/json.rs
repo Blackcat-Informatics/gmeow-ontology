@@ -4,7 +4,7 @@
 //! Native selected consistency observations; unknown record fields remain open.
 
 use super::Observation;
-use gmeow_errors::RecordedDiag;
+use gmeow_errors::{RecordedDiag, json::RecordedOutcome};
 use purrdf_lex::json::{
     Value,
     record::{DecodeError, FromJson, Record, Within},
@@ -41,19 +41,6 @@ impl FromJson for Observation {
     }
 }
 
-struct RecordedObservation(Result<Observation, RecordedDiag>);
-impl FromJson for RecordedObservation {
-    /// Hydrate the complete typed record without normalizing its fields.
-    fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        gmeow_errors::json::read_recorded_result(
-            value,
-            "consistency observation outcome",
-            "one consistency observation outcome variant",
-        )
-        .map(Self)
-    }
-}
-
 /// Hydrate complete keyed observations without normalizing their typed records.
 ///
 /// # Errors
@@ -61,7 +48,7 @@ impl FromJson for RecordedObservation {
 pub fn recorded_observations_from_bytes(
     bytes: &[u8],
 ) -> Result<BTreeMap<String, Result<Observation, RecordedDiag>>, DecodeError> {
-    let outcomes: BTreeMap<String, RecordedObservation> =
+    let outcomes: BTreeMap<String, RecordedOutcome<Observation>> =
         purrdf_lex::json::record::from_slice(bytes)?;
     Ok(outcomes
         .into_iter()

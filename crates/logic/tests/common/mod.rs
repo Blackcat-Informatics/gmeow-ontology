@@ -33,22 +33,7 @@ impl purrdf_lex::json::record::FromJson for Observation {
     }
 }
 
-struct RecordedObservation(Result<Observation, gmeow_errors::RecordedDiag>);
-impl purrdf_lex::json::record::FromJson for RecordedObservation {
-    /// Decode only this consumer's selected evidence with raw typed admission.
-    fn from_json(
-        value: &purrdf_lex::json::Value,
-    ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
-        gmeow_errors::json::read_recorded_result(
-            value,
-            "consistency observation outcome",
-            "one consistency observation outcome variant",
-        )
-        .map(Self)
-    }
-}
-
-type Observations = BTreeMap<String, RecordedObservation>;
+type Observations = BTreeMap<String, gmeow_errors::json::RecordedOutcome<Observation>>;
 
 /// Resolve exactly one source member from the two disjoint native-profiled and
 /// divergence inventories. Missing or duplicate ownership fails before loading
