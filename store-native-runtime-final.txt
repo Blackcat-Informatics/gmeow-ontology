@@ -1,0 +1,43 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+unset GMEOW_TEST_FIXTURE_MANIFEST GMEOW_TEST_FIXTURE_MANIFEST_SHA256 && \
+  cargo nextest run --profile ci -p gmeow-action-cache --lib -E 'package(gmeow-action-cache)' --no-tests=fail
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/action-cache)
+    Finished `test` profile [optimized] target(s) in 7.72s
+────────────
+ Nextest run ID fd8b75c2-7c1c-4402-9a40-12b01c4b618e with nextest profile: ci
+    Starting 25 tests across 1 binary
+        PASS [   0.005s] ( 1/25) gmeow-action-cache tests::inert_coordination_builds_without_touching_the_filesystem
+        PASS [   0.005s] ( 2/25) gmeow-action-cache executable::tests::executable_and_recipe_substitution_are_rejected
+        PASS [   0.005s] ( 3/25) gmeow-action-cache executable::tests::compilation_policy_and_executable_source_have_separate_identities
+        PASS [   0.005s] ( 4/25) gmeow-action-cache tests::blob_growth_is_refused_at_its_receipt_size_before_read_or_verification
+        PASS [   0.005s] ( 5/25) gmeow-action-cache tests::action_key_sorts_inputs_and_binds_dimensions
+        PASS [   0.005s] ( 6/25) gmeow-action-cache selection::source_artifacts::tests::selected_exports_require_exact_selector_membership_and_parent_commitments
+        PASS [   0.005s] ( 7/25) gmeow-action-cache tests::election_rechecks_before_building
+        PASS [   0.006s] ( 8/25) gmeow-action-cache executable::tests::runtime_source_admission_is_portable_across_cargo_environments
+        PASS [   0.006s] ( 9/25) gmeow-action-cache selection::source_artifacts::tests::source_identity_drift_cannot_reuse_or_rebuild_an_older_export
+        PASS [   0.006s] (10/25) gmeow-action-cache executable::tests::source_inventory_detects_new_and_changed_files_but_not_location
+        PASS [   0.012s] (11/25) gmeow-action-cache tests::opening_an_outer_restored_store_enforces_the_current_entry_quota
+        PASS [   0.012s] (12/25) gmeow-action-cache tests::unrelated_store_root_is_refused_without_deleting_anything
+        PASS [   0.012s] (13/25) gmeow-action-cache tests::zero_or_inverted_store_limits_are_rejected
+        PASS [   0.012s] (14/25) gmeow-action-cache selection::tests::selector_admission_requires_the_supplied_digest_and_current_schema
+        PASS [   0.005s] (15/25) gmeow-action-cache tests::obsolete_format_roots_are_collected_only_after_live_leases_end
+        PASS [   0.005s] (16/25) gmeow-action-cache tests::total_quota_counts_receipts_as_well_as_unique_blobs
+        PASS [   0.005s] (17/25) gmeow-action-cache tests::existing_open_modes_separate_read_only_consumers_from_writable_workers
+        PASS [   0.013s] (18/25) gmeow-action-cache selection::source_artifacts::tests::selected_exports_fail_closed_on_corrupt_or_missing_store_content
+        PASS [   0.012s] (19/25) gmeow-action-cache tests::symlinked_blob_hard_fails_even_when_target_bytes_match
+        PASS [   0.012s] (20/25) gmeow-action-cache tests::structured_payload_receipt_is_canonical_across_generic_gc_reads
+        PASS [   0.013s] (21/25) gmeow-action-cache tests::same_key_divergence_and_tampered_blob_hard_fail
+        PASS [   0.007s] (22/25) gmeow-action-cache tests::malformed_receipt_missing_blob_and_wrong_root_hard_fail
+        PASS [   0.019s] (23/25) gmeow-action-cache tests::cold_publish_and_warm_read_share_one_receipt
+        PASS [   0.056s] (24/25) gmeow-action-cache tests::quota_gc_waits_for_live_reader_and_collects_only_unreachable_blobs
+        PASS [   0.106s] (25/25) gmeow-action-cache tests::store_inventory_waits_for_atomic_publication_before_scanning_temporary_paths
+────────────
+     Summary [   0.115s] 25 tests run: 25 passed, 0 skipped

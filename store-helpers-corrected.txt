@@ -1,0 +1,4 @@
+cargo run -q --locked -p helper-census -- --self-test
+error: cannot update the lock file /home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/Cargo.lock because --locked was passed to prevent this
+help: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.
+make: *** [Makefile:649: helpers-hygiene] Error 101

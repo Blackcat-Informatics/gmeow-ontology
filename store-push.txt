@@ -1,0 +1,10 @@
+remote: 
+remote: Create a pull request for 'paudley/1776-deps-replace-serde-serde-json-with' on GitHub by visiting:        
+remote:      https://github.com/Blackcat-Informatics/gmeow-ontology/pull/new/paudley/1776-deps-replace-serde-serde-json-with        
+remote: 
+remote: GitHub found 36 vulnerabilities on Blackcat-Informatics/gmeow-ontology's default branch (2 critical, 15 high, 14 moderate, 5 low). To find out more, visit:        
+remote:      https://github.com/Blackcat-Informatics/gmeow-ontology/security/dependabot        
+remote: 
+To ssh://ssh.github.com:443/Blackcat-Informatics/gmeow-ontology.git
+ * [new branch]          paudley/1776-deps-replace-serde-serde-json-with -> paudley/1776-deps-replace-serde-serde-json-with
+branch 'paudley/1776-deps-replace-serde-serde-json-with' set up to track 'origin/paudley/1776-deps-replace-serde-serde-json-with'.

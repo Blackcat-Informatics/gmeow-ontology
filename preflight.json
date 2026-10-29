@@ -1,0 +1,164 @@
+{
+  "issue": 1776,
+  "pr_number": 2065,
+  "branch": "paudley/1776-deps-replace-serde-serde-json-with",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with",
+  "observed_at": "2026-10-29T19:39:25.225637+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/.stage/deps-replace-serde-serde-json-with/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "6be450a040b8d591365648456cbef88acd687843",
+    "headRefName": "paudley/1776-deps-replace-serde-serde-json-with",
+    "headRefOid": "b2093d7a7e64fdc3cbe6263bdb7104422b71e809",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2065,
+    "state": "OPEN",
+    "title": "Persist complete action receipts with native JSON",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2065"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687575726",
+        "name": "producer-build",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687576248",
+        "name": "helpers",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687576064",
+        "name": "lint",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687576175",
+        "name": "rust-prebuild",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2065",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "b2093d7a7e64fdc3cbe6263bdb7104422b71e809",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "0ca06b21fa4b1af5ed582bcc10d2dbce3a0a10ef1851d5383828d185637cdff1"
+  },
+  "local": {
+    "head": "b2093d7a7e64fdc3cbe6263bdb7104422b71e809",
+    "branch": "paudley/1776-deps-replace-serde-serde-json-with",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2065,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2065 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABg9JJCQ",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2065#issuecomment-6506563849",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 25,
+      "bytes": 238756,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "6be450a040b8d591365648456cbef88acd687843",
+      "head": "b2093d7a7e64fdc3cbe6263bdb7104422b71e809",
+      "status": "clean"
+    }
+  }
+}

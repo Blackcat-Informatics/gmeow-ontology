@@ -1,0 +1,50 @@
+./scripts/test-corpus-producer-scanner.sh
+corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced
+./scripts/lint-test-corpus-producers.sh
+test corpus purity OK: named producer seals and supported authored-source flows checked
+cargo clippy -p gmeow-action-cache -p gmeow-bundle-import --all-targets --keep-going -- -D warnings
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Checking either v1.17.0
+    Checking regex-automata v0.4.16
+   Compiling syn v3.0.3
+    Checking tempfile v3.27.0
+    Checking rayon v1.12.0
+    Checking regex v1.13.1
+    Checking purrdf-gts v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-core v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling serde_derive v1.0.229
+    Checking serde v1.0.229
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling cargo-config2 v0.1.45
+    Checking purrdf-geo-kernel v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-sparql-results v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-datalog v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-shex v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-glob v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-mime v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-columnar v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-markdown v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-toml v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-json v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking gmeow-errors v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/errors)
+    Checking toml_edit v0.22.27
+    Checking toml v0.8.23
+    Checking gmeow-build-inputs v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/build-inputs)
+    Checking gmeow-action-cache v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/action-cache)
+    Checking purrdf-entail v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+   Compiling gmeow-bundle-import v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/bundle-import)
+    Checking purrdf-sparql-eval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-rdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-text v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-hnsw v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-geo v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-retrieval v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-slice v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-shapes v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf-validate v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking purrdf v3.0.1 (https://github.com/Blackcat-Informatics/purrdf?rev=223fbd0ef1d295b9b0c7c9e29c789e3b77b0f781#223fbd0e)
+    Checking gmeow-gts-profile v0.3.0 (/home/paudley/Active/gmeow-ontology/.worktrees/1776-deps-replace-serde-serde-json-with/crates/gts-profile)
+    Finished `dev` profile [optimized] target(s) in 2m 01s

@@ -1,0 +1,29 @@
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...............................................................Passed
+check json...........................................(no files to check)Skipped
+check for merge conflicts................................................Passed
+check for case conflicts.................................................Passed
+check for added large files..............................................Passed
+mixed line ending........................................................Passed
+codespell................................................................Passed
+yamllint.............................................(no files to check)Skipped
+Lint GitHub Actions workflow files...................(no files to check)Skipped
+markdownlint-cli2....................................(no files to check)Skipped
+shellcheck...........................................(no files to check)Skipped
+zizmor...............................................(no files to check)Skipped
+Detect hardcoded secrets.................................................Passed
+reject corpus producers reachable from tests.............................Passed
+cargo fmt --check........................................................Passed
+lint issue/PR references.................................................Passed
+[paudley/1776-deps-replace-serde-serde-json-with b2093d7a7] refactor: persist complete action receipts with native JSON
+ 28 files changed, 737 insertions(+), 77 deletions(-)
+ create mode 100644 crates/action-cache/src/fixtures/action-receipt-json-v1.txt
+ create mode 100644 crates/action-cache/src/receipt_json.rs
+ create mode 100644 crates/action-cache/src/selection/source_artifacts/receipt_json.rs
+ create mode 100644 crates/bundle-import/src/action_payload_json.rs
+ create mode 100644 crates/docs-model/src/fixture/action_payload_json.rs
+ create mode 100644 crates/docs/src/fixture/action_payload_json.rs
+ create mode 100644 crates/pipeline/src/cache/receipt_json.rs
+ create mode 100644 crates/pipeline/src/fixture/receipt_payload_json.rs

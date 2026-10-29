@@ -1,0 +1,8 @@
+$ stagectl pr-checks 2065
+NEUTRAL CodeRabbit https://coderabbit.ai?utm_source=cr_app&utm_medium=github
+QUEUED producer-build https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687575726
+QUEUED helpers https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687576248
+QUEUED lint https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687576064
+QUEUED rust-prebuild https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40942021115/job/123687576175
+SUCCESS license/cla https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2065
+state: pending
