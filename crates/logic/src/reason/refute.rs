@@ -61,6 +61,7 @@ pub use casesplit::{
     ClassExecutionOutcome, ClassSourceRefusal, PreparedClassAnalysis,
 };
 
+mod admission_cbor;
 mod admission_json;
 mod list_observation;
 pub use list_observation::{

@@ -304,21 +304,31 @@ fn finance_evaluation_owner_import_retains_list_cells_members_and_override_check
 
 #[test]
 fn finance_evaluation_requires_every_selected_procedural_product() {
-    require_shapes(&shapes()).expect("the complete selected procedural profile is admitted");
+    let complete = shapes();
+    require_shapes(&complete).expect("the complete independent owner fixture is admitted");
     for identity in PROCEDURAL_PRODUCTS {
-        let mut incomplete = shapes();
-        let before = incomplete.node_shapes.len();
+        let mut incomplete = complete.clone();
         incomplete.node_shapes.retain(|shape| {
             !matches!(&shape.id,
             purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
         });
-        assert_eq!(
-            incomplete.node_shapes.len() + 1,
-            before,
-            "remove {identity}"
-        );
         assert!(require_shapes(&incomplete).is_err(), "missing {identity}");
     }
+
+    let selected = complete
+        .node_shapes
+        .iter()
+        .position(|shape| {
+            matches!(&shape.id,
+        purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == PROCEDURAL_PRODUCTS[0])
+        })
+        .expect("the complete owner contains the first required procedural root");
+    let mut disconnected = complete.clone();
+    disconnected.node_shapes[selected].constraints.clear();
+    assert!(
+        require_shapes(&disconnected).is_err(),
+        "a retained definition cannot substitute for the selected root's missing reference"
+    );
 
     #[derive(Debug)]
     enum UnavailableProduct {
@@ -331,36 +341,33 @@ fn finance_evaluation_requires_every_selected_procedural_product() {
         UnavailableProduct::ShapeGuard,
         UnavailableProduct::SparqlGuard,
     ] {
-        let mut changed = shapes();
-        let position = changed
-            .node_shapes
-            .iter()
-            .position(|shape| {
-                matches!(&shape.id, ShapeTerm::NamedNode(iri) if iri.as_str() == PROCEDURAL_PRODUCTS[0])
-            })
-            .unwrap();
-        let root = &changed.node_shapes[position];
-        let id = root.id.clone();
-        let mut definition = root
+        let root = &complete.node_shapes[selected];
+        let mut definitions: Vec<_> = root
             .owner
             .as_ref()
-            .unwrap()
-            .definition(&id)
-            .unwrap()
-            .clone();
+            .expect("the selected native root retains its own definition owner")
+            .definitions()
+            .cloned()
+            .collect();
+        let definition = definitions
+            .iter_mut()
+            .find(|definition| definition.id == root.id)
+            .expect("the owner retains the selected root's exact identity");
         let guard = NodeExpr::Constant(ShapeTerm::Literal(ShapeLiteral::new_typed_literal(
             "true",
             NamedNode::from("http://www.w3.org/2001/XMLSchema#boolean"),
         )));
         match unavailable {
-            UnavailableProduct::Body => definition.constraints.clear(),
+            UnavailableProduct::Body => definition
+                .constraints
+                .retain(|constraint| !matches!(constraint, Constraint::Sparql { .. })),
             UnavailableProduct::ShapeGuard => definition.deactivated_when.push(guard),
             UnavailableProduct::SparqlGuard => {
                 let index = definition
                     .constraints
                     .iter()
                     .position(|constraint| matches!(constraint, Constraint::Sparql { .. }))
-                    .unwrap();
+                    .expect("the original product contains its SPARQL body");
                 definition
                     .constraint_annotations
                     .push(ConstraintAnnotation {
@@ -371,11 +378,16 @@ fn finance_evaluation_requires_every_selected_procedural_product() {
                     });
             }
         }
-        let owner = ModelOwner::from_definitions(vec![definition]).unwrap();
-        changed.node_shapes[position] = owner.root(&id).unwrap();
-        // The untouched catalog still contains the valid original declaration;
-        // admission must follow the actual exported root's owner instead.
-        assert!(require_shapes(&changed).is_err(), "{unavailable:?}");
+        let owner = ModelOwner::from_definitions(definitions)
+            .expect("the independently modified bare definitions form a native owner");
+        let mut unavailable_product = complete.clone();
+        unavailable_product.node_shapes[selected] = owner
+            .root(&root.id)
+            .expect("the native owner exports the unchanged selected identity");
+        assert!(
+            require_shapes(&unavailable_product).is_err(),
+            "the selected root must retain an active SPARQL body in its own owner: {unavailable:?}"
+        );
     }
 }
 

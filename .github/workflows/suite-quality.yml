@@ -44,7 +44,7 @@ jobs:
           toolchain: nightly-2026-09-05
           components: llvm-tools-preview
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - name: Install cargo-llvm-cov + cargo-nextest
         run: |
           cargo install cargo-llvm-cov --locked || cargo install cargo-llvm-cov
@@ -74,7 +74,7 @@ jobs:
         with:
           toolchain: nightly-2026-09-05
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - name: Install cargo-mutants + cargo-nextest
         run: |
           cargo install cargo-mutants --locked || cargo install cargo-mutants
@@ -105,10 +105,10 @@ jobs:
         with:
           toolchain: nightly-2026-09-05
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - name: Run criterion benchmarks
         run: make bench
-      - name: Regression scoreboard vs committed baseline (#668, report-only)
+      - name: Regression scoreboard vs committed baseline (report-only)
         # Advisory: prints a live-vs-baseline scoreboard to the job summary and
         # ALWAYS exits 0 — runner jitter never fails this off-gate lane.
         run: make bench-compare | tee "$GITHUB_STEP_SUMMARY"
@@ -135,9 +135,9 @@ jobs:
         with:
           toolchain: nightly-2026-09-05
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2
+        uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177 # v2
         with:
           tool: cargo-nextest
       - name: Heavy off-gate Rust tests (corpus_parity_heavy_offgate et al.)

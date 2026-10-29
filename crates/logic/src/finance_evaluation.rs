@@ -64,14 +64,24 @@ pub struct FinanceOwner<'a> {
     pub identity: &'a str,
 }
 
-// Native roots retain targets while their original bodies and guards stay with
-// their owner. This profile requires the actual declaration to be active.
+// Exported roots retain targets, while the owning native definition retains
+// constraint bodies and conditional deactivation. Both must be active, and the
+// selected root must actually delegate to its own definition.
 fn active_definition(shape: &Shape) -> Option<&Shape> {
-    if shape.deactivated || !shape.deactivated_when.is_empty() {
+    if shape.deactivated
+        || !shape.deactivated_when.is_empty()
+        || !shape
+            .constraints
+            .iter()
+            .any(|constraint| matches!(constraint, Constraint::Reference(id) if id == &shape.id))
+    {
         return None;
     }
     let definition = shape.owner.as_ref()?.definition(&shape.id)?;
-    (!definition.deactivated && definition.deactivated_when.is_empty()).then_some(definition)
+    if definition.deactivated || !definition.deactivated_when.is_empty() {
+        return None;
+    }
+    Some(definition)
 }
 
 fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
