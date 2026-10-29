@@ -15,6 +15,8 @@ use super::{Diagnostic, FORMULA_SUBLINKS};
 use crate::graphutil::{RDF_REIFIES, RDF_STATEMENT, is_structural_type_predicate};
 use crate::ir::LOGIC_NAMESPACE;
 
+mod cbor;
+
 /// How a source's admitted base IRI was established.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum SourceBaseOrigin {

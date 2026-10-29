@@ -82,7 +82,7 @@ impl SourceCatalog {
                     }),
             })
             .collect();
-        let identity = crate::handle_identity::typed_digest(&("source-catalog-v1", &receipts));
+        let identity = crate::handle_identity::source_catalog_digest(&receipts);
         let composite = CompositeDatasetView::new(
             sources
                 .sources()

@@ -66,6 +66,37 @@ fn relational_core_digest(
     purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
+/// Stream the complete original source-catalog tuple in recorded receipt order.
+/// The version tag, optional base metadata and duplicate receipts are retained.
+///
+/// # Errors
+/// Returns the sink's original failure without reporting partial success.
+pub(crate) fn write_source_catalog_cbor<W: std::io::Write + ?Sized>(
+    receipts: &[gmeow_logic_compile::frontend::SourceDocument],
+    out: &mut W,
+) -> std::io::Result<()> {
+    use purrdf_lex::cbor::head;
+
+    head::write_head(out, head::ARRAY, 2)?;
+    head::write_text(out, "source-catalog-v1")?;
+    head::write_head(out, head::ARRAY, receipts.len() as u64)?;
+    for receipt in receipts {
+        receipt.write_cbor(out)?;
+    }
+    Ok(())
+}
+
+/// Hash the complete original source-catalog tuple without retaining its bytes.
+/// Receipt order and multiplicity remain part of the producer's source identity.
+pub(crate) fn source_catalog_digest(
+    receipts: &[gmeow_logic_compile::frontend::SourceDocument],
+) -> String {
+    let mut sink = TypedDigest::default();
+    write_source_catalog_cbor(receipts, &mut sink)
+        .expect("native source-catalog serialization into an infallible hash sink");
+    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
+}
+
 /// The complete payload identity is independent of its governed RDF projection.
 pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
     let key = match handle {
