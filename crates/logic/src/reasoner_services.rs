@@ -291,6 +291,11 @@ pub fn extract_module(
 /// is not an error and not a silent empty result: the distinction between "does not
 /// apply" and "applies and found nothing" is preserved.
 ///
+/// purrdf exposes no evaluation-options variant of this service, so its restricted chase
+/// runs under purrdf's unstated capacity, which since purrdf 4.0 imposes no logical
+/// ceiling. Every other purrdf evaluation gmeow requests states
+/// [`crate::purrdf_limits`]'s ceilings.
+///
 /// # Errors
 ///
 /// A [`DlService`](crate::error::DlService) diagnostic propagating any purrdf refusal from
@@ -321,7 +326,14 @@ pub fn certain_answers(
     regime: Regime,
     imports: &ImportMap,
 ) -> Result<CertainAnswers> {
-    purrdf::entail::certain_answers(premise, bgp, regime, imports).map_err(map_entail_err)
+    purrdf::entail::certain_answers_with(
+        premise,
+        bgp,
+        regime,
+        imports,
+        &crate::purrdf_limits::eval_options(),
+    )
+    .map_err(map_entail_err)
 }
 
 #[path = "reasoner_services.tests.rs"]

@@ -100,6 +100,7 @@ pub mod profile_gate;
 mod program_analysis;
 pub mod proof_tree;
 pub mod provenance;
+mod purrdf_limits;
 pub mod purremb_relation;
 pub mod query_ir;
 pub mod reason;

@@ -465,6 +465,49 @@ fn classification_json_retains_the_operation_specific_answer_under_the_common_co
                 row["left"] == "http://gmeow.example/A" && row["right"] == "http://gmeow.example/C"
             }))
     );
+    // A decided run carries its certified transitive reduction.
+    assert!(
+        report["result"]["direct_subsumptions"]
+            .as_array()
+            .is_some_and(|rows| rows.iter().any(|row| {
+                row["left"] == "http://gmeow.example/A" && row["right"] == "http://gmeow.example/B"
+            }))
+    );
+}
+
+/// `CHAIN_TTL` behind an `owl:imports` nobody resolves: the run is decided only within
+/// that boundary, so purrdf certifies no direct answer.
+const BOUNDED_CHAIN_TTL: &str = "\
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <http://gmeow.example/> .
+ex: a owl:Ontology ; owl:imports <http://gmeow.example/unresolved> .
+ex:A rdfs:subClassOf ex:B .
+ex:B rdfs:subClassOf ex:C .
+ex:x a ex:A .
+";
+
+#[test]
+fn an_undecided_run_withholds_direct_answers_instead_of_emitting_an_empty_list() {
+    for (operation, field) in [
+        ("classify", "direct_subsumptions"),
+        ("realize", "direct_types"),
+    ] {
+        let (_d, _p, out) = run(operation, &["--format", "json"], BOUNDED_CHAIN_TTL);
+        assert!(out.status.success(), "{operation} reports: {out:?}");
+        let report = json(&out);
+        assert_eq!(report["verdict"], "partial", "{operation}");
+        assert!(
+            report["result"][field].is_null(),
+            "{operation} withholds {field}, never an empty list: {report}"
+        );
+        assert!(
+            report["diagnostics"].as_array().is_some_and(|rows| rows
+                .iter()
+                .any(|row| row["code"] == "owl-directness-unavailable")),
+            "{operation} says why the direct answer is absent: {report}"
+        );
+    }
 }
 
 // ── realize ───────────────────────────────────────────────────────────────────────────
