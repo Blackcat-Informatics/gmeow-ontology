@@ -18,6 +18,7 @@
 //! atomic term algebra. Their framed keys bind object kind and every RDF literal
 //! component; contextual scope is bound separately by the complete content key.
 
+mod cbor;
 mod correspondence_json;
 mod json;
 

@@ -49,6 +49,41 @@ pub(super) fn serialize<S: Serializer>(
     sequence.end()
 }
 
+/// Stream the existing literal-vector wire, including each explicit datatype.
+/// Unlike the single-literal wire, the collection adapter retains the stored
+/// datatype before consulting the native effective datatype. Ordering is unchanged.
+///
+/// # Errors
+/// Returns the sink's original failure without reporting partial success.
+pub(crate) fn write_cbor<W: std::io::Write + ?Sized>(
+    literals: &[RdfLiteral],
+    out: &mut W,
+) -> std::io::Result<()> {
+    use purrdf_lex::cbor::{self, Value, head};
+
+    head::write_head(out, head::ARRAY, literals.len() as u64)?;
+    for literal in literals {
+        head::write_head(out, head::ARRAY, 4)?;
+        head::write_text(out, &literal.lexical_form)?;
+        head::write_text(
+            out,
+            literal
+                .datatype
+                .as_deref()
+                .unwrap_or_else(|| literal.datatype_iri()),
+        )?;
+        match literal.language.as_deref() {
+            Some(language) => head::write_text(out, language)?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+        match literal.direction {
+            Some(direction) => head::write_text(out, direction.as_str())?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+    }
+    Ok(())
+}
+
 /// Canonical RDF set order, with no lexical rendering or temporary sort strings.
 pub(crate) fn sort_key(
     literal: &RdfLiteral,
