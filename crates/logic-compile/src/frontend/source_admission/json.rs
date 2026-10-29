@@ -174,12 +174,13 @@ impl FromJson for SemanticUnitKind {
 
 impl FromJson for SourceAssertion {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        let mut fields = Record::new(value, "struct SourceAssertion")?;
-        Ok(Self {
-            subject: fields.required("subject")?,
-            predicate: fields.required("predicate")?,
-            object: fields.required("object")?,
-        })
+        gmeow_errors::json::read_statement_fields(value, "struct SourceAssertion").map(
+            |(subject, predicate, object)| SourceAssertion {
+                subject,
+                predicate,
+                object,
+            },
+        )
     }
 }
 

@@ -80,12 +80,13 @@ impl FromJson for ProjectedOutcome {
 });
 impl FromJson for ProjectedExpressionFact {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
-        let mut fields = Record::new(value, "struct ProjectedExpressionFact")?;
-        Ok(Self {
-            subject: fields.required("subject")?,
-            predicate: fields.required("predicate")?,
-            object: fields.required("object")?,
-        })
+        gmeow_errors::json::read_statement_fields(value, "struct ProjectedExpressionFact").map(
+            |(subject, predicate, object)| ProjectedExpressionFact {
+                subject,
+                predicate,
+                object,
+            },
+        )
     }
 }
 

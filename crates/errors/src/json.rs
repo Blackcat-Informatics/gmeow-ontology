@@ -48,6 +48,23 @@ pub fn read_unsigned<T: TryFrom<u64>>(value: &Value, expected: &str) -> Result<T
         .ok_or_else(|| DecodeError::invalid_value(value, expected))
 }
 
+/// Read the named subject, predicate and object fields of a statement record.
+/// Each transport retains its own subject/object types and record diagnostic.
+///
+/// # Errors
+/// Refuses missing, repeated or mistyped fields in subject/predicate/object order.
+pub fn read_statement_fields<S: FromJson, O: FromJson>(
+    value: &Value,
+    expected: &str,
+) -> Result<(S, String, O), DecodeError> {
+    let mut fields = Record::new(value, expected)?;
+    Ok((
+        fields.required("subject")?,
+        fields.required("predicate")?,
+        fields.required("object")?,
+    ))
+}
+
 /// Read one fixed-width row of verbatim strings using native element admission.
 ///
 /// # Errors
