@@ -1,0 +1,21 @@
+{
+  "build_fingerprint": "selected producer",
+  "closure_receipts": {
+    "ancestor": "retained ancestor é中😀\n\"\\ receipt"
+  },
+  "conformance_heavy": {
+    "receipt": "new exhaustive conformance action"
+  },
+  "docs": {
+    "retained": "earlier documentation selection"
+  },
+  "schema_version": 2,
+  "source_artifacts": {
+    "stage": {
+      "observation.json": "exact source selection"
+    }
+  },
+  "stages": {
+    "stage": "retained stage receipt"
+  }
+}

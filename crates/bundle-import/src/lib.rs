@@ -166,7 +166,7 @@ pub struct BundleFixtureSelector {
     pub corpus_artifacts: BTreeMap<String, CorpusArtifactPublication>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 struct TestFixtureSelectorEnvelope {
     bundle_import: BundleFixtureSelector,
 }

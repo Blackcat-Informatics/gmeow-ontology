@@ -108,9 +108,11 @@ fn collected_diagnostics_record_receipts_without_replacing_the_final_selector() 
             !selector.exists(),
             "preparing stages cannot publish a runner selector"
         );
-        finalized["bundle_import"] = serde_json::json!({"selected": "bundle receipt"});
-        finalized["docs"] = serde_json::json!({"selected": "docs receipts"});
-        let finalized = serde_json::to_vec(&finalized).unwrap();
+        finalized["bundle_import"] =
+            purrdf_lex::json::record::read_document(br#"{"selected":"bundle receipt"}"#).unwrap();
+        finalized["docs"] =
+            purrdf_lex::json::record::read_document(br#"{"selected":"docs receipts"}"#).unwrap();
+        let finalized = purrdf_lex::json::record::to_vec(&finalized);
         std::fs::write(&selector, &finalized).unwrap();
         run.record_fixture_candidate(root.path()).unwrap();
         assert_eq!(std::fs::read(&selector).unwrap(), finalized);
@@ -123,7 +125,7 @@ fn collected_diagnostics_record_receipts_without_replacing_the_final_selector() 
             crate::fixture::prepare_stage_fixture_candidate(expected_root.path(), &receipts)
                 .unwrap();
         assert_eq!(
-            serde_json::from_slice::<serde_json::Value>(&bytes).unwrap(),
+            purrdf_lex::json::record::read_document(&bytes).unwrap(),
             expected
         );
         assert_eq!(
