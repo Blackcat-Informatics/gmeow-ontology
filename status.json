@@ -1,0 +1,118 @@
+{
+  "issue": 2046,
+  "pr_number": 2049,
+  "branch": "paudley/2046-preserve-complete-modal-evidence",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence",
+  "observed_at": "2026-10-29T13:27:21.909336+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "ddb157c51a60cd46b453b2e5da1889a4802cd58c",
+    "headRefName": "paudley/2046-preserve-complete-modal-evidence",
+    "headRefOid": "05db402179eca2e99616618f151ba22705196d20",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2049,
+    "state": "OPEN",
+    "title": "Preserve complete modal evidence transport with native JSON",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2049"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40881869012/job/123475200936",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40881869012/job/123475200742",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40881869012/job/123475201011",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40881869012/job/123475200340",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2049",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "05db402179eca2e99616618f151ba22705196d20",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "4c4fe3d6a236bab57dbb156a80e4aa981042fb9f07c7ac891824fb05481c211e"
+  },
+  "local": {
+    "head": "05db402179eca2e99616618f151ba22705196d20",
+    "branch": "paudley/2046-preserve-complete-modal-evidence",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2049,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2049 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

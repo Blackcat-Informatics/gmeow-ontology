@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "issue": 2046,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence",
+  "branch": "paudley/2046-preserve-complete-modal-evidence",
+  "slug": "preserve-complete-modal-evidence",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "0b3beb946d3256d94770256ee5f0fe5c4a9cfbef",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence",
+    "branch:paudley/2046-preserve-complete-modal-evidence",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2046-preserve-complete-modal-evidence/.stage/preserve-complete-modal-evidence/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-10-29T06:23:10-0600"
+}

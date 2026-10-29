@@ -1,0 +1,4 @@
+refactor: use native JSON for complete modal evidence transport
+
+Preserve canonical wire bytes and identities while requiring complete named
+records and retaining semantic and importer binding checks. Principles 4 and 7.

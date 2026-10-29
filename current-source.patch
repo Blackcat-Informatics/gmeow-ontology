@@ -1,0 +1,448 @@
+diff --git crates/logic/src/modal/evidence.rs crates/logic/src/modal/evidence.rs
+index 3029e3f19..ff59187f4 100644
+--- crates/logic/src/modal/evidence.rs
++++ crates/logic/src/modal/evidence.rs
+@@ -5,6 +5,10 @@
+ //! This records that selected evaluation; it is not a certificate of unrestricted
+ //! source completeness, context merging, or an optimization rewrite.
+ 
++mod json;
++
++use gmeow_errors::DiagKind as _;
++use purrdf_lex::json::record::{FromJson, ToJson};
+ use serde::{Deserialize, Serialize};
+ use sha2::{Digest, Sha256};
+ 
+@@ -15,6 +19,8 @@ use super::{
+     NECESSARILY, OVER_ACCESSIBILITY, POSSIBLY, TYPED_ACCESSIBILITY, iri_binding, modal_err, n3,
+ };
+ 
++const WIRE_PREFIX: &str = "gmeow-modal-evaluation-v1\0";
++
+ /// An exact positive fact occurrence. Context is part of its identity.
+ #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+ #[serde(deny_unknown_fields)]
+@@ -293,19 +299,29 @@ impl ModalEvaluation {
+     /// only the authenticated RDF import boundary uses it.
+     pub(crate) fn to_wire(&self) -> String {
+         format!(
+-            "gmeow-modal-evaluation-v1\0{}",
+-            serde_json::to_string(self)
+-                .expect("modal evidence contains only serializable native fields")
++            "{WIRE_PREFIX}{}",
++            purrdf_lex::json::write_compact(&self.to_json())
+         )
+     }
+ 
+     pub(crate) fn from_wire(wire: &str) -> Option<gmeow_errors::Result<Self>> {
+-        wire.strip_prefix("gmeow-modal-evaluation-v1\0")
+-            .map(|json| {
+-                let evidence: Self = serde_json::from_str(json)
+-                    .map_err(|error| modal_err(format!("invalid modal evidence: {error}")))?;
+-                evidence.validate()?;
+-                Ok(evidence)
+-            })
++        wire.strip_prefix(WIRE_PREFIX).map(|json| {
++            let value = purrdf_lex::json::read(json).map_err(invalid_modal_wire)?;
++            let evidence = Self::from_json(&value).map_err(invalid_modal_wire)?;
++            evidence.validate()?;
++            Ok(evidence)
++        })
+     }
+ }
++
++fn invalid_modal_wire(error: impl std::error::Error + Send + Sync + 'static) -> gmeow_errors::Diag {
++    let kind = crate::error::Reason {
++        detail: format!("invalid modal evidence: {error}"),
++    };
++    let mut diagnostic =
++        gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(error);
++    if let Some(class) = kind.failure_class() {
++        diagnostic = diagnostic.with_failure_class(class);
++    }
++    diagnostic
++}
+diff --git crates/logic/src/modal/evidence/json.rs crates/logic/src/modal/evidence/json.rs
+new file mode 100644
+index 000000000..4558043b7
+--- /dev/null
++++ crates/logic/src/modal/evidence/json.rs
+@@ -0,0 +1,85 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Named-record transport for observational modal evaluation evidence.
++
++use super::{ModalEvaluation, ModalFrontier, ModalOp, ModalWorldEvidence};
++use purrdf_lex::json::{
++    Object, Value,
++    record::{DecodeError, FromJson, Record, ToJson, Within},
++};
++
++impl ToJson for ModalOp {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Box => "Box",
++            Self::Diamond => "Diamond",
++        }
++        .to_json()
++    }
++}
++
++impl FromJson for ModalOp {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        match gmeow_errors::json::read_unit_name(value, "ModalOp")? {
++            "Box" => Ok(Self::Box),
++            "Diamond" => Ok(Self::Diamond),
++            name => Err(DecodeError::unknown_variant(name, &["Box", "Diamond"])),
++        }
++    }
++}
++
++::purrdf_lex::json_record!(ModalWorldEvidence as "struct ModalWorldEvidence" {
++    "world" => world: required::<String>,
++    "atom_present" => atom_present: required::<bool>,
++});
++
++impl ToJson for ModalFrontier {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::CompletedFinitePredecessor { worlds } => Object::new()
++                .with(
++                    "CompletedFinitePredecessor",
++                    Value::from(Object::new().with("worlds", worlds.to_json())),
++                )
++                .into(),
++        }
++    }
++}
++
++impl FromJson for ModalFrontier {
++    fn from_json(value: &Value) -> Result<Self, DecodeError> {
++        let (name, payload) =
++            gmeow_errors::json::read_variant(value, "ModalFrontier", "one ModalFrontier variant")?;
++        match name {
++            "CompletedFinitePredecessor" => {
++                let mut fields = Record::new(payload, "completed finite predecessor")
++                    .map_err(|error| error.within(name))?;
++                let worlds = fields
++                    .required("worlds")
++                    .map_err(|error| error.within(name))?;
++                fields.deny_unknown().map_err(|error| error.within(name))?;
++                Ok(Self::CompletedFinitePredecessor { worlds })
++            }
++            name => Err(DecodeError::unknown_variant(
++                name,
++                &["CompletedFinitePredecessor"],
++            )),
++        }
++    }
++}
++
++::purrdf_lex::json_record!(ModalEvaluation as "struct ModalEvaluation" {
++    "context" => context: required::<String>,
++    "formula" => formula: required::<String>,
++    "operator" => operator: required::<ModalOp>,
++    "body" => body: required::<String>,
++    "evaluation_world" => evaluation_world: required::<String>,
++    "accessibility_relation" => accessibility_relation: required::<String>,
++    "atom_subject" => atom_subject: required::<String>,
++    "atom_predicate" => atom_predicate: required::<String>,
++    "atom_object" => atom_object: required::<String>,
++    "frontier" => frontier: required::<ModalFrontier>,
++    "conclusion_predicate" => conclusion_predicate: required::<String>,
++    "conclusion_object" => conclusion_object: required::<String>,
++});
+diff --git crates/logic/src/result_rdf/fixtures/modal-evaluation-wire-v1.jsonl crates/logic/src/result_rdf/fixtures/modal-evaluation-wire-v1.jsonl
+new file mode 100644
+index 000000000..1fcab21c8
+--- /dev/null
++++ crates/logic/src/result_rdf/fixtures/modal-evaluation-wire-v1.jsonl
+@@ -0,0 +1,3 @@
++["gmeow-modal-evaluation-v1\u0000{\"context\":\"https://example.org/modal/frame\",\"formula\":\"https://example.org/modal/F\",\"operator\":\"Box\",\"body\":\"https://example.org/modal/B\",\"evaluation_world\":\"https://example.org/modal/w0\",\"accessibility_relation\":\"https://blackcatinformatics.ca/logic/epistemicallyPossible\",\"atom_subject\":\"https://example.org/modal/a\",\"atom_predicate\":\"https://example.org/modal/knows\",\"atom_object\":\"https://example.org/modal/b\",\"frontier\":{\"CompletedFinitePredecessor\":{\"worlds\":[{\"world\":\"https://example.org/modal/w1\",\"atom_present\":false}]}},\"conclusion_predicate\":\"https://blackcatinformatics.ca/logic/modalNecessityFails\",\"conclusion_object\":\"https://example.org/modal/B\"}","https://blackcatinformatics.ca/logic/evidence/63362c6b2fa4fe31094d3587635ea9c1a1459fde5c50dd644445e0ca08f03e70","https://blackcatinformatics.ca/logic/evidence/63362c6b2fa4fe31094d3587635ea9c1a1459fde5c50dd644445e0ca08f03e70"]
++["gmeow-modal-evaluation-v1\u0000{\"context\":\"https://example.org/modal/frame\",\"formula\":\"https://example.org/modal/可能性\",\"operator\":\"Diamond\",\"body\":\"https://example.org/modal/B\",\"evaluation_world\":\"https://example.org/modal/w0\",\"accessibility_relation\":\"https://blackcatinformatics.ca/logic/epistemicallyPossible\",\"atom_subject\":\"https://example.org/modal/a\",\"atom_predicate\":\"https://example.org/modal/knows\",\"atom_object\":\"https://example.org/modal/b\",\"frontier\":{\"CompletedFinitePredecessor\":{\"worlds\":[{\"world\":\"https://example.org/modal/w1\",\"atom_present\":false},{\"world\":\"https://example.org/modal/w2\",\"atom_present\":true}]}},\"conclusion_predicate\":\"https://blackcatinformatics.ca/logic/modalPossibilityHolds\",\"conclusion_object\":\"https://example.org/modal/B\"}","https://blackcatinformatics.ca/logic/evidence/145ad0a08ed3b38bc3d6517764692b6953db7df339703e15b49f285e5aa33134","https://blackcatinformatics.ca/logic/evidence/145ad0a08ed3b38bc3d6517764692b6953db7df339703e15b49f285e5aa33134"]
++["gmeow-modal-evaluation-v1\u0000{\"context\":\"https://example.org/modal/frame\",\"formula\":\"https://example.org/modal/F\",\"operator\":\"Box\",\"body\":\"https://example.org/modal/B\",\"evaluation_world\":\"https://example.org/modal/w0\",\"accessibility_relation\":\"https://blackcatinformatics.ca/logic/deonticallyIdeal\",\"atom_subject\":\"https://example.org/modal/a\",\"atom_predicate\":\"https://example.org/modal/knows\",\"atom_object\":\"https://example.org/modal/b\",\"frontier\":{\"CompletedFinitePredecessor\":{\"worlds\":[]}},\"conclusion_predicate\":\"https://blackcatinformatics.ca/logic/modalNecessityUndetermined\",\"conclusion_object\":\"https://example.org/modal/B\"}","https://blackcatinformatics.ca/logic/evidence/a69ab376bdc3f405e66ea0ee1c6e11606662db491042d36ecbd82c1854faa351","https://blackcatinformatics.ca/logic/evidence/a69ab376bdc3f405e66ea0ee1c6e11606662db491042d36ecbd82c1854faa351"]
+diff --git crates/logic/src/result_rdf/tests.rs crates/logic/src/result_rdf/tests.rs
+index b903060fe..b1943ba1b 100644
+--- crates/logic/src/result_rdf/tests.rs
++++ crates/logic/src/result_rdf/tests.rs
+@@ -537,61 +537,229 @@ fn native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity() {
+ 
+ #[test]
+ fn modal_derived_row_round_trips_its_complete_receipt() {
+-    let mut result = rich_result();
+-    let ResultPayload::Inferred(axioms) = &mut result.payload else {
+-        panic!("fixture payload must be inferred");
+-    };
+-    let modal = &mut axioms[0];
+-    modal.subject = "https://example.org/modal/F".to_owned();
+-    modal.predicate = crate::modal::MODAL_NECESSITY_FAILS.to_owned();
+-    modal.object = purrdf::TermValue::iri("https://example.org/modal/B");
+-    modal.world = "https://example.org/modal/frame".to_owned();
+-    modal.rule_name = Some(crate::modal::MODAL_RULE_IRI.to_owned());
+-    let evidence = crate::modal::ModalEvaluation {
+-        context: modal.world.clone(),
+-        formula: modal.subject.clone(),
+-        operator: crate::modal::ModalOp::Box,
+-        body: "https://example.org/modal/B".to_owned(),
+-        evaluation_world: "https://example.org/modal/w0".to_owned(),
+-        accessibility_relation: crate::modal::TYPED_ACCESSIBILITY[0].to_owned(),
+-        atom_subject: "https://example.org/modal/a".to_owned(),
+-        atom_predicate: "https://example.org/modal/knows".to_owned(),
+-        atom_object: "https://example.org/modal/b".to_owned(),
+-        frontier: crate::modal::ModalFrontier::CompletedFinitePredecessor {
+-            worlds: vec![crate::modal::ModalWorldEvidence {
++    use purrdf_lex::json::record::FromJson as _;
++
++    let mut references = include_str!("fixtures/modal-evaluation-wire-v1.jsonl").lines();
++    assert!(crate::modal::ModalEvaluation::from_wire("another-transport\0{}").is_none());
++    let malformed = crate::modal::ModalEvaluation::from_wire("gmeow-modal-evaluation-v1\0{")
++        .expect("the selected prefix cannot be ignored")
++        .expect_err("a malformed selected payload must fail");
++    assert_eq!(malformed.code(), crate::error::Reason::register());
++    assert!(malformed.is::<purrdf_lex::json::Error>());
++
++    for (operator, predicate, formula, relation, worlds) in [
++        (
++            crate::modal::ModalOp::Box,
++            crate::modal::MODAL_NECESSITY_FAILS,
++            "https://example.org/modal/F",
++            crate::modal::TYPED_ACCESSIBILITY[0],
++            vec![crate::modal::ModalWorldEvidence {
+                 world: "https://example.org/modal/w1".to_owned(),
+                 atom_present: false,
+             }],
+-        },
+-        conclusion_predicate: modal.predicate.clone(),
+-        conclusion_object: "https://example.org/modal/B".to_owned(),
+-    };
+-    modal.premises = evidence
+-        .positive_premises()
+-        .into_iter()
+-        .map(|p| (p.subject, p.predicate, p.object))
+-        .collect();
+-    modal.modal_evaluation = Some(Box::new(evidence));
+-    let expected = modal.clone();
+-    let receipt = receipt_for_axiom(&expected);
++        ),
++        (
++            crate::modal::ModalOp::Diamond,
++            crate::modal::MODAL_POSSIBILITY_HOLDS,
++            "https://example.org/modal/可能性",
++            crate::modal::TYPED_ACCESSIBILITY[0],
++            vec![
++                crate::modal::ModalWorldEvidence {
++                    world: "https://example.org/modal/w1".to_owned(),
++                    atom_present: false,
++                },
++                crate::modal::ModalWorldEvidence {
++                    world: "https://example.org/modal/w2".to_owned(),
++                    atom_present: true,
++                },
++            ],
++        ),
++        (
++            crate::modal::ModalOp::Box,
++            crate::modal::MODAL_NECESSITY_UNDETERMINED,
++            "https://example.org/modal/F",
++            crate::modal::DEONTICALLY_IDEAL,
++            Vec::new(),
++        ),
++    ] {
++        let mut result = rich_result();
++        let ResultPayload::Inferred(axioms) = &mut result.payload else {
++            panic!("fixture payload must be inferred");
++        };
++        let modal = &mut axioms[0];
++        modal.subject = formula.to_owned();
++        modal.predicate = predicate.to_owned();
++        modal.object = purrdf::TermValue::iri("https://example.org/modal/B");
++        modal.world = "https://example.org/modal/frame".to_owned();
++        modal.rule_name = Some(crate::modal::MODAL_RULE_IRI.to_owned());
++        let evidence = crate::modal::ModalEvaluation {
++            context: modal.world.clone(),
++            formula: modal.subject.clone(),
++            operator,
++            body: "https://example.org/modal/B".to_owned(),
++            evaluation_world: "https://example.org/modal/w0".to_owned(),
++            accessibility_relation: relation.to_owned(),
++            atom_subject: "https://example.org/modal/a".to_owned(),
++            atom_predicate: "https://example.org/modal/knows".to_owned(),
++            atom_object: "https://example.org/modal/b".to_owned(),
++            frontier: crate::modal::ModalFrontier::CompletedFinitePredecessor { worlds },
++            conclusion_predicate: modal.predicate.clone(),
++            conclusion_object: "https://example.org/modal/B".to_owned(),
++        };
++        evidence
++            .validate()
++            .expect("the independently authored modal evaluation is intrinsically valid");
++        modal.premises = evidence
++            .positive_premises()
++            .into_iter()
++            .map(|p| (p.subject, p.predicate, p.object))
++            .collect();
++        modal.modal_evaluation = Some(Box::new(evidence));
++        let expected = modal.clone();
++        let receipt = receipt_for_axiom(&expected);
++        let evidence = expected
++            .modal_evaluation
++            .as_ref()
++            .expect("the expected modal row retains its complete evaluation evidence");
++        let reference = purrdf_lex::json::read(
++            references
++                .next()
++                .expect("each original modal wire reference is present"),
++        )
++        .expect("the lossless original reference container is valid JSON");
++        let [wire, evidence_id, receipt_id]: [String; 3] = Vec::<String>::from_json(&reference)
++            .expect("the original container consists of three complete strings")
++            .try_into()
++            .expect("the original container has exactly three members");
++        assert_eq!(evidence.to_wire(), wire);
++        assert_eq!(evidence.derivation_id(), evidence_id);
++        assert_eq!(receipt.row.derivation_id, receipt_id);
++        assert_eq!(
++            crate::modal::ModalEvaluation::from_wire(&wire)
++                .expect("the original prefix selects the modal transport")
++                .expect("complete original modal evidence remains valid"),
++            **evidence
++        );
+ 
+-    let body = project_reasoning_result(&result).unwrap();
+-    assert!(body.contains(crate::modal::MODAL_RULE_IRI));
+-    assert!(body.contains(&receipt.row.derivation_id));
+-    for source in &receipt.row.source_quad_ids {
+-        assert!(body.contains(source));
++        let body = project_reasoning_result(&result).unwrap();
++        assert!(body.contains(crate::modal::MODAL_RULE_IRI));
++        assert!(body.contains(&receipt.row.derivation_id));
++        for source in &receipt.row.source_quad_ids {
++            assert!(body.contains(source));
++        }
++        assert!(body.contains(&format!("<{PROV_VALUE}>")));
++
++        let parsed = parse_reasoning_graph(&body).expect("receipt-bearing graph parses");
++        let ResultPayload::Inferred(rows) = parsed.payload else {
++            panic!("payload must remain inferred");
++        };
++        let actual = rows
++            .iter()
++            .find(|row| row.predicate == predicate)
++            .expect("modal row round-trips");
++        assert_eq!(actual, &expected);
++
++        if predicate == crate::modal::MODAL_NECESSITY_FAILS {
++            let payload = purrdf_lex::json::read(wire.split_once('\0').unwrap().1).unwrap();
++            let positional = purrdf_lex::json::Value::Array(
++                payload
++                    .as_object()
++                    .unwrap()
++                    .iter()
++                    .map(|(_, value)| value.clone())
++                    .collect(),
++            );
++            for (boundary, invalid) in [
++                (
++                    "missing false member",
++                    wire.replacen(",\"atom_present\":false", "", 1),
++                ),
++                (
++                    "duplicate context",
++                    wire.replacen(
++                        "\"context\":",
++                        "\"context\":\"https://example.org/modal/frame\",\"context\":",
++                        1,
++                    ),
++                ),
++                (
++                    "unknown evaluation member",
++                    wire.replacen("{\"context\":", "{\"unselected\":true,\"context\":", 1),
++                ),
++                (
++                    "unknown frontier member",
++                    wire.replacen("\"worlds\":[", "\"unselected\":true,\"worlds\":[", 1),
++                ),
++                (
++                    "positional evaluation",
++                    format!(
++                        "gmeow-modal-evaluation-v1\0{}",
++                        purrdf_lex::json::write_compact(&positional),
++                    ),
++                ),
++            ] {
++                assert_ne!(invalid, wire, "{boundary} changes the selected record");
++                let error = crate::modal::ModalEvaluation::from_wire(&invalid)
++                    .expect("a selected malformed record cannot become another format")
++                    .expect_err(boundary);
++                assert_eq!(error.code(), crate::error::Reason::register());
++                assert!(
++                    error.is::<purrdf_lex::json::record::DecodeError>(),
++                    "{boundary}"
++                );
++            }
++
++            let mut invalid = evidence.as_ref().clone();
++            invalid.conclusion_predicate = crate::modal::MODAL_NECESSITY_HOLDS.to_owned();
++            assert!(
++                crate::modal::ModalEvaluation::from_wire(&invalid.to_wire())
++                    .expect("the selected semantic refusal retains its format")
++                    .is_err(),
++                "well-shaped wire cannot bypass the intrinsic conclusion check"
++            );
++
++            let identity = format!(
++                "<{}> \"{}\"",
++                logic("derivationIdentifier"),
++                receipt.row.derivation_id,
++            );
++            let row = body
++                .lines()
++                .find(|line| line.contains(&identity))
++                .expect("the complete receipt names the modal row")
++                .split_whitespace()
++                .next()
++                .expect("the receipt triple retains its subject");
++            let original_world = format!("{row} <{}> <{}> .", logic("axiomWorld"), expected.world,);
++            assert_eq!(body.matches(&original_world).count(), 1);
++            let unbound = body.replacen(
++                &original_world,
++                &format!(
++                    "{row} <{}> <https://example.org/modal/other-frame> .",
++                    logic("axiomWorld"),
++                ),
++                1,
++            );
++            assert_ne!(unbound, body);
++            let error = parse_reasoning_graph(&unbound)
++                .expect_err("import must bind modal evidence to the actual axiom context");
++            assert!(
++                error.message().contains("modal axiom does not match"),
++                "{error}"
++            );
++        }
++        if predicate == crate::modal::MODAL_NECESSITY_UNDETERMINED {
++            let missing = wire.replacen("\"worlds\":[]", "", 1);
++            assert_ne!(missing, wire);
++            assert!(
++                crate::modal::ModalEvaluation::from_wire(&missing)
++                    .expect("the selected empty-frontier record retains its format")
++                    .is_err(),
++                "an omitted frontier cannot silently become a completed empty frontier"
++            );
++        }
+     }
+-    assert!(body.contains(&format!("<{PROV_VALUE}>")));
+-
+-    let parsed = parse_reasoning_graph(&body).expect("receipt-bearing graph parses");
+-    let ResultPayload::Inferred(rows) = parsed.payload else {
+-        panic!("payload must remain inferred");
+-    };
+-    let actual = rows
+-        .iter()
+-        .find(|row| row.predicate == crate::modal::MODAL_NECESSITY_FAILS)
+-        .expect("modal row round-trips");
+-    assert_eq!(actual, &expected);
++    assert_eq!(references.next(), None);
+ }
+ 
+ #[test]
