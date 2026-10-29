@@ -8,7 +8,7 @@ use crate::math_evaluation::{self, Evaluation, EvaluationContext};
 use gmeow_logic_compile::ir::{Formula, Term};
 use purrdf::shapes::{
     engine::validate_dataset,
-    shapes::{Constraint, Shape, Shapes, Target},
+    shapes::{AnnotatedConstraint, Constraint, Shape, Shapes, Target},
 };
 use purrdf::{RdfDataset, TermValue};
 use std::collections::{BTreeMap, BTreeSet};
@@ -115,11 +115,27 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
     }
     for identity in PROCEDURAL_PRODUCTS {
         if !shapes.node_shapes.iter().any(|shape| {
-            matches!(&shape.id, purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
-                && !shape.targets.is_empty()
-                && active_definition(shape).is_some_and(|definition| {
-                    definition.constraints.iter().any(|constraint| matches!(constraint, Constraint::Sparql { .. }))
-                })
+            if !matches!(&shape.id, purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
+                || shape.targets.is_empty()
+            {
+                return false;
+            }
+            let Some(definition) = active_definition(shape) else {
+                return false;
+            };
+            let mut has_sparql = false;
+            for (index, constraint) in definition.constraints.iter().enumerate() {
+                if matches!(constraint, Constraint::Sparql { .. }) {
+                    has_sparql = true;
+                    if definition.constraint_annotations.iter().any(|annotation| {
+                        annotation.constraint == AnnotatedConstraint::Constraint(index)
+                            && !annotation.deactivated_when.is_empty()
+                    }) {
+                        return false;
+                    }
+                }
+            }
+            has_sparql
         }) {
             return Err(crate::error::profile_result(PROFILE, format!("authenticated owner lacks active required procedural product {identity}")));
         }
