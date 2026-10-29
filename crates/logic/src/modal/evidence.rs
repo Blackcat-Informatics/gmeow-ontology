@@ -5,6 +5,10 @@
 //! This records that selected evaluation; it is not a certificate of unrestricted
 //! source completeness, context merging, or an optimization rewrite.
 
+mod json;
+
+use gmeow_errors::DiagKind as _;
+use purrdf_lex::json::record::{FromJson, ToJson};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -14,6 +18,8 @@ use super::{
     MODAL_POSSIBILITY_FAILS, MODAL_POSSIBILITY_HOLDS, MODAL_RULE_IRI, ModalFrame, ModalOp,
     NECESSARILY, OVER_ACCESSIBILITY, POSSIBLY, TYPED_ACCESSIBILITY, iri_binding, modal_err, n3,
 };
+
+const WIRE_PREFIX: &str = "gmeow-modal-evaluation-v1\0";
 
 /// An exact positive fact occurrence. Context is part of its identity.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -293,19 +299,29 @@ impl ModalEvaluation {
     /// only the authenticated RDF import boundary uses it.
     pub(crate) fn to_wire(&self) -> String {
         format!(
-            "gmeow-modal-evaluation-v1\0{}",
-            serde_json::to_string(self)
-                .expect("modal evidence contains only serializable native fields")
+            "{WIRE_PREFIX}{}",
+            purrdf_lex::json::write_compact(&self.to_json())
         )
     }
 
     pub(crate) fn from_wire(wire: &str) -> Option<gmeow_errors::Result<Self>> {
-        wire.strip_prefix("gmeow-modal-evaluation-v1\0")
-            .map(|json| {
-                let evidence: Self = serde_json::from_str(json)
-                    .map_err(|error| modal_err(format!("invalid modal evidence: {error}")))?;
-                evidence.validate()?;
-                Ok(evidence)
-            })
+        wire.strip_prefix(WIRE_PREFIX).map(|json| {
+            let value = purrdf_lex::json::read(json).map_err(invalid_modal_wire)?;
+            let evidence = Self::from_json(&value).map_err(invalid_modal_wire)?;
+            evidence.validate()?;
+            Ok(evidence)
+        })
     }
+}
+
+fn invalid_modal_wire(error: impl std::error::Error + Send + Sync + 'static) -> gmeow_errors::Diag {
+    let kind = crate::error::Reason {
+        detail: format!("invalid modal evidence: {error}"),
+    };
+    let mut diagnostic =
+        gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(error);
+    if let Some(class) = kind.failure_class() {
+        diagnostic = diagnostic.with_failure_class(class);
+    }
+    diagnostic
 }
