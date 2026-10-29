@@ -146,7 +146,7 @@ impl PreservationKind {
     ///
     /// # Errors
     /// Returns the sink's original failure.
-    pub(crate) fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    pub fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
         head::write_text(
             out,
             match self {

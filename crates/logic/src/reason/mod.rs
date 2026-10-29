@@ -16,6 +16,7 @@
 pub mod artifacts;
 pub(crate) mod builtin_gap;
 pub(crate) mod dataset;
+mod execution_cbor;
 mod session;
 pub(crate) use session::NativeReasoningSession;
 pub mod dl;

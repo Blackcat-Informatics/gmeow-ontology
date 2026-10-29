@@ -25,9 +25,7 @@ use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_di
 /// Shared math and its admitted financial caller preserve the same diagnostic
 /// kind while supplying their distinct profile identity as data.
 pub(crate) fn profile_result(profile: &str, detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(Result {
-        detail: format!("{profile}: {}", detail.into()),
-    })
+    gmeow_errors::Diag::of_kind(Result::new(format!("{profile}: {}", detail.into())))
 }
 
 /// All evaluated builtin refusals retained at the production chase boundary.
@@ -350,6 +348,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// A result-family projection failed: a result shape or result-RDF row that
     /// could not be assembled or rendered.
     pub struct Result { detail: String }

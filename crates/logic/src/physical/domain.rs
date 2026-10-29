@@ -4,6 +4,8 @@
 //! Explicit native logical-world selection. Physical graph presence never selects
 //! a domain law. The caller owns the source/role admission that supplies this contract.
 
+mod execution_cbor;
+
 use purrdf::TermValue;
 use purrdf_lex::json::{Object, Value, record::ToJson};
 

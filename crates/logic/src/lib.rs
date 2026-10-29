@@ -38,6 +38,7 @@ pub mod entrenchment;
 /// Reasoning-core diagnostic-kind catalog: the typed [`gmeow_errors::DiagKind`]
 /// set the core raises on the shared diagnostic substrate, one per subsystem.
 pub mod error;
+pub(crate) mod execution_cbor;
 pub mod explain;
 /// Strict SZS artifact capture plus independent checks for the admitted external
 /// proof and finite-model formats used by the installed `gmeow prove` surface.

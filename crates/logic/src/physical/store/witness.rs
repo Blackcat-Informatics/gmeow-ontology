@@ -4,6 +4,8 @@
 //! Scoped native null addresses and committed minting evidence. Candidate allocation
 //! is private; only heads in the committed budget prefix can explain a witness.
 
+mod execution_cbor;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 

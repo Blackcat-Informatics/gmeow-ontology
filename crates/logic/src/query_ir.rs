@@ -21,6 +21,7 @@
 //! - Predicate IRIs: bare IRI string, no angle brackets.
 //! - Variables: any token starting with uppercase or `_`.
 
+mod execution_cbor;
 mod json;
 
 use std::collections::{BTreeMap, BTreeSet};
