@@ -55,14 +55,14 @@ pub(crate) fn typed_digest(value: &impl serde::Serialize) -> String {
     purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
-/// Stream the complete relational payload through its owned native CBOR writer.
-fn relational_core_digest(
-    program: &gmeow_logic_compile::relational_core::RelationalCoreProgram,
+/// Hash an owned native writer without retaining a serialized payload.
+/// Each caller retains its existing infallible-sink diagnostic context.
+fn native_digest(
+    write: impl FnOnce(&mut TypedDigest) -> std::io::Result<()>,
+    expectation: &str,
 ) -> String {
     let mut sink = TypedDigest::default();
-    program
-        .write_cbor(&mut sink)
-        .expect("native relational serialization into an infallible hash sink");
+    write(&mut sink).expect(expectation);
     purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
@@ -91,21 +91,10 @@ pub(crate) fn write_source_catalog_cbor<W: std::io::Write + ?Sized>(
 pub(crate) fn source_catalog_digest(
     receipts: &[gmeow_logic_compile::frontend::SourceDocument],
 ) -> String {
-    let mut sink = TypedDigest::default();
-    write_source_catalog_cbor(receipts, &mut sink)
-        .expect("native source-catalog serialization into an infallible hash sink");
-    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
-}
-
-/// Stream the complete correspondence payload through its owned native writer.
-fn correspondence_digest(
-    program: &gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
-) -> String {
-    let mut sink = TypedDigest::default();
-    program
-        .write_cbor(&mut sink)
-        .expect("native correspondence serialization into an infallible hash sink");
-    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
+    native_digest(
+        |sink| write_source_catalog_cbor(receipts, sink),
+        "native source-catalog serialization into an infallible hash sink",
+    )
 }
 
 /// The complete payload identity is independent of its governed RDF projection.
@@ -116,8 +105,14 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::CompiledLogic(publication) => typed_digest(publication.as_ref()),
         PipelineHandle::Diagnostics(publication) => typed_digest(publication.as_ref()),
         PipelineHandle::Reasoning(result) => typed_digest(result.as_ref()),
-        PipelineHandle::RelationalCore(program) => relational_core_digest(program.as_ref()),
-        PipelineHandle::Correspondence(program) => correspondence_digest(program.as_ref()),
+        PipelineHandle::RelationalCore(program) => native_digest(
+            |sink| program.write_cbor(sink),
+            "native relational serialization into an infallible hash sink",
+        ),
+        PipelineHandle::Correspondence(program) => native_digest(
+            |sink| program.write_cbor(sink),
+            "native correspondence serialization into an infallible hash sink",
+        ),
     };
     content_digest(&[
         b"typed-payload-v2",
