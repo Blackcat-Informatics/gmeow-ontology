@@ -85,7 +85,8 @@ use std::sync::Arc;
 
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
 
-use gmeow_errors::Diag;
+use gmeow_errors::{Diag, DiagKind as _};
+use purrdf_lex::json::{self, record::ToJson as _};
 
 mod admission;
 use admission::{AdmittedDefaultGraph, assertions};
@@ -676,6 +677,31 @@ fn build_world_edb(
     builder.freeze().map_err(gmeow_errors::Diag::from)
 }
 
+/// Canonical selection basis for the admitted default refutation domain.
+fn refutation_domain_basis(authority: &str) -> Result<Vec<u8>, Diag> {
+    let value = (
+        authority,
+        crate::reason::DomainProfile::NonemptyObjectDomainV1,
+        ENTAIL_WORLD,
+    )
+        .to_json();
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    json::write_with_memory(&value, json::Format::COMPACT, &mut memory)
+        .map(String::into_bytes)
+        .map_err(|source| {
+            let kind = crate::error::Reason {
+                detail: format!("entailment domain identity: {source}"),
+            };
+            let mut diagnostic =
+                Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(source);
+            if let Some(class) = kind.failure_class() {
+                diagnostic = diagnostic.with_failure_class(class);
+            }
+            diagnostic
+        })
+}
+
 /// Execute one independently reduced goal in the admitted default-context profile.
 /// The domain authority belongs to this reduction, not to every physical graph
 /// present in a prepared input. The fixed domain authority is independent of the
@@ -689,12 +715,7 @@ fn reason_refutation(
     let edb = build_world_edb(admitted, negation)?;
     let input = crate::reason::prepare_reasoning_input(edb.as_ref())?;
     const AUTHORITY: &str = "gmeow.entail.default-refutation.v1";
-    let selection = serde_json::to_vec(&(
-        AUTHORITY,
-        DomainProfile::NonemptyObjectDomainV1,
-        ENTAIL_WORLD,
-    ))
-    .map_err(|error| entail_err(format!("entailment domain identity: {error}")))?;
+    let selection = refutation_domain_basis(AUTHORITY)?;
     let domains = SelectedDomains::new([SelectedLogicalWorld::new(
         LogicalGraph::Named(purrdf::TermValue::iri(ENTAIL_WORLD)),
         DomainProfile::NonemptyObjectDomainV1,
