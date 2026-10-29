@@ -189,7 +189,7 @@ impl ValidationCache {
     ) -> gmeow_errors::Result<Option<CachedResult>> {
         let Some(entry) = self
             .store
-            .get::<()>(&self.context(kind, key))
+            .get::<gmeow_action_cache::EmptyPayload>(&self.context(kind, key))
             .map_err(cache_error)?
         else {
             return Ok(None);
@@ -213,7 +213,12 @@ impl ValidationCache {
     ) -> gmeow_errors::Result<()> {
         let bytes = purrdf_lex::json::record::to_vec(result);
         self.store
-            .publish(&self.context(kind, key), bytes_digest(&bytes), (), &bytes)
+            .publish(
+                &self.context(kind, key),
+                bytes_digest(&bytes),
+                gmeow_action_cache::EmptyPayload,
+                &bytes,
+            )
             .map_err(cache_error)?;
         Ok(())
     }

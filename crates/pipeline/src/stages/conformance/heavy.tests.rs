@@ -52,7 +52,12 @@ fn breadth_admission_requires_exact_action_product_and_current_inventory() {
     };
     let bytes = serde_json::to_vec(&expected).unwrap();
     let receipt = store
-        .publish(&context, bytes_digest(&bytes), (), &bytes)
+        .publish(
+            &context,
+            bytes_digest(&bytes),
+            gmeow_action_cache::EmptyPayload,
+            &bytes,
+        )
         .unwrap();
     let selected = SelectedAction::from_receipt(&receipt);
     assert_eq!(admit(root, &selected).unwrap(), expected);

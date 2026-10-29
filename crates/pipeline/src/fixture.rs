@@ -9,6 +9,8 @@
 //! explicitly named producer entry point used by the pre-test producer stage; test code
 //! is forbidden from calling it.
 
+mod receipt_payload_json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write as _;
 use std::path::Path;

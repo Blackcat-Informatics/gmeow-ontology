@@ -68,6 +68,8 @@
 
 mod build_identity_json;
 
+mod receipt_json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;

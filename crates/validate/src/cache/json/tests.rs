@@ -100,7 +100,12 @@ fn json_cached_findings_authenticated_but_malformed_payload_is_not_an_empty_verd
         let selected = cache.context("selected", &bytes_digest(bytes));
         cache
             .store
-            .publish(&selected, bytes_digest(bytes), (), bytes)
+            .publish(
+                &selected,
+                bytes_digest(bytes),
+                gmeow_action_cache::EmptyPayload,
+                bytes,
+            )
             .unwrap();
         assert!(
             cache

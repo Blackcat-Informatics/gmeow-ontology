@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native standalone verdict products. Their enclosing ActionReceipt payloads
-//! retain the separate Serde contract. Named records require every field, reject
+//! Native standalone verdict products and authenticated action receipt payloads. Named records require every field, reject
 //! known duplicates and ignore unknown fields; positional records are refused.
 
 use super::{SliceSpecTaskIdentity, SliceSpecVerdict, SpecTaskVerdict};

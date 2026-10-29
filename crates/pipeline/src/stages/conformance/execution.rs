@@ -181,7 +181,10 @@ pub(super) fn record(
     for case in cases {
         let context = context(root, &case, library_digest)?;
         index.insert(case.case_id.clone());
-        if let Some(hit) = store.get::<()>(&context).map_err(fail)? {
+        if let Some(hit) = store
+            .get::<gmeow_action_cache::EmptyPayload>(&context)
+            .map_err(fail)?
+        {
             artifacts.insert(format!("{PREFIX}{}.json", case.case_id), hit.bytes);
         } else {
             misses.push((case, context));
@@ -240,7 +243,7 @@ pub(super) fn record(
             let result = store
                 .coordinate::<_, gmeow_action_cache::ActionCacheError, _, _>(
                     &context.key(),
-                    || store.get::<()>(context),
+                    || store.get::<gmeow_action_cache::EmptyPayload>(context),
                     || {
                         let observation = Observation {
                             case_id: case.case_id.clone(),
@@ -277,7 +280,12 @@ pub(super) fn record(
                             .map_err(super::record_failure),
                         };
                         let bytes = serde_json::to_vec(&observation)?;
-                        let receipt = store.publish(context, bytes_digest(&bytes), (), &bytes)?;
+                        let receipt = store.publish(
+                            context,
+                            bytes_digest(&bytes),
+                            gmeow_action_cache::EmptyPayload,
+                            &bytes,
+                        )?;
                         Ok(gmeow_action_cache::VerifiedEntry { receipt, bytes })
                     },
                 )
@@ -448,10 +456,19 @@ fn cached_bytes(
     );
     let hit = store.coordinate::<_, gmeow_errors::Diag, _, _>(
         &context.key(),
-        || store.get::<()>(&context).map_err(gmeow_errors::Diag::from),
+        || {
+            store
+                .get::<gmeow_action_cache::EmptyPayload>(&context)
+                .map_err(gmeow_errors::Diag::from)
+        },
         || {
             let bytes = produce()?;
-            let receipt = store.publish(&context, bytes_digest(&bytes), (), &bytes)?;
+            let receipt = store.publish(
+                &context,
+                bytes_digest(&bytes),
+                gmeow_action_cache::EmptyPayload,
+                &bytes,
+            )?;
             Ok(gmeow_action_cache::VerifiedEntry { receipt, bytes })
         },
     )?;

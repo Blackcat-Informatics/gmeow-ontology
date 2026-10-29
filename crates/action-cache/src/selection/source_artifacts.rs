@@ -5,6 +5,8 @@
 //! Publication follows the producer's complete parent-product authentication. Consumers
 //! authenticate only the selected export; no pipeline dependency or extraction fallback.
 
+mod receipt_json;
+
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -57,7 +59,7 @@ pub struct SourceArtifactSelector {
     pub source_artifacts: BTreeMap<String, BTreeMap<String, SelectedSourceArtifact>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct Payload {
     source: SourceArtifactOrigin,
     artifact: String,

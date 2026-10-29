@@ -8,6 +8,7 @@ pub mod source_artifacts;
 use std::io::Read as _;
 use std::path::{Path, PathBuf};
 
+use purrdf_lex::json::record::ToJson;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest as _, Sha256};
 
@@ -28,7 +29,7 @@ pub struct SelectedAction {
 
 impl SelectedAction {
     #[must_use]
-    pub fn from_receipt<P: Serialize>(receipt: &ActionReceipt<P>) -> Self {
+    pub fn from_receipt<P: ToJson>(receipt: &ActionReceipt<P>) -> Self {
         Self {
             context: receipt.context.clone(),
             receipt_digest: receipt.digest(),
@@ -37,7 +38,7 @@ impl SelectedAction {
     }
 
     /// Compare an authenticated store receipt with the producer's exact selection.
-    pub fn verify<P: Serialize>(&self, receipt: &ActionReceipt<P>) -> Result<(), ActionCacheError> {
+    pub fn verify<P: ToJson>(&self, receipt: &ActionReceipt<P>) -> Result<(), ActionCacheError> {
         if self.context != receipt.context
             || self.context.key() != receipt.action_key
             || self.receipt_digest != receipt.digest()
