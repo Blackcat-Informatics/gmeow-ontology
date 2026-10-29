@@ -14,6 +14,7 @@ use std::collections::{BTreeMap, BTreeSet};
 mod classes;
 mod contexts;
 mod contracts;
+mod json;
 mod origins;
 
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
