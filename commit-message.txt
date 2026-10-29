@@ -1,0 +1,7 @@
+Use native JSON for object-level domain identities
+
+Preserve the complete original ordered role preimage, BLAKE3 selection and
+all nine admitted worlds. Reuse the complete retained RDF-term owner and
+retain native encoding failures under the reasoning diagnostic category.
+
+Principles 4 and 7.

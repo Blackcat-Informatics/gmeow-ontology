@@ -1,0 +1,169 @@
+diff --git a/crates/logic/src/physical/domain.rs b/crates/logic/src/physical/domain.rs
+index d78612813..4a9eaf32b 100644
+--- a/crates/logic/src/physical/domain.rs
++++ b/crates/logic/src/physical/domain.rs
+@@ -5,6 +5,7 @@
+ //! a domain law. The caller owns the source/role admission that supplies this contract.
+ 
+ use purrdf::TermValue;
++use purrdf_lex::json::{Object, Value, record::ToJson};
+ 
+ use super::chase::{ExistentialRule, WitnessPolicy};
+ use super::store::metadata_identity;
+@@ -17,6 +18,17 @@ pub enum LogicalGraph {
+     Named(#[serde(with = "crate::term_serde")] TermValue),
+ }
+ 
++impl ToJson for LogicalGraph {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::Default => "Default".to_json(),
++            Self::Named(value) => Object::new()
++                .with("Named", crate::term_serde::to_json(value))
++                .into(),
++        }
++    }
++}
++
+ impl LogicalGraph {
+     pub fn from_graph(graph: Option<TermValue>) -> Self {
+         graph.map_or(Self::Default, Self::Named)
+@@ -59,6 +71,14 @@ pub enum DomainProfile {
+     NonemptyObjectDomainV1,
+ }
+ 
++impl ToJson for DomainProfile {
++    fn to_json(&self) -> Value {
++        match self {
++            Self::NonemptyObjectDomainV1 => "NonemptyObjectDomainV1".to_json(),
++        }
++    }
++}
++
+ /// A caller-admitted logical world and the exact role/source selection receipt.
+ ///
+ /// `authority` names the selected operation's admission contract; `selection`
+diff --git a/crates/logic/src/reasoning_graphs.rs b/crates/logic/src/reasoning_graphs.rs
+index 69c8ba3f2..226fb0df0 100644
+--- a/crates/logic/src/reasoning_graphs.rs
++++ b/crates/logic/src/reasoning_graphs.rs
+@@ -16,7 +16,9 @@
+ use std::collections::HashSet;
+ use std::sync::Arc;
+ 
++use gmeow_errors::DiagKind as _;
+ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
++use purrdf_lex::json::{Format, record::ToJson};
+ 
+ /// The RDF 1.2 statement layer admitted to object-level reasoning.
+ pub const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
+@@ -75,12 +77,7 @@ pub fn object_level_domains() -> gmeow_errors::Result<crate::physical::SelectedD
+                 .map(|graph| LogicalGraph::Named(purrdf::TermValue::iri(graph))),
+         )
+         .collect();
+-    let bytes = serde_json::to_vec(&(AUTHORITY, DomainProfile::NonemptyObjectDomainV1, &roles))
+-        .map_err(|error| {
+-            gmeow_errors::Diag::of_kind(crate::error::Reason {
+-                detail: format!("object-level domain selection identity: {error}"),
+-            })
+-        })?;
++    let bytes = object_level_selection_bytes(AUTHORITY, &roles)?;
+     let selection = *purrdf_hash::blake3::hash(&bytes).as_bytes();
+     SelectedDomains::new(
+         roles
+@@ -97,6 +94,34 @@ pub fn object_level_domains() -> gmeow_errors::Result<crate::physical::SelectedD
+     )
+ }
+ 
++fn object_level_selection_bytes(
++    authority: &str,
++    roles: &[crate::physical::LogicalGraph],
++) -> gmeow_errors::Result<Vec<u8>> {
++    let value = (
++        authority,
++        crate::physical::DomainProfile::NonemptyObjectDomainV1,
++        roles,
++    )
++        .to_json();
++    let mut resident = purrdf_lex::allocation::Resident;
++    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
++    purrdf_lex::json::write_with_memory(&value, Format::COMPACT, &mut memory)
++        .map(String::into_bytes)
++        .map_err(|error| {
++            let kind = crate::error::Reason {
++                detail: format!("object-level domain selection identity: {error}"),
++            };
++            let mut diagnostic =
++                gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
++                    .with_source(error);
++            if let Some(class) = kind.failure_class() {
++                diagnostic = diagnostic.with_failure_class(class);
++            }
++            diagnostic
++        })
++}
++
+ /// Whether a named graph belongs to the object-level reasoning EDB.
+ pub fn is_object_level_named_graph(iri: &str) -> bool {
+     OBJECT_LEVEL_NAMED_GRAPHS.contains(&iri)
+diff --git a/crates/logic/src/reasoning_graphs.tests.rs b/crates/logic/src/reasoning_graphs.tests.rs
+index 23e726cbf..794699bbd 100644
+--- a/crates/logic/src/reasoning_graphs.tests.rs
++++ b/crates/logic/src/reasoning_graphs.tests.rs
+@@ -2,6 +2,7 @@
+ // SPDX-License-Identifier: AGPL-3.0-only
+ 
+ use super::*;
++use crate::physical::{DomainProfile, LogicalGraph};
+ 
+ #[test]
+ fn meta_record_exclusion_retains_declared_empty_worlds() {
+@@ -102,6 +103,40 @@ fn boundary_is_unique_and_excludes_meta_graphs() {
+     assert!(!is_object_level_named_graph(
+         "https://blackcatinformatics.ca/gmeow/graph/grounding-seams"
+     ));
++
++    let selected = object_level_domains().expect("the complete declared domain roles are admitted");
++    let authority = "gmeow.pipeline.object-level.v1";
++    let roles: Vec<_> = std::iter::once(LogicalGraph::Default)
++        .chain(
++            OBJECT_LEVEL_NAMED_GRAPHS
++                .into_iter()
++                .map(|graph| LogicalGraph::Named(purrdf::TermValue::iri(graph))),
++        )
++        .collect();
++    let bytes = object_level_selection_bytes(authority, &roles)
++        .expect("the actual encoder retains the complete ordered role envelope");
++    let mut reference = include_str!("reasoning_graphs/fixtures/domain-selection-v1.txt").lines();
++    let preimage = reference
++        .next()
++        .expect("the original reference contains its complete preimage")
++        .strip_prefix("OBJECT_LEVEL_DOMAIN_PREIMAGE=")
++        .expect("the original preimage is labeled");
++    let digest = reference
++        .next()
++        .expect("the original reference contains its actual production selection")
++        .strip_prefix("OBJECT_LEVEL_DOMAIN_SELECTION=")
++        .expect("the original production selection is labeled");
++    assert_eq!(reference.next(), None);
++    assert_eq!(bytes, preimage.as_bytes());
++    assert_eq!(selected.worlds().len(), roles.len());
++    for world in selected.worlds() {
++        assert_eq!(
++            purrdf_hash::hex::Digest32::new(*world.selection()).to_hex(),
++            digest
++        );
++        assert_eq!(world.authority(), authority);
++        assert_eq!(world.profile(), DomainProfile::NonemptyObjectDomainV1);
++    }
+ }
+ 
+ #[test]
+diff --git a/crates/logic/src/reasoning_graphs/fixtures/domain-selection-v1.txt b/crates/logic/src/reasoning_graphs/fixtures/domain-selection-v1.txt
+new file mode 100644
+index 000000000..b0dd52404
+--- /dev/null
++++ b/crates/logic/src/reasoning_graphs/fixtures/domain-selection-v1.txt
+@@ -0,0 +1,2 @@
++OBJECT_LEVEL_DOMAIN_PREIMAGE=["gmeow.pipeline.object-level.v1","NonemptyObjectDomainV1",["Default",{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/statements"}},{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/imports"}},{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/logic"}},{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/relational-core"}},{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/demo/jointly-acyclic"}},{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/demo/super-weakly-acyclic"}},{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/demo/model-summarizing-acyclic"}},{"Named":{"Iri":"https://blackcatinformatics.ca/gmeow/graph/examples"}}]]
++OBJECT_LEVEL_DOMAIN_SELECTION=c56477cf0b7f2f4d8e954974f3f1d5d7e7b752ab5e8c33eda59573bba7e06dcc

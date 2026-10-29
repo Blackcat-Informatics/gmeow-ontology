@@ -1,0 +1,148 @@
+{
+  "issue": 2043,
+  "pr_number": 2045,
+  "branch": "paudley/2043-preserve-object-level-domain-identities",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2043-preserve-object-level-domain-identities/.stage/preserve-object-level-domain-identities",
+  "observed_at": "2026-10-29T11:19:50.245955+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, pr-checks.txt, validation.md"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2043-preserve-object-level-domain-identities/.stage/preserve-object-level-domain-identities/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2043-preserve-object-level-domain-identities/.stage/preserve-object-level-domain-identities/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2043-preserve-object-level-domain-identities/.stage/preserve-object-level-domain-identities/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2043-preserve-object-level-domain-identities/.stage/preserve-object-level-domain-identities/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2043-preserve-object-level-domain-identities/.stage/preserve-object-level-domain-identities/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "40c4360e9c98a5763d30502eb093518587ce0a42",
+    "headRefName": "paudley/2043-preserve-object-level-domain-identities",
+    "headRefOid": "7b75d9a514358d417725594f7c70a63683f09149",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2045,
+    "state": "OPEN",
+    "title": "Preserve object-level domain identities with native JSON",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2045"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40863929992/job/123413774817",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40863929992/job/123413774748",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40863929992/job/123413774830",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/40863929992/job/123413774321",
+        "name": "helpers",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "7b75d9a514358d417725594f7c70a63683f09149",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "e0b94e413c7ea99956e325d347076a5c472757ef2a52d7d03bb7c747e5b335b0"
+  },
+  "local": {
+    "head": "7b75d9a514358d417725594f7c70a63683f09149",
+    "branch": "paudley/2043-preserve-object-level-domain-identities",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2045,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2045 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "pr-checks.txt",
+    "validation.md"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/usr/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 15,
+      "bytes": 43667,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "40c4360e9c98a5763d30502eb093518587ce0a42",
+      "head": "7b75d9a514358d417725594f7c70a63683f09149",
+      "status": "clean"
+    }
+  }
+}
