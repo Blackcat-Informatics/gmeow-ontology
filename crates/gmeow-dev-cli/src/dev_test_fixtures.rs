@@ -13,6 +13,7 @@ use std::time::Instant;
 use gmeow_docs::i18n::ENGLISH;
 use gmeow_errors::Diag;
 use purrdf::ContentDigest;
+use purrdf_lex::json::{self, Value, record::ToJson as _};
 
 use crate::{TestFixtureMode, TestFixtureScope};
 
@@ -201,10 +202,7 @@ fn produce(
         let prepared = prepare_fixture_selector_fields(
             root,
             None,
-            BTreeMap::from([(
-                "conformance_heavy",
-                serde_json::to_value(&selected).map_err(fail)?,
-            )]),
+            BTreeMap::from([("conformance_heavy", selected.to_json())]),
         )?;
         if let Some(path) = timings_path {
             write_json_atomic(
@@ -361,11 +359,11 @@ fn produce(
             .map_err(|error| fail(format!("export source-stage observations: {error}")))?;
         stage_selection
             .as_mut()
-            .and_then(serde_json::Value::as_object_mut)
+            .and_then(Value::as_object_mut)
             .ok_or_else(|| fail("prepared stage selection is not an object"))?
             .insert(
                 "source_artifacts".to_owned(),
-                serde_json::to_value(&source_exports.source_artifacts).map_err(fail)?,
+                source_exports.source_artifacts.to_json(),
             );
         println!("test fixture producer: phase=pipeline-stages state=complete");
         Some(serde_json::json!({
@@ -652,24 +650,16 @@ struct FinalizedFixtureSelector {
 
 fn prepare_fixture_selector(
     root: &Path,
-    stage_selection: Option<serde_json::Value>,
+    stage_selection: Option<Value>,
     bundle: Option<&gmeow_bundle_import::BundleFixtureSelector>,
     docs: Option<&gmeow_docs_model::fixture::DocsFixtureSelector>,
 ) -> FixtureResult<PreparedFixtureSelector> {
     let mut fields = BTreeMap::new();
     if let Some(bundle) = bundle {
-        fields.insert(
-            "bundle_import",
-            serde_json::to_value(bundle)
-                .map_err(|error| fail(format!("encode bundle fixture selector: {error}")))?,
-        );
+        fields.insert("bundle_import", bundle.to_json());
     }
     if let Some(docs) = docs {
-        fields.insert(
-            "docs",
-            serde_json::to_value(docs)
-                .map_err(|error| fail(format!("encode docs fixture selector: {error}")))?,
-        );
+        fields.insert("docs", docs.to_json());
     }
     prepare_fixture_selector_fields(root, stage_selection, fields)
 }
@@ -679,8 +669,8 @@ fn prepare_fixture_selector(
 /// operations preserve those bindings until their own final publication succeeds.
 fn prepare_fixture_selector_fields(
     root: &Path,
-    stage_selection: Option<serde_json::Value>,
-    fields: BTreeMap<&str, serde_json::Value>,
+    stage_selection: Option<Value>,
+    fields: BTreeMap<&str, Value>,
 ) -> FixtureResult<PreparedFixtureSelector> {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
     let mut value = match stage_selection {
@@ -692,15 +682,11 @@ fn prepare_fixture_selector_fields(
                     path.display()
                 ))
             })?;
-            serde_json::from_slice(&bytes)
+            json::record::read_document(&bytes)
                 .map_err(|error| fail(format!("decode published fixture prefix: {error}")))?
         }
     };
-    if value
-        .get("schema_version")
-        .and_then(serde_json::Value::as_u64)
-        != Some(2)
-    {
+    if value.get("schema_version").and_then(Value::as_u64) != Some(2) {
         return Err(fail(
             "pipeline fixture selection is not schema 2 before publication",
         ));
@@ -711,7 +697,7 @@ fn prepare_fixture_selector_fields(
     for (name, value) in fields {
         object.insert(name.to_owned(), value);
     }
-    let bytes = encode_json(&value)
+    let bytes = encode_fixture_selector(&value)
         .map_err(|error| fail(format!("encode complete fixture selector: {error}")))?;
     let sha256 = ContentDigest::of(&bytes).to_hex();
     Ok(PreparedFixtureSelector {
@@ -744,14 +730,27 @@ impl PreparedFixtureSelector {
     }
 }
 
-fn encode_json(value: &serde_json::Value) -> std::io::Result<Vec<u8>> {
+/// Encode the finalized shared selector in its authenticated byte profile.
+fn encode_fixture_selector(value: &Value) -> std::io::Result<Vec<u8>> {
+    let mut value = value.clone();
+    json::record::sorted_last_wins(&mut value);
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    let mut bytes = json::write_with_memory(&value, json::Format::PRETTY, &mut memory)
+        .map(String::into_bytes)
+        .map_err(std::io::Error::other)?;
+    bytes.push(b'\n');
+    Ok(bytes)
+}
+
+fn encode_telemetry_json(value: &serde_json::Value) -> std::io::Result<Vec<u8>> {
     let mut bytes = serde_json::to_vec_pretty(value).map_err(std::io::Error::other)?;
     bytes.push(b'\n');
     Ok(bytes)
 }
 
 fn write_json_atomic(path: &Path, value: &serde_json::Value) -> std::io::Result<()> {
-    write_bytes_atomic(path, &encode_json(value)?)
+    write_bytes_atomic(path, &encode_telemetry_json(value)?)
 }
 
 fn write_bytes_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
