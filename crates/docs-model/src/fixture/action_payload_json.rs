@@ -10,7 +10,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record},
 };
 
-purrdf_lex::json_record! { impl ToJson for DocsActionPayload {
+::purrdf_lex::json_record! { impl ToJson for DocsActionPayload {
     "schema_version" => schema_version,
     "artifact" => artifact,
     "input_digest" => input_digest,

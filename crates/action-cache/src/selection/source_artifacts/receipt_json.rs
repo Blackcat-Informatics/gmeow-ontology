@@ -9,7 +9,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record},
 };
 
-purrdf_lex::json_record! { impl ToJson for SourceArtifactOrigin {
+::purrdf_lex::json_record! { impl ToJson for SourceArtifactOrigin {
     "stage" => stage,
     "action_key" => action_key,
     "receipt_digest" => receipt_digest,
@@ -31,7 +31,7 @@ impl FromJson for SourceArtifactOrigin {
     }
 }
 
-purrdf_lex::json_record! { impl ToJson for Payload {
+::purrdf_lex::json_record! { impl ToJson for Payload {
     "source" => source,
     "artifact" => artifact,
     "digest" => digest,
