@@ -4,7 +4,10 @@
 //! Shared value-only codec for retained native reasoning terms and presentation
 //! metadata. No dataset-local term IDs and no execution certificates.
 
+mod cbor;
 mod json;
+
+pub use cbor::write_cbor;
 
 use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -109,6 +112,8 @@ pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<TermVal
 
 /// The same native-term codec for an explicitly absent default graph or a named graph.
 pub mod optional {
+    pub use super::cbor::write_optional_cbor as write_cbor;
+
     use super::{Deserialize, Deserializer, Serialize, Serializer, TermValue, Value};
 
     /// Encode an explicit graph choice through the retained native term owner.

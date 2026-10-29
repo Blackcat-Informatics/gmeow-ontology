@@ -3,6 +3,7 @@
 
 //! Explicit native case operations; source admission never implies consistency.
 
+mod cbor;
 mod json;
 
 use gmeow_logic::reason::refute::{ClassAdmissionObservation, PreparedClassAnalysis};
