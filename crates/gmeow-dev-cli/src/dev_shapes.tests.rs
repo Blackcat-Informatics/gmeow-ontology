@@ -970,6 +970,7 @@ fn sparql_alpha_canonical_preserves_literal_and_query_contracts() {
     );
 }
 
+/// Clearance must retain report values and refuse unsupported bodies or activation guards.
 #[test]
 fn raw_sparql_target_identity_rejects_changed_reports_and_literals() {
     let legacy = parse_ttl(JOIN_LEGACY_TTL);
@@ -1035,6 +1036,7 @@ fn raw_sparql_target_identity_rejects_changed_reports_and_literals() {
     }
 }
 
+/// Native statement metadata and unconditional deactivation participate in block identity.
 #[test]
 fn raw_sparql_target_identity_preserves_native_statement_metadata() {
     let deactivated_legacy = parse_ttl(
