@@ -7,6 +7,9 @@ use gmeow_build_inputs::{
 };
 use std::path::Path;
 
+#[path = "support/native_json.rs"]
+mod native_json;
+
 fn write(root: &Path, name: &str, source: &str) {
     let path = root.join(name);
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -558,7 +561,29 @@ fn actual_compiler_reads_must_equal_declared_workspace_inputs() {
 #[test]
 fn selected_registry_identity_and_feature_resolution_are_binding() {
     let root = fixture("pub fn production() {}\n");
+    let rich_manifest = r#"[package]
+name='example'
+version='1.0.0'
+[package.metadata.capture]
+text="escape\n\"\\ é中😀"
+integer=-9223372036854775808
+boolean=true
+finite=1.25
+floats=[0.0,-0.0,1.0,-1.5,1e-6,1e-7,1e16,1e20,5e-324,1.7976931348623157e308]
+offset=1979-05-27T07:32:00.999999999Z
+local=1979-05-27T07:32:00
+date=1979-05-27
+time=07:32:00.001
+array=["é中😀",1,true]
+"#;
+    write(root.path(), "crate/Cargo.toml", rich_manifest);
+    write(
+        root.path(),
+        ".cargo/config.toml",
+        "[build]\ntarget='x86_64-unknown-linux-gnu'\n[alias]\nread='check'\n[env]\nGMEOW_JSON_FIXTURE='é中😀'\n",
+    );
     let mut selected = selection();
+    selected.policy_files = vec![".cargo/config.toml".into()];
     let mut external = selected.units[0].clone();
     external.package = "registry+https://example.test/index#external@1.0.0".into();
     external.manifest = None;
@@ -572,6 +597,52 @@ fn selected_registry_identity_and_feature_resolution_are_binding() {
         "version=4\n[[package]]\nname='external'\nversion='1.0.0'\nsource='registry+https://example.test/index'\nchecksum='first'\n",
     );
     let original = InputInventory::collect(root.path(), &selected).unwrap();
+    let selection_path = root.path().join("selected.json");
+    let plan_path = root.path().join("selected-plan.json");
+    std::fs::write(&selection_path, purrdf_lex::json::record::to_vec(&selected)).unwrap();
+    assert!(
+        std::process::Command::new(env!("CARGO_BIN_EXE_extract-tests"))
+            .arg("selected-plan")
+            .arg(root.path())
+            .arg(&selection_path)
+            .arg(&plan_path)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let bytes = std::fs::read(plan_path).unwrap();
+    native_json::assert_reference("selected-plan", &bytes, &gmeow_build_inputs::digest(&bytes));
+    assert_eq!(
+        original.manifests["crate/Cargo.toml"],
+        native_json::original("cargo-manifest").0
+    );
+    assert_eq!(
+        original.manifests[".cargo/config.toml"],
+        native_json::original("cargo-configuration").0
+    );
+    assert_eq!(
+        original.packages["registry+https://example.test/index#external@1.0.0"],
+        native_json::original("cargo-package").0
+    );
+
+    for nonfinite in ["nan", "inf", "-inf"] {
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            &rich_manifest.replace("finite=1.25", &format!("finite={nonfinite}")),
+        );
+        let error = InputInventory::collect(root.path(), &selected)
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains("crate/Cargo.toml")
+                && error.contains("non-finite TOML")
+                && error.contains("field \"finite\""),
+            "{error}"
+        );
+    }
+    write(root.path(), "crate/Cargo.toml", rich_manifest);
+
     write(
         root.path(),
         "Cargo.lock",
@@ -903,6 +974,37 @@ fn native_semantic_contract_is_portable_and_omits_external_tests() {
         );
     }
     let original = NativeSources::collect(root.path()).unwrap();
+    let historical: NativeSources =
+        purrdf_lex::json::record::from_slice(&native_json::original("native-document").1).unwrap();
+    assert_eq!(historical, original);
+    let native_document = purrdf_lex::json::record::to_vec(&original);
+    native_json::assert_reference(
+        "native-document",
+        &native_document,
+        &gmeow_build_inputs::digest(&native_document),
+    );
+    let native_input =
+        purrdf_lex::json::record::to_vec(&("gmeow-native-semantic-sources-v1", &original.files));
+    native_json::assert_reference("native-input", &native_input, &original.digest().unwrap());
+    let source_path = root.path().join("source-list.json");
+    let plan_path = root.path().join("native-plan.json");
+    assert!(
+        std::process::Command::new(env!("CARGO_BIN_EXE_extract-tests"))
+            .arg("native-plan")
+            .arg(root.path())
+            .arg(&source_path)
+            .arg(&plan_path)
+            .status()
+            .unwrap()
+            .success()
+    );
+    for (name, path) in [
+        ("native-source-list", &source_path),
+        ("native-plan", &plan_path),
+    ] {
+        let bytes = std::fs::read(path).unwrap();
+        native_json::assert_reference(name, &bytes, &gmeow_build_inputs::digest(&bytes));
+    }
     assert_eq!(original.files.len(), 12);
     write(
         root.path(),
@@ -2162,17 +2264,50 @@ fn portable_tracing_requires_registry_package_identity() {
         } else {
             format!("fn phase() {{ let _ = {span}; }}")
         };
-        for dependency in [
-            "{package='other',path='../fake'}",
-            "{path='../fake'}",
-            "{version='0.1',path='../fake'}",
-            "{git='https://example.invalid/tracing'}",
-            "{version='0.1',git='https://example.invalid/tracing'}",
-            "{version='0.1',registry='other'}",
-            "{version='0.1',package='other'}",
+        for (dependency, expected) in [
+            (
+                "{package='other',path='../fake'}",
+                "macro tracing::info_span! has no unique selected local export",
+            ),
+            (
+                "{path='../fake'}",
+                "macro tracing::info_span! has no unique selected local export",
+            ),
+            (
+                "{version='0.1',path='../fake'}",
+                "macro tracing::info_span! has no unique selected local export",
+            ),
+            (
+                "{git='https://example.invalid/tracing'}",
+                "exported macro owner must be an unambiguous local path declaration",
+            ),
+            (
+                "{version='0.1',git='https://example.invalid/tracing'}",
+                "exported macro owner must be an unambiguous local path declaration",
+            ),
+            (
+                "{version='0.1',registry='other'}",
+                "exported macro owner must be an unambiguous local path declaration",
+            ),
+            (
+                "{version='0.1',package='other'}",
+                "exported macro owner has no declared local path",
+            ),
         ] {
             let root = fixture(&source);
             write(root.path(), "crate/src/label.txt", "embedded input");
+            // A valid local library must still prove its macro export ownership.
+            let package = if dependency.contains("package='other'") {
+                "other"
+            } else {
+                "tracing"
+            };
+            write(
+                root.path(),
+                "fake/Cargo.toml",
+                &format!("[package]\nname='{package}'\nversion='0.1.0'\nedition='2024'\n"),
+            );
+            write(root.path(), "fake/src/lib.rs", "pub fn unrelated() {}\n");
             write(
                 root.path(),
                 "crate/Cargo.toml",
@@ -2184,9 +2319,7 @@ fn portable_tracing_requires_registry_package_identity() {
                 gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
                     .expect_err("a dependency name cannot grant registry macro ownership");
             assert!(
-                error
-                    .to_string()
-                    .contains("no selected source-input capability owner"),
+                error.to_string().contains(expected),
                 "{dependency}: {error}"
             );
         }
@@ -2236,70 +2369,92 @@ fn portable_tracing_preserves_registry_aliases_and_workspace_declarations() {
 
 #[test]
 fn portable_tracing_refuses_source_overrides_and_ambiguous_target_owners() {
-    for (dependency, manifest_extra, workspace_extra, config) in [
+    for (dependency, manifest_extra, workspace_extra, config, expected) in [
         (
             "{workspace=true}",
             "",
-            "[workspace.dependencies]\ntracing={path='../fake'}",
+            "[workspace.dependencies]\ntracing={path='fake'}",
             "",
+            "macro tracing::info_span! has no unique selected local export",
         ),
         (
             "{workspace=true,package='other'}",
             "",
             "[workspace.dependencies]\ntracing='0.1'",
             "",
+            "unsupported inherited local macro declaration",
         ),
         (
             "'0.1'",
             "[target.'cfg(windows)'.dependencies]\ntracing={path='../fake'}",
             "",
             "",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
         (
             "'0.1'",
             "",
             "[patch.crates-io]\ntracing={path='../fake'}",
             "",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
         (
             "'0.1'",
             "",
             "[patch.crates-io]\nreplacement={package='tracing',git='https://example.invalid/tracing'}",
             "",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
         (
             "'0.1'",
             "",
             "[replace]\n\"tracing:0.1.0\"={path='../fake'}",
             "",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
-        ("'0.1'", "", "", "paths=['../fake']"),
+        (
+            "'0.1'",
+            "",
+            "",
+            "paths=['../fake']",
+            "exported macro owner must be an unambiguous local path declaration",
+        ),
         (
             "'0.1'",
             "",
             "",
             "[source.crates-io]\nreplace-with='fake'\n[source.fake]\ndirectory='../fake'",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
         (
             "'0.1'",
             "",
             "",
             "[source.crates-io]\nregistry='https://example.invalid/index'",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
         (
             "'0.1'",
             "",
             "",
             "[registries.crates-io]\nindex='https://example.invalid/index'",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
         (
             "'0.1'",
             "",
             "",
             "[patch.crates-io]\ntracing={path='../fake'}",
+            "exported macro owner must be an unambiguous local path declaration",
         ),
     ] {
         let root = fixture("fn phase() { let _ = ::tracing::info_span!(\"phase\"); }");
+        write(
+            root.path(),
+            "fake/Cargo.toml",
+            "[package]\nname='tracing'\nversion='0.1.0'\nedition='2024'\n",
+        );
+        write(root.path(), "fake/src/lib.rs", "pub fn unrelated() {}\n");
         write(
             root.path(),
             "Cargo.toml",
@@ -2318,9 +2473,7 @@ fn portable_tracing_refuses_source_overrides_and_ambiguous_target_owners() {
         let error = gmeow_build_inputs::test_only_module_paths(root.path(), &["crate/src/lib.rs"])
             .unwrap_err();
         assert!(
-            error
-                .to_string()
-                .contains("no selected source-input capability owner"),
+            error.to_string().contains(expected),
             "{dependency}, {manifest_extra}, {workspace_extra}, {config}: {error}"
         );
     }
@@ -2481,7 +2634,7 @@ fn rust_2015_tracing_names_never_hide_embedded_source() {
             assert!(
                 error
                     .to_string()
-                    .contains("no selected source-input capability owner"),
+                    .contains("external local macro path requires the external prelude"),
                 "{error}"
             );
             assert!(

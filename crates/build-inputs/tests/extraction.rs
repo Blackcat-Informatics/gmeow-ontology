@@ -4,6 +4,11 @@
 #[path = "../src/extract.rs"]
 mod extract;
 
+#[path = "support/native_json.rs"]
+mod native_json;
+
+use purrdf_lex::json::{self, record::ToJson};
+
 #[test]
 fn module_extraction_preserves_exact_bodies_paths_and_module_names() {
     let root = tempfile::tempdir().unwrap();
@@ -13,13 +18,49 @@ fn module_extraction_preserves_exact_bodies_paths_and_module_names() {
     let plan = extract::plan(root.path(), &["lib.rs".into()]).unwrap();
     assert!(plan.blockers.is_empty(), "{:?}", plan.blockers);
     assert_eq!(plan.preservation.len(), 1);
+    let sources = root.path().join("sources.json");
+    std::fs::write(&sources, purrdf_lex::json::record::to_vec(&vec!["lib.rs"])).unwrap();
+    let plan_path = root.path().join("plan.json");
+    assert!(
+        std::process::Command::new(env!("CARGO_BIN_EXE_extract-tests"))
+            .arg("plan")
+            .arg(root.path())
+            .arg(&sources)
+            .arg(&plan_path)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let plan_bytes = std::fs::read(&plan_path).unwrap();
+    native_json::assert_reference(
+        "extraction-plan",
+        &plan_bytes,
+        &gmeow_build_inputs::digest(&plan_bytes),
+    );
+
     assert_eq!(plan.preservation[0].function_bodies[0].0, "original_name");
     assert_eq!(
         std::fs::read_to_string(root.path().join("lib.rs")).unwrap(),
         source,
         "planning is read-only"
     );
-    extract::apply(root.path(), &plan).unwrap();
+    let preservation_path = root.path().join("preservation.json");
+    assert!(
+        std::process::Command::new(env!("CARGO_BIN_EXE_extract-tests"))
+            .arg("apply")
+            .arg(root.path())
+            .arg(&plan_path)
+            .arg(&preservation_path)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let proof_bytes = std::fs::read(preservation_path).unwrap();
+    native_json::assert_reference(
+        "extraction-preservation",
+        &proof_bytes,
+        &gmeow_build_inputs::digest(&proof_bytes),
+    );
     let parent = std::fs::read_to_string(root.path().join("lib.rs")).unwrap();
     assert!(parent.contains("mod tests"));
     assert!(parent.contains("#[path = \"lib.tests.rs\"]"));
@@ -45,6 +86,27 @@ fn changing_the_plan_body_or_original_input_refuses_application() {
     )
     .unwrap();
     let mut plan = extract::plan(root.path(), &["lib.rs".into()]).unwrap();
+    for elements in [vec!["original"], vec!["original", "digest", "extra"]] {
+        let mut invalid = plan.to_json();
+        invalid["preservation"][0]["function_bodies"][0] = elements.to_json();
+        let path = root.path().join("invalid-plan.json");
+        std::fs::write(&path, purrdf_lex::json::record::to_vec(&invalid)).unwrap();
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_extract-tests"))
+            .arg("apply")
+            .arg(root.path())
+            .arg(&path)
+            .arg(root.path().join("invalid-proof.json"))
+            .output()
+            .unwrap();
+        assert!(!output.status.success());
+        assert!(
+            String::from_utf8(output.stderr)
+                .unwrap()
+                .contains("function_bodies")
+        );
+        assert!(!root.path().join("lib.tests.rs").exists());
+    }
+
     plan.replacements
         .iter_mut()
         .find(|replacement| replacement.before_sha256.is_none())
@@ -155,7 +217,32 @@ fn formatter_evidence_accepts_spacing_but_rejects_assertion_or_path_changes() {
         initial.replace("assert_eq!(1,1)", "assert_eq!( 1, 1 )"),
     )
     .unwrap();
-    assert_eq!(extract::verify_format(root.path(), &plan).unwrap().len(), 2);
+    let plan_path = root.path().join("format-plan.json");
+    std::fs::write(&plan_path, json::write_pretty(&plan.to_json())).unwrap();
+    let evidence_path = root.path().join("format-evidence.json");
+    assert!(
+        std::process::Command::new(env!("CARGO_BIN_EXE_extract-tests"))
+            .arg("verify-format")
+            .arg(root.path())
+            .arg(&plan_path)
+            .arg(&evidence_path)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let evidence_bytes = std::fs::read(evidence_path).unwrap();
+    let historical: Vec<extract::FormattedPreservation> =
+        purrdf_lex::json::record::from_slice(&native_json::original("extraction-format").1)
+            .unwrap();
+    let historical_bytes = json::write_pretty(&historical.to_json()).into_bytes();
+    native_json::assert_reference(
+        "extraction-format",
+        &historical_bytes,
+        &gmeow_build_inputs::digest(&historical_bytes),
+    );
+    let fresh: Vec<extract::FormattedPreservation> =
+        purrdf_lex::json::record::from_slice(&evidence_bytes).unwrap();
+    assert_eq!(fresh.len(), 2);
     std::fs::write(
         &moved,
         initial.replace("assert_eq!(1,1)", "assert_eq!(1,2)"),

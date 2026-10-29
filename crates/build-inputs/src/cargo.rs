@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 mod json;
+mod toml_json;
 
 use crate::{CfgContext, InputInventory, Result, SCHEMA, checked_path, digest, fail};
 use std::collections::{BTreeMap, BTreeSet};
@@ -164,9 +165,10 @@ pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Resul
             &profiles,
             inventory.selection.units.iter().any(|unit| unit.controller),
         )?;
-        inventory
-            .manifests
-            .insert(manifest, digest(&serde_json::to_vec(&value).map_err(fail)?));
+        let bytes = toml_json::encode(&value)
+            .map_err(|error| fail(format!("Cargo manifest {manifest}: {error}")))?;
+        let identity = digest(&bytes);
+        inventory.manifests.insert(manifest, identity);
     }
     let lock: toml::Value =
         std::fs::read_to_string(checked_path(workspace, Path::new("Cargo.lock"))?)
@@ -215,10 +217,16 @@ pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Resul
         if source.starts_with("registry+") && !selected.contains_key("checksum") {
             return Err(fail("selected registry package has no checksum"));
         }
-        inventory.packages.insert(
-            unit.package.clone(),
-            digest(&serde_json::to_vec(&selected).map_err(fail)?),
+        let selected = toml::Value::Table(
+            selected
+                .into_iter()
+                .map(|(key, value)| (key.to_owned(), value.clone()))
+                .collect(),
         );
+        let bytes = toml_json::encode(&selected)
+            .map_err(|error| fail(format!("Cargo lock entry {}: {error}", unit.package)))?;
+        let identity = digest(&bytes);
+        inventory.packages.insert(unit.package.clone(), identity);
     }
     Ok(())
 }
@@ -586,10 +594,10 @@ pub(crate) fn configuration(
         );
     }
     prune_empty_tables(&mut value);
-    inventory.manifests.insert(
-        path.to_owned(),
-        digest(&serde_json::to_vec(&value).map_err(fail)?),
-    );
+    let bytes = toml_json::encode(&value)
+        .map_err(|error| fail(format!("Cargo configuration {path}: {error}")))?;
+    let identity = digest(&bytes);
+    inventory.manifests.insert(path.to_owned(), identity);
     Ok(())
 }
 
