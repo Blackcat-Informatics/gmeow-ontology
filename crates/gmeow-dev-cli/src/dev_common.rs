@@ -158,20 +158,34 @@ pub fn elapsed_ms(started: Instant) -> u128 {
 
 /// Write a deterministic `--timings-json` artifact (sorted keys, trailing
 /// newline). This is PRODUCT DATA, not a log line, so it is written verbatim.
-pub fn write_timings_json(path: &Path, value: &serde_json::Value) -> i32 {
+pub fn write_timings_json(path: &Path, value: &purrdf_lex::json::Value) -> i32 {
     if let Some(parent) = path.parent()
         && let Err(e) = std::fs::create_dir_all(parent)
     {
         return fail(format!("cannot create {}: {e}", parent.display()));
     }
-    let text = match serde_json::to_string_pretty(value) {
-        Ok(s) => s,
+    let bytes = match encode_metadata_json(value) {
+        Ok(bytes) => bytes,
         Err(e) => return fail(format!("cannot serialize timings JSON: {e}")),
     };
-    if let Err(e) = std::fs::write(path, format!("{text}\n")) {
+    if let Err(e) = std::fs::write(path, bytes) {
         return fail(format!("cannot write {}: {e}", path.display()));
     }
     0
+}
+
+/// Encode metadata with recursively sorted keys, pretty JSON and one LF.
+pub(super) fn encode_metadata_json(value: &purrdf_lex::json::Value) -> std::io::Result<Vec<u8>> {
+    let mut value = value.clone();
+    purrdf_lex::json::record::sorted_last_wins(&mut value);
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    let mut bytes =
+        purrdf_lex::json::write_with_memory(&value, purrdf_lex::json::Format::PRETTY, &mut memory)
+            .map(String::into_bytes)
+            .map_err(std::io::Error::other)?;
+    bytes.push(b'\n');
+    Ok(bytes)
 }
 
 #[path = "dev_common.tests.rs"]

@@ -76,7 +76,7 @@ fn docs() -> gmeow_docs_model::fixture::DocsFixtureSelector {
 
 fn seed(root: &Path) -> (std::path::PathBuf, Vec<u8>) {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
-    write_bytes_atomic(&path, &encode_fixture_selector(&prefix()).unwrap()).unwrap();
+    write_bytes_atomic(&path, &encode_metadata_json(&prefix()).unwrap()).unwrap();
     let bytes = std::fs::read(&path).unwrap();
     (path, bytes)
 }

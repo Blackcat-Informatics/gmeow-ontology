@@ -11,7 +11,9 @@
 //! pre-gate runs first (as part of the same orchestration); with `--deep`, the
 //! native Tier-2 reasoning pass folds in.
 
+use purrdf_lex::json::record::ToJson as _;
 use std::collections::{BTreeSet, HashSet};
+
 use std::path::Path;
 
 use gmeow_errors::Report;
@@ -273,41 +275,50 @@ pub fn validate(
         .timings
         .iter()
         .map(|timing| {
-            serde_json::json!({
-                "phase": timing.phase,
-                "elapsed_ms": timing.elapsed_ms,
-                "work_metadata": timing.metadata,
-                "example_work": timing.example_work,
-            })
+            purrdf_lex::json::Value::from(
+                purrdf_lex::json::Object::new()
+                    .with("phase", timing.phase.as_str())
+                    .with("elapsed_ms", timing.elapsed_ms)
+                    .with("work_metadata", timing.metadata.as_deref())
+                    .with("example_work", timing.example_work.as_ref().to_json()),
+            )
         })
         .collect::<Vec<_>>();
     let report = run.report;
 
     emit_report(&report);
     if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "schema_version": TELEMETRY_SCHEMA_VERSION,
-            "command": "validate",
-            "gts": gts.map(|p| p.display().to_string()),
-            "deep": deep,
-            "ok": report.ok(),
-            "errors": report.error_count(),
-            "warnings": report.warning_count(),
-            "deterministic_work": {
-                "source_inputs": source_input_count,
-                "source_input_bytes": source_input_bytes,
-                "dataset_quads": dataset_quads,
-                "declared_terms": declared_terms,
-                "closure_constructions": usize::from(deep && gts.is_some()),
-                "findings": report.findings.len(),
-                "errors": report.error_count(),
-                "warnings": report.warning_count(),
-            },
-            "observations": {
-                "timings": phase_timings,
-            },
-            "timings": phase_timings,
-        });
+        let payload = purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("schema_version", TELEMETRY_SCHEMA_VERSION)
+                .with("command", "validate")
+                .with("gts", gts.map(|p| p.display().to_string()))
+                .with("deep", deep)
+                .with("ok", report.ok())
+                .with("errors", report.error_count())
+                .with("warnings", report.warning_count())
+                .with(
+                    "deterministic_work",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("source_inputs", source_input_count)
+                            .with("source_input_bytes", source_input_bytes)
+                            .with("dataset_quads", dataset_quads)
+                            .with("declared_terms", declared_terms)
+                            .with("closure_constructions", usize::from(deep && gts.is_some()))
+                            .with("findings", report.findings.len())
+                            .with("errors", report.error_count())
+                            .with("warnings", report.warning_count()),
+                    ),
+                )
+                .with(
+                    "observations",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new().with("timings", phase_timings.to_json()),
+                    ),
+                )
+                .with("timings", phase_timings.to_json()),
+        );
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;
