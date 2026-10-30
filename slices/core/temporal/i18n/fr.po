@@ -520,3 +520,123 @@ msgstr "Un instant effectivement horodaté : ex:clockTick a gmeow:Instant ; gmeo
 msgctxt "https://blackcatinformatics.ca/gmeow/instantValue|http://www.w3.org/2004/02/skos/core#example"
 msgid "The point retains its timestamp: ex:clockTick gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ."
 msgstr "Le point conserve son horodatage : ex:clockTick gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Day Part"
+msgstr "Partie du jour"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for parts of a civil day as reckoned by a holder in an explicit temporal frame. Values classify a contextual reckoning and impose no universal hours, ordering or preferred schedule."
+msgstr "Un vocabulaire ouvert des parties d’un jour civil selon le découpage d’un titulaire dans un cadre temporel explicite. Les valeurs classent ce découpage contextuel sans imposer d’heures, d’ordre ou d’horaire privilégié universels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "Utiliser pour une classification du jour civil relative au titulaire dans un cadre temporel déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "Éviter d’assigner des limites horaires universelles ou de traiter les valeurs initiales comme exhaustives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "Lier le titulaire et le cadre temporel sur la lecture consommatrice ; créer d’autres individus DayPart pour d’autres découpages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:localPart a gmeow:DayPart ."
+msgstr "Conserver cet enregistrement attribué : ex:localPart a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "morning"
+msgstr "matin"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The morning part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "La partie « matin » d’un jour civil selon le découpage du titulaire sélectionné. Ses limites dépendent du cadre temporel déclaré et du titulaire, pas d’heures universelles fixes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "Utiliser pour une classification du jour civil relative au titulaire dans un cadre temporel déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "Éviter d’assigner des limites horaires universelles ou de traiter les valeurs initiales comme exhaustives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "Lier le titulaire et le cadre temporel sur la lecture consommatrice ; créer d’autres individus DayPart pour d’autres découpages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartMorning a gmeow:DayPart ."
+msgstr "Conserver cet enregistrement attribué : gmeow:dayPartMorning a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "afternoon"
+msgstr "après-midi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The afternoon part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "La partie « après-midi » d’un jour civil selon le découpage du titulaire sélectionné. Ses limites dépendent du cadre temporel déclaré et du titulaire, pas d’heures universelles fixes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "Utiliser pour une classification du jour civil relative au titulaire dans un cadre temporel déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "Éviter d’assigner des limites horaires universelles ou de traiter les valeurs initiales comme exhaustives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "Lier le titulaire et le cadre temporel sur la lecture consommatrice ; créer d’autres individus DayPart pour d’autres découpages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartAfternoon a gmeow:DayPart ."
+msgstr "Conserver cet enregistrement attribué : gmeow:dayPartAfternoon a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evening"
+msgstr "soir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The evening part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "La partie « soir » d’un jour civil selon le découpage du titulaire sélectionné. Ses limites dépendent du cadre temporel déclaré et du titulaire, pas d’heures universelles fixes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "Utiliser pour une classification du jour civil relative au titulaire dans un cadre temporel déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "Éviter d’assigner des limites horaires universelles ou de traiter les valeurs initiales comme exhaustives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "Lier le titulaire et le cadre temporel sur la lecture consommatrice ; créer d’autres individus DayPart pour d’autres découpages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartEvening a gmeow:DayPart ."
+msgstr "Conserver cet enregistrement attribué : gmeow:dayPartEvening a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "night"
+msgstr "nuit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The night part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "La partie « nuit » d’un jour civil selon le découpage du titulaire sélectionné. Ses limites dépendent du cadre temporel déclaré et du titulaire, pas d’heures universelles fixes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "Utiliser pour une classification du jour civil relative au titulaire dans un cadre temporel déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "Éviter d’assigner des limites horaires universelles ou de traiter les valeurs initiales comme exhaustives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "Lier le titulaire et le cadre temporel sur la lecture consommatrice ; créer d’autres individus DayPart pour d’autres découpages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartNight a gmeow:DayPart ."
+msgstr "Conserver cet enregistrement attribué : gmeow:dayPartNight a gmeow:DayPart ."

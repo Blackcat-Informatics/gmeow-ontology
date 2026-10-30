@@ -793,3 +793,771 @@ msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuve
 msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the governing law: gmeow:RelatedThingIriConstraint logic:formalizes gmeow:relatedThing ."
 msgstr "Conserver la loi applicable : gmeow:RelatedThingIriConstraint logic:formalizes gmeow:relatedThing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Open Item Reading"
+msgstr "Lecture d’élément en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A versioned process’s reading of a request or question awaiting an agent, limited to explicitly offered records. An open reading reports no linked settling act in that scope, never that the matter is unsettled in reality."
+msgstr "La lecture par un processus versionné d’une demande ou question en attente d’un agent, limitée aux enregistrements explicitement proposés. Une lecture ouverte ne signale aucun acte de clôture lié dans ce périmètre, jamais une absence de résolution réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading a gmeow:OpenItemReading ."
+msgstr "Conserver cet enregistrement attribué : ex:reading a gmeow:OpenItemReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Open Item Kind"
+msgstr "Type d’élément en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary classifying the source item read as awaiting an agent. Request and question are seeded values, not subclasses or assertions that a request lifecycle was executed."
+msgstr "Un vocabulaire ouvert classant l’élément source lu comme en attente d’un agent. Demande et question sont des valeurs initiales, ni sous-classes ni affirmations d’exécution d’un cycle de demande."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:kind a gmeow:OpenItemKind ."
+msgstr "Conserver cet enregistrement attribué : ex:kind a gmeow:OpenItemKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Open Item State"
+msgstr "État d’élément en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for the refiner’s scoped reading of an item’s linked response or settlement. Missing state remains unknown; changing state creates a new reading rather than editing its source."
+msgstr "Un vocabulaire ouvert pour la lecture de périmètre défini des réponses ou clôtures liées à un élément. Un état absent reste inconnu ; un changement crée une nouvelle lecture sans modifier la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenItemState|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:state a gmeow:OpenItemState ."
+msgstr "Conserver cet enregistrement attribué : ex:state a gmeow:OpenItemState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemRequest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "request item"
+msgstr "demande en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemRequest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source is read as a request made of the awaited agent. This reading is distinct from the request act and any AttentionRequest lifecycle."
+msgstr "La source est lue comme une demande adressée à l’agent attendu. Cette lecture se distingue de l’acte de demande et de tout cycle AttentionRequest."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemRequest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemRequest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemRequest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemRequest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemKind gmeow:openItemRequest ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemKind gmeow:openItemRequest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemQuestion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "question item"
+msgstr "question en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemQuestion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source is read as a question posed by an agent and awaiting further action. The reading does not itself assert answerhood or knowledge."
+msgstr "La source est lue comme une question posée par un agent et attendant une action ultérieure. La lecture n’affirme ni réponse ni connaissance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemQuestion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemQuestion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemQuestion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemQuestion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemKind gmeow:openItemQuestion ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemKind gmeow:openItemQuestion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemOpen|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "open item"
+msgstr "élément ouvert"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemOpen|http://www.w3.org/2004/02/skos/core#definition"
+msgid "No settling act or reply is linked in the records read. This scoped absence is neither a global absence nor a claim that no action occurred."
+msgstr "Aucun acte de clôture ni réponse n’est lié dans les enregistrements lus. Cette absence de périmètre défini n’est ni globale ni une affirmation d’inaction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemOpen|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemOpen|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemOpen|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemOpen|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemOpen ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemState gmeow:openItemOpen ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemReplied|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "replied item"
+msgstr "élément ayant reçu une réponse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemReplied|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reply is linked in the records read, without a linked settling act. A reply alone is not interpreted as settlement."
+msgstr "Une réponse est liée dans les enregistrements lus, sans acte de clôture lié. La réponse seule n’est pas interprétée comme une clôture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemReplied|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemReplied|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemReplied|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemReplied|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemReplied ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemState gmeow:openItemReplied ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemSettled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "settled item"
+msgstr "élément clos"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemSettled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A settling act is linked in the records read and retained through settledBy. The reading does not endorse an answer or certify success beyond that scope."
+msgstr "Un acte de clôture est lié dans les enregistrements lus et conservé via settledBy. La lecture n’approuve aucune réponse et ne certifie pas de réussite hors périmètre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemSettled|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemSettled|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemSettled|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemSettled|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemSettled ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemState gmeow:openItemSettled ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemLetGo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "item let go"
+msgstr "élément laissé de côté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemLetGo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The records read support the refiner’s reading that the agent let the item go. Letting go is distinct from answering or settling it."
+msgstr "Les enregistrements lus étayent la lecture selon laquelle l’agent a laissé l’élément de côté. Cela se distingue d’une réponse ou clôture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemLetGo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemLetGo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemLetGo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemLetGo|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemLetGo ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemState gmeow:openItemLetGo ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "open item kind"
+msgstr "type d’élément en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed classification of the item’s source as a request, question or another explicitly declared kind."
+msgstr "La classification attribuée de la source de l’élément comme demande, question ou autre type explicitement déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemKind ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemKind ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "open item state"
+msgstr "état d’élément en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly reported state of this scoped reading. No state is inferred from an absent value, a clock or a missing reply."
+msgstr "L’état explicitement rapporté de cette lecture de périmètre défini. Aucune valeur n’est déduite d’une absence, d’une horloge ou d’une réponse manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemState|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemState ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemState ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAgent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awaited item agent"
+msgstr "agent attendu pour l’élément"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAgent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Agent whose action the source item is read as awaiting, distinct from the versioned refiner named by vantage."
+msgstr "L’Agent dont l’action est attendue selon la lecture de l’élément source, distinct du raffineur versionné nommé par vantage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAgent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAgent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAgent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAgent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemAgent ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemAgent ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/settledBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "item settling record"
+msgstr "enregistrement de clôture de l’élément"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/settledBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original record of an act read as settling this item. It is source evidence for the reading, not an unqualified assertion of real-world settlement."
+msgstr "L’enregistrement original d’un acte lu comme clôturant cet élément. Il constitue une preuve source de la lecture, pas une affirmation inconditionnelle de résolution réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/settledBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/settledBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/settledBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/settledBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:settledBy ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:settledBy ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence member"
+msgstr "membre de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact source record counted in this recurrence reading. Each retained identity contributes once to the membership set; a count says nothing about motive."
+msgstr "Un enregistrement source exact compté dans cette lecture de récurrence. Chaque identité conservée contribue une fois à l’ensemble des membres ; un compte ne dit rien des motivations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:recurrenceMember ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:recurrenceMember ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceSettledBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence settling boundary"
+msgstr "borne de clôture de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceSettledBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source record of the settling act used as the boundary beginning this recurrence segment. An absent boundary means none was supplied, not that settlement never occurred."
+msgstr "L’enregistrement source de l’acte de clôture servant de borne initiale à ce segment de récurrence. Une borne absente signifie non fournie, pas qu’aucune clôture n’a jamais eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceSettledBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceSettledBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceSettledBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceSettledBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:recurrenceSettledBy ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:recurrenceSettledBy ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitActivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "habit activity designation"
+msgstr "désignation d’activité du relevé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitActivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-identified activity or activity description being counted. This designation does not turn an activity category into an individual Activity occurrence."
+msgstr "L’activité ou sa description identifiée par la source et faisant l’objet du compte. Cette désignation ne transforme pas une catégorie en occurrence individuelle d’Activity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitActivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitActivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitActivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitActivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:habitActivity ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:habitActivity ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitDayPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "habit day part"
+msgstr "partie du jour du relevé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitDayPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The DayPart used by the figure’s explicitly bound holder within its temporal frame. The value supplies no universal hour boundaries."
+msgstr "La DayPart employée par le titulaire explicitement lié au relevé dans son cadre temporel. La valeur ne fournit aucune limite horaire universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitDayPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitDayPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitDayPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitDayPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:habitDayPart ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:habitDayPart ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "habit counted act"
+msgstr "acte compté du relevé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual Activity occurrence retained as evidence for this figure. Membership does not identify a preferred activity or define how occasions were grouped into counts."
+msgstr "Une occurrence réelle d’Activity conservée comme preuve de ce relevé. L’appartenance n’identifie pas de préférence et ne définit pas le regroupement des occasions en comptes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:habitMember ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:habitMember ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitHolder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "day-part reckoning holder"
+msgstr "titulaire du découpage journalier"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitHolder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Agent whose reckoning supplies this figure’s day-part boundaries, distinct from the refiner’s vantage and without privileging a universal schedule."
+msgstr "L’Agent dont le découpage détermine les limites des parties du jour de ce relevé, distinct du point de vue du raffineur et sans calendrier universel privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitHolder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitHolder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitHolder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitHolder|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:habitHolder ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:habitHolder ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitTemporalFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "habit temporal frame"
+msgstr "cadre temporel du relevé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitTemporalFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual TemporalFrame in which the holder’s day-part reckoning is interpreted for this figure. It inherits the reference-frame spine without assigning fixed hours to a DayPart."
+msgstr "Le TemporalFrame réel dans lequel le découpage journalier du titulaire est interprété pour ce relevé. Il hérite du cadre de référence sans attribuer d’heures fixes à une DayPart."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitTemporalFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitTemporalFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitTemporalFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitTemporalFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:habitTemporalFrame ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:habitTemporalFrame ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source opening time"
+msgstr "temps source d’ouverture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original holder-supplied date-time of the record that opened this item. It is not the refiner’s observation clock and supplies no invented timezone or precision."
+msgstr "La date-heure originale fournie par le titulaire pour l’enregistrement ayant ouvert cet élément. Ce n’est pas l’horloge du raffineur et elle n’invente ni fuseau ni précision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/openItemAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:openItemAt \"2026-10-01T09:00:00Z\"^^xsd:dateTime ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:openItemAt \"2026-10-01T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recurrence Reading"
+msgstr "Lecture de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A versioned process’s reading of repeated appearances of one related resource within offered records and an optional supplied settling boundary. It asserts no motive, preference or global absence of settlement."
+msgstr "La lecture par un processus versionné d’apparitions répétées d’une ressource dans les enregistrements proposés, avec une éventuelle borne de clôture fournie. Elle n’affirme ni motivation, ni préférence, ni absence globale de clôture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading a gmeow:RecurrenceReading ."
+msgstr "Conserver cet enregistrement attribué : ex:reading a gmeow:RecurrenceReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitFigure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Habit Figure"
+msgstr "Relevé d’activité par partie du jour"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitFigure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A versioned process’s reported activity counts over offered acts, under a named holder’s day-part reckoning and temporal frame. The figure is neither a preference judgment nor a diagnosis of habit."
+msgstr "Les comptes d’activité rapportés par un processus versionné sur les actes proposés, selon le découpage journalier d’un titulaire nommé et son cadre temporel. Le relevé n’est ni un jugement de préférence ni un diagnostic d’habitude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitFigure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitFigure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitFigure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitFigure|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading a gmeow:HabitFigure ."
+msgstr "Conserver cet enregistrement attribué : ex:reading a gmeow:HabitFigure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitChosenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chosen count"
+msgstr "nombre déclaré de choix"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitChosenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported nonnegative count of choices for the selected activity in this figure’s scope. Its denominator and grouping belong to the consumer’s declared reporting method, not to an implicit inequality."
+msgstr "Le nombre non négatif de choix de l’activité sélectionnée rapporté par la source dans ce périmètre. Le dénominateur et le regroupement relèvent de la méthode déclarée du consommateur, pas d’une inégalité implicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitChosenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitChosenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitChosenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitChosenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:habitChosenCount \"0\"^^xsd:nonNegativeInteger ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:habitChosenCount \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitSituationCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported situation count"
+msgstr "nombre déclaré de situations"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitSituationCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported nonnegative count of situations considered for this figure. It does not define a denominator relationship to habitChosenCount or imply which situations were eligible."
+msgstr "Le nombre non négatif de situations considérées pour ce relevé, rapporté par la source. Il ne définit aucun rapport de dénominateur avec habitChosenCount et n’implique pas quelles situations étaient admissibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitSituationCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly scoped process reading with retained source evidence."
+msgstr "Utiliser pour une lecture de processus de périmètre explicite conservant les preuves sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitSituationCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."
+msgstr "Éviter d’inférer une absence globale, une préférence, un diagnostic ou l’approbation du sujet source d’une lecture de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitSituationCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."
+msgstr "Conserver la source, readingScope et le point de vue versionné ; rapporter les valeurs fournies sans défaut et préserver les lectures antérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitSituationCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:reading gmeow:habitSituationCount \"0\"^^xsd:nonNegativeInteger ."
+msgstr "Conserver cet enregistrement attribué : ex:reading gmeow:habitSituationCount \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SettledItemEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "settled item evidence constraint"
+msgstr "contrainte de preuve d’élément clos"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SettledItemEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reading explicitly marked openItemSettled retains at least one original settling record. The law certifies supplied evidence presence, not real-world resolution."
+msgstr "Une lecture explicitement marquée openItemSettled conserve au moins un enregistrement original de clôture. La loi contrôle la présence de preuve fournie, pas la résolution réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SettledItemEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic state or evidence consistency within an attributed reading."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque d’état ou de preuve dans une lecture attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SettledItemEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."
+msgstr "Éviter de prendre cette loi pour une preuve d’absence globale, de clôture réussie ou de justesse statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SettledItemEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula with the source scope and retain original evidence when reporting a violation."
+msgstr "Lire la formule réalisée avec le périmètre source et conserver les preuves originales lors du signalement d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SettledItemEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:SettledItemEvidenceConstraint logic:formalizes gmeow:OpenItemReading ."
+msgstr "Conserver cette loi : gmeow:SettledItemEvidenceConstraint logic:formalizes gmeow:OpenItemReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnsettledItemEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unsettled item evidence constraint"
+msgstr "contrainte de preuve d’élément non clos"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnsettledItemEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Readings explicitly marked open, replied or let go contain no settledBy record. Other declared state values remain open to their own semantics."
+msgstr "Les lectures explicitement marquées ouvertes, ayant reçu une réponse ou laissées de côté ne contiennent aucun enregistrement settledBy. Les autres valeurs d’état gardent leur propre sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnsettledItemEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic state or evidence consistency within an attributed reading."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque d’état ou de preuve dans une lecture attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnsettledItemEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."
+msgstr "Éviter de prendre cette loi pour une preuve d’absence globale, de clôture réussie ou de justesse statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnsettledItemEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula with the source scope and retain original evidence when reporting a violation."
+msgstr "Lire la formule réalisée avec le périmètre source et conserver les preuves originales lors du signalement d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnsettledItemEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:UnsettledItemEvidenceConstraint logic:formalizes gmeow:OpenItemReading ."
+msgstr "Conserver cette loi : gmeow:UnsettledItemEvidenceConstraint logic:formalizes gmeow:OpenItemReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateReadingSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "state reading source scope constraint"
+msgstr "contrainte de périmètre source des lectures d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateReadingSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every source observed by an open-item, recurrence or habit reading belongs to that reading’s declared offered-record scope."
+msgstr "Chaque source observée par une lecture d’élément en attente, de récurrence ou d’activité appartient à son périmètre déclaré d’enregistrements proposés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic state or evidence consistency within an attributed reading."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque d’état ou de preuve dans une lecture attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."
+msgstr "Éviter de prendre cette loi pour une preuve d’absence globale, de clôture réussie ou de justesse statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula with the source scope and retain original evidence when reporting a violation."
+msgstr "Lire la formule réalisée avec le périmètre source et conserver les preuves originales lors du signalement d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateReadingSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:StateReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."
+msgstr "Conserver cette loi : gmeow:StateReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ItemSettlingScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "item settling scope constraint"
+msgstr "contrainte de périmètre de clôture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ItemSettlingScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every settling record cited by an open-item reading belongs to its offered-record scope."
+msgstr "Chaque enregistrement de clôture cité par une lecture d’élément en attente appartient à son périmètre d’enregistrements proposés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ItemSettlingScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic state or evidence consistency within an attributed reading."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque d’état ou de preuve dans une lecture attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ItemSettlingScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."
+msgstr "Éviter de prendre cette loi pour une preuve d’absence globale, de clôture réussie ou de justesse statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ItemSettlingScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula with the source scope and retain original evidence when reporting a violation."
+msgstr "Lire la formule réalisée avec le périmètre source et conserver les preuves originales lors du signalement d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ItemSettlingScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:ItemSettlingScopeConstraint logic:formalizes gmeow:settledBy ."
+msgstr "Conserver cette loi : gmeow:ItemSettlingScopeConstraint logic:formalizes gmeow:settledBy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceMemberScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence member scope constraint"
+msgstr "contrainte de périmètre des membres de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceMemberScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every counted recurrence record belongs to the reading’s explicitly offered-record scope."
+msgstr "Chaque enregistrement compté dans une récurrence appartient au périmètre d’enregistrements explicitement proposés à la lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceMemberScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic state or evidence consistency within an attributed reading."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque d’état ou de preuve dans une lecture attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceMemberScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."
+msgstr "Éviter de prendre cette loi pour une preuve d’absence globale, de clôture réussie ou de justesse statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceMemberScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula with the source scope and retain original evidence when reporting a violation."
+msgstr "Lire la formule réalisée avec le périmètre source et conserver les preuves originales lors du signalement d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceMemberScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:RecurrenceMemberScopeConstraint logic:formalizes gmeow:recurrenceMember ."
+msgstr "Conserver cette loi : gmeow:RecurrenceMemberScopeConstraint logic:formalizes gmeow:recurrenceMember ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceBoundaryScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence boundary scope constraint"
+msgstr "contrainte de périmètre de la borne de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceBoundaryScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied recurrence settling boundary is retained among the records offered to that reading; no boundary is manufactured when none was supplied."
+msgstr "Une borne de clôture fournie est conservée parmi les enregistrements proposés à la lecture ; aucune borne n’est fabriquée en son absence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceBoundaryScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic state or evidence consistency within an attributed reading."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque d’état ou de preuve dans une lecture attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceBoundaryScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."
+msgstr "Éviter de prendre cette loi pour une preuve d’absence globale, de clôture réussie ou de justesse statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceBoundaryScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula with the source scope and retain original evidence when reporting a violation."
+msgstr "Lire la formule réalisée avec le périmètre source et conserver les preuves originales lors du signalement d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecurrenceBoundaryScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:RecurrenceBoundaryScopeConstraint logic:formalizes gmeow:recurrenceSettledBy ."
+msgstr "Conserver cette loi : gmeow:RecurrenceBoundaryScopeConstraint logic:formalizes gmeow:recurrenceSettledBy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitMemberScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "habit member scope constraint"
+msgstr "contrainte de périmètre des actes du relevé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitMemberScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every act retained as habit-figure evidence belongs to the offered-record scope. Membership alone imposes no count equality or denominator inequality."
+msgstr "Chaque acte conservé comme preuve du relevé appartient au périmètre proposé. L’appartenance seule n’impose aucune égalité de comptes ni inégalité de dénominateurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitMemberScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic state or evidence consistency within an attributed reading."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque d’état ou de preuve dans une lecture attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitMemberScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."
+msgstr "Éviter de prendre cette loi pour une preuve d’absence globale, de clôture réussie ou de justesse statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitMemberScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula with the source scope and retain original evidence when reporting a violation."
+msgstr "Lire la formule réalisée avec le périmètre source et conserver les preuves originales lors du signalement d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitMemberScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:HabitMemberScopeConstraint logic:formalizes gmeow:habitMember ."
+msgstr "Conserver cette loi : gmeow:HabitMemberScopeConstraint logic:formalizes gmeow:habitMember ."
