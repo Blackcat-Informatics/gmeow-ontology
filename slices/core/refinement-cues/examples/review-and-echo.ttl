@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/refinement-cues/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# The adjacent cue-words-v1.ttl is the exact released RDF 1.2 payload.
+ex:cueLineage a gmeow:InformationObject ; rdfs:label "Archive impasse cue inventory"@en .
+ex:sourceNotes a gmeow:InformationObject ;
+    gmeow:description "The archive records people describing an inability to continue, in English, French and Arabic."@en .
+ex:editor a gmeow:Agent ; rdfs:label "Inventory editor"@en .
+ex:reviewer a gmeow:Agent ; rdfs:label "Cue reviewer"@en .
+ex:reviewSignoff a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:reviewer ;
+    gmeow:eventTime "2026-10-30T16:00:00Z"^^xsd:dateTime ;
+    rdfs:label "Sign-off of the exact first cue payload"@en .
+ex:cuesV1 a gmeow:CueLexicon ;
+    gmeow:versionOf ex:cueLineage ; gmeow:versionLabel "1" ;
+    gmeow:contentDigest "sha256:b208a8ad0cde5c0c5e472f14f450f01ffae60e95ae1ae093bf5b3b82e9eb51c6" ;
+    gmeow:wasDerivedFrom ex:sourceNotes ; gmeow:wasAttributedTo ex:editor ;
+    gmeow:cueReview ex:reviewSignoff ;
+    rdfs:comment "The digest identifies the exact UTF-8 bytes of adjacent cue-words-v1.ttl, including its final newline. The release is immutable."@en .
+
+# A versioned process cites the exact cue release as part of its method record.
+# The rule owns matching; these assertions do not execute it or define meaning.
+ex:processLineage a gmeow:SoftwareAgent .
+ex:refinerV2 a gmeow:SoftwareAgent ; gmeow:versionOf ex:processLineage ;
+    gmeow:versionLabel "2" .
+ex:method a gmeow:ObservationMethod ; rdfs:isDefinedBy ex:methodDescription .
+ex:methodDescription a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:cuesV1 ;
+    gmeow:description "The consumer rule uses the complete reviewed phrases as evidence for a provisional impasse reading, retaining source wording and language."@en .
+ex:record a gmeow:InformationObject ;
+    gmeow:description "I cannot continue with the current approach."@en .
+ex:cueFinding a gmeow:Refinement ;
+    gmeow:observedFeature ex:record ; gmeow:vantage ex:refinerV2 ;
+    gmeow:observationMethod ex:method ;
+    gmeow:wasDerivedFrom ex:methodDescription ;
+    gmeow:refinementOutcome gmeow:refinementBestGuess ;
+    gmeow:observationResult ex:provisionalReading .
+ex:provisionalReading a gmeow:InformationObject ;
+    gmeow:accordingTo ex:refinerV2 ;
+    gmeow:description "This wording may signal a blocked pursuit in this record."@en .
+
+# A separate dependence reading preserves the model's authorship of the answer
+# and the refiner's vantage on the reified result. Quoting does not assert the
+# contained dependence triple as a global fact.
+ex:model a gmeow:SoftwareAgent .
+ex:prompt a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Explain why the observatory shutter is jammed." .
+ex:answer a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:model ;
+    gmeow:description "The observatory shutter is jammed."@en .
+ex:echoClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:answer gmeow:echoesPremiseOf ex:prompt )>> ;
+    gmeow:accordingTo ex:refinerV2 .
+ex:echoFinding a gmeow:Refinement ;
+    gmeow:observedFeature ex:answer ; gmeow:vantage ex:refinerV2 ;
+    gmeow:wasDerivedFrom ex:prompt ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:echoClaim .

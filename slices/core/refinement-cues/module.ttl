@@ -1,0 +1,124 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:echoesPremiseOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:Prompt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "echoes premise of"@x-gmeow-english ;
+    skos:definition "Relates an answer to the concrete Prompt whose premise a refiner reads that answer as merely restating. This attributed dependence reading neither asserts falsity or contradiction nor counts the answer as independent support."@x-gmeow-english ;
+    gmeow:useWhen "Use when a refiner identifies an answer as restating its prompt’s premise rather than adding independent evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring that the premise is false, that the answer contradicts it or that an echo reading is the answer author’s own assertion."@x-gmeow-english ;
+    gmeow:howToUse "Preserve accordingTo on the RDF 1.2 statement or its reifier and link a Refinement’s selected observationResult to that attributed reading. Keep the original answer and Prompt separate."@x-gmeow-english ;
+    skos:example "Attribute the dependence reading: ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."@x-gmeow-english .
+
+gmeow:CueLexicon
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Cue Lexicon"@x-gmeow-english ;
+    skos:definition "An immutable, reviewed version of a named list of complete words or phrases used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; its cues do not define a text’s meaning."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the exact reviewed cue inventory a consumer-owned reading rule used."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mutating a released version, treating cue matches as meanings or diagnoses, or hand-authoring generated translation glossaries as cue lists."@x-gmeow-english ;
+    gmeow:howToUse "Name a distinct versionOf lineage, retain versionLabel and contentDigest, cite source records through wasDerivedFrom, attribute authorship with wasAttributedTo and cite the completed review through cueReview. Changes create a new version."@x-gmeow-english ;
+    skos:example "Identify a reviewed release: ex:cuesV1 a gmeow:CueLexicon ."@x-gmeow-english .
+
+gmeow:cueWord
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CueLexicon ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cue word or phrase"@x-gmeow-english ;
+    skos:definition "A complete source word or phrase in a CueLexicon, preserved with its language and any RDF 1.2 base direction. It is a textual cue rather than a lexical sense, stem, substring instruction or automatic interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain every exact reviewed cue with its supplied language and direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping language or direction, silently normalizing variants, or treating list order as rule priority."@x-gmeow-english ;
+    gmeow:howToUse "Attach a language-tagged literal, including a directional language string when supplied. Retain whole phrases without inventing tokenization or a matching policy."@x-gmeow-english ;
+    skos:example "Retain the original cue: ex:cuesV1 gmeow:cueWord \"cannot continue\"@en ."@x-gmeow-english .
+
+gmeow:cueReview
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueLexicon ;
+    logic:range gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cue review"@x-gmeow-english ;
+    skos:definition "The completed review sign-off activity for this exact CueLexicon version, retaining the responsible reviewer through wasAssociatedWith and its sign-off instant through eventTime. Review is accountable provenance, not universal endorsement or safety certification."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain who signed off the exact cue version and when."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a reviewer name string without its activity, reusing a review for changed bytes or interpreting review as a guarantee about every later reading."@x-gmeow-english ;
+    gmeow:howToUse "Link the immutable version to its completed sign-off Activity; record the reviewer Agent with wasAssociatedWith and the actual date-time with eventTime."@x-gmeow-english ;
+    skos:example "Retain the accountable review: ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."@x-gmeow-english .
+
+gmeow:CueLexicon logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:versionLabel ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueReview ; logic:allValuesFrom gmeow:Activity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueWord ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasDerivedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cueReview" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:CueWordLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue word language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied cueWord retains a nonempty language tag, including the base direction of a directional language string."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic provenance or language contract of the supplied cue version."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:CueWordLanguageConstraint logic:formalizes gmeow:cueWord ."@x-gmeow-english ;
+    logic:formalizes gmeow:cueWord ;
+    logic:message "Every supplied cueWord retains a nonempty language tag, including the base direction of a directional language string." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:cueWord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:CueReviewEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue review evidence constraint"@x-gmeow-english ;
+    skos:definition "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic provenance or language contract of the supplied cue version."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."@x-gmeow-english ;
+    logic:formalizes gmeow:cueReview ;
+    logic:message "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "review" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:cueReview ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "review" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reviewer" ], [ logic:termIndex 1 ; logic:termVariable "instant" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ; logic:argument [ logic:termIndex 0 ; logic:termVariable "review" ], [ logic:termIndex 1 ; logic:termVariable "reviewer" ] ], [ a logic:Formula ; logic:relation gmeow:eventTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "review" ], [ logic:termIndex 1 ; logic:termVariable "instant" ] ] ] ] ] ] .
+
+gmeow:CueLexiconVersionIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue lexicon version identity constraint"@x-gmeow-english ;
+    skos:definition "A released CueLexicon version is distinct from the lineage entity it versions."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic provenance or language contract of the supplied cue version."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."@x-gmeow-english ;
+    logic:formalizes gmeow:CueLexicon ;
+    logic:message "A released CueLexicon version is distinct from the lineage entity it versions." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueLexicon ] ], [ a logic:Formula ; logic:relation gmeow:versionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ] ] .
