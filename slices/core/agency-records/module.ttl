@@ -1,0 +1,1078 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:eventTypeAttempt
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "attempt"@x-gmeow-english ;
+    skos:definition "An event of pursuing an intention, including work described only in prose. Its type does not assert an executable prescription or a goal achieved."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded attempt event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeAttempt alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeAttempt through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeAttempt ."@x-gmeow-english .
+
+gmeow:eventTypeAttemptStart
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "attempt start"@x-gmeow-english ;
+    skos:definition "The recorded start of an attempt. It is a phase event within the attempt, not creation of a compiled enactment."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded attempt start event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeAttemptStart alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeAttemptStart through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeAttemptStart ."@x-gmeow-english .
+
+gmeow:eventTypeAttemptContinuation
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "attempt continuation"@x-gmeow-english ;
+    skos:definition "A recorded continuation or checkpoint phase of an attempt. Its pause cause and resume point are separate from how the attempt ultimately stops."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded attempt continuation event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeAttemptContinuation alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeAttemptContinuation through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeAttemptContinuation ."@x-gmeow-english .
+
+gmeow:eventTypeAttemptFinish
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "attempt finish"@x-gmeow-english ;
+    skos:definition "The recorded ending of an attempt, classified by attemptStop. Ending the attempt does not by itself establish goal satisfaction."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded attempt finish event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeAttemptFinish alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeAttemptFinish through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeAttemptFinish ."@x-gmeow-english .
+
+gmeow:eventTypeAttemptResumption
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "attempt resumption"@x-gmeow-english ;
+    skos:definition "A planless attempt being resumed from a recorded resume point. It does not claim the prescription, input snapshot or journal identity required by an enactment resume."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded attempt resumption event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeAttemptResumption alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeAttemptResumption through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeAttemptResumption ."@x-gmeow-english .
+
+gmeow:eventTypeIntentionActive
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "intention active"@x-gmeow-english ;
+    skos:definition "An intention was made, or made again, the intention being acted on while its holding tenure remains open."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded intention active event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeIntentionActive alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeIntentionActive through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeIntentionActive ."@x-gmeow-english .
+
+gmeow:eventTypeIntentionPaused
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "intention paused"@x-gmeow-english ;
+    skos:definition "Pursuit of an intention was paused without abandonment. The pause itself does not close the holding tenure or imply an enactment state."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded intention paused event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeIntentionPaused alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeIntentionPaused through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeIntentionPaused ."@x-gmeow-english .
+
+gmeow:eventTypeIntentionSatisfied
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "intention satisfied"@x-gmeow-english ;
+    skos:definition "An intention ended because its goal was judged met. The judgment belongs to a separate GoalEvaluation rather than the event kind."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded intention satisfied event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeIntentionSatisfied alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeIntentionSatisfied through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeIntentionSatisfied ."@x-gmeow-english .
+
+gmeow:eventTypeIntentionAbandoned
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "intention abandoned"@x-gmeow-english ;
+    skos:definition "An intention was given up without its goal being judged met. This records withdrawal rather than erasing the intention."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded intention abandoned event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeIntentionAbandoned alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeIntentionAbandoned through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeIntentionAbandoned ."@x-gmeow-english .
+
+gmeow:eventTypeIntentionSuperseded
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "intention superseded"@x-gmeow-english ;
+    skos:definition "An intention was replaced by another intention, identified separately by supersededBy. Replacement is not evidence of either goal’s satisfaction."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded intention superseded event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeIntentionSuperseded alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeIntentionSuperseded through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeIntentionSuperseded ."@x-gmeow-english .
+
+gmeow:eventTypeDecision
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "decision"@x-gmeow-english ;
+    skos:definition "An agent settled on one course among the options it weighed, concluding deliberation. The choice may form an intention or decide to do nothing without a new commitment."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a source-recorded decision event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeDecision alone."@x-gmeow-english ;
+    gmeow:howToUse "Attach eventTypeDecision through eventType; link an attempt or intention only when the source actually supplies that context."@x-gmeow-english ;
+    skos:example "ex:event gmeow:eventType gmeow:eventTypeDecision ."@x-gmeow-english .
+
+gmeow:learningInsight
+    a gmeow:LearningEventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "insight"@x-gmeow-english ;
+    skos:definition "A learning event in which an agent comes to understand a connection or pattern through its own reasoning or reflection, without a teacher or source being reported for that insight. It need not form a new category."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-reported connection grasped through reflection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring universal absence of influences or equating insight with concept formation."@x-gmeow-english ;
+    gmeow:howToUse "Reference through learningType; retain other supported learning varieties and existing learner/process context."@x-gmeow-english ;
+    skos:example "ex:insight gmeow:learningType gmeow:learningInsight ."@x-gmeow-english .
+
+gmeow:AttemptStop
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Attempt Stop"@x-gmeow-english ;
+    skos:definition "An open vocabulary describing how an attempt stopped, independently of progress toward its goal."@x-gmeow-english ;
+    gmeow:useWhen "Use for the explicit attempt stop axis of an agency record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing AttemptStop to add a value or deriving it from missing data."@x-gmeow-english ;
+    gmeow:howToUse "Use reviewed AttemptStop individuals and extend the vocabulary with additional source-supported individuals."@x-gmeow-english ;
+    skos:example "ex:value a gmeow:AttemptStop ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:PauseCause
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Pause Cause"@x-gmeow-english ;
+    skos:definition "An open vocabulary describing why a continuation phase paused, without imposing enactment checkpoint machinery."@x-gmeow-english ;
+    gmeow:useWhen "Use for the explicit pause cause axis of an agency record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing PauseCause to add a value or deriving it from missing data."@x-gmeow-english ;
+    gmeow:howToUse "Use reviewed PauseCause individuals and extend the vocabulary with additional source-supported individuals."@x-gmeow-english ;
+    skos:example "ex:value a gmeow:PauseCause ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:CommitmentStatus
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Self-Commitment Status"@x-gmeow-english ;
+    skos:definition "An open status vocabulary for an intention held as an internal commitment. It is distinct from a social Commitment toward another agent."@x-gmeow-english ;
+    gmeow:useWhen "Use for the explicit self-commitment status axis of an agency record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing CommitmentStatus to add a value or deriving it from missing data."@x-gmeow-english ;
+    gmeow:howToUse "Use reviewed CommitmentStatus individuals and extend the vocabulary with additional source-supported individuals."@x-gmeow-english ;
+    skos:example "ex:value a gmeow:CommitmentStatus ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:ArtifactOperation
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Artifact Operation"@x-gmeow-english ;
+    skos:definition "An open vocabulary for the operation an activity performed on an identified artifact, separate from invocation outcome and artifact completion."@x-gmeow-english ;
+    gmeow:useWhen "Use for the explicit artifact operation axis of an agency record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing ArtifactOperation to add a value or deriving it from missing data."@x-gmeow-english ;
+    gmeow:howToUse "Use reviewed ArtifactOperation individuals and extend the vocabulary with additional source-supported individuals."@x-gmeow-english ;
+    skos:example "ex:value a gmeow:ArtifactOperation ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:ModelInvocationOutcome
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Model Invocation Outcome"@x-gmeow-english ;
+    skos:definition "An open vocabulary for a source-reported model invocation outcome. A missing outcome is unknown rather than successful."@x-gmeow-english ;
+    gmeow:useWhen "Use for the explicit model invocation outcome axis of an agency record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing ModelInvocationOutcome to add a value or deriving it from missing data."@x-gmeow-english ;
+    gmeow:howToUse "Use reviewed ModelInvocationOutcome individuals and extend the vocabulary with additional source-supported individuals."@x-gmeow-english ;
+    skos:example "ex:value a gmeow:ModelInvocationOutcome ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:stopFinished
+    a gmeow:AttemptStop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "finished"@x-gmeow-english ;
+    skos:definition "The attempt finished as an activity; this does not assert that its goal was achieved."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports finished."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving stopFinished solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach stopFinished through attemptStop, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attemptStop gmeow:stopFinished ."@x-gmeow-english .
+
+gmeow:stopFailed
+    a gmeow:AttemptStop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "failed"@x-gmeow-english ;
+    skos:definition "The attempt stopped in a source-reported failure, distinct from a goal-evaluation verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports failed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving stopFailed solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach stopFailed through attemptStop, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attemptStop gmeow:stopFailed ."@x-gmeow-english .
+
+gmeow:stopInterrupted
+    a gmeow:AttemptStop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "interrupted"@x-gmeow-english ;
+    skos:definition "The attempt stopped because it was interrupted. A later attempt or resumption remains a separate record."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports interrupted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving stopInterrupted solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach stopInterrupted through attemptStop, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attemptStop gmeow:stopInterrupted ."@x-gmeow-english .
+
+gmeow:stopYieldedToForeground
+    a gmeow:AttemptStop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "yielded to foreground"@x-gmeow-english ;
+    skos:definition "The attempt stopped because foreground work, such as a conversation, took priority."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports yielded to foreground."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving stopYieldedToForeground solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach stopYieldedToForeground through attemptStop, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attemptStop gmeow:stopYieldedToForeground ."@x-gmeow-english .
+
+gmeow:pauseBudgetCheckpoint
+    a gmeow:PauseCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "budget checkpoint"@x-gmeow-english ;
+    skos:definition "A compute or time budget was reached and a prose-attempt resume point was recorded."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports budget checkpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving pauseBudgetCheckpoint solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach pauseBudgetCheckpoint through pauseCause, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:pauseCause gmeow:pauseBudgetCheckpoint ."@x-gmeow-english .
+
+gmeow:pauseInterrupted
+    a gmeow:PauseCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "pause through interruption"@x-gmeow-english ;
+    skos:definition "The continuation phase paused because it was interrupted."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports pause through interruption."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving pauseInterrupted solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach pauseInterrupted through pauseCause, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:pauseCause gmeow:pauseInterrupted ."@x-gmeow-english .
+
+gmeow:commitmentActive
+    a gmeow:CommitmentStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "active self-commitment"@x-gmeow-english ;
+    skos:definition "The internal commitment stands as first made, without asserting a social beneficiary."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports active self-commitment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving commitmentActive solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach commitmentActive through commitmentStatus, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:commitmentStatus gmeow:commitmentActive ."@x-gmeow-english .
+
+gmeow:commitmentRenewed
+    a gmeow:CommitmentStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "renewed self-commitment"@x-gmeow-english ;
+    skos:definition "The agent renewed its internal commitment to pursue the intention."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports renewed self-commitment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving commitmentRenewed solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach commitmentRenewed through commitmentStatus, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:commitmentStatus gmeow:commitmentRenewed ."@x-gmeow-english .
+
+gmeow:commitmentReleased
+    a gmeow:CommitmentStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "released self-commitment"@x-gmeow-english ;
+    skos:definition "The internal commitment was released, without proving that its goal was met."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports released self-commitment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving commitmentReleased solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach commitmentReleased through commitmentStatus, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:commitmentStatus gmeow:commitmentReleased ."@x-gmeow-english .
+
+gmeow:operationCreated
+    a gmeow:ArtifactOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "created"@x-gmeow-english ;
+    skos:definition "The activity created the identified artifact or version."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports created."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving operationCreated solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach operationCreated through receiptOperation, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:receiptOperation gmeow:operationCreated ."@x-gmeow-english .
+
+gmeow:operationRead
+    a gmeow:ArtifactOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "read"@x-gmeow-english ;
+    skos:definition "The activity read the identified artifact or version without this classification claiming a change."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving operationRead solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach operationRead through receiptOperation, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:receiptOperation gmeow:operationRead ."@x-gmeow-english .
+
+gmeow:operationUpdated
+    a gmeow:ArtifactOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "updated"@x-gmeow-english ;
+    skos:definition "The activity updated the identified artifact, retaining source version identity when supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports updated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving operationUpdated solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach operationUpdated through receiptOperation, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:receiptOperation gmeow:operationUpdated ."@x-gmeow-english .
+
+gmeow:invocationOutcomeSucceeded
+    a gmeow:ModelInvocationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "invocation succeeded"@x-gmeow-english ;
+    skos:definition "The source reported that this model invocation succeeded. This is not an artifact-completion or truth verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports invocation succeeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving invocationOutcomeSucceeded solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach invocationOutcomeSucceeded through invocationOutcome, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:invocationOutcome gmeow:invocationOutcomeSucceeded ."@x-gmeow-english .
+
+gmeow:invocationOutcomeFailed
+    a gmeow:ModelInvocationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "invocation failed"@x-gmeow-english ;
+    skos:definition "The source reported that this model invocation failed; any supplied error is retained separately."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports invocation failed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving invocationOutcomeFailed solely from silence, missing timestamps or another status axis."@x-gmeow-english ;
+    gmeow:howToUse "Attach invocationOutcomeFailed through invocationOutcome, preserving the source attribution and time context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:invocationOutcome gmeow:invocationOutcomeFailed ."@x-gmeow-english .
+
+gmeow:attemptStop
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "attempt stop"@x-gmeow-english ;
+    skos:definition "How a recorded attempt finish stopped, independent of whether the goal was satisfied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s attempt stop relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a attemptStop target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:AttemptStop supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attemptStop ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:AttemptStop .
+
+gmeow:pauseCause
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "pause cause"@x-gmeow-english ;
+    skos:definition "The source-reported reason a continuation phase paused. It does not type the phase as a compiled enactment."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s pause cause relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a pauseCause target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:PauseCause supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:pauseCause ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:PauseCause .
+
+gmeow:commitmentStatus
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "self-commitment status"@x-gmeow-english ;
+    skos:definition "A source-attributed status of an intention as an internal commitment; statuses can coexist with different times or standpoints."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s self-commitment status relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a commitmentStatus target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:CommitmentStatus supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:commitmentStatus ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Intention ;
+    logic:range gmeow:CommitmentStatus .
+
+gmeow:receiptOperation
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "receipt operation"@x-gmeow-english ;
+    skos:definition "The artifact operation performed by this receipt-shaped activity occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s receipt operation relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a receiptOperation target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:ArtifactOperation supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:receiptOperation ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactOperationReceipt ;
+    logic:range gmeow:ArtifactOperation .
+
+gmeow:receiptArtifact
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "receipt artifact"@x-gmeow-english ;
+    skos:definition "The artifact or exact version on which the recorded operation acted, not the activity’s result envelope."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s receipt artifact relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a receiptArtifact target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported receiptArtifact target and retain independently attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:receiptArtifact ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactOperationReceipt ;
+    logic:range gmeow:InformationObject .
+
+gmeow:invocationOutcome
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "invocation outcome"@x-gmeow-english ;
+    skos:definition "A source-reported outcome of a model invocation, separate from artifact completion and error text."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s invocation outcome relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a invocationOutcome target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:ModelInvocationOutcome supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:invocationOutcome ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range gmeow:ModelInvocationOutcome .
+
+gmeow:intentionTransitionOf
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "intention transition of"@x-gmeow-english ;
+    skos:definition "The intention whose recorded lifecycle transition this event describes."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s intention transition of relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a intentionTransitionOf target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:Intention supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:intentionTransitionOf ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:Intention .
+
+gmeow:intentionTransitionTenure
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "intention transition tenure"@x-gmeow-english ;
+    skos:definition "A known holding tenure relevant to this recorded intention transition, without automatically closing it."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s intention transition tenure relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a intentionTransitionTenure target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:IntentionTenure supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:intentionTransitionTenure ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:IntentionTenure .
+
+gmeow:attemptResumePoint
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "attempt resume point"@x-gmeow-english ;
+    skos:definition "A source-recorded information object describing where a prose attempt can continue after pausing."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s attempt resume point relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a attemptResumePoint target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported attemptResumePoint target and retain independently attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attemptResumePoint ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:InformationObject .
+
+gmeow:resumesAttempt
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resumes attempt"@x-gmeow-english ;
+    skos:definition "The same planless attempt resumed by this resumption event. No enactment identity is implied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s resumes attempt relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a resumesAttempt target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual gmeow:Event supplied by the source and retain attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:resumesAttempt ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:Event .
+
+gmeow:resumesFromPoint
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resumes from point"@x-gmeow-english ;
+    skos:definition "The retained prose-attempt resume point actually used by this resumption event."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s resumes from point relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a resumesFromPoint target from a different lifecycle or status axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported resumesFromPoint target and retain independently attributed alternatives."@x-gmeow-english ;
+    skos:example "ex:record gmeow:resumesFromPoint ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:InformationObject .
+
+gmeow:ArtifactOperationReceipt
+    a logic:Event , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Artifact Operation Receipt"@x-gmeow-english ;
+    skos:definition "An artifact-operation activity occurrence retained as a receipt of what happened. It is an Activity subordinate to its attempt or ToolCall, not an information document masquerading as an event."@x-gmeow-english ;
+    gmeow:useWhen "Use for a recorded creation, read or update operation within an attempt or tool call."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating its result digest as the artifact’s own byte identity or as success."@x-gmeow-english ;
+    gmeow:howToUse "Bind receiptOperation and receiptArtifact, retain subEventOf context and supplied receiptTool or resultDigest."@x-gmeow-english ;
+    skos:example "ex:operation a gmeow:ArtifactOperationReceipt ; gmeow:subEventOf ex:attempt ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Activity .
+
+gmeow:used
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "used"@x-gmeow-english ;
+    skos:definition "Relates an activity to an entity it actually used as input or resource. Use is not derivation, endorsement or proof of reading."@x-gmeow-english ;
+    gmeow:useWhen "Use for recorded activity inputs and resources."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring use merely because an artifact was present in context."@x-gmeow-english ;
+    gmeow:howToUse "Reference each actually used Entity, specializing with readArtifact for an observed read."@x-gmeow-english ;
+    skos:example "ex:activity gmeow:used ex:resource ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:Entity .
+
+gmeow:readArtifact
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "read artifact"@x-gmeow-english ;
+    skos:definition "Relates an activity to an information artifact or version it actually read. Reading does not assert that the artifact changed or that its content was accepted as true."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a read without inventing a write operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid restricting read artifacts to published documents."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual InformationObject or version read; use separate records for later observations."@x-gmeow-english ;
+    skos:example "ex:read gmeow:readArtifact ex:artifact ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:InformationObject ;
+    logic:subPropertyOf gmeow:used .
+
+gmeow:conflictsWithGoal
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "conflicts with goal"@x-gmeow-english ;
+    skos:definition "A recorded non-constitutive conflict between goals, such as competing demands on an agent’s time. The symmetric relation does not define either goal by its opposition and is not transitive."@x-gmeow-english ;
+    gmeow:useWhen "Use for an attributed practical conflict between goals."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid bridging this relation to constitutive counterGoal or inferring a global priority."@x-gmeow-english ;
+    gmeow:howToUse "Link the goals and retain standpoint and temporal scope on the statement when relevant."@x-gmeow-english ;
+    skos:example "ex:draftGoal gmeow:conflictsWithGoal ex:restGoal ."@x-gmeow-english ;
+    logic:domain gmeow:Goal ;
+    logic:range gmeow:Goal .
+
+gmeow:conflictsWithGoalSymmetry
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Goal conflict symmetry"@x-gmeow-english ;
+    skos:definition "Canonical symmetry of non-constitutive goal conflict, without a transitivity or constitutive-opposition claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to read the same recorded conflict in either direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extending symmetry into conflict propagation along unrelated goals."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical characteristic on conflictsWithGoal."@x-gmeow-english ;
+    skos:example "gmeow:conflictsWithGoalSymmetry logic:characterizes gmeow:conflictsWithGoal ."@x-gmeow-english ;
+    logic:characterizes gmeow:conflictsWithGoal ;
+    logic:characteristicSort logic:symmetricProperty ;
+    logic:formalizes gmeow:conflictsWithGoal .
+
+gmeow:toolName
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "tool name"@x-gmeow-english ;
+    skos:definition "The tool name given by the call, verbatim, distinct from the SoftwareAgent that usedTool must still identify."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source exposes a name without a rich tool-agent description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing required usedTool with this literal or inferring a holder from the name."@x-gmeow-english ;
+    gmeow:howToUse "Keep the string and link usedTool to a minimally described actual source-scoped SoftwareAgent."@x-gmeow-english ;
+    skos:example "ex:record gmeow:toolName \"source value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ToolCall ;
+    logic:range xsd:string .
+
+gmeow:toolCallId
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "tool call identifier"@x-gmeow-english ;
+    skos:definition "The identifier carried by this tool call, preserved verbatim in its source scope. It is not a global key or a replacement for the call resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source identifier by which records referred to the call."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid widening unrelated identifier domains or merging calls by a reused local id."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source string and link assertions with existing derivedBy only when they came from that call."@x-gmeow-english ;
+    skos:example "ex:record gmeow:toolCallId \"source value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ToolCall ;
+    logic:range xsd:string .
+
+gmeow:receiptTool
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "receipt tool name"@x-gmeow-english ;
+    skos:definition "The source-reported tool name for this artifact operation, verbatim. It does not replace a ToolCall’s usedTool agent."@x-gmeow-english ;
+    gmeow:useWhen "Use when an activity receipt supplies a tool name."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid token whitespace normalization or inferred tool identity from this string alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact string and retain the parent attempt or ToolCall separately."@x-gmeow-english ;
+    skos:example "ex:record gmeow:receiptTool \"source value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactOperationReceipt ;
+    logic:range xsd:string .
+
+gmeow:resultDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "result digest"@x-gmeow-english ;
+    skos:definition "A source-provided content digest of what the operation produced or returned. It is not automatically the artifact’s own bytes or the identity of the receipt."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a reported operation-result identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating a tool-result envelope digest with the read artifact’s digest."@x-gmeow-english ;
+    gmeow:howToUse "Use the existing algorithm-labelled digest convention and preserve multiple reported algorithms."@x-gmeow-english ;
+    skos:example "ex:operation gmeow:resultDigest \"sha256:1111111111111111111111111111111111111111111111111111111111111111\" ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactOperationReceipt ;
+    logic:range rdfs:Literal .
+
+gmeow:artifactComplete
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "artifact complete"@x-gmeow-english ;
+    skos:definition "A source-attributed assertion that the identified artifact is complete or incomplete for its intended content. It is independent of operation success, invocation outcome and receipt completeness."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly supplied artifact-completion bit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting absent completion to false or deriving goal satisfaction from true."@x-gmeow-english ;
+    gmeow:howToUse "Put the supplied boolean on the artifact or version; migrate a local receiptComplete field here only when it meant artifact completion."@x-gmeow-english ;
+    skos:example "ex:artifact gmeow:artifactComplete \"true\"^^xsd:boolean ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range xsd:boolean .
+
+gmeow:invocationError
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "invocation error"@x-gmeow-english ;
+    skos:definition "The source error text for a model invocation, preserved verbatim. Missing text does not prove success and an error does not establish artifact incompleteness."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an appraisal or generation invocation’s reported error."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the source error with a normalized diagnosis or inferring it from status alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact string and record invocationOutcome independently when supplied."@x-gmeow-english ;
+    skos:example "ex:record gmeow:invocationError \"source value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range xsd:string .
+
+gmeow:IntentionSalienceObservation
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Intention Salience Observation"@x-gmeow-english ;
+    skos:definition "A source-attributed numeric observation of an intention’s salience on an explicitly identified producer scale or frame. It is not claim import importance, and no bounds, direction or normalization are implied."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an intention salience number together with its source convention and vantage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming a 0–10 scale or comparing different producer frames without a conversion contract."@x-gmeow-english ;
+    gmeow:howToUse "Bind salienceOfIntention, salienceValue, salienceFrame and vantage; reuse a source ScoreScale only when its actual bounds are supplied."@x-gmeow-english ;
+    skos:example "ex:salience a gmeow:IntentionSalienceObservation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:salienceOfIntention
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "salience of intention"@x-gmeow-english ;
+    skos:definition "The intention whose salience this observation reports, specializing the existing observedFeature role."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the intention assessed for salience."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting the observer or scale in this target role."@x-gmeow-english ;
+    gmeow:howToUse "Reference the existing Intention; keep the numerical reading and producer frame on the observation."@x-gmeow-english ;
+    skos:example "ex:salience gmeow:salienceOfIntention ex:intention ."@x-gmeow-english ;
+    logic:domain gmeow:IntentionSalienceObservation ;
+    logic:range gmeow:Intention ;
+    logic:subPropertyOf gmeow:observedFeature .
+
+gmeow:salienceValue
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "salience value"@x-gmeow-english ;
+    skos:definition "The source decimal salience reading, interpreted only within salienceFrame. A larger number is not assumed to mean greater salience."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the producer’s actual salience number."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid clamping, rescaling or dropping zero readings."@x-gmeow-english ;
+    gmeow:howToUse "Retain the decimal with its explicit frame and source attribution."@x-gmeow-english ;
+    skos:example "ex:salience gmeow:salienceValue \"17.5\"^^xsd:decimal ."@x-gmeow-english ;
+    logic:domain gmeow:IntentionSalienceObservation ;
+    logic:range xsd:decimal .
+
+gmeow:salienceFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "salience source frame"@x-gmeow-english ;
+    skos:definition "The source-defined convention identifying what a salience number means. An InformationObject may identify an opaque producer scale; unknown bounds or direction remain unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep salience values scoped to the producer’s scale or frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing scale bounds or equating differently named producer conventions."@x-gmeow-english ;
+    gmeow:howToUse "Reference the producer’s convention artifact; it may be a ScoreScale when its numeric contract is actually known."@x-gmeow-english ;
+    skos:example "ex:salience gmeow:salienceFrame ex:producerConvention ."@x-gmeow-english ;
+    logic:domain gmeow:IntentionSalienceObservation ;
+    logic:range gmeow:InformationObject .
+
+gmeow:VerifierKind
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Verifier Kind"@x-gmeow-english ;
+    skos:definition "An open vocabulary of methods used to assess a condition on an artifact. Selecting a method is not a verdict that its condition holds."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain which verification method a source observation selected."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating verifier kind as a successful outcome or an agent identity."@x-gmeow-english ;
+    gmeow:howToUse "Use method individuals through verifierKind and retain verdicts separately through observationResult."@x-gmeow-english ;
+    skos:example "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."@x-gmeow-english ;
+    logic:subClassOf gmeow:ObservationMethod .
+
+gmeow:verifierArtifactReadAfterWrite
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "artifact read after write"@x-gmeow-english ;
+    skos:definition "Verification by an actual later read of the same identified artifact version that was written. A held verdict requires read and write evidence and artifact byte identity, not merely the writer’s own report."@x-gmeow-english ;
+    gmeow:useWhen "Use for source-observed read-back verification of a written artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming confirmation from a selected method without a later read."@x-gmeow-english ;
+    gmeow:howToUse "Select this kind on an ArtifactVerificationObservation and retain the actual operation receipts, version identity and verdict."@x-gmeow-english ;
+    skos:example "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."@x-gmeow-english .
+
+gmeow:ArtifactVerificationObservation
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Artifact Verification Observation"@x-gmeow-english ;
+    skos:definition "A vantage-attributed observation assessing an identified artifact or version by a declared verifier method. Any verdict is separate from the method, receipt result and invocation outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an artifact check with its source evidence and observer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the Attestation-domain verificationResult property as an activity output link."@x-gmeow-english ;
+    gmeow:howToUse "Bind verifiesArtifact, verifierKind and vantage; use existing evaluation verdict individuals through observationResult when reported."@x-gmeow-english ;
+    skos:example "ex:check a gmeow:ArtifactVerificationObservation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:verifierKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verifier kind"@x-gmeow-english ;
+    skos:definition "The source-selected method of an artifact verification observation, independent of its result."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s verifier kind binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing evidence for verifierKind."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported verifierKind target and preserve its attribution context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:verifierKind ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactVerificationObservation ;
+    logic:range gmeow:VerifierKind ;
+    logic:subPropertyOf gmeow:observationMethod .
+
+gmeow:verifiesArtifact
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verifies artifact"@x-gmeow-english ;
+    skos:definition "The exact artifact or version assessed by this observation, specializing observedFeature."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s verifies artifact binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing evidence for verifiesArtifact."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported verifiesArtifact target and preserve its attribution context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:verifiesArtifact ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactVerificationObservation ;
+    logic:range gmeow:InformationObject ;
+    logic:subPropertyOf gmeow:observedFeature .
+
+gmeow:verificationWriteReceipt
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verification write receipt"@x-gmeow-english ;
+    skos:definition "The actual created-or-updated operation occurrence used as write evidence, not a fabricated successful invocation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s verification write receipt binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing evidence for verificationWriteReceipt."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported verificationWriteReceipt target and preserve its attribution context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:verificationWriteReceipt ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactVerificationObservation ;
+    logic:range gmeow:ArtifactOperationReceipt .
+
+gmeow:verificationReadReceipt
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verification read receipt"@x-gmeow-english ;
+    skos:definition "The actual later-read operation occurrence used as independent read-back evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s verification read receipt binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing evidence for verificationReadReceipt."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported verificationReadReceipt target and preserve its attribution context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:verificationReadReceipt ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactVerificationObservation ;
+    logic:range gmeow:ArtifactOperationReceipt .
+
+gmeow:agencyGoalEvaluation
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "agency goal evaluation"@x-gmeow-english ;
+    skos:definition "A separate GoalEvaluation supporting a recorded agency judgment; it does not follow merely from attempt stopping."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s agency goal evaluation binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing evidence for agencyGoalEvaluation."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported agencyGoalEvaluation target and preserve its attribution context."@x-gmeow-english ;
+    skos:example "ex:record gmeow:agencyGoalEvaluation ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range logic:GoalEvaluation .
+
+# Canonical value, required-path and source-evidence obligations.
+
+gmeow:ArtifactOperationReceipt logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:receiptOperation ; logic:allValuesFrom gmeow:ArtifactOperation ],
+    [ a logic:Restriction ; logic:onProperty gmeow:receiptArtifact ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:subEventOf ; logic:allValuesFrom gmeow:Event ],
+    [ a logic:Restriction ; logic:onProperty gmeow:receiptTool ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:resultDigest ; logic:allValuesFrom rdfs:Literal ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ArtifactOperationReceipt ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/receiptOperation" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ArtifactOperationReceipt ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/receiptArtifact" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ArtifactOperationReceipt ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/subEventOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ToolCall logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:toolName ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:toolCallId ; logic:allValuesFrom xsd:string ] .
+
+gmeow:ModelInvocation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:invocationOutcome ; logic:allValuesFrom gmeow:ModelInvocationOutcome ],
+    [ a logic:Restriction ; logic:onProperty gmeow:invocationError ; logic:allValuesFrom xsd:string ] .
+
+gmeow:InformationObject logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:artifactComplete ; logic:allValuesFrom xsd:boolean ] .
+
+gmeow:Intention logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:commitmentStatus ; logic:allValuesFrom gmeow:CommitmentStatus ] .
+
+gmeow:Event logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:attemptStop ; logic:allValuesFrom gmeow:AttemptStop ],
+    [ a logic:Restriction ; logic:onProperty gmeow:pauseCause ; logic:allValuesFrom gmeow:PauseCause ],
+    [ a logic:Restriction ; logic:onProperty gmeow:attemptResumePoint ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:resumesAttempt ; logic:allValuesFrom gmeow:Event ],
+    [ a logic:Restriction ; logic:onProperty gmeow:resumesFromPoint ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:intentionTransitionOf ; logic:allValuesFrom gmeow:Intention ],
+    [ a logic:Restriction ; logic:onProperty gmeow:intentionTransitionTenure ; logic:allValuesFrom gmeow:IntentionTenure ],
+    [ a logic:Restriction ; logic:onProperty gmeow:agencyGoalEvaluation ; logic:allValuesFrom logic:GoalEvaluation ] .
+
+gmeow:IntentionSalienceObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:salienceOfIntention ; logic:allValuesFrom gmeow:Intention ],
+    [ a logic:Restriction ; logic:onProperty gmeow:salienceValue ; logic:allValuesFrom xsd:decimal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:salienceFrame ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:IntentionSalienceObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/salienceOfIntention" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:IntentionSalienceObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/salienceValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:IntentionSalienceObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/salienceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:IntentionSalienceObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ArtifactVerificationObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:verifiesArtifact ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:verifierKind ; logic:allValuesFrom gmeow:VerifierKind ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:verificationWriteReceipt ; logic:allValuesFrom gmeow:ArtifactOperationReceipt ],
+    [ a logic:Restriction ; logic:onProperty gmeow:verificationReadReceipt ; logic:allValuesFrom gmeow:ArtifactOperationReceipt ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:EvaluationVerdict ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ArtifactVerificationObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/verifiesArtifact" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ArtifactVerificationObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/verifierKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ArtifactVerificationObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ReceiptParentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Receipt parent constraint"@x-gmeow-english ;
+    skos:definition "An artifact operation receipt belongs to an actual attempt or ToolCall, rather than an unrelated event."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of ArtifactOperationReceipt."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ReceiptParentConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual ArtifactOperationReceipt bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:ReceiptParentConstraint logic:formalizes gmeow:ArtifactOperationReceipt ."@x-gmeow-english ;
+    logic:formalizes gmeow:ArtifactOperationReceipt ;
+    logic:message "An artifact operation receipt belongs to an actual attempt or ToolCall, rather than an unrelated event." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ArtifactOperationReceipt ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parent" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:subEventOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "parent" ] ],
+                [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parent" ], [ logic:termIndex 1 ; logic:termIri gmeow:ToolCall ] ],
+                [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parent" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttempt ] ] ] ] ] ] ] .
+
+gmeow:ReceiptReadArtifactConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Receipt read-artifact constraint"@x-gmeow-english ;
+    skos:definition "A read receipt retains an actual readArtifact relation to the same identified artifact version, not merely a result-envelope digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of readArtifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ReceiptReadArtifactConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual readArtifact bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:ReceiptReadArtifactConstraint logic:formalizes gmeow:readArtifact ."@x-gmeow-english ;
+    logic:formalizes gmeow:readArtifact ;
+    logic:message "A read receipt retains an actual readArtifact relation to the same identified artifact version, not merely a result-envelope digest." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:receiptOperation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:operationRead ] ],
+                [ a logic:Formula ; logic:relation gmeow:receiptArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:readArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ] ] ] .
+
+gmeow:BudgetResumePointConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Budget resume-point constraint"@x-gmeow-english ;
+    skos:definition "A budget-checkpoint pause retains an actual source resume point; it does not create enactment checkpoint identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of pauseBudgetCheckpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying BudgetResumePointConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual pauseBudgetCheckpoint bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:BudgetResumePointConstraint logic:formalizes gmeow:pauseBudgetCheckpoint ."@x-gmeow-english ;
+    logic:formalizes gmeow:pauseBudgetCheckpoint ;
+    logic:message "A budget-checkpoint pause retains an actual source resume point; it does not create enactment checkpoint identity." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:pauseCause ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:pauseBudgetCheckpoint ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "point" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:attemptResumePoint ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "point" ] ] ] ] ] .
+
+gmeow:AttemptResumptionBindingsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Attempt resumption bindings constraint"@x-gmeow-english ;
+    skos:definition "A planless resumption identifies its original attempt and actual resume point as a sub-event of that attempt, without borrowing enactment continuation kinds."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of eventTypeAttemptResumption."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying AttemptResumptionBindingsConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual eventTypeAttemptResumption bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:AttemptResumptionBindingsConstraint logic:formalizes gmeow:eventTypeAttemptResumption ."@x-gmeow-english ;
+    logic:formalizes gmeow:eventTypeAttemptResumption ;
+    logic:message "A planless resumption identifies its original attempt and actual resume point as a sub-event of that attempt, without borrowing enactment continuation kinds." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptResumption ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attempt" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "point" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:resumesAttempt ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "attempt" ] ],
+                [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attempt" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttempt ] ],
+                [ a logic:Formula ; logic:relation gmeow:subEventOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "attempt" ] ],
+                [ a logic:Formula ; logic:relation gmeow:resumesFromPoint ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "point" ] ] ] ] ] ] ] .
+
+gmeow:IntentionTransitionTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Intention transition target constraint"@x-gmeow-english ;
+    skos:definition "A recorded intention lifecycle event identifies the actual affected Intention; its marker does not fabricate a new intention."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of intentionTransitionOf."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying IntentionTransitionTargetConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual intentionTransitionOf bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:IntentionTransitionTargetConstraint logic:formalizes gmeow:intentionTransitionOf ."@x-gmeow-english ;
+    logic:formalizes gmeow:intentionTransitionOf ;
+    logic:message "A recorded intention lifecycle event identifies the actual affected Intention; its marker does not fabricate a new intention." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionActive ] ],
+                [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionPaused ] ],
+                [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionSatisfied ] ],
+                [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionAbandoned ] ],
+                [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionSuperseded ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "intention" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:intentionTransitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ] ] ] ] .
+
+gmeow:IntentionSupersessionTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Intention supersession target constraint"@x-gmeow-english ;
+    skos:definition "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of eventTypeIntentionSuperseded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying IntentionSupersessionTargetConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual eventTypeIntentionSuperseded bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:IntentionSupersessionTargetConstraint logic:formalizes gmeow:eventTypeIntentionSuperseded ."@x-gmeow-english ;
+    logic:formalizes gmeow:eventTypeIntentionSuperseded ;
+    logic:message "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionSuperseded ] ],
+                [ a logic:Formula ; logic:relation gmeow:intentionTransitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "replacement" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:supersededBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "intention" ], [ logic:termIndex 1 ; logic:termVariable "replacement" ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "replacement" ], [ logic:termIndex 1 ; logic:termIri gmeow:Intention ] ] ] ] ] ] .
+
+gmeow:SatisfiedIntentionEvaluationConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Satisfied intention evaluation constraint"@x-gmeow-english ;
+    skos:definition "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying SatisfiedIntentionEvaluationConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual eventTypeIntentionSatisfied bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:SatisfiedIntentionEvaluationConstraint logic:formalizes gmeow:eventTypeIntentionSatisfied ."@x-gmeow-english ;
+    logic:formalizes gmeow:eventTypeIntentionSatisfied ;
+    logic:message "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionSatisfied ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "evaluation" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:agencyGoalEvaluation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "evaluation" ] ] ] ] ] .
+
+gmeow:ReadAfterWriteEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Read-after-write evidence constraint"@x-gmeow-english ;
+    skos:definition "A held read-after-write verdict requires distinct actual write and later-read receipts for the same digest-identified artifact version. Result-envelope digests are not artifact digests."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierArtifactReadAfterWrite."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ReadAfterWriteEvidenceConstraint by fabricating missing source data."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual verifierArtifactReadAfterWrite bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:example "gmeow:ReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierArtifactReadAfterWrite ;
+    logic:message "A held read-after-write verdict requires distinct actual write and later-read receipts for the same digest-identified artifact version. Result-envelope digests are not artifact digests." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ArtifactVerificationObservation ] ],
+                [ a logic:Formula ; logic:relation gmeow:verifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierArtifactReadAfterWrite ] ],
+                [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ],
+                [ a logic:Formula ; logic:relation gmeow:verifiesArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "write" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "read" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:verificationWriteReceipt ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "write" ] ],
+                [ a logic:Formula ; logic:relation gmeow:verificationReadReceipt ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "read" ] ],
+                [ a logic:Formula ; logic:relation gmeow:receiptArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "write" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                [ a logic:Formula ; logic:relation gmeow:receiptArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "read" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:receiptOperation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "write" ], [ logic:termIndex 1 ; logic:termIri gmeow:operationCreated ] ],
+                [ a logic:Formula ; logic:relation gmeow:receiptOperation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "write" ], [ logic:termIndex 1 ; logic:termIri gmeow:operationUpdated ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:receiptOperation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "read" ], [ logic:termIndex 1 ; logic:termIri gmeow:operationRead ] ],
+                [ a logic:Formula ; logic:relation gmeow:readArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "read" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:before ; logic:argument [ logic:termIndex 0 ; logic:termVariable "write" ], [ logic:termIndex 1 ; logic:termVariable "read" ] ],
+                [ a logic:Formula ; logic:relation gmeow:meets ; logic:argument [ logic:termIndex 0 ; logic:termVariable "write" ], [ logic:termIndex 1 ; logic:termVariable "read" ] ] ],
+                [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "write" ], [ logic:termIndex 1 ; logic:termVariable "read" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:contentDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "artifact" ], [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] ] ] ] .
+
+gmeow:mapsetAgencyRecords
+    a gmeow:MappingSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Agency records mappings"@x-gmeow-english ;
+    skos:definition "The native close-match alignment for unqualified activity-to-entity usage. It preserves neither qualified-usage structure nor separate usage-time claims."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the generic used relation to PROV consumers."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming a lossless qualified-usage or temporal projection from this binary linkage."@x-gmeow-english ;
+    gmeow:howToUse "Retain the close-match relation and its curation metadata; represent richer usage context separately."@x-gmeow-english ;
+    skos:example "gmeow:used skos:closeMatch prov:used ."@x-gmeow-english .
+
+gmeow:AttemptStopFinishConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Attempt stop finish constraint"@x-gmeow-english ;
+    skos:definition "An attemptStop value classifies a recorded attempt-finish event, rather than an unrelated activity or goal evaluation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the phase scope of attemptStop."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching attemptStop to an event with an unrelated lifecycle meaning."@x-gmeow-english ;
+    gmeow:howToUse "Keep eventType eventTypeAttemptFinish on the event carrying attemptStop."@x-gmeow-english ;
+    skos:example "ex:phase gmeow:eventType gmeow:eventTypeAttemptFinish ."@x-gmeow-english ;
+    logic:formalizes gmeow:attemptStop ;
+    logic:message "An attemptStop value classifies a recorded attempt-finish event, rather than an unrelated activity or goal evaluation." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:attemptStop ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:eventType ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptFinish ] ] ] ] .
+
+gmeow:PauseCauseContinuationConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Pause cause continuation constraint"@x-gmeow-english ;
+    skos:definition "A pauseCause value belongs to a recorded attempt-continuation phase, not an intention’s overall holding status."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the phase scope of pauseCause."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching pauseCause to an event with an unrelated lifecycle meaning."@x-gmeow-english ;
+    gmeow:howToUse "Keep eventType eventTypeAttemptContinuation on the event carrying pauseCause."@x-gmeow-english ;
+    skos:example "ex:phase gmeow:eventType gmeow:eventTypeAttemptContinuation ."@x-gmeow-english ;
+    logic:formalizes gmeow:pauseCause ;
+    logic:message "A pauseCause value belongs to a recorded attempt-continuation phase, not an intention’s overall holding status." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:pauseCause ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:eventType ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptContinuation ] ] ] ] .

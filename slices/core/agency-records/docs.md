@@ -1,0 +1,152 @@
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# Agency records
+
+An agent can pursue an intention through prose work without an executable plan.
+This slice retains that work, its pauses and stops, the artifact operations it
+performed and the judgments recorded about it. Existing intentions, events,
+activities, observations and tool calls remain their own canonical foundations.
+
+## Attempts and intention transitions
+
+Represent an attempt as an `Event` with `eventTypeAttempt`, motivated by an
+existing `Intention` through `motivates`. Its start, continuation and finish are
+sub-events classified with the corresponding event-type values.
+
+`attemptStop` records how a finish stopped: finished, failed, interrupted or yielded
+to foreground work. This outcome does not say how close the agent came to its goal.
+Keep that judgment in a separate `logic:GoalEvaluation`. `stopFinished` therefore
+does not imply goal satisfaction.
+
+`pauseCause` describes a continuation pause. `pauseBudgetCheckpoint` retains an
+actual `attemptResumePoint` information object; `pauseInterrupted` records an
+interruption. The point can preserve prose about unfinished work without claiming
+an enactment checkpoint’s prescription, input-snapshot or journal identities.
+
+Use `eventTypeAttemptResumption` with `resumesAttempt`, `resumesFromPoint` and
+`subEventOf` when the same prose attempt resumes. Existing
+`logic:ContinuationResume` specifically resumes an enactment from its authenticated
+checkpoint. These are different assertions; planless work does not relax the
+requirements of `logic:Enactment`.
+
+The five intention transition values retain active, paused, satisfied, abandoned
+and superseded episodes. `intentionTransitionOf` identifies the affected intention.
+A known `intentionTransitionTenure` can retain the existing holding interval.
+Pausing does not itself close tenure or abandon the intention. A later withdrawal
+can close that same tenure without making its earlier pause record false.
+
+A satisfied transition links its separate judgment with `agencyGoalEvaluation`.
+Supersession keeps the old intention and names the replacement through existing
+`supersededBy`. No status selects a privileged global interpretation or erases an
+older claim (Principles 9 and 10).
+
+`CommitmentStatus` describes an intention held as a commitment to oneself: active,
+renewed or released. It is distinct from the existing social `Commitment`, whose
+beneficiary is another agent. A released self-commitment does not prove its goal
+was met.
+
+## Decisions and insights
+
+`eventTypeDecision` records the act concluding deliberation. The agent may choose
+to act and form an intention, or decide to leave something unchanged without
+making a new commitment. Link an intention or attempt only when the source
+actually supplies one.
+
+`learningInsight` extends the existing open `LearningEventType` vocabulary.
+It records understanding a connection or pattern through reasoning or reflection,
+without a teacher or external source reported for that insight. This does not
+claim a universal absence of influences or require formation of a new category.
+Other supported learning kinds can coexist. Keep the existing learner and mental
+process context on the `LearningEvent`.
+
+## Artifact operations and tools
+
+`used` links an activity to an entity it actually used. `readArtifact` specializes
+it for information artifacts or versions actually read. Context presence alone
+proves neither use nor reading, and reading neither implies modification nor
+acceptance of the content as true.
+
+An `ArtifactOperationReceipt` is the artifact-operation activity occurrence retained
+as a receipt, subordinate to an actual attempt or `ToolCall`. It names its
+`receiptArtifact` and its `receiptOperation`: created, read or updated. A read also
+retains `readArtifact` for that same target. This model does not turn an information
+document into an activity merely because it records one.
+
+`receiptTool` preserves the source’s tool name. `resultDigest` preserves the
+algorithm-labelled digest of what the operation produced or returned. A returned
+JSON envelope and the artifact it describes have different byte identities;
+`resultDigest` is not automatically the artifact’s `contentDigest`.
+
+A `ToolCall` can retain its verbatim `toolName` and source-scoped `toolCallId`.
+It still requires `usedTool` pointing to the actual `SoftwareAgent`. A minimally
+described, source-scoped tool agent is enough when only the tool’s name is known.
+Do not invent a holder, provider, executable path or cross-call identity from that
+name. Use `derivedBy` for assertions produced by the call, and `wasGeneratedBy` for
+entities it produced.
+
+The string fields deliberately use `xsd:string`, retaining source case,
+whitespace and punctuation. `xsd:token` normalization would weaken that promise.
+Call identifiers remain local to their source; they do not widen unrelated
+identifier properties or become universal keys.
+
+## Completion and invocation outcomes
+
+`artifactComplete` is the source-supplied boolean about the identified artifact’s
+content being complete. A missing value remains unknown. It is independent of
+whether a model invocation succeeded, whether an operation ran or whether a
+receipt account contains every detail.
+
+When a local `receiptComplete` field meant artifact completion, migrate its value
+to `artifactComplete` on the identified artifact or version. There is no canonical
+`receiptComplete` property here: the source requirement establishes an artifact
+bit, not a new receipt-completeness or operation-success capability.
+
+`invocationOutcome` retains an explicit model-invocation result. The open vocabulary
+starts with succeeded and failed. `invocationError` preserves any supplied error
+text verbatim. Neither a missing error nor a missing outcome implies success, and
+an invocation failure does not automatically make its artifacts incomplete.
+
+## Intention salience with its source frame
+
+`IntentionSalienceObservation` carries `salienceOfIntention`, a decimal
+`salienceValue`, a `salienceFrame` and the observing `vantage`. The frame identifies
+the producer’s actual scale or convention, even when its bounds or direction are
+unknown. Different producer frames are not implicitly comparable.
+
+A known numeric contract can reuse `ScoreScale`. Do not manufacture its bounds,
+assume a 0–10 scale, clamp a number or interpret larger values as greater salience
+without source evidence. Claim-import `importanceLevel` is a different measure
+and is not reused for an intention’s salience.
+
+## Read-after-write verification
+
+`VerifierKind` is an open specialization of `ObservationMethod`.
+`verifierArtifactReadAfterWrite` selects actual read-back verification. The
+`verifierKind` relation joins the existing observation-method query path.
+
+An `ArtifactVerificationObservation` identifies its `verifiesArtifact`, method
+and `vantage`. A reported verdict uses the existing evaluation-verdict individuals
+through `observationResult`. Merely selecting the method supplies no successful
+verdict.
+
+A held read-after-write verdict needs distinct write and read operation receipts
+for the same identified artifact version. The write is created or updated; the
+read actually names that version through `readArtifact`. Retain explicit source
+order: `before` when there is a strict gap, or `meets` when the operations abut.
+The artifact version carries its own `contentDigest`. Do not verify a mutable path
+name or substitute a tool-result envelope digest for those bytes.
+
+A successful read-back can confirm byte persistence while `artifactComplete`
+remains false: a faithfully stored draft can still be unfinished. Goal satisfaction
+and invocation outcome likewise remain separate.
+
+`conflictsWithGoal` records symmetric practical conflict, such as drafting versus
+resting. It is neither transitive nor a bridge to constitutive `counterGoal`, and
+it establishes no global priority. Explicit goal dependencies can be authored in
+the canonical logic vocabulary; means-end search remains solver work.
+
+The [ordinary working scene](examples/attempt-and-readback.ttl) retains an open
+intention tenure, a budget pause, a prose resumption and a read-back of an unfinished
+draft. The [design rationale](design/AGENCY-RECORDS.md) describes its canonical
+obligations and source ownership.

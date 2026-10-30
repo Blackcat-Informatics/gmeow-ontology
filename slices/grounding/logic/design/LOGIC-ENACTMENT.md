@@ -71,8 +71,7 @@ occurrences, and every one of the six domains needs it.
 The **SCADA** reading forces the maintenance-goal law. A control program's success criterion is not
 "the setpoint was reached once"; it is "the setpoint held across the interval". So a successful
 enactment must **not** be permitted to license `logic:GoalEvaluationCompleted` on a
-`logic:MaintenanceGoal` beyond its own interval — the constraint
-`logic:MaintenanceGoalNotClosedByEnactmentConstraint`. The identical law is what makes a continuing
+`logic:MaintenanceGoal` beyond its own interval. This interval-scoping condition makes a continuing
 curriculum outcome, a recurring organizational compliance guide, and a weekly review cluster behave
 correctly: one good week does not close a continuing goal. Had the kernel been phrased as
 work-orchestration vocabulary, this would have looked like a quirk of one domain instead of the
@@ -164,8 +163,8 @@ them into one status enumeration produces a value set whose members are products
 values. The kernel therefore carries **seven** axes, and the governing rule is absolute:
 
 > **No property carries values from two axes.** A property whose value set spans axes is a conflation
-> by construction, and `logic:LifecycleAxisNonConflationConstraint` rejects it at
-> `logic:severity "Violation"`. Operator-facing composites (`logic:FrontierLabel`) are **derived**
+> by construction. Read each axis through its dedicated property and declared range.
+> Operator-facing composites (`logic:FrontierLabel`) are **derived**
 > total functions of the axis tuple that carry the tuple witness, never authored values.
 
 | # | Axis | Question it answers | Carrier | Provenance |
@@ -176,7 +175,7 @@ values. The kernel therefore carries **seven** axes, and the governing rule is a
 | 4 | effect protocol position | How far did the external exchange get? | `logic:EffectProtocolPosition` | minted, closed value class |
 | 5 | effect commitment knowledge | What is *known* about whether the effect happened? | the property `logic:effectKnowledge` over the existing `logic:InformationState` | **property minted; value class reused unchanged** |
 | 6 | goal-evaluation status | Has the success criterion been conclusively judged? | `logic:GoalEvaluationStatus` | **reused unchanged** |
-| 7 | recurrence state | Where is this generated occurrence slot in its schedule? | `logic:RecurrenceState` | minted, closed value class |
+| 7 | recurrence state | Where is this recurrence schedule in its lifecycle? | `logic:RecurrenceState` | minted, closed value class |
 
 Five value classes are minted. The sixth axis mints a **property only** — re-minting a status
 enumeration over external-effect knowledge would create a second truth-value vocabulary beside
@@ -213,40 +212,24 @@ minting-and-supersession law. Stating this taxonomy is not pedantry: authoring a
 a transition relation is what produces the classic bug in which a probe that *learns more* is
 recorded as an illegal state change and refused.
 
-### The shared `logic:Formula` shape
+### Transition-law formulas
 
-Every membership law compiles into one `logic:Formula` tree of the following shape, and
-`logic:AxisTransitionLaw` carries it:
+A `logic:AxisTransitionLaw` names its axis through `logic:lawGovernsAxis` and
+carries a `logic:Formula` describing admitted transitions through `logic:lawAdmits`.
+For a transition-membership law, the intended relationship can be summarized
+mathematically:
 
 ```text
-logic:Formula                                   # the law
-  logic:forall
-    logic:quantifiedVariable  [ termIndex 0 ; termVariable "R"  ]   # the record
-    logic:quantifiedVariable  [ termIndex 1 ; termVariable "S1" ]   # prior value
-    logic:quantifiedVariable  [ termIndex 2 ; termVariable "S2" ]   # posterior value
-    logic:quantifiedVariable  [ termIndex 3 ; termVariable "T"  ]   # journal position
-  logic:antecedent
-    logic:and
-      logic:Formula [ relation logic:axisValueAt ;                  # atomic predication
-                      argument ( ?R ?S1 ?T ) ]
-      logic:Formula [ relation logic:axisValueAtSuccessor ;
-                      argument ( ?R ?S2 ?T ) ]
-  logic:consequent
-    logic:Formula [ relation logic:axisTransitionAdmitted ;
-                    argument ( <the axis IRI> ?S1 ?S2 ) ]
+observed transition of record r from s₁ to s₂ on axis A
+    ⇒ (s₁, s₂) belongs to the relation described by A’s law
 ```
 
-The atomic predications are `logic:ArgumentStructure` nodes: a reified `logic:relation` over ordered
-zero-based `logic:argument` term-carriers, each carrying exactly one of `logic:termIri` /
-`logic:termVariable`. The admitted pairs are **data** — a `logic:axisTransitionAdmitted` extension
-authored per axis — so the law itself is one formula per axis and the relation it reads is the table
-below. This is what lets a single Rust property test quantify over the authored relation instead of
-over hand-written cases, and it is why widening an axis is a data edit that the liveness test
-immediately re-checks rather than a formula rewrite.
-
-Each law is enforced by a `logic:Constraint` at `logic:severity "Violation"` whose
-`logic:Formula` is the negation-carrying integrity form of the above; none carries a
-`logic:formalizes` edge onto a shape, because a hand-authored shape would be a second source of truth.
+This is explanatory mathematical notation. The concrete formula supplies its own
+authored relations and ordered arguments through the existing `logic:Formula`
+vocabulary. A transition law describes admitted moves; an authored
+`logic:Constraint` is a separate integrity obligation. The tables below describe
+the transition policies without asserting that each has an encoded formula,
+enforcing constraint or executed certificate.
 
 ### Axis 1 — `logic:EnactmentState`
 
@@ -319,15 +302,15 @@ The knowledge axis is the one axis whose law is not membership in an authored pa
 
 ```text
 ∀ a, k₁, k₂, t .  effectKnowledgeAt(a, k₁, t) ∧ effectKnowledgeAtSuccessor(a, k₂, t)
-                    →  knowledgeOrderLeq(k₁, k₂)
+                    →  (k₁ = k₂ ∨ knowledgePrecedes(k₁, k₂))
 ```
 
-— the same `logic:forall` / `logic:antecedent` / `logic:consequent` tree as the membership laws, with
-`logic:axisTransitionAdmitted` replaced by the authored `logic:knowledgeOrderLeq` relation of the next
-section. Enforced by `logic:ReconciliationKnowledgeMonotonicityConstraint`. The constraint fires only
-on **malformed records** — a genuine `Committed`-then-`NotCommitted` disagreement is not an authoring
-error; it is knowledge moving `InfoSupported → InfoBoth`, which is *up* the order and therefore
-admitted, then routed to `logic:ContradictionWitness` and attributed adjudication.
+The displayed history predicates are mathematical metavariables. The actual
+`logic:knowledgePrecedes` property names the strict knowledge order; allowing an
+unchanged value supplies its reflexive closure. A genuine committed-then-not-committed
+disagreement can move `InfoSupported → InfoBoth`, preserving both reports for
+attributed adjudication. This design condition does not claim a separately named
+reconciliation constraint has been authored or executed.
 
 ### Axis 6 — `logic:GoalEvaluationStatus`: a minting-and-supersession law
 
@@ -340,9 +323,9 @@ vantages that disagree coexist. The law is therefore:
 ∀ e, s₁, s₂ .  goalEvaluationStatus(e, s₁) ∧ goalEvaluationStatus(e, s₂)  →  s₁ = s₂
 ```
 
-together with `logic:MaintenanceGoalNotClosedByEnactmentConstraint`: no `logic:Enactment` whose own
-state is `EnactmentCompleted` may license `GoalEvaluationCompleted` on a `logic:MaintenanceGoal`
-outside the enactment's own interval.
+`logic:goalEvaluationStatusFunctionality` supplies the at-most-one status obligation.
+Separately, completing an enactment does not settle a maintenance goal beyond that
+enactment’s interval; preserve the evaluated world, evaluator, time and criterion.
 
 ### Axis 7 — `logic:RecurrenceState`
 
@@ -353,23 +336,25 @@ outside the enactment's own interval.
 | `RecurrenceSuspended` | `RecurrenceScheduled`, `RecurrenceActive`, `RecurrenceSkipped`, `RecurrenceEnded` |
 | `RecurrenceSkipped` · `RecurrenceEnded` | — (quiescent) |
 
-The axis is carried by the generated **occurrence slot**, not by the enactment and not by the
-generator. A skipped occurrence is a first-class recorded value on this axis; it is never a missing
-enactment, and the distinction is what stops a reader from mistaking a deliberate exception for a
-gap in the record.
+The `logic:recurrenceState` property belongs to the recurrence schedule. A generated
+occurrence and its enactment retain their own identities and status assertions.
+Do not use schedule state to erase the distinction between a deliberately skipped
+occurrence and a gap in the record.
 
 ### Liveness — the three properties, and why they are not optional
 
-The transition laws prove that bad moves are refused. Nothing in them proves the system cannot get
-**stuck**, which is the dominant real failure of durable sagas: not an illegal transition, but an
-intent nobody will ever attempt, a lease nobody will ever break, a step waiting on a signal that
-cannot arrive. `logic:LivenessCertificate` asserts three properties per axis over the authored
-transition relation, and they are machine-checked, not asserted:
+Safety of transitions and ability to make progress answer different questions.
+An intent can remain unattempted, a lease unbroken, or a step waiting for a signal.
+`logic:LivenessCertificate` provides the vocabulary for recording which progress
+properties were checked over an identified transition relation. A certificate’s
+asserted booleans describe the recorded check; their declarations alone do not
+establish that any check ran or passed. The following formulas explain those
+properties using mathematical metavariables.
 
 **Deadlock-freedom.** Every reachable, non-quiescent axis value has at least one admitted successor:
 
 ```text
-∀ v .  reachable(v) ∧ ¬quiescent(v)  →  ∃ v' . axisTransitionAdmitted(axis, v, v')
+∀ v .  reachable(v) ∧ ¬quiescent(v)  →  ∃ v' . admitted(axis, v, v')
 ```
 
 **Reachability (no dead state).** Every reachable value reaches a quiescent one along admitted
@@ -390,20 +375,22 @@ abandoned with a recorded reason; there is no third possibility:
                             ∨ ( ∃ w . intentAbandoned(i, w) ∧ abandonmentReason(w, _) )
 ```
 
-Enforced by `logic:OrphanIntentConstraint`. This is the property that makes an intent persisted
-immediately before a crash *recoverable rather than lost*: on restart it is either attempted or
-abandoned, and never sits indefinitely in a state no derivation looks at.
+This condition requires recovery to account for an intent persisted immediately
+before a crash: either an attempt or explicit abandonment must account for it.
+The displayed formula states that condition without claiming a named orphan-intent
+constraint has been authored or executed.
 
-Deadlock-freedom and reachability are checked over the **product** of the five membership axes as
-well as per axis, because a tuple can be individually live on each coordinate and jointly stuck — a
+A certificate for combined coordination must address the **product** of the five
+membership axes as well as each axis, because a tuple can be individually live on
+each coordinate and jointly stuck — a
 step at `StepWaiting` whose approval is at `ApprovalExpired` has an admitted successor on each axis
 and no admissible joint move. Checking only per-axis liveness would prove nothing about the system
 the operator actually faces.
 
 ## The ⊑ₖ knowledge order
 
-The commitment layer is a knowledge lattice, and the kernel defines the order explicitly because
-**the order does not exist in the codebase today and the value that looks like it is a trap**.
+The commitment layer has an explicit knowledge order. Its meaning comes from
+`logic:knowledgePrecedes`, independently of enumeration declaration order.
 
 ### The trap, stated plainly
 
@@ -418,8 +405,9 @@ order is the most dangerous kind, because a spot check passes.
 
 > **The derived `Ord` is for deterministic keying only** — `BTreeMap` ordering and canonical row sort,
 > the determinism contract's fourth clause. **No kernel law may read it.** Every monotonicity check,
-> every eligibility predicate, and every reconciliation constraint reads the authored
-> `logic:knowledgeOrderLeq` relation defined here, never `<=` on the Rust value.
+> every eligibility predicate, and every reconciliation constraint must use the authored
+> strict `logic:knowledgePrecedes` order, adding equality for nondecreasing comparisons,
+> rather than `<=` on the Rust value.
 
 ### The order the kernel uses
 
@@ -438,9 +426,9 @@ The kernel admits five values for `logic:effectKnowledge` — `InfoNotEvaluated`
 
 `x ⊑ₖ y` iff y carries at least as much evidence as x. It is a **bounded lattice**: reflexive,
 antisymmetric, transitive, with bottom `InfoNotEvaluated`, top `InfoBoth`, and all binary joins —
-notably `InfoSupported ⊔ InfoOpposed = InfoBoth`, which is the whole point. This is authored as the
-`logic:knowledgeOrderLeq` relation and pinned by a Rust property test asserting the three order laws
-and join totality, and asserting agreement with the Rust `InformationState` value set.
+notably `InfoSupported ⊔ InfoOpposed = InfoBoth`. The strict part is represented by
+`logic:knowledgePrecedes`; equality supplies reflexivity for the non-strict order.
+A declaration of that relation does not itself certify its runtime evaluation.
 
 `InfoNotEvaluated ⊏ₖ InfoUndetermined` is a real strictness, not a tidy-up. `NotEvaluated` means the
 engine *could not look* — no probe was possible, no semantics were available. `Undetermined` means a
@@ -600,8 +588,10 @@ receipt is refused). Sharing one code would let a fixture pass by tripping the w
 
 **Protocol position ≠ commitment knowledge.** Axes 4 and 5 vary independently; `EffectReceipted` with
 `InfoBoth` is an ordinary state. Folding them lets "we got as far as receipting" be read as "the
-effect happened". Enforced by `logic:LifecycleAxisNonConflationConstraint`, which refuses any property
-whose value set spans both.
+effect happened". Keep the `logic:effectProtocolPosition` range
+`logic:EffectProtocolPosition` separate from the `logic:effectKnowledge` range
+`logic:InformationState`; the range declarations identify the distinct axes without
+claiming a separate mixed-axis rejection proof.
 
 **`logic:actionResource` ≠ `logic:resourcePolicy`.** The first is an action-theory facet: what an
 action *consumes or requires*, the seam to `logic:competesForResource` and to `logic:ResourceLease`.

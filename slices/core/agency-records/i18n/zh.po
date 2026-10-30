@@ -1,0 +1,1850 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: agency-records, language: zh).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt"
+msgstr "尝试"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttempt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An event of pursuing an intention, including work described only in prose. Its type does not assert an executable prescription or a goal achieved."
+msgstr "追求意图的事件，包括仅以文字描述的工作。此类型不表示具有可执行规定或已达成目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttempt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded attempt event."
+msgstr "用于分类来源记录的尝试事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttempt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeAttempt alone."
+msgstr "避免仅从 eventTypeAttempt 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttempt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeAttempt through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeAttempt，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttempt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeAttempt ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeAttempt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptStart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt start"
+msgstr "尝试开始"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptStart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded start of an attempt. It is a phase event within the attempt, not creation of a compiled enactment."
+msgstr "尝试的已记录开始。它是尝试中的阶段事件，而非编译执行的建立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptStart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded attempt start event."
+msgstr "用于分类来源记录的尝试开始事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptStart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeAttemptStart alone."
+msgstr "避免仅从 eventTypeAttemptStart 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptStart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeAttemptStart through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeAttemptStart，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptStart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeAttemptStart ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeAttemptStart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptContinuation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt continuation"
+msgstr "尝试继续"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptContinuation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded continuation or checkpoint phase of an attempt. Its pause cause and resume point are separate from how the attempt ultimately stops."
+msgstr "尝试的已记录继续或检查点阶段。其暂停原因及恢复点区别于尝试最终如何停止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptContinuation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded attempt continuation event."
+msgstr "用于分类来源记录的尝试继续事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptContinuation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeAttemptContinuation alone."
+msgstr "避免仅从 eventTypeAttemptContinuation 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptContinuation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeAttemptContinuation through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeAttemptContinuation，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptContinuation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeAttemptContinuation ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeAttemptContinuation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptFinish|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt finish"
+msgstr "尝试结束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptFinish|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded ending of an attempt, classified by attemptStop. Ending the attempt does not by itself establish goal satisfaction."
+msgstr "尝试的已记录结束，由 attemptStop 分类。尝试结束本身不证明目标满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptFinish|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded attempt finish event."
+msgstr "用于分类来源记录的尝试结束事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptFinish|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeAttemptFinish alone."
+msgstr "避免仅从 eventTypeAttemptFinish 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptFinish|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeAttemptFinish through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeAttemptFinish，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptFinish|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeAttemptFinish ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeAttemptFinish ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptResumption|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt resumption"
+msgstr "尝试恢复"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptResumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A planless attempt being resumed from a recorded resume point. It does not claim the prescription, input snapshot or journal identity required by an enactment resume."
+msgstr "从已记录恢复点恢复无计划尝试。它不声称具备执行恢复要求的规定、输入快照或日志身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptResumption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded attempt resumption event."
+msgstr "用于分类来源记录的尝试恢复事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptResumption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeAttemptResumption alone."
+msgstr "避免仅从 eventTypeAttemptResumption 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptResumption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeAttemptResumption through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeAttemptResumption，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAttemptResumption|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeAttemptResumption ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeAttemptResumption ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionActive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention active"
+msgstr "意图激活"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionActive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intention was made, or made again, the intention being acted on while its holding tenure remains open."
+msgstr "某意图首次或再次成为行动所依据的意图，其持有期间保持开放。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionActive|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded intention active event."
+msgstr "用于分类来源记录的意图激活事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionActive|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeIntentionActive alone."
+msgstr "避免仅从 eventTypeIntentionActive 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionActive|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeIntentionActive through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeIntentionActive，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionActive|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeIntentionActive ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeIntentionActive ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionPaused|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention paused"
+msgstr "意图暂停"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionPaused|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Pursuit of an intention was paused without abandonment. The pause itself does not close the holding tenure or imply an enactment state."
+msgstr "意图追求被暂停而未放弃。暂停本身不关闭持有期间，也不表示某执行状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionPaused|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded intention paused event."
+msgstr "用于分类来源记录的意图暂停事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionPaused|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeIntentionPaused alone."
+msgstr "避免仅从 eventTypeIntentionPaused 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionPaused|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeIntentionPaused through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeIntentionPaused，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionPaused|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeIntentionPaused ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeIntentionPaused ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention satisfied"
+msgstr "意图满足"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intention ended because its goal was judged met. The judgment belongs to a separate GoalEvaluation rather than the event kind."
+msgstr "意图因目标被判断达成而结束。该判断属于独立 GoalEvaluation，而非事件种类本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded intention satisfied event."
+msgstr "用于分类来源记录的意图满足事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeIntentionSatisfied alone."
+msgstr "避免仅从 eventTypeIntentionSatisfied 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeIntentionSatisfied through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeIntentionSatisfied，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeIntentionSatisfied ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeIntentionSatisfied ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionAbandoned|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention abandoned"
+msgstr "意图放弃"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionAbandoned|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intention was given up without its goal being judged met. This records withdrawal rather than erasing the intention."
+msgstr "意图在目标未被判断达成时被放弃。这记录撤回而非删除意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionAbandoned|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded intention abandoned event."
+msgstr "用于分类来源记录的意图放弃事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionAbandoned|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeIntentionAbandoned alone."
+msgstr "避免仅从 eventTypeIntentionAbandoned 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionAbandoned|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeIntentionAbandoned through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeIntentionAbandoned，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionAbandoned|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeIntentionAbandoned ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeIntentionAbandoned ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention superseded"
+msgstr "意图被取代"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intention was replaced by another intention, identified separately by supersededBy. Replacement is not evidence of either goal’s satisfaction."
+msgstr "某意图被另一个意图取代，替代者由 supersededBy 独立标识。替代不证明任一目标满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded intention superseded event."
+msgstr "用于分类来源记录的意图被取代事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeIntentionSuperseded alone."
+msgstr "避免仅从 eventTypeIntentionSuperseded 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeIntentionSuperseded through eventType and retain the affected attempt or intention with its explicit context links."
+msgstr "通过 eventType 附加 eventTypeIntentionSuperseded，并用明确上下文关联保留相关尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeIntentionSuperseded ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeIntentionSuperseded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeDecision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decision"
+msgstr "决定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeDecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An agent settled on one course among the options it weighed, concluding deliberation. The choice may form an intention or decide to do nothing without a new commitment."
+msgstr "行动者在权衡的选项中确定一种做法，结束审议。选择可以形成意图，也可以决定不采取行动而不产生新承诺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeDecision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a source-recorded decision event."
+msgstr "用于分类来源记录的决定事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeDecision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an enactment or goal verdict from eventTypeDecision alone."
+msgstr "避免仅从 eventTypeDecision 推断执行或目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeDecision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach eventTypeDecision through eventType; link an attempt or intention only when the source actually supplies that context."
+msgstr "通过 eventType 附加 eventTypeDecision；仅当来源实际提供该上下文时关联尝试或意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeDecision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:eventType gmeow:eventTypeDecision ."
+msgstr "ex:event gmeow:eventType gmeow:eventTypeDecision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/learningInsight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "insight"
+msgstr "领悟"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/learningInsight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A learning event in which an agent comes to understand a connection or pattern through its own reasoning or reflection, without a teacher or source being reported for that insight. It need not form a new category."
+msgstr "行动者通过自身推理或反思理解联系或模式的学习事件，未报告该领悟的教师或来源。它不一定形成新类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/learningInsight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-reported connection grasped through reflection."
+msgstr "用于来源报告的经反思理解的联系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/learningInsight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring universal absence of influences or equating insight with concept formation."
+msgstr "避免推断普遍不存在影响，或将领悟等同于概念形成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/learningInsight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference through learningType; retain other supported learning varieties and existing learner/process context."
+msgstr "通过 learningType 引用；保留其他有依据的学习种类及现有学习者与过程上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/learningInsight|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:insight gmeow:learningType gmeow:learningInsight ."
+msgstr "ex:insight gmeow:learningType gmeow:learningInsight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attempt Stop"
+msgstr "尝试停止方式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary describing how an attempt stopped, independently of progress toward its goal."
+msgstr "描述尝试如何停止的开放词汇，独立于目标进展。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit attempt stop axis of an agency record."
+msgstr "用于行动记录中明确的尝试停止方式维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid subclassing AttemptStop to add a value or deriving it from missing data."
+msgstr "避免通过继承 AttemptStop 添加值，或从数据缺失推断值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use reviewed AttemptStop individuals and extend the vocabulary with additional source-supported individuals."
+msgstr "使用经过审核的 AttemptStop 个体，并用额外有来源支持的个体扩展词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:value a gmeow:AttemptStop ."
+msgstr "ex:value a gmeow:AttemptStop ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Pause Cause"
+msgstr "暂停原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary describing why a continuation phase paused, without imposing enactment checkpoint machinery."
+msgstr "描述继续阶段为何暂停的开放词汇，不施加执行检查点机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit pause cause axis of an agency record."
+msgstr "用于行动记录中明确的暂停原因维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid subclassing PauseCause to add a value or deriving it from missing data."
+msgstr "避免通过继承 PauseCause 添加值，或从数据缺失推断值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use reviewed PauseCause individuals and extend the vocabulary with additional source-supported individuals."
+msgstr "使用经过审核的 PauseCause 个体，并用额外有来源支持的个体扩展词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:value a gmeow:PauseCause ."
+msgstr "ex:value a gmeow:PauseCause ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitmentStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Self-Commitment Status"
+msgstr "自我承诺状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitmentStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open status vocabulary for an intention held as an internal commitment. It is distinct from a social Commitment toward another agent."
+msgstr "意图作为内部承诺而持有时的开放状态词汇。它区别于针对其他行动者的社会 Commitment。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitmentStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit self-commitment status axis of an agency record."
+msgstr "用于行动记录中明确的自我承诺状态维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitmentStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid subclassing CommitmentStatus to add a value or deriving it from missing data."
+msgstr "避免通过继承 CommitmentStatus 添加值，或从数据缺失推断值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitmentStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use reviewed CommitmentStatus individuals and extend the vocabulary with additional source-supported individuals."
+msgstr "使用经过审核的 CommitmentStatus 个体，并用额外有来源支持的个体扩展词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitmentStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:value a gmeow:CommitmentStatus ."
+msgstr "ex:value a gmeow:CommitmentStatus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Artifact Operation"
+msgstr "制品操作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for the operation an activity performed on an identified artifact, separate from invocation outcome and artifact completion."
+msgstr "活动对已标识制品执行操作的开放词汇，区别于调用结果及制品完成状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit artifact operation axis of an agency record."
+msgstr "用于行动记录中明确的制品操作维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid subclassing ArtifactOperation to add a value or deriving it from missing data."
+msgstr "避免通过继承 ArtifactOperation 添加值，或从数据缺失推断值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use reviewed ArtifactOperation individuals and extend the vocabulary with additional source-supported individuals."
+msgstr "使用经过审核的 ArtifactOperation 个体，并用额外有来源支持的个体扩展词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:value a gmeow:ArtifactOperation ."
+msgstr "ex:value a gmeow:ArtifactOperation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Invocation Outcome"
+msgstr "模型调用结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for a source-reported model invocation outcome. A missing outcome is unknown rather than successful."
+msgstr "表示来源报告模型调用结果的开放词汇。结果缺失表示未知，而非成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit model invocation outcome axis of an agency record."
+msgstr "用于行动记录中明确的模型调用结果维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid subclassing ModelInvocationOutcome to add a value or deriving it from missing data."
+msgstr "避免通过继承 ModelInvocationOutcome 添加值，或从数据缺失推断值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use reviewed ModelInvocationOutcome individuals and extend the vocabulary with additional source-supported individuals."
+msgstr "使用经过审核的 ModelInvocationOutcome 个体，并用额外有来源支持的个体扩展词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:value a gmeow:ModelInvocationOutcome ."
+msgstr "ex:value a gmeow:ModelInvocationOutcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFinished|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finished"
+msgstr "已完成尝试"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFinished|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attempt finished as an activity; this does not assert that its goal was achieved."
+msgstr "尝试作为活动结束；这不表示目标已达成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFinished|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports finished."
+msgstr "来源明确报告已完成尝试时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFinished|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving stopFinished solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 stopFinished。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFinished|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach stopFinished through attemptStop, preserving the source attribution and time context."
+msgstr "通过 attemptStop 附加 stopFinished，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFinished|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptStop gmeow:stopFinished ."
+msgstr "ex:record gmeow:attemptStop gmeow:stopFinished ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "failed"
+msgstr "尝试失败"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attempt stopped in a source-reported failure, distinct from a goal-evaluation verdict."
+msgstr "尝试因来源报告的失败而停止，区别于目标评估判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFailed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports failed."
+msgstr "来源明确报告尝试失败时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFailed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving stopFailed solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 stopFailed。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFailed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach stopFailed through attemptStop, preserving the source attribution and time context."
+msgstr "通过 attemptStop 附加 stopFailed，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopFailed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptStop gmeow:stopFailed ."
+msgstr "ex:record gmeow:attemptStop gmeow:stopFailed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopInterrupted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interrupted"
+msgstr "尝试中断"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopInterrupted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attempt stopped because it was interrupted. A later attempt or resumption remains a separate record."
+msgstr "尝试因中断而停止。后续尝试或恢复仍是独立记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopInterrupted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports interrupted."
+msgstr "来源明确报告尝试中断时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopInterrupted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving stopInterrupted solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 stopInterrupted。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopInterrupted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach stopInterrupted through attemptStop, preserving the source attribution and time context."
+msgstr "通过 attemptStop 附加 stopInterrupted，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopInterrupted|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptStop gmeow:stopInterrupted ."
+msgstr "ex:record gmeow:attemptStop gmeow:stopInterrupted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopYieldedToForeground|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "yielded to foreground"
+msgstr "让位于前台工作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopYieldedToForeground|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attempt stopped because foreground work, such as a conversation, took priority."
+msgstr "尝试因前台工作（如会话）获得优先而停止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopYieldedToForeground|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports yielded to foreground."
+msgstr "来源明确报告让位于前台工作时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopYieldedToForeground|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving stopYieldedToForeground solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 stopYieldedToForeground。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopYieldedToForeground|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach stopYieldedToForeground through attemptStop, preserving the source attribution and time context."
+msgstr "通过 attemptStop 附加 stopYieldedToForeground，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stopYieldedToForeground|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptStop gmeow:stopYieldedToForeground ."
+msgstr "ex:record gmeow:attemptStop gmeow:stopYieldedToForeground ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBudgetCheckpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget checkpoint"
+msgstr "预算检查点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBudgetCheckpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A compute or time budget was reached and a prose-attempt resume point was recorded."
+msgstr "达到计算或时间预算，并记录了文字尝试恢复点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBudgetCheckpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports budget checkpoint."
+msgstr "来源明确报告预算检查点时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBudgetCheckpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving pauseBudgetCheckpoint solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 pauseBudgetCheckpoint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBudgetCheckpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach pauseBudgetCheckpoint through pauseCause, preserving the source attribution and time context."
+msgstr "通过 pauseCause 附加 pauseBudgetCheckpoint，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBudgetCheckpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:pauseCause gmeow:pauseBudgetCheckpoint ."
+msgstr "ex:record gmeow:pauseCause gmeow:pauseBudgetCheckpoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseInterrupted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pause through interruption"
+msgstr "因中断暂停"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseInterrupted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The continuation phase paused because it was interrupted."
+msgstr "继续阶段因受到中断而暂停。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseInterrupted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports pause through interruption."
+msgstr "来源明确报告因中断暂停时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseInterrupted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving pauseInterrupted solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 pauseInterrupted。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseInterrupted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach pauseInterrupted through pauseCause, preserving the source attribution and time context."
+msgstr "通过 pauseCause 附加 pauseInterrupted，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseInterrupted|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:pauseCause gmeow:pauseInterrupted ."
+msgstr "ex:record gmeow:pauseCause gmeow:pauseInterrupted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentActive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "active self-commitment"
+msgstr "有效自我承诺"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentActive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The internal commitment stands as first made, without asserting a social beneficiary."
+msgstr "内部承诺按最初形成时持续有效，不声明社会受益人。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentActive|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports active self-commitment."
+msgstr "来源明确报告有效自我承诺时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentActive|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving commitmentActive solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 commitmentActive。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentActive|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach commitmentActive through commitmentStatus, preserving the source attribution and time context."
+msgstr "通过 commitmentStatus 附加 commitmentActive，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentActive|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentStatus gmeow:commitmentActive ."
+msgstr "ex:record gmeow:commitmentStatus gmeow:commitmentActive ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentRenewed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "renewed self-commitment"
+msgstr "更新自我承诺"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentRenewed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent renewed its internal commitment to pursue the intention."
+msgstr "行动者更新了追求该意图的内部承诺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentRenewed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports renewed self-commitment."
+msgstr "来源明确报告更新自我承诺时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentRenewed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving commitmentRenewed solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 commitmentRenewed。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentRenewed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach commitmentRenewed through commitmentStatus, preserving the source attribution and time context."
+msgstr "通过 commitmentStatus 附加 commitmentRenewed，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentRenewed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentStatus gmeow:commitmentRenewed ."
+msgstr "ex:record gmeow:commitmentStatus gmeow:commitmentRenewed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentReleased|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "released self-commitment"
+msgstr "解除自我承诺"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentReleased|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The internal commitment was released, without proving that its goal was met."
+msgstr "内部承诺被解除，但不证明目标已满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentReleased|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports released self-commitment."
+msgstr "来源明确报告解除自我承诺时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentReleased|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving commitmentReleased solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 commitmentReleased。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentReleased|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach commitmentReleased through commitmentStatus, preserving the source attribution and time context."
+msgstr "通过 commitmentStatus 附加 commitmentReleased，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentReleased|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentStatus gmeow:commitmentReleased ."
+msgstr "ex:record gmeow:commitmentStatus gmeow:commitmentReleased ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationCreated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "created"
+msgstr "创建操作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationCreated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The activity created the identified artifact or version."
+msgstr "活动创建了已标识制品或版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationCreated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports created."
+msgstr "来源明确报告创建操作时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationCreated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving operationCreated solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 operationCreated。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationCreated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach operationCreated through receiptOperation, preserving the source attribution and time context."
+msgstr "通过 receiptOperation 附加 operationCreated，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationCreated|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:receiptOperation gmeow:operationCreated ."
+msgstr "ex:record gmeow:receiptOperation gmeow:operationCreated ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationRead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "read"
+msgstr "读取操作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationRead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The activity read the identified artifact or version without this classification claiming a change."
+msgstr "活动读取了已标识制品或版本，此分类不表示修改。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationRead|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports read."
+msgstr "来源明确报告读取操作时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationRead|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving operationRead solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 operationRead。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationRead|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach operationRead through receiptOperation, preserving the source attribution and time context."
+msgstr "通过 receiptOperation 附加 operationRead，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationRead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:receiptOperation gmeow:operationRead ."
+msgstr "ex:record gmeow:receiptOperation gmeow:operationRead ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationUpdated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "updated"
+msgstr "更新操作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationUpdated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The activity updated the identified artifact, retaining source version identity when supplied."
+msgstr "活动更新了已标识制品，并在来源提供时保留版本身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationUpdated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports updated."
+msgstr "来源明确报告更新操作时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationUpdated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving operationUpdated solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 operationUpdated。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationUpdated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach operationUpdated through receiptOperation, preserving the source attribution and time context."
+msgstr "通过 receiptOperation 附加 operationUpdated，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationUpdated|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:receiptOperation gmeow:operationUpdated ."
+msgstr "ex:record gmeow:receiptOperation gmeow:operationUpdated ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeSucceeded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invocation succeeded"
+msgstr "调用成功"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeSucceeded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reported that this model invocation succeeded. This is not an artifact-completion or truth verdict."
+msgstr "来源报告此次模型调用成功。这不是制品完成或真伪判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeSucceeded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports invocation succeeded."
+msgstr "来源明确报告调用成功时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeSucceeded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving invocationOutcomeSucceeded solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 invocationOutcomeSucceeded。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeSucceeded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach invocationOutcomeSucceeded through invocationOutcome, preserving the source attribution and time context."
+msgstr "通过 invocationOutcome 附加 invocationOutcomeSucceeded，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeSucceeded|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:invocationOutcome gmeow:invocationOutcomeSucceeded ."
+msgstr "ex:record gmeow:invocationOutcome gmeow:invocationOutcomeSucceeded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invocation failed"
+msgstr "调用失败"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reported that this model invocation failed; any supplied error is retained separately."
+msgstr "来源报告此次模型调用失败；提供的错误另行保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeFailed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports invocation failed."
+msgstr "来源明确报告调用失败时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeFailed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving invocationOutcomeFailed solely from silence, missing timestamps or another status axis."
+msgstr "避免仅从沉默、缺失时间戳或其他状态维度推断 invocationOutcomeFailed。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeFailed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach invocationOutcomeFailed through invocationOutcome, preserving the source attribution and time context."
+msgstr "通过 invocationOutcome 附加 invocationOutcomeFailed，保留来源归属及时间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcomeFailed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:invocationOutcome gmeow:invocationOutcomeFailed ."
+msgstr "ex:record gmeow:invocationOutcome gmeow:invocationOutcomeFailed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptStop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt stop"
+msgstr "尝试停止方式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptStop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "How a recorded attempt finish stopped, independent of whether the goal was satisfied."
+msgstr "已记录的尝试结束如何停止，独立于目标是否满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptStop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s attempt stop relation."
+msgstr "用于保留来源的尝试停止方式关联关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptStop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a attemptStop target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 attemptStop 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptStop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:AttemptStop supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:AttemptStop，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptStop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptStop ex:target ."
+msgstr "ex:record gmeow:attemptStop ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pause cause"
+msgstr "暂停原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported reason a continuation phase paused. It does not type the phase as a compiled enactment."
+msgstr "来源报告的继续阶段暂停原因。它不把该阶段标为编译执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s pause cause relation."
+msgstr "用于保留来源的暂停原因关联关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a pauseCause target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 pauseCause 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:PauseCause supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:PauseCause，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:pauseCause ex:target ."
+msgstr "ex:record gmeow:pauseCause ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "self-commitment status"
+msgstr "自我承诺状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-attributed status of an intention as an internal commitment; statuses can coexist with different times or standpoints."
+msgstr "意图作为内部承诺的来源归属状态；不同时间或立场的状态可共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s self-commitment status relation."
+msgstr "用于保留来源的自我承诺状态关联关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a commitmentStatus target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 commitmentStatus 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:CommitmentStatus supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:CommitmentStatus，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentStatus ex:target ."
+msgstr "ex:record gmeow:commitmentStatus ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt operation"
+msgstr "回执操作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The artifact operation performed by this receipt-shaped activity occurrence."
+msgstr "此回执形式活动出现所执行的制品操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s receipt operation relation."
+msgstr "用于保留来源的回执操作关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a receiptOperation target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 receiptOperation 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:ArtifactOperation supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:ArtifactOperation，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:receiptOperation ex:target ."
+msgstr "ex:record gmeow:receiptOperation ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt artifact"
+msgstr "回执制品"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The artifact or exact version on which the recorded operation acted, not the activity’s result envelope."
+msgstr "已记录操作作用的制品或确切版本，而非活动结果信封。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptArtifact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s receipt artifact relation."
+msgstr "用于保留来源的回执制品关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptArtifact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a receiptArtifact target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 receiptArtifact 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptArtifact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported receiptArtifact target and retain independently attributed alternatives."
+msgstr "引用来源支持的 receiptArtifact 目标，并保留独立归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:receiptArtifact ex:target ."
+msgstr "ex:record gmeow:receiptArtifact ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invocation outcome"
+msgstr "调用结果关联"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported outcome of a model invocation, separate from artifact completion and error text."
+msgstr "来源报告的模型调用结果，区别于制品完成状态及错误文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s invocation outcome relation."
+msgstr "用于保留来源的调用结果关联关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a invocationOutcome target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 invocationOutcome 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:ModelInvocationOutcome supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:ModelInvocationOutcome，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:invocationOutcome ex:target ."
+msgstr "ex:record gmeow:invocationOutcome ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention transition of"
+msgstr "意图转换对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intention whose recorded lifecycle transition this event describes."
+msgstr "此事件描述的已记录生命周期转换所属意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s intention transition of relation."
+msgstr "用于保留来源的意图转换对象关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a intentionTransitionOf target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 intentionTransitionOf 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:Intention supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:Intention，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:intentionTransitionOf ex:target ."
+msgstr "ex:record gmeow:intentionTransitionOf ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionTenure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention transition tenure"
+msgstr "意图转换持有期"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionTenure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A known holding tenure relevant to this recorded intention transition, without automatically closing it."
+msgstr "与此已记录意图转换相关的已知持有期，不自动关闭它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionTenure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s intention transition tenure relation."
+msgstr "用于保留来源的意图转换持有期关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionTenure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a intentionTransitionTenure target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 intentionTransitionTenure 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionTenure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:IntentionTenure supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:IntentionTenure，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionTransitionTenure|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:intentionTransitionTenure ex:target ."
+msgstr "ex:record gmeow:intentionTransitionTenure ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptResumePoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt resume point"
+msgstr "尝试恢复点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptResumePoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-recorded information object describing where a prose attempt can continue after pausing."
+msgstr "来源记录的信息对象，描述文字尝试暂停后可以从何处继续。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptResumePoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s attempt resume point relation."
+msgstr "用于保留来源的尝试恢复点关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptResumePoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a attemptResumePoint target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 attemptResumePoint 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptResumePoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported attemptResumePoint target and retain independently attributed alternatives."
+msgstr "引用来源支持的 attemptResumePoint 目标，并保留独立归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptResumePoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptResumePoint ex:target ."
+msgstr "ex:record gmeow:attemptResumePoint ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resumes attempt"
+msgstr "恢复尝试"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesAttempt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The same planless attempt resumed by this resumption event. No enactment identity is implied."
+msgstr "此恢复事件所恢复的同一无计划尝试。不表示执行身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesAttempt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s resumes attempt relation."
+msgstr "用于保留来源的恢复尝试关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesAttempt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a resumesAttempt target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 resumesAttempt 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesAttempt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual gmeow:Event supplied by the source and retain attributed alternatives."
+msgstr "引用来源实际提供的 gmeow:Event，并保留有归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesAttempt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:resumesAttempt ex:target ."
+msgstr "ex:record gmeow:resumesAttempt ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesFromPoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resumes from point"
+msgstr "从恢复点继续"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesFromPoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained prose-attempt resume point actually used by this resumption event."
+msgstr "此恢复事件实际使用的保留文字尝试恢复点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesFromPoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s resumes from point relation."
+msgstr "用于保留来源的从恢复点继续关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesFromPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a resumesFromPoint target from a different lifecycle or status axis."
+msgstr "避免从另一生命周期或状态维度虚构 resumesFromPoint 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesFromPoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported resumesFromPoint target and retain independently attributed alternatives."
+msgstr "引用来源支持的 resumesFromPoint 目标，并保留独立归属的其他解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resumesFromPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:resumesFromPoint ex:target ."
+msgstr "ex:record gmeow:resumesFromPoint ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperationReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Artifact Operation Receipt"
+msgstr "制品操作回执"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperationReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An artifact-operation activity occurrence retained as a receipt of what happened. It is an Activity subordinate to its attempt or ToolCall, not an information document masquerading as an event."
+msgstr "作为所发生操作回执保留的制品操作活动出现。它是所属尝试或 ToolCall 的从属 Activity，而非伪装成事件的信息文档。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperationReceipt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a recorded creation, read or update operation within an attempt or tool call."
+msgstr "用于尝试或工具调用中已记录的创建、读取或更新操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperationReceipt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating its result digest as the artifact’s own byte identity or as success."
+msgstr "避免把其结果摘要当作制品自身字节身份或成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperationReceipt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind receiptOperation and receiptArtifact, retain subEventOf context and supplied receiptTool or resultDigest."
+msgstr "填写 receiptOperation 及 receiptArtifact，保留 subEventOf 上下文以及提供的 receiptTool 或 resultDigest。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperationReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:operation a gmeow:ArtifactOperationReceipt ; gmeow:subEventOf ex:attempt ."
+msgstr "ex:operation a gmeow:ArtifactOperationReceipt ; gmeow:subEventOf ex:attempt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/used|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "used"
+msgstr "使用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/used|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an activity to an entity it actually used as input or resource. Use is not derivation, endorsement or proof of reading."
+msgstr "将活动关联到其实际作为输入或资源使用的实体。使用不表示派生、认可或读取证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/used|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for recorded activity inputs and resources."
+msgstr "用于已记录的活动输入及资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/used|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring use merely because an artifact was present in context."
+msgstr "避免仅因制品存在于上下文就推断使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/used|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each actually used Entity, specializing with readArtifact for an observed read."
+msgstr "引用每个实际使用的 Entity；观测到读取时使用 readArtifact 专门属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/used|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:activity gmeow:used ex:resource ."
+msgstr "ex:activity gmeow:used ex:resource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "read artifact"
+msgstr "读取制品"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an activity to an information artifact or version it actually read. Reading does not assert that the artifact changed or that its content was accepted as true."
+msgstr "将活动关联到其实际读取的信息制品或版本。读取不表示制品改变，也不表示接受内容为真。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readArtifact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a read without inventing a write operation."
+msgstr "用于保留读取而不虚构写入操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readArtifact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid restricting read artifacts to published documents."
+msgstr "避免将读取制品限于已发布文档。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readArtifact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual InformationObject or version read; use separate records for later observations."
+msgstr "引用实际读取的 InformationObject 或版本；后续观测使用不同记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:read gmeow:readArtifact ex:artifact ."
+msgstr "ex:read gmeow:readArtifact ex:artifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conflicts with goal"
+msgstr "与目标冲突"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded non-constitutive conflict between goals, such as competing demands on an agent’s time. The symmetric relation does not define either goal by its opposition and is not transitive."
+msgstr "目标之间已记录的非构成性冲突，例如争用行动者时间。此对称关系不以对立定义任一目标，且不具传递性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an attributed practical conflict between goals."
+msgstr "用于归属明确的目标间实际冲突。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bridging this relation to constitutive counterGoal or inferring a global priority."
+msgstr "避免将此关系关联到构成性 counterGoal，或推断全局优先级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the goals and retain standpoint and temporal scope on the statement when relevant."
+msgstr "关联目标，并在相关时于语句上保留立场及时间范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:draftGoal gmeow:conflictsWithGoal ex:restGoal ."
+msgstr "ex:draftGoal gmeow:conflictsWithGoal ex:restGoal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoalSymmetry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal conflict symmetry"
+msgstr "目标冲突对称性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoalSymmetry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical symmetry of non-constitutive goal conflict, without a transitivity or constitutive-opposition claim."
+msgstr "非构成性目标冲突的规范对称性，不声明传递性或构成性对立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoalSymmetry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to read the same recorded conflict in either direction."
+msgstr "用于从任一方向读取同一已记录冲突。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoalSymmetry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extending symmetry into conflict propagation along unrelated goals."
+msgstr "避免将对称性扩展为沿无关目标传播冲突。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoalSymmetry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical characteristic on conflictsWithGoal."
+msgstr "读取 conflictsWithGoal 上的规范特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictsWithGoalSymmetry|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:conflictsWithGoalSymmetry logic:characterizes gmeow:conflictsWithGoal ."
+msgstr "gmeow:conflictsWithGoalSymmetry logic:characterizes gmeow:conflictsWithGoal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool name"
+msgstr "工具名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The tool name given by the call, verbatim, distinct from the SoftwareAgent that usedTool must still identify."
+msgstr "调用给出的原样工具名称，区别于 usedTool 仍必须标识的 SoftwareAgent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source exposes a name without a rich tool-agent description."
+msgstr "来源暴露名称但没有丰富工具行动者描述时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing required usedTool with this literal or inferring a holder from the name."
+msgstr "避免用此字面值替代必需 usedTool，或从名称推断持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the string and link usedTool to a minimally described actual source-scoped SoftwareAgent."
+msgstr "保留字符串，并将 usedTool 关联到最小描述的实际来源作用域 SoftwareAgent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:toolName \"source value\" ."
+msgstr "ex:record gmeow:toolName \"source value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool call identifier"
+msgstr "工具调用标识符"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identifier carried by this tool call, preserved verbatim in its source scope. It is not a global key or a replacement for the call resource."
+msgstr "此工具调用携带的标识符，在来源作用域内原样保留。它不是全局键，也不替代调用资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source identifier by which records referred to the call."
+msgstr "用于保留其他记录引用该调用所用的来源标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid widening unrelated identifier domains or merging calls by a reused local id."
+msgstr "避免扩宽无关标识符定义域，或按复用局部标识符合并调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source string and link assertions with existing derivedBy only when they came from that call."
+msgstr "保留来源字符串；仅当断言出自该调用时用现有 derivedBy 关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:toolCallId \"source value\" ."
+msgstr "ex:record gmeow:toolCallId \"source value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt tool name"
+msgstr "回执工具名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported tool name for this artifact operation, verbatim. It does not replace a ToolCall’s usedTool agent."
+msgstr "此制品操作来源报告的原样工具名称。它不替代 ToolCall 的 usedTool 行动者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an activity receipt supplies a tool name."
+msgstr "活动回执提供工具名称时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid token whitespace normalization or inferred tool identity from this string alone."
+msgstr "避免 token 空白规范化，或仅从此字符串推断工具身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact string and retain the parent attempt or ToolCall separately."
+msgstr "保留确切字符串，独立保留所属尝试或 ToolCall。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:receiptTool \"source value\" ."
+msgstr "ex:record gmeow:receiptTool \"source value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resultDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "result digest"
+msgstr "结果摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resultDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-provided content digest of what the operation produced or returned. It is not automatically the artifact’s own bytes or the identity of the receipt."
+msgstr "来源提供的操作所产生或返回内容的摘要。它不自动表示制品自身字节或回执身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resultDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a reported operation-result identity."
+msgstr "用于保留所报告操作结果身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resultDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a tool-result envelope digest with the read artifact’s digest."
+msgstr "避免将工具结果信封摘要等同于读取制品摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resultDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the existing algorithm-labelled digest convention and preserve multiple reported algorithms."
+msgstr "使用现有带算法标识摘要约定，保留报告的多个算法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resultDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:operation gmeow:resultDigest \"sha256:1111111111111111111111111111111111111111111111111111111111111111\" ."
+msgstr "ex:operation gmeow:resultDigest \"sha256:1111111111111111111111111111111111111111111111111111111111111111\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact complete"
+msgstr "制品完成"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-attributed assertion that the identified artifact is complete or incomplete for its intended content. It is independent of operation success, invocation outcome and receipt completeness."
+msgstr "来源归属的断言，表明已标识制品就其预期内容而言完成或未完成。它独立于操作成功、调用结果及回执完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied artifact-completion bit."
+msgstr "用于明确提供的制品完成标志。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting absent completion to false or deriving goal satisfaction from true."
+msgstr "避免将缺失完成状态默认为假，或从真推断目标满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put the supplied boolean on the artifact or version; migrate a local receiptComplete field here only when it meant artifact completion."
+msgstr "将提供的布尔值放在制品或版本上；仅当局部 receiptComplete 字段表示制品完成时将其迁移到此处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact gmeow:artifactComplete \"true\"^^xsd:boolean ."
+msgstr "ex:artifact gmeow:artifactComplete \"true\"^^xsd:boolean ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationError|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invocation error"
+msgstr "调用错误"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationError|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source error text for a model invocation, preserved verbatim. Missing text does not prove success and an error does not establish artifact incompleteness."
+msgstr "原样保留的模型调用来源错误文本。文本缺失不证明成功；错误也不证明制品未完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationError|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an appraisal or generation invocation’s reported error."
+msgstr "用于保留评估或生成调用报告的错误。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationError|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the source error with a normalized diagnosis or inferring it from status alone."
+msgstr "避免以规范化诊断替换来源错误，或仅从状态推断错误。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationError|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact string and record invocationOutcome independently when supplied."
+msgstr "保留确切字符串，并在提供时独立记录 invocationOutcome。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationError|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:invocationError \"source value\" ."
+msgstr "ex:record gmeow:invocationError \"source value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/agency-records|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agency records"
+msgstr "行动记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/agency-records|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-faithful records of planless attempts, intention lifecycle, artifact operations, tool calls, invocation outcomes and situated agency judgments."
+msgstr "忠实于来源的无计划尝试、意图生命周期、制品操作、工具调用、调用结果及情境行动判断记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/agency-records|http://purl.org/dc/terms/title"
+msgid "GMEOW Agency Records Module"
+msgstr "GMEOW 行动记录模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/agency-records|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Agent memory importers retaining prose attempts and activity evidence without fabricating compiled plans, successful outcomes or unknown identities."
+msgstr "保留文字尝试及活动证据，而不虚构编译计划、成功结果或未知身份的行动者记忆导入器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSalienceObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Intention Salience Observation"
+msgstr "意图显著性观测"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSalienceObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-attributed numeric observation of an intention’s salience on an explicitly identified producer scale or frame. It is not claim import importance, and no bounds, direction or normalization are implied."
+msgstr "在明确标识的生产者尺度或框架上，对意图显著性作出的来源归属数值观测。它不是断言导入重要性，不隐含边界、方向或规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSalienceObservation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an intention salience number together with its source convention and vantage."
+msgstr "用于连同来源约定及立场保留意图显著性数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSalienceObservation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming a 0–10 scale or comparing different producer frames without a conversion contract."
+msgstr "避免假定零至十尺度，或在没有转换契约时比较不同生产者框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSalienceObservation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind salienceOfIntention, salienceValue, salienceFrame and vantage; reuse a source ScoreScale only when its actual bounds are supplied."
+msgstr "填写 salienceOfIntention、salienceValue、salienceFrame 及 vantage；仅在来源提供实际边界时复用 ScoreScale。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSalienceObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:salience a gmeow:IntentionSalienceObservation ."
+msgstr "ex:salience a gmeow:IntentionSalienceObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceOfIntention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "salience of intention"
+msgstr "显著性所属意图"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceOfIntention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intention whose salience this observation reports, specializing the existing observedFeature role."
+msgstr "此观测报告其显著性的意图，专门化现有 observedFeature 角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceOfIntention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the intention assessed for salience."
+msgstr "用于标识被观测显著性的意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceOfIntention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the observer or scale in this target role."
+msgstr "避免将观测者或尺度置于此目标角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceOfIntention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the existing Intention; keep the numerical reading and producer frame on the observation."
+msgstr "引用现有 Intention；在观测上保留数值读数及生产者框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceOfIntention|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:salience gmeow:salienceOfIntention ex:intention ."
+msgstr "ex:salience gmeow:salienceOfIntention ex:intention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "salience value"
+msgstr "显著性数值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source decimal salience reading, interpreted only within salienceFrame. A larger number is not assumed to mean greater salience."
+msgstr "来源的十进制显著性读数，仅在 salienceFrame 内解释。不假定数值越大表示越显著。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the producer’s actual salience number."
+msgstr "用于保留生产者实际显著性数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid clamping, rescaling or dropping zero readings."
+msgstr "避免截断、重新缩放或丢弃零读数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the decimal with its explicit frame and source attribution."
+msgstr "连同明确框架及来源归属保留十进制值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:salience gmeow:salienceValue \"17.5\"^^xsd:decimal ."
+msgstr "ex:salience gmeow:salienceValue \"17.5\"^^xsd:decimal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "salience source frame"
+msgstr "显著性来源框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-defined convention identifying what a salience number means. An InformationObject may identify an opaque producer scale; unknown bounds or direction remain unknown."
+msgstr "来源定义的约定，标识显著性数值的含义。InformationObject 可标识不透明生产者尺度；未知边界或方向保持未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep salience values scoped to the producer’s scale or frame."
+msgstr "用于将显著性值限定于生产者尺度或框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing scale bounds or equating differently named producer conventions."
+msgstr "避免虚构尺度边界，或等同不同生产者约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the producer’s convention artifact; it may be a ScoreScale when its numeric contract is actually known."
+msgstr "引用生产者约定制品；实际已知数值契约时可为 ScoreScale。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/salienceFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:salience gmeow:salienceFrame ex:producerConvention ."
+msgstr "ex:salience gmeow:salienceFrame ex:producerConvention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Verifier Kind"
+msgstr "验证器种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of methods used to assess a condition on an artifact. Selecting a method is not a verdict that its condition holds."
+msgstr "用于评估制品上条件的方法开放词汇。选择方法不是条件成立的判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which verification method a source observation selected."
+msgstr "用于保留来源观测选择的验证方法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating verifier kind as a successful outcome or an agent identity."
+msgstr "避免将验证器种类当作成功结果或行动者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use method individuals through verifierKind and retain verdicts separately through observationResult."
+msgstr "通过 verifierKind 使用方法个体，通过 observationResult 独立保留判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."
+msgstr "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactReadAfterWrite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact read after write"
+msgstr "制品写后读取"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactReadAfterWrite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification by an actual later read of the same identified artifact version that was written. A held verdict requires read and write evidence and artifact byte identity, not merely the writer’s own report."
+msgstr "通过实际较后读取已写入的同一已标识制品版本来验证。成立判定要求读写证据及制品字节身份，而非仅凭写入者自身报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactReadAfterWrite|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source-observed read-back verification of a written artifact."
+msgstr "用于来源观测的写入制品回读验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactReadAfterWrite|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming confirmation from a selected method without a later read."
+msgstr "避免在没有较后读取时仅因选定方法就声称确认。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactReadAfterWrite|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on an ArtifactVerificationObservation and retain the actual operation receipts, version identity and verdict."
+msgstr "在 ArtifactVerificationObservation 上选择此种类，并保留实际操作回执、版本身份及判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactReadAfterWrite|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."
+msgstr "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactVerificationObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Artifact Verification Observation"
+msgstr "制品验证观测"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactVerificationObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vantage-attributed observation assessing an identified artifact or version by a declared verifier method. Any verdict is separate from the method, receipt result and invocation outcome."
+msgstr "按声明验证方法评估已标识制品或版本的立场归属观测。任何判定均区别于方法、操作结果及调用结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactVerificationObservation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an artifact check with its source evidence and observer."
+msgstr "用于连同来源证据及观测者保留制品检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactVerificationObservation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the Attestation-domain verificationResult property as an activity output link."
+msgstr "避免将定义域为 Attestation 的 verificationResult 当作活动输出关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactVerificationObservation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind verifiesArtifact, verifierKind and vantage; use existing evaluation verdict individuals through observationResult when reported."
+msgstr "填写 verifiesArtifact、verifierKind 及 vantage；来源报告判定时通过 observationResult 使用现有评估判定个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactVerificationObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:check a gmeow:ArtifactVerificationObservation ."
+msgstr "ex:check a gmeow:ArtifactVerificationObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verifier kind"
+msgstr "验证器种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-selected method of an artifact verification observation, independent of its result."
+msgstr "制品验证观测由来源选择的方法，独立于其结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s verifier kind binding."
+msgstr "用于保留来源的验证器种类绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing evidence for verifierKind."
+msgstr "避免为 verifierKind 虚构缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported verifierKind target and preserve its attribution context."
+msgstr "引用来源支持的 verifierKind 目标并保留归属上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verifierKind ex:target ."
+msgstr "ex:record gmeow:verifierKind ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifiesArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verifies artifact"
+msgstr "验证制品"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifiesArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact artifact or version assessed by this observation, specializing observedFeature."
+msgstr "此观测评估的确切制品或版本，专门化 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifiesArtifact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s verifies artifact binding."
+msgstr "用于保留来源的验证制品绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifiesArtifact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing evidence for verifiesArtifact."
+msgstr "避免为 verifiesArtifact 虚构缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifiesArtifact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported verifiesArtifact target and preserve its attribution context."
+msgstr "引用来源支持的 verifiesArtifact 目标并保留归属上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifiesArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verifiesArtifact ex:target ."
+msgstr "ex:record gmeow:verifiesArtifact ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationWriteReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verification write receipt"
+msgstr "验证写入回执"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationWriteReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual created-or-updated operation occurrence used as write evidence, not a fabricated successful invocation."
+msgstr "用作写入证据的实际创建或更新操作出现，而非虚构成功调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationWriteReceipt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s verification write receipt binding."
+msgstr "用于保留来源的验证写入回执绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationWriteReceipt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing evidence for verificationWriteReceipt."
+msgstr "避免为 verificationWriteReceipt 虚构缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationWriteReceipt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported verificationWriteReceipt target and preserve its attribution context."
+msgstr "引用来源支持的 verificationWriteReceipt 目标并保留归属上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationWriteReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verificationWriteReceipt ex:target ."
+msgstr "ex:record gmeow:verificationWriteReceipt ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationReadReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verification read receipt"
+msgstr "验证读取回执"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationReadReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual later-read operation occurrence used as independent read-back evidence."
+msgstr "用作独立回读证据的实际较后读取操作出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationReadReceipt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s verification read receipt binding."
+msgstr "用于保留来源的验证读取回执绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationReadReceipt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing evidence for verificationReadReceipt."
+msgstr "避免为 verificationReadReceipt 虚构缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationReadReceipt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported verificationReadReceipt target and preserve its attribution context."
+msgstr "引用来源支持的 verificationReadReceipt 目标并保留归属上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verificationReadReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verificationReadReceipt ex:target ."
+msgstr "ex:record gmeow:verificationReadReceipt ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/agencyGoalEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agency goal evaluation"
+msgstr "行动目标评估"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/agencyGoalEvaluation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A separate GoalEvaluation supporting a recorded agency judgment; it does not follow merely from attempt stopping."
+msgstr "支持已记录行动判断的独立 GoalEvaluation；它不因尝试停止而自动产生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/agencyGoalEvaluation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s agency goal evaluation binding."
+msgstr "用于保留来源的行动目标评估绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/agencyGoalEvaluation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing evidence for agencyGoalEvaluation."
+msgstr "避免为 agencyGoalEvaluation 虚构缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/agencyGoalEvaluation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported agencyGoalEvaluation target and preserve its attribution context."
+msgstr "引用来源支持的 agencyGoalEvaluation 目标并保留归属上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/agencyGoalEvaluation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:agencyGoalEvaluation ex:target ."
+msgstr "ex:record gmeow:agencyGoalEvaluation ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptParentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Receipt parent constraint"
+msgstr "回执所属事件约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptParentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An artifact operation receipt belongs to an actual attempt or ToolCall, rather than an unrelated event."
+msgstr "制品操作回执属于实际尝试或 ToolCall，而非无关事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptParentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of ArtifactOperationReceipt."
+msgstr "用于约束 ArtifactOperationReceipt 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptParentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ReceiptParentConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 ReceiptParentConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptParentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual ArtifactOperationReceipt bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 ArtifactOperationReceipt 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptParentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReceiptParentConstraint logic:formalizes gmeow:ArtifactOperationReceipt ."
+msgstr "gmeow:ReceiptParentConstraint logic:formalizes gmeow:ArtifactOperationReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptReadArtifactConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Receipt read-artifact constraint"
+msgstr "回执读取制品约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptReadArtifactConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A read receipt retains an actual readArtifact relation to the same identified artifact version, not merely a result-envelope digest."
+msgstr "读取回执保留到同一已标识制品版本的实际 readArtifact 关系，而非仅有结果信封摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptReadArtifactConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of readArtifact."
+msgstr "用于约束 readArtifact 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptReadArtifactConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ReceiptReadArtifactConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 ReceiptReadArtifactConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptReadArtifactConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual readArtifact bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 readArtifact 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptReadArtifactConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReceiptReadArtifactConstraint logic:formalizes gmeow:readArtifact ."
+msgstr "gmeow:ReceiptReadArtifactConstraint logic:formalizes gmeow:readArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetResumePointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget resume-point constraint"
+msgstr "预算恢复点约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetResumePointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A budget-checkpoint pause retains an actual source resume point; it does not create enactment checkpoint identity."
+msgstr "预算检查点暂停保留实际来源恢复点，不创建执行检查点身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetResumePointConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of pauseBudgetCheckpoint."
+msgstr "用于约束 pauseBudgetCheckpoint 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetResumePointConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying BudgetResumePointConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 BudgetResumePointConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetResumePointConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual pauseBudgetCheckpoint bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 pauseBudgetCheckpoint 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetResumePointConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:BudgetResumePointConstraint logic:formalizes gmeow:pauseBudgetCheckpoint ."
+msgstr "gmeow:BudgetResumePointConstraint logic:formalizes gmeow:pauseBudgetCheckpoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptResumptionBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attempt resumption bindings constraint"
+msgstr "尝试恢复绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptResumptionBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A planless resumption identifies its original attempt and actual resume point as a sub-event of that attempt, without borrowing enactment continuation kinds."
+msgstr "无计划恢复标识原尝试及实际恢复点，并作为该尝试的子事件，不借用执行继续种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptResumptionBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of eventTypeAttemptResumption."
+msgstr "用于约束 eventTypeAttemptResumption 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptResumptionBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying AttemptResumptionBindingsConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 AttemptResumptionBindingsConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptResumptionBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual eventTypeAttemptResumption bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 eventTypeAttemptResumption 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptResumptionBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:AttemptResumptionBindingsConstraint logic:formalizes gmeow:eventTypeAttemptResumption ."
+msgstr "gmeow:AttemptResumptionBindingsConstraint logic:formalizes gmeow:eventTypeAttemptResumption ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionTransitionTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Intention transition target constraint"
+msgstr "意图转换目标约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionTransitionTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded intention lifecycle event identifies the actual affected Intention; its marker does not fabricate a new intention."
+msgstr "已记录意图生命周期事件标识实际受影响的 Intention；其标记不虚构新意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionTransitionTargetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of intentionTransitionOf."
+msgstr "用于约束 intentionTransitionOf 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionTransitionTargetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying IntentionTransitionTargetConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 IntentionTransitionTargetConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionTransitionTargetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual intentionTransitionOf bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 intentionTransitionOf 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionTransitionTargetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IntentionTransitionTargetConstraint logic:formalizes gmeow:intentionTransitionOf ."
+msgstr "gmeow:IntentionTransitionTargetConstraint logic:formalizes gmeow:intentionTransitionOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Intention supersession target constraint"
+msgstr "意图取代目标约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction."
+msgstr "取代通过旧意图上的 supersededBy 保留替代意图，而不推断目标满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSuperseded."
+msgstr "用于约束 eventTypeIntentionSuperseded 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying IntentionSupersessionTargetConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 IntentionSupersessionTargetConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual eventTypeIntentionSuperseded bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 eventTypeIntentionSuperseded 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IntentionSupersessionTargetConstraint logic:formalizes gmeow:eventTypeIntentionSuperseded ."
+msgstr "gmeow:IntentionSupersessionTargetConstraint logic:formalizes gmeow:eventTypeIntentionSuperseded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Satisfied intention evaluation constraint"
+msgstr "意图满足评估约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict."
+msgstr "意图满足事件保留独立 GoalEvaluation 判断；尝试停止方式不是该判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."
+msgstr "用于约束 eventTypeIntentionSatisfied 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying SatisfiedIntentionEvaluationConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 SatisfiedIntentionEvaluationConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual eventTypeIntentionSatisfied bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 eventTypeIntentionSatisfied 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:SatisfiedIntentionEvaluationConstraint logic:formalizes gmeow:eventTypeIntentionSatisfied ."
+msgstr "gmeow:SatisfiedIntentionEvaluationConstraint logic:formalizes gmeow:eventTypeIntentionSatisfied ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadAfterWriteEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Read-after-write evidence constraint"
+msgstr "写后读取证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A held read-after-write verdict requires distinct actual write and later-read receipts for the same digest-identified artifact version. Result-envelope digests are not artifact digests."
+msgstr "写后读取成立判定要求同一摘要标识制品版本的不同实际写入及较后读取回执。结果信封摘要不是制品摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierArtifactReadAfterWrite."
+msgstr "用于约束 verifierArtifactReadAfterWrite 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ReadAfterWriteEvidenceConstraint by fabricating missing source data."
+msgstr "避免通过虚构缺失来源数据来满足 ReadAfterWriteEvidenceConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual verifierArtifactReadAfterWrite bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际 verifierArtifactReadAfterWrite 绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
+msgstr "gmeow:ReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Agency records mappings"
+msgstr "行动记录映射"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The native close-match alignment for unqualified activity-to-entity usage. It preserves neither qualified-usage structure nor separate usage-time claims."
+msgstr "活动对实体的非限定使用的本地近似匹配对齐。不保留限定使用结构或独立使用时间断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the generic used relation to PROV consumers."
+msgstr "用于向 PROV 使用方提供通用 used 关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming a lossless qualified-usage or temporal projection from this binary linkage."
+msgstr "避免声称此二元关联能无损投影限定使用或时间信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the close-match relation and its curation metadata; represent richer usage context separately."
+msgstr "保留近似匹配关系及整理元数据；独立表示更丰富的使用上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:used skos:closeMatch prov:used ."
+msgstr "gmeow:used skos:closeMatch prov:used ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStopFinishConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attempt stop finish constraint"
+msgstr "尝试停止结束约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStopFinishConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attemptStop value classifies a recorded attempt-finish event, rather than an unrelated activity or goal evaluation."
+msgstr "attemptStop 值分类已记录的尝试结束事件，而非无关活动或目标评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStopFinishConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the phase scope of attemptStop."
+msgstr "用于保留 attemptStop 的阶段作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStopFinishConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching attemptStop to an event with an unrelated lifecycle meaning."
+msgstr "避免将 attemptStop 附到生命周期含义无关的事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStopFinishConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep eventType eventTypeAttemptFinish on the event carrying attemptStop."
+msgstr "在携带 attemptStop 的事件上保留 eventType eventTypeAttemptFinish。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStopFinishConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:phase gmeow:eventType gmeow:eventTypeAttemptFinish ."
+msgstr "ex:phase gmeow:eventType gmeow:eventTypeAttemptFinish ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Pause cause continuation constraint"
+msgstr "暂停原因继续阶段约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A pauseCause value belongs to a recorded attempt-continuation phase, not an intention’s overall holding status."
+msgstr "pauseCause 值属于已记录的尝试继续阶段，而非意图的整体持有状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the phase scope of pauseCause."
+msgstr "用于保留 pauseCause 的阶段作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching pauseCause to an event with an unrelated lifecycle meaning."
+msgstr "避免将 pauseCause 附到生命周期含义无关的事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep eventType eventTypeAttemptContinuation on the event carrying pauseCause."
+msgstr "在携带 pauseCause 的事件上保留 eventType eventTypeAttemptContinuation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:phase gmeow:eventType gmeow:eventTypeAttemptContinuation ."
+msgstr "ex:phase gmeow:eventType gmeow:eventTypeAttemptContinuation ."

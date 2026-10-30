@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/agency-records>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:sliceTier gmeow:tierCore ;
+    rdfs:label "agency records"@x-gmeow-english ;
+    skos:definition "Source-faithful records of planless attempts, intention lifecycle, artifact operations, tool calls, invocation outcomes and situated agency judgments."@x-gmeow-english ;
+    dcterms:title "GMEOW Agency Records Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Agent memory importers retaining prose attempts and activity evidence without fabricating compiled plans, successful outcomes or unknown identities."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/temporal>,
+        <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/events>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/teleology>,
+        <https://blackcatinformatics.ca/gmeow/slices/agentic>,
+        <https://blackcatinformatics.ca/gmeow/slices/ai>,
+        <https://blackcatinformatics.ca/gmeow/slices/entities>,
+        <https://blackcatinformatics.ca/gmeow/slices/learning>,
+        <https://blackcatinformatics.ca/gmeow/slices/mentation>,
+        <https://blackcatinformatics.ca/gmeow/slices/observations>,
+        <https://blackcatinformatics.ca/gmeow/slices/norms>,
+        <https://blackcatinformatics.ca/gmeow/slices/record-metadata>,
+        <https://blackcatinformatics.ca/gmeow/slices/sources>,
+        <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .

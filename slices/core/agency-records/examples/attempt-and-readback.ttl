@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/agency-records/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# An agent holds a drafting intention while also wanting to rest. Their recorded
+# practical conflict neither defines a constitutive counter-goal nor picks a winner.
+ex:agent a gmeow:SoftwareAgent .
+ex:draftGoal a gmeow:Goal ; gmeow:conflictsWithGoal ex:restGoal .
+ex:restGoal a gmeow:Goal .
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer ex:agent ;
+    gmeow:intentionGoal ex:draftGoal ;
+    gmeow:commitmentStatus gmeow:commitmentRenewed ;
+    gmeow:motivates ex:attempt .
+
+ex:tenure a gmeow:IntentionTenure ;
+    gmeow:tenureAgent ex:agent ;
+    gmeow:tenureIntention ex:intention ;
+    gmeow:duringInterval ex:holdingInterval .
+ex:holdingInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-10-29T09:00:00Z"^^xsd:dateTime .
+
+ex:activation a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeIntentionActive ;
+    gmeow:intentionTransitionOf ex:intention ;
+    gmeow:intentionTransitionTenure ex:tenure .
+
+ex:attempt a gmeow:Event ; gmeow:eventType gmeow:eventTypeAttempt .
+ex:start a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeAttemptStart ;
+    gmeow:subEventOf ex:attempt .
+
+# The producer recorded a prose resume point on a budget pause. Its recording
+# month stays at source precision; no enactment checkpoint or day is invented.
+ex:continuation a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeAttemptContinuation ;
+    gmeow:subEventOf ex:attempt ;
+    gmeow:pauseCause gmeow:pauseBudgetCheckpoint ;
+    gmeow:attemptResumePoint ex:resumeNote .
+ex:resumeNote a gmeow:InformationObject ;
+    gmeow:recordedAt "2026-10"^^xsd:gYearMonth .
+
+ex:intentionPause a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeIntentionPaused ;
+    gmeow:intentionTransitionOf ex:intention ;
+    gmeow:intentionTransitionTenure ex:tenure .
+
+ex:resume a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeAttemptResumption ;
+    gmeow:subEventOf ex:attempt ;
+    gmeow:resumesAttempt ex:attempt ;
+    gmeow:resumesFromPoint ex:resumeNote .
+
+# Tool names identify the actual tools within this source. Their actors are
+# minimally described; no holder, provider or cross-source identity is asserted.
+ex:writeTool a gmeow:SoftwareAgent .
+ex:readTool a gmeow:SoftwareAgent .
+ex:writeCall a gmeow:ToolCall ;
+    gmeow:usedTool ex:writeTool ;
+    gmeow:toolName "artifact.write" ;
+    gmeow:toolCallId "call-1" ;
+    gmeow:subEventOf ex:attempt .
+ex:readCall a gmeow:ToolCall ;
+    gmeow:usedTool ex:readTool ;
+    gmeow:toolName "artifact.read" ;
+    gmeow:toolCallId "call-2" ;
+    gmeow:subEventOf ex:attempt .
+
+# Digest literals stand for supplied identities in this ordinary illustrative
+# archive. The exact version read back is still an unfinished draft.
+ex:draftVersion a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:1111111111111111111111111111111111111111111111111111111111111111" ;
+    gmeow:artifactComplete false ;
+    gmeow:wasGeneratedBy ex:writeCall .
+
+ex:writeReceipt a gmeow:ArtifactOperationReceipt ;
+    gmeow:subEventOf ex:writeCall ;
+    gmeow:receiptOperation gmeow:operationCreated ;
+    gmeow:receiptArtifact ex:draftVersion ;
+    gmeow:receiptTool "artifact.write" ;
+    gmeow:resultDigest "sha256:2222222222222222222222222222222222222222222222222222222222222222" ;
+    gmeow:before ex:readReceipt .
+
+ex:readReceipt a gmeow:ArtifactOperationReceipt ;
+    gmeow:subEventOf ex:readCall ;
+    gmeow:receiptOperation gmeow:operationRead ;
+    gmeow:receiptArtifact ex:draftVersion ;
+    gmeow:readArtifact ex:draftVersion ;
+    gmeow:receiptTool "artifact.read" ;
+    gmeow:resultDigest "sha256:3333333333333333333333333333333333333333333333333333333333333333" .
+
+# The later read confirms this version’s byte persistence, not completion of the
+# draft or satisfaction of the drafting goal. Report-envelope digests differ.
+ex:readback a gmeow:ArtifactVerificationObservation ;
+    gmeow:vantage ex:agent ;
+    gmeow:verifiesArtifact ex:draftVersion ;
+    gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ;
+    gmeow:verificationWriteReceipt ex:writeReceipt ;
+    gmeow:verificationReadReceipt ex:readReceipt ;
+    gmeow:observationResult gmeow:verdictHeld .
+
+# The source’s scale identifier is known, but its bounds and numeric direction
+# were not supplied. The importer retains that uncertainty without rescaling.
+ex:sourceSalienceFrame a gmeow:InformationObject .
+ex:sourceReportMethod a gmeow:ObservationMethod .
+ex:salience a gmeow:IntentionSalienceObservation ;
+    gmeow:vantage ex:agent ;
+    gmeow:salienceOfIntention ex:intention ;
+    gmeow:salienceValue "17.5"^^xsd:decimal ;
+    gmeow:salienceFrame ex:sourceSalienceFrame ;
+    gmeow:observationMethod ex:sourceReportMethod .
+
+# Foreground conversation takes priority. The stop report is not a goal verdict.
+ex:finish a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeAttemptFinish ;
+    gmeow:subEventOf ex:attempt ;
+    gmeow:attemptStop gmeow:stopYieldedToForeground .
+
+# Elsewhere the agent decides to leave the draft unchanged. That decision need
+# not create an Intention. Its later insight records learning without a teacher.
+ex:leaveDraftUnchanged a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDecision .
+ex:insight a gmeow:LearningEvent ;
+    gmeow:experiencer ex:agent ;
+    gmeow:mentalProcessType gmeow:processLearning ;
+    gmeow:learningType gmeow:learningInsight .
