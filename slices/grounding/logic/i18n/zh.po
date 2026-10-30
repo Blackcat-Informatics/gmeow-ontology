@@ -23725,3 +23725,51 @@ msgstr "关联固定版本及已捕获摘要，然后要求存在某个当前 pr
 msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Removing a version’s current digest after capture fails presence; changing its value fails immutability. A fresh IRI-only version without a captured digest remains admissible."
 msgstr "捕获后移除版本当前摘要违反存在性要求；改变其值违反不可变性要求。尚无已捕获摘要的新 IRI 版本仍可准入。"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receiptOfPreparation is functional"
+msgstr "receiptOfPreparation 是函数性的"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that logic:receiptOfPreparation binds each logic:PreparationReceipt to at most one logic:PreparationStep. This forward functionality does not require a step to be present and does not limit how many receipts may record the same preparation step."
+msgstr "断言 logic:receiptOfPreparation 将每个 logic:PreparationReceipt 绑定到至多一个 logic:PreparationStep。此正向函数性不要求存在步骤，也不限制记录同一准备步骤的回执数量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound concerns targets of one receipt, not receipt identity across runs. Two targets of one receipt may be equated by functional reasoning; different receipts sharing a step are not thereby equated, selected for resumption, or licensed for cross-run reuse."
+msgstr "此上限约束单个回执的目标，不约束各次运行之间的回执身份。函数性推理可将同一回执的两个目标判为相同；不同回执共享步骤并不会因此被判为相同、被选中用于恢复，或获准跨运行复用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:receiptA logic:receiptOfPreparation ex:stageFiles . ex:receiptB logic:receiptOfPreparation ex:stageFiles . describes two receipts for one step; functionality does not entail that ex:receiptA and ex:receiptB are identical."
+msgstr "Turtle 语句 ex:receiptA logic:receiptOfPreparation ex:stageFiles . ex:receiptB logic:receiptOfPreparation ex:stageFiles . 描述同一步骤的两个回执；函数性不蕴涵 ex:receiptA 与 ex:receiptB 相同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lawGovernsAxis is functional"
+msgstr "lawGovernsAxis 是函数性的"
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that logic:lawGovernsAxis binds each logic:AxisTransitionLaw to at most one closed lifecycle value class. Functionality caps the axes named by one law; it does not require an axis binding or restrict an axis to one law."
+msgstr "断言 logic:lawGovernsAxis 将每个 logic:AxisTransitionLaw 绑定到至多一个封闭的生命周期值类。函数性限制一条定律所指定的轴数；它不要求存在轴绑定，也不将一个轴限定给唯一一条定律。"
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Distinct scoped or versioned laws may govern the same axis without being equated. Functional reasoning may equate two axis targets named by one law, but sharing an axis neither selects the applicable law nor proves agreement between laws."
+msgstr "作用域或版本不同的定律可支配同一轴而不被判为相同。函数性推理可将同一定律指定的两个轴目标判为相同，但共享轴既不选择适用定律，也不证明定律之间一致。"
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:lawV1 logic:lawGovernsAxis logic:StepState . ex:lawV2 logic:lawGovernsAxis logic:StepState . permits separate law versions for the same axis; the selected scope and version still determine which transitions apply."
+msgstr "Turtle 语句 ex:lawV1 logic:lawGovernsAxis logic:StepState . ex:lawV2 logic:lawGovernsAxis logic:StepState . 允许不同版本的定律支配同一轴；仍须由所选作用域和版本确定哪些转移适用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lensGoverns is functional"
+msgstr "lensGoverns 是函数性的"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that logic:lensGoverns binds each logic:RevisionLens to at most one logic:Plan, keeping that lens's revision and restore evidence attached to a single plan. This characteristic does not require a plan binding and permits distinct lenses to govern the same plan."
+msgstr "断言 logic:lensGoverns 将每个 logic:RevisionLens 绑定到至多一个 logic:Plan，使该透镜的修订和恢复证据归属于单个计划。此特征不要求存在计划绑定，并允许不同透镜支配同一计划。"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound applies from lens to plan. Functional reasoning may equate two plan targets of one lens; distinct lenses sharing a plan are not thereby equated, selected, or certified to have interchangeable revision and restore results."
+msgstr "此上限沿透镜到计划的方向适用。函数性推理可将同一透镜的两个计划目标判为相同；不同透镜共享计划并不会因此被判为相同、被选中，或被认证为具有可互换的修订和恢复结果。"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . keeps two lenses for one plan; interpreting a revision still requires identifying the selected lens and its own law evidence."
+msgstr "Turtle 语句 ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . 保留同一计划的两个透镜；解释一次修订仍须指明所选透镜及其自身的定律证据。"
