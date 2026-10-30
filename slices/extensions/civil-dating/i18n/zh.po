@@ -1,0 +1,102 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Civil-dating annotation catalog.
+msgid ""
+msgstr ""
+"Project-Id-Version: GMEOW civil-dating\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Civil Date Expression"
+msgstr "民用日期表达式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source record of an asserted civil-day designation in one explicit temporal frame. It preserves the supplied literal and day precision without asserting an instant, a day duration, calendar validity or a conversion."
+msgstr "在一个显式时间参考系中记录来源所断言民用日名称的记录。它保留所提供的字面量和日精度，不断言时刻、日时长、历法有效性或转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A civil-day record: ex:date a gmeow:CivilDateExpression ; gmeow:civilDateLexical \"2026-10-30\" ; gmeow:civilDateFrame gmeow:temporalFrameUTCGregorian ; gmeow:hasGranularity gmeow:granularityDay ."
+msgstr "民用日记录：ex:date a gmeow:CivilDateExpression ; gmeow:civilDateLexical \"2026-10-30\" ; gmeow:civilDateFrame gmeow:temporalFrameUTCGregorian ; gmeow:hasGranularity gmeow:granularityDay ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Datatype semantics remain those of the supplied RDF literal: xsd:date is Gregorian. A calendar frame does not reinterpret that datatype. Recording a mistyped producer assertion preserves evidence without endorsing its typing."
+msgstr "数据类型语义仍由所提供的 RDF 字面量决定：xsd:date 使用格里高利历。历法参考系不重新解释该类型。记录生产者错误标注类型的断言是在保留来源证据，并不认可其类型标注。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateLexical|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "civil date lexical form"
+msgstr "民用日期字面形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateLexical|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact RDF literal supplied as a civil-day designation. Lexical form, datatype, language and direction survive unchanged when present. This evidence carrier performs no date parsing, normalization or calendar interpretation."
+msgstr "作为民用日名称提供的确切 RDF 字面量。其字面形式、数据类型以及所含语言和方向保持不变。此证据载体不进行日期解析、规范化或历法解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateLexical|http://www.w3.org/2004/02/skos/core#example"
+msgid "The designation retains its language: ex:date gmeow:civilDateLexical \"30 octobre 2026\"@fr ."
+msgstr "日期名称保留其语言：ex:date gmeow:civilDateLexical \"30 octobre 2026\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateLexical|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This specialization of the domain-free lang:literalValue carrier records an assertion. Its literal range does not certify that the designation exists in the named calendar."
+msgstr "这是不限定主体类型的 lang:literalValue 载体的特化，用于记录断言。其字面量值域不证明该名称在指定历法中存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "civil date frame"
+msgstr "民用日期参考系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single TemporalFrame in which the source asserted this civil-day designation. The frame must name its CalendarSystem; naming it supplies no missing clock time or calendar conversion."
+msgstr "来源断言此民用日名称所使用的唯一 TemporalFrame。该参考系必须指定其 CalendarSystem；指定参考系不会补出缺失的钟表时间或实施历法转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names its frame: ex:date gmeow:civilDateFrame gmeow:temporalFrameUTCGregorian ."
+msgstr "记录指定其参考系：ex:date gmeow:civilDateFrame gmeow:temporalFrameUTCGregorian ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/civilDateFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly-one applies to this expression’s civilDateFrame only. The generic hasReferenceFrame spine remains nonfunctional and may inherit frames through its existing property chain."
+msgstr "唯一性仅约束此表达式的 civilDateFrame。通用 hasReferenceFrame 主干仍非函数性，并可通过既有属性链继承参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Civil Date Observation"
+msgstr "民用日期观察"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation that an Event was designated by a source civil day. Its required observationResult values are CivilDateExpression records, and its required vantage retains the source standpoint. It asserts no event instant or elapsed duration."
+msgstr "一项具备归属的 Observation，记录来源以某个民用日指称一个 Event。其必需 observationResult 值为 CivilDateExpression 记录，必需 vantage 保留来源立场。它不断言事件时刻或经过时长。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "An observation retains event, result and vantage: ex:dating a gmeow:CivilDateObservation ; gmeow:observedFeature ex:event ; gmeow:observationResult ex:date ; gmeow:vantage ex:archivist ."
+msgstr "观察保留事件、结果和立场：ex:dating a gmeow:CivilDateObservation ; gmeow:observedFeature ex:event ; gmeow:observationResult ex:date ; gmeow:vantage ex:archivist ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateObservation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Generic Observation queries discover this claim. Multiple results and coexisting vantages remain valid; instant-only queries gain no civil-date decoding or inclusion rule from this class."
+msgstr "通用 Observation 查询可发现此主张。仍允许多个结果及并存立场；此类不会为仅查询时刻的查询增加民用日期解码或纳入规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateCalendarWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Civil date calendar witness constraint"
+msgstr "民用日期历法见证约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateCalendarWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every civilDateFrame used by a CivilDateExpression explicitly names a CalendarSystem through frameCalendarSystem. The witness records the declared calendar without checking its date arithmetic."
+msgstr "CivilDateExpression 使用的每个 civilDateFrame 必须通过 frameCalendarSystem 显式指定一个 CalendarSystem。该见证记录声明的历法，不检查日期运算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/civil-dating|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Civil dating"
+msgstr "民用日期记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/civil-dating|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-attributed civil-day expressions and event dating observations with explicit calendar frames and preserved source literals."
+msgstr "具有来源归属的民用日表达式和事件日期观察，使用显式历法参考系并保留来源字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/civil-dating|http://purl.org/dc/terms/title"
+msgid "Civil dating evidence"
+msgstr "民用日期证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateCalendarWitnessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A witness names the frame’s calendar: ex:date gmeow:civilDateFrame ex:frame . ex:frame gmeow:frameCalendarSystem ex:calendar . ex:calendar a gmeow:CalendarSystem ."
+msgstr "见证指定参考系的历法：ex:date gmeow:civilDateFrame ex:frame . ex:frame gmeow:frameCalendarSystem ex:calendar . ex:calendar a gmeow:CalendarSystem ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CivilDateCalendarWitnessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law is scoped to frames selected by CivilDateExpression. Calendar-free scale frames remain valid elsewhere under the temporal owner’s existing contract."
+msgstr "此定律仅约束 CivilDateExpression 所选择的参考系。不含历法的时间尺度参考系在其他地方仍符合时间词汇所有者的既有契约。"

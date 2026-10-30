@@ -512,3 +512,11 @@ msgstr "具名时段「边界或测量」约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: a gmeow:NamedPeriod is bounded by both gmeow:periodStart and gmeow:periodEnd, or carries at least one gmeow:hasTemporalMeasurement — a named stretch of time with neither bounds nor a measured duration is underspecified."
 msgstr "闭世界完整性约束：一个 gmeow:NamedPeriod 要么同时由 gmeow:periodStart 与 gmeow:periodEnd 界定，要么至少携带一个 gmeow:hasTemporalMeasurement——既无边界又无实测时长的具名时间段属于欠定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Instant|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly timestamped instant: ex:clockTick a gmeow:Instant ; gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ."
+msgstr "确有时间戳的时刻：ex:clockTick a gmeow:Instant ; gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The point retains its timestamp: ex:clockTick gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ."
+msgstr "该点保留其时间戳：ex:clockTick gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ."
