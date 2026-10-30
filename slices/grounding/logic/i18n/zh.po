@@ -8863,8 +8863,8 @@ msgid "STRICT parthood: relates an entity to a whole it is part of but NOT ident
 msgstr "严格部分关系：将一个实体关联到它是其部分但与之不同一的整体。传递、反对称且反自反——一个真正的严格偏序（真部分关系、祖先）。这一确切组合在 OWL 2 DL 中非法，后者全局禁止一个属性同时为传递与反对称（批评 7，LOGIC-FOUNDATION.md §OWL 2 批评）；logic: 不施加此类全局限制并对其完全推理，通过投影而非阉割正典来恢复可判定性。它是那个刻意的 OWL-2-批评示范者。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "一条中心记录，断言某个具名属性承载一种特征种类——logic:transitiveProperty、logic:symmetricProperty、logic:irreflexiveProperty、logic:asymmetricProperty 或 logic:functionalProperty 之一。它以 logic:characterizes 命名该属性，以 logic:characteristicSort 命名该种类，二者构成原生一致性闸为强制该特征而连接的配对，并携带一个 logic:formalizes 回指，指向其散文被它编码的那个领域属性。这是属性特征的规范 logic: 载体：领域切片保留面向 OWL 的声明，而推理权威在此命名并强制它。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+msgid "A canonical record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the slice owning the property authors the characteristic record, and the OWL-facing declaration is derived from it rather than hand-authored as a second source. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "一种规范记录，断言某个具名属性具有一种特征，即 logic:transitiveProperty、logic:symmetricProperty、logic:irreflexiveProperty、logic:asymmetricProperty 或 logic:functionalProperty。它以 logic:characterizes 指定属性，以 logic:characteristicSort 指定种类，原生一致性门联合读取这对关系以落实该特征，并携带 logic:formalizes 回指其文字所描述的领域属性。这是属性特征的规范 logic: 载体：属性所属切片编写特征记录，面向 OWL 的声明由此派生，而非作为第二来源手工编写。此记录不是该术语的定义，也不是验证形状；义务从记录中推理得出，不在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PropertyPathProjection|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The projection-target value requesting that a logic:PathShape (or a rule's path-structured body) be rendered to a SPARQL property-path surface — extended by GMEOW past SPARQL 1.1 §9 with bounded depth {n,m} and a predicate wildcard. One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold. A consumer restricted to standard SPARQL §9 receives the unrolled or approximated form, and that loss is declared in the loss ledger rather than hidden."
@@ -14687,8 +14687,8 @@ msgid "Avoid treating it as an ownership, import, or named-graph directive; the 
 msgstr "避免将其视为归属、导入或命名图指令；数据在何处编写与生成，仍由规范的来源/投影规则决定。"
 
 msgctxt "https://blackcatinformatics.ca/logic/actionResourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:actionResource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:actionResource 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:actionResource names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:actionResource 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/actionResourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14703,8 +14703,8 @@ msgid "logic:actionResourceFunctionality logic:characterizes logic:actionResourc
 msgstr "logic:actionResourceFunctionality logic:characterizes logic:actionResource ."
 
 msgctxt "https://blackcatinformatics.ca/logic/antecedentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:antecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:antecedent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:antecedent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:antecedent 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/antecedentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14719,8 +14719,8 @@ msgid "logic:antecedentFunctionality logic:characterizes logic:antecedent ."
 msgstr "logic:antecedentFunctionality logic:characterizes logic:antecedent ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateCategoryFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateCategory names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateCategory 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateCategory names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateCategory 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateCategoryFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14735,8 +14735,8 @@ msgid "logic:candidateCategoryFunctionality logic:characterizes logic:candidateC
 msgstr "logic:candidateCategoryFunctionality logic:characterizes logic:candidateCategory ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateContract names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateContract 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateContract names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateContract 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14751,8 +14751,8 @@ msgid "logic:candidateContractFunctionality logic:characterizes logic:candidateC
 msgstr "logic:candidateContractFunctionality logic:characterizes logic:candidateContract ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateExtractionProvenance 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateExtractionProvenance 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14767,8 +14767,8 @@ msgid "logic:candidateExtractionProvenanceFunctionality logic:characterizes logi
 msgstr "logic:candidateExtractionProvenanceFunctionality logic:characterizes logic:candidateExtractionProvenance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateFormalizes names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateFormalizes 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateFormalizes names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateFormalizes 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14783,8 +14783,8 @@ msgid "logic:candidateFormalizesFunctionality logic:characterizes logic:candidat
 msgstr "logic:candidateFormalizesFunctionality logic:characterizes logic:candidateFormalizes ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateLifecycleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateLifecycle names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateLifecycle 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateLifecycle names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateLifecycle 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateLifecycleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14799,8 +14799,8 @@ msgid "logic:candidateLifecycleFunctionality logic:characterizes logic:candidate
 msgstr "logic:candidateLifecycleFunctionality logic:characterizes logic:candidateLifecycle ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateProjectionBehavior 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateProjectionBehavior 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14815,8 +14815,8 @@ msgid "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:
 msgstr "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:candidateProjectionBehavior ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateScope 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateScope names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateScope 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14831,8 +14831,8 @@ msgid "logic:candidateScopeFunctionality logic:characterizes logic:candidateScop
 msgstr "logic:candidateScopeFunctionality logic:characterizes logic:candidateScope ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateSemanticRisk 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateSemanticRisk 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14847,8 +14847,8 @@ msgid "logic:candidateSemanticRiskFunctionality logic:characterizes logic:candid
 msgstr "logic:candidateSemanticRiskFunctionality logic:characterizes logic:candidateSemanticRisk ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateSourceField 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateSourceField 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14863,8 +14863,8 @@ msgid "logic:candidateSourceFieldFunctionality logic:characterizes logic:candida
 msgstr "logic:candidateSourceFieldFunctionality logic:characterizes logic:candidateSourceField ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceHashFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateSourceHash names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:candidateSourceHash 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:candidateSourceHash names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:candidateSourceHash 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceHashFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14879,8 +14879,8 @@ msgid "logic:candidateSourceHashFunctionality logic:characterizes logic:candidat
 msgstr "logic:candidateSourceHashFunctionality logic:characterizes logic:candidateSourceHash ."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureFormulaFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:conjectureFormula names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:conjectureFormula 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:conjectureFormula names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:conjectureFormula 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureFormulaFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14895,8 +14895,8 @@ msgid "logic:conjectureFormulaFunctionality logic:characterizes logic:conjecture
 msgstr "logic:conjectureFormulaFunctionality logic:characterizes logic:conjectureFormula ."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureLifecycleStateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:conjectureLifecycleState 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:conjectureLifecycleState 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureLifecycleStateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14911,8 +14911,8 @@ msgid "logic:conjectureLifecycleStateFunctionality logic:characterizes logic:con
 msgstr "logic:conjectureLifecycleStateFunctionality logic:characterizes logic:conjectureLifecycleState ."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:conjectureStandpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:conjectureStandpoint 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:conjectureStandpoint names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:conjectureStandpoint 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14927,8 +14927,8 @@ msgid "logic:conjectureStandpointFunctionality logic:characterizes logic:conject
 msgstr "logic:conjectureStandpointFunctionality logic:characterizes logic:conjectureStandpoint ."
 
 msgctxt "https://blackcatinformatics.ca/logic/consequentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:consequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:consequent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:consequent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:consequent 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/consequentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14943,8 +14943,8 @@ msgid "logic:consequentFunctionality logic:characterizes logic:consequent ."
 msgstr "logic:consequentFunctionality logic:characterizes logic:consequent ."
 
 msgctxt "https://blackcatinformatics.ca/logic/effectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:effect names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:effect 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:effect names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:effect 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/effectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14959,8 +14959,8 @@ msgid "logic:effectFunctionality logic:characterizes logic:effect ."
 msgstr "logic:effectFunctionality logic:characterizes logic:effect ."
 
 msgctxt "https://blackcatinformatics.ca/logic/evaluationModeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:evaluationMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:evaluationMode 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:evaluationMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:evaluationMode 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/evaluationModeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14975,8 +14975,8 @@ msgid "logic:evaluationModeFunctionality logic:characterizes logic:evaluationMod
 msgstr "logic:evaluationModeFunctionality logic:characterizes logic:evaluationMode ."
 
 msgctxt "https://blackcatinformatics.ca/logic/existsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:exists names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:exists 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:exists names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:exists 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/existsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14991,8 +14991,8 @@ msgid "logic:existsFunctionality logic:characterizes logic:exists ."
 msgstr "logic:existsFunctionality logic:characterizes logic:exists ."
 
 msgctxt "https://blackcatinformatics.ca/logic/feasibilityStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:feasibilityStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:feasibilityStatus 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:feasibilityStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:feasibilityStatus 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/feasibilityStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15007,8 +15007,8 @@ msgid "logic:feasibilityStatusFunctionality logic:characterizes logic:feasibilit
 msgstr "logic:feasibilityStatusFunctionality logic:characterizes logic:feasibilityStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/forallFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:forall names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:forall 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:forall names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:forall 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/forallFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15023,8 +15023,8 @@ msgid "logic:forallFunctionality logic:characterizes logic:forall ."
 msgstr "logic:forallFunctionality logic:characterizes logic:forall ."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessHorizonFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:freshnessHorizon names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:freshnessHorizon 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:freshnessHorizon names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:freshnessHorizon 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessHorizonFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15039,8 +15039,8 @@ msgid "logic:freshnessHorizonFunctionality logic:characterizes logic:freshnessHo
 msgstr "logic:freshnessHorizonFunctionality logic:characterizes logic:freshnessHorizon ."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowEndFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:freshnessWindowEnd 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:freshnessWindowEnd 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowEndFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15055,8 +15055,8 @@ msgid "logic:freshnessWindowEndFunctionality logic:characterizes logic:freshness
 msgstr "logic:freshnessWindowEndFunctionality logic:characterizes logic:freshnessWindowEnd ."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowStartFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:freshnessWindowStart names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:freshnessWindowStart 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:freshnessWindowStart names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:freshnessWindowStart 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowStartFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15071,8 +15071,8 @@ msgid "logic:freshnessWindowStartFunctionality logic:characterizes logic:freshne
 msgstr "logic:freshnessWindowStartFunctionality logic:characterizes logic:freshnessWindowStart ."
 
 msgctxt "https://blackcatinformatics.ca/logic/functionSymbolFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:functionSymbol names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:functionSymbol 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:functionSymbol names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:functionSymbol 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/functionSymbolFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15087,8 +15087,8 @@ msgid "logic:functionSymbolFunctionality logic:characterizes logic:functionSymbo
 msgstr "logic:functionSymbolFunctionality logic:characterizes logic:functionSymbol ."
 
 msgctxt "https://blackcatinformatics.ca/logic/goalEvaluationStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:goalEvaluationStatus 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:goalEvaluationStatus 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/goalEvaluationStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15103,8 +15103,8 @@ msgid "logic:goalEvaluationStatusFunctionality logic:characterizes logic:goalEva
 msgstr "logic:goalEvaluationStatusFunctionality logic:characterizes logic:goalEvaluationStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/guardsPreconditionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:guardsPrecondition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:guardsPrecondition 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:guardsPrecondition names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:guardsPrecondition 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/guardsPreconditionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15119,8 +15119,8 @@ msgid "logic:guardsPreconditionFunctionality logic:characterizes logic:guardsPre
 msgstr "logic:guardsPreconditionFunctionality logic:characterizes logic:guardsPrecondition ."
 
 msgctxt "https://blackcatinformatics.ca/logic/invariantFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:invariant names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:invariant 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:invariant names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:invariant 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/invariantFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15135,8 +15135,8 @@ msgid "logic:invariantFunctionality logic:characterizes logic:invariant ."
 msgstr "logic:invariantFunctionality logic:characterizes logic:invariant ."
 
 msgctxt "https://blackcatinformatics.ca/logic/lifecycleStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:lifecycleStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:lifecycleStatus 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:lifecycleStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:lifecycleStatus 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lifecycleStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15151,8 +15151,8 @@ msgid "logic:lifecycleStatusFunctionality logic:characterizes logic:lifecycleSta
 msgstr "logic:lifecycleStatusFunctionality logic:characterizes logic:lifecycleStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/notFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:not names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:not 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:not names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:not 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/notFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15167,8 +15167,8 @@ msgid "logic:notFunctionality logic:characterizes logic:not ."
 msgstr "logic:notFunctionality logic:characterizes logic:not ."
 
 msgctxt "https://blackcatinformatics.ca/logic/objectiveValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:objectiveValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:objectiveValue 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:objectiveValue names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:objectiveValue 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/objectiveValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15183,8 +15183,8 @@ msgid "logic:objectiveValueFunctionality logic:characterizes logic:objectiveValu
 msgstr "logic:objectiveValueFunctionality logic:characterizes logic:objectiveValue ."
 
 msgctxt "https://blackcatinformatics.ca/logic/obligationForbiddenPredicateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:obligationForbiddenPredicate 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:obligationForbiddenPredicate 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/obligationForbiddenPredicateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15199,8 +15199,8 @@ msgid "logic:obligationForbiddenPredicateFunctionality logic:characterizes logic
 msgstr "logic:obligationForbiddenPredicateFunctionality logic:characterizes logic:obligationForbiddenPredicate ."
 
 msgctxt "https://blackcatinformatics.ca/logic/observationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:observation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:observation 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:observation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:observation 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/observationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15215,8 +15215,8 @@ msgid "logic:observationFunctionality logic:characterizes logic:observation ."
 msgstr "logic:observationFunctionality logic:characterizes logic:observation ."
 
 msgctxt "https://blackcatinformatics.ca/logic/planGoalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:planGoal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:planGoal 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:planGoal names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:planGoal 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/planGoalFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15231,8 +15231,8 @@ msgid "logic:planGoalFunctionality logic:characterizes logic:planGoal ."
 msgstr "logic:planGoalFunctionality logic:characterizes logic:planGoal ."
 
 msgctxt "https://blackcatinformatics.ca/logic/planSuccessModeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:planSuccessMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:planSuccessMode 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:planSuccessMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:planSuccessMode 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/planSuccessModeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15247,8 +15247,8 @@ msgid "logic:planSuccessModeFunctionality logic:characterizes logic:planSuccessM
 msgstr "logic:planSuccessModeFunctionality logic:characterizes logic:planSuccessMode ."
 
 msgctxt "https://blackcatinformatics.ca/logic/programQueryFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:programQuery names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:programQuery 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:programQuery names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:programQuery 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/programQueryFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15263,8 +15263,8 @@ msgid "logic:programQueryFunctionality logic:characterizes logic:programQuery ."
 msgstr "logic:programQueryFunctionality logic:characterizes logic:programQuery ."
 
 msgctxt "https://blackcatinformatics.ca/logic/recoveryTransformFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:recoveryTransform names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:recoveryTransform 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:recoveryTransform names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:recoveryTransform 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/recoveryTransformFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15279,8 +15279,8 @@ msgid "logic:recoveryTransformFunctionality logic:characterizes logic:recoveryTr
 msgstr "logic:recoveryTransformFunctionality logic:characterizes logic:recoveryTransform ."
 
 msgctxt "https://blackcatinformatics.ca/logic/relationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:relation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:relation 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:relation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:relation 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/relationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15295,8 +15295,8 @@ msgid "logic:relationFunctionality logic:characterizes logic:relation ."
 msgstr "logic:relationFunctionality logic:characterizes logic:relation ."
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionDegreeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:satisfactionDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:satisfactionDegree 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:satisfactionDegree names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:satisfactionDegree 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionDegreeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15311,8 +15311,8 @@ msgid "logic:satisfactionDegreeFunctionality logic:characterizes logic:satisfact
 msgstr "logic:satisfactionDegreeFunctionality logic:characterizes logic:satisfactionDegree ."
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:satisfactionStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:satisfactionStatus 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:satisfactionStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:satisfactionStatus 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15327,8 +15327,8 @@ msgid "logic:satisfactionStatusFunctionality logic:characterizes logic:satisfact
 msgstr "logic:satisfactionStatusFunctionality logic:characterizes logic:satisfactionStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termApplicationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termApplication names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:termApplication 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:termApplication names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:termApplication 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termApplicationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15343,8 +15343,8 @@ msgid "logic:termApplicationFunctionality logic:characterizes logic:termApplicat
 msgstr "logic:termApplicationFunctionality logic:characterizes logic:termApplication ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:termIndex 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:termIndex names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:termIndex 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15359,8 +15359,8 @@ msgid "logic:termIndexFunctionality logic:characterizes logic:termIndex ."
 msgstr "logic:termIndexFunctionality logic:characterizes logic:termIndex ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termIriFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termIri names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:termIri 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:termIri names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:termIri 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termIriFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15375,8 +15375,8 @@ msgid "logic:termIriFunctionality logic:characterizes logic:termIri ."
 msgstr "logic:termIriFunctionality logic:characterizes logic:termIri ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termLiteral names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:termLiteral 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:termLiteral names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:termLiteral 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15391,8 +15391,8 @@ msgid "logic:termLiteralFunctionality logic:characterizes logic:termLiteral ."
 msgstr "logic:termLiteralFunctionality logic:characterizes logic:termLiteral ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralDatatypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termLiteralDatatype names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:termLiteralDatatype 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:termLiteralDatatype names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:termLiteralDatatype 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralDatatypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15407,8 +15407,8 @@ msgid "logic:termLiteralDatatypeFunctionality logic:characterizes logic:termLite
 msgstr "logic:termLiteralDatatypeFunctionality logic:characterizes logic:termLiteralDatatype ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termSequenceMarkerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termSequenceMarker names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:termSequenceMarker 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:termSequenceMarker names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:termSequenceMarker 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termSequenceMarkerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15423,8 +15423,8 @@ msgid "logic:termSequenceMarkerFunctionality logic:characterizes logic:termSeque
 msgstr "logic:termSequenceMarkerFunctionality logic:characterizes logic:termSequenceMarker ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termVariableFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termVariable names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:termVariable 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:termVariable names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:termVariable 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termVariableFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15439,8 +15439,8 @@ msgid "logic:termVariableFunctionality logic:characterizes logic:termVariable ."
 msgstr "logic:termVariableFunctionality logic:characterizes logic:termVariable ."
 
 msgctxt "https://blackcatinformatics.ca/logic/utilityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:utility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:utility 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:utility names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:utility 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/utilityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15455,8 +15455,8 @@ msgid "logic:utilityFunctionality logic:characterizes logic:utility ."
 msgstr "logic:utilityFunctionality logic:characterizes logic:utility ."
 
 msgctxt "https://blackcatinformatics.ca/logic/verdictProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:verdictProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:verdictProvenance 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:verdictProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:verdictProvenance 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/verdictProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15471,8 +15471,8 @@ msgid "logic:verdictProvenanceFunctionality logic:characterizes logic:verdictPro
 msgstr "logic:verdictProvenanceFunctionality logic:characterizes logic:verdictProvenance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessIndividualFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:witnessIndividual names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:witnessIndividual 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:witnessIndividual names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:witnessIndividual 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessIndividualFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15487,8 +15487,8 @@ msgid "logic:witnessIndividualFunctionality logic:characterizes logic:witnessInd
 msgstr "logic:witnessIndividualFunctionality logic:characterizes logic:witnessIndividual ."
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessWorldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:witnessWorld names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:witnessWorld 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:witnessWorld names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:witnessWorld 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessWorldFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15503,8 +15503,8 @@ msgid "logic:witnessWorldFunctionality logic:characterizes logic:witnessWorld ."
 msgstr "logic:witnessWorldFunctionality logic:characterizes logic:witnessWorld ."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByCompetencyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:demonstratedByCompetency 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 gmeow:demonstratedByCompetency 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByCompetencyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15519,8 +15519,8 @@ msgid "logic:demonstratedByCompetencyFunctionality logic:characterizes gmeow:dem
 msgstr "logic:demonstratedByCompetencyFunctionality logic:characterizes gmeow:demonstratedByCompetency ."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByExampleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:demonstratedByExample 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 gmeow:demonstratedByExample 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByExampleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15535,8 +15535,8 @@ msgid "logic:demonstratedByExampleFunctionality logic:characterizes gmeow:demons
 msgstr "logic:demonstratedByExampleFunctionality logic:characterizes gmeow:demonstratedByExample ."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByProducerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:demonstratedByProducer 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 gmeow:demonstratedByProducer 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByProducerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15551,8 +15551,8 @@ msgid "logic:demonstratedByProducerFunctionality logic:characterizes gmeow:demon
 msgstr "logic:demonstratedByProducerFunctionality logic:characterizes gmeow:demonstratedByProducer ."
 
 msgctxt "https://blackcatinformatics.ca/logic/guardedByCounterExampleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:guardedByCounterExample 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 gmeow:guardedByCounterExample 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/guardedByCounterExampleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15583,8 +15583,8 @@ msgid "logic:keyProperty logic:characterizes instance ."
 msgstr "示例：logic:keyProperty logic:characterizes instance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 logic:adviceSourceField 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce that logic:adviceSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "当原生一致性门必须约束 logic:adviceSourceField 指定至多一个值时使用；此记录是该门联合读取的规范载体，因此义务通过推理落实，而非在验证形状表面重述。仅函数性不要求存在任何值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -23885,3 +23885,67 @@ msgstr "所编写的目标检查单件的 gmeow:exemplifies 关系。新见证�
 msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
 msgid "An individual typed gmeow:Item without gmeow:exemplifies may receive a manifestation-link suggestion; the user still identifies the actual manifestation and any expression or work relations separately."
 msgstr "类型为 gmeow:Item 且没有 gmeow:exemplifies 的个体可获得载体表现链接建议；用户仍须分别识别实际载体表现以及任何表达形态或作品关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/transitiveProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Transitivity adds the endpoint relation from two composable edges; it does not reverse either edge or require any edge to exist. The characteristic is retained by the current OWL DL and OWL EL grounding projections."
+msgstr "传递性由两条可组合的边添加端点间关系；它不反转任何边，也不要求存在边。当前 OWL DL 和 OWL EL 落地投影保留此特征。"
+
+msgctxt "https://blackcatinformatics.ca/logic/transitiveProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a transitive relation P, P(a,b) and P(b,c) entail P(a,c). The same premises do not establish P(c,a) unless another law supplies that direction."
+msgstr "对于传递关系 P，P(a,b) 与 P(b,c) 蕴涵 P(a,c)。除非另一条定律提供反向关系，否则相同前提不确立 P(c,a)。"
+
+msgctxt "https://blackcatinformatics.ca/logic/asymmetricProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Asymmetry prohibits a reverse edge and therefore also prohibits a self-edge. It imposes no existence requirement. The current OWL grounding projections omit this carrier characteristic; the canonical claim remains stronger than those views."
+msgstr "非对称性禁止反向边，因此也禁止自环。它不施加存在要求。当前 OWL 落地投影省略载体的此项特征；规范声明仍强于这些视图。"
+
+msgctxt "https://blackcatinformatics.ca/logic/asymmetricProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "For an asymmetric P, P(a,b) excludes P(b,a). Declaring P transitive as well allows a strict ordering in the canonical model without promising that the OWL view retains both characteristics."
+msgstr "对于非对称的 P，P(a,b) 排除 P(b,a)。同时将 P 声明为传递关系可在规范模型中表达严格顺序，但不承诺 OWL 视图保留这两个特征。"
+
+msgctxt "https://blackcatinformatics.ca/logic/irreflexiveProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Irreflexivity excludes P(a,a) while leaving relations between distinct individuals to other axioms. It requires no relation instances. The current OWL grounding projections omit this carrier characteristic rather than preserving it for every property."
+msgstr "反自反性排除 P(a,a)，不同个体之间的关系由其他公理约束。它不要求存在关系实例。当前 OWL 落地投影省略载体的此项特征，而非对所有属性都保留它。"
+
+msgctxt "https://blackcatinformatics.ca/logic/irreflexiveProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "An irreflexive P rejects P(a,a); P(a,b) together with P(b,a) is not excluded by irreflexivity alone when a and b are distinct."
+msgstr "反自反的 P 排除 P(a,a)；当 a 与 b 不同时，仅反自反性并不排除 P(a,b) 与 P(b,a) 同时成立。"
+
+msgctxt "https://blackcatinformatics.ca/logic/symmetricProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Symmetry reverses an existing edge without identifying its endpoints or requiring a self-edge. The current OWL DL projection retains this characteristic, while the OWL EL projection omits it."
+msgstr "对称性反转已有边，但不将其端点判为相同，也不要求自环。当前 OWL DL 投影保留此特征，而 OWL EL 投影省略它。"
+
+msgctxt "https://blackcatinformatics.ca/logic/symmetricProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "For symmetric P, P(a,b) entails P(b,a). Combining symmetry with irreflexivity can describe a two-way opposition between distinct individuals without allowing P(a,a)."
+msgstr "对于对称的 P，P(a,b) 蕴涵 P(b,a)。将对称性与反自反性组合可描述不同个体之间的双向对立，而不允许 P(a,a)。"
+
+msgctxt "https://blackcatinformatics.ca/logic/functionalProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functionality constrains targets sharing one source: P(a,b) and P(a,c) entail b = c. It requires no value and does not identify different sources sharing a target. Native carrier reasoning derives resource equality; the OWL DL view retains functionality and the OWL EL view drops it."
+msgstr "函数性约束共享同一源的目标：P(a,b) 与 P(a,c) 蕴涵 b = c。它不要求存在值，也不将共享目标的不同源判为相同。原生载体推理导出资源相等；OWL DL 视图保留函数性，OWL EL 视图省略它。"
+
+msgctxt "https://blackcatinformatics.ca/logic/functionalProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "With functional P, P(a,b) and P(a,c) can identify b with c rather than reject the graph solely for using two names. P(a,b) and P(d,b) do not imply a = d."
+msgstr "对于函数性的 P，P(a,b) 与 P(a,c) 可将 b 与 c 判为相同，而非仅因使用两个名称而拒绝图。P(a,b) 与 P(d,b) 不蕴涵 a = d。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The record connects a property to a characteristic, with ownership following the property rather than a central list of all slice properties. Projection support is characteristic-dependent: canonical ownership does not promise that every OWL profile preserves the law."
+msgstr "记录将属性关联到一个特征，其编写归属随属性而定，并非由中央列表拥有所有切片的属性。投影支持依特征而异：规范归属不承诺每个 OWL 配置都保留该定律。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A carrier containing logic:characterizes logic:receiptOfPreparation ; logic:characteristicSort logic:functionalProperty . declares forward at-most-one receipt binding. It neither supplies a receipt's preparation step nor restricts a step to one receipt."
+msgstr "包含 logic:characterizes logic:receiptOfPreparation ; logic:characteristicSort logic:functionalProperty . 的载体声明回执的正向至多一个绑定。它既不提供回执的准备步骤，也不将一个步骤限定给唯一回执。"
+
+msgctxt "https://blackcatinformatics.ca/logic/characterizes|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation selects the governed predicate, not the subject or object of one predicate instance. Its target and the characteristic-sort target form the carrier read by native reasoning and projection consumers."
+msgstr "此关系选择所辖谓词，而非某个谓词实例的主语或宾语。其目标与特征种类目标共同组成原生推理和投影消费者读取的载体。"
+
+msgctxt "https://blackcatinformatics.ca/logic/characterizes|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:carrier logic:characterizes logic:lensGoverns . identifies the predicate whose targets are constrained; ex:carrier still needs the appropriate logic:characteristicSort declaration."
+msgstr "Turtle 语句 ex:carrier logic:characterizes logic:lensGoverns . 标识其目标受到约束的谓词；ex:carrier 仍需相应的 logic:characteristicSort 声明。"
+
+msgctxt "https://blackcatinformatics.ca/logic/characteristicSort|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker determines the law, while logic:characterizes determines its property. Selecting functionality asserts forward at-most-one behavior; selecting symmetry asserts reverse edges. Neither selection supplies relation instances."
+msgstr "标记决定定律，logic:characterizes 决定该定律的属性。选择函数性断言正向至多一个值的行为；选择对称性断言反向边。这两种选择都不提供关系实例。"
+
+msgctxt "https://blackcatinformatics.ca/logic/characteristicSort|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:carrier logic:characteristicSort logic:functionalProperty . selects functionality. With logic:characterizes logic:lawGovernsAxis on the same record, the bound runs from one law to its axis, not from one axis to all its laws."
+msgstr "Turtle 语句 ex:carrier logic:characteristicSort logic:functionalProperty . 选择函数性。在同一记录上配合 logic:characterizes logic:lawGovernsAxis 时，上限方向是从一条定律到其轴，而非从一个轴到其所有定律。"
