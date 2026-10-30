@@ -171,8 +171,7 @@ fn reason_stage_retains_native_source_refusal_evidence() {
     // Capture the complete native refusal, before the actual pipeline caller adds context.
     // Both operations consume only this three-row synthetic source, never the corpus.
     let direct = reason_all(input, &domains)
-        .err()
-        .expect("a cyclic canonical nominal must fail native source admission");
+        .expect_err("a cyclic canonical nominal must fail native source admission");
     let original = direct.downcast_ref::<NativeSourceAdmission>().unwrap();
     let error = reason_over_dataset(source.as_ref(), &domains)
         .err()
