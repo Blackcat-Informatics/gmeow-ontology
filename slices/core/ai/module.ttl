@@ -1332,7 +1332,7 @@ gmeow:hypothesisTemplate
     logic:domain gmeow:ModelInferenceRun ;
     logic:range xsd:string ;
     logic:subPropertyOf lang:literalValue ;
-    skos:definition "The exact natural-language template instantiated with each zero-shot candidate label. The literal carrier preserves the template itself; changing it changes the execution context."@x-gmeow-english ;
+    skos:definition "The exact classifier template source string, including placeholders, instantiated with each zero-shot candidate label. This xsd:string carries the supplied source expression rather than a localized utterance or machine identifier; changing it changes the execution context."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:memberOfLabelSet
@@ -1568,7 +1568,7 @@ gmeow:AffectClassifierOutputProducedByPresentConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput is gmeow:producedBy a run."@x-gmeow-english ;
     logic:formalizes gmeow:ClassifierOutput ;
-    logic:message "An ClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
+    logic:message "A ClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
     logic:integrity logic:opForall .
 logic:opForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -1589,7 +1589,7 @@ gmeow:AffectClassifierOutputTargetPresentConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput names a gmeow:classifiedTarget."@x-gmeow-english ;
     logic:formalizes gmeow:ClassifierOutput ;
-    logic:message "An ClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
+    logic:message "A ClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
     logic:integrity logic:octForall .
 logic:octForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -1610,7 +1610,7 @@ gmeow:AffectClassifierOutputLabelPresentConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput carries a gmeow:emittedLabel."@x-gmeow-english ;
     logic:formalizes gmeow:ClassifierOutput ;
-    logic:message "An ClassifierOutput must carry a gmeow:emittedLabel (a registered gmeow:ClassifierLabel IRI)." ;
+    logic:message "A ClassifierOutput must carry a gmeow:emittedLabel (a gmeow:ClassifierLabel IRI)." ;
     logic:integrity logic:oelForall .
 logic:oelForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -1631,7 +1631,7 @@ gmeow:AffectClassifierOutputScorePresentConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput carries a gmeow:classifierScore."@x-gmeow-english ;
     logic:formalizes gmeow:ClassifierOutput ;
-    logic:message "An ClassifierOutput must carry a raw gmeow:classifierScore." ;
+    logic:message "A ClassifierOutput must carry a raw gmeow:classifierScore." ;
     logic:integrity logic:oscForall .
 logic:oscForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -1652,7 +1652,7 @@ gmeow:AffectClassifierOutputSemanticsPresentConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput declares a gmeow:scoreSemantics."@x-gmeow-english ;
     logic:formalizes gmeow:ClassifierOutput ;
-    logic:message "An ClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
+    logic:message "A ClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
     logic:integrity logic:ossForall .
 logic:ossForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -1673,7 +1673,7 @@ gmeow:AffectClassifierLabelRegisteredConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:ClassifierLabel is a gmeow:memberOfLabelSet of a label set."@x-gmeow-english ;
     logic:formalizes gmeow:ClassifierLabel ;
-    logic:message "An ClassifierLabel must belong to a gmeow:ClassifierLabelSet via gmeow:memberOfLabelSet — a label with no identified set fails canonical projection." ;
+    logic:message "A ClassifierLabel must belong to a gmeow:ClassifierLabelSet via gmeow:memberOfLabelSet — a label with no identified set fails canonical projection." ;
     logic:integrity logic:lmrForall .
 logic:lmrForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
