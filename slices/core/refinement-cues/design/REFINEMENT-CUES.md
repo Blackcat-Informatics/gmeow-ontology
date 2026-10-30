@@ -90,3 +90,49 @@ segmentation and source grouping or fail explicitly. Source constraints do not
 authenticate a reviewer, recompute a digest, prove regex lexical validity, execute
 a suppression or establish a reading about the author. These limitations remain
 visible rather than hidden behind a successful structural check.
+
+## Match identity and judgement grounding
+
+`CueMatch` and `CueEvalCase` are information objects, while `CueJudgement`
+specializes the observations owner's `Observation`. The reused `spanStart` and
+`spanEnd` have no imposed global domain. The new selected-literal relation
+specializes the lang owner's domain-free `lang:literalValue`; it preserves the
+complete literal without forcing a Document, SurfaceForm or invented anchor.
+The existing ai, lang and observations dependencies already own these seams.
+No external vocabulary equivalence or new global functionality carrier is added.
+
+Source membership uses `logic:linkVia(record, field, literal)`. Case agreement
+uses the same bound literal variable on `evalText` and `matchSourceLiteral`,
+preserving RDF term identity through a graph join rather than string conversion
+or numeric value equality. Cases retain a reported inventory and do not require
+source record identity to equal case identity. Input artifact and cue-release
+provenance remain separate from report identity when supplied.
+
+The norms owner's generic `evaluationVerdict` domain would introduce
+ConditionEvaluation semantics, so the two dedicated verdict properties reuse
+the observations owner's `EvaluationVerdict` and values without specializing
+that property. Grounding admits held/not-held;
+judgement admits all three outcomes. Observation laws guarded by direct type
+do not supply a SubKind's required roles, so the local judgement contract requires
+actual `vantage`, a verdict and one explicit target branch. Multiple vantages
+remain legal; the judging standpoint is not the source person. Local maxima
+and required paths introduce no property-characteristic ledger changes.
+Every supplied `observedFeature` target must also be the selected `judgedMatch`
+or `judgedCase` target through a shared-variable graph join. This excludes an
+unrelated observed person without demanding a duplicate generic target assertion
+or using functionality to identify that person with a detector report.
+An inner class guard independently anchors the branch condition for lowering,
+while the outer class guard continues to scope the whole contract.
+
+Suppression references the applicable `CueNegation` declaration. Supplied actual
+negator-occurrence evidence remains on its RDF 1.2 assertion or reifier through
+existing `wasDerivedFrom`; no parallel suppression mechanism is invented.
+The formula checks membership in the matched cue's declared rules. It neither
+validates occurrence evidence nor executes the sentence or word-window rule.
+
+Supported numeric comparison checks start below end, with nonnegative integer
+types supplied by canonical restrictions. The available term algebra does not
+provide the required literal code-point length operation, so the upper bound
+and substring authentication are explicit consumer contracts. Predicate closure
+and complete shared-literal joins do not silently claim that missing execution
+capability, detector completeness or correct grounding has been proved.
