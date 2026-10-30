@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -535,3 +536,399 @@ gmeow:Cue logic:subClassOf
 gmeow:CueNegation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:negatingCue ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Cue ],
     [ a logic:Restriction ; logic:onProperty gmeow:negationScope ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:NegationScope ] .
+
+# Retained detector reports, evaluation inputs and attributed judgements.
+
+gmeow:CueMatch
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Cue Match"@x-gmeow-english ;
+    skos:definition "A retained report of one detected cue occurrence in one complete source literal, with its original record, field and half-open Unicode code-point span. Suppression and grounding are independent reported dimensions; neither makes the occurrence a verdict about its source author."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain every reported occurrence, including suppressed and ungrounded occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deleting a detected occurrence because it was not counted, or replacing source identity with a hash of the match."@x-gmeow-english ;
+    gmeow:howToUse "Supply the cue, source record, property, complete literal, both offsets and grounding result; retain applicable suppression declarations separately."@x-gmeow-english ;
+    skos:scopeNote "One record and field may contain several literal values; the selected complete literal disambiguates the occurrence. A structurally valid report does not authenticate a match or its offsets."@x-gmeow-english ;
+    skos:example "ex:hit a gmeow:CueMatch ; gmeow:matchedCue ex:cue . starts an occurrence report; its source, span and grounding fields are also required."@x-gmeow-english .
+
+gmeow:matchedCue
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "matched cue"@x-gmeow-english ;
+    skos:definition "The exact Cue declaration whose occurrence this match reports."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the detected cue independently of its evidence polarity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing to a reading verdict or merely to a lexicon lineage."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual cue resource and retain the reviewed release provenance when supplied."@x-gmeow-english ;
+    skos:scopeNote "Exactly one cue per match, with the owning match's local required path and maximum. This relation does not establish cue release membership."@x-gmeow-english ;
+    skos:example "ex:hit gmeow:matchedCue ex:cue . identifies a declaration, not an asserted reading."@x-gmeow-english .
+
+gmeow:matchRecord
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "match record"@x-gmeow-english ;
+    skos:definition "The original source record carrying the selected literal under matchField. Its actual RDF identity is retained without requiring a Document type or an invented anchor."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record distinct from the detector report."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming the evaluation case itself is the matched source record."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original resource, including a supplied blank node or triple term, and its actual field value."@x-gmeow-english ;
+    skos:scopeNote "One record is selected per match. Source authorship and version identity remain separate provenance; the match report's digest cannot substitute for source identity."@x-gmeow-english ;
+    skos:example "ex:hit gmeow:matchRecord ex:source . preserves the source rather than renaming it as a case."@x-gmeow-english .
+
+gmeow:matchField
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "match field"@x-gmeow-english ;
+    skos:definition "The actual property IRI under which matchRecord supplies matchSourceLiteral. The field names a predicate; it is not a prose field label."@x-gmeow-english ;
+    gmeow:useWhen "Use to disambiguate source properties on the same record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a string label for a predicate IRI."@x-gmeow-english ;
+    gmeow:howToUse "Supply the declared property and retain the actual source triple carrying the selected literal."@x-gmeow-english ;
+    skos:scopeNote "Field identity is required and bounded locally on CueMatch. The source-membership law reads the property dynamically without imposing a new global domain on it."@x-gmeow-english ;
+    skos:example "ex:hit gmeow:matchField gmeow:description . selects the original description predicate."@x-gmeow-english .
+
+gmeow:matchSourceLiteral
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "match source literal"@x-gmeow-english ;
+    skos:definition "The complete original RDF literal selected from matchRecord and matchField, retaining lexical form, datatype, language and base direction. Offsets refer to its unmodified lexical form."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source field has multiple literals or literal identity matters to offsets."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid STR-only copies, normalization or replacing the source with the matched substring."@x-gmeow-english ;
+    gmeow:howToUse "Copy the exact literal term and retain the source triple; this property specializes lang:literalValue."@x-gmeow-english ;
+    skos:scopeNote "The whole literal is selected, not just the occurrence text. Shared-term source and case joins preserve RDF literal identity rather than numeric value equality."@x-gmeow-english ;
+    skos:example "ex:hit gmeow:matchSourceLiteral \"cannot continue\"@en . retains the language-bearing source term."@x-gmeow-english .
+
+gmeow:matchSuppressedBy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range gmeow:CueNegation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "match suppressed by"@x-gmeow-english ;
+    skos:definition "An applicable CueNegation declaration reported to suppress this detected match. It identifies the rule, while actual negating occurrence evidence may be retained on the RDF 1.2 assertion or its reifier through wasDerivedFrom."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep every applicable suppression declaration while retaining the detected match."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing directly to an occurrence where a CueNegation rule is required, or inferring grounding from suppression."@x-gmeow-english ;
+    gmeow:howToUse "Link a declaration in the matched cue's negatedBy set and retain supplied occurrence provenance on the suppression assertion."@x-gmeow-english ;
+    skos:scopeNote "Multi-valued and independent of matchGrounding. Structural applicability checks the declared cue-to-rule link, not whether a real negator satisfies the rule's sentence or window scope."@x-gmeow-english ;
+    skos:example "ex:hit gmeow:matchSuppressedBy ex:negation . retains a rule reference without deleting ex:hit."@x-gmeow-english .
+
+gmeow:matchGrounding
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range gmeow:EvaluationVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "match grounding"@x-gmeow-english ;
+    skos:definition "The reported grounding outcome of this detected match, restricted locally to verdictHeld or verdictNotHeld. It is independent of suppression and is not an evaluation of the source person."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the selected grounding evaluation's explicit outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a suppressed occurrence as necessarily ungrounded or inventing a not-held result after execution failure."@x-gmeow-english ;
+    gmeow:howToUse "Supply one existing verdict value; retain the rules and input provenance when supplied."@x-gmeow-english ;
+    skos:scopeNote "Exactly one of the two admitted outcomes is required per match. Undetermined belongs to cue judgements, not this local grounding outcome contract."@x-gmeow-english ;
+    skos:example "ex:hit gmeow:matchGrounding gmeow:verdictNotHeld . reports non-grounding without retracting the occurrence."@x-gmeow-english .
+
+gmeow:CueEvalCase
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Cue Evaluation Case"@x-gmeow-english ;
+    skos:definition "A retained evaluation input for one cue and one complete language-bearing text literal, with every match reported for that input, including suppressed and ungrounded matches. An empty reported-match set is legal."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the input and complete reported inventory for later detector judgement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting an empty set as a certified no-match result or running corpus production from a declaration."@x-gmeow-english ;
+    gmeow:howToUse "Supply one evalCue and evalText and retain all reported matches; preserve supplied source and release provenance."@x-gmeow-english ;
+    skos:scopeNote "Case links constrain associated reports to the same cue and complete literal. They neither require matchRecord to equal the case nor certify that an external detector supplied every occurrence."@x-gmeow-english ;
+    skos:example "ex:case a gmeow:CueEvalCase ; gmeow:evalCue ex:cue ; gmeow:evalText \"cannot continue\"@en . is an input declaration even without evalMatch."@x-gmeow-english .
+
+gmeow:evalCue
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueEvalCase ;
+    logic:range gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "evaluated cue"@x-gmeow-english ;
+    skos:definition "The one Cue declaration selected for this evaluation case."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind case text and reported matches to one declared detector cue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the cue with a judgement verdict or a different release's changed declaration."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual cue and retain its supplied release provenance."@x-gmeow-english ;
+    skos:scopeNote "Associated evalMatch values must name this same cue through matchedCue. This does not select a preferred judgement."@x-gmeow-english ;
+    skos:example "ex:case gmeow:evalCue ex:cue . selects the evaluation's declaration."@x-gmeow-english .
+
+gmeow:evalText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CueEvalCase ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "evaluation text"@x-gmeow-english ;
+    skos:definition "The complete text literal offered for this cue evaluation, retaining its language and any RDF 1.2 base direction without normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the exact text against which reported or missed spans are judged."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing just a substring or stripping language and direction."@x-gmeow-english ;
+    gmeow:howToUse "Supply one rdf:langString or rdf:dirLangString literal and keep its original lexical form."@x-gmeow-english ;
+    skos:scopeNote "Associated matchSourceLiteral terms must equal this complete RDF term by shared-term membership. A lexical copy with another language or direction is a different input."@x-gmeow-english ;
+    skos:example "ex:case gmeow:evalText \"cannot continue\"@en . retains the input independently of its source record."@x-gmeow-english .
+
+gmeow:evalMatch
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueEvalCase ;
+    logic:range gmeow:CueMatch ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported evaluation match"@x-gmeow-english ;
+    skos:definition "A detected match reported for this case's cue and complete text, whether counted, suppressed or ungrounded."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain every reported occurrence for judgement, including exclusions from counting."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting suppressed reports or fabricating a match for an empty inventory."@x-gmeow-english ;
+    gmeow:howToUse "Link actual retained CueMatch reports; do not require their original source records to be the evaluation case."@x-gmeow-english ;
+    skos:scopeNote "No match membership is required and there is no single-value bound. Completeness of an external reported inventory is a consumer obligation, not entailed by these links."@x-gmeow-english ;
+    skos:example "ex:case gmeow:evalMatch ex:hit . retains the occurrence even when ex:hit has matchSuppressedBy."@x-gmeow-english .
+
+gmeow:CueJudgement
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Cue Judgement"@x-gmeow-english ;
+    skos:definition "An attributed Observation judging either one reported CueMatch or one missed nonempty span in a CueEvalCase. It measures the detector against cue guidance, never the person whose words supplied the input."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain accountable reported-match or missed-span judgements."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating the judge's vantage with source authorship, or interpreting held as a fact about the speaker."@x-gmeow-english ;
+    gmeow:howToUse "Supply actual vantage and cueVerdict; choose judgedMatch alone or judgedCase with both offsets. Joint vantages remain legal."@x-gmeow-english ;
+    skos:scopeNote "The reported-match branch carries no judgement offsets; its target already has a span. The missed-case branch carries its own span in evalText. Separate judgements may disagree without replacing each other."@x-gmeow-english ;
+    skos:example "ex:judgement a gmeow:CueJudgement ; gmeow:judgedMatch ex:hit ; gmeow:vantage ex:judge ; gmeow:cueVerdict gmeow:verdictUndetermined . retains an unresolved detector judgement."@x-gmeow-english .
+
+gmeow:cueVerdict
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueJudgement ;
+    logic:range gmeow:EvaluationVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cue judgement verdict"@x-gmeow-english ;
+    skos:definition "The judge's held, not-held or undetermined outcome for the selected detector report or missed-span claim, using the existing EvaluationVerdict values."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the judgement outcome without imposing ConditionEvaluation semantics."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting matchGrounding or inferring the source person's state from a verdict."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one existing verdict on the judgement and retain the judging vantage separately."@x-gmeow-english ;
+    skos:scopeNote "All three existing verdict values are admitted locally. This property does not specialize evaluationVerdict, whose domain belongs to ConditionEvaluation."@x-gmeow-english ;
+    skos:example "ex:judgement gmeow:cueVerdict gmeow:verdictHeld . records the judge's outcome, not speaker truth."@x-gmeow-english .
+
+gmeow:judgedMatch
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueJudgement ;
+    logic:range gmeow:CueMatch ;
+    logic:subPropertyOf gmeow:observedFeature ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "judged match"@x-gmeow-english ;
+    skos:definition "The actual reported CueMatch observed by a CueJudgement in its reported-match branch. It specializes observedFeature."@x-gmeow-english ;
+    gmeow:useWhen "Use when the judge is assessing an existing detector occurrence report."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding judgedCase or a separate judgement span to this branch."@x-gmeow-english ;
+    gmeow:howToUse "Link one retained match; read its source and span from that target and keep the judge's vantage on the judgement."@x-gmeow-english ;
+    skos:scopeNote "The observed target is the detector report, not its source person. The generic vantage relation remains multi-valued."@x-gmeow-english ;
+    skos:example "ex:judgement gmeow:judgedMatch ex:hit . observes the retained report."@x-gmeow-english .
+
+gmeow:judgedCase
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueJudgement ;
+    logic:range gmeow:CueEvalCase ;
+    logic:subPropertyOf gmeow:observedFeature ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "judged missed-match case"@x-gmeow-english ;
+    skos:definition "The actual CueEvalCase observed by a CueJudgement reporting a missed occurrence through its own spanStart and spanEnd in the case's evalText. It specializes observedFeature."@x-gmeow-english ;
+    gmeow:useWhen "Use when the judge identifies an occurrence absent from the detector's reported inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a reported CueMatch merely to express a missed span."@x-gmeow-english ;
+    gmeow:howToUse "Link one case and supply the judgement's nonempty half-open code-point interval in that case's complete text."@x-gmeow-english ;
+    skos:scopeNote "This branch excludes judgedMatch and requires both judgement offsets. It does not assert that a detector reported the missed occurrence or that ontology validation searched the text."@x-gmeow-english ;
+    skos:example "ex:judgement gmeow:judgedCase ex:case . selects the case; both typed nonnegative offsets must also be supplied."@x-gmeow-english .
+
+# Required paths and owner-local bounds; no global functionality declarations.
+gmeow:CueMatch logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:matchedCue ; logic:allValuesFrom gmeow:Cue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchedCue ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Cue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchRecord ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchRecord ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchField ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchField ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchSourceLiteral ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchSourceLiteral ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchSuppressedBy ; logic:allValuesFrom gmeow:CueNegation ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchGrounding ; logic:allValuesFrom gmeow:EvaluationVerdict ],
+    [ a logic:Restriction ; logic:onProperty gmeow:matchGrounding ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:EvaluationVerdict ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueMatch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchedCue" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueMatch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchRecord" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueMatch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchField" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueMatch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchSourceLiteral" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueMatch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanStart" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueMatch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanEnd" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueMatch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchGrounding" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CueEvalCase logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:evalCue ; logic:allValuesFrom gmeow:Cue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:evalCue ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Cue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:evalText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:evalText ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:evalMatch ; logic:allValuesFrom gmeow:CueMatch ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueEvalCase ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evalCue" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueEvalCase ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evalText" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CueJudgement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueVerdict ; logic:allValuesFrom gmeow:EvaluationVerdict ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueVerdict ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:EvaluationVerdict ],
+    [ a logic:Restriction ; logic:onProperty gmeow:judgedMatch ; logic:allValuesFrom gmeow:CueMatch ],
+    [ a logic:Restriction ; logic:onProperty gmeow:judgedMatch ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CueMatch ],
+    [ a logic:Restriction ; logic:onProperty gmeow:judgedCase ; logic:allValuesFrom gmeow:CueEvalCase ],
+    [ a logic:Restriction ; logic:onProperty gmeow:judgedCase ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CueEvalCase ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueJudgement ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueJudgement ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cueVerdict" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CueMatch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:matchGrounding ; logic:allValuesFrom [ a logic:Enumeration ; logic:oneOf ( gmeow:verdictHeld gmeow:verdictNotHeld ) ] ] .
+gmeow:CueJudgement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cueVerdict ; logic:allValuesFrom [ a logic:Enumeration ; logic:oneOf ( gmeow:verdictHeld gmeow:verdictNotHeld gmeow:verdictUndetermined ) ] ] .
+
+gmeow:CueMatchSourceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "match source membership"@x-gmeow-english ;
+    skos:definition "Every CueMatch field is a declared property IRI, and its original record carries the selected complete literal under that actual field."@x-gmeow-english ;
+    gmeow:useWhen "Use to check match source membership on the retained CueMatch record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "The shared literal term preserves datatype, language and direction. This checks supplied source membership, not whether the cue actually occurs in that literal."@x-gmeow-english ;
+    skos:example "gmeow:CueMatchSourceConstraint logic:formalizes gmeow:matchSourceLiteral . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:matchSourceLiteral ;
+    logic:message "Every CueMatch field is a declared property IRI, and its original record carries the selected complete literal under that actual field." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "field" ], [ logic:termIndex 2 ; logic:termVariable "text" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:matchRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ], [ a logic:Formula ; logic:relation gmeow:matchField ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "field" ] ], [ a logic:Formula ; logic:relation gmeow:matchSourceLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ] ], [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri logic:ObjectProperty ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri logic:DatatypeProperty ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri logic:AnnotationProperty ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri rdf:Property ] ] ], [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "field" ], [ logic:termIndex 2 ; logic:termVariable "text" ] ] ] ] ] ] ] .
+
+gmeow:CueMatchSpanOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "match span order"@x-gmeow-english ;
+    skos:definition "Every supplied match interval has start strictly below end; local datatype restrictions require nonnegative integer offsets."@x-gmeow-english ;
+    gmeow:useWhen "Use to check match span order on the retained CueMatch record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "This checks order, not the upper bound against literal length, substring authenticity, segmentation or successful detection."@x-gmeow-english ;
+    skos:example "gmeow:CueMatchSpanOrderConstraint logic:formalizes gmeow:spanEnd . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:spanEnd ;
+    logic:message "Every supplied match interval has start strictly below end; local datatype restrictions require nonnegative integer offsets." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "start" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:spanStart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "start" ] ], [ a logic:Formula ; logic:relation gmeow:spanEnd ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ] ] ] .
+
+gmeow:CueJudgementSpanOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "judgement span order"@x-gmeow-english ;
+    skos:definition "Every supplied judgement interval has start strictly below end; local datatype restrictions require nonnegative integer offsets."@x-gmeow-english ;
+    gmeow:useWhen "Use to check judgement span order on the retained CueJudgement record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "This checks order, not the upper bound against literal length, substring authenticity, segmentation or successful detection."@x-gmeow-english ;
+    skos:example "gmeow:CueJudgementSpanOrderConstraint logic:formalizes gmeow:spanEnd . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:spanEnd ;
+    logic:message "Every supplied judgement interval has start strictly below end; local datatype restrictions require nonnegative integer offsets." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueJudgement ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "start" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:spanStart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "start" ] ], [ a logic:Formula ; logic:relation gmeow:spanEnd ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ] ] ] .
+
+gmeow:CueMatchSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applicable suppression declaration"@x-gmeow-english ;
+    skos:definition "Every supplied matchSuppressedBy rule is declared in the matched cue's negatedBy set."@x-gmeow-english ;
+    gmeow:useWhen "Use to check applicable suppression declaration on the retained CueMatch record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Declared applicability does not prove the existence, span or scope of a negating occurrence. Retain that evidence on the suppression assertion or its reifier."@x-gmeow-english ;
+    skos:example "gmeow:CueMatchSuppressionConstraint logic:formalizes gmeow:matchSuppressedBy . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:matchSuppressedBy ;
+    logic:message "Every supplied matchSuppressedBy rule is declared in the matched cue's negatedBy set." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cue" ], [ logic:termIndex 1 ; logic:termVariable "rule" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:matchedCue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "cue" ] ], [ a logic:Formula ; logic:relation gmeow:matchSuppressedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rule" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:negatedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cue" ], [ logic:termIndex 1 ; logic:termVariable "rule" ] ] ] ] ] ] .
+
+gmeow:CueEvalMatchAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "case and match agreement"@x-gmeow-english ;
+    skos:definition "Every match associated with a case names the case's cue and carries the same complete RDF literal as its evalText."@x-gmeow-english ;
+    gmeow:useWhen "Use to check case and match agreement on the retained CueEvalCase record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Shared-variable graph joins preserve literal identity without stripping datatype, language or direction. No equality between matchRecord and the case is required."@x-gmeow-english ;
+    skos:example "gmeow:CueEvalMatchAgreementConstraint logic:formalizes gmeow:evalMatch . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:evalMatch ;
+    logic:message "Every match associated with a case names the case's cue and carries the same complete RDF literal as its evalText." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueEvalCase ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "match" ], [ logic:termIndex 1 ; logic:termVariable "cue" ], [ logic:termIndex 2 ; logic:termVariable "text" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:evalMatch ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "match" ] ], [ a logic:Formula ; logic:relation gmeow:evalCue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "cue" ] ], [ a logic:Formula ; logic:relation gmeow:evalText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:matchedCue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "match" ], [ logic:termIndex 1 ; logic:termVariable "cue" ] ], [ a logic:Formula ; logic:relation gmeow:matchSourceLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "match" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ] ] ] ] .
+
+gmeow:CueJudgementBranchConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "exclusive judgement target branch"@x-gmeow-english ;
+    skos:definition "A CueJudgement selects either a reported match with no judgement offsets, or a case with both missed-span offsets and no judgedMatch. Every supplied observedFeature target must be that same selected judgedMatch or judgedCase target."@x-gmeow-english ;
+    gmeow:useWhen "Use to check exclusive judgement target branch on the retained CueJudgement record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "The branch is a supplied-record contract. It does not certify that a reported occurrence is correct or that a claimed missed occurrence was absent from an external inventory. Shared-variable target membership excludes unrelated observed subjects without requiring a duplicate observedFeature assertion."@x-gmeow-english ;
+    skos:example "gmeow:CueJudgementBranchConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:CueJudgement ;
+    logic:message "A CueJudgement selects either a reported match with no judgement offsets, or a case with both missed-span offsets and no judgedMatch. Every supplied observedFeature target must be that same selected judgedMatch or judgedCase target." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueJudgement ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueJudgement ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "matchTarget" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:judgedMatch ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "matchTarget" ] ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "forbiddenCase" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:judgedCase ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "forbiddenCase" ] ] ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "forbiddenStart" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:spanStart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "forbiddenStart" ] ] ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "forbiddenEnd" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:spanEnd ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "forbiddenEnd" ] ] ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "caseTarget" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:judgedCase ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "caseTarget" ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "missedStart" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:spanStart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "missedStart" ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "missedEnd" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:spanEnd ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "missedEnd" ] ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "forbiddenMatch" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:judgedMatch ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "forbiddenMatch" ] ] ] ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "feature" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "feature" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:judgedMatch ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "feature" ] ], [ a logic:Formula ; logic:relation gmeow:judgedCase ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "feature" ] ] ] ] ] ] ] ] .
+
+gmeow:CueMatchClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "CueMatch closed record"@x-gmeow-english ;
+    skos:definition "A CueMatch record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."@x-gmeow-english ;
+    gmeow:useWhen "Use to check CueMatch closed record on the retained CueMatch record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."@x-gmeow-english ;
+    skos:example "gmeow:CueMatchClosedRecordConstraint logic:formalizes gmeow:CueMatch . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:CueMatch ;
+    logic:message "A CueMatch record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:matchedCue ], [ logic:termIndex 14 ; logic:termIri gmeow:matchRecord ], [ logic:termIndex 15 ; logic:termIri gmeow:matchField ], [ logic:termIndex 16 ; logic:termIri gmeow:matchSourceLiteral ], [ logic:termIndex 17 ; logic:termIri gmeow:spanStart ], [ logic:termIndex 18 ; logic:termIri gmeow:spanEnd ], [ logic:termIndex 19 ; logic:termIri gmeow:matchSuppressedBy ], [ logic:termIndex 20 ; logic:termIri gmeow:matchGrounding ], [ logic:termIndex 21 ; logic:termIri lang:literalValue ] ] ] ] ] ] ] ] .
+
+gmeow:CueEvalCaseClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "CueEvalCase closed record"@x-gmeow-english ;
+    skos:definition "A CueEvalCase record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."@x-gmeow-english ;
+    gmeow:useWhen "Use to check CueEvalCase closed record on the retained CueEvalCase record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."@x-gmeow-english ;
+    skos:example "gmeow:CueEvalCaseClosedRecordConstraint logic:formalizes gmeow:CueEvalCase . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:CueEvalCase ;
+    logic:message "A CueEvalCase record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueEvalCase ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:evalCue ], [ logic:termIndex 14 ; logic:termIri gmeow:evalText ], [ logic:termIndex 15 ; logic:termIri gmeow:evalMatch ] ] ] ] ] ] ] ] .
+
+gmeow:CueJudgementClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "CueJudgement closed record"@x-gmeow-english ;
+    skos:definition "A CueJudgement record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."@x-gmeow-english ;
+    gmeow:useWhen "Use to check CueJudgement closed record on the retained CueJudgement record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a satisfied record law as executed detection, correct suppression, authenticated source text or external inventory completeness."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the supplied record and retain source evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."@x-gmeow-english ;
+    skos:example "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."@x-gmeow-english ;
+    logic:formalizes gmeow:CueJudgement ;
+    logic:message "A CueJudgement record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueJudgement ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:vantage ], [ logic:termIndex 14 ; logic:termIri gmeow:cueVerdict ], [ logic:termIndex 15 ; logic:termIri gmeow:judgedMatch ], [ logic:termIndex 16 ; logic:termIri gmeow:judgedCase ], [ logic:termIndex 17 ; logic:termIri gmeow:spanStart ], [ logic:termIndex 18 ; logic:termIri gmeow:spanEnd ], [ logic:termIndex 19 ; logic:termIri gmeow:observedFeature ], [ logic:termIndex 20 ; logic:termIri gmeow:observedAt ], [ logic:termIndex 21 ; logic:termIri gmeow:observationMethod ], [ logic:termIndex 22 ; logic:termIri gmeow:observationResult ] ] ] ] ] ] ] ] .

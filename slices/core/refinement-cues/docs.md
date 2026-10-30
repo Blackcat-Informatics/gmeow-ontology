@@ -138,3 +138,77 @@ negation declarations. The digest covers that payload's exact UTF-8 bytes,
 including its final newline. The scene retains the earlier artifact's identity
 and digest rather than rewriting the prior release. It claims no executed
 matching, suppression or review.
+
+## Retained occurrences and evaluation inputs
+
+A `CueMatch` reports one detected occurrence using `matchedCue`, the actual
+`matchRecord` and `matchField`, and one complete `matchSourceLiteral`. The last
+property specializes `lang:literalValue`: preserve lexical form, datatype,
+language and RDF 1.2 base direction, including when a source field has several
+literals. The source-membership law joins that complete RDF term to the actual
+record and predicate. It does not replace the literal with its `STR` value,
+force a Document or SurfaceForm type, or invent a source anchor.
+
+Reuse zero-based `spanStart` and `spanEnd` as a nonempty half-open interval in
+the original literal's Unicode code points. Supply both as explicitly typed
+`xsd:nonNegativeInteger` values. Do not use bytes, UTF-16 units, grapheme
+clusters or offsets into normalized text. Numeric order is checked; the required
+end-within-original-literal-length bound and authentication of the selected
+substring remain consumer matching contracts, not capabilities supplied by
+these structural laws.
+
+`matchSuppressedBy` names every applicable `CueNegation` declaration from the
+matched cue's `negatedBy` set. Retain any actual negating-occurrence evidence
+through `wasDerivedFrom` on the RDF 1.2 suppression assertion or its reifier.
+This keeps the rule and the occurrence distinct. Declaration membership does
+not prove that a negator actually existed or satisfied the declared scope.
+`matchGrounding` independently reports exactly one of `verdictHeld` and
+`verdictNotHeld`; a suppressed occurrence may still be grounded. Retain the
+detected report in either state. An execution failure is not a not-held result.
+
+A `CueEvalCase` selects one `evalCue` and one complete language-bearing
+`evalText`, accepting both ordinary and directional RDF 1.2 language strings.
+`evalMatch` retains all reported occurrences for that cue and exact literal,
+including suppressed and ungrounded reports. The set may be empty. Its members
+must agree with the case's cue and complete literal; their `matchRecord` remains
+the actual source and need not be the case. These links do not certify that an
+external detector reported every occurrence.
+
+## Attributed detector judgements
+
+`CueJudgement` is an `Observation` SubKind with explicit required `vantage`
+and exactly one `cueVerdict`. Use the existing held, not-held and undetermined
+values through this dedicated property; generic `evaluationVerdict` belongs to
+ConditionEvaluation. The judging vantage remains independent of source
+authorship and can include joint agents or standpoints. No new functionality
+restriction is imposed on `vantage`.
+
+Choose exactly one target branch. A reported-match judgement uses `judgedMatch`
+and carries no judgement offsets, because its target already retains its span.
+A missed-occurrence judgement uses `judgedCase` and supplies both nonempty
+half-open offsets into that case's `evalText`. Both target properties specialize
+`observedFeature`, so the observed subject is the report or case, never a
+diagnosed source person. Judgements assess the detector against the cue's
+guidance; disagreement can coexist as separate attributed observations.
+
+Record predicate allowlists admit the declared report fields, standard
+descriptions, attribution and supplied version/digest/source provenance;
+judgements also admit ordinary observation time, method and result. Richer
+occurrence evidence can remain on separate RDF 1.2 statement reifiers. When
+supplied, retain the exact cue release and original source artifact/version
+identity through their existing owners. A digest of a match report does not
+identify its input, and the model introduces no mandatory artifact subsystem.
+
+The [ordinary declaration scene](examples/matches-and-judgements.ttl) retains
+a suppressed grounded report, an ungrounded report, their shared multivalued
+source field, and both judgement branches. It references the unchanged version
+two cue payload and review scene. These are synthetic declarations, not executed
+evaluation results or an executable case suite.
+
+Canonical laws check field/source membership, offset order, declared suppression
+applicability, case/report agreement, judgement branches and closed record
+predicates. They do not execute detection, grounding, segmentation or suppression,
+authenticate substring offsets, or prove external inventory completeness. A
+selected operation requiring those capabilities must supply them or fail
+explicitly; a successful declaration check cannot replace them (Principles 4,
+9, 11 and 17).

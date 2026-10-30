@@ -640,3 +640,387 @@ msgstr "谓词封闭单独检查提供的记录字段，不替代必需路径封
 msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."
 msgstr "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Match"
+msgstr "线索匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained report of one detected cue occurrence in one complete source literal, with its original record, field and half-open Unicode code-point span. Suppression and grounding are independent reported dimensions; neither makes the occurrence a verdict about its source author."
+msgstr "保留的一次检测到的线索出现报告，定位于一个完整来源字面量，并携带原记录、字段及原始 Unicode 码点半开区间。抑制与落地是独立的报告维度；二者均不使该出现成为对来源作者的裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One record and field may contain several literal values; the selected complete literal disambiguates the occurrence. A structurally valid report does not authenticate a match or its offsets."
+msgstr "同一记录和字段可包含多个字面量值；所选完整字面量消除出现位置的歧义。结构有效的报告不认证匹配或其偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit a gmeow:CueMatch ; gmeow:matchedCue ex:cue . starts an occurrence report; its source, span and grounding fields are also required."
+msgstr "ex:hit a gmeow:CueMatch ; gmeow:matchedCue ex:cue . 开始一份出现报告；来源、区间和落地字段也必须提供。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched cue"
+msgstr "匹配的线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact Cue declaration whose occurrence this match reports."
+msgstr "该匹配报告其出现的确切 Cue 声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one cue per match, with the owning match's local required path and maximum. This relation does not establish cue release membership."
+msgstr "每个匹配恰有一个线索，由匹配自身的局部必需路径和上限约束。此关系不确立线索的发布版本成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchedCue ex:cue . identifies a declaration, not an asserted reading."
+msgstr "ex:hit gmeow:matchedCue ex:cue . 标识声明，而非被断言的解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match record"
+msgstr "匹配记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original source record carrying the selected literal under matchField. Its actual RDF identity is retained without requiring a Document type or an invented anchor."
+msgstr "通过 matchField 承载所选字面量的原始来源记录。保留其实际 RDF 身份，不要求 Document 类型或虚构锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One record is selected per match. Source authorship and version identity remain separate provenance; the match report's digest cannot substitute for source identity."
+msgstr "每个匹配选定一条记录。来源作者及版本身份仍属独立溯源；匹配报告的摘要不能替代来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchRecord ex:source . preserves the source rather than renaming it as a case."
+msgstr "ex:hit gmeow:matchRecord ex:source . 保留来源，而非将其重命名为案例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match field"
+msgstr "匹配字段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual property IRI under which matchRecord supplies matchSourceLiteral. The field names a predicate; it is not a prose field label."
+msgstr "matchRecord 提供 matchSourceLiteral 所用的实际属性 IRI。字段指定谓词，而非文字字段标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Field identity is required and bounded locally on CueMatch. The source-membership law reads the property dynamically without imposing a new global domain on it."
+msgstr "字段身份在 CueMatch 上局部必需且受限。来源成员关系定律动态读取该属性，不为其施加新全局定义域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchField gmeow:description . selects the original description predicate."
+msgstr "ex:hit gmeow:matchField gmeow:description . 选择原始描述谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match source literal"
+msgstr "匹配来源字面量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete original RDF literal selected from matchRecord and matchField, retaining lexical form, datatype, language and base direction. Offsets refer to its unmodified lexical form."
+msgstr "由 matchRecord 和 matchField 选定的完整原始 RDF 字面量，保留词法形式、数据类型、语言及基础方向。偏移指向其未修改的词法形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The whole literal is selected, not just the occurrence text. Shared-term source and case joins preserve RDF literal identity rather than numeric value equality."
+msgstr "选择整个字面量，而非仅出现文本。来源和案例的共享项连接保留 RDF 字面量身份，而非数字值相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchSourceLiteral \"cannot continue\"@en . retains the language-bearing source term."
+msgstr "ex:hit gmeow:matchSourceLiteral \"cannot continue\"@en . 保留带语言标记的来源项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match suppressed by"
+msgstr "匹配被何者抑制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An applicable CueNegation declaration reported to suppress this detected match. It identifies the rule, while actual negating occurrence evidence may be retained on the RDF 1.2 assertion or its reifier through wasDerivedFrom."
+msgstr "报告为抑制此检测匹配的适用 CueNegation 声明。它标识规则；实际否定出现证据可通过 wasDerivedFrom 保留于 RDF 1.2 断言或其重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and independent of matchGrounding. Structural applicability checks the declared cue-to-rule link, not whether a real negator satisfies the rule's sentence or window scope."
+msgstr "可多值且独立于 matchGrounding。结构适用性检查声明的线索到规则链接，不验证实际否定项是否满足句子或窗口作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchSuppressedBy ex:negation . retains a rule reference without deleting ex:hit."
+msgstr "ex:hit gmeow:matchSuppressedBy ex:negation . 保留规则引用，而不删除 ex:hit。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match grounding"
+msgstr "匹配落地结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported grounding outcome of this detected match, restricted locally to verdictHeld or verdictNotHeld. It is independent of suppression and is not an evaluation of the source person."
+msgstr "该检测匹配所报告的落地结果，局部限定为 verdictHeld 或 verdictNotHeld。它独立于抑制，不是对来源人物的评价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one of the two admitted outcomes is required per match. Undetermined belongs to cue judgements, not this local grounding outcome contract."
+msgstr "每个匹配必须具有两个允许结果之一。未确定属于线索判断，不属于此局部落地结果契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchGrounding gmeow:verdictNotHeld . reports non-grounding without retracting the occurrence."
+msgstr "ex:hit gmeow:matchGrounding gmeow:verdictNotHeld . 报告未落地，而不撤回该出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Evaluation Case"
+msgstr "线索评估案例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained evaluation input for one cue and one complete language-bearing text literal, with every match reported for that input, including suppressed and ungrounded matches. An empty reported-match set is legal."
+msgstr "为一个线索及一个完整带语言标记文本字面量保留的评估输入，包含该输入报告的所有匹配，包括被抑制和未落地的匹配。允许报告匹配集合为空。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Case links constrain associated reports to the same cue and complete literal. They neither require matchRecord to equal the case nor certify that an external detector supplied every occurrence."
+msgstr "案例链接约束关联报告使用相同线索及完整字面量。它们既不要求 matchRecord 等于案例，也不认证外部检测器提供了每次出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case a gmeow:CueEvalCase ; gmeow:evalCue ex:cue ; gmeow:evalText \"cannot continue\"@en . is an input declaration even without evalMatch."
+msgstr "ex:case a gmeow:CueEvalCase ; gmeow:evalCue ex:cue ; gmeow:evalText \"cannot continue\"@en . 即使无 evalMatch 也是输入声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluated cue"
+msgstr "被评估线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one Cue declaration selected for this evaluation case."
+msgstr "此评估案例选定的唯一 Cue 声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Associated evalMatch values must name this same cue through matchedCue. This does not select a preferred judgement."
+msgstr "关联 evalMatch 值必须通过 matchedCue 指定此相同线索。这不选择优先判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case gmeow:evalCue ex:cue . selects the evaluation's declaration."
+msgstr "ex:case gmeow:evalCue ex:cue . 选择评估所用声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluation text"
+msgstr "评估文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete text literal offered for this cue evaluation, retaining its language and any RDF 1.2 base direction without normalization."
+msgstr "提供给此线索评估的完整文本字面量，不经规范化地保留其语言及任何 RDF 1.2 基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Associated matchSourceLiteral terms must equal this complete RDF term by shared-term membership. A lexical copy with another language or direction is a different input."
+msgstr "关联的 matchSourceLiteral 项必须通过共享项成员关系指向此完整 RDF 项。词法相同但语言或方向不同的副本是不同输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case gmeow:evalText \"cannot continue\"@en . retains the input independently of its source record."
+msgstr "ex:case gmeow:evalText \"cannot continue\"@en . 独立于来源记录保留输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported evaluation match"
+msgstr "报告的评估匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A detected match reported for this case's cue and complete text, whether counted, suppressed or ungrounded."
+msgstr "为此案例的线索及完整文本报告的检测匹配，无论已计入、被抑制还是未落地。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No match membership is required and there is no single-value bound. Completeness of an external reported inventory is a consumer obligation, not entailed by these links."
+msgstr "不要求存在匹配成员，也不施加单值上限。外部报告清单的完整性是消费者义务，不由这些链接蕴涵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case gmeow:evalMatch ex:hit . retains the occurrence even when ex:hit has matchSuppressedBy."
+msgstr "ex:case gmeow:evalMatch ex:hit . 即使 ex:hit 带有 matchSuppressedBy 也保留该出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Judgement"
+msgstr "线索判断"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation judging either one reported CueMatch or one missed nonempty span in a CueEvalCase. It measures the detector against cue guidance, never the person whose words supplied the input."
+msgstr "一种有归属的 Observation，判断一个报告的 CueMatch 或一个 CueEvalCase 中被漏检的非空区间。它依据线索指南衡量检测器，而非提供输入话语的人。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reported-match branch carries no judgement offsets; its target already has a span. The missed-case branch carries its own span in evalText. Separate judgements may disagree without replacing each other."
+msgstr "报告匹配分支不携带判断偏移，其目标已有区间。漏检案例分支在 evalText 中携带自身区间。不同判断可并存分歧而不互相替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement a gmeow:CueJudgement ; gmeow:judgedMatch ex:hit ; gmeow:vantage ex:judge ; gmeow:cueVerdict gmeow:verdictUndetermined . retains an unresolved detector judgement."
+msgstr "ex:judgement a gmeow:CueJudgement ; gmeow:judgedMatch ex:hit ; gmeow:vantage ex:judge ; gmeow:cueVerdict gmeow:verdictUndetermined . 保留未确定的检测器判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue judgement verdict"
+msgstr "线索判断裁决"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The judge's held, not-held or undetermined outcome for the selected detector report or missed-span claim, using the existing EvaluationVerdict values."
+msgstr "判断者对所选检测报告或漏检区间声明给出的成立、不成立或未确定结果，使用现有 EvaluationVerdict 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "All three existing verdict values are admitted locally. This property does not specialize evaluationVerdict, whose domain belongs to ConditionEvaluation."
+msgstr "局部允许现有三种裁决值。此属性不特化 evaluationVerdict，其定义域属于 ConditionEvaluation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement gmeow:cueVerdict gmeow:verdictHeld . records the judge's outcome, not speaker truth."
+msgstr "ex:judgement gmeow:cueVerdict gmeow:verdictHeld . 记录判断结果，而非说话者的真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "judged match"
+msgstr "被判断匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual reported CueMatch observed by a CueJudgement in its reported-match branch. It specializes observedFeature."
+msgstr "CueJudgement 在报告匹配分支中观察的实际报告 CueMatch。此属性特化 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The observed target is the detector report, not its source person. The generic vantage relation remains multi-valued."
+msgstr "观察目标是检测器报告，而非来源人物。通用 vantage 关系仍可多值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement gmeow:judgedMatch ex:hit . observes the retained report."
+msgstr "ex:judgement gmeow:judgedMatch ex:hit . 观察保留的报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "judged missed-match case"
+msgstr "被判断的漏检案例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual CueEvalCase observed by a CueJudgement reporting a missed occurrence through its own spanStart and spanEnd in the case's evalText. It specializes observedFeature."
+msgstr "CueJudgement 报告漏检出现时观察的实际 CueEvalCase，使用判断自身的 spanStart 和 spanEnd 定位于案例 evalText。此属性特化 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This branch excludes judgedMatch and requires both judgement offsets. It does not assert that a detector reported the missed occurrence or that ontology validation searched the text."
+msgstr "此分支排除 judgedMatch 并要求判断的两个偏移。它不断言检测器报告了该漏检出现，也不断言本体校验搜索了文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement gmeow:judgedCase ex:case . selects the case; both typed nonnegative offsets must also be supplied."
+msgstr "ex:judgement gmeow:judgedCase ex:case . 选择案例；还必须提供两个类型为非负整数的偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match source membership"
+msgstr "匹配来源成员关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every CueMatch field is a declared property IRI, and its original record carries the selected complete literal under that actual field."
+msgstr "每个 CueMatch 字段均为已声明属性 IRI，且其原记录通过该实际字段承载所选完整字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The shared literal term preserves datatype, language and direction. This checks supplied source membership, not whether the cue actually occurs in that literal."
+msgstr "共享字面量项保留数据类型、语言和方向。此检查验证所提供的来源成员关系，不验证线索实际出现在字面量中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchSourceConstraint logic:formalizes gmeow:matchSourceLiteral . names the supplied-record law."
+msgstr "gmeow:CueMatchSourceConstraint logic:formalizes gmeow:matchSourceLiteral . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match span order"
+msgstr "匹配区间顺序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied match interval has start strictly below end; local datatype restrictions require nonnegative integer offsets."
+msgstr "每个所提供的匹配区间的起点严格小于终点；局部数据类型约束要求非负整数偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks order, not the upper bound against literal length, substring authenticity, segmentation or successful detection."
+msgstr "此检查验证顺序，不验证相对于字面量长度的上限、子串真实性、分段或检测成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchSpanOrderConstraint logic:formalizes gmeow:spanEnd . names the supplied-record law."
+msgstr "gmeow:CueMatchSpanOrderConstraint logic:formalizes gmeow:spanEnd . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "judgement span order"
+msgstr "判断区间顺序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied judgement interval has start strictly below end; local datatype restrictions require nonnegative integer offsets."
+msgstr "每个所提供的判断区间的起点严格小于终点；局部数据类型约束要求非负整数偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks order, not the upper bound against literal length, substring authenticity, segmentation or successful detection."
+msgstr "此检查验证顺序，不验证相对于字面量长度的上限、子串真实性、分段或检测成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueJudgementSpanOrderConstraint logic:formalizes gmeow:spanEnd . names the supplied-record law."
+msgstr "gmeow:CueJudgementSpanOrderConstraint logic:formalizes gmeow:spanEnd . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applicable suppression declaration"
+msgstr "适用抑制声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied matchSuppressedBy rule is declared in the matched cue's negatedBy set."
+msgstr "每个所提供的 matchSuppressedBy 规则均在匹配线索的 negatedBy 集合中声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Declared applicability does not prove the existence, span or scope of a negating occurrence. Retain that evidence on the suppression assertion or its reifier."
+msgstr "声明适用性不证明否定出现的存在、区间或作用域。应在抑制断言或其重化记录上保留该证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchSuppressionConstraint logic:formalizes gmeow:matchSuppressedBy . names the supplied-record law."
+msgstr "gmeow:CueMatchSuppressionConstraint logic:formalizes gmeow:matchSuppressedBy . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "case and match agreement"
+msgstr "案例与匹配一致性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every match associated with a case names the case's cue and carries the same complete RDF literal as its evalText."
+msgstr "每个与案例关联的匹配均指定该案例的线索，并承载与其 evalText 相同的完整 RDF 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Shared-variable graph joins preserve literal identity without stripping datatype, language or direction. No equality between matchRecord and the case is required."
+msgstr "共享变量图连接保留字面量身份，不剥离数据类型、语言或方向。不要求 matchRecord 与案例相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueEvalMatchAgreementConstraint logic:formalizes gmeow:evalMatch . names the supplied-record law."
+msgstr "gmeow:CueEvalMatchAgreementConstraint logic:formalizes gmeow:evalMatch . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exclusive judgement target branch"
+msgstr "互斥判断目标分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueJudgement selects either a reported match with no judgement offsets, or a case with both missed-span offsets and no judgedMatch. Every supplied observedFeature target must be that same selected judgedMatch or judgedCase target."
+msgstr "CueJudgement 选择报告匹配且不携带判断偏移，或选择案例并携带两个漏检区间偏移且没有 judgedMatch。 每个所提供的 observedFeature 目标必须是同一个已选 judgedMatch 或 judgedCase 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The branch is a supplied-record contract. It does not certify that a reported occurrence is correct or that a claimed missed occurrence was absent from an external inventory. Shared-variable target membership excludes unrelated observed subjects without requiring a duplicate observedFeature assertion."
+msgstr "此分支是所提供记录的契约。不认证报告出现的正确性，也不认证声称漏检的出现在外部清单中缺失。 共享变量目标成员关系排除无关的观察对象，而不要求重复断言 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueJudgementBranchConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."
+msgstr "gmeow:CueJudgementBranchConstraint logic:formalizes gmeow:CueJudgement . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueMatch closed record"
+msgstr "CueMatch封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueMatch record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."
+msgstr "CueMatch 记录仅使用其声明字段以及允许的类型、归属、溯源和描述元数据谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."
+msgstr "谓词封闭性不同于必需路径和值约束。独立的 RDF 1.2 语句重化记录可携带更丰富证据，而不向封闭记录添加未知字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchClosedRecordConstraint logic:formalizes gmeow:CueMatch . names the supplied-record law."
+msgstr "gmeow:CueMatchClosedRecordConstraint logic:formalizes gmeow:CueMatch . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueEvalCase closed record"
+msgstr "CueEvalCase封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueEvalCase record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."
+msgstr "CueEvalCase 记录仅使用其声明字段以及允许的类型、归属、溯源和描述元数据谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."
+msgstr "谓词封闭性不同于必需路径和值约束。独立的 RDF 1.2 语句重化记录可携带更丰富证据，而不向封闭记录添加未知字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueEvalCaseClosedRecordConstraint logic:formalizes gmeow:CueEvalCase . names the supplied-record law."
+msgstr "gmeow:CueEvalCaseClosedRecordConstraint logic:formalizes gmeow:CueEvalCase . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueJudgement closed record"
+msgstr "CueJudgement封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueJudgement record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."
+msgstr "CueJudgement 记录仅使用其声明字段以及允许的类型、归属、溯源和描述元数据谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."
+msgstr "谓词封闭性不同于必需路径和值约束。独立的 RDF 1.2 语句重化记录可携带更丰富证据，而不向封闭记录添加未知字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."
+msgstr "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . 指定所提供记录的定律。"
