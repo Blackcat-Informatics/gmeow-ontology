@@ -202,8 +202,8 @@ msgid "Read the record's own logic: fields together: they name gmeow:GTSSegment 
 msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:GTSSegment 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentHeadKey|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."
-msgstr "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."
+msgid "gmeow:gtsSegmentHeadKey logic:keyClass gmeow:GTSSegment ; logic:keyProperty gmeow:gtsHeadId ."
+msgstr "键节点指明其类及键属性：`gmeow:gtsSegmentHeadKey logic:keyClass gmeow:GTSSegment ; logic:keyProperty gmeow:gtsHeadId .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:codecClass and nothing else. It is not a definition of gmeow:codecClass (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."

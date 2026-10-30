@@ -1507,24 +1507,24 @@ msgid "Chain Complex"
 msgstr "链复形"
 
 msgctxt "https://blackcatinformatics.ca/math/ChainComplex|skos:definition"
-msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."
-msgstr "由边界映射连接的分次模序列，其中任意相邻映射的复合为零。 它不只是一个分次集合：边界映射的平方为零定律是其构成条件。"
+msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive. That square-zero condition ∂∘∂ = 0 is authored in machine form as the first-order logic:Formula math:boundarySquareZeroLaw (math:definingLaw), scoped to regular/simplicial complexes as the combinatorial diamond involution; the general-CW per-instance finite sum is enforced by math:GeneralBoundarySquareZeroConstraint, and the universal class law is the honest boundary math:cellBoundarySumBoundary. It names its boundary operator through math:chainBoundary."
+msgstr "由边界映射连接的分次模序列，其中任意相邻映射的复合为零。它不只是分次集合：边界的平方为零定律是其构成条件。该条件 ∂∘∂ = 0 以机器形式写成一阶 logic:Formula math:boundarySquareZeroLaw（math:definingLaw），作为组合菱形对合而限定于正则复形或单纯复形；一般 CW 复形上逐实例的有限求和由 math:GeneralBoundarySquareZeroConstraint 强制执行，而普遍类定律则以 math:cellBoundarySumBoundary 如实记录为表达能力边界。复形通过 math:chainBoundary 指明其边界算子。"
 
 msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|rdfs:label"
 msgid "Boundary Operator"
 msgstr "边界算子"
 
 msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|skos:definition"
-msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."
-msgstr "链复形上降一次的平方为零运算，其同调记录模去边界后的闭链。 它不是一般导数，也不是无类型的几何边界运算。"
+msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation. Its square-is-zero condition ∂∘∂ = 0 is authored in machine form as the first-order logic:Formula math:boundarySquareZeroLaw (math:definingLaw); the coboundary is its adjoint (math:boundaryCoboundaryAdjunctionLaw, δ = ∂*)."
+msgstr "链复形上降一次的平方为零运算，其同调记录闭链模边界的商类。它不是一般导数，也不是无类型的几何边界运算。其平方为零条件 ∂∘∂ = 0 以机器形式写成一阶 logic:Formula math:boundarySquareZeroLaw（math:definingLaw）；上边界是其伴随（math:boundaryCoboundaryAdjunctionLaw，δ = ∂*）。"
 
 msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|rdfs:label"
 msgid "Coboundary Operator"
 msgstr "上边缘算子"
 
 msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|skos:definition"
-msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."
-msgstr "上链复形上升一次的平方为零运算，与边界算子对偶。 它不是任意的 delta 算子：上链分次与平方为零定律是必需条件。"
+msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required. Its square-is-zero condition δ∘δ = 0 is authored in machine form as the first-order logic:Formula math:coboundarySquareZeroLaw (math:definingLaw), the transposed dual of the boundary law; it is the adjoint of the boundary operator (math:coboundaryAdjoint, math:boundaryCoboundaryAdjunctionLaw)."
+msgstr "上链复形上升一次的平方为零运算，与边界算子对偶。它不是任意的 delta 算子：上链分次与平方为零定律是必需条件。其平方为零条件 δ∘δ = 0 以机器形式写成一阶 logic:Formula math:coboundarySquareZeroLaw（math:definingLaw），是边界定律的转置对偶；它是边界算子的伴随（math:coboundaryAdjoint、math:boundaryCoboundaryAdjunctionLaw）。"
 
 msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|rdfs:label"
 msgid "Vietoris–Rips Complex"
@@ -1683,8 +1683,8 @@ msgid "Cellular Sheaf"
 msgstr "胞腔层"
 
 msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|skos:definition"
-msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation."
-msgstr "胞腔复形上的层，为每个胞腔赋予茎，并为每个面关系赋予兼容限制映射。"
+msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation. Unlike a constant sheaf, its stalks and restriction maps may differ from cell to cell, and it is not merely the underlying cell complex, which carries no stalk data."
+msgstr "胞腔复形上的层，为每个胞腔赋予茎，并为每个面关系赋予兼容的限制映射。与常值层不同，其茎和限制映射可以随胞腔而异；它也不只是底层胞腔复形，因为后者不携带茎数据。"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafStalk|rdfs:label"
 msgid "Sheaf Stalk"
@@ -1699,8 +1699,8 @@ msgid "Restriction Map"
 msgstr "限制映射"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|skos:definition"
-msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."
-msgstr "沿包含或关联关系在层茎间传输局部数据并服从恒等与复合律的层态射。"
+msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws. Its ACTION on a specific source stalk value — the concrete image the map sends that value to, identity for a math:ConstantSheaf but genuinely non-identity in general — is reified per declared value through math:restrictionImage, so gluing consistency (math:SectionGluingConsistencyConstraint) can be checked against the map's actual transport rather than assumed identity."
+msgstr "沿包含或关联关系在层茎间传输局部数据、并服从恒等与复合律的层态射。它对特定源茎值的作用——该值经映射得到的具体像，对 math:ConstantSheaf 为恒等，但一般情形确实可以非恒等——通过 math:restrictionImage 为每个已声明值显式表示为记录。因此，粘合一致性（math:SectionGluingConsistencyConstraint）可以根据映射的实际传输核验，而不是假定其为恒等。"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafSection|rdfs:label"
 msgid "Sheaf Section"
@@ -1723,8 +1723,8 @@ msgid "Sheaf Laplacian"
 msgstr "层拉普拉斯算子"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|skos:definition"
-msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data."
-msgstr "由胞腔层上边缘映射与内积构造、度量局部数据不兼容性的拉普拉斯算子。"
+msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data. Unlike a scalar graph Laplacian, it acts on sheaf-valued cochains through the declared restriction maps, not on plain vertex functions."
+msgstr "由胞腔层的上边界映射与内积构造、度量局部数据不兼容性的拉普拉斯算子。与标量图拉普拉斯算子不同，它通过已声明的限制映射作用于层值上链，而不是普通的顶点函数。"
 
 msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|rdfs:label"
 msgid "Hodge Laplacian"
@@ -1739,8 +1739,8 @@ msgid "Hodge Decomposition"
 msgstr "Hodge 分解"
 
 msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|skos:definition"
-msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products."
-msgstr "在已声明内积下将链、上链或流正交分解为恰当、余恰当和调和分量。"
+msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products. Unlike an arbitrary direct sum, its three components are mutually orthogonal and the harmonic part is uniquely determined, not freely chosen."
+msgstr "在已声明内积下，将链、上链或流正交分解为恰当、余恰当和调和分量。与任意直和不同，这三个分量两两正交，调和部分由条件唯一确定，而不是自由选择。"
 
 msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|rdfs:label"
 msgid "Harmonic Component"
@@ -1835,16 +1835,16 @@ msgid "Information Entropy"
 msgstr "信息熵"
 
 msgctxt "https://blackcatinformatics.ca/math/Entropy|skos:definition"
-msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame."
-msgstr "已声明概率分布的不确定性测度，其对数底和单位属于框架。"
+msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame. Unlike math:CrossEntropy or math:KullbackLeiblerDivergence, it scores a single distribution against itself, not one distribution against a separate reference distribution."
+msgstr "已声明概率分布的不确定性的信息测度，其对数底和单位属于框架。与 math:CrossEntropy 或 math:KullbackLeiblerDivergence 不同，它评价单个分布相对于自身的情况，而不是一个分布相对于另一参照分布的情况。"
 
 msgctxt "https://blackcatinformatics.ca/math/MutualInformation|rdfs:label"
 msgid "Mutual Information"
 msgstr "互信息"
 
 msgctxt "https://blackcatinformatics.ca/math/MutualInformation|skos:definition"
-msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence."
-msgstr "联合分布与其边缘分布乘积之间的散度，用以度量统计依赖。"
+msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence. It is not a math:Distance: it vanishes exactly when the variables are independent and is never negative, but it does not obey the triangle inequality."
+msgstr "联合分布与其边缘分布乘积之间的散度，用以度量统计依赖。它不是 math:Distance：当且仅当变量独立时为零，且从不为负，但不满足三角不等式。"
 
 msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|rdfs:label"
 msgid "Kullback–Leibler Divergence"
@@ -1859,8 +1859,8 @@ msgid "Cross Entropy"
 msgstr "交叉熵"
 
 msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|skos:definition"
-msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another."
-msgstr "一个已声明分布赋予从另一分布抽取结果的负对数似然期望。"
+msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another. Unlike math:Entropy, it scores a model distribution against a separate data distribution and is therefore never below that data distribution's own entropy; unlike math:KullbackLeiblerDivergence, it keeps that irreducible entropy term rather than subtracting it out."
+msgstr "一个已声明分布赋予从另一分布抽取结果的负对数似然期望。与 math:Entropy 不同，它以另行指定的数据分布为参照评价模型分布，因此绝不低于该数据分布自身的熵；与 math:KullbackLeiblerDivergence 不同，它保留这一不可约的熵项，而不是将其减去。"
 
 msgctxt "https://blackcatinformatics.ca/math/FisherInformation|rdfs:label"
 msgid "Fisher Information"
@@ -1980,7 +1980,7 @@ msgstr "在层上"
 
 msgctxt "https://blackcatinformatics.ca/math/overSheaf|skos:definition"
 msgid "Relates a Hodge decomposition to the cellular sheaf whose sheaf Laplacian and coboundary maps define its exact, coexact, and harmonic subspaces. Domain math:HodgeDecomposition, range math:CellularSheaf (stated in prose). The carrier is part of the decomposition's frame, never implicit; a decomposition missing it is ill-formed (math:IncompleteHodgeDecomposition)."
-msgstr "将霍奇分解关联到其所在的胞腔层，该层的层拉普拉斯算子与上边缘映射定义其恰当、上恰当与调和子空间。定义域 math:HodgeDecomposition，值域 math:CellularSheaf（以散文陈述）。该载体是分解框架的组成部分，绝非隐式；缺少它的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+msgstr "将霍奇分解关联到其所在的胞腔层，该层的层拉普拉斯算子与上边缘映射定义其恰当、余恰当与调和子空间。定义域 math:HodgeDecomposition，值域 math:CellularSheaf（以散文陈述）。该载体是分解框架的组成部分，绝非隐式；缺少它的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
 
 msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|rdfs:label"
 msgid "Hodge boundary operator"
@@ -1988,7 +1988,7 @@ msgstr "霍奇边缘算子"
 
 msgctxt "https://blackcatinformatics.ca/math/hodgeBoundaryOperator|skos:definition"
 msgid "Relates a Hodge decomposition to the boundary operator whose image is the exact component and whose adjoint's image is the coexact component. Domain math:HodgeDecomposition, range math:BoundaryOperator (stated in prose). The operator is constitutive of the decomposition — the exact/coexact split is defined relative to it; a decomposition whose boundary operator is omitted or wrongly typed is ill-formed (math:IncompleteHodgeDecomposition)."
-msgstr "将霍奇分解关联到其边缘算子，该算子的像是恰当分量、其伴随的像是上恰当分量。定义域 math:HodgeDecomposition，值域 math:BoundaryOperator（以散文陈述）。该算子是分解的构成要素——恰当/上恰当的分离相对于它而定义；边缘算子被省略或类型错误的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
+msgstr "将霍奇分解关联到其边缘算子，该算子的像是恰当分量、其伴随的像是余恰当分量。定义域 math:HodgeDecomposition，值域 math:BoundaryOperator（以散文陈述）。该算子是分解的构成要素——恰当/余恰当的分离相对于它而定义；边缘算子被省略或类型错误的分解是不良构成的（math:IncompleteHodgeDecomposition）。"
 
 msgctxt "https://blackcatinformatics.ca/math/exactComponent|rdfs:label"
 msgid "exact component"
@@ -2004,7 +2004,7 @@ msgstr "余恰当分量"
 
 msgctxt "https://blackcatinformatics.ca/math/coexactComponent|skos:definition"
 msgid "Relates a Hodge decomposition to its coexact component — the part lying in the image of the adjoint boundary or coboundary operator. Domain math:HodgeDecomposition, range math:CoexactComponent (stated in prose)."
-msgstr "将霍奇分解关联到其上恰当分量——位于伴随边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:CoexactComponent（以散文陈述）。"
+msgstr "将霍奇分解关联到其余恰当分量——位于伴随边缘算子或上边缘算子像中的部分。定义域 math:HodgeDecomposition，值域 math:CoexactComponent（以散文陈述）。"
 
 msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|rdfs:label"
 msgid "harmonic component"
@@ -2012,7 +2012,7 @@ msgstr "调和分量"
 
 msgctxt "https://blackcatinformatics.ca/math/harmonicComponent|skos:definition"
 msgid "Relates a Hodge decomposition to its harmonic component — the part lying in the kernel of the applicable Hodge Laplacian, orthogonal to both the exact and coexact parts. Domain math:HodgeDecomposition, range math:HarmonicComponent (stated in prose)."
-msgstr "将霍奇分解关联到其调和分量——位于适用霍奇拉普拉斯算子核中的部分，与恰当与上恰当部分皆正交。定义域 math:HodgeDecomposition，值域 math:HarmonicComponent（以散文陈述）。"
+msgstr "将霍奇分解关联到其调和分量——位于适用霍奇拉普拉斯算子核中的部分，与恰当与余恰当部分皆正交。定义域 math:HodgeDecomposition，值域 math:HarmonicComponent（以散文陈述）。"
 
 msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|rdfs:label"
 msgid "reconstruction residual"
@@ -2020,15 +2020,15 @@ msgstr "重构残差"
 
 msgctxt "https://blackcatinformatics.ca/math/reconstructionResidual|skos:definition"
 msgid "Relates a Hodge decomposition to the exact math:RationalValue of the residual norm of its reconstruction — the signal minus the sum of its exact, coexact, and harmonic components. The Hodge decomposition theorem makes this residual exactly zero, carried as the exact pair 0/1, never a decimal; a non-zero residual would witness a failed reconstruction. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
-msgstr "将霍奇分解关联到其重构残差范数的精确 math:RationalValue——信号减去其恰当、上恰当与调和分量之和。霍奇分解定理使该残差恰好为零，以精确对 0/1 携带，绝非小数；非零残差将见证重构失败。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+msgstr "将霍奇分解关联到其重构残差范数的精确 math:RationalValue——信号减去其恰当、余恰当与调和分量之和。霍奇分解定理使该残差恰好为零，以精确对 0/1 携带，绝非小数；非零残差将见证重构失败。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
 
 msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|rdfs:label"
 msgid "exact–coexact inner product"
-msgstr "恰当–上恰当内积"
+msgstr "恰当–余恰当内积"
 
 msgctxt "https://blackcatinformatics.ca/math/exactCoexactInnerProduct|skos:definition"
 msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨exact, coexact⟩ of its exact and coexact components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
-msgstr "将霍奇分解关联到其恰当与上恰当分量内积 ⟨exact, coexact⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+msgstr "将霍奇分解关联到其恰当与余恰当分量内积 ⟨exact, coexact⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
 
 msgctxt "https://blackcatinformatics.ca/math/exactHarmonicInnerProduct|rdfs:label"
 msgid "exact–harmonic inner product"
@@ -2040,11 +2040,11 @@ msgstr "将霍奇分解关联到其恰当与调和分量内积 ⟨exact, harmoni
 
 msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|rdfs:label"
 msgid "coexact–harmonic inner product"
-msgstr "上恰当–调和内积"
+msgstr "余恰当–调和内积"
 
 msgctxt "https://blackcatinformatics.ca/math/coexactHarmonicInnerProduct|skos:definition"
 msgid "Relates a Hodge decomposition to the exact math:RationalValue of the inner product ⟨coexact, harmonic⟩ of its coexact and harmonic components. Orthogonality of the two components makes this value exactly zero, carried as the exact pair 0/1. Domain math:HodgeDecomposition, range math:RationalValue (stated in prose)."
-msgstr "将霍奇分解关联到其上恰当与调和分量内积 ⟨coexact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
+msgstr "将霍奇分解关联到其余恰当与调和分量内积 ⟨coexact, harmonic⟩ 的精确 math:RationalValue。两分量的正交性使该值恰好为零，以精确对 0/1 携带。定义域 math:HodgeDecomposition，值域 math:RationalValue（以散文陈述）。"
 
 msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|rdfs:label"
 msgid "Incomplete Hodge Decomposition"
@@ -2052,7 +2052,7 @@ msgstr "不完整霍奇分解"
 
 msgctxt "https://blackcatinformatics.ca/math/IncompleteHodgeDecomposition|skos:definition"
 msgid "The failure raised when a Hodge decomposition lacks a required frame component — the signal it decomposes, its exact, coexact, or harmonic component, its boundary operator, its carrier sheaf, the exact residual witnessing reconstruction, or one of the three exact pairwise-orthogonality inner products. A Hodge decomposition is defined only relative to a complete, declared frame; a bare split whose boundary operator, reconstruction residual, or component orthogonality is implicit is ill-formed."
-msgstr "当霍奇分解缺少必需的框架组成部分时引发的失败——它所分解的信号、其恰当、上恰当或调和分量、其边缘算子、其载体层、见证重构的精确残差，或三个精确的成对正交性内积之一。霍奇分解仅相对于完整且已声明的框架才有定义；边缘算子、重构残差或分量正交性为隐式的裸分离是不良构成的。"
+msgstr "当霍奇分解缺少必需的框架组成部分时引发的失败——它所分解的信号、其恰当、余恰当或调和分量、其边缘算子、其载体层、见证重构的精确残差，或三个精确的成对正交性内积之一。霍奇分解仅相对于完整且已声明的框架才有定义；边缘算子、重构残差或分量正交性为隐式的裸分离是不良构成的。"
 
 msgctxt "https://blackcatinformatics.ca/math/MetricSpace|rdfs:label"
 msgid "Metric Space"
@@ -2171,24 +2171,24 @@ msgid "Vector Binding"
 msgstr "向量绑定"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorBinding|skos:definition"
-msgid "A vector-symbolic operation combining two representations into a representation of their association."
-msgstr "将两个表示组合成其关联表示的向量符号运算。"
+msgid "A vector-symbolic operation combining two representations into a representation of their association. Unlike math:VectorBundling, its result is dissimilar to both operands rather than similar to them, and it is undone by math:VectorUnbinding rather than being idempotent."
+msgstr "将两个表示组合成其关联表示的向量符号运算。与 math:VectorBundling 不同，其结果与两个操作数都不相似，而不是与它们相似；它由 math:VectorUnbinding 逆转，而不是幂等运算。"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorBundling|rdfs:label"
 msgid "Vector Bundling"
 msgstr "向量束集"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorBundling|skos:definition"
-msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate."
-msgstr "将多个表示叠加成保持相似性聚合的向量符号运算。"
+msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate. Unlike math:VectorBinding, its result stays similar to each superposed operand and is not invertible into its individual factors."
+msgstr "将多个表示叠加成保持相似性的聚合的向量符号运算。与 math:VectorBinding 不同，其结果仍与每个叠加操作数相似，且不能逆向还原为各个单独因子。"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|rdfs:label"
 msgid "Vector Unbinding"
 msgstr "向量解绑"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|skos:definition"
-msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."
-msgstr "在给定另一因子及绑定律时近似或精确恢复一个已绑定因子的向量符号运算。"
+msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law. Unlike math:VectorBundling, it inverts math:VectorBinding rather than superposing, and its recovery is approximate unless an exact algebra is declared, never lossless by default."
+msgstr "在给定另一因子及已声明的绑定律时，近似或精确恢复一个已绑定因子的向量符号运算。与 math:VectorBundling 不同，它逆转 math:VectorBinding 而不是进行叠加；除非已声明精确代数，否则恢复是近似的，绝不默认无损。"
 
 msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|rdfs:label"
 msgid "Quadratic Space"
@@ -2363,8 +2363,8 @@ msgid "Direct-Sum Decomposition"
 msgstr "直和分解"
 
 msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|skos:definition"
-msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category."
-msgstr "将一个数学对象分解为显式命名、两两交为零且在已声明范畴中共同张成全部的加项。"
+msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category. Unlike a mere set partition, its summands are subobjects whose internal sum reconstructs the whole, not disjoint blocks of elements."
+msgstr "将一个数学对象分解为显式命名的加项，它们两两交为零，并在已声明范畴中共同张成全部。与单纯的集合划分不同，这些加项是通过内部和重构整体的子对象，而不是互不相交的元素块。"
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|rdfs:label"
 msgid "Clifford Module Decomposition"
