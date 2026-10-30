@@ -290,3 +290,51 @@ make progress, signal or thread fields mandatory for existing arcs or samples.
 The ordinary [breakthrough scene](examples/breakthrough.ttl) keeps affect and
 progress together, preserves the teller and source evidence, and distinguishes
 a shared question from a separate arc explicitly told without a shared thread.
+
+## Fictional characters and source narrative wording
+
+`Character` is a fictional Entity whose identity belongs to one
+`NarrativeReferenceFrame`, supplied through the existing `hasReferenceFrame`.
+It is disjoint from `Person`. A fictional portrayal of a historical person
+and that person remain distinct; an explicitly supported `counterpartOf`
+link records correspondence without identity merging. Variants in different
+continuities likewise use separate Character nodes.
+
+Existing `arcSubject` and `narrativeRoleBearer` already accept Entity, so
+they accept Character without wider ranges. An arc’s frame must match its
+Character subject’s identity frame. A role explicitly scoped to a narrative
+frame must match that frame too; roles scoped to works or segments retain
+their existing meanings.
+
+Four source axes must stay distinct:
+
+| Source meaning | Representation |
+|---|---|
+| A named location in the narrative, such as a chapter title | `positionLabel` on a complete, frame-bound NarrativePosition |
+| A structural function, such as crisis or threshold | `beatFunction` with an open BeatFunction value |
+| An attributed reading of pursuit movement or impasse | `sampleProgress` on an actual ArcSample with its required position, state and vantage |
+| The source’s original arc-phase wording, such as “rising” | `arcPositionLabel` on the actual Character or source record, with its narrative `hasReferenceFrame` |
+
+No phase taxonomy or other axis follows from “rising” alone.
+`arcPositionLabel` has no domain that would turn a source record into a
+Character, CreativeWork or ArcSample. It requires an explicit narrative frame
+on the bearer, and preserves the exact label rather than filling missing
+sample data.
+
+`motivation` and `relationshipText` retain a source’s prose on Character.
+All three text properties are nonfunctional and accept plain,
+language-tagged and directional language-tagged literals. Keep each supplied
+language and direction. Rival readings can coexist; none implies an actual
+Desire, a resolved contact relationship or another character’s endorsement.
+
+Attach the original source and interpreting viewpoint to the exact RDF 1.2
+statement. Keep recorder attribution separate from viewpoint. Do not assert
+that the fictional character was derived from a document merely to record the
+document as evidence for one descriptive sentence.
+
+[The ordinary source scene](examples/characters-and-source-wording.ttl)
+shows separate continuities, a historical counterpart, attributed prose and
+a source record carrying “rising” without an invented ArcSample.
+[The design](design/FICTIONAL-CHARACTERS.md) explains the frame and language
+boundaries. These are source semantics and intrinsic consistency laws; they
+do not claim that contextual reasoning or interpretation has been executed.
