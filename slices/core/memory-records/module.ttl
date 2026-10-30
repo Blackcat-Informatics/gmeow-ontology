@@ -1,0 +1,842 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:MemoryBank
+    a logic:Kind, logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Memory Bank"@x-gmeow-english ;
+    skos:definition "The lasting identity of a standing memory body rewritten over time. Its revisions are MemoryItems linked by versionOf; the bank identity carries no revision text."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record a gmeow:MemoryBank ."@x-gmeow-english .
+
+gmeow:BankTier
+    a logic:AbstractIndividualType, logic:Class ;
+    logic:subClassOf gmeow:ProjectionContext ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Bank Audience Tier"@x-gmeow-english ;
+    skos:definition "An open audience vocabulary for memory revisions and claims made of them, specializing ProjectionContext. It names who may receive a projection, independently of DisclosurePolicy posture and without certifying access enforcement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record a gmeow:BankTier ."@x-gmeow-english .
+
+gmeow:BankReview
+    a logic:Event, logic:Class ;
+    logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Bank Review"@x-gmeow-english ;
+    skos:definition "An Activity in which an agent reviews one exact memory-bank revision and records whether it read to the end and what it decided. A disposition records a decision, not proof that a later mutation or release occurred. Its eventTime is the recorded review-decision instant, including partial or deferred reviews, not the duration of reading."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record a gmeow:BankReview ."@x-gmeow-english .
+
+gmeow:BankReviewDisposition
+    a logic:AbstractIndividualType, logic:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Bank Review Disposition"@x-gmeow-english ;
+    skos:definition "An open vocabulary of decisions recorded during a bank review. Decisions may coexist; missing read-to-end evidence or a decision never means that a revision was fully read or kept unchanged."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record a gmeow:BankReviewDisposition ."@x-gmeow-english .
+
+gmeow:BodyDistillation
+    a logic:Kind, logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Body Distillation"@x-gmeow-english ;
+    skos:definition "An agent’s appraisal in its own words kept on its behalf by its runtime and offered under the runtime’s standpoint. It is separate from a note the agent chose to keep and is not automatically the agent’s self-assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record a gmeow:BodyDistillation ."@x-gmeow-english .
+
+gmeow:CurationEpoch
+    a logic:Event, logic:Class ;
+    logic:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Curation Epoch"@x-gmeow-english ;
+    skos:definition "A historical curation act described by original external source evidence, writing a successor ledger from a predecessor under a manifest and retaining an archive artifact. Its evidence remains outside migrated governed stores; it is no erasure tombstone or governed deletion receipt."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record a gmeow:CurationEpoch ."@x-gmeow-english .
+
+gmeow:bankReviewKeep
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "keep revision"@x-gmeow-english ;
+    skos:definition "The reviewer decided to keep the exact reviewed revision. This decision alone neither proves a complete read nor executes a store mutation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewKeep ."@x-gmeow-english .
+
+gmeow:bankReviewReplace
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "replace revision"@x-gmeow-english ;
+    skos:definition "The reviewer decided to replace the reviewed revision with a new one. Retain the old revision and lineage; the decision itself is not a replacement receipt."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewReplace ."@x-gmeow-english .
+
+gmeow:bankReviewAppend
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "append to revision"@x-gmeow-english ;
+    skos:definition "The reviewer decided to append material in a successor revision. It does not silently modify the exact revision already reviewed."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewAppend ."@x-gmeow-english .
+
+gmeow:bankReviewClear
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "clear revision body"@x-gmeow-english ;
+    skos:definition "The reviewer decided to clear the bank’s current body in a successor revision. It is not authorization to erase revision history or the bank identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewClear ."@x-gmeow-english .
+
+gmeow:bankReviewRelabel
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "relabel revision"@x-gmeow-english ;
+    skos:definition "The reviewer decided to change a revision’s label or classification. The decision does not imply unchanged content or confer a broader audience."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewRelabel ."@x-gmeow-english .
+
+gmeow:bankReviewRestoreSnapshot
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "restore snapshot"@x-gmeow-english ;
+    skos:definition "The reviewer decided to restore a prior snapshot as a successor revision, preserving the original snapshot and intervening history."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewRestoreSnapshot ."@x-gmeow-english .
+
+gmeow:bankReviewProposeWiderAudience
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "propose wider audience version"@x-gmeow-english ;
+    skos:definition "The reviewer proposed a version for a wider audience. A proposal is not publication, permission or proof that the current revision may be released."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewProposeWiderAudience ."@x-gmeow-english .
+
+gmeow:bankReviewHandledPrivately
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "handled in private conversation"@x-gmeow-english ;
+    skos:definition "The review was handled in a private conversation. This disposition makes no claim that the bank was unchanged and requires no exposure of private conversation text."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewHandledPrivately ."@x-gmeow-english .
+
+gmeow:bankReviewDeferredChanged
+    a gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "deferred because bank changed"@x-gmeow-english ;
+    skos:definition "The reviewer deferred because the bank changed during the review. The reviewedRevision still identifies the exact revision actually read, never a moving latest pointer."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewDeferredChanged ."@x-gmeow-english .
+
+gmeow:memoryText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MemoryItem ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "memory text"@x-gmeow-english ;
+    skos:definition "The memory item’s verbatim prose as written by the remembering agent, retaining language and base direction. It is neither a summary nor a chosen note."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:memoryText \"Words retained.\"@en ."@x-gmeow-english .
+
+gmeow:bankTier
+    a logic:AnnotationProperty ;
+    logic:range gmeow:BankTier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "bank audience tier"@x-gmeow-english ;
+    skos:definition "The audience classification of a revision or a statement about one. Statement annotations retain claim-specific audience scope; the value is separate from disclosure posture and does not certify enforcement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:bankTier ex:value ."@x-gmeow-english .
+
+gmeow:reviewedRevision
+    a logic:ObjectProperty ;
+    logic:domain gmeow:BankReview ;
+    logic:range gmeow:MemoryItem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reviewed revision"@x-gmeow-english ;
+    skos:definition "The exact MemoryItem revision read during this review, with a versionOf link to its lasting MemoryBank. It is not the bank’s latest revision by default."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:reviewedRevision ex:value ."@x-gmeow-english .
+
+gmeow:readToEnd
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:BankReview ;
+    logic:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "read to end"@x-gmeow-english ;
+    skos:definition "The reported boolean of whether this exact revision was read to its end during this review. False is explicit partial reading; absence does not default to either value."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:readToEnd false ."@x-gmeow-english .
+
+gmeow:reviewDisposition
+    a logic:ObjectProperty ;
+    logic:domain gmeow:BankReview ;
+    logic:range gmeow:BankReviewDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "review disposition"@x-gmeow-english ;
+    skos:definition "A decision explicitly recorded by the review. Several decisions may coexist; none alone proves a complete read, an unchanged bank or execution of the proposed change."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:reviewDisposition ex:value ."@x-gmeow-english .
+
+gmeow:summaryText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Summary ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "summary text"@x-gmeow-english ;
+    skos:definition "The summary’s words verbatim as supplied by its summarizer, retaining language and base direction. The original source remains separate through wasDerivedFrom."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:summaryText \"Words retained.\"@en ."@x-gmeow-english .
+
+gmeow:summaryAnchor
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Summary ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "summary paraphrase anchor"@x-gmeow-english ;
+    skos:definition "A passage in the summarizer’s own wording identifying material it drew on. It is a paraphrase anchor, not a quotation of source words and not credited to the source author."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:summaryAnchor \"Words retained.\"@en ."@x-gmeow-english .
+
+gmeow:distilledText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:BodyDistillation ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "kept appraisal text"@x-gmeow-english ;
+    skos:definition "The original appraisal words preserved by the runtime, with language and base direction. Keeping or offering them does not fabricate an agent-authored note or endorsement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:distilledText \"Words retained.\"@en ."@x-gmeow-english .
+
+gmeow:distillationFor
+    a logic:ObjectProperty ;
+    logic:domain gmeow:BodyDistillation ;
+    logic:range gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "appraisal beneficiary"@x-gmeow-english ;
+    skos:definition "The Agent on whose behalf the runtime kept the appraisal. This role does not make that agent the keeper, the runtime standpoint or an endorsing author."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:distillationFor ex:value ."@x-gmeow-english .
+
+
+gmeow:curationManifest
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "curation manifest artifact"@x-gmeow-english ;
+    skos:definition "The exact original manifest artifact governing the historically described curation, with its own contentDigest. This reference does not authorize a new operation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:curationManifest ex:value ."@x-gmeow-english .
+
+gmeow:epochPredecessor
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "epoch predecessor ledger"@x-gmeow-english ;
+    skos:definition "The exact predecessor ledger artifact named by the external curation evidence. Its bytes and digest remain distinct from the successor."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:epochPredecessor ex:value ."@x-gmeow-english .
+
+gmeow:epochArchive
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "epoch archive artifact"@x-gmeow-english ;
+    skos:definition "The exact archive artifact retained by the historical curation, including an explicitly empty archive when reported. Archiving is not a governed erasure tombstone."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:epochArchive ex:value ."@x-gmeow-english .
+
+gmeow:epochSuccessor
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "epoch successor ledger"@x-gmeow-english ;
+    skos:definition "The successor ledger artifact described by the original external evidence, with its own digest. A reference records historical evidence rather than certifying a governed store transition."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:epochSuccessor ex:value ."@x-gmeow-english .
+
+gmeow:epochEvidence
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "external epoch evidence"@x-gmeow-english ;
+    skos:definition "The original external source artifact describing this historical curation. It stays outside migrated governed stores and is not converted into a governed deletion or repair receipt."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:record gmeow:epochEvidence ex:value ."@x-gmeow-english .
+
+gmeow:curationManifestDigest
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "curation manifest digest"@x-gmeow-english ;
+    skos:definition "The algorithm-tagged digest of the original manifest artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:epoch gmeow:curationManifestDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."@x-gmeow-english .
+
+gmeow:epochPredecessorDigest
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "epoch predecessor digest"@x-gmeow-english ;
+    skos:definition "The algorithm-tagged digest of the original predecessor ledger artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:epoch gmeow:epochPredecessorDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."@x-gmeow-english .
+
+gmeow:epochArchiveDigest
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CurationEpoch ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "epoch archive digest"@x-gmeow-english ;
+    skos:definition "The algorithm-tagged digest of the original archive artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:epoch gmeow:epochArchiveDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."@x-gmeow-english .
+
+# Class-local structural obligations preserve the existing owner sorts.
+gmeow:MemoryItem logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:memoryText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ] .
+gmeow:Summary logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:summaryText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ] .
+gmeow:Summary logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:summaryAnchor ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ] .
+gmeow:BodyDistillation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:distilledText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BodyDistillation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/distilledText" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BodyDistillation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:distillationFor ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BodyDistillation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/distillationFor" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BodyDistillation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BodyDistillation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BodyDistillation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BodyDistillation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasDerivedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BodyDistillation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:distillationFor ; logic:allValuesFrom gmeow:Agent ] .
+gmeow:BodyDistillation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:distillationFor ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] .
+gmeow:BankReview logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:reviewedRevision ; logic:allValuesFrom gmeow:MemoryItem ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BankReview ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reviewedRevision" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BankReview logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:reviewedRevision ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:MemoryItem ] .
+gmeow:BankReview logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readToEnd ; logic:allValuesFrom xsd:boolean ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BankReview ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readToEnd" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BankReview logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readToEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] .
+gmeow:BankReview logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:reviewDisposition ; logic:allValuesFrom gmeow:BankReviewDisposition ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BankReview ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reviewDisposition" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BankReview logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasAssociatedWith ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BankReview ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAssociatedWith" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:BankReview logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:eventTime ; logic:allValuesFrom xsd:dateTime ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BankReview ; logic:closureKey "https://blackcatinformatics.ca/gmeow/eventTime" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:curationManifest ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/curationManifest" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:curationManifest ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochPredecessor ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochPredecessor" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochPredecessor ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochArchive ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochArchive" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochArchive ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochSuccessor ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochSuccessor" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochSuccessor ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochEvidence ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochEvidence" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:curationManifestDigest ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/curationManifestDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochPredecessorDigest ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochArchiveDigest ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochArchiveDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:MemoryTextLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "memory text language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied memoryText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:MemoryTextLanguageConstraint logic:formalizes gmeow:memoryText ."@x-gmeow-english ;
+    logic:formalizes gmeow:memoryText ;
+    logic:message "Every supplied memoryText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:memoryText ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:SummaryTextLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "summary text language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied summaryText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:SummaryTextLanguageConstraint logic:formalizes gmeow:summaryText ."@x-gmeow-english ;
+    logic:formalizes gmeow:summaryText ;
+    logic:message "Every supplied summaryText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:summaryText ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:SummaryAnchorLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "summary anchor language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied summaryAnchor value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:SummaryAnchorLanguageConstraint logic:formalizes gmeow:summaryAnchor ."@x-gmeow-english ;
+    logic:formalizes gmeow:summaryAnchor ;
+    logic:message "Every supplied summaryAnchor value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:summaryAnchor ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:DistilledTextLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "kept appraisal language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied distilledText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:DistilledTextLanguageConstraint logic:formalizes gmeow:distilledText ."@x-gmeow-english ;
+    logic:formalizes gmeow:distilledText ;
+    logic:message "Every supplied distilledText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:distilledText ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:MemoryBankTextlessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "textless bank identity constraint"@x-gmeow-english ;
+    skos:definition "A MemoryBank identity carries none of the revision, summary or appraisal payload text properties. Labels can name the bank without turning it into a revision."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:MemoryBankTextlessConstraint logic:formalizes gmeow:MemoryBank ."@x-gmeow-english ;
+    logic:formalizes gmeow:MemoryBank ;
+    logic:message "A MemoryBank identity carries none of the revision, summary or appraisal payload text properties. Labels can name the bank without turning it into a revision." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termIri gmeow:MemoryBank ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                    logic:exists [ a logic:Formula ; logic:or
+                        [ a logic:Formula ; logic:relation gmeow:memoryText ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:summaryText ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:summaryAnchor ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:distilledText ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] ] ] .
+
+gmeow:MemoryBankRevisionTextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "bank revision text constraint"@x-gmeow-english ;
+    skos:definition "A MemoryItem that versions a MemoryBank retains its own memoryText. Other remembered claims need no prose, and the bank identity remains textless."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:MemoryBankRevisionTextConstraint logic:formalizes gmeow:MemoryBank ."@x-gmeow-english ;
+    logic:formalizes gmeow:MemoryBank ;
+    logic:message "A MemoryItem that versions a MemoryBank retains its own memoryText. Other remembered claims need no prose, and the bank identity remains textless." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "bank" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:MemoryItem ] ],
+                [ a logic:Formula ; logic:relation gmeow:versionOf ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "bank" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "bank" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:MemoryBank ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:memoryText ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] .
+
+gmeow:ReviewedBankLineageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "reviewed bank lineage constraint"@x-gmeow-english ;
+    skos:definition "Each reviewed revision belongs through versionOf to a lasting MemoryBank. The review is tied to that revision rather than a mutable latest pointer."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:ReviewedBankLineageConstraint logic:formalizes gmeow:reviewedRevision ."@x-gmeow-english ;
+    logic:formalizes gmeow:reviewedRevision ;
+    logic:message "Each reviewed revision belongs through versionOf to a lasting MemoryBank. The review is tied to that revision rather than a mutable latest pointer." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "revision" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:reviewedRevision ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "revision" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bank" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation gmeow:versionOf ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "revision" ],
+                            [ logic:termIndex 1 ; logic:termVariable "bank" ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "bank" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:MemoryBank ] ] ] ] ] ] .
+
+gmeow:SummaryWordsSourceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "summary words source constraint"@x-gmeow-english ;
+    skos:definition "A Summary carrying summaryText or summaryAnchor retains a wasDerivedFrom source. An anchor remains the summarizer’s wording rather than a quoted source passage."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:SummaryWordsSourceConstraint logic:formalizes gmeow:Summary ."@x-gmeow-english ;
+    logic:formalizes gmeow:Summary ;
+    logic:message "A Summary carrying summaryText or summaryAnchor retains a wasDerivedFrom source. An anchor remains the summarizer’s wording rather than a quoted source passage." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:Summary ] ],
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:summaryText ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ],
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:summaryAnchor ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "artifact" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "artifact" ] ] ] ] ] .
+
+gmeow:DistillationRuntimeStandpointConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "runtime appraisal standpoint constraint"@x-gmeow-english ;
+    skos:definition "A BodyDistillation records a responsible runtime Agent and offers the appraisal accordingTo that runtime. This does not turn its beneficiary into the keeper or imply beneficiary self-endorsement."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:DistillationRuntimeStandpointConstraint logic:formalizes gmeow:BodyDistillation ."@x-gmeow-english ;
+    logic:formalizes gmeow:BodyDistillation ;
+    logic:message "A BodyDistillation records a responsible runtime Agent and offers the appraisal accordingTo that runtime. This does not turn its beneficiary into the keeper or imply beneficiary self-endorsement." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termIri gmeow:BodyDistillation ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "runtime" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "runtime" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "runtime" ] ] ] ] ] ] .
+
+gmeow:EpochArtifactDigestConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "epoch artifact identity constraint"@x-gmeow-english ;
+    skos:definition "Each original artifact referenced by a CurationEpoch carries its own contentDigest. A digest on the activity description cannot substitute for artifact-byte identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:EpochArtifactDigestConstraint logic:formalizes gmeow:CurationEpoch ."@x-gmeow-english ;
+    logic:formalizes gmeow:CurationEpoch ;
+    logic:message "Each original artifact referenced by a CurationEpoch carries its own contentDigest. A digest on the activity description cannot substitute for artifact-byte identity." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:CurationEpoch ] ],
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:relation gmeow:curationManifest ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:epochPredecessor ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:epochArchive ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:epochSuccessor ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:epochEvidence ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "artifact" ] ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "artifact" ],
+                        [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] .
+
+gmeow:EpochDigestAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "epoch source digest agreement constraint"@x-gmeow-english ;
+    skos:definition "Every reported manifest, predecessor or archive digest is also a contentDigest on its corresponding original artifact. Multiple algorithm-labelled digests may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:EpochDigestAgreementConstraint logic:formalizes gmeow:CurationEpoch ."@x-gmeow-english ;
+    logic:formalizes gmeow:CurationEpoch ;
+    logic:message "Every reported manifest, predecessor or archive digest is also a contentDigest on its corresponding original artifact. Multiple algorithm-labelled digests may coexist." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:CurationEpoch ] ],
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation gmeow:curationManifest ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:curationManifestDigest ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ],
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation gmeow:epochPredecessor ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:epochPredecessorDigest ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ],
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation gmeow:epochArchive ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "artifact" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:epochArchiveDigest ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:contentDigest ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "artifact" ],
+                    [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:EpochDigestTagConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "epoch digest algorithm tag constraint"@x-gmeow-english ;
+    skos:definition "Each epoch digest literal retains an explicit algorithm tag and nonempty payload. The lexical check neither computes a digest nor validates the algorithm, encoding or source bytes."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:EpochDigestTagConstraint logic:formalizes gmeow:CurationEpoch ."@x-gmeow-english ;
+    logic:formalizes gmeow:CurationEpoch ;
+    logic:message "Each epoch digest literal retains an explicit algorithm tag and nonempty payload. The lexical check neither computes a digest nor validates the algorithm, encoding or source bytes." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:CurationEpoch ] ],
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:relation gmeow:curationManifestDigest ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "value" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:epochPredecessorDigest ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "value" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:epochArchiveDigest ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ],
+                    [ logic:termIndex 1 ; logic:termLiteral "^[A-Za-z][A-Za-z0-9+._-]*:[^:]+$" ] ] ] ] .
+
+gmeow:EpochSuccessorProvenanceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "historical successor provenance constraint"@x-gmeow-english ;
+    skos:definition "The externally described successor ledger wasGeneratedBy the historical epoch and wasDerivedFrom its named predecessor. Documentary evidence itself does not generate the earlier historical act."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:EpochSuccessorProvenanceConstraint logic:formalizes gmeow:CurationEpoch ."@x-gmeow-english ;
+    logic:formalizes gmeow:CurationEpoch ;
+    logic:message "The externally described successor ledger wasGeneratedBy the historical epoch and wasDerivedFrom its named predecessor. Documentary evidence itself does not generate the earlier historical act." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predecessor" ], [ logic:termIndex 2 ; logic:termVariable "successor" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:CurationEpoch ] ],
+                [ a logic:Formula ; logic:relation gmeow:epochPredecessor ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "predecessor" ] ],
+                [ a logic:Formula ; logic:relation gmeow:epochSuccessor ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "successor" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:wasGeneratedBy ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "successor" ],
+                        [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "successor" ],
+                        [ logic:termIndex 1 ; logic:termVariable "predecessor" ] ] ] ] ] .

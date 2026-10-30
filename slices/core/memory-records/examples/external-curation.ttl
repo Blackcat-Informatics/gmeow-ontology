@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/external-curation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# This entire scene describes original EXTERNAL source evidence. It must not be
+# imported as a governed-store Activity, deletion receipt, purge log or tombstone.
+# The illustrative original byte sequences are report\n, manifest\n, before\n,
+# the empty sequence, and after\n for the five named artifacts respectively.
+# Digests name original artifacts; these illustrative source statements claim no
+# local hashing, migration, authentication or operation execution.
+ex:evidence a gmeow:InformationObject ;
+    dcterms:description "Original pre-migration curation record retained externally."@en ;
+    gmeow:contentDigest "sha256:331d26d6d8f862e46ba900811be8a7a1e4dbaa229b14c99becfd5e5151490d95" .
+ex:manifest a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:7021e610a5f62eefd01830fea68e5fa180e8cf017c08ea0890c326b2854ebc96" .
+ex:predecessor a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:9160d4be34c8695bd172a76c7c7966587ea5a4d991ad22c87b2b91af54aa9ebb" .
+ex:archive a gmeow:InformationObject ;
+    dcterms:description "The source explicitly reports this archive as empty."@en ;
+    gmeow:contentDigest "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" .
+ex:successor a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:7b9a72466d3960eb2aacccfc848939453490db0678bd4725def3f789b891c919" ;
+    gmeow:wasGeneratedBy ex:epoch ; gmeow:wasDerivedFrom ex:predecessor .
+ex:epoch a gmeow:CurationEpoch ;
+    gmeow:eventTime "2024-04-01T10:00:00Z"^^xsd:dateTime ;
+    gmeow:epochEvidence ex:evidence ; gmeow:curationManifest ex:manifest ;
+    gmeow:epochPredecessor ex:predecessor ; gmeow:epochArchive ex:archive ;
+    gmeow:epochSuccessor ex:successor ;
+    gmeow:curationManifestDigest "sha256:7021e610a5f62eefd01830fea68e5fa180e8cf017c08ea0890c326b2854ebc96" ;
+    gmeow:epochPredecessorDigest "sha256:9160d4be34c8695bd172a76c7c7966587ea5a4d991ad22c87b2b91af54aa9ebb" ;
+    gmeow:epochArchiveDigest "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" .

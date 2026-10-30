@@ -1,0 +1,1106 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Memory Bank"
+msgstr "Banque de mémoire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lasting identity of a standing memory body rewritten over time. Its revisions are MemoryItems linked by versionOf; the bank identity carries no revision text."
+msgstr "L’identité durable d’un corps de mémoire réécrit au fil du temps. Ses révisions sont des MemoryItems liés par versionOf ; l’identité de la banque ne porte aucun texte de révision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBank|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record a gmeow:MemoryBank ."
+msgstr "Conserver cet enregistrement attribué : ex:record a gmeow:MemoryBank ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankTier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bank Audience Tier"
+msgstr "Niveau d’audience de banque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankTier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open audience vocabulary for memory revisions and claims made of them, specializing ProjectionContext. It names who may receive a projection, independently of DisclosurePolicy posture and without certifying access enforcement."
+msgstr "Un vocabulaire ouvert d’audiences pour les révisions de mémoire et les affirmations qui les concernent, spécialisé de ProjectionContext. Il nomme les destinataires d’une projection, indépendamment de la posture DisclosurePolicy et sans certifier le contrôle d’accès."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankTier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record a gmeow:BankTier ."
+msgstr "Conserver cet enregistrement attribué : ex:record a gmeow:BankTier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReview|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bank Review"
+msgstr "Revue de banque de mémoire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReview|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Activity in which an agent reviews one exact memory-bank revision and records whether it read to the end and what it decided. A disposition records a decision, not proof that a later mutation or release occurred. Its eventTime is the recorded review-decision instant, including partial or deferred reviews, not the duration of reading."
+msgstr "Une Activity durant laquelle un agent examine une révision exacte de banque de mémoire et consigne la lecture jusqu’à la fin et ses décisions. Une disposition consigne une décision, pas la preuve d’une modification ou publication ultérieure. Son eventTime est l’instant consigné de décision, y compris pour une lecture partielle ou reportée, et non sa durée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReview|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReview|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReview|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReview|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record a gmeow:BankReview ."
+msgstr "Conserver cet enregistrement attribué : ex:record a gmeow:BankReview ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReviewDisposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bank Review Disposition"
+msgstr "Décision de revue de banque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReviewDisposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of decisions recorded during a bank review. Decisions may coexist; missing read-to-end evidence or a decision never means that a revision was fully read or kept unchanged."
+msgstr "Un vocabulaire ouvert de décisions consignées durant une revue de banque. Les décisions peuvent coexister ; l’absence de preuve de lecture complète ou de décision ne signifie jamais lecture intégrale ni conservation sans changement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReviewDisposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReviewDisposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReviewDisposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BankReviewDisposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record a gmeow:BankReviewDisposition ."
+msgstr "Conserver cet enregistrement attribué : ex:record a gmeow:BankReviewDisposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyDistillation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Body Distillation"
+msgstr "Appréciation conservée par le runtime"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyDistillation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An agent’s appraisal in its own words kept on its behalf by its runtime and offered under the runtime’s standpoint. It is separate from a note the agent chose to keep and is not automatically the agent’s self-assertion."
+msgstr "Une appréciation de l’agent dans ses propres mots, conservée pour lui par son runtime et proposée selon le point de vue du runtime. Elle se distingue d’une note choisie par l’agent et n’est pas automatiquement une affirmation de soi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyDistillation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyDistillation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyDistillation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyDistillation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record a gmeow:BodyDistillation ."
+msgstr "Conserver cet enregistrement attribué : ex:record a gmeow:BodyDistillation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CurationEpoch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Curation Epoch"
+msgstr "Époque de curation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CurationEpoch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A historical curation act described by original external source evidence, writing a successor ledger from a predecessor under a manifest and retaining an archive artifact. Its evidence remains outside migrated governed stores; it is no erasure tombstone or governed deletion receipt."
+msgstr "Un acte historique de curation décrit par des preuves sources externes originales, produisant un registre successeur à partir d’un prédécesseur sous manifeste et conservant une archive. Ses preuves restent hors des dépôts gouvernés migrés ; ce n’est ni une pierre tombale d’effacement ni un reçu de suppression gouverné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CurationEpoch|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CurationEpoch|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CurationEpoch|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CurationEpoch|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record a gmeow:CurationEpoch ."
+msgstr "Conserver cet enregistrement attribué : ex:record a gmeow:CurationEpoch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewKeep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "keep revision"
+msgstr "conserver la révision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewKeep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer decided to keep the exact reviewed revision. This decision alone neither proves a complete read nor executes a store mutation."
+msgstr "L’agent a décidé de conserver la révision exacte examinée. Cette décision seule ne prouve pas une lecture intégrale et n’exécute aucune modification du dépôt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewKeep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewKeep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewKeep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewKeep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewKeep ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewKeep ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewReplace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "replace revision"
+msgstr "remplacer la révision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewReplace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer decided to replace the reviewed revision with a new one. Retain the old revision and lineage; the decision itself is not a replacement receipt."
+msgstr "L’agent a décidé de remplacer la révision examinée par une nouvelle. Conserver l’ancienne et sa filiation ; la décision n’est pas un reçu de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewReplace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewReplace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewReplace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewReplace|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewReplace ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewReplace ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewAppend|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "append to revision"
+msgstr "ajouter à la révision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewAppend|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer decided to append material in a successor revision. It does not silently modify the exact revision already reviewed."
+msgstr "L’agent a décidé d’ajouter du contenu dans une révision suivante. Cela ne modifie pas silencieusement la révision exacte déjà examinée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewAppend|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewAppend|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewAppend|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewAppend|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewAppend ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewAppend ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewClear|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "clear revision body"
+msgstr "vider le corps de révision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewClear|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer decided to clear the bank’s current body in a successor revision. It is not authorization to erase revision history or the bank identity."
+msgstr "L’agent a décidé de vider le corps courant de la banque dans une révision suivante. Ce n’est pas une autorisation d’effacer l’historique ou l’identité de la banque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewClear|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewClear|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewClear|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewClear|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewClear ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewClear ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRelabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relabel revision"
+msgstr "réétiqueter la révision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRelabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer decided to change a revision’s label or classification. The decision does not imply unchanged content or confer a broader audience."
+msgstr "L’agent a décidé de changer l’étiquette ou la classification d’une révision. La décision n’implique pas un contenu inchangé et n’accorde pas une audience élargie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRelabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRelabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRelabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRelabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewRelabel ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewRelabel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRestoreSnapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restore snapshot"
+msgstr "restaurer un instantané"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRestoreSnapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer decided to restore a prior snapshot as a successor revision, preserving the original snapshot and intervening history."
+msgstr "L’agent a décidé de restaurer un instantané antérieur comme révision suivante, en conservant l’instantané original et l’historique intermédiaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRestoreSnapshot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRestoreSnapshot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRestoreSnapshot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewRestoreSnapshot|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewRestoreSnapshot ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewRestoreSnapshot ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewProposeWiderAudience|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "propose wider audience version"
+msgstr "proposer une version à audience élargie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewProposeWiderAudience|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer proposed a version for a wider audience. A proposal is not publication, permission or proof that the current revision may be released."
+msgstr "L’agent a proposé une version pour une audience élargie. Une proposition n’est ni publication, ni permission, ni preuve que la révision courante peut être divulguée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewProposeWiderAudience|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewProposeWiderAudience|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewProposeWiderAudience|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewProposeWiderAudience|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewProposeWiderAudience ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewProposeWiderAudience ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewHandledPrivately|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "handled in private conversation"
+msgstr "traité en conversation privée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewHandledPrivately|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The review was handled in a private conversation. This disposition makes no claim that the bank was unchanged and requires no exposure of private conversation text."
+msgstr "La revue a été traitée dans une conversation privée. Cette décision n’affirme pas que la banque est restée inchangée et n’exige pas d’exposer la conversation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewHandledPrivately|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewHandledPrivately|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewHandledPrivately|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewHandledPrivately|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewHandledPrivately ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewHandledPrivately ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewDeferredChanged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deferred because bank changed"
+msgstr "reporté car la banque a changé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewDeferredChanged|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reviewer deferred because the bank changed during the review. The reviewedRevision still identifies the exact revision actually read, never a moving latest pointer."
+msgstr "L’agent a reporté la revue car la banque a changé pendant celle-ci. reviewedRevision identifie toujours la révision exacte lue, jamais un pointeur mobile vers la dernière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewDeferredChanged|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewDeferredChanged|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewDeferredChanged|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankReviewDeferredChanged|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:review gmeow:reviewDisposition gmeow:bankReviewDeferredChanged ."
+msgstr "Conserver cet enregistrement attribué : ex:review gmeow:reviewDisposition gmeow:bankReviewDeferredChanged ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "memory text"
+msgstr "texte de mémoire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The memory item’s verbatim prose as written by the remembering agent, retaining language and base direction. It is neither a summary nor a chosen note."
+msgstr "Le texte exact de l’élément de mémoire tel qu’écrit par l’agent qui se souvient, avec langue et direction de base. Ce n’est ni un résumé ni une note choisie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:memoryText \"Words retained.\"@en ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:memoryText \"Words retained.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankTier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bank audience tier"
+msgstr "niveau d’audience de banque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankTier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The audience classification of a revision or a statement about one. Statement annotations retain claim-specific audience scope; the value is separate from disclosure posture and does not certify enforcement."
+msgstr "La classification d’audience d’une révision ou d’une affirmation la concernant. Les annotations conservent la portée d’audience propre à chaque affirmation ; la valeur est distincte de la posture de divulgation et ne certifie pas son application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankTier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bankTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:bankTier ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:bankTier ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewedRevision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reviewed revision"
+msgstr "révision examinée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewedRevision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact MemoryItem revision read during this review, with a versionOf link to its lasting MemoryBank. It is not the bank’s latest revision by default."
+msgstr "La révision MemoryItem exacte lue durant cette revue, liée par versionOf à sa MemoryBank durable. Ce n’est pas par défaut la dernière révision de la banque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewedRevision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewedRevision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewedRevision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewedRevision|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:reviewedRevision ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:reviewedRevision ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readToEnd|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "read to end"
+msgstr "lu jusqu’à la fin"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readToEnd|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported boolean of whether this exact revision was read to its end during this review. False is explicit partial reading; absence does not default to either value."
+msgstr "Le booléen rapporté indiquant si cette révision exacte a été lue jusqu’à la fin durant la revue. Faux signifie lecture partielle explicite ; l’absence n’a aucune valeur par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readToEnd|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readToEnd|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readToEnd|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readToEnd|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:readToEnd false ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:readToEnd false ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewDisposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "review disposition"
+msgstr "décision de revue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewDisposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A decision explicitly recorded by the review. Several decisions may coexist; none alone proves a complete read, an unchanged bank or execution of the proposed change."
+msgstr "Une décision explicitement consignée par la revue. Plusieurs décisions peuvent coexister ; aucune ne prouve seule une lecture intégrale, une banque inchangée ou l’exécution du changement proposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewDisposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewDisposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewDisposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewDisposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:reviewDisposition ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:reviewDisposition ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summary text"
+msgstr "texte de résumé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The summary’s words verbatim as supplied by its summarizer, retaining language and base direction. The original source remains separate through wasDerivedFrom."
+msgstr "Les mots exacts du résumé fournis par son auteur, avec langue et direction de base. La source originale demeure distincte via wasDerivedFrom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:summaryText \"Words retained.\"@en ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:summaryText \"Words retained.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryAnchor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summary paraphrase anchor"
+msgstr "ancrage paraphrasé du résumé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryAnchor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A passage in the summarizer’s own wording identifying material it drew on. It is a paraphrase anchor, not a quotation of source words and not credited to the source author."
+msgstr "Un passage formulé par l’auteur du résumé indiquant le contenu utilisé. C’est un ancrage paraphrasé, pas une citation des mots sources et il n’est pas attribué à leur auteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryAnchor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryAnchor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryAnchor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summaryAnchor|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:summaryAnchor \"Words retained.\"@en ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:summaryAnchor \"Words retained.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distilledText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kept appraisal text"
+msgstr "texte d’appréciation conservée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distilledText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original appraisal words preserved by the runtime, with language and base direction. Keeping or offering them does not fabricate an agent-authored note or endorsement."
+msgstr "Les mots originaux de l’appréciation conservés par le runtime, avec langue et direction de base. Les garder ou proposer ne fabrique ni note choisie par l’agent ni approbation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distilledText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distilledText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distilledText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distilledText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:distilledText \"Words retained.\"@en ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:distilledText \"Words retained.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distillationFor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "appraisal beneficiary"
+msgstr "bénéficiaire de l’appréciation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distillationFor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Agent on whose behalf the runtime kept the appraisal. This role does not make that agent the keeper, the runtime standpoint or an endorsing author."
+msgstr "L’Agent pour le compte duquel le runtime a conservé l’appréciation. Ce rôle n’en fait ni le conservateur, ni le point de vue du runtime, ni un auteur approbateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distillationFor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distillationFor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distillationFor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distillationFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:distillationFor ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:distillationFor ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "curation manifest artifact"
+msgstr "artefact manifeste de curation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact original manifest artifact governing the historically described curation, with its own contentDigest. This reference does not authorize a new operation."
+msgstr "L’artefact manifeste original exact régissant la curation historique décrite, avec son propre contentDigest. Cette référence n’autorise aucune nouvelle opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:curationManifest ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:curationManifest ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch predecessor ledger"
+msgstr "registre prédécesseur de l’époque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact predecessor ledger artifact named by the external curation evidence. Its bytes and digest remain distinct from the successor."
+msgstr "L’artefact de registre prédécesseur exact nommé par les preuves externes de curation. Ses octets et son empreinte restent distincts de ceux du successeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessor|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:epochPredecessor ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:epochPredecessor ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch archive artifact"
+msgstr "artefact archive de l’époque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact archive artifact retained by the historical curation, including an explicitly empty archive when reported. Archiving is not a governed erasure tombstone."
+msgstr "L’artefact archive exact conservé par la curation historique, y compris une archive explicitement vide si rapportée. L’archivage n’est pas une pierre tombale d’effacement gouverné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchive|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchive|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchive|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchive|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:epochArchive ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:epochArchive ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochSuccessor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch successor ledger"
+msgstr "registre successeur de l’époque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochSuccessor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The successor ledger artifact described by the original external evidence, with its own digest. A reference records historical evidence rather than certifying a governed store transition."
+msgstr "L’artefact de registre successeur décrit par les preuves externes originales, avec sa propre empreinte. La référence consigne une preuve historique sans certifier une transition de dépôt gouverné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochSuccessor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochSuccessor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochSuccessor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochSuccessor|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:epochSuccessor ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:epochSuccessor ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "external epoch evidence"
+msgstr "preuve externe de l’époque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original external source artifact describing this historical curation. It stays outside migrated governed stores and is not converted into a governed deletion or repair receipt."
+msgstr "L’artefact source externe original décrivant cette curation historique. Il reste hors des dépôts gouvernés migrés et n’est pas converti en reçu gouverné de suppression ou réparation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:record gmeow:epochEvidence ex:value ."
+msgstr "Conserver cet enregistrement attribué : ex:record gmeow:epochEvidence ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "curation manifest digest"
+msgstr "empreinte du manifeste de curation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The algorithm-tagged digest of the original manifest artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."
+msgstr "L’empreinte étiquetée par algorithme de l’artefact manifeste original consignée par les preuves externes de curation. Elle correspond au contentDigest de cet artefact, pas à une empreinte de la description de l’époque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:epoch gmeow:curationManifestDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:curationManifestDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch predecessor digest"
+msgstr "empreinte du prédécesseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The algorithm-tagged digest of the original predecessor ledger artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."
+msgstr "L’empreinte étiquetée par algorithme de l’artefact registre prédécesseur original consignée par les preuves externes de curation. Elle correspond au contentDigest de cet artefact, pas à une empreinte de la description de l’époque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:epoch gmeow:epochPredecessorDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:epochPredecessorDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch archive digest"
+msgstr "empreinte de l’archive"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The algorithm-tagged digest of the original archive artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."
+msgstr "L’empreinte étiquetée par algorithme de l’artefact archive original consignée par les preuves externes de curation. Elle correspond au contentDigest de cet artefact, pas à une empreinte de la description de l’époque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an attributed memory record or its exact source evidence."
+msgstr "Utiliser pour conserver cette partie d’un enregistrement de mémoire attribué ou ses preuves sources exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."
+msgstr "Éviter d’inférer une approbation, une application de politique, une lecture intégrale ou une transition gouvernée d’un seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."
+msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:epoch gmeow:epochArchiveDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:epochArchiveDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/memory-records|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "memory records"
+msgstr "enregistrements de mémoire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/memory-records|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Memory prose, lasting bank identities, review decisions, summary anchors, runtime-kept appraisals and external historical curation evidence."
+msgstr "Texte de mémoire, identités durables de banques, décisions de revue, ancrages de résumés, appréciations conservées par le runtime et preuves externes de curation historique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/memory-records|http://purl.org/dc/terms/title"
+msgid "GMEOW Memory Records Module"
+msgstr "Module GMEOW des enregistrements de mémoire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/memory-records|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Agent memory adapters preserving revision lineage, audience scope and attributed source evidence."
+msgstr "Adaptateurs de mémoire d’agents conservant la filiation des révisions, le périmètre d’audience et les preuves sources attribuées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "memory text language constraint"
+msgstr "contrainte de langue du texte de mémoire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied memoryText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."
+msgstr "Chaque valeur fournie de memoryText porte sa langue originale et conserve toute direction de base RDF 1.2. Une étiquette absente n’est pas remplacée par une langue devinée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:MemoryTextLanguageConstraint logic:formalizes gmeow:memoryText ."
+msgstr "Conserver cette loi : gmeow:MemoryTextLanguageConstraint logic:formalizes gmeow:memoryText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summary text language constraint"
+msgstr "contrainte de langue du résumé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied summaryText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."
+msgstr "Chaque valeur fournie de summaryText porte sa langue originale et conserve toute direction de base RDF 1.2. Une étiquette absente n’est pas remplacée par une langue devinée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:SummaryTextLanguageConstraint logic:formalizes gmeow:summaryText ."
+msgstr "Conserver cette loi : gmeow:SummaryTextLanguageConstraint logic:formalizes gmeow:summaryText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryAnchorLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summary anchor language constraint"
+msgstr "contrainte de langue de l’ancrage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryAnchorLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied summaryAnchor value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."
+msgstr "Chaque valeur fournie de summaryAnchor porte sa langue originale et conserve toute direction de base RDF 1.2. Une étiquette absente n’est pas remplacée par une langue devinée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryAnchorLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryAnchorLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryAnchorLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryAnchorLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:SummaryAnchorLanguageConstraint logic:formalizes gmeow:summaryAnchor ."
+msgstr "Conserver cette loi : gmeow:SummaryAnchorLanguageConstraint logic:formalizes gmeow:summaryAnchor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistilledTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kept appraisal language constraint"
+msgstr "contrainte de langue de l’appréciation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistilledTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied distilledText value carries its original language tag and retains any RDF 1.2 base direction. A missing tag is not replaced by a guessed language."
+msgstr "Chaque valeur fournie de distilledText porte sa langue originale et conserve toute direction de base RDF 1.2. Une étiquette absente n’est pas remplacée par une langue devinée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistilledTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistilledTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistilledTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistilledTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:DistilledTextLanguageConstraint logic:formalizes gmeow:distilledText ."
+msgstr "Conserver cette loi : gmeow:DistilledTextLanguageConstraint logic:formalizes gmeow:distilledText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankTextlessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "textless bank identity constraint"
+msgstr "contrainte d’identité de banque sans texte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankTextlessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A MemoryBank identity carries none of the revision, summary or appraisal payload text properties. Labels can name the bank without turning it into a revision."
+msgstr "Une identité MemoryBank ne porte aucune propriété de texte de révision, résumé ou appréciation. Des étiquettes peuvent la nommer sans en faire une révision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankTextlessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankTextlessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankTextlessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankTextlessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:MemoryBankTextlessConstraint logic:formalizes gmeow:MemoryBank ."
+msgstr "Conserver cette loi : gmeow:MemoryBankTextlessConstraint logic:formalizes gmeow:MemoryBank ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankRevisionTextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bank revision text constraint"
+msgstr "contrainte de texte de révision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankRevisionTextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A MemoryItem that versions a MemoryBank retains its own memoryText. Other remembered claims need no prose, and the bank identity remains textless."
+msgstr "Un MemoryItem versionnant une MemoryBank conserve son propre memoryText. Les autres affirmations mémorisées n’exigent pas de prose et l’identité de la banque reste sans texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankRevisionTextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankRevisionTextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankRevisionTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MemoryBankRevisionTextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:MemoryBankRevisionTextConstraint logic:formalizes gmeow:MemoryBank ."
+msgstr "Conserver cette loi : gmeow:MemoryBankRevisionTextConstraint logic:formalizes gmeow:MemoryBank ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReviewedBankLineageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reviewed bank lineage constraint"
+msgstr "contrainte de filiation de banque examinée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReviewedBankLineageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each reviewed revision belongs through versionOf to a lasting MemoryBank. The review is tied to that revision rather than a mutable latest pointer."
+msgstr "Chaque révision examinée appartient par versionOf à une MemoryBank durable. La revue est liée à cette révision, pas à un pointeur mutable vers la dernière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReviewedBankLineageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReviewedBankLineageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReviewedBankLineageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReviewedBankLineageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:ReviewedBankLineageConstraint logic:formalizes gmeow:reviewedRevision ."
+msgstr "Conserver cette loi : gmeow:ReviewedBankLineageConstraint logic:formalizes gmeow:reviewedRevision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryWordsSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summary words source constraint"
+msgstr "contrainte de source du résumé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryWordsSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Summary carrying summaryText or summaryAnchor retains a wasDerivedFrom source. An anchor remains the summarizer’s wording rather than a quoted source passage."
+msgstr "Un Summary portant summaryText ou summaryAnchor conserve une source wasDerivedFrom. Un ancrage reste le texte de l’auteur du résumé, pas une citation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryWordsSourceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryWordsSourceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryWordsSourceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SummaryWordsSourceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:SummaryWordsSourceConstraint logic:formalizes gmeow:Summary ."
+msgstr "Conserver cette loi : gmeow:SummaryWordsSourceConstraint logic:formalizes gmeow:Summary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistillationRuntimeStandpointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "runtime appraisal standpoint constraint"
+msgstr "contrainte de point de vue du runtime"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistillationRuntimeStandpointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A BodyDistillation records a responsible runtime Agent and offers the appraisal accordingTo that runtime. This does not turn its beneficiary into the keeper or imply beneficiary self-endorsement."
+msgstr "Un BodyDistillation consigne un Agent runtime responsable et propose l’appréciation accordingTo ce runtime. Cela ne fait pas du bénéficiaire le conservateur et n’implique aucune approbation de soi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistillationRuntimeStandpointConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistillationRuntimeStandpointConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistillationRuntimeStandpointConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistillationRuntimeStandpointConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:DistillationRuntimeStandpointConstraint logic:formalizes gmeow:BodyDistillation ."
+msgstr "Conserver cette loi : gmeow:DistillationRuntimeStandpointConstraint logic:formalizes gmeow:BodyDistillation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochArtifactDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch artifact identity constraint"
+msgstr "contrainte d’identité des artefacts de l’époque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochArtifactDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each original artifact referenced by a CurationEpoch carries its own contentDigest. A digest on the activity description cannot substitute for artifact-byte identity."
+msgstr "Chaque artefact original référencé par un CurationEpoch porte son propre contentDigest. Une empreinte de la description d’activité ne remplace pas l’identité des octets de l’artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochArtifactDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:EpochArtifactDigestConstraint logic:formalizes gmeow:CurationEpoch ."
+msgstr "Conserver cette loi : gmeow:EpochArtifactDigestConstraint logic:formalizes gmeow:CurationEpoch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch source digest agreement constraint"
+msgstr "contrainte d’accord des empreintes sources"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported manifest, predecessor or archive digest is also a contentDigest on its corresponding original artifact. Multiple algorithm-labelled digests may coexist."
+msgstr "Chaque empreinte rapportée de manifeste, prédécesseur ou archive est aussi un contentDigest de l’artefact original correspondant. Plusieurs algorithmes peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestAgreementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestAgreementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestAgreementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:EpochDigestAgreementConstraint logic:formalizes gmeow:CurationEpoch ."
+msgstr "Conserver cette loi : gmeow:EpochDigestAgreementConstraint logic:formalizes gmeow:CurationEpoch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epoch digest algorithm tag constraint"
+msgstr "contrainte d’étiquette d’algorithme des empreintes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each epoch digest literal retains an explicit algorithm tag and nonempty payload. The lexical check neither computes a digest nor validates the algorithm, encoding or source bytes."
+msgstr "Chaque littéral d’empreinte d’époque conserve une étiquette d’algorithme et une charge non vide. Le contrôle lexical ne calcule ni ne valide algorithme, encodage ou octets sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:EpochDigestTagConstraint logic:formalizes gmeow:CurationEpoch ."
+msgstr "Conserver cette loi : gmeow:EpochDigestTagConstraint logic:formalizes gmeow:CurationEpoch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historical successor provenance constraint"
+msgstr "contrainte de provenance du successeur historique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The externally described successor ledger wasGeneratedBy the historical epoch and wasDerivedFrom its named predecessor. Documentary evidence itself does not generate the earlier historical act."
+msgstr "Le registre successeur décrit extérieurement a été wasGeneratedBy l’époque historique et wasDerivedFrom son prédécesseur nommé. La preuve documentaire ne génère pas elle-même l’acte historique antérieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."
+msgstr "Utiliser pour contrôler la cohérence intrinsèque de l’enregistrement mémoire fourni et de ses liens sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."
+msgstr "Éviter de prétendre que cette loi prouve contrôle d’accès, paternité, calcul d’empreinte ou migration gouvernée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."
+msgstr "Conserver l’enregistrement et les preuves originales lors du signalement d’une violation intrinsèque ; ne pas fabriquer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:EpochSuccessorProvenanceConstraint logic:formalizes gmeow:CurationEpoch ."
+msgstr "Conserver cette loi : gmeow:EpochSuccessorProvenanceConstraint logic:formalizes gmeow:CurationEpoch ."
