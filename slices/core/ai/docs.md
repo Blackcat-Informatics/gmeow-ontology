@@ -282,3 +282,13 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+## General classifier evidence
+
+`ClassifierOutput` records an attributed score for an exact external
+`ClassifierLabel` in a `ClassifierLabelSet`, including genre and zero-shot
+classification. Shared run provenance and score/decision vocabulary are owned
+here; affect retains its class specializations and affect-only laws.
+`ModelInferenceRun` is an enduring execution record compatible with the
+observation vantage contract. See [the contract and example](design/CLASSIFIER-EVIDENCE.md)
+for candidate-set scope, calibration and the separate execution-activity boundary.

@@ -163,8 +163,9 @@ existing machinery rather than minting a parallel copy.
 - **The affect axes ARE the foundation's factored quantitative axes.**
   `logic:confidence ≠ logic:probability ≠ logic:weight ≠ logic:evidenceStrength`,
   plus `logic:Determinacy` and credence, are already first-class and kept apart. A
-  classifier score is `evidenceStrength`/`probability` (under declared
-  calibration), *never* `logic:confidence`; "the relationship is vague" is
+  classifier score retains its own declared semantics; probability, calibration,
+  evidential warrant and confidence require distinct interpretations and any
+  conversion requires an explicit justified mapping; "the relationship is vague" is
   `Determinacy = vague`, not low confidence. Every quantitative hard-fail here is an
   instance of that existing separation.
 - **Vantage is `gmeow:accordingTo` / `logic:Standpoint`.** Self-report-outranks-
@@ -532,7 +533,7 @@ primitive layer stays analysable; the expressive power stays total.
   \text{unpredictability}=3\}$ (`gmeow:coreAxisIndex` fixes each axis's position).
   The canonical metric $G$ (`gmeow:coreAffectGram`) is the positive-definite
   symmetric $4\times4$ Gram matrix with diagonal all $1$, the valence–arousal
-  coupling $G_{01}=G_{10}=\tfrac14$, and every other off-diagonal $0$; it is
+  coupling $G_{01}=G_{10}=\tfrac{1}{4}$, and every other off-diagonal $0$; it is
   positive-definite by its leading principal minors $1$ and $\tfrac{15}{16}>0$.
   This is grounded in the reusable `math:` numeric layer: $G$ is a
   `math:GramMatrix` of **exact** `math:RationalValue` entries representing a
@@ -889,7 +890,7 @@ for future PRs.
 | `gmeow:feltAffect` | object property | links an affective experience to the affective mode it manifests or produces | `AffectiveExperience` is minted and the generic mentation bridges are insufficiently discoverable |
 | `gmeow:AffectiveExpression` | event/sign/signal | observable expression that evidences an affective claim | expression evidence becomes a named product surface |
 | `gmeow:AffectScaleProfile` | reference-frame/profile | declares range, polarity, midpoint, and transform for numeric affect dimensions | dimensional scores move beyond bare compatibility decimals |
-| `gmeow:ModelInferenceRun` | activity (PROV-O-aligned) | one execution of a classifier over an input, with pinned model id + revision | the classifier evidence layer is minted |
+| `gmeow:ModelInferenceRun` | enduring information record, owned by `core/ai` | record of one classifier execution, with pinned model id + revision; distinct from an execution Activity | the classifier evidence layer is minted |
 | `gmeow:AffectClassifierOutput` | emitted model artifact / model-vantage observation | one emitted model output over one target (label + score + semantics) — evidence, *not* the human-level claim | classifier evidence becomes first-class |
 | `gmeow:AffectiveClaim` | claim | a richer GMEOW affect claim *supported by* evidence (classifier output, expression, self-report) | the evidence/claim boundary is made explicit |
 | `gmeow:AffectClassifierLabel` | external label identity | the exact label from an external model/dataset label set | any classifier label set is registered |
@@ -1012,3 +1013,20 @@ Affect work should land in small, reasoned, slice-first increments:
 At every stage, authored data flows from the affect slice to `gmeow.gts`; the
 public CLI and generated schemas consume the bundle; generated files are never
 edited as the source of truth.
+
+## General classifier ownership
+
+The [AI classifier contract](../../ai/design/CLASSIFIER-EVIDENCE.md) owns the
+general output, external label and label-set classes, shared properties, execution
+record, score semantics and decision policies. Affect consumes those IRIs and
+specializes the three classes. Its explicit local required-path restrictions and
+closure entries preserve the existing affect validation surface; the generic
+owner carries the corresponding general contract. The shared Formula laws retain
+their original identities at the general owner. Affect-only prohibitions,
+decisions, claims and reviewed emotion correspondences stay here.
+
+The native affect producer still emits affect-specialized outputs and label sets.
+Its zero-shot candidate sets carry no reviewed static decision rule. The new
+explicit `runLabelSet` edge can enrich general records; it is not imposed on
+existing producer graphs. EmotionML still enumerates affect categories and axes,
+with its existing loss record; general genre outputs do not enter that view.

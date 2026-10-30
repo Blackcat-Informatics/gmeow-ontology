@@ -185,15 +185,6 @@ gmeow:WeightingPolicy
     skos:definition "An OPEN value vocabulary naming the declared axis-weighting policy under which a derived affect intensity combines its core-affect axes — seeded with gmeow:weightingEqualCoreAffect (equal-weight axes) and gmeow:weightingValenceDominant (valence-dominant diagonal weights). Weighting is a machine-readable NAMED HANDLE, never a free-text string: applying it is solver work outside the logic (Principle 12), and the individual declares which policy the diagonal/off-diagonal weights of the metric Gram matrix realize. Kept open, never an sh:in enum."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:LabelSetDecisionRule
-    a logic:AbstractIndividualType ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "Label Set Decision Rule"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "An OPEN value vocabulary naming the decision structure a gmeow:AffectLabelSet carries — how a classifier turns its scores over the set into a decision. gmeow:decisionArgmax is single-label / winner-take-all: the members form a PARTITION (mutually exclusive and exhaustive), a softmax score is a point on the probability simplex, and the decision is its argmax (the categorical mode) — exactly one label. gmeow:decisionIndependentThreshold is multi-label: per-label independent Bernoulli thresholding over the [0,1] hypercube, zero-or-more labels. This is the formal dual of gmeow:ScoreSemantics (softmax ↔ argmax/exclusive, sigmoid ↔ independent-threshold), machine-coupled by gmeow:impliesLabelSetDecision so a scoring function and its set's decision rule can never silently disagree. Kept open, never an sh:in enum."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
 gmeow:AffectVectorObservation
     a logic:SubKind ,
         logic:Class ;
@@ -235,45 +226,6 @@ gmeow:DerivedAffectIntensityObservation
     gmeow:howToUse "Compute the norm externally, then record it as a gmeow:DerivedAffectIntensityObservation declaring gmeow:intensityBasis, gmeow:metricProfile, gmeow:weightingPolicy, and gmeow:normFunction (and gmeow:derivedByFunction gmeow:fnAffectiveIntensity for the CLI handle)."@x-gmeow-english ;
     gmeow:useWhen "Use to expose overall intensity (the vector norm) to the CLI as a derived observation under a named metric — the answer to 'how intense, and along which dominant axis?'."@x-gmeow-english .
 
-gmeow:AffectClassifierLabel
-    a logic:Kind ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "Affect Classifier Label"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "The exact, lossless external identity of a label emitted by a classifier or dataset label set (GoEmotions joy, SST-2 NEGATIVE, CardiffNLP Positive). An information artifact, NEVER a gmeow:EmotionType: labels live under their own per-registry authority (gmeow-goemotions:, gmeow-hf:) so a model label can never be mistaken for a canonical emotion. 'NEG', 'Negative', 'LABEL_0' are distinct identities until a reviewed correspondence maps them (Principle 5). The reviewed skos:closeMatch/exactMatch link to a canonical GMEOW term is a generated correspondence lowering, authored separately."@x-gmeow-english ;
-    skos:example "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid typing a classifier label as a gmeow:EmotionType (that is a category error, and 'neutral' as an EmotionType is a hard fail) and avoid asserting an unreviewed exactMatch to a canonical term (closeMatch by default)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Register each external label as a gmeow:AffectClassifierLabel individual under its per-registry prefix, bind it to its gmeow:AffectLabelSet via gmeow:memberOfLabelSet, and map it to canonical GMEOW terms only through a reviewed correspondence lowering."@x-gmeow-english ;
-    gmeow:useWhen "Use to register the exact identity of an external classifier/dataset label, preserved losslessly and kept distinct from canonical GMEOW emotion vocabulary."@x-gmeow-english .
-
-gmeow:AffectClassifierOutput
-    a logic:SubKind ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "Affect Classifier Output"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ;
-    skos:definition "One emitted model output over one target span — a model-vantage gmeow:Observation carrying the emitted label (gmeow:emittedLabel), raw score (gmeow:classifierScore), score semantics (gmeow:scoreSemantics), and threshold (gmeow:thresholdApplied), produced by a gmeow:ModelInferenceRun (gmeow:producedBy). It is EVIDENCE, not the human-level claim and not an inner-state truth: 'this model, at this revision, over this span, emitted this label with this score under this label set'. A raw sigmoid/softmax score is logic:evidenceStrength/probability under declared calibration, NEVER logic:confidence. It supports a gmeow:AffectiveClaim by gmeow:supportsAffectiveClaim (an evidence link, never entailment)."@x-gmeow-english ;
-    skos:example "ex:out a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:emittedLabel gmeow-goemotions:joy ; gmeow:classifierScore 0.84 ; gmeow:scoreSemantics gmeow:scoreSigmoid ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting an inner affect directly from an output (it must support a gmeow:AffectiveClaim, never entail one) and avoid storing its score as logic:confidence without calibration metadata (a raw score is not a calibrated probability — a hard fail)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Record each model output as a gmeow:AffectClassifierOutput linked to its gmeow:ModelInferenceRun (gmeow:producedBy), its target (gmeow:classifiedTarget), its emitted label, raw score, and score semantics; link it to a richer claim via gmeow:supportsAffectiveClaim."@x-gmeow-english ;
-    gmeow:useWhen "Use for one classifier output over one target — attributed model evidence with score and provenance, never a privileged truth about inner affect."@x-gmeow-english .
-
-gmeow:AffectLabelSet
-    a logic:Kind ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "Affect Label Set"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A named label vocabulary/registry that a classifier or dataset emits over (GoEmotions, Ekman-7, SST-2, CardiffNLP TweetEval). Its members are gmeow:AffectClassifierLabel individuals (gmeow:memberOfLabelSet). An information artifact: a label set is NOT an ontology of emotion and never defines canonical affect semantics. A Hugging Face label not registered in some gmeow:AffectLabelSet fails canonical projection (a hard fail). A REGISTERED (static) label set MUST declare its gmeow:labelSetDecision (single-label vs multi-label) — the producer hard-fails a registered set with no rule. A run-scoped zero-shot candidate set is minted per run and carries NO reviewed decision rule (it is legitimately rule-less), so the requirement is a producer-enforced invariant on registered sets, not a universal cardinality that would wrongly flag the minted candidate set."@x-gmeow-english ;
-    skos:example "gmeow-labelset:GoEmotions a gmeow:AffectLabelSet ; rdfs:label \"GoEmotions\"@en ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating a label set as a canonical emotion taxonomy (it is evidence provenance, not ontology) and avoid emitting a label with no registered set (unregistered labels fail projection)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the label set, then register each of its labels as a gmeow:AffectClassifierLabel with gmeow:memberOfLabelSet pointing back at it."@x-gmeow-english ;
-    gmeow:useWhen "Use to name a classifier/dataset label vocabulary whose members are external label identities."@x-gmeow-english .
-
 gmeow:AffectTelemetryStream
     a logic:SubKind ,
         logic:Class ;
@@ -312,28 +264,6 @@ gmeow:AffectiveExpression
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Record the observed expression as a gmeow:AffectiveExpression with its vantage and subject, and link it to the claim it supports via gmeow:supportsAffectiveClaim."@x-gmeow-english ;
     gmeow:useWhen "Use for an observable expression/signal offered as evidence for an affective claim, never as the emotion itself."@x-gmeow-english .
-
-gmeow:ModelInferenceRun
-    a logic:Kind ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "Model Inference Run"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Entity ;
-    skos:definition "One execution of a classifier over an input — a PROV-O-aligned activity (prov:Activity by generated correspondence) carrying its full run provenance: a pinned model id (gmeow:modelIdentifier) and MANDATORY revision (gmeow:modelRevision), model framework/task, tokenizer + label-set revisions, the id2label mapping, activation/functionToApply, topK/returnAllScores, threshold policy, and a calibration profile whenever a score is claimed as a probability. A model name without a pinned revision fails reproducibility (a hard fail). Its outputs are gmeow:AffectClassifierOutput observations (gmeow:producedBy)."@x-gmeow-english ;
-    skos:example "ex:run a gmeow:ModelInferenceRun ; gmeow:modelIdentifier \"SamLowe/roberta-base-go_emotions\" ; gmeow:modelRevision \"a1b2c3d\" ; gmeow:usedInput ex:chunk ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid recording a run without a pinned gmeow:modelRevision (unreproducible — a hard fail) and avoid treating the run's outputs as inner-state truth (they are attributed evidence)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Record the run with its pinned model id + revision and full framework/task/tokenizer/label-set provenance, link its input via gmeow:usedInput, and attach each emitted output via gmeow:producedBy."@x-gmeow-english ;
-    gmeow:useWhen "Use for one classifier execution over an input — the provenance-bearing activity whose outputs are attributed affect evidence."@x-gmeow-english .
-
-gmeow:ScoreSemantics
-    a logic:AbstractIndividualType ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "Score Semantics"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "An OPEN value vocabulary for what a classifier score MEANS — seeded with sigmoid score, softmax probability, calibrated probability, logit, and margin. Mandatory on every gmeow:AffectClassifierOutput: a raw sigmoid/softmax score is logic:evidenceStrength/probability, and only a CALIBRATED probability may be read as a confidence (Principle 9/17: confidence ≠ probability without a declared mapping). Kept open, never an sh:in enum."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Emotion
     a logic:Kind ,
@@ -542,24 +472,6 @@ gmeow:normFunction
     skos:definition "The declared math:Norm under which a derived intensity is computed — the machine-readable, grounded norm object (never a free-text string), a math:Norm math:inducedByForm a positive-definite math:SymmetricBilinearForm, so ‖x‖ = √(xᵀGx) is exact and never a bare L² over the non-orthogonal basis. The canonical affect norm is gmeow:affectMetricTensorNorm. Mandatory (SHACL); the metric is explicit and computing it is solver work (Principle 12). Functional: one intensity, one norm."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:labelSetDecision
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:AffectLabelSet ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "label set decision"@x-gmeow-english ;
-    rdfs:range gmeow:LabelSetDecisionRule ;
-    skos:definition "The gmeow:LabelSetDecisionRule a gmeow:AffectLabelSet carries — gmeow:decisionArgmax (single-label / mutually-exclusive) or gmeow:decisionIndependentThreshold (multi-label). Mandatory on a REGISTERED (static) set: the producer hard-fails a registered set with no declared rule, because its exclusivity is then unknown and it cannot judge whether more than one crossing is a violation. A run-scoped zero-shot candidate set is rule-less by design. Functional: one set, one rule."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:impliesLabelSetDecision
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:ScoreSemantics ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "implies label set decision"@x-gmeow-english ;
-    rdfs:range gmeow:LabelSetDecisionRule ;
-    skos:definition "The gmeow:LabelSetDecisionRule entailed by a normalized gmeow:ScoreSemantics — the machine coupling edge that makes exclusivity a checkable consequence of the scoring function. gmeow:scoreSoftmax implies gmeow:decisionArgmax (a simplex point → an argmax decision over a partition); gmeow:scoreSigmoid implies gmeow:decisionIndependentThreshold (a hypercube point → per-label thresholds). A run whose gmeow:scoreSemantics implies a rule other than its label set's gmeow:labelSetDecision is an inconsistency (a hard fail). Only normalized-distribution semantics carry an implication — gmeow:scoreLogit, gmeow:scoreMargin, and gmeow:scoreEntailment (per-hypothesis, not normalized across candidates) carry none."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:decidedLabel
     a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectDecision ;
@@ -665,118 +577,6 @@ gmeow:canonicalizesAs
     skos:definition "Links a gmeow:AffectClassifierOutput to the canonical GMEOW construct it canonicalizes into under a reviewed mapping — e.g. an SST-2 positive output to a valence gmeow:Appraisal of the target text (positive sentiment is NOT joy). Range intentionally open. The mapping is reviewed and lossy-declared; canonicalization NEVER discards the original label/score."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:classifiedTarget
-    a logic:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
-    rdfs:domain gmeow:AffectClassifierOutput ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "classified target"@x-gmeow-english ;
-    skos:definition "The target span a classifier output was emitted over — the chunk/text/segment classified (⊑ gmeow:observedFeature, the observation-spine bridge). Range intentionally open. Mandatory on an output (SHACL): an output with no target is unmoored evidence."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:classifierScore
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:AffectClassifierOutput ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "classifier score"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    skos:definition "The raw score a classifier emitted for its label. Its MEANING is fixed by gmeow:scoreSemantics (sigmoid/softmax/logit/…), never assumed: a raw score is logic:evidenceStrength/probability, and only a CALIBRATED probability may be read as confidence. Mandatory on an output (SHACL)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:emittedLabel
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:AffectClassifierOutput ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "emitted label"@x-gmeow-english ;
-    rdfs:range gmeow:AffectClassifierLabel ;
-    skos:definition "The exact external gmeow:AffectClassifierLabel a classifier output emitted — its lossless label identity (gmeow-goemotions:joy, gmeow-hf:sst2Negative). Mandatory on an output (SHACL); the label MUST be registered in a gmeow:AffectLabelSet or canonical projection fails."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:labelSetRevision
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "label-set revision"@x-gmeow-english ;
-    skos:definition "The pinned revision of the label set the run emitted over — part of the full run provenance (a zero-shot candidate label set is part of the run identity; a zero-shot 'joy' is not GoEmotions joy)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:hypothesisTemplate
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "hypothesis template"@x-gmeow-english ;
-    skos:definition "The natural-language hypothesis template a zero-shot (NLI) inference run instantiated per candidate label (e.g. 'This text expresses {}.'). Part of the run identity: the same candidate word under a different template is a different run, so a zero-shot candidate set is run-scoped provenance, never a static gmeow:AffectLabelSet."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:memberOfLabelSet
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:AffectClassifierLabel ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "member of label set"@x-gmeow-english ;
-    rdfs:range gmeow:AffectLabelSet ;
-    skos:definition "Binds a gmeow:AffectClassifierLabel to the gmeow:AffectLabelSet it belongs to (GoEmotions, Ekman-7, SST-2, CardiffNLP). Mandatory on a label (SHACL): an unregistered label fails canonical projection."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:modelFramework
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "model framework"@x-gmeow-english ;
-    skos:definition "The model framework of an inference run (e.g. 'transformers', 'onnxruntime') — part of the full run provenance."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:modelIdentifier
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "model identifier"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The model repository id of an inference run (e.g. the Hugging Face repo 'SamLowe/roberta-base-go_emotions'). Mandatory (SHACL); a model id WITHOUT a pinned gmeow:modelRevision fails reproducibility."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:modelRevision
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "model revision"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The pinned model revision/commit of an inference run — MANDATORY (SHACL). A model name without a pinned revision is unreproducible and fails. The single most drift-prone field for zero-shot/generative adapters."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:modelTask
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "model task"@x-gmeow-english ;
-    skos:definition "The model task of an inference run (e.g. 'text-classification', 'zero-shot-classification') — part of the full run provenance."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:producedBy
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:AffectClassifierOutput ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "produced by"@x-gmeow-english ;
-    rdfs:range gmeow:ModelInferenceRun ;
-    skos:definition "The gmeow:ModelInferenceRun that produced a classifier output — its provenance handle (PROV-O prov:wasGeneratedBy by generated correspondence). Mandatory and functional (SHACL): one output, one run."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:scoreCalibration
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:AffectClassifierOutput ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "score calibration"@x-gmeow-english ;
-    skos:definition "The declared calibration profile of a score, named as a string spec (e.g. 'temperature-scaled T=1.4', 'isotonic'). REQUIRED whenever a score's semantics is gmeow:scoreCalibratedProbability: a raw sigmoid/softmax score stored as a calibrated probability/confidence without calibration metadata is a hard fail."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:scoreSemantics
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:AffectClassifierOutput ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "score semantics"@x-gmeow-english ;
-    rdfs:range gmeow:ScoreSemantics ;
-    skos:definition "What a gmeow:classifierScore MEANS — a sigmoid score, softmax probability, calibrated probability, logit, or margin (open gmeow:ScoreSemantics vocab). Mandatory on an output (SHACL): a bare number with no declared semantics is uninterpretable."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:supportsAffectiveClaim
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -791,31 +591,6 @@ gmeow:telemetryBlob
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "telemetry blob"@x-gmeow-english ;
     skos:definition "The by-reference handle (a content-address digest + origin) for a gmeow:AffectTelemetryStream's dense time-series block — the block is held by reference, NEVER inlined as triples (the blob-by-reference doctrine; high-frequency telemetry must not become a triple storm)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:thresholdApplied
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:AffectClassifierOutput ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "threshold applied"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    skos:definition "The threshold used to binarize/select a classifier's label. The applied threshold policy travels with each output — a single global 0.5 must not be assumed canonical (GoEmotions documents per-label threshold optimization)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:tokenizerRevision
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "tokenizer revision"@x-gmeow-english ;
-    skos:definition "The pinned tokenizer revision of an inference run — part of the full run provenance (a tokenizer change silently shifts scores)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:usedInput
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:ModelInferenceRun ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "used input"@x-gmeow-english ;
-    skos:definition "The input a gmeow:ModelInferenceRun consumed (PROV-O prov:used by generated correspondence). Range intentionally open (a chunk, document, or media segment)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dimensionAgency
@@ -1096,64 +871,6 @@ gmeow:coreAffectMetricPAD
     rdfs:seeAlso gmeow:coreAffectForm ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:scoreCalibratedProbability
-    a gmeow:ScoreSemantics ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "calibrated probability"@x-gmeow-english ;
-    skos:definition "A calibrated probability — the ONLY score semantics that may be read as an epistemic confidence, and only with a declared gmeow:scoreCalibration profile."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scoreLogit
-    a gmeow:ScoreSemantics ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "logit"@x-gmeow-english ;
-    skos:definition "A raw pre-activation logit — not a probability."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scoreMargin
-    a gmeow:ScoreSemantics ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "margin"@x-gmeow-english ;
-    skos:definition "A decision margin (e.g. an SVM-style distance) — not a probability."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scoreSigmoid
-    a gmeow:ScoreSemantics ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "sigmoid score"@x-gmeow-english ;
-    skos:definition "A per-label sigmoid score (multi-label, e.g. GoEmotions) — evidence strength, NOT a calibrated probability. A point on the [0,1] hypercube (independent Bernoullis), so it implies the multi-label decision rule."@x-gmeow-english ;
-    gmeow:impliesLabelSetDecision gmeow:decisionIndependentThreshold ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scoreSoftmax
-    a gmeow:ScoreSemantics ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "softmax probability"@x-gmeow-english ;
-    skos:definition "A softmax probability over a mutually-exclusive label set — a raw model probability, not calibrated unless a gmeow:scoreCalibration says so. A point on the probability simplex (a categorical distribution over a partition), so it implies the single-label / argmax decision rule."@x-gmeow-english ;
-    gmeow:impliesLabelSetDecision gmeow:decisionArgmax ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:scoreEntailment
-    a gmeow:ScoreSemantics ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "entailment probability"@x-gmeow-english ;
-    skos:definition "A natural-language-inference entailment probability from a zero-shot classifier (a hypothesis built from a run-scoped candidate label and template, scored entailment-vs-contradiction) — evidence strength, NOT a calibrated probability. The candidate label set is part of the run identity, carried by gmeow:hypothesisTemplate + gmeow:labelSetRevision, so a zero-shot 'joy' is not GoEmotions joy."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:decisionArgmax
-    a gmeow:LabelSetDecisionRule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "argmax (single-label)"@x-gmeow-english ;
-    skos:definition "The single-label / winner-take-all decision rule: the label set's members form a partition (mutually exclusive and exhaustive), the score vector is a point on the probability simplex, and the decision is its argmax (the categorical mode) — exactly one decided label. SST-2, CardiffNLP TweetEval, and Ekman-7 carry it. Under it, more than one label crossing its claim threshold in one observation is a hard fail (mutually-exclusive claims), and the model's argmax is recorded as a gmeow:AffectDecision even when it falls below the claim threshold."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:decisionIndependentThreshold
-    a gmeow:LabelSetDecisionRule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "independent threshold (multi-label)"@x-gmeow-english ;
-    skos:definition "The multi-label decision rule: each label is an independent Bernoulli thresholded on its own (the score vector is a point on the [0,1] hypercube, a product space), so zero, one, or many labels may be decided at once. GoEmotions carries it. Multiple crossings are legitimate and no gmeow:AffectDecision is minted — a multi-label set has no single categorical winner."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:polarityBipolar
     a gmeow:ScalePolarity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -1305,7 +1022,7 @@ gmeow:qualitySublimity
 # GMEOW terms are generated lowerings, authored in the mappings layer.
 
 gmeow-labelset:CardiffTweetEval
-    a gmeow:AffectLabelSet ;
+    a gmeow:AffectLabelSet , gmeow:RegisteredClassifierLabelSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "CardiffNLP TweetEval sentiment"@x-gmeow-english ;
     skos:definition "The CardiffNLP Twitter-RoBERTa ternary sentiment label set (Negative/Neutral/Positive)."@x-gmeow-english ;
@@ -1313,7 +1030,7 @@ gmeow-labelset:CardiffTweetEval
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow-labelset:Ekman7
-    a gmeow:AffectLabelSet ;
+    a gmeow:AffectLabelSet , gmeow:RegisteredClassifierLabelSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Ekman-7"@x-gmeow-english ;
     skos:definition "The Ekman-7 emotion label set used by j-hartmann/emotion-english-distilroberta-base (anger, disgust, fear, joy, neutral, sadness, surprise)."@x-gmeow-english ;
@@ -1321,7 +1038,7 @@ gmeow-labelset:Ekman7
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow-labelset:GoEmotions
-    a gmeow:AffectLabelSet ;
+    a gmeow:AffectLabelSet , gmeow:RegisteredClassifierLabelSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "GoEmotions"@x-gmeow-english ;
     skos:definition "The GoEmotions label set (27 emotion categories + neutral, multi-label) — the reference classifier adapter, as used by SamLowe/roberta-base-go_emotions."@x-gmeow-english ;
@@ -1329,7 +1046,7 @@ gmeow-labelset:GoEmotions
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow-labelset:SST2
-    a gmeow:AffectLabelSet ;
+    a gmeow:AffectLabelSet , gmeow:RegisteredClassifierLabelSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "SST-2 binary sentiment"@x-gmeow-english ;
     skos:definition "The SST-2 binary sentiment label set (POSITIVE/NEGATIVE) — the default text-classification sentiment pipeline."@x-gmeow-english ;
@@ -2515,174 +2232,6 @@ logic:vcpAtom a logic:Formula ; logic:relation gmeow:vectorComponent ;
 # and projected to generated/shapes/procedural-constraints.ttl (Principle 17).     #
 # =========================================================================== #
 
-gmeow:ModelInferenceRunIdentifierPresentConstraint
-    a logic:Constraint ;
-    rdfs:label "ModelInferenceRun identifier-present constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a gmeow:modelIdentifier."@x-gmeow-english ;
-    logic:formalizes gmeow:ModelInferenceRun , gmeow:ModelInferenceRunShape ;
-    logic:message "A ModelInferenceRun must declare exactly one gmeow:modelIdentifier (the model repo id) — run provenance is mandatory and single-valued." ;
-    logic:integrity logic:mipForall .
-logic:mipForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:mipImpl .
-logic:mipImpl a logic:Formula ; logic:antecedent logic:mipGuard ; logic:consequent logic:mipExists .
-logic:mipGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
-logic:mipExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:mipAtom .
-logic:mipAtom a logic:Formula ; logic:relation gmeow:modelIdentifier ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
-gmeow:ModelInferenceRunRevisionPresentConstraint
-    a logic:Constraint ;
-    rdfs:label "ModelInferenceRun revision-present constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a pinned gmeow:modelRevision."@x-gmeow-english ;
-    logic:formalizes gmeow:ModelInferenceRun , gmeow:ModelInferenceRunShape ;
-    logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
-    logic:integrity logic:mrpForall .
-logic:mrpForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:mrpImpl .
-logic:mrpImpl a logic:Formula ; logic:antecedent logic:mrpGuard ; logic:consequent logic:mrpExists .
-logic:mrpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
-logic:mrpExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:mrpAtom .
-logic:mrpAtom a logic:Formula ; logic:relation gmeow:modelRevision ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
-gmeow:AffectClassifierOutputProducedByPresentConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectClassifierOutput produced-by constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput is gmeow:producedBy a run."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
-    logic:message "An AffectClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
-    logic:integrity logic:opForall .
-logic:opForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:opImpl .
-logic:opImpl a logic:Formula ; logic:antecedent logic:opGuard ; logic:consequent logic:opExists .
-logic:opGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
-logic:opExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:opAtom .
-logic:opAtom a logic:Formula ; logic:relation gmeow:producedBy ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
-gmeow:AffectClassifierOutputTargetPresentConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectClassifierOutput target-present constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput names a gmeow:classifiedTarget."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
-    logic:message "An AffectClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
-    logic:integrity logic:octForall .
-logic:octForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:octImpl .
-logic:octImpl a logic:Formula ; logic:antecedent logic:octGuard ; logic:consequent logic:octExists .
-logic:octGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
-logic:octExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:octAtom .
-logic:octAtom a logic:Formula ; logic:relation gmeow:classifiedTarget ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
-gmeow:AffectClassifierOutputLabelPresentConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectClassifierOutput label-present constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput carries a gmeow:emittedLabel."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
-    logic:message "An AffectClassifierOutput must carry a gmeow:emittedLabel (a registered gmeow:AffectClassifierLabel IRI)." ;
-    logic:integrity logic:oelForall .
-logic:oelForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:oelImpl .
-logic:oelImpl a logic:Formula ; logic:antecedent logic:oelGuard ; logic:consequent logic:oelExists .
-logic:oelGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
-logic:oelExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:oelAtom .
-logic:oelAtom a logic:Formula ; logic:relation gmeow:emittedLabel ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
-gmeow:AffectClassifierOutputScorePresentConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectClassifierOutput score-present constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput carries a gmeow:classifierScore."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
-    logic:message "An AffectClassifierOutput must carry a raw gmeow:classifierScore." ;
-    logic:integrity logic:oscForall .
-logic:oscForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:oscImpl .
-logic:oscImpl a logic:Formula ; logic:antecedent logic:oscGuard ; logic:consequent logic:oscExists .
-logic:oscGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
-logic:oscExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:oscAtom .
-logic:oscAtom a logic:Formula ; logic:relation gmeow:classifierScore ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
-gmeow:AffectClassifierOutputSemanticsPresentConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectClassifierOutput score-semantics constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput declares a gmeow:scoreSemantics."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
-    logic:message "An AffectClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
-    logic:integrity logic:ossForall .
-logic:ossForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:ossImpl .
-logic:ossImpl a logic:Formula ; logic:antecedent logic:ossGuard ; logic:consequent logic:ossExists .
-logic:ossGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
-logic:ossExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:ossAtom .
-logic:ossAtom a logic:Formula ; logic:relation gmeow:scoreSemantics ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
-gmeow:AffectClassifierLabelRegisteredConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectClassifierLabel registered constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierLabel is a gmeow:memberOfLabelSet of a label set."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierLabel , gmeow:AffectClassifierLabelShape ;
-    logic:message "An AffectClassifierLabel must be registered in a gmeow:AffectLabelSet via gmeow:memberOfLabelSet — an unregistered label fails canonical projection." ;
-    logic:integrity logic:lmrForall .
-logic:lmrForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:lmrImpl .
-logic:lmrImpl a logic:Formula ; logic:antecedent logic:lmrGuard ; logic:consequent logic:lmrExists .
-logic:lmrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierLabel ] .
-logic:lmrExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
-    logic:exists logic:lmrAtom .
-logic:lmrAtom a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
-
 gmeow:DerivedAffectIntensityBasisPresentConstraint
     a logic:Constraint ;
     rdfs:label "Derived affect intensity basis-present constraint"@x-gmeow-english ;
@@ -2768,29 +2317,6 @@ logic:accAtom a logic:Formula ; logic:relation gmeow:affectiveConstituent ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
 
 # modelRevision is single-valued: two distinct pinned revisions is a hard fail.
-gmeow:ModelInferenceRunRevisionUniqueConstraint
-    a logic:Constraint ;
-    rdfs:label "ModelInferenceRun revision-unique constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun pins at most one gmeow:modelRevision."@x-gmeow-english ;
-    logic:formalizes gmeow:ModelInferenceRun , gmeow:ModelInferenceRunShape ;
-    logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
-    logic:integrity logic:mruForall .
-logic:mruForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] , [ logic:termIndex 2 ; logic:termVariable "b" ] ;
-    logic:forall logic:mruImpl .
-logic:mruImpl a logic:Formula ; logic:antecedent logic:mruGuard ; logic:consequent logic:mruEq .
-logic:mruGuard a logic:Formula ; logic:and logic:mruType , logic:mruA , logic:mruB .
-logic:mruType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
-logic:mruA a logic:Formula ; logic:relation gmeow:modelRevision ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
-logic:mruB a logic:Formula ; logic:relation gmeow:modelRevision ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
-logic:mruEq a logic:Formula ; logic:relation logic:termEqual ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
-
 # A derived intensity's weighting policy must be a machine-readable IRI, never a free-text string.
 gmeow:DerivedAffectIntensityWeightingIriConstraint
     a logic:Constraint ;
@@ -2860,30 +2386,6 @@ logic:lneEmotion a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EmotionType ] .
 
 # A calibrated-probability score requires a gmeow:scoreCalibration profile.
-gmeow:AffectClassifierOutputCalibrationConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectClassifierOutput calibration constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput whose gmeow:scoreSemantics is gmeow:scoreCalibratedProbability declares a gmeow:scoreCalibration."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectClassifierOutputShape ;
-    logic:message "A score claimed as a calibrated probability requires a gmeow:scoreCalibration profile — a raw sigmoid/softmax score stored as a confidence without calibration metadata is a hard fail (confidence is not a probability without a declared mapping)." ;
-    logic:integrity logic:occForall .
-logic:occForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:occImpl .
-logic:occImpl a logic:Formula ; logic:antecedent logic:occGuard ; logic:consequent logic:occExists .
-logic:occGuard a logic:Formula ; logic:and logic:occType , logic:occSem .
-logic:occType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
-logic:occSem a logic:Formula ; logic:relation gmeow:scoreSemantics ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scoreCalibratedProbability ] .
-logic:occExists a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ;
-    logic:exists logic:occAtom .
-logic:occAtom a logic:Formula ; logic:relation gmeow:scoreCalibration ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
-
 # A classifier output must not directly assert inner affect (emotionType / emotionBearer).
 gmeow:AffectClassifierOutputNoInnerAffectConstraint
     a logic:Constraint ;
@@ -2986,35 +2488,6 @@ logic:dslEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ] , [ logic:termIndex 1 ; logic:termIri gmeow:decisionArgmax ] .
 
 # A classifier output's score semantics must match its emitted label's set decision rule.
-gmeow:AffectDecisionRuleConsistencyConstraint
-    a logic:Constraint ;
-    rdfs:label "AffectDecision rule-consistency constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world relational integrity constraint: a gmeow:AffectClassifierOutput's gmeow:scoreSemantics gmeow:impliesLabelSetDecision matches its emitted label's set gmeow:labelSetDecision."@x-gmeow-english ;
-    logic:formalizes gmeow:AffectClassifierOutput , gmeow:AffectDecisionRuleConsistencyShape ;
-    logic:message "A classifier output's gmeow:scoreSemantics implies a label-set decision rule (softmax → argmax, sigmoid → independent-threshold) that MUST match its emitted label's set gmeow:labelSetDecision — a softmax score over a multi-label set (or a sigmoid over an exclusive set) is an inconsistency (a hard fail)." ;
-    logic:integrity logic:drcForall .
-logic:drcForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sem" ] , [ logic:termIndex 2 ; logic:termVariable "label" ] , [ logic:termIndex 3 ; logic:termVariable "implied" ] , [ logic:termIndex 4 ; logic:termVariable "set" ] , [ logic:termIndex 5 ; logic:termVariable "declared" ] ;
-    logic:forall logic:drcImpl .
-logic:drcImpl a logic:Formula ; logic:antecedent logic:drcGuard ; logic:consequent logic:drcEq .
-logic:drcGuard a logic:Formula ; logic:and logic:drcType , logic:drcSem , logic:drcLabel , logic:drcImplies , logic:drcMember , logic:drcDecision .
-logic:drcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
-logic:drcSem a logic:Formula ; logic:relation gmeow:scoreSemantics ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sem" ] .
-logic:drcLabel a logic:Formula ; logic:relation gmeow:emittedLabel ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "label" ] .
-logic:drcImplies a logic:Formula ; logic:relation gmeow:impliesLabelSetDecision ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "sem" ] , [ logic:termIndex 1 ; logic:termVariable "implied" ] .
-logic:drcMember a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "label" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
-logic:drcDecision a logic:Formula ; logic:relation gmeow:labelSetDecision ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "declared" ] .
-logic:drcEq a logic:Formula ; logic:relation logic:termEqual ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "implied" ] , [ logic:termIndex 1 ; logic:termVariable "declared" ] .
-
 # At most one AffectiveClaim over one target from a single-label (argmax) classifier run.
 gmeow:ExclusiveAffectiveClaimConstraint
     a logic:Constraint ;
@@ -3123,12 +2596,6 @@ gmeow:EmotionBearerConstraint
     logic:message "An Emotion must inhere in exactly one gmeow:emotionBearer (an intrinsic mode has exactly one bearer)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; logic:allValuesFrom logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; logic:allValuesFrom logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifierScore> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; logic:allValuesFrom logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; logic:allValuesFrom logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/AffectComposite> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/affectiveConstituent> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMax> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
 <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMin> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
@@ -3145,12 +2612,6 @@ gmeow:EmotionBearerConstraint
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/metricProfile> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/normFunction> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/weightingPolicy> ; logic:allValuesFrom logic:Thing ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/memberOfLabelSet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifiedTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifierScore" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/emittedLabel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/producedBy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
-[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/scoreSemantics" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectComposite> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/affectiveConstituent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/profileRangeMax" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/profileRangeMin" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -3178,11 +2639,6 @@ gmeow:Appraisal logic:subClassOf
 # one pinned gmeow:modelRevision. Both are literal-valued (a repo id, a revision string), so the
 # existence axiom ranges over rdfs:Literal (logic:allValuesFrom OWL Thing would reject the literal);
 # the closure entries project sh:minCount 1 and the OWL FunctionalProperty contract the sh:maxCount 1.
-gmeow:ModelInferenceRun logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:modelIdentifier ; logic:allValuesFrom rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:modelRevision ; logic:allValuesFrom rdfs:Literal ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelIdentifier" ; logic:closureValue logic:ClosedWorldClosure ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelRevision" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # gmeow:DerivedAffectIntensityObservationShape — a DerivedAffectIntensityObservation must NOT carry a
 # stored gmeow:appraisalValue magnitude (the norm is a recomputable derived view, Principle 12): the
@@ -3322,21 +2778,6 @@ gmeow:intensityBasisFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:intensityBasis and nothing else. It is not a definition of gmeow:intensityBasis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-gmeow:labelSetDecisionFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "labelSetDecision is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
-    logic:characterizes gmeow:labelSetDecision ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:labelSetDecision ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:labelSetDecision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:labelSetDecision and nothing else. It is not a definition of gmeow:labelSetDecision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
 gmeow:metricGramFunctionality
     a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -3367,36 +2808,6 @@ gmeow:metricProfileFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:metricProfile and nothing else. It is not a definition of gmeow:metricProfile (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-gmeow:modelIdentifierFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "modelIdentifier is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:modelIdentifier is functional: an inference run executes exactly one pinned model repository id, so a run naming two model ids would not identify a single reproducible execution."@x-gmeow-english ;
-    logic:characterizes gmeow:modelIdentifier ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:modelIdentifier ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:modelIdentifier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:modelIdentifier and nothing else. It is not a definition of gmeow:modelIdentifier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-gmeow:modelRevisionFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "modelRevision is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:modelRevision is functional: a run pins exactly one model revision/commit — the single most drift-prone coordinate of its reproducible identity — so two revisions on one run would name two different models rather than one execution."@x-gmeow-english ;
-    logic:characterizes gmeow:modelRevision ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:modelRevision ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:modelRevision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:modelRevision and nothing else. It is not a definition of gmeow:modelRevision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
 gmeow:normFunctionFunctionality
     a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -3411,21 +2822,6 @@ gmeow:normFunctionFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:normFunction, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:normFunction and nothing else. It is not a definition of gmeow:normFunction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-gmeow:producedByFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "producedBy is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:producedBy is functional: a classifier output is generated by exactly one inference run — its single provenance source (prov:wasGeneratedBy) — so it cannot be attributed to two producing runs."@x-gmeow-english ;
-    logic:characterizes gmeow:producedBy ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:producedBy ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:producedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:producedBy and nothing else. It is not a definition of gmeow:producedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:profileMidpointFunctionality
     a logic:NamedIndividual ,
@@ -3501,21 +2897,6 @@ gmeow:profileTransformFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:profileTransform, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:profileTransform and nothing else. It is not a definition of gmeow:profileTransform (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-gmeow:scoreSemanticsFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
-    rdfs:label "scoreSemantics is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:scoreSemantics is functional: a classifier score has exactly one declared meaning — sigmoid, softmax probability, calibrated probability, logit, or margin — because one number cannot be two of those at once without becoming uninterpretable."@x-gmeow-english ;
-    logic:characterizes gmeow:scoreSemantics ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:scoreSemantics ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:scoreSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:scoreSemantics and nothing else. It is not a definition of gmeow:scoreSemantics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sparseAxisCompletionFunctionality
     a logic:NamedIndividual ,
@@ -3601,3 +2982,47 @@ gmeow:emotionSelfCorrection
     gmeow:avoidWhen "Avoid using this emotion as evidence that a correction succeeded or as a lifecycle status on a claim."@x-gmeow-english ;
     gmeow:howToUse "Attribute the feeling through an Emotion or ArcSample and record any actual correction separately."@x-gmeow-english ;
     gmeow:useWhen "Use for the emotional moment of noticing and correcting oneself in a recorded experience or narrative reading."@x-gmeow-english .
+
+gmeow:AffectClassifierLabel
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Classifier Label"@x-gmeow-english ;
+    logic:subClassOf gmeow:ClassifierLabel ;
+    skos:definition "An exact affect-classifier label identity specializing ClassifierLabel. It belongs to an AffectLabelSet and remains distinct from EmotionType; reviewed affect correspondences never replace the original identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AffectClassifierOutput
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Classifier Output"@x-gmeow-english ;
+    logic:subClassOf gmeow:ClassifierOutput ;
+    skos:definition "An affect-specialized ClassifierOutput whose emitted label is an AffectClassifierLabel. It inherits the general run, target, score and semantics contract and may support an AffectiveClaim. It never directly entails inner affect; calibrated probability is not automatically epistemic confidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AffectLabelSet
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Label Set"@x-gmeow-english ;
+    logic:subClassOf gmeow:ClassifierLabelSet ;
+    skos:definition "An affect-classifier label vocabulary specializing ClassifierLabelSet. A registered static set used by the affect producer declares labelSetDecision; a run-scoped zero-shot candidate set may legitimately lack that rule. Neither form defines canonical emotion categories."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# Affect ranges narrow the inherited contract without narrowing shared properties.
+gmeow:AffectClassifierOutput logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:emittedLabel ; logic:allValuesFrom gmeow:AffectClassifierLabel ] .
+gmeow:AffectClassifierLabel logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:memberOfLabelSet ; logic:allValuesFrom gmeow:AffectLabelSet ] .
+
+# Concrete affect required-path projections remain direct for existing consumers.
+<https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifierScore> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; logic:allValuesFrom logic:Thing ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/memberOfLabelSet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifiedTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifierScore" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/emittedLabel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/producedBy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/scoreSemantics" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .

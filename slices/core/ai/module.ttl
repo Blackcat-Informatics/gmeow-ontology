@@ -4,6 +4,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:Chunk
@@ -1237,3 +1238,704 @@ gmeow:answerText
 
 # Natural-language values retain language and direction; plain text declares no language.
 gmeow:ModelCard logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:modelProvider ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+# General classifier evidence: exact external labels, execution records and score meaning.
+
+gmeow:ClassifierLabel
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Classifier Label"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "The exact external label identity in a classifier label set. This information artifact is distinct from a canonical category; identical words in different registries or run-scoped candidate sets do not identify the same label."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ClassifierOutput
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Classifier Output"@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation ;
+    skos:definition "One attributed classifier result for one target and exact emitted label, retaining its raw decimal score, declared score semantics and producing ModelInferenceRun record. Model evidence does not entail membership in a canonical domain category."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ClassifierLabelSet
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Classifier Label Set"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "An identified external label vocabulary, either a static registry or a run-scoped zero-shot candidate set. Members are ClassifierLabel artifacts, not canonical domain categories. Static registries used by the affect producer require a reviewed decision rule; run-scoped candidate sets may legitimately lack one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ModelInferenceRun
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Model Inference Run"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "The enduring provenance record of one classifier execution, not the execution activity. It pins the model identifier and exact revision and captures task, framework, tokenizer and label-set revisions, inputs and hypothesis template. It may serve as an Observation vantage. A real generating Activity is distinct and may generate the record through wasGeneratedBy; producedBy points to the record."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ScoreSemantics
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Score Semantics"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "An open vocabulary declaring the interpretation of a raw classifier score. Calibration and probability do not by themselves establish epistemic confidence or provenance-derived evidence strength; each requires a separately justified mapping."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:LabelSetDecisionRule
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Label Set Decision Rule"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "An open vocabulary of declared score-to-decision policies over a label set. Argmax and independent thresholding are distinct policies, coupled to compatible score semantics through impliesLabelSetDecision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:classifiedTarget
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "classified target"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierOutput ;
+    logic:subPropertyOf gmeow:observedFeature ;
+    skos:definition "The target classified by this output, bridged to observedFeature. The target may be a document, span, media segment or other feature of interest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:classifierScore
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "classifier score"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierOutput ;
+    logic:range xsd:decimal ;
+    skos:definition "The exact raw decimal score emitted for this label, interpreted only under scoreSemantics. No universal unit interval, probability, confidence or evidential-warrant interpretation is inferred."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:emittedLabel
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "emitted label"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierOutput ;
+    logic:range gmeow:ClassifierLabel ;
+    skos:definition "The exact ClassifierLabel artifact emitted by this output. Identity and label-set membership survive any reviewed mapping to a canonical category."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:labelSetRevision
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "label-set revision"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range xsd:string ;
+    skos:definition "The pinned label-set revision of this execution record. For zero-shot inference it identifies the exact candidate inventory as part of run identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hypothesisTemplate
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "hypothesis template"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range xsd:string ;
+    logic:subPropertyOf lang:literalValue ;
+    skos:definition "The exact natural-language template instantiated with each zero-shot candidate label. The literal carrier preserves the template itself; changing it changes the execution context."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:memberOfLabelSet
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "member of label set"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierLabel ;
+    logic:range gmeow:ClassifierLabelSet ;
+    skos:definition "Registers an exact label identity in its ClassifierLabelSet. Membership also applies to run-scoped candidates and does not imply a static registry or reviewed decision rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelFramework
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "model framework"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range xsd:string ;
+    skos:definition "The execution framework captured in the run record, such as transformers or onnxruntime."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelIdentifier
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "model identifier"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range xsd:string ;
+    skos:definition "The exact model repository or artifact identifier pinned by the execution record, paired with modelRevision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelRevision
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "model revision"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range xsd:string ;
+    skos:definition "The exact immutable model revision used for this execution. A mutable model name alone cannot satisfy the pinned revision requirement."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelTask
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "model task"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range xsd:string ;
+    skos:definition "The model task text captured in the execution record, such as text-classification or zero-shot-classification. Required hypothesis provenance follows declared entailment score semantics, not the spelling of this task text."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:producedBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "produced by"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierOutput ;
+    logic:range gmeow:ModelInferenceRun ;
+    skos:definition "The single ModelInferenceRun record attributing this output. It points to an enduring record, not an Activity; it is not a wasGeneratedBy specialization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:scoreCalibration
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "score calibration"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierOutput ;
+    logic:range xsd:string ;
+    skos:definition "The declared calibration profile of a score, required for calibrated-probability semantics. Calibration alone never turns probability into epistemic confidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:scoreSemantics
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "score semantics"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierOutput ;
+    logic:range gmeow:ScoreSemantics ;
+    skos:definition "The single declared interpretation of classifierScore from the open ScoreSemantics vocabulary. A bare uninterpreted number is incomplete evidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:thresholdApplied
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "threshold applied"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierOutput ;
+    logic:range xsd:decimal ;
+    skos:definition "The threshold actually applied to this output label. No universal threshold or requirement to threshold every classifier is implied."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tokenizerRevision
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "tokenizer revision"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range xsd:string ;
+    skos:definition "The exact tokenizer revision captured in this execution record; changing it may change scores independently of the model revision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:usedInput
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "used input"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    skos:definition "An input recorded as consumed by the classifier execution. The subject is the execution record, not an Activity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:labelSetDecision
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "label set decision"@x-gmeow-english ;
+    logic:domain gmeow:ClassifierLabelSet ;
+    logic:range gmeow:LabelSetDecisionRule ;
+    skos:definition "The declared decision policy of a label set. Static registries used by the affect producer require one; run-scoped zero-shot candidates need not carry one. Where supplied it must agree with score semantics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:impliesLabelSetDecision
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "implies label set decision"@x-gmeow-english ;
+    logic:domain gmeow:ScoreSemantics ;
+    logic:range gmeow:LabelSetDecisionRule ;
+    skos:definition "The compatibility commitment from score semantics to decision policy: softmax to argmax, sigmoid to independent thresholding. Logit, margin and per-hypothesis entailment carry none."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:runLabelSet
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "run label set"@x-gmeow-english ;
+    logic:domain gmeow:ModelInferenceRun ;
+    logic:range gmeow:ClassifierLabelSet ;
+    skos:definition "An explicit label set used by this execution record. When supplied, its outputs must emit labels belonging to that set. Existing records may capture membership through emitted labels and labelSetRevision instead. This edge implies no static decision rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:scoreCalibratedProbability
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "calibrated probability"@x-gmeow-english ;
+    skos:definition "A model probability under a declared calibration profile. Calibration alone authorizes neither epistemic confidence nor provenance-derived evidence strength."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreLogit
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "logit"@x-gmeow-english ;
+    skos:definition "A raw pre-activation logit, potentially outside the unit interval and not a probability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreMargin
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "margin"@x-gmeow-english ;
+    skos:definition "A decision margin, such as a signed classifier distance, not a probability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreSigmoid
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "sigmoid score"@x-gmeow-english ;
+    gmeow:impliesLabelSetDecision gmeow:decisionIndependentThreshold ;
+    skos:definition "A per-label sigmoid score in the unit interval. Independent-label interpretation is distinct from calibration, confidence and evidential warrant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreSoftmax
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "softmax probability"@x-gmeow-english ;
+    gmeow:impliesLabelSetDecision gmeow:decisionArgmax ;
+    skos:definition "A model probability normalized over the declared mutually exclusive label set. This simplex interpretation establishes neither calibration nor confidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreEntailment
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "entailment probability"@x-gmeow-english ;
+    skos:definition "A per-hypothesis entailment-versus-contradiction model probability for a zero-shot candidate and template. It is not normalized across candidates and does not establish calibration or confidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:decisionArgmax
+    a gmeow:LabelSetDecisionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "argmax (single-label)"@x-gmeow-english ;
+    skos:definition "A single-label decision policy selecting an argmax over the label set. It does not discard other emitted scores or entail a canonical category claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:decisionIndependentThreshold
+    a gmeow:LabelSetDecisionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "independent threshold (multi-label)"@x-gmeow-english ;
+    skos:definition "A per-label threshold policy admitting zero, one or several labels. Applied thresholds remain explicit output provenance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# Shared integrity and property-characteristic carriers retain a single owner.
+gmeow:ModelInferenceRunIdentifierPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ModelInferenceRun identifier-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a gmeow:modelIdentifier."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "A ModelInferenceRun must declare exactly one gmeow:modelIdentifier (the model repo id) — run provenance is mandatory and single-valued." ;
+    logic:integrity logic:mipForall .
+logic:mipForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mipImpl .
+logic:mipImpl a logic:Formula ; logic:antecedent logic:mipGuard ; logic:consequent logic:mipExists .
+logic:mipGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:mipExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:mipAtom .
+logic:mipAtom a logic:Formula ; logic:relation gmeow:modelIdentifier ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:ModelInferenceRunRevisionPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ModelInferenceRun revision-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a pinned gmeow:modelRevision."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
+    logic:integrity logic:mrpForall .
+logic:mrpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mrpImpl .
+logic:mrpImpl a logic:Formula ; logic:antecedent logic:mrpGuard ; logic:consequent logic:mrpExists .
+logic:mrpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:mrpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:mrpAtom .
+logic:mrpAtom a logic:Formula ; logic:relation gmeow:modelRevision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputProducedByPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ClassifierOutput produced-by constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput is gmeow:producedBy a run."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierOutput ;
+    logic:message "An ClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
+    logic:integrity logic:opForall .
+logic:opForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:opImpl .
+logic:opImpl a logic:Formula ; logic:antecedent logic:opGuard ; logic:consequent logic:opExists .
+logic:opGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierOutput ] .
+logic:opExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:opAtom .
+logic:opAtom a logic:Formula ; logic:relation gmeow:producedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputTargetPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ClassifierOutput target-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput names a gmeow:classifiedTarget."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierOutput ;
+    logic:message "An ClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
+    logic:integrity logic:octForall .
+logic:octForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:octImpl .
+logic:octImpl a logic:Formula ; logic:antecedent logic:octGuard ; logic:consequent logic:octExists .
+logic:octGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierOutput ] .
+logic:octExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:octAtom .
+logic:octAtom a logic:Formula ; logic:relation gmeow:classifiedTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputLabelPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ClassifierOutput label-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput carries a gmeow:emittedLabel."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierOutput ;
+    logic:message "An ClassifierOutput must carry a gmeow:emittedLabel (a registered gmeow:ClassifierLabel IRI)." ;
+    logic:integrity logic:oelForall .
+logic:oelForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:oelImpl .
+logic:oelImpl a logic:Formula ; logic:antecedent logic:oelGuard ; logic:consequent logic:oelExists .
+logic:oelGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierOutput ] .
+logic:oelExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:oelAtom .
+logic:oelAtom a logic:Formula ; logic:relation gmeow:emittedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputScorePresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ClassifierOutput score-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput carries a gmeow:classifierScore."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierOutput ;
+    logic:message "An ClassifierOutput must carry a raw gmeow:classifierScore." ;
+    logic:integrity logic:oscForall .
+logic:oscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:oscImpl .
+logic:oscImpl a logic:Formula ; logic:antecedent logic:oscGuard ; logic:consequent logic:oscExists .
+logic:oscGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierOutput ] .
+logic:oscExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:oscAtom .
+logic:oscAtom a logic:Formula ; logic:relation gmeow:classifierScore ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputSemanticsPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ClassifierOutput score-semantics constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput declares a gmeow:scoreSemantics."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierOutput ;
+    logic:message "An ClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
+    logic:integrity logic:ossForall .
+logic:ossForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ossImpl .
+logic:ossImpl a logic:Formula ; logic:antecedent logic:ossGuard ; logic:consequent logic:ossExists .
+logic:ossGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierOutput ] .
+logic:ossExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:ossAtom .
+logic:ossAtom a logic:Formula ; logic:relation gmeow:scoreSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierLabelRegisteredConstraint
+    a logic:Constraint ;
+    rdfs:label "Classifier label membership constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ClassifierLabel is a gmeow:memberOfLabelSet of a label set."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierLabel ;
+    logic:message "An ClassifierLabel must belong to a gmeow:ClassifierLabelSet via gmeow:memberOfLabelSet — a label with no identified set fails canonical projection." ;
+    logic:integrity logic:lmrForall .
+logic:lmrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:lmrImpl .
+logic:lmrImpl a logic:Formula ; logic:antecedent logic:lmrGuard ; logic:consequent logic:lmrExists .
+logic:lmrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierLabel ] .
+logic:lmrExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:lmrAtom .
+logic:lmrAtom a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:ModelInferenceRunRevisionUniqueConstraint
+    a logic:Constraint ;
+    rdfs:label "ModelInferenceRun revision-unique constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun pins at most one gmeow:modelRevision."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
+    logic:integrity logic:mruForall .
+logic:mruForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] , [ logic:termIndex 2 ; logic:termVariable "b" ] ;
+    logic:forall logic:mruImpl .
+logic:mruImpl a logic:Formula ; logic:antecedent logic:mruGuard ; logic:consequent logic:mruEq .
+logic:mruGuard a logic:Formula ; logic:and logic:mruType , logic:mruA , logic:mruB .
+logic:mruType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:mruA a logic:Formula ; logic:relation gmeow:modelRevision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+logic:mruB a logic:Formula ; logic:relation gmeow:modelRevision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+logic:mruEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+
+gmeow:AffectClassifierOutputCalibrationConstraint
+    a logic:Constraint ;
+    rdfs:label "ClassifierOutput calibration constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ClassifierOutput whose gmeow:scoreSemantics is gmeow:scoreCalibratedProbability declares a gmeow:scoreCalibration."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierOutput ;
+    logic:message "A calibrated-probability output requires its declared scoreCalibration profile; calibration does not establish epistemic confidence." ;
+    logic:integrity logic:occForall .
+logic:occForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:occImpl .
+logic:occImpl a logic:Formula ; logic:antecedent logic:occGuard ; logic:consequent logic:occExists .
+logic:occGuard a logic:Formula ; logic:and logic:occType , logic:occSem .
+logic:occType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierOutput ] .
+logic:occSem a logic:Formula ; logic:relation gmeow:scoreSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scoreCalibratedProbability ] .
+logic:occExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ;
+    logic:exists logic:occAtom .
+logic:occAtom a logic:Formula ; logic:relation gmeow:scoreCalibration ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+
+gmeow:AffectDecisionRuleConsistencyConstraint
+    a logic:Constraint ;
+    rdfs:label "Classifier decision rule-consistency constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world relational integrity constraint: a gmeow:ClassifierOutput's gmeow:scoreSemantics gmeow:impliesLabelSetDecision matches its emitted label's set gmeow:labelSetDecision."@x-gmeow-english ;
+    logic:formalizes gmeow:ClassifierOutput ;
+    logic:message "A classifier output's gmeow:scoreSemantics implies a label-set decision rule (softmax → argmax, sigmoid → independent-threshold) that MUST match its emitted label's set gmeow:labelSetDecision — a softmax score over a multi-label set (or a sigmoid over an exclusive set) is an inconsistency (a hard fail)." ;
+    logic:integrity logic:drcForall .
+logic:drcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sem" ] , [ logic:termIndex 2 ; logic:termVariable "label" ] , [ logic:termIndex 3 ; logic:termVariable "implied" ] , [ logic:termIndex 4 ; logic:termVariable "set" ] , [ logic:termIndex 5 ; logic:termVariable "declared" ] ;
+    logic:forall logic:drcImpl .
+logic:drcImpl a logic:Formula ; logic:antecedent logic:drcGuard ; logic:consequent logic:drcEq .
+logic:drcGuard a logic:Formula ; logic:and logic:drcType , logic:drcSem , logic:drcLabel , logic:drcImplies , logic:drcMember , logic:drcDecision .
+logic:drcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClassifierOutput ] .
+logic:drcSem a logic:Formula ; logic:relation gmeow:scoreSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sem" ] .
+logic:drcLabel a logic:Formula ; logic:relation gmeow:emittedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "label" ] .
+logic:drcImplies a logic:Formula ; logic:relation gmeow:impliesLabelSetDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sem" ] , [ logic:termIndex 1 ; logic:termVariable "implied" ] .
+logic:drcMember a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "label" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+logic:drcDecision a logic:Formula ; logic:relation gmeow:labelSetDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "declared" ] .
+logic:drcEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "implied" ] , [ logic:termIndex 1 ; logic:termVariable "declared" ] .
+
+gmeow:modelIdentifierFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "modelIdentifier is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:modelIdentifier is functional: an inference run executes exactly one pinned model repository id, so a run naming two model ids would not identify a single reproducible execution."@x-gmeow-english ;
+    logic:characterizes gmeow:modelIdentifier ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:modelIdentifier ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:modelIdentifier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:modelIdentifier and nothing else. It is not a definition of gmeow:modelIdentifier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:modelRevisionFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "modelRevision is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:modelRevision is functional: a run pins exactly one model revision/commit — the single most drift-prone coordinate of its reproducible identity — so two revisions on one run would name two different models rather than one execution."@x-gmeow-english ;
+    logic:characterizes gmeow:modelRevision ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:modelRevision ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:modelRevision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:modelRevision and nothing else. It is not a definition of gmeow:modelRevision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:producedByFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "producedBy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:producedBy is functional: a classifier output is attributed to exactly one ModelInferenceRun execution record, so it cannot name two producing records. The record is distinct from an execution Activity."@x-gmeow-english ;
+    logic:characterizes gmeow:producedBy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:producedBy ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:producedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:producedBy and nothing else. It is not a definition of gmeow:producedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreSemanticsFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "scoreSemantics is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scoreSemantics is functional: a classifier score has exactly one declared meaning — sigmoid, softmax probability, calibrated probability, logit, or margin — because one number cannot be two of those at once without becoming uninterpretable."@x-gmeow-english ;
+    logic:characterizes gmeow:scoreSemantics ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scoreSemantics ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:scoreSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:scoreSemantics and nothing else. It is not a definition of gmeow:scoreSemantics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:labelSetDecisionFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "labelSetDecision is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:labelSetDecision ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:labelSetDecision ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:labelSetDecision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:labelSetDecision and nothing else. It is not a definition of gmeow:labelSetDecision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# Classifier typing and closed-world required paths.
+<https://blackcatinformatics.ca/gmeow/ClassifierLabel> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifierScore> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; logic:allValuesFrom logic:Thing ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ClassifierLabel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/memberOfLabelSet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifiedTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifierScore" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/emittedLabel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/producedBy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/scoreSemantics" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+gmeow:ModelInferenceRun logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:modelIdentifier ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:modelRevision ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelIdentifier" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelInferenceRun ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelRevision" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# One output is one score cell; property-characteristic carriers govern shared relations.
+gmeow:ClassifierOutput logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:emittedLabel ; logic:allValuesFrom gmeow:ClassifierLabel ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:producedBy ; logic:allValuesFrom gmeow:ModelInferenceRun ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:scoreSemantics ; logic:allValuesFrom gmeow:ScoreSemantics ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:classifiedTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:emittedLabel ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:classifierScore ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:thresholdApplied ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+gmeow:ClassifierLabel logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:memberOfLabelSet ; logic:allValuesFrom gmeow:ClassifierLabelSet ] .
+gmeow:ModelInferenceRun logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:runLabelSet ; logic:allValuesFrom gmeow:ClassifierLabelSet ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:runLabelSet ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hypothesisTemplate ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hypothesisTemplate ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:labelSetRevision ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:labelSetRevision ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+
+gmeow:RegisteredClassifierLabelSet
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Registered Classifier Label Set"@x-gmeow-english ;
+    skos:definition "A static classifier registry admitted with a reviewed decision rule, specializing ClassifierLabelSet. The required labelSetDecision applies to this class only, never to every run-scoped candidate set."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:ClassifierLabelSet ,
+        [ a logic:Restriction ; logic:onProperty gmeow:labelSetDecision ; logic:allValuesFrom gmeow:LabelSetDecisionRule ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RegisteredClassifierLabelSet ; logic:closureKey "https://blackcatinformatics.ca/gmeow/labelSetDecision" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ZeroShotTemplatePresentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Zero-shot template-present constraint"@x-gmeow-english ;
+    skos:definition "An execution record named by an output declaring scoreEntailment must preserve its exact hypothesisTemplate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "An execution record named by an output declaring scoreEntailment must preserve its exact hypothesisTemplate." ;
+    logic:integrity logic:classifierZeroTemplateForall .
+logic:classifierZeroTemplateForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "out" ] ;
+    logic:forall logic:classifierZeroTemplateImpl .
+logic:classifierZeroTemplateImpl a logic:Formula ; logic:antecedent logic:classifierZeroTemplateGuard ; logic:consequent logic:classifierZeroTemplateExists .
+logic:classifierZeroTemplateGuard a logic:Formula ; logic:and logic:classifierZeroTemplateGuard0 , logic:classifierZeroTemplateGuard1 , logic:classifierZeroTemplateGuard2 .
+logic:classifierZeroTemplateGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:classifierZeroTemplateGuard1 a logic:Formula ; logic:relation gmeow:producedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:classifierZeroTemplateGuard2 a logic:Formula ; logic:relation gmeow:scoreSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scoreEntailment ] .
+logic:classifierZeroTemplateExists a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "template" ] ; logic:exists logic:classifierZeroTemplateRequired .
+logic:classifierZeroTemplateRequired a logic:Formula ; logic:relation gmeow:hypothesisTemplate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "template" ] .
+
+gmeow:ClassifierRunLabelMembershipConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Classifier run label-membership constraint"@x-gmeow-english ;
+    skos:definition "If an execution record explicitly declares runLabelSet, every label emitted by an output attributed to that record must belong to that set."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "If an execution record explicitly declares runLabelSet, every label emitted by an output attributed to that record must belong to that set." ;
+    logic:integrity logic:classifierRunMembershipForall .
+logic:classifierRunMembershipForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] , [ logic:termIndex 2 ; logic:termVariable "out" ] , [ logic:termIndex 3 ; logic:termVariable "label" ] ;
+    logic:forall logic:classifierRunMembershipImpl .
+logic:classifierRunMembershipImpl a logic:Formula ; logic:antecedent logic:classifierRunMembershipGuard ; logic:consequent logic:classifierRunMembershipRequired .
+logic:classifierRunMembershipGuard a logic:Formula ; logic:and logic:classifierRunMembershipGuard0 , logic:classifierRunMembershipGuard1 , logic:classifierRunMembershipGuard2 , logic:classifierRunMembershipGuard3 .
+logic:classifierRunMembershipGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:classifierRunMembershipGuard1 a logic:Formula ; logic:relation gmeow:runLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+logic:classifierRunMembershipGuard2 a logic:Formula ; logic:relation gmeow:producedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:classifierRunMembershipGuard3 a logic:Formula ; logic:relation gmeow:emittedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out" ] , [ logic:termIndex 1 ; logic:termVariable "label" ] .
+logic:classifierRunMembershipRequired a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "label" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
