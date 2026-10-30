@@ -1,0 +1,978 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:QueryAnswer
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Answer"@x-gmeow-english ;
+    skos:definition "An attributed query-result information record carrying its loss ledger and independently reported information, evaluation and completeness axes. It is not automatically a logic:ReasoningResult or a claim of complete retrieval."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain what a query answered together with its declared limits."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating absent losses or reader acceptance as proof of completeness."@x-gmeow-english ;
+    gmeow:howToUse "Link queryAnswerFor and queryLossLedger; retain each supplied status on its own axis without inventing missing values."@x-gmeow-english ;
+    skos:example "ex:record a gmeow:QueryAnswer ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryLossLedger
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Loss Ledger"@x-gmeow-english ;
+    skos:definition "An information object retaining the individual losses reported for query work. An empty ledger reports no listed loss within its scope, not global completeness or an evaluated negative."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve loss identity across query answers and later composition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid rewriting acknowledged losses into an empty or successful ledger."@x-gmeow-english ;
+    gmeow:howToUse "Link the original QueryLoss records with ledgerLoss and keep their causes, affected resources and acknowledgements."@x-gmeow-english ;
+    skos:example "ex:record a gmeow:QueryLossLedger ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryLoss
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Loss"@x-gmeow-english ;
+    skos:definition "A reified report of unavailable, missing, out-of-coverage, failed-family or coarser-than-requested query input. It identifies what is concerned and its cause; it is not a projection-loss code or proof that the missing content is false."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain one identifiable retrieval limitation rather than a free-text summary alone."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using ProjectionLoss for an inaccessible query input."@x-gmeow-english ;
+    gmeow:howToUse "Supply lossConcerns and lossCause, name an affected lossConstraint when known, and retain the same loss after acknowledgement."@x-gmeow-english ;
+    skos:example "ex:record a gmeow:QueryLoss ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryLossCause
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Loss Cause"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for causes of unavailable or degraded query input. Its five seeded causes remain distinct from information-state, evaluation-status and completeness values."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a reported query-input loss."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid closing the vocabulary or deriving a verdict solely from a cause."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded cause through lossCause or add a reviewed source-specific individual."@x-gmeow-english ;
+    skos:example "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:lossValueMissing
+    a gmeow:QueryLossCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "value missing"@x-gmeow-english ;
+    skos:definition "A required or requested value was absent from the available query input. Absence is not a refutation of the requested fact."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports value missing."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading lossValueMissing as permission, truth or a successful replacement result."@x-gmeow-english ;
+    gmeow:howToUse "Attach lossValueMissing through lossCause and retain the original concerned resource."@x-gmeow-english ;
+    skos:example "ex:loss gmeow:lossCause gmeow:lossValueMissing ."@x-gmeow-english .
+
+gmeow:lossVaultLocked
+    a gmeow:QueryLossCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "vault locked"@x-gmeow-english ;
+    skos:definition "A relevant vault or protected source was locked to this query context. The loss grants no access permission."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports vault locked."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading lossVaultLocked as permission, truth or a successful replacement result."@x-gmeow-english ;
+    gmeow:howToUse "Attach lossVaultLocked through lossCause and retain the original concerned resource."@x-gmeow-english ;
+    skos:example "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."@x-gmeow-english .
+
+gmeow:lossCoverageEnds
+    a gmeow:QueryLossCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "coverage ends"@x-gmeow-english ;
+    skos:definition "Available source coverage ended before the query’s requested scope. No unsupported continuation is inferred."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports coverage ends."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading lossCoverageEnds as permission, truth or a successful replacement result."@x-gmeow-english ;
+    gmeow:howToUse "Attach lossCoverageEnds through lossCause and retain the original concerned resource."@x-gmeow-english ;
+    skos:example "ex:loss gmeow:lossCause gmeow:lossCoverageEnds ."@x-gmeow-english .
+
+gmeow:lossFamilyCouldNot
+    a gmeow:QueryLossCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "query family could not evaluate"@x-gmeow-english ;
+    skos:definition "A participating query or retrieval family could not perform its requested evaluation. This does not silently select a weaker procedure."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports query family could not evaluate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading lossFamilyCouldNot as permission, truth or a successful replacement result."@x-gmeow-english ;
+    gmeow:howToUse "Attach lossFamilyCouldNot through lossCause and retain the original concerned resource."@x-gmeow-english ;
+    skos:example "ex:loss gmeow:lossCause gmeow:lossFamilyCouldNot ."@x-gmeow-english .
+
+gmeow:lossPrecisionCoarser
+    a gmeow:QueryLossCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "precision coarser"@x-gmeow-english ;
+    skos:definition "The available input precision was coarser than requested. The ledger preserves that limitation rather than manufacturing detail."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports precision coarser."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading lossPrecisionCoarser as permission, truth or a successful replacement result."@x-gmeow-english ;
+    gmeow:howToUse "Attach lossPrecisionCoarser through lossCause and retain the original concerned resource."@x-gmeow-english ;
+    skos:example "ex:loss gmeow:lossCause gmeow:lossPrecisionCoarser ."@x-gmeow-english .
+
+gmeow:queryAnswerFor
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "answer for query"@x-gmeow-english ;
+    skos:definition "The declared query whose result this answer records, without committing a query-text language or executor."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s answer for query relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a queryAnswerFor value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual queryAnswerFor target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:queryAnswerFor ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAnswer ;
+    logic:range logic:Thing .
+
+gmeow:queryLossLedger
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query loss ledger"@x-gmeow-english ;
+    skos:definition "Relates an answer to a retained ledger of its reported retrieval limitations. Multiple source ledgers can coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s query loss ledger relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a queryLossLedger value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual queryLossLedger target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:queryLossLedger ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAnswer ;
+    logic:range gmeow:QueryLossLedger .
+
+gmeow:ledgerLoss
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "ledger loss"@x-gmeow-english ;
+    skos:definition "A particular QueryLoss retained in this ledger. Membership preserves the loss resource’s identity and acknowledgements."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s ledger loss relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a ledgerLoss value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual ledgerLoss target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:ledgerLoss ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLossLedger ;
+    logic:range gmeow:QueryLoss .
+
+gmeow:lossConcerns
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss concerns resource"@x-gmeow-english ;
+    skos:definition "The resource whose input, value, coverage or precision was unavailable or limited for this loss report."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s loss concerns resource relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a lossConcerns value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual lossConcerns target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:lossConcerns ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ;
+    logic:range logic:Thing .
+
+gmeow:lossCause
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss cause"@x-gmeow-english ;
+    skos:definition "A source-reported cause of this identifiable query loss, independently of result-status axes."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s loss cause relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a lossCause value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual lossCause target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:lossCause ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ;
+    logic:range gmeow:QueryLossCause .
+
+gmeow:lossConstraint
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "affected query constraint"@x-gmeow-english ;
+    skos:definition "The actual query constraint affected by the reported loss, when known. It need not be a logic:Constraint integrity rule."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s affected query constraint relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a lossConstraint value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual lossConstraint target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:lossConstraint ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ;
+    logic:range logic:Thing .
+
+gmeow:lossAcceptedBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss acknowledged by reader"@x-gmeow-english ;
+    skos:definition "A reader that acknowledged this reported limitation. Acknowledgement neither erases the loss nor repairs it, changes a result axis or authorizes access."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s loss acknowledged by reader relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a lossAcceptedBy value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual lossAcceptedBy target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:lossAcceptedBy ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ;
+    logic:range gmeow:Agent .
+
+gmeow:queryInformationState
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query information state"@x-gmeow-english ;
+    skos:definition "The reported information verdict about the query’s proposition, using the existing InformationState vocabulary. Undetermined and not-evaluated remain on this axis."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s query information state relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a queryInformationState value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual queryInformationState target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:queryInformationState ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAnswer ;
+    logic:range logic:InformationState .
+
+gmeow:queryEvaluationStatus
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query evaluation status"@x-gmeow-english ;
+    skos:definition "The reported computation status of this query answer, independently of what information was supported and how complete the answer is."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s query evaluation status relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a queryEvaluationStatus value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual queryEvaluationStatus target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:queryEvaluationStatus ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAnswer ;
+    logic:range logic:EvaluationStatus .
+
+gmeow:queryCompletenessStatus
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query completeness status"@x-gmeow-english ;
+    skos:definition "The reported completeness relative to the declared query scope or fragment. It is not a second home for undetermined or not-evaluated information states."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s query completeness status relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a queryCompletenessStatus value from silence or another result axis."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual queryCompletenessStatus target and preserve source attribution and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:queryCompletenessStatus ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAnswer ;
+    logic:range logic:CompletenessStatus .
+
+gmeow:QueryFrameInterpretation
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Frame Interpretation"@x-gmeow-english ;
+    skos:definition "An explicitly scoped extensional interpretation of query frames, with a declared domain of evaluation contexts and frame memberships. Completeness is an author’s assertion about that interpretation, not a runtime certificate or proof about all possible semantic models."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the exact interpretation in which frame-set equations are asserted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a finite sample as a complete interpretation of a larger undeclared domain."@x-gmeow-english ;
+    gmeow:howToUse "Name interpretationScope, retain interpretationMember entries, and assert interpretationComplete only for the declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record a gmeow:QueryFrameInterpretation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryFrameExtent
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Frame Extent"@x-gmeow-english ;
+    skos:definition "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable standpoint or scenario."@x-gmeow-english ;
+    gmeow:useWhen "Use to make component and result membership explicit within a named interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid combining extents from different interpretations or inventing members for an empty result."@x-gmeow-english ;
+    gmeow:howToUse "Bind extentInterpretation, name extentFrame when represented, and retain extentMember values inside that interpretation’s declared domain."@x-gmeow-english ;
+    skos:example "ex:record a gmeow:QueryFrameExtent ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:FrameComposition
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Frame Composition"@x-gmeow-english ;
+    skos:definition "A binary query-frame composition descriptor with explicit left and right extents and one interpretation. Freely describing a request establishes neither a result, realization, compatibility nor a usable frame."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a requested or asserted frame composition independently of its realization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a semantic meet merely from the existence of a descriptor or a refinement poset."@x-gmeow-english ;
+    gmeow:howToUse "Use a concrete composition kind, identify its interpretation and operands, and retain explicit result and realization claims only when supplied."@x-gmeow-english ;
+    skos:example "ex:record a gmeow:FrameComposition ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:StandpointMeetComposition
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Standpoint Meet Composition"@x-gmeow-english ;
+    skos:definition "A descriptor for the intersection of two standpoint precisification extents in an explicit interpretation. A represented nonempty intersection is a meet there; a partial order alone guarantees no such represented result."@x-gmeow-english ;
+    gmeow:useWhen "Use for the shared admissible precisifications of two standpoints."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading truth on an intersection as the requirement of truth throughout both original standpoints."@x-gmeow-english ;
+    gmeow:howToUse "Supply standpoint operands and an explicit result extent; a usable result additionally requires a nonempty complete-model realization claim."@x-gmeow-english ;
+    skos:example "ex:composition a gmeow:StandpointMeetComposition ."@x-gmeow-english ;
+    logic:subClassOf gmeow:FrameComposition .
+
+gmeow:StandpointTruthUnionComposition
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Both-Standpoint Truth Composition"@x-gmeow-english ;
+    skos:definition "A descriptor for the union of two standpoint precisification extents. Universal truth over that union requires truth at every context of both inputs; it is different from their meet."@x-gmeow-english ;
+    gmeow:useWhen "Use to represent the frame domain needed for a true-from-both requirement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing this union with precisification intersection or treating unknown truth as supported."@x-gmeow-english ;
+    gmeow:howToUse "Retain the two standpoint extents and the exact union result within the same interpretation."@x-gmeow-english ;
+    skos:example "ex:composition a gmeow:StandpointTruthUnionComposition ."@x-gmeow-english ;
+    logic:subClassOf gmeow:FrameComposition .
+
+gmeow:ScenarioConjunctionComposition
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Scenario Conjunction Composition"@x-gmeow-english ;
+    skos:definition "A descriptor for jointly entertaining two scenario suppositions, represented by intersection of their satisfying evaluation-context extents. It neither adopts a standpoint nor asserts alethic possibility or actuality."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a joint hypothetical scenario in one declared interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing scenario conjunction with standpoint meet or cross-type accessibility."@x-gmeow-english ;
+    gmeow:howToUse "Reference two scenario extents and retain their intersection, including an explicit empty incompatible result when applicable."@x-gmeow-english ;
+    skos:example "ex:composition a gmeow:ScenarioConjunctionComposition ."@x-gmeow-english ;
+    logic:subClassOf gmeow:FrameComposition .
+
+gmeow:interpretationScope
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "interpretation scope"@x-gmeow-english ;
+    skos:definition "The explicit scope or model contract defining the evaluation-context universe represented here."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit interpretation scope binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of interpretationScope from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported interpretationScope resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:interpretationScope ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameInterpretation ;
+    logic:range gmeow:InformationObject .
+
+gmeow:interpretationMember
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "interpretation domain member"@x-gmeow-english ;
+    skos:definition "An evaluation context in the declared interpretation domain. World typing does not assert the alethic PossibleWorld subtype."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit interpretation domain member binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of interpretationMember from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported interpretationMember resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:interpretationMember ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameInterpretation ;
+    logic:range logic:World .
+
+gmeow:extentInterpretation
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "extent interpretation"@x-gmeow-english ;
+    skos:definition "The single source interpretation in which this frame extent’s memberships are read."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit extent interpretation binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of extentInterpretation from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported extentInterpretation resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:extentInterpretation ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameExtent ;
+    logic:range gmeow:QueryFrameInterpretation .
+
+gmeow:extentFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "represented extent frame"@x-gmeow-english ;
+    skos:definition "A Standpoint or Scenario represented by the recorded extent. Empty incompatible result extents need not name a usable frame."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit represented extent frame binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of extentFrame from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported extentFrame resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:extentFrame ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameExtent ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario ) ] .
+
+gmeow:extentMember
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "extent member"@x-gmeow-english ;
+    skos:definition "An evaluation context admitted by this frame extent in its explicit interpretation. Absence is read extensionally only under that interpretation’s completeness claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit extent member binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of extentMember from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported extentMember resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:extentMember ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameExtent ;
+    logic:range logic:World .
+
+gmeow:compositionInterpretation
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "composition interpretation"@x-gmeow-english ;
+    skos:definition "The shared interpretation of this composition’s operand and result extents."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit composition interpretation binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of compositionInterpretation from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported compositionInterpretation resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:compositionInterpretation ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:FrameComposition ;
+    logic:range gmeow:QueryFrameInterpretation .
+
+gmeow:compositionLeft
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "left composition operand"@x-gmeow-english ;
+    skos:definition "The explicitly identified left frame extent; operand position is not a priority between standpoints."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit left composition operand binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of compositionLeft from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported compositionLeft resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:compositionLeft ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:FrameComposition ;
+    logic:range gmeow:QueryFrameExtent .
+
+gmeow:compositionRight
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "right composition operand"@x-gmeow-english ;
+    skos:definition "The explicitly identified right frame extent, interpreted in the same model as the left."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit right composition operand binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of compositionRight from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported compositionRight resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:compositionRight ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:FrameComposition ;
+    logic:range gmeow:QueryFrameExtent .
+
+gmeow:compositionResult
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "composition result extent"@x-gmeow-english ;
+    skos:definition "The recorded result extent, which can be empty for an incompatible composition and is not automatically a usable semantic frame."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit composition result extent binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of compositionResult from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported compositionResult resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:compositionResult ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:FrameComposition ;
+    logic:range gmeow:QueryFrameExtent .
+
+gmeow:compositionFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "usable composition frame"@x-gmeow-english ;
+    skos:definition "An explicitly asserted represented result frame within the complete declared interpretation. It requires realized, compatible and nonempty result evidence, without certifying global semantic existence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit usable composition frame binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing the target of compositionFrame from descriptor existence alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source-supported compositionFrame resource within its declared model and scope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:compositionFrame ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:FrameComposition ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario ) ] .
+
+gmeow:interpretationComplete
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "interpretation complete"@x-gmeow-english ;
+    skos:definition "A source assertion that the declared domain and recorded frame extents constitute a complete extensional interpretation for its named scope. It is not inferred from sample size."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit source interpretation complete assertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting interpretationComplete from absent members or an unevaluated descriptor."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied interpretationComplete boolean with its exact interpretation scope."@x-gmeow-english ;
+    skos:example "The source declares this interpretation complete: ex:record gmeow:interpretationComplete true ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameInterpretation ;
+    logic:range xsd:boolean .
+
+gmeow:compositionRealized
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "composition realized"@x-gmeow-english ;
+    skos:definition "An explicit source claim that this composition has a result interpreted by its declared complete model. It is not a runtime verification certificate."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit source composition realized assertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting compositionRealized from absent members or an unevaluated descriptor."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied compositionRealized boolean with its exact interpretation scope."@x-gmeow-english ;
+    skos:example "The source declares this composition realized: ex:record gmeow:compositionRealized true ."@x-gmeow-english ;
+    logic:domain gmeow:FrameComposition ;
+    logic:range xsd:boolean .
+
+gmeow:compositionCompatible
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "composition compatible"@x-gmeow-english ;
+    skos:definition "For a realized composition, whether the result extent is nonempty in the declared interpretation. False records empty incompatibility; missing remains unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit source composition compatible assertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting compositionCompatible from absent members or an unevaluated descriptor."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied compositionCompatible boolean with its exact interpretation scope."@x-gmeow-english ;
+    skos:example "The source declares this composition compatible: ex:record gmeow:compositionCompatible true ."@x-gmeow-english ;
+    logic:domain gmeow:FrameComposition ;
+    logic:range xsd:boolean .
+
+# Canonical scoped value, evidence and directional extensional obligations.
+
+gmeow:QueryAnswer logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:queryAnswerFor ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:queryLossLedger ; logic:allValuesFrom gmeow:QueryLossLedger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:queryInformationState ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( logic:InfoSupported logic:InfoOpposed logic:InfoBoth logic:InfoNeither logic:InfoUndetermined logic:InfoNotEvaluated ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:queryEvaluationStatus ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( logic:EvaluationCompleted logic:BudgetExhausted logic:EvaluationUnsupported ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:queryCompletenessStatus ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( logic:CompleteForFragment logic:Incomplete logic:CompletenessUnknown ) ] ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAnswer ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/queryAnswerFor" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAnswer ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/queryLossLedger" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:QueryLossLedger logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:ledgerLoss ; logic:allValuesFrom gmeow:QueryLoss ] .
+
+gmeow:QueryLoss logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:lossConcerns ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:lossCause ; logic:allValuesFrom gmeow:QueryLossCause ],
+    [ a logic:Restriction ; logic:onProperty gmeow:lossConstraint ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:lossAcceptedBy ; logic:allValuesFrom gmeow:Agent ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryLoss ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/lossConcerns" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryLoss ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/lossCause" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:QueryFrameInterpretation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:interpretationScope ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:interpretationMember ; logic:allValuesFrom logic:World ],
+    [ a logic:Restriction ; logic:onProperty gmeow:interpretationComplete ; logic:allValuesFrom xsd:boolean ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFrameInterpretation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/interpretationScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFrameInterpretation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/interpretationMember" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:QueryFrameExtent logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:extentInterpretation ; logic:allValuesFrom gmeow:QueryFrameInterpretation ],
+    [ a logic:Restriction ; logic:onProperty gmeow:extentFrame ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:extentMember ; logic:allValuesFrom logic:World ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFrameExtent ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/extentInterpretation" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:FrameComposition logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionInterpretation ; logic:allValuesFrom gmeow:QueryFrameInterpretation ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionLeft ; logic:allValuesFrom gmeow:QueryFrameExtent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionRight ; logic:allValuesFrom gmeow:QueryFrameExtent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionResult ; logic:allValuesFrom gmeow:QueryFrameExtent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionRealized ; logic:allValuesFrom xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionCompatible ; logic:allValuesFrom xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionFrame ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario ) ] ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:FrameComposition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/compositionInterpretation" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:FrameComposition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/compositionLeft" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:FrameComposition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/compositionRight" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:QueryAnswer logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:queryInformationState ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:queryEvaluationStatus ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:queryCompletenessStatus ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryFrameExtent logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:extentInterpretation ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:FrameComposition logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionInterpretation ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionLeft ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionRight ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionResult ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryFrameInterpretation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:interpretationComplete ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+
+gmeow:FrameComposition logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionRealized ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:compositionCompatible ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+
+gmeow:StandpointMeetComposition logic:disjointWith gmeow:StandpointTruthUnionComposition , gmeow:ScenarioConjunctionComposition .
+
+gmeow:StandpointTruthUnionComposition logic:disjointWith gmeow:ScenarioConjunctionComposition .
+
+gmeow:AcknowledgedLossLedgerConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Acknowledged loss ledger constraint"@x-gmeow-english ;
+    skos:definition "An acknowledged loss remains present as the same resource in a query loss ledger. Acknowledgement supplies no erasure or remedy."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve acknowledged loss ledger constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying AcknowledgedLossLedgerConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read AcknowledgedLossLedgerConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:AcknowledgedLossLedgerConstraint logic:formalizes gmeow:lossAcceptedBy ."@x-gmeow-english ;
+    logic:formalizes gmeow:lossAcceptedBy ;
+    logic:message "An acknowledged loss remains present as the same resource in a query loss ledger. Acknowledgement supplies no erasure or remedy." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:lossAcceptedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ledger" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "ledger" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryLossLedger ] ],
+                [ a logic:Formula ; logic:relation gmeow:ledgerLoss ; logic:argument [ logic:termIndex 0 ; logic:termVariable "ledger" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ] ] .
+
+gmeow:ExtentDomainMembershipConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Extent domain membership constraint"@x-gmeow-english ;
+    skos:definition "Every recorded extent member belongs to its explicitly identified interpretation domain."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve extent domain membership constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ExtentDomainMembershipConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read ExtentDomainMembershipConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:ExtentDomainMembershipConstraint logic:formalizes gmeow:extentMember ."@x-gmeow-english ;
+    logic:formalizes gmeow:extentMember ;
+    logic:message "Every recorded extent member belongs to its explicitly identified interpretation domain." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:extentInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:ExtentFrameCongruenceLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "extent frame congruence law"@x-gmeow-english ;
+    skos:definition "Two extent records representing the same frame in the same explicitly complete interpretation have identical members while retaining their separate record identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to require one consistent denotation for a represented frame within a complete scoped interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning different memberships to the same represented frame by creating another extent record in the same complete interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Read the universally ordered extent pairs in both directions: shared interpretation and frame require every member of either record to belong to the other."@x-gmeow-english ;
+    skos:example "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:extentFrame ;
+    logic:message "Two extent records representing the same frame in the same explicitly complete interpretation have identical members while retaining their separate record identities." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "other" ], [ logic:termIndex 2 ; logic:termVariable "model" ], [ logic:termIndex 3 ; logic:termVariable "frame" ], [ logic:termIndex 4 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:extentInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationComplete ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:CompositionOperandInterpretationConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Composition operand interpretation constraint"@x-gmeow-english ;
+    skos:definition "Both composition operands use the descriptor’s same interpretation; mixed-domain operands do not establish a composition."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve composition operand interpretation constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying CompositionOperandInterpretationConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read CompositionOperandInterpretationConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:CompositionOperandInterpretationConstraint logic:formalizes gmeow:compositionInterpretation ."@x-gmeow-english ;
+    logic:formalizes gmeow:compositionInterpretation ;
+    logic:message "Both composition operands use the descriptor’s same interpretation; mixed-domain operands do not establish a composition." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:FrameComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:extentInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ] ] ] ] .
+
+gmeow:RealizedCompositionEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Realized composition evidence constraint"@x-gmeow-english ;
+    skos:definition "A realization claim retains an explicit result and compatibility value in the same source-asserted complete interpretation. It is not an engine certificate."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve realized composition evidence constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RealizedCompositionEvidenceConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read RealizedCompositionEvidenceConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:RealizedCompositionEvidenceConstraint logic:formalizes gmeow:compositionRealized ."@x-gmeow-english ;
+    logic:formalizes gmeow:compositionRealized ;
+    logic:message "A realization claim retains an explicit result and compatibility value in the same source-asserted complete interpretation. It is not an engine certificate." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "model" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "compatible" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationComplete ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionCompatible ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "compatible" ] ] ] ] ] ] ] ] .
+
+gmeow:StandpointCompositionOperandsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Standpoint composition operands constraint"@x-gmeow-english ;
+    skos:definition "Standpoint operands name nonempty represented standpoints; the unspecified default is excluded from the sharpening order."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve standpoint composition operands constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying StandpointCompositionOperandsConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read StandpointCompositionOperandsConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:StandpointCompositionOperandsConstraint logic:formalizes gmeow:StandpointMeetComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointMeetComposition ;
+    logic:message "Standpoint operands name nonempty represented standpoints; the unspecified default is excluded from the sharpening order." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointMeetComposition ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTruthUnionComposition ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "leftFrame" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rightFrame" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "leftWitness" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rightWitness" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:extentFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightFrame" ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ],
+                [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:unspecifiedStandpoint ] ] ],
+                [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:unspecifiedStandpoint ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftWitness" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightWitness" ] ] ] ] ] ] ] ] ] .
+
+gmeow:ScenarioCompositionOperandsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Scenario composition operands constraint"@x-gmeow-english ;
+    skos:definition "Scenario conjunction operands represent scenarios rather than adopting standpoint or alethic context types."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve scenario composition operands constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ScenarioCompositionOperandsConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read ScenarioCompositionOperandsConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:ScenarioCompositionOperandsConstraint logic:formalizes gmeow:ScenarioConjunctionComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:ScenarioConjunctionComposition ;
+    logic:message "Scenario conjunction operands represent scenarios rather than adopting standpoint or alethic context types." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ScenarioConjunctionComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "leftFrame" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rightFrame" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:extentFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightFrame" ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:Scenario ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:Scenario ] ] ] ] ] ] ] .
+
+gmeow:UsableCompositionFrameConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Usable composition frame constraint"@x-gmeow-english ;
+    skos:definition "An exposed composition frame is explicitly represented by a realized compatible nonempty result. Minting a descriptor alone supplies none of this evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve usable composition frame constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying UsableCompositionFrameConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read UsableCompositionFrameConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:UsableCompositionFrameConstraint logic:formalizes gmeow:compositionFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:compositionFrame ;
+    logic:message "An exposed composition frame is explicitly represented by a realized compatible nonempty result. Minting a descriptor alone supplies none of this evidence." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:compositionFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "world" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionCompatible ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ],
+                [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointMeetComposition ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTruthUnionComposition ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ScenarioConjunctionComposition ] ] ] ] ] ] ] ] .
+
+gmeow:CompatibleCompositionNonemptyConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Compatible composition nonempty constraint"@x-gmeow-english ;
+    skos:definition "A compatible assertion requires a realized nonempty result in the declared interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve compatible composition nonempty constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying CompatibleCompositionNonemptyConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read CompatibleCompositionNonemptyConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:CompatibleCompositionNonemptyConstraint logic:formalizes gmeow:compositionCompatible ."@x-gmeow-english ;
+    logic:formalizes gmeow:compositionCompatible ;
+    logic:message "A compatible assertion requires a realized nonempty result in the declared interpretation." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:compositionCompatible ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:exists [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "world" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] ] ] ] .
+
+gmeow:IncompatibleCompositionEmptyConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Incompatible composition empty constraint"@x-gmeow-english ;
+    skos:definition "An incompatible assertion records a realized empty result, retained without a usable frame or vacuous universal-truth promotion."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve incompatible composition empty constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying IncompatibleCompositionEmptyConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read IncompatibleCompositionEmptyConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:IncompatibleCompositionEmptyConstraint logic:formalizes gmeow:compositionCompatible ."@x-gmeow-english ;
+    logic:formalizes gmeow:compositionCompatible ;
+    logic:message "An incompatible assertion records a realized empty result, retained without a usable frame or vacuous universal-truth promotion." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:compositionCompatible ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "result" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "world" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] ] ] ] ] .
+
+gmeow:StandpointCompositionResultTypeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Standpoint composition result type constraint"@x-gmeow-english ;
+    skos:definition "A usable standpoint intersection or truth-union frame remains a Standpoint rather than a Scenario."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve standpoint composition result type constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying StandpointCompositionResultTypeConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read StandpointCompositionResultTypeConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:StandpointCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:compositionFrame ;
+    logic:message "A usable standpoint intersection or truth-union frame remains a Standpoint rather than a Scenario." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointMeetComposition ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTruthUnionComposition ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ],
+                [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:unspecifiedStandpoint ] ] ] ] ] ] .
+
+gmeow:ScenarioCompositionResultTypeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Scenario composition result type constraint"@x-gmeow-english ;
+    skos:definition "A usable joint-scenario frame remains a Scenario and asserts no alethic possibility."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve scenario composition result type constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ScenarioCompositionResultTypeConstraint by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read ScenarioCompositionResultTypeConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:ScenarioCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:compositionFrame ;
+    logic:message "A usable joint-scenario frame remains a Scenario and asserts no alethic possibility." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ScenarioConjunctionComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:Scenario ] ] ] ] .
+
+gmeow:MeetResultMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "standpoint meet result membership law"@x-gmeow-english ;
+    skos:definition "Every standpoint-meet result member belongs to both operand extents in the complete declared interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve standpoint meet result membership law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying MeetResultMembershipLaw by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read MeetResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:MeetResultMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointMeetComposition ;
+    logic:message "Every result member belongs to both operand extents in the complete declared interpretation." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ], [ logic:termIndex 4 ; logic:termVariable "result" ], [ logic:termIndex 5 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointMeetComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] ] .
+
+gmeow:MeetCommonMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "standpoint meet common membership law"@x-gmeow-english ;
+    skos:definition "Every context common to both standpoint-meet operand extents belongs to that operation’s result in the complete declared interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve standpoint meet common membership law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying MeetCommonMembershipLaw by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read MeetCommonMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:MeetCommonMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointMeetComposition ;
+    logic:message "Every context common to both operand extents belongs to the result in the complete declared interpretation." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ], [ logic:termIndex 4 ; logic:termVariable "result" ], [ logic:termIndex 5 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointMeetComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:ScenarioConjunctionResultMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "scenario conjunction result membership law"@x-gmeow-english ;
+    skos:definition "Every scenario-conjunction result member belongs to both operand extents in the complete declared interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve scenario conjunction result membership law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ScenarioConjunctionResultMembershipLaw by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read ScenarioConjunctionResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:ScenarioConjunctionResultMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:ScenarioConjunctionComposition ;
+    logic:message "Every result member belongs to both operand extents in the complete declared interpretation." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ], [ logic:termIndex 4 ; logic:termVariable "result" ], [ logic:termIndex 5 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ScenarioConjunctionComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] ] .
+
+gmeow:ScenarioConjunctionCommonMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "scenario conjunction common membership law"@x-gmeow-english ;
+    skos:definition "Every context common to both scenario-conjunction operand extents belongs to that operation’s result in the complete declared interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve scenario conjunction common membership law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ScenarioConjunctionCommonMembershipLaw by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read ScenarioConjunctionCommonMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:ScenarioConjunctionCommonMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:ScenarioConjunctionComposition ;
+    logic:message "Every context common to both operand extents belongs to the result in the complete declared interpretation." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ], [ logic:termIndex 4 ; logic:termVariable "result" ], [ logic:termIndex 5 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ScenarioConjunctionComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:TruthUnionResultMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Both-standpoint union result membership law"@x-gmeow-english ;
+    skos:definition "Every union-result context belongs to at least one input extent; no additional context is admitted."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve both-standpoint union result membership law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying TruthUnionResultMembershipLaw by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read TruthUnionResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:TruthUnionResultMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointTruthUnionComposition ;
+    logic:message "Every union-result context belongs to at least one input extent; no additional context is admitted." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ], [ logic:termIndex 4 ; logic:termVariable "result" ], [ logic:termIndex 5 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTruthUnionComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] ] .
+
+gmeow:TruthUnionLeftMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Both-standpoint union left membership law"@x-gmeow-english ;
+    skos:definition "Every left operand context belongs to the union result, preserving all contexts required for universal truth in both inputs."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve both-standpoint union left membership law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying TruthUnionLeftMembershipLaw by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read TruthUnionLeftMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:TruthUnionLeftMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointTruthUnionComposition ;
+    logic:message "Every left operand context belongs to the union result, preserving all contexts required for universal truth in both inputs." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ], [ logic:termIndex 4 ; logic:termVariable "result" ], [ logic:termIndex 5 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTruthUnionComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:TruthUnionRightMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Both-standpoint union right membership law"@x-gmeow-english ;
+    skos:definition "Every right operand context belongs to the union result, preserving all contexts required for universal truth in both inputs."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve both-standpoint union right membership law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying TruthUnionRightMembershipLaw by inventing membership, scope or realization evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read TruthUnionRightMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."@x-gmeow-english ;
+    skos:example "gmeow:TruthUnionRightMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointTruthUnionComposition ;
+    logic:message "Every right operand context belongs to the union result, preserving all contexts required for universal truth in both inputs." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ], [ logic:termIndex 4 ; logic:termVariable "result" ], [ logic:termIndex 5 ; logic:termVariable "world" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTruthUnionComposition ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRealized ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionInterpretation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionLeft ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionRight ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+                [ a logic:Formula ; logic:relation gmeow:compositionResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ],
+                [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
