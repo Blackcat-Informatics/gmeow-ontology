@@ -1,0 +1,134 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/read-in-place-git/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# A fictional archive projection. Object identifiers are recorded inputs, not
+# a claim that this example recomputed Git object hashes or traversed a store.
+ex:repository a gmeow:Repository ;
+    gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:objectFormat gmeow:gitObjectFormatSha1 ;
+    gmeow:holdsObject ex:root , ex:subtree , ex:blob , ex:left , ex:right ,
+        ex:merge , ex:innerTag , ex:outerTag .
+ex:mirror a gmeow:Repository ;
+    gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:objectFormat gmeow:gitObjectFormatSha1 ;
+    gmeow:holdsObject ex:merge , ex:outerTag .
+
+ex:recorder a gmeow:Agent .
+ex:author a gmeow:Agent .
+ex:authorIdentity a gmeow:AuthorIdentity ;
+    gmeow:authorIdentityString "Nora Valdez <nora@example.org>" ;
+    gmeow:canonicalizedIdentity ex:author .
+ex:blob a gmeow:Blob ;
+    gmeow:contentDigest "git:e69de29bb2d1d6434b8b29ae775ad8c2e48c5391" .
+ex:root a gmeow:SourceTree ;
+    gmeow:contentDigest "git:1111111111111111111111111111111111111111" .
+ex:subtree a gmeow:SourceTree ;
+    gmeow:contentDigest "git:2222222222222222222222222222222222222222" .
+
+# One subtree is reused under a and b. Its entry f is one committed entry,
+# reached through two distinct paths under the same root.
+ex:a a gmeow:TreeEntry ;
+    gmeow:entryInTree ex:root ;
+    gmeow:treeEntryName "a" ; gmeow:treeEntryMode "040000" ;
+    gmeow:treeEntryObject ex:subtree .
+ex:b a gmeow:TreeEntry ;
+    gmeow:entryInTree ex:root ;
+    gmeow:treeEntryName "b" ; gmeow:treeEntryMode "040000" ;
+    gmeow:treeEntryObject ex:subtree .
+ex:f a gmeow:TreeEntry ;
+    gmeow:entryInTree ex:subtree ;
+    gmeow:treeEntryName "f" ; gmeow:treeEntryMode "100644" ;
+    gmeow:treeEntryObject ex:blob .
+ex:pathA a gmeow:TreePathOccurrence ;
+    gmeow:rootTree ex:root ; gmeow:repositoryPath "a/f" ;
+    gmeow:pathEntry ex:f .
+ex:pathB a gmeow:TreePathOccurrence ;
+    gmeow:rootTree ex:root ; gmeow:repositoryPath "b/f" ;
+    gmeow:pathEntry ex:f .
+
+ex:left a gmeow:Commit ;
+    gmeow:contentDigest "git:3333333333333333333333333333333333333333" ;
+    gmeow:commitInRepository ex:repository ;
+    gmeow:commitTree ex:root ; gmeow:authoredBy ex:author ;
+    gmeow:commitAuthorIdentity ex:authorIdentity ;
+    gmeow:commitCommitterIdentity ex:authorIdentity .
+ex:right a gmeow:Commit ;
+    gmeow:contentDigest "git:4444444444444444444444444444444444444444" ;
+    gmeow:commitInRepository ex:repository ;
+    gmeow:commitTree ex:root ; gmeow:authoredBy ex:author ;
+    gmeow:commitAuthorIdentity ex:authorIdentity ;
+    gmeow:commitCommitterIdentity ex:authorIdentity .
+ex:merge a gmeow:Commit ;
+    gmeow:contentDigest "git:5555555555555555555555555555555555555555" ;
+    gmeow:commitInRepository ex:repository ;
+    gmeow:commitTree ex:root ; gmeow:authoredBy ex:author ;
+    gmeow:commitAuthorIdentity ex:authorIdentity ;
+    gmeow:commitCommitterIdentity ex:authorIdentity ;
+    gmeow:parentCommit ex:left , ex:right ;
+    gmeow:commitParentSequence ex:parents .
+
+# Three stored parent positions preserve the repeated first target at the last
+# position. The unordered parent relation alone cannot retain this occurrence.
+ex:parents a gmeow:CommitParentSequence ;
+    gmeow:parentOccurrence ex:parent0 , ex:parent1 , ex:parent2 .
+ex:parent0 a gmeow:CommitParentOccurrence ;
+    rdf:reifies <<( ex:merge gmeow:parentCommit ex:left )>> ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:parent1 a gmeow:CommitParentOccurrence ;
+    rdf:reifies <<( ex:merge gmeow:parentCommit ex:right )>> ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+ex:parent2 a gmeow:CommitParentOccurrence ;
+    rdf:reifies <<( ex:merge gmeow:parentCommit ex:left )>> ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger .
+
+ex:checkout a gmeow:Checkout ;
+    gmeow:checkoutRepository ex:repository ;
+    gmeow:checkedOutCommit ex:merge ;
+    gmeow:recordedAt "2026-10-30T18:00:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:recorder .
+ex:scratch a gmeow:WorkingTreeEntry ;
+    gmeow:inCheckout ex:checkout ;
+    gmeow:repositoryPath "scratch.txt" ; gmeow:untracked true .
+ex:dirty a gmeow:WorkingTreeEntry ;
+    gmeow:inCheckout ex:checkout ;
+    gmeow:repositoryPath "a/f" ; gmeow:untracked false .
+ex:rawName a gmeow:WorkingTreeEntry ;
+    gmeow:inCheckout ex:checkout ;
+    gmeow:repositoryPath "FF2E747874"^^xsd:hexBinary ;
+    gmeow:untracked true .
+
+# No recorded commit is invented for a second checkout. This permits an unborn
+# view but does not infer that state merely from the absent link.
+ex:withoutRecordedCommit a gmeow:Checkout ;
+    gmeow:checkoutRepository ex:repository ;
+    gmeow:recordedAt "2026-10-30T18:05:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:recorder .
+
+# A tag object can target another tag object. Its name and tagger clock belong
+# to that object, while the tag ref is a separate observed pointer.
+ex:innerTag a gmeow:AnnotatedTag ;
+    gmeow:contentDigest "git:6666666666666666666666666666666666666666" ;
+    gmeow:tagTarget ex:merge ; gmeow:tagName "v1.0" ;
+    gmeow:taggerIdentity ex:authorIdentity ;
+    gmeow:taggerTime "2026-10-30T17:00:00Z"^^xsd:dateTime .
+ex:outerTag a gmeow:AnnotatedTag ;
+    gmeow:contentDigest "git:7777777777777777777777777777777777777777" ;
+    gmeow:tagTarget ex:innerTag ; gmeow:tagName "archive-v1.0" ;
+    gmeow:taggerIdentity ex:authorIdentity ;
+    gmeow:taggerTime "2026-10-30T17:10:00Z"^^xsd:dateTime .
+ex:tagRef a gmeow:TagRef ; gmeow:refTarget ex:outerTag ;
+    gmeow:recordedAt "2026-10-30T18:00:00Z"^^xsd:dateTime .
+ex:blobRef a gmeow:Ref ; gmeow:refTarget ex:blob .
+
+ex:project a gmeow:Project .
+ex:topic a gmeow:Tag ; rdfs:label "archive milestone"@en .
+ex:release a gmeow:Release ;
+    gmeow:releaseOf ex:project ; gmeow:releaseVersion "1.0" ;
+    gmeow:releaseRef ex:tagRef ; gmeow:releaseTag ex:topic ;
+    gmeow:eventTime "2026-10-30T17:20:00Z"^^xsd:dateTime .

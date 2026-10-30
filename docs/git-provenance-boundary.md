@@ -84,10 +84,24 @@ The mapping compiler emits SSSOM rows that bridge GMEOW terms to SH concepts:
 | `gmeow:SourceFile` | SH Content (`swh:1:cnt:`) — the named view |
 | `gmeow:SourceTree` | SH Directory (`swh:1:dir:`) |
 | `gmeow:Commit` | SH Revision (`swh:1:rev:`) |
-| `gmeow:Release` | SH Release (`swh:1:rel:`) |
+| `gmeow:AnnotatedTag` | SH Release (`swh:1:rel:`), the tagged-object artifact |
+| `gmeow:Release` | Related publishing event, not SH Release artifact identity |
 | `gmeow:Repository` | SH Origin (`swh:1:ori:`) |
 
-These are `skos:closeMatch` alignments to informal concept URIs; SH does not
+These are `skos:closeMatch` alignments to informal concept URIs, except the
+release-event overlap, which is `skos:relatedMatch`. SH does not
 yet publish a standard RDF ontology. When stable vocabularies emerge, the
 mapping-dsl source will be updated and the generated SSSOM re-rendered
 (Principle 4).
+
+## Read-in-place observations
+
+The software vocabulary can retain a repository's selected Git object format,
+ordered parent occurrences, exact paths under a committed root tree, observed
+checkout entries, reported object holdings and annotated tag objects. Those
+records do not imply an exhaustive inventory or change materializationDepth.
+Working entries are information snapshots rather than committed objects, so
+dirty or untracked files need no invented blob or digest. Exact path-byte
+admission, tuple-aware parent traversal and object hashing remain consumer
+operations. See the software slice's
+[read-in-place design](../slices/extensions/software/design/READ-IN-PLACE-GIT.md).
