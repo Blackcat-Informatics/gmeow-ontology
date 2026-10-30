@@ -3,6 +3,45 @@
 
 use super::*;
 
+/// Preserve complete metadata lines without invoking a generator or synchronizing.
+#[test]
+fn generator_metadata_preserves_complete_authored_lines() {
+    let cases = [
+        (
+            "populated",
+            gmeow_pipeline::GeneratorMetadata {
+                name: "authored é中😀\n\"\\".into(),
+                sources: vec!["z.ttl".into(), "a.ttl".into(), "z.ttl".into()],
+                outputs: vec!["generated/z".into(), "generated/a".into()],
+                dependencies: vec!["second".into(), "first".into(), "second".into()],
+                source_hash: "authored-source-identity".into(),
+            },
+        ),
+        (
+            "empty",
+            gmeow_pipeline::GeneratorMetadata {
+                name: "empty".into(),
+                sources: vec![],
+                outputs: vec![],
+                dependencies: vec![],
+                source_hash: String::new(),
+            },
+        ),
+    ];
+    let reference = include_str!("dev_sync/fixtures/generator-metadata-json-v1.txt");
+    assert_eq!(reference.lines().count(), cases.len());
+    for ((name, record), row) in cases.into_iter().zip(reference.lines()) {
+        let bytes = format!("{}\n", generator_metadata_json(&record).unwrap()).into_bytes();
+        let mut fields = row.split_whitespace();
+        assert_eq!(fields.next(), Some(name));
+        let digest = fields.next().unwrap();
+        let original = purrdf_hash::hex::decode(fields.next().unwrap()).unwrap();
+        assert!(fields.next().is_none());
+        assert_eq!(purrdf::ContentDigest::of(&bytes).to_hex(), digest, "{name}");
+        assert_eq!(bytes, original, "{name}");
+    }
+}
+
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
