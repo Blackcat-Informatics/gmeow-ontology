@@ -415,7 +415,7 @@ gmeow:TreeEntry
         logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Tree Entry"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
+    logic:subClassOf gmeow:InformationObject ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryName ;
@@ -424,12 +424,12 @@ gmeow:TreeEntry
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryMode ;
-            logic:someValuesFrom rdfs:Literal ;
+            logic:someValuesFrom xsd:string ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryObject ;
-            logic:someValuesFrom gmeow:SourceNode ;
+            logic:someValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit ) ] ;
         ] ;
     logic:subClassOf
         [
@@ -440,14 +440,14 @@ gmeow:TreeEntry
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryMode ;
-            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryObject ;
             logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
-    skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
+    skos:definition "A named pointer within a source tree, carrying a name, Git mode and content-addressed target. Regular files, executable files and symlinks target a Blob; directories target a SourceTree; gitlinks target a Commit. AnnotatedTag is never a tree-entry target. Entry identity belongs to its containing tree."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:authorIdentityString
@@ -1056,8 +1056,8 @@ gmeow:treeEntryMode
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry mode"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The git file mode of a tree entry — e.g. '100644' (regular file), '100755' (executable), '040000' (directory), '160000' (submodule), '120000' (symlink). Functional: one mode per entry."@x-gmeow-english ;
+    logic:range xsd:string ;
+    skos:definition "The recorded octal Git mode string of a tree entry, preserving its spelling and leading zeroes. Modes 100644, 100755 and 120000 require a Blob target; directory spellings 040000 and 40000 require SourceTree; gitlink mode 160000 requires Commit. Functional: one mode per entry. These kind constraints do not parse or verify an object’s bytes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:treeEntryName
@@ -1074,8 +1074,8 @@ gmeow:treeEntryObject
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry object"@x-gmeow-english ;
-    rdfs:range gmeow:SourceNode ;
-    skos:definition "The content-addressed object (Blob or SourceTree) that a tree entry points to. Functional: one object per entry."@x-gmeow-english ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit ) ] ;
+    skos:definition "The single content-addressed target of a tree entry: Blob for regular files, executables and symlinks; SourceTree for directories; Commit for gitlinks. AnnotatedTag is excluded, and Commit retains its Activity/Event sort."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:webUrl
@@ -1360,7 +1360,7 @@ gmeow:treeEntryObjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryObject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: one tree entry names exactly one target, a Blob, SourceTree or gitlink Commit according to its recorded mode. The characteristic fixes target multiplicity; the class and mode laws govern target kind."@x-gmeow-english ;
     logic:characterizes gmeow:treeEntryObject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:treeEntryObject ;
@@ -1927,3 +1927,89 @@ gmeow:TaggerTimeHasIdentityConstraint
     logic:formalizes gmeow:taggerTime ;
     logic:message "A reported tagger timestamp retains the historical identity whose header supplied it; it is not a commit author-time statement." ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "time" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:taggerTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "time" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "identity" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:taggerIdentity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "identity" ] ] ] ] ] .
+
+
+# Git object header kinds remain distinct; a tag object cannot be a tree target.
+gmeow:Blob logic:disjointWith gmeow:SourceTree , gmeow:AnnotatedTag .
+gmeow:SourceTree logic:disjointWith gmeow:AnnotatedTag .
+gmeow:TreeEntry logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:treeEntryObject ;
+      logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:treeEntryMode ; logic:allValuesFrom xsd:string ] .
+
+gmeow:TreeEntryDirectoryTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree directory target constraint"@x-gmeow-english ;
+    skos:definition "A tree entry with directory mode 040000 or 40000 targets a SourceTree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:TreeEntry , gmeow:treeEntryMode , gmeow:treeEntryObject ;
+    logic:message "A tree entry with directory mode 040000 or 40000 targets a SourceTree." ;
+    logic:integrity logic:gitTreeDirectoryForall .
+logic:gitTreeDirectoryForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:forall logic:gitTreeDirectoryImpl .
+logic:gitTreeDirectoryImpl a logic:Formula ; logic:antecedent logic:gitTreeDirectoryGuard ; logic:consequent logic:gitTreeDirectoryTarget .
+logic:gitTreeDirectoryGuard a logic:Formula ; logic:and logic:gitTreeDirectoryType , logic:gitTreeDirectoryMode , logic:gitTreeDirectoryObject .
+logic:gitTreeDirectoryType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
+logic:gitTreeDirectoryMode a logic:Formula ; logic:or logic:gitTreeDirectoryMode0 , logic:gitTreeDirectoryMode1 .
+logic:gitTreeDirectoryMode0 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "040000" ] .
+logic:gitTreeDirectoryMode1 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "40000" ] .
+logic:gitTreeDirectoryObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:gitTreeDirectoryTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SourceTree ] .
+
+gmeow:TreeEntryBlobTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree blob target constraint"@x-gmeow-english ;
+    skos:definition "A tree entry with regular-file, executable-file or symlink mode 100644, 100755 or 120000 targets a Blob."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:TreeEntry , gmeow:treeEntryMode , gmeow:treeEntryObject ;
+    logic:message "A tree entry with regular-file, executable-file or symlink mode 100644, 100755 or 120000 targets a Blob." ;
+    logic:integrity logic:gitTreeBlobForall .
+logic:gitTreeBlobForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:forall logic:gitTreeBlobImpl .
+logic:gitTreeBlobImpl a logic:Formula ; logic:antecedent logic:gitTreeBlobGuard ; logic:consequent logic:gitTreeBlobTarget .
+logic:gitTreeBlobGuard a logic:Formula ; logic:and logic:gitTreeBlobType , logic:gitTreeBlobMode , logic:gitTreeBlobObject .
+logic:gitTreeBlobType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
+logic:gitTreeBlobMode a logic:Formula ; logic:or logic:gitTreeBlobMode0 , logic:gitTreeBlobMode1 , logic:gitTreeBlobMode2 .
+logic:gitTreeBlobMode0 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100644" ] .
+logic:gitTreeBlobMode1 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100755" ] .
+logic:gitTreeBlobMode2 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "120000" ] .
+logic:gitTreeBlobObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:gitTreeBlobTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Blob ] .
+
+gmeow:TreeEntryGitlinkTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree gitlink target constraint"@x-gmeow-english ;
+    skos:definition "A tree entry with gitlink mode 160000 targets a Commit, retaining the commit\u2019s Event sort."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:TreeEntry , gmeow:treeEntryMode , gmeow:treeEntryObject ;
+    logic:message "A tree entry with gitlink mode 160000 targets a Commit, retaining the commit\u2019s Event sort." ;
+    logic:integrity logic:gitTreeGitlinkForall .
+logic:gitTreeGitlinkForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:forall logic:gitTreeGitlinkImpl .
+logic:gitTreeGitlinkImpl a logic:Formula ; logic:antecedent logic:gitTreeGitlinkGuard ; logic:consequent logic:gitTreeGitlinkTarget .
+logic:gitTreeGitlinkGuard a logic:Formula ; logic:and logic:gitTreeGitlinkType , logic:gitTreeGitlinkMode , logic:gitTreeGitlinkObject .
+logic:gitTreeGitlinkType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
+logic:gitTreeGitlinkMode a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "160000" ] .
+logic:gitTreeGitlinkObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:gitTreeGitlinkTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Commit ] .

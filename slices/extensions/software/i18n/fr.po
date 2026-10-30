@@ -19,7 +19,7 @@ msgstr "authorIdentityString est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts that authorIdentityString is functional: one AuthorIdentity carries exactly one recorded raw identity byte string from a version-control object header. The same characteristic preserves historical author, committer and tagger identities."
-msgstr "Affirme que authorIdentityString est fonctionnelle : une AuthorIdentity porte exactement une chaîne d’octets brute d’identité enregistrée dans un en-tête d’objet de version. La même caractéristique préserve les identités historiques d’auteur, de validateur et de créateur d’étiquette."
+msgstr "Affirme que authorIdentityString est fonctionnelle : une AuthorIdentity porte exactement une chaîne d’octets brute d’identité enregistrée dans un en-tête d’objet de version. La même caractéristique préserve les identités historiques d’auteur, d’agent ayant créé l’objet de commit (committer) et de créateur d’étiquette."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/buildConfigUriFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "buildConfigUri is functional"
@@ -136,10 +136,6 @@ msgstr "Affirme sur le porteur canonique que gmeow:treeEntryName est fonctionnel
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "treeEntryObject is functional"
 msgstr "treeEntryObject est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:treeEntryObject est fonctionnelle : une entrée d'arbre pointe vers exactement un objet adressé par contenu — le Blob ou SourceTree unique que nomme cette ligne de l'arbre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:authorIdentityString names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -1608,7 +1604,7 @@ msgstr "Le relevé source est régi par gmeow:TreePathSameLiteralHasSameEntryCon
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AuthorIdentity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A recorded author, committer or tagger identity in a version-control object, retaining its historical raw bytes independently of the currently canonical agent. Superseded identities remain retained rather than rewritten."
-msgstr "Identité d’auteur, de validateur ou de créateur d’étiquette enregistrée dans un objet de version, conservant les octets historiques indépendamment de l’agent canonique actuel. Les identités remplacées restent conservées plutôt que réécrites."
+msgstr "Identité d’auteur, d’agent ayant créé l’objet de commit (committer) ou de créateur d’étiquette enregistrée dans un objet de version, conservant les octets historiques indépendamment de l’agent canonique actuel. Les identités remplacées restent conservées plutôt que réécrites."
 
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Ref|http://www.w3.org/2004/02/skos/core#definition"
@@ -1623,4 +1619,55 @@ msgstr "Tag de folksonomie associé à une publication, conservant la classifica
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityString|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The raw author, committer or tagger identity bytes recorded in a version-control object header, typically Name <email>, preserved independently of canonical agent resolution."
-msgstr "Octets bruts de l’identité d’auteur, de validateur ou de créateur d’étiquette enregistrés dans un en-tête d’objet de version, généralement Name <email>, conservés indépendamment de la résolution de l’agent canonique."
+msgstr "Octets bruts de l’identité d’auteur, d’agent ayant créé l’objet de commit (committer) ou de créateur d’étiquette enregistrés dans un en-tête d’objet de version, généralement Name <email>, conservés indépendamment de la résolution de l’agent canonique."
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tree Entry"
+msgstr "Entrée d’arbre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named pointer within a source tree, carrying a name, Git mode and content-addressed target. Regular files, executable files and symlinks target a Blob; directories target a SourceTree; gitlinks target a Commit. AnnotatedTag is never a tree-entry target. Entry identity belongs to its containing tree."
+msgstr "Un pointeur nommé dans un arbre source, portant un nom, un mode Git et une cible adressée par contenu. Les fichiers ordinaires, exécutables et liens symboliques ciblent un Blob ; les répertoires un SourceTree ; les liens Git un Commit. AnnotatedTag n’est jamais une cible d’entrée d’arbre. L’identité de l’entrée appartient à son arbre contenant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree entry object"
+msgstr "objet d’entrée d’arbre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single content-addressed target of a tree entry: Blob for regular files, executables and symlinks; SourceTree for directories; Commit for gitlinks. AnnotatedTag is excluded, and Commit retains its Activity/Event sort."
+msgstr "L’unique cible adressée par contenu d’une entrée d’arbre : Blob pour les fichiers ordinaires, exécutables et liens symboliques ; SourceTree pour les répertoires ; Commit pour les liens Git. AnnotatedTag est exclu et Commit conserve sa catégorie Activity/Event."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree entry mode"
+msgstr "mode d’entrée d’arbre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: one tree entry names exactly one target, a Blob, SourceTree or gitlink Commit according to its recorded mode. The characteristic fixes target multiplicity; the class and mode laws govern target kind."
+msgstr "Affirme sur le porteur canonique que gmeow:treeEntryObject est fonctionnelle : une entrée d’arbre nomme exactement une cible, Blob, SourceTree ou Commit de lien Git selon son mode consigné. La caractéristique fixe la multiplicité des cibles ; les lois de classe et de mode régissent leur catégorie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryDirectoryTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree directory target constraint"
+msgstr "contrainte de cible de répertoire d’arbre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryDirectoryTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tree entry with directory mode 040000 or 40000 targets a SourceTree."
+msgstr "Une entrée d’arbre de mode répertoire 040000 ou 40000 cible un SourceTree."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryBlobTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree blob target constraint"
+msgstr "contrainte de cible blob d’arbre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryBlobTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tree entry with regular-file, executable-file or symlink mode 100644, 100755 or 120000 targets a Blob."
+msgstr "Une entrée d’arbre de mode fichier ordinaire, fichier exécutable ou lien symbolique 100644, 100755 ou 120000 cible un Blob."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryGitlinkTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree gitlink target constraint"
+msgstr "contrainte de cible de lien Git d’arbre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryGitlinkTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tree entry with gitlink mode 160000 targets a Commit, retaining the commit’s Event sort."
+msgstr "Une entrée d’arbre de mode lien Git 160000 cible un Commit, qui conserve sa catégorie Event."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded octal Git mode string of a tree entry, preserving its spelling and leading zeroes. Modes 100644, 100755 and 120000 require a Blob target; directory spellings 040000 and 40000 require SourceTree; gitlink mode 160000 requires Commit. Functional: one mode per entry. These kind constraints do not parse or verify an object’s bytes."
+msgstr "La chaîne octale de mode Git consignée d’une entrée d’arbre, conservant sa graphie et ses zéros initiaux. Les modes 100644, 100755 et 120000 exigent une cible Blob ; les graphies de répertoire 040000 et 40000 exigent SourceTree ; le mode de lien Git 160000 exige Commit. Fonctionnelle : un mode par entrée. Ces contraintes de catégorie n’analysent ni ne vérifient les octets d’un objet."

@@ -21,7 +21,12 @@ folksonomy Tag remains separate. Domain and range axioms preserve those sorts.
 The new holdings relation is nonfunctional. It says neither which repository
 created a commit nor which objects a ref reaches. The existing functional
 commitInRepository record is unchanged. General refTarget admits all four object
-sorts; pointsToCommit supplies its narrower direct-commit case. `releaseRef`
+sorts; pointsToCommit supplies its narrower direct-commit case. Tree entries have
+the stricter Blob/SourceTree/Commit target union: file and symlink modes target
+Blob, directory modes target SourceTree, and gitlink mode 160000 targets Commit.
+AnnotatedTag is disjoint from Blob and SourceTree and is never a tree-entry
+target. Modes retain their exact octal spelling as strings, including leading
+zeroes. Mode-family laws enforce the declared kind without parsing object bytes. `releaseRef`
 connects a release event to a VCS tag reference without changing releaseTag's
 folksonomy range.
 
