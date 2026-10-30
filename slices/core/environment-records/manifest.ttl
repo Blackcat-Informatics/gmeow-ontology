@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/environment-records>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:sliceTier gmeow:tierCore ;
+    rdfs:label "environment records"@x-gmeow-english ;
+    skos:definition "Attributed simulated-world objects, causal state inventories, provider identities, request evidence and owner-scoped disclosure circles."@x-gmeow-english ;
+    dcterms:title "GMEOW Environment Records Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Environment providers and agent memory adapters retaining exact object, request and disclosure evidence without fabricated execution."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/entities>,
+        <https://blackcatinformatics.ca/gmeow/slices/sources>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/places>,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference>,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal>,
+        <https://blackcatinformatics.ca/gmeow/slices/observations>,
+        <https://blackcatinformatics.ca/gmeow/slices/norms>,
+        <https://blackcatinformatics.ca/gmeow/slices/teleology>,
+        <https://blackcatinformatics.ca/gmeow/slices/tags>,
+        <https://blackcatinformatics.ca/gmeow/slices/organization>,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
