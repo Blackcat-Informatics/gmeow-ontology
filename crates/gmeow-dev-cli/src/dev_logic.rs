@@ -158,26 +158,39 @@ fn resolve_query(
     Ok((answers, status))
 }
 
+/// Complete compact response; the caller supplies its stdout newline.
+fn query_json(answers: &[Answer], status: &str) -> std::io::Result<String> {
+    use purrdf_lex::json::{self, Number, Object, Value};
+    let bindings = answers
+        .iter()
+        .map(|answer| {
+            let mut row = Object::new();
+            for (name, value) in &answer.vars {
+                row.insert(name.clone(), value.as_str());
+            }
+            // Preserve the existing response profile: only finite optional weights
+            // replace a binding named probability; nonfinite weights add no member.
+            if let Some(probability) = answer.probability.and_then(Number::from_f64) {
+                row.insert("probability", Value::Number(probability));
+            }
+            Value::Object(row)
+        })
+        .collect::<Vec<_>>();
+    let mut response: Value = Object::new()
+        .with("bindings", bindings)
+        .with("status", status)
+        .into();
+    json::record::sorted_last_wins(&mut response);
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    json::write_with_memory(&response, json::Format::COMPACT, &mut memory)
+        .map_err(std::io::Error::other)
+}
+
 /// Product results → stdout: a JSON `{bindings,status}` blob, or a per-answer table.
 fn render_query(answers: &[Answer], status: &str, as_json: bool) -> i32 {
     if as_json {
-        let bindings: Vec<serde_json::Value> = answers
-            .iter()
-            .map(|a| {
-                let mut row = serde_json::Map::new();
-                for (k, v) in &a.vars {
-                    row.insert(k.clone(), serde_json::Value::String(v.clone()));
-                }
-                if let Some(p) = a.probability
-                    && let Some(n) = serde_json::Number::from_f64(p)
-                {
-                    row.insert("probability".to_owned(), serde_json::Value::Number(n));
-                }
-                serde_json::Value::Object(row)
-            })
-            .collect();
-        let out = serde_json::json!({ "bindings": bindings, "status": status });
-        match serde_json::to_string(&out) {
+        match query_json(answers, status) {
             Ok(s) => println!("{s}"),
             Err(e) => return fail(format!("cannot serialize JSON: {e}")),
         }
